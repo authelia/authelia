@@ -13,8 +13,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 func TestProvisionSessionCollector(t *testing.T) {
@@ -46,6 +50,91 @@ func TestProvisionSessionCollector(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestProvisionOAuth2SessionIDCollector(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockStorage := mocks.NewMockStorage(ctrl)
+
+	config := &schema.IdentityProvidersOpenIDConnect{}
+
+	testCases := []struct {
+		Name       string
+		OIDC       *schema.IdentityProvidersOpenIDConnect
+		Repository session.Repository
+		Storage    storage.Provider
+		Expected   bool
+	}{
+		{"ShouldProvisionWithRepositoryAndStorage", config, &testSessionRepository{}, mockStorage, true},
+		{"ShouldNotProvisionWithoutRepository", config, nil, mockStorage, false},
+		{"ShouldNotProvisionWithoutStorage", config, &testSessionRepository{}, nil, false},
+		{"ShouldNotProvisionWithoutOpenIDConnect", nil, &testSessionRepository{}, mockStorage, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctx := newMockServiceCtx()
+			ctx.config.IdentityProviders.OIDC = tc.OIDC
+			ctx.providers.SessionRepository = tc.Repository
+			ctx.providers.StorageProvider = tc.Storage
+
+			service, err := ProvisionOAuth2SessionIDCollector(ctx)
+			require.NoError(t, err)
+
+			if tc.Expected {
+				require.NotNil(t, service)
+				assert.Equal(t, serviceTypeCollector, service.ServiceType())
+				assert.Equal(t, "oauth2_session_id", service.ServiceName())
+				assert.NotNil(t, service.Log())
+			} else {
+				assert.Nil(t, service)
+			}
+		})
+	}
+}
+
+func TestSessionIDLookup_GetByPublicID(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Record   session.Record
+		Err      error
+		Expected bool
+	}{
+		{"ShouldReportFoundWhenRecordExists", session.NewRecord("signature", []byte("data")), nil, true},
+		{"ShouldReportNotFoundWhenRecordAbsent", nil, nil, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			lookup := sessionIDLookup{repository: &testSessionRepository{record: tc.Record, err: tc.Err}}
+
+			found, err := lookup.GetByPublicID(context.Background(), "https://example.com", "pid")
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, found)
+		})
+	}
+
+	t.Run("ShouldPropagateRepositoryError", func(t *testing.T) {
+		expected := errors.New("connection refused")
+		lookup := sessionIDLookup{repository: &testSessionRepository{err: expected}}
+
+		found, err := lookup.GetByPublicID(context.Background(), "https://example.com", "pid")
+
+		assert.ErrorIs(t, err, expected)
+		assert.False(t, found)
+	})
+}
+
+type testSessionRepository struct {
+	session.Repository
+
+	record session.Record
+	err    error
+}
+
+func (r *testSessionRepository) GetByPublicID(_ context.Context, _, _ string) (record session.Record, err error) {
+	return r.record, r.err
 }
 
 func TestNewCollector(t *testing.T) {

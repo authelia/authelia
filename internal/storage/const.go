@@ -36,6 +36,7 @@ const (
 	tableOAuth2PARContext           = "oauth2_par_context"
 	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
 	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2SessionID            = "oauth2_session_id"
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"

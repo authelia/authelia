@@ -254,19 +254,21 @@ const (
 
 // Form Parameter strings.
 const (
-	FormParameterState        = "state"
-	FormParameterClientID     = valueClientID
-	FormParameterRequestURI   = "request_uri"
-	FormParameterRedirectURI  = "redirect_uri"
-	FormParameterResponseMode = "response_mode"
-	FormParameterResponseType = "response_type"
-	FormParameterScope        = valueScope
-	FormParameterPrompt       = "prompt"
-	FormParameterMaximumAge   = "max_age"
-	FormParameterClaims       = "claims"
-	FormParameterUserCode     = "user_code"
-	FormParameterFlowID       = "flow_id"
-	FormParameterNonce        = valueNonce
+	FormParameterState                 = "state"
+	FormParameterClientID              = valueClientID
+	FormParameterRequestURI            = "request_uri"
+	FormParameterRedirectURI           = "redirect_uri"
+	FormParameterPostLogoutRedirectURI = "post_logout_redirect_uri"
+	FormParameterResponseMode          = "response_mode"
+	FormParameterResponseType          = "response_type"
+	FormParameterScope                 = valueScope
+	FormParameterPrompt                = "prompt"
+	FormParameterMaximumAge            = "max_age"
+	FormParameterClaims                = "claims"
+	FormParameterUserCode              = "user_code"
+	FormParameterFlowID                = "flow_id"
+	FormParameterNonce                 = valueNonce
+	FormParameterIDTokenHint           = "id_token_hint"
 )
 
 // Prompt strings.
@@ -311,6 +313,7 @@ const (
 	EndpointIntrospection              = "introspection"
 	EndpointRevocation                 = "revocation"
 	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
+	EndpointEndSession                 = "end-session"
 )
 
 // Paths.
@@ -335,6 +338,7 @@ const (
 	EndpointPathRevocation                 = EndpointPathRoot + "/" + EndpointRevocation
 	EndpointPathDeviceAuthorization        = EndpointPathRoot + "/" + EndpointDeviceAuthorization
 	EndpointPathPushedAuthorizationRequest = EndpointPathRoot + "/" + EndpointPushedAuthorizationRequest
+	EndpointPathEndSession                 = EndpointPathRoot + "/" + EndpointEndSession
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

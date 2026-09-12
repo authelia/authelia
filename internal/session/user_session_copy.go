@@ -24,6 +24,12 @@ func (s UserSession) deepCopy() (session UserSession) {
 		session.TOTP = new(*s.TOTP)
 	}
 
+	if s.OpenIDConnectLogout != nil {
+		logout := *s.OpenIDConnectLogout
+
+		session.OpenIDConnectLogout = &logout
+	}
+
 	return session
 }
 

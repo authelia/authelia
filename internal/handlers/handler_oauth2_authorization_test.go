@@ -16,6 +16,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -229,9 +230,10 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
 
 		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCSessionStore(t, mock)
+		store := setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
@@ -249,6 +251,22 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		assert.NotEmpty(t, location.Query().Get("code"))
 		assert.Equal(t, "abcdefghijklmnopqrstuvwxyz", location.Query().Get("state"))
 		assert.Empty(t, location.Query().Get("error"))
+
+		codeSessions := store.Sessions[storage.OAuth2SessionTypeAuthorizeCode]
+
+		require.Len(t, codeSessions, 1)
+
+		for _, saved := range codeSessions {
+			issued := &oidc.Session{}
+
+			require.NoError(t, json.Unmarshal(saved.Session, issued))
+
+			require.NotEmpty(t, issued.GetID())
+
+			_, err = uuid.Parse(issued.GetID())
+
+			assert.NoError(t, err)
+		}
 	})
 
 	t.Run("ShouldHandleUserDetailsError", func(t *testing.T) {
@@ -421,6 +439,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
@@ -451,6 +470,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
@@ -480,6 +500,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		mock.Ctx.Request.SetRequestURI(testOIDCAuthorizationEndpoint + "?consent_id=not-a-uuid")
@@ -512,6 +533,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		subject := mustGetTestOIDCSubject(t, mock, client.ID)
@@ -561,6 +583,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		mock.StorageMock.EXPECT().

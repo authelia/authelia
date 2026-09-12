@@ -855,6 +855,254 @@ func (z *MessagePackAMR) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
+func (z *OpenIDConnectLogout) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "fid":
+			z.FlowID, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "FlowID")
+				return
+			}
+		case "cid":
+			z.ClientID, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "ClientID")
+				return
+			}
+		case "uri":
+			z.RedirectURI, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "RedirectURI")
+				return
+			}
+		case "s":
+			z.State, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "State")
+				return
+			}
+		case "exp":
+			z.Expires, err = dc.ReadTime()
+			if err != nil {
+				err = msgp.WrapError(err, "Expires")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *OpenIDConnectLogout) EncodeMsg(en *msgp.Writer) (err error) {
+	// check for omitted fields
+	zb0001Len := uint32(5)
+	var zb0001Mask uint8 /* 5 bits */
+	_ = zb0001Mask
+	if z.RedirectURI == "" {
+		zb0001Len--
+		zb0001Mask |= 0x4
+	}
+	if z.State == "" {
+		zb0001Len--
+		zb0001Mask |= 0x8
+	}
+	// variable map header, size zb0001Len
+	err = en.Append(0x80 | uint8(zb0001Len))
+	if err != nil {
+		return
+	}
+
+	// skip if no fields are to be emitted
+	if zb0001Len != 0 {
+		// write "fid"
+		err = en.Append(0xa3, 0x66, 0x69, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.FlowID)
+		if err != nil {
+			err = msgp.WrapError(err, "FlowID")
+			return
+		}
+		// write "cid"
+		err = en.Append(0xa3, 0x63, 0x69, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.ClientID)
+		if err != nil {
+			err = msgp.WrapError(err, "ClientID")
+			return
+		}
+		if (zb0001Mask & 0x4) == 0 { // if not omitted
+			// write "uri"
+			err = en.Append(0xa3, 0x75, 0x72, 0x69)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.RedirectURI)
+			if err != nil {
+				err = msgp.WrapError(err, "RedirectURI")
+				return
+			}
+		}
+		if (zb0001Mask & 0x8) == 0 { // if not omitted
+			// write "s"
+			err = en.Append(0xa1, 0x73)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.State)
+			if err != nil {
+				err = msgp.WrapError(err, "State")
+				return
+			}
+		}
+		// write "exp"
+		err = en.Append(0xa3, 0x65, 0x78, 0x70)
+		if err != nil {
+			return
+		}
+		err = en.WriteTime(z.Expires)
+		if err != nil {
+			err = msgp.WrapError(err, "Expires")
+			return
+		}
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *OpenIDConnectLogout) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// check for omitted fields
+	zb0001Len := uint32(5)
+	var zb0001Mask uint8 /* 5 bits */
+	_ = zb0001Mask
+	if z.RedirectURI == "" {
+		zb0001Len--
+		zb0001Mask |= 0x4
+	}
+	if z.State == "" {
+		zb0001Len--
+		zb0001Mask |= 0x8
+	}
+	// variable map header, size zb0001Len
+	o = append(o, 0x80|uint8(zb0001Len))
+
+	// skip if no fields are to be emitted
+	if zb0001Len != 0 {
+		// string "fid"
+		o = append(o, 0xa3, 0x66, 0x69, 0x64)
+		o = msgp.AppendString(o, z.FlowID)
+		// string "cid"
+		o = append(o, 0xa3, 0x63, 0x69, 0x64)
+		o = msgp.AppendString(o, z.ClientID)
+		if (zb0001Mask & 0x4) == 0 { // if not omitted
+			// string "uri"
+			o = append(o, 0xa3, 0x75, 0x72, 0x69)
+			o = msgp.AppendString(o, z.RedirectURI)
+		}
+		if (zb0001Mask & 0x8) == 0 { // if not omitted
+			// string "s"
+			o = append(o, 0xa1, 0x73)
+			o = msgp.AppendString(o, z.State)
+		}
+		// string "exp"
+		o = append(o, 0xa3, 0x65, 0x78, 0x70)
+		o = msgp.AppendTime(o, z.Expires)
+	}
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *OpenIDConnectLogout) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "fid":
+			z.FlowID, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "FlowID")
+				return
+			}
+		case "cid":
+			z.ClientID, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "ClientID")
+				return
+			}
+		case "uri":
+			z.RedirectURI, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "RedirectURI")
+				return
+			}
+		case "s":
+			z.State, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "State")
+				return
+			}
+		case "exp":
+			z.Expires, bts, err = msgp.ReadTimeBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Expires")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *OpenIDConnectLogout) Msgsize() (s int) {
+	s = 1 + 4 + msgp.StringPrefixSize + len(z.FlowID) + 4 + msgp.StringPrefixSize + len(z.ClientID) + 4 + msgp.StringPrefixSize + len(z.RedirectURI) + 2 + msgp.StringPrefixSize + len(z.State) + 4 + msgp.TimeSize
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
 func (z *TOTP) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
@@ -1288,6 +1536,24 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Elevations")
 				return
 			}
+		case "oidcl":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "OpenIDConnectLogout")
+					return
+				}
+				z.OpenIDConnectLogout = nil
+			} else {
+				if z.OpenIDConnectLogout == nil {
+					z.OpenIDConnectLogout = new(OpenIDConnectLogout)
+				}
+				err = z.OpenIDConnectLogout.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "OpenIDConnectLogout")
+					return
+				}
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -1302,8 +1568,8 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(13)
-	var zb0001Mask uint16 /* 13 bits */
+	zb0001Len := uint32(14)
+	var zb0001Mask uint16 /* 14 bits */
 	_ = zb0001Mask
 	if z.Username == "" {
 		zb0001Len--
@@ -1328,6 +1594,10 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 	if z.PasswordResetUsername == nil {
 		zb0001Len--
 		zb0001Mask |= 0x400
+	}
+	if z.OpenIDConnectLogout == nil {
+		zb0001Len--
+		zb0001Mask |= 0x2000
 	}
 	// variable map header, size zb0001Len
 	err = en.Append(0x80 | uint8(zb0001Len))
@@ -1541,6 +1811,25 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "Elevations")
 			return
 		}
+		if (zb0001Mask & 0x2000) == 0 { // if not omitted
+			// write "oidcl"
+			err = en.Append(0xa5, 0x6f, 0x69, 0x64, 0x63, 0x6c)
+			if err != nil {
+				return
+			}
+			if z.OpenIDConnectLogout == nil {
+				err = en.WriteNil()
+				if err != nil {
+					return
+				}
+			} else {
+				err = z.OpenIDConnectLogout.EncodeMsg(en)
+				if err != nil {
+					err = msgp.WrapError(err, "OpenIDConnectLogout")
+					return
+				}
+			}
+		}
 	}
 	return
 }
@@ -1549,8 +1838,8 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(13)
-	var zb0001Mask uint16 /* 13 bits */
+	zb0001Len := uint32(14)
+	var zb0001Mask uint16 /* 14 bits */
 	_ = zb0001Mask
 	if z.Username == "" {
 		zb0001Len--
@@ -1575,6 +1864,10 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 	if z.PasswordResetUsername == nil {
 		zb0001Len--
 		zb0001Mask |= 0x400
+	}
+	if z.OpenIDConnectLogout == nil {
+		zb0001Len--
+		zb0001Mask |= 0x2000
 	}
 	// variable map header, size zb0001Len
 	o = append(o, 0x80|uint8(zb0001Len))
@@ -1684,6 +1977,19 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 		if err != nil {
 			err = msgp.WrapError(err, "Elevations")
 			return
+		}
+		if (zb0001Mask & 0x2000) == 0 { // if not omitted
+			// string "oidcl"
+			o = append(o, 0xa5, 0x6f, 0x69, 0x64, 0x63, 0x6c)
+			if z.OpenIDConnectLogout == nil {
+				o = msgp.AppendNil(o)
+			} else {
+				o, err = z.OpenIDConnectLogout.MarshalMsg(o)
+				if err != nil {
+					err = msgp.WrapError(err, "OpenIDConnectLogout")
+					return
+				}
+			}
 		}
 	}
 	return
@@ -1858,6 +2164,23 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "Elevations")
 				return
 			}
+		case "oidcl":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.OpenIDConnectLogout = nil
+			} else {
+				if z.OpenIDConnectLogout == nil {
+					z.OpenIDConnectLogout = new(OpenIDConnectLogout)
+				}
+				bts, err = z.OpenIDConnectLogout.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "OpenIDConnectLogout")
+					return
+				}
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -1896,7 +2219,12 @@ func (z *UserSession) Msgsize() (s int) {
 	} else {
 		s += msgp.StringPrefixSize + len(*z.PasswordResetUsername)
 	}
-	s += 4 + msgp.TimeSize + 2 + z.Elevations.Msgsize()
+	s += 4 + msgp.TimeSize + 2 + z.Elevations.Msgsize() + 6
+	if z.OpenIDConnectLogout == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.OpenIDConnectLogout.Msgsize()
+	}
 	return
 }
 

@@ -49,6 +49,31 @@ type UserSession struct {
 	RefreshTTL time.Time `msg:"ttl"`
 
 	Elevations Elevations `msg:"e"`
+
+	// OpenIDConnectLogout is the validated OpenID Connect 1.0 RP-Initiated Logout request awaiting the confirmation of
+	// the End-User.
+	OpenIDConnectLogout *OpenIDConnectLogout `msg:"oidcl,omitempty"`
+}
+
+// OpenIDConnectLogout is a validated OpenID Connect 1.0 RP-Initiated Logout request. It is kept in the session rather
+// than handed to the front-end so the destination of the logout can't be altered between validation and use.
+type OpenIDConnectLogout struct {
+	// FlowID identifies the redirect from the end session endpoint which this request belongs to. The request is only
+	// presented to the End-User, or honored, when the logout page was reached through that redirect, so a logout the
+	// End-User starts themselves is never mistaken for one a Relying Party requested.
+	FlowID string `msg:"fid"`
+
+	// ClientID is the identifier of the Relying Party which requested the logout.
+	ClientID string `msg:"cid"`
+
+	// RedirectURI is the validated post_logout_redirect_uri, if the request carried one.
+	RedirectURI string `msg:"uri,omitempty"`
+
+	// State is the state parameter to return to the RedirectURI, if the request carried one.
+	State string `msg:"s,omitempty"`
+
+	// Expires is when the request lapses if it hasn't been confirmed or cancelled.
+	Expires time.Time `msg:"exp"`
 }
 
 // WebAuthn holds the standard WebAuthn session data plus some extra.

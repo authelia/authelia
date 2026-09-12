@@ -78,6 +78,26 @@ type Session struct {
 	Extra                 map[string]any  `json:"extra"`
 }
 
+// GetID returns the 'sid' claim of this session, which is empty when the session carries no session identifier.
+func (s *Session) GetID() (sid string) {
+	if s == nil || s.DefaultSession == nil || s.Claims == nil {
+		return
+	}
+
+	return s.Claims.SessionID
+}
+
+// SetID sets the 'sid' claim of this session, initializing the claims it is stored in when they are absent.
+func (s *Session) SetID(sid string) {
+	if s == nil {
+		return
+	}
+
+	InitializeSessionDefaults(s)
+
+	s.Claims.SessionID = sid
+}
+
 // GetSubject returns the subject, if set. This is optional and only used during token introspection and to determine
 // the 'sub' claim of tokens. It falls back to the client identifier for the Client Credentials Flow which has no
 // end-user. Use GetStorageSubject when persisting the subject of a session.

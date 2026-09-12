@@ -111,6 +111,7 @@ var regexpAccessResponseCreationFailed = regexp.MustCompile(`^Access Response fo
 
 type testOIDCSessionStore struct {
 	FailSaves bool
+	Sessions  map[storage.OAuth2SessionType]map[string]model.OAuth2Session
 }
 
 func mustGetTestOIDCKey(t *testing.T) *rsa.PrivateKey {
@@ -244,9 +245,9 @@ func newTestOIDCClientCredentialsClient(t *testing.T) schema.IdentityProvidersOp
 func setupTestOIDCSessionStore(t *testing.T, mock *mocks.MockAutheliaCtx) (store *testOIDCSessionStore) {
 	t.Helper()
 
-	store = &testOIDCSessionStore{}
-
 	sessions := map[storage.OAuth2SessionType]map[string]model.OAuth2Session{}
+
+	store = &testOIDCSessionStore{Sessions: sessions}
 
 	mock.StorageMock.EXPECT().
 		BeginTX(gomock.Any()).
@@ -478,6 +479,34 @@ func setupTestOIDCSubjectStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 			}
 
 			return nil, sql.ErrNoRows
+		})
+}
+
+func setupTestOIDCSessionIDStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
+	t.Helper()
+
+	records := map[string]model.OAuth2SessionID{}
+
+	mock.StorageMock.EXPECT().
+		GetOrCreateOAuth2SessionID(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, issuer, sectorID, publicID string) (record *model.OAuth2SessionID, err error) {
+			key := issuer + ":" + sectorID + ":" + publicID
+
+			if value, ok := records[key]; ok {
+				return &value, nil
+			}
+
+			value := model.OAuth2SessionID{
+				Issuer:    issuer,
+				SectorID:  sectorID,
+				PublicID:  publicID,
+				SessionID: uuid.Must(uuid.NewRandom()),
+			}
+
+			records[key] = value
+
+			return &value, nil
 		})
 }
 

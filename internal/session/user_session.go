@@ -50,7 +50,8 @@ func (s *UserSession) RequiresPersistence() bool {
 		s.WebAuthn != nil,
 		s.TOTP != nil,
 		s.PasswordResetUsername != nil,
-		s.Elevations.User != nil:
+		s.Elevations.User != nil,
+		s.OpenIDConnectLogout != nil:
 		return true
 	default:
 		return false

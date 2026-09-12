@@ -281,6 +281,7 @@ func TestOAuth2TokenPOSTErrors(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		store := setupTestOIDCSessionStore(t, mock)
@@ -315,5 +316,6 @@ func setupTestOIDCAuthorizationCodeFlow(t *testing.T, mock *mocks.MockAutheliaCt
 	setupTestOIDCSessionStore(t, mock)
 	setupTestOIDCConsentStore(t, mock)
 	setupTestOIDCSubjectStore(t, mock)
+	setupTestOIDCSessionIDStore(t, mock)
 	setupTestOIDCUserDetails(t, mock)
 }
