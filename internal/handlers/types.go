@@ -230,3 +230,10 @@ type handlerAuthorizationConsent func(
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)
+
+type bodyFlowContinueRequest struct {
+	FlowID   string `json:"flowID"`
+	Flow     string `json:"flow"`
+	SubFlow  string `json:"subflow"`
+	UserCode string `json:"userCode"`
+}
