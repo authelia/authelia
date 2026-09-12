@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useEffectEvent, useRef, useState } from "react";
 
+import { browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
@@ -38,10 +39,19 @@ const PasskeyForm = function (props: Props) {
 
     const [loading, setLoading] = useState(false);
 
-    const handleSignIn = async () => {
+    const unmountedRef = useRef(false);
+
+    const handleSignIn = async (conditionalMediation: boolean) => {
         if (loading) return;
 
+        // A conditional ceremony waits in the background for the user to pick a credential from the browser's
+        // autofill, so until they do the form must neither present itself as busy nor report failures: the user never
+        // asked for it, and the explicit button remains available to them.
+        let interactive = !conditionalMediation;
+
         const startUI = () => {
+            interactive = true;
+
             props.onAuthenticationStart();
             setLoading(true);
         };
@@ -53,15 +63,18 @@ const PasskeyForm = function (props: Props) {
 
         const fail = (message: string) => {
             stopUI();
+
+            if (!interactive) return;
+
             props.onAuthenticationError(new Error(translate(message)));
         };
 
-        startUI();
+        if (!conditionalMediation) startUI();
 
         const signal = getSignal();
 
         try {
-            const optionsStatus = await getWebAuthnPasskeyOptions(signal);
+            const optionsStatus = await getWebAuthnPasskeyOptions(signal, conditionalMediation);
 
             if (signal.aborted) return;
 
@@ -71,7 +84,7 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            const result = await getWebAuthnResult(optionsStatus.options);
+            const result = await getWebAuthnResult(optionsStatus.options, conditionalMediation);
 
             if (signal.aborted) return;
 
@@ -86,6 +99,9 @@ const PasskeyForm = function (props: Props) {
 
                 return;
             }
+
+            // The user has picked a credential, so from here the ceremony is theirs regardless of how it started.
+            if (conditionalMediation) startUI();
 
             const response = await postWebAuthnPasskeyResponse(
                 result.response,
@@ -110,13 +126,37 @@ const PasskeyForm = function (props: Props) {
         } catch (err) {
             stopUI();
 
-            if (axios.isCancel(err)) return;
+            if (axios.isCancel(err) || !interactive) return;
 
             console.error(err);
 
             props.onAuthenticationError(new Error(translate("Failed to initiate security key sign in process")));
         }
     };
+
+    const handleConditionalMediation = useEffectEvent(async () => {
+        try {
+            const supported = await browserSupportsWebAuthnAutofill();
+
+            if (unmountedRef.current || !supported) return;
+
+            await handleSignIn(true);
+        } catch (err) {
+            if (axios.isCancel(err)) return;
+
+            console.error(err);
+        }
+    });
+
+    useEffect(() => {
+        unmountedRef.current = false;
+
+        void handleConditionalMediation();
+
+        return () => {
+            unmountedRef.current = true;
+        };
+    }, []);
 
     return (
         <Fragment>
@@ -132,7 +172,7 @@ const PasskeyForm = function (props: Props) {
                     id="passkey-sign-in-button"
                     variant="default"
                     className="w-full"
-                    onClick={() => void handleSignIn()}
+                    onClick={() => void handleSignIn(false)}
                     disabled={props.disabled}
                 >
                     <PasskeyIcon />

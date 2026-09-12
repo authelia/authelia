@@ -9,7 +9,12 @@ import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyRespon
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 const mocks = vi.hoisted(() => ({
+    autofillSupported: false,
     queryParams: {} as Record<string, null | string>,
+}));
+
+vi.mock("@simplewebauthn/browser", () => ({
+    browserSupportsWebAuthnAutofill: () => Promise.resolve(mocks.autofillSupported),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -69,6 +74,7 @@ function getButton() {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mocks.autofillSupported = false;
     mocks.queryParams = {};
     vi.spyOn(console, "error").mockImplementation(() => {});
     getOptionsMock.mockResolvedValue({ options, status: 200 } as any);
@@ -106,7 +112,8 @@ describe("sign in", () => {
         await waitFor(() => expect(props.onAuthenticationSuccess).toHaveBeenCalledWith("https://example.com"));
         expect(props.onAuthenticationStart).toHaveBeenCalled();
         expect(props.onAuthenticationStop).toHaveBeenCalled();
-        expect(getResultMock).toHaveBeenCalledWith(options);
+        expect(getResultMock).toHaveBeenCalledWith(options, false);
+        expect(getOptionsMock).toHaveBeenCalledWith(expect.anything(), false);
     });
 
     it("forwards the remember me flag, redirection URL and request method", async () => {
@@ -288,5 +295,119 @@ describe("failures", () => {
         await waitFor(() => expect(props.onAuthenticationStop).toHaveBeenCalled());
         expect(props.onAuthenticationError).not.toHaveBeenCalled();
         expect(console.error).not.toHaveBeenCalled();
+    });
+});
+
+describe("conditional mediation", () => {
+    it("does not start a ceremony when the browser does not support autofill", async () => {
+        renderForm();
+
+        await waitFor(() => expect(getButton()).toBeInTheDocument());
+
+        expect(getOptionsMock).not.toHaveBeenCalled();
+    });
+
+    it("starts a conditional ceremony on mount when autofill is supported", async () => {
+        mocks.autofillSupported = true;
+
+        renderForm();
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledWith(expect.anything(), true));
+        expect(getResultMock).toHaveBeenCalledWith(options, true);
+    });
+
+    it("stays idle until the user picks a credential", async () => {
+        mocks.autofillSupported = true;
+
+        let resolve: (value: unknown) => void = () => {};
+        getResultMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { props } = renderForm();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalled());
+
+        expect(props.onAuthenticationStart).not.toHaveBeenCalled();
+
+        resolve({ response: assertionResponse, result: AssertionResult.Success });
+
+        await waitFor(() => expect(props.onAuthenticationStart).toHaveBeenCalled());
+    });
+
+    it("completes the sign in when the user picks a credential from autofill", async () => {
+        mocks.autofillSupported = true;
+
+        const { props } = renderForm();
+
+        await waitFor(() => expect(props.onAuthenticationSuccess).toHaveBeenCalledWith("https://example.com"));
+        expect(props.onAuthenticationStart).toHaveBeenCalled();
+        expect(props.onAuthenticationStop).toHaveBeenCalled();
+    });
+
+    it("forwards the remember me flag from a conditional ceremony", async () => {
+        mocks.autofillSupported = true;
+
+        renderForm({ rememberMe: true });
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalled());
+        expect(postResponseMock.mock.calls[0][1]).toBe(true);
+    });
+
+    it("stays silent when the ceremony is superseded or dismissed", async () => {
+        mocks.autofillSupported = true;
+        getResultMock.mockResolvedValue({ result: AssertionResult.FailureUserConsent } as any);
+
+        const { props } = renderForm();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalled());
+
+        expect(props.onAuthenticationError).not.toHaveBeenCalled();
+        expect(props.onAuthenticationStart).not.toHaveBeenCalled();
+        expect(postResponseMock).not.toHaveBeenCalled();
+    });
+
+    it("stays silent when the options request fails", async () => {
+        mocks.autofillSupported = true;
+        getOptionsMock.mockResolvedValue({ options: null, status: 500 } as any);
+
+        const { props } = renderForm();
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalled());
+
+        expect(props.onAuthenticationError).not.toHaveBeenCalled();
+        expect(getResultMock).not.toHaveBeenCalled();
+    });
+
+    it("stays silent when the options request throws", async () => {
+        mocks.autofillSupported = true;
+        getOptionsMock.mockRejectedValue(new Error("boom"));
+
+        const { props } = renderForm();
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalled());
+
+        expect(props.onAuthenticationError).not.toHaveBeenCalled();
+    });
+
+    it("reports a server rejection once the user has picked a credential", async () => {
+        mocks.autofillSupported = true;
+        postResponseMock.mockResolvedValue({ data: { status: "KO" }, status: 200 } as any);
+
+        const { props } = renderForm();
+
+        await waitFor(() =>
+            expect(props.onAuthenticationError).toHaveBeenCalledWith(
+                expect.objectContaining({ message: "The server rejected the security key" }),
+            ),
+        );
+    });
+
+    it("does not start a ceremony when the component unmounts first", async () => {
+        mocks.autofillSupported = true;
+
+        const { unmount } = renderForm();
+
+        unmount();
+
+        await waitFor(() => expect(getOptionsMock).not.toHaveBeenCalled());
     });
 });
