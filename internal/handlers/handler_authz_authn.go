@@ -93,6 +93,8 @@ func NewHeaderLegacyAuthnStrategy() *HeaderLegacyAuthnStrategy {
 // CookieSessionAuthnStrategy is a session cookie AuthnStrategy.
 type CookieSessionAuthnStrategy struct {
 	refresh schema.RefreshIntervalDuration
+
+	extended bool
 }
 
 // Get returns the Authn information for this AuthnStrategy.
@@ -142,16 +144,39 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 		}
 	}
 
+	if !s.extended || userSession.Username == "" {
+		return &Authn{
+			Username: friendlyUsername(userSession.Username),
+			Details: &authentication.UserDetailsExtended{
+				UserDetails: &authentication.UserDetails{
+					Username:    userSession.Username,
+					DisplayName: userSession.DisplayName,
+					Emails:      userSession.Emails,
+					Groups:      userSession.Groups,
+				},
+			},
+			Level: userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA),
+			Type:  AuthnTypeCookie,
+		}, nil
+	}
+
+	var details *authentication.UserDetailsExtended
+
+	if details, err = ctx.GetUserProvider().GetDetailsExtended(userSession.Username); err != nil {
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			ctx.GetLogger().WithField("username", userSession.Username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+
+			return authn, err
+		}
+
+		return authn, fmt.Errorf("unable to retrieve details for user '%s': %w", userSession.Username, err)
+	}
+
 	return &Authn{
 		Username: friendlyUsername(userSession.Username),
-		Details: authentication.UserDetails{
-			Username:    userSession.Username,
-			DisplayName: userSession.DisplayName,
-			Emails:      userSession.Emails,
-			Groups:      userSession.Groups,
-		},
-		Level: userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA),
-		Type:  AuthnTypeCookie,
+		Details:  details,
+		Level:    userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA),
+		Type:     AuthnTypeCookie,
 	}, nil
 }
 
@@ -180,6 +205,8 @@ type HeaderAuthnStrategy struct {
 
 	delay middlewares.Delayer
 	basic BasicAuthHandler
+
+	extended bool
 }
 
 // BasicAuthHandler is a function signature that handles basic authentication. This is used to implement caching. The
@@ -252,13 +279,13 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 		return authn, nil
 	}
 
-	var details *authentication.UserDetails
+	var details *authentication.UserDetailsExtended
 
 	switch scheme {
 	case model.AuthorizationSchemeBasic:
-		details, level, err = handleGetBasic(ctx, s.delay, authn, object, s.headerAuthorize, s.basic)
+		details, level, err = handleGetBasic(ctx, s.delay, authn, object, s.headerAuthorize, s.basic, s.extended)
 	case model.AuthorizationSchemeBearer:
-		details, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
+		details, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object, s.extended)
 	default:
 		ctx.GetLogger().
 			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
@@ -288,7 +315,7 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 		return authn, fmt.Errorf("failed to determine username from the %s header", s.headerAuthorize)
 	default:
 		authn.Username = friendlyUsername(details.Username)
-		authn.Details = *details
+		authn.Details = details
 	}
 
 	authn.Level = level
@@ -322,6 +349,8 @@ func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *Authn,
 // HeaderLegacyAuthnStrategy is a legacy header AuthnStrategy which can be switched based on the query parameters.
 type HeaderLegacyAuthnStrategy struct {
 	delay middlewares.Delayer
+
+	extended bool
 }
 
 // Get returns the Authn information for this AuthnStrategy.
@@ -373,16 +402,16 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, obj
 	}
 
 	var (
-		details *authentication.UserDetails
+		details *authentication.UserDetailsExtended
 		level   authentication.Level
 	)
 
-	if details, level, err = handleGetBasic(ctx, s.delay, authn, object, header, DefaultBasicAuthHandler); err != nil {
+	if details, level, err = handleGetBasic(ctx, s.delay, authn, object, header, DefaultBasicAuthHandler, s.extended); err != nil {
 		return authn, fmt.Errorf("failed to validate %s header with %s scheme: %w", header, scheme, err)
 	}
 
 	authn.Username = friendlyUsername(details.Username)
-	authn.Details = *details
+	authn.Details = details
 	authn.Level = level
 
 	return authn, nil
@@ -403,7 +432,7 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 }
 
-func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn, object *authorization.Object, header []byte, validate BasicAuthHandler) (details *authentication.UserDetails, level authentication.Level, err error) {
+func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn, object *authorization.Object, header []byte, validate BasicAuthHandler, extended bool) (details *authentication.UserDetailsExtended, level authentication.Level, err error) {
 	var (
 		ban           regulation.BanType
 		value         string
@@ -421,7 +450,7 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header: the username or password was empty", header)
 	}
 
-	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
+	if details, err = handleGetUserDetails(ctx, username, extended); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
 
@@ -472,9 +501,30 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 	return details, authentication.OneFactor, nil
 }
 
+// handleGetUserDetails retrieves the user details from the authentication backend. The extended value determines if the
+// extended user details are retrieved which is only necessary when the configured response headers resolve user
+// attributes which are not part of the standard user details.
+func handleGetUserDetails(ctx AuthzContext, username string, extended bool) (details *authentication.UserDetailsExtended, err error) {
+	if extended {
+		return ctx.GetUserProvider().GetDetailsExtended(username)
+	}
+
+	var basic *authentication.UserDetails
+
+	if basic, err = ctx.GetUserProvider().GetDetails(username); err != nil {
+		return nil, err
+	}
+
+	if basic == nil {
+		return nil, nil
+	}
+
+	return &authentication.UserDetailsExtended{UserDetails: basic}, nil
+}
+
 func handleAuthnCookieValidate(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
 	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
-	isAnonymous := userSession.Username == ""
+	isAnonymous := userSession.IsAnonymous()
 
 	if isAnonymous && userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
 		ctx.GetLogger().WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
@@ -578,7 +628,7 @@ func handleSessionValidateRefresh(ctx AuthzContext, userSession *session.UserSes
 	return true, false
 }
 
-func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *authorization.Object) (details *authentication.UserDetails, clientID string, ccs bool, level authentication.Level, err error) {
+func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *authorization.Object, extended bool) (details *authentication.UserDetailsExtended, clientID string, ccs bool, level authentication.Level, err error) {
 	var at bool
 
 	if at, err = oidc.IsAccessToken(ctx, authn.Header.Authorization.Value()); !at {
@@ -597,15 +647,15 @@ func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *
 		return nil, "", false, authentication.NotAuthenticated, err
 	}
 
-	return handleVerifyGETAuthorizationBearerResolveUser(ctx, username, clientID, ccs, level)
+	return handleVerifyGETAuthorizationBearerResolveUser(ctx, username, clientID, ccs, level, extended)
 }
 
-func handleVerifyGETAuthorizationBearerResolveUser(ctx AuthzContext, username, clientID string, ccs bool, level authentication.Level) (details *authentication.UserDetails, clientIDOut string, ccsOut bool, levelOut authentication.Level, err error) {
+func handleVerifyGETAuthorizationBearerResolveUser(ctx AuthzContext, username, clientID string, ccs bool, level authentication.Level, extended bool) (details *authentication.UserDetailsExtended, clientIDOut string, ccsOut bool, levelOut authentication.Level, err error) {
 	if ccs {
 		return nil, clientID, ccs, level, nil
 	}
 
-	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
+	if details, err = handleGetUserDetails(ctx, username, extended); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 		}

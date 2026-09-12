@@ -22,6 +22,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -91,11 +92,11 @@ func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
 
 	switch s.implementation {
 	case AuthzImplExtAuthz:
-		return NewAuthzBuilder().WithImplementationExtAuthz()
+		return NewAuthzBuilder().WithImplementationExtAuthz().WithEndpointHeaders(schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameExtAuthz].Headers)
 	case AuthzImplForwardAuth:
-		return NewAuthzBuilder().WithImplementationForwardAuth()
+		return NewAuthzBuilder().WithImplementationForwardAuth().WithEndpointHeaders(schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers)
 	case AuthzImplAuthRequest:
-		return NewAuthzBuilder().WithImplementationAuthRequest()
+		return NewAuthzBuilder().WithImplementationAuthRequest().WithEndpointHeaders(schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameAuthRequest].Headers)
 	case AuthzImplLegacy:
 		return NewAuthzBuilder().WithImplementationLegacy()
 	}
@@ -1567,6 +1568,111 @@ func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 	s.Equal(testUsername, string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
 	s.Equal("John Smith", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteName)))
 	s.Equal("abc,123", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteGroups)))
+}
+
+func (s *AuthzSuite) TestShouldSetHeadersFromExtendedUserAttributes() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	authz := s.Builder().WithConfig(&mock.Ctx.Configuration).WithEndpointHeaders(map[string]schema.ServerEndpointsAuthzHeader{
+		schema.HeaderRemoteUser: {UserAttribute: expression.AttributeUserUsername},
+		"Remote-Given-Name":     {UserAttribute: expression.AttributeUserGivenName},
+		"Remote-Teams":          {UserAttribute: "teams"},
+		"Remote-Employee-Id":    {UserAttribute: "employee_id"},
+		"Remote-Contractor":     {UserAttribute: "contractor"},
+		"Remote-Unknown":        {UserAttribute: "unknown"},
+	}).Build()
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	userSession.Username = testUsername
+	userSession.DisplayName = "John Smith"
+	userSession.Groups = []string{"admins", "dev"}
+	userSession.Emails = []string{"john@example.com"}
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsExtended(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetailsExtended{
+			GivenName: "John",
+			UserDetails: &authentication.UserDetails{
+				Username:    testUsername,
+				DisplayName: "John Smith",
+				Groups:      []string{"admins", "dev"},
+				Emails:      []string{"john@example.com"},
+			},
+			Extra: map[string]any{
+				"teams":       []any{"devs", "ops"},
+				"employee_id": float64(10000000),
+				"contractor":  false,
+			},
+		}, nil).Times(1)
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(testUsername, string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
+	s.Equal("John", string(mock.Ctx.Response.Header.Peek("Remote-Given-Name")))
+	s.Equal("devs,ops", string(mock.Ctx.Response.Header.Peek("Remote-Teams")))
+	s.Equal("10000000", string(mock.Ctx.Response.Header.Peek("Remote-Employee-Id")))
+	s.Equal("false", string(mock.Ctx.Response.Header.Peek("Remote-Contractor")))
+	s.Equal("", string(mock.Ctx.Response.Header.Peek("Remote-Unknown")))
+}
+
+func (s *AuthzSuite) TestShouldNotRetrieveUserDetailsWhenHeadersOnlyRequireSessionAttributes() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	authz := s.Builder().WithConfig(&mock.Ctx.Configuration).Build()
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	userSession.Username = testUsername
+	userSession.DisplayName = "John Smith"
+	userSession.Groups = []string{"admins", "dev"}
+	userSession.Emails = []string{"john@example.com"}
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	mock.UserProviderMock.EXPECT().GetDetails(gomock.Any()).Times(0)
+	mock.UserProviderMock.EXPECT().GetDetailsExtended(gomock.Any()).Times(0)
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(testUsername, string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
+	s.Equal("John Smith", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteName)))
+	s.Equal("admins,dev", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteGroups)))
+	s.Equal("john@example.com", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteEmail)))
 }
 
 func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {

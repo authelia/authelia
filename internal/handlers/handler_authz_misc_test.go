@@ -93,7 +93,7 @@ func TestHandleGetBasicShouldRejectEmptyCredentialsWithDelay(t *testing.T) {
 
 			object := authorization.NewObject(targetURL, fasthttp.MethodGet)
 
-			details, level, err := handleGetBasic(mock.Ctx, delayer, authn, &object, headerProxyAuthorization, DefaultBasicAuthHandler)
+			details, level, err := handleGetBasic(mock.Ctx, delayer, authn, &object, headerProxyAuthorization, DefaultBasicAuthHandler, false)
 
 			require.EqualError(t, err, tc.ExpectError)
 			assert.Nil(t, details)
@@ -120,8 +120,9 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 		ClientID      string
 		CCS           bool
 		Level         authentication.Level
+		Extended      bool
 		Setup         func(mock *mocks.MockAutheliaCtx)
-		ExpectDetails *authentication.UserDetails
+		ExpectDetails *authentication.UserDetailsExtended
 		ExpectError   string
 	}{
 		{
@@ -132,6 +133,7 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 			Level:    authentication.OneFactor,
 			Setup: func(mock *mocks.MockAutheliaCtx) {
 				mock.UserProviderMock.EXPECT().GetDetails(gomock.Any()).Times(0)
+				mock.UserProviderMock.EXPECT().GetDetailsExtended(gomock.Any()).Times(0)
 			},
 			ExpectDetails: nil,
 		},
@@ -142,11 +144,27 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 			CCS:      false,
 			Level:    authentication.OneFactor,
 			Setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().GetDetailsExtended(gomock.Any()).Times(0)
 				mock.UserProviderMock.EXPECT().
 					GetDetails(gomock.Eq("john")).
 					Return(&authentication.UserDetails{Username: "john"}, nil)
 			},
-			ExpectDetails: &authentication.UserDetails{Username: "john"},
+			ExpectDetails: &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Username: "john"}},
+		},
+		{
+			Name:     "ShouldResolveExtendedDetailsForUserBoundTokenWhenHeadersRequireThem",
+			Username: "john",
+			ClientID: "",
+			CCS:      false,
+			Level:    authentication.OneFactor,
+			Extended: true,
+			Setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().GetDetails(gomock.Any()).Times(0)
+				mock.UserProviderMock.EXPECT().
+					GetDetailsExtended(gomock.Eq("john")).
+					Return(&authentication.UserDetailsExtended{GivenName: "John", UserDetails: &authentication.UserDetails{Username: "john"}}, nil)
+			},
+			ExpectDetails: &authentication.UserDetailsExtended{GivenName: "John", UserDetails: &authentication.UserDetails{Username: "john"}},
 		},
 		{
 			Name:     "ShouldReturnErrorWhenGetDetailsFails",
@@ -185,7 +203,7 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 				tc.Setup(mock)
 			}
 
-			details, clientID, ccs, level, err := handleVerifyGETAuthorizationBearerResolveUser(mock.Ctx, tc.Username, tc.ClientID, tc.CCS, tc.Level)
+			details, clientID, ccs, level, err := handleVerifyGETAuthorizationBearerResolveUser(mock.Ctx, tc.Username, tc.ClientID, tc.CCS, tc.Level, tc.Extended)
 
 			if tc.ExpectError != "" {
 				require.EqualError(t, err, tc.ExpectError)
