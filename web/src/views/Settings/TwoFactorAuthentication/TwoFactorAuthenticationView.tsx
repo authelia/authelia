@@ -62,7 +62,6 @@ const TwoFactorAuthenticationView = function () {
 
     const handleRegistrationSuccess = useCallback(() => {
         if (hadDevicesBeforeRef.current === null) {
-            // userInfo hasn't resolved yet; defer the decision until it does.
             pendingRegistrationSuccessRef.current = true;
 
             return;
