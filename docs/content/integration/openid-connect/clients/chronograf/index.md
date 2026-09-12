@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
 - [Chronograf]
   - [v1.10.7](https://docs.influxdata.com/chronograf/v1/about_the_project/release-notes/#v1107)
 

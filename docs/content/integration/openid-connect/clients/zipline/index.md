@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
 - [Zipline]
   - [v4.2.3](https://github.com/diced/zipline/releases/tag/v4.2.3)
 

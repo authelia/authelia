@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
 - [BookLore]
   - [v1.5.1](https://github.com/booklore-app/booklore/releases/tag/v1.5.1)
 
