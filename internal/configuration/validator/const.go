@@ -67,6 +67,10 @@ const (
 	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
 	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
+	errFmtNotifierDisabledWithProvider = "notifier: option 'disable' can't be enabled at the same time as the " +
+		"'smtp' or 'filesystem' notifier is configured"
+	errFmtNotifierDisabledWithoutWebhooks = "notifier: option 'disable' requires at least one webhook destination " +
+		"to be configured via the 'webhooks' section"
 	errFmtNotifierTemplatePathNotExist            = "notifier: option 'template_path' refers to location '%s' which does not exist"
 	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
@@ -492,6 +496,34 @@ const (
 	errFmtIdentityValidationResetPasswordJWTAlgorithm      = "identity_validation: reset_password: option 'jwt_algorithm' must be one of %s but it's configured as '%s'"
 	errFmtIdentityValidationResetPasswordJWTSecret         = "identity_validation: reset_password: option 'jwt_secret' is required when the reset password functionality isn't disabled"
 	errFmtIdentityValidationElevatedSessionCharacterLength = "identity_validation: elevated_session: option 'characters' must be 20 or less but it's configured as %d"
+)
+
+const (
+	errFmtWebhooksDestinationNameRequired     = "webhooks: destinations: destination #%d: option 'name' is required"
+	errFmtWebhooksDestinationNameDuplicate    = "webhooks: destinations: destination '%s': option 'name' must be unique"
+	errFmtWebhooksDestinationAddressRequired  = "webhooks: destinations: destination '%s': option 'address' is required"
+	errFmtWebhooksDestinationAddressScheme    = "webhooks: destinations: destination '%s': option 'address' with value '%s' is invalid: the scheme must be 'https' but it's configured as '%s'"
+	errFmtWebhooksDestinationAddressUserInfo  = "webhooks: destinations: destination '%s': option 'address' with value '%s' is invalid: it must not contain user information"
+	errFmtWebhooksDestinationAddressHost      = "webhooks: destinations: destination '%s': option 'address' with value '%s' is invalid: it must have a host"
+	errFmtWebhooksDestinationAddressFragment  = "webhooks: destinations: destination '%s': option 'address' with value '%s' is invalid: it must not contain a fragment"
+	errFmtWebhooksDestinationEventsRequired   = "webhooks: destinations: destination '%s': option 'events' is required"
+	errFmtWebhooksDestinationEventsUnknown    = "webhooks: destinations: destination '%s': option 'events' with value '%s' is invalid: it doesn't match any known event type"
+	errFmtWebhooksDestinationAuthMultiple     = "webhooks: destinations: destination '%s': authentication: please ensure only one of the 'bearer' or 'basic' authentication methods is configured"
+	errFmtWebhooksDestinationAuthBearerToken  = "webhooks: destinations: destination '%s': authentication: bearer: option 'token' is required"
+	errFmtWebhooksDestinationAuthBasicOption  = "webhooks: destinations: destination '%s': authentication: basic: option '%s' is required"
+	errFmtWebhooksDestinationSignatureAlg     = "webhooks: destinations: destination '%s': signature: option 'algorithm' must be one of 'sha256' or 'sha512' but it's configured as '%s'"
+	errFmtWebhooksDestinationHeaderReserved   = "webhooks: destinations: destination '%s': option 'headers' must not contain the reserved header '%s'"
+	errFmtWebhooksDestinationHeaderName       = "webhooks: destinations: destination '%s': option 'headers' must not contain the header name '%s' as it's not a valid HTTP header name"
+	errFmtWebhooksDestinationHeaderValue      = "webhooks: destinations: destination '%s': option 'headers' must not contain the value for header '%s' as it's not a valid HTTP header value"
+	errFmtWebhooksDestinationAuthBearerName   = "webhooks: destinations: destination '%s': authentication: bearer: option 'header' with value '%s' is invalid: it's not a valid HTTP header name"
+	errFmtWebhooksDestinationAuthBearerValue  = "webhooks: destinations: destination '%s': authentication: bearer: the assembled value of options 'scheme' and 'token' is not a valid HTTP header value"
+	errFmtWebhooksDestinationBufferSize       = "webhooks: destinations: destination '%s': option 'buffer_size' must be greater than 0 but it's configured as '%d'"
+	errFmtWebhooksDestinationRetryAttempts    = "webhooks: destinations: destination '%s': retry: option 'attempts' must be greater than 0 but it's configured as '%d'"
+	errFmtWebhooksDestinationBatchSize        = "webhooks: destinations: destination '%s': batch: option 'size' must not be negative but it's configured as '%d'"
+	errFmtWebhooksDestinationBatchSizeBuffer  = "webhooks: destinations: destination '%s': batch: option 'size' must not be greater than option 'buffer_size' which is '%d' but it's configured as '%d'"
+	errFmtWebhooksDestinationBatchImmediate   = "webhooks: destinations: destination '%s': batch: option 'immediate' with value '%s' is invalid: it doesn't match any known event type"
+	errFmtWebhooksDestinationValidationOrigin = "webhooks: destinations: destination '%s': validation: option 'origin' is required when option 'force_origin' is enabled"
+	errFmtWebhooksDestinationValidationRate   = "webhooks: destinations: destination '%s': validation: option 'rate' must not be negative but it's configured as '%d'"
 )
 
 const (

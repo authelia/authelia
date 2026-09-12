@@ -6,9 +6,12 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"net/mail"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
@@ -115,14 +118,6 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if len(userInfo.Emails) == 0 {
-		ctx.GetLogger().WithFields(map[string]any{"username": username}).
-			Debug("user has no email address configured")
-		ctx.ReplyOK()
-
-		return
-	}
-
 	data := templates.EmailEventValues{
 		Title:       "Password changed successfully",
 		DisplayName: userInfo.DisplayName,
@@ -135,15 +130,51 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		BodySuffix: eventEmailActionPasswordModifySuffix,
 	}
 
-	addresses := userInfo.Addresses()
+	// The password changed whether or not the user can be emailed about it, so both paths fall through to a single
+	// emission which records why no notification was sent. Returning early without emitting would hide the change from
+	// an administrator for exactly the users who cannot be notified themselves.
+	var addresses []mail.Address
 
-	ctx.GetLogger().WithFields(map[string]any{
-		"username": username,
-		"email":    addresses[0].String(),
-	}).
-		Debug("Sending an email to inform user that their password has changed.")
+	notified := len(userInfo.Emails) != 0
 
-	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
+	if !notified {
+		err = fmt.Errorf("user has no email address configured")
+
+		ctx.GetLogger().WithFields(map[string]any{"username": username}).
+			Debug("user has no email address configured")
+	} else {
+		addresses = userInfo.Addresses()
+
+		ctx.GetLogger().WithFields(map[string]any{
+			"username": username,
+			"email":    addresses[0].String(),
+		}).
+			Debug("Sending an email to inform user that their password has changed.")
+
+		err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data)
+	}
+
+	ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserPassword{
+		Type:        events.TypeUserPasswordChanged,
+		Username:    username,
+		DisplayName: userInfo.DisplayName,
+		Emails:      userInfo.Emails,
+		RemoteIP:    ctx.RemoteIP().String(),
+		Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, data.Title, recipientsFromDetails(username, userInfo), &events.NotificationValues{
+			BodyPrefix: data.BodyPrefix,
+			BodyEvent:  data.BodyEvent,
+			BodySuffix: data.BodySuffix,
+			Details:    data.Details,
+		}),
+	}))
+
+	if !notified {
+		ctx.ReplyOK()
+
+		return
+	}
+
+	if err != nil {
 		ctx.GetLogger().WithError(err).
 			WithFields(map[string]any{
 				"username": username,

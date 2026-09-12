@@ -23,6 +23,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -679,6 +680,11 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 	}
 
 	ctx.Providers.Metrics.RecordAuthn(success, regulated, method)
+}
+
+// EmitEvent emits an event using the request as the context. For use with interface fulfillment.
+func (ctx *AutheliaCtx) EmitEvent(event *events.Event) {
+	ctx.Providers.Events.Emit(ctx, event)
 }
 
 // GetClock returns the clock. For use with interface fulfillment.
