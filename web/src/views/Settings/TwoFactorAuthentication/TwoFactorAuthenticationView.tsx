@@ -40,7 +40,6 @@ const TwoFactorAuthenticationView = function () {
 
     const [redirectDialogOpen, setRedirectDialogOpen] = useState(false);
     const hadDevicesBeforeRef = useRef<boolean | null>(null);
-    // Set when a registration succeeds before hadDevicesBeforeRef is known, so it can be replayed once userInfo resolves.
     const pendingRegistrationSuccessRef = useRef(false);
 
     // Track whether the user had any MFA devices when the view first loaded.
