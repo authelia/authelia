@@ -39,6 +39,7 @@ export const ResetPasswordPath = basePath + "/api/reset-password";
 export const ChecksSafeRedirectionPath = basePath + "/api/checks/safe-redirection";
 
 export const LogoutPath = basePath + "/api/logout";
+export const FlowContinuePath = basePath + "/api/flow/continue";
 export const StatePath = basePath + "/api/state";
 export const UserInfoPath = basePath + "/api/user/info";
 export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";

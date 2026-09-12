@@ -18,12 +18,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// OAuth2AuthorizationGET handles GET/POST requests to the OpenID Connect 1.0 Authorization endpoint.
+const maxBytesOAuth2AuthorizationRequestBody = 10 << 20
+
+// OAuth2Authorization handles GET and POST requests to the OpenID Connect 1.0 Authorization endpoint.
 //
 // https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 //
 //nolint:gocyclo
-func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+func OAuth2Authorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		issuer    *url.URL
 		responder oauthelia2.AuthorizeResponder
@@ -33,6 +35,10 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	)
 
 	var requester oauthelia2.AuthorizeRequester = oauthelia2.NewAuthorizeRequest()
+
+	if r.Method == http.MethodPost {
+		r.Body = http.MaxBytesReader(rw, r.Body, maxBytesOAuth2AuthorizationRequestBody)
+	}
 
 	if issuer, err = ctx.IssuerURL(); err != nil {
 		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
@@ -181,48 +187,4 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	}
 
 	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
-}
-
-// OAuth2AuthorizationPOST handles redirecting users to use the GET request to ensure the session cookie is
-// included if available. The redirection uses the 303 status code as it's the only status code which
-// unambiguously instructs the user-agent to rewrite the request method to GET, and per the FAPI 2.0 Security
-// Profile Section 5.3.2.2 the authorization server should use 303 when redirecting the user-agent.
-//
-// https://openid.net/specs/fapi-security-profile-2_0-final.html
-func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
-	requester := oauthelia2.NewAuthorizeRequest()
-
-	var (
-		redirectURL *url.URL
-		err         error
-	)
-
-	if redirectURL, err = ctx.IssuerURL(); err != nil {
-		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
-
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' could not be processed: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(rfc))
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, rfc)
-
-		return
-	}
-
-	r.Body = http.MaxBytesReader(rw, r.Body, 10<<20)
-
-	//nolint:gosec // G120 FALSE positive: bounded by MaxBytesReader on r.Body above.
-	if err = r.ParseMultipartForm(5 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' had an error parsing a multipart form.", requester.GetID())
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
-
-		return
-	}
-
-	query := r.Form
-
-	redirectURL = redirectURL.JoinPath(oidc.EndpointPathAuthorization)
-
-	redirectURL.RawQuery = query.Encode()
-
-	http.Redirect(rw, r, redirectURL.String(), http.StatusSeeOther)
 }

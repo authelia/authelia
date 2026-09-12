@@ -11,12 +11,15 @@ import { useConfiguration } from "@hooks/Configuration";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
+import { SecondFactorMethod } from "@models/Methods";
+import { postFlowContinue } from "@services/Flow";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 
 const mocks = vi.hoisted(() => ({
     fetchState: vi.fn(),
     fetchUserInfo: vi.fn(),
+    flow: undefined as { flow?: string; id?: string; subflow?: string } | undefined,
     redirectionURL: null as null | string,
     redirector: vi.fn(),
 }));
@@ -69,6 +72,14 @@ vi.mock("@hooks/UserInfo", () => ({
 
 vi.mock("@services/SafeRedirection", () => ({
     checkSafeRedirection: vi.fn(),
+}));
+
+vi.mock("@hooks/Flow", () => ({
+    useFlow: () => mocks.flow ?? {},
+}));
+
+vi.mock("@services/Flow", () => ({
+    postFlowContinue: vi.fn(),
 }));
 
 vi.mock("@views/LoadingPage/LoadingPage", () => ({
@@ -141,6 +152,8 @@ beforeEach(() => {
     vi.mocked(useConfiguration).mockReturnValue([undefined, vi.fn(), false, undefined]);
     vi.mocked(useUserInfoPOST).mockReturnValue([undefined, mocks.fetchUserInfo, false, undefined]);
     mocks.redirectionURL = null;
+    mocks.flow = undefined;
+    vi.mocked(postFlowContinue).mockReset();
     mocks.redirector.mockClear();
     mocks.fetchState.mockClear();
     mocks.fetchUserInfo.mockClear();
@@ -726,5 +739,75 @@ describe("authenticated route", () => {
         await act(async () => {});
 
         expect(screen.queryByTestId("authenticated-view")).not.toBeInTheDocument();
+    });
+});
+
+describe("flow continuation for an already authenticated user", () => {
+    const stateTwoFactor = { authentication_level: 2, factor_knowledge: true, username: "test" };
+    const configurationNoMethods = {
+        available_methods: new Set<SecondFactorMethod>(),
+        password_change_disabled: false,
+        password_reset_disabled: false,
+    };
+    const userInfo = {
+        display_name: "test",
+        emails: [],
+        has_duo: false,
+        has_totp: false,
+        has_webauthn: false,
+        method: 1,
+    };
+
+    const renderAuthenticated = () => {
+        vi.mocked(useAutheliaState).mockReturnValue([stateTwoFactor, vi.fn(), false, undefined]);
+        vi.mocked(useConfiguration).mockReturnValue([configurationNoMethods, vi.fn(), false, undefined]);
+        vi.mocked(useUserInfoPOST).mockReturnValue([userInfo, vi.fn(), false, undefined]);
+
+        render(
+            <MemoryRouter>
+                <LoginPortal {...defaultProps} />
+            </MemoryRouter>,
+        );
+    };
+
+    it("redirects to the target returned by the backend instead of stranding the flow", async () => {
+        mocks.flow = { flow: "openid_connect", id: "abc-123", subflow: undefined };
+        vi.mocked(postFlowContinue).mockResolvedValue({
+            redirect: "https://auth.example.com/api/oidc/authorization?consent_id=abc-123",
+        });
+
+        renderAuthenticated();
+
+        await waitFor(() => {
+            expect(mocks.redirector).toHaveBeenCalledWith(
+                "https://auth.example.com/api/oidc/authorization?consent_id=abc-123",
+            );
+        });
+
+        expect(postFlowContinue).toHaveBeenCalledWith("abc-123", "openid_connect", undefined, undefined);
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("falls through to normal navigation when the backend returns no redirect", async () => {
+        mocks.flow = { flow: "openid_connect", id: "abc-123", subflow: undefined };
+        vi.mocked(postFlowContinue).mockResolvedValue({} as any);
+
+        renderAuthenticated();
+
+        await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith("/authenticated", false);
+        });
+
+        expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
+    it("does not call the flow endpoint when no flow is present", async () => {
+        renderAuthenticated();
+
+        await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith("/authenticated", false);
+        });
+
+        expect(postFlowContinue).not.toHaveBeenCalled();
     });
 });

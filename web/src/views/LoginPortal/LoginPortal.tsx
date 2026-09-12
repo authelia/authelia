@@ -20,12 +20,14 @@ import { RedirectionURL } from "@constants/SearchParams";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
+import { useFlow } from "@hooks/Flow";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useRedirector } from "@hooks/Redirector";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
+import { postFlowContinue } from "@services/Flow";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
@@ -48,6 +50,7 @@ const RedirectionErrorMessage =
 const LoginPortal = function (props: Props) {
     const location = useLocation();
     const redirectionURL = useQueryParam(RedirectionURL);
+    const { flow, id: flowID, subflow } = useFlow();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
     const [broadcastRedirect, setBroadcastRedirect] = useState(false);
@@ -119,6 +122,26 @@ const LoginPortal = function (props: Props) {
         return true;
     }, [redirectionURL, configuration, state, broadcastRedirect, redirector, createErrorNotification, translate]);
 
+    const handleFlowContinuation = useCallback(async () => {
+        if (!flow || !state || state.authentication_level === AuthenticationLevel.Unauthenticated) {
+            return false;
+        }
+
+        try {
+            const res = await postFlowContinue(flowID, flow, subflow, undefined);
+
+            if (res?.redirect) {
+                redirector(res.redirect);
+
+                return true;
+            }
+        } catch (err) {
+            console.error(`Unable to continue the ${flow} flow: ${(err as Error).message}`);
+        }
+
+        return false;
+    }, [flow, flowID, subflow, state, redirector]);
+
     const handleAuthenticationNavigation = useCallback(() => {
         if (state!.authentication_level === AuthenticationLevel.Unauthenticated) {
             setFirstFactorDisabled(false);
@@ -153,6 +176,12 @@ const LoginPortal = function (props: Props) {
                 return;
             }
 
+            const continued = await handleFlowContinuation();
+
+            if (continued) {
+                return;
+            }
+
             handleAuthenticationNavigation();
         })();
     }, [
@@ -169,6 +198,7 @@ const LoginPortal = function (props: Props) {
         translate,
         handleAuthenticationNavigation,
         handleRedirection,
+        handleFlowContinuation,
     ]);
 
     const handleChannelStateChange = async () => {

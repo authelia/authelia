@@ -30,7 +30,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func TestOAuth2AuthorizationGET(t *testing.T) {
+func TestOAuth2Authorization(t *testing.T) {
 	t.Run("ShouldHandleBadIssuer", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
@@ -42,7 +42,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
 		require.NotPanics(t, func() {
-			OAuth2AuthorizationGET(mock.Ctx, rw, r)
+			OAuth2Authorization(mock.Ctx, rw, r)
 		})
 
 		assert.Empty(t, rw.Header().Get(fasthttp.HeaderLocation))
@@ -61,7 +61,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -89,7 +89,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -114,7 +114,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -145,7 +145,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -179,7 +179,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
 
@@ -203,7 +203,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -235,7 +235,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -267,7 +267,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -297,7 +297,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -328,7 +328,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -376,7 +376,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -412,7 +412,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -425,7 +425,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 	})
 }
 
-func TestOAuth2AuthorizationPOST(t *testing.T) {
+func TestOAuth2AuthorizationMethodPOST(t *testing.T) {
 	t.Run("ShouldHandleBadIssuer", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
@@ -436,24 +436,26 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		assert.Empty(t, rw.Header().Get(fasthttp.HeaderLocation))
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationRequestIDIssuerError, "missing required X-Forwarded-Host header")
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationIssuerError, "missing required X-Forwarded-Host header")
 	})
 
-	t.Run("ShouldRedirectToGET", func(t *testing.T) {
+	t.Run("ShouldRedirectAnonymousUserToConsentFlowWithoutLeakingRequestParameters", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
-		setupTestOIDCProvider(t, mock, nil)
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
-		values := newTestOIDCAuthorizationValues()
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCConsentStore(t, mock)
 
-		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, values)
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
-		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -461,15 +463,16 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 
 		require.NoError(t, err)
 
-		assert.Equal(t, "https", location.Scheme)
 		assert.Equal(t, "login.example.com:8080", location.Host)
-		assert.Equal(t, oidc.EndpointPathAuthorization, location.Path)
 
 		query := location.Query()
 
-		assert.Equal(t, testOIDCAuthorizationCodeID, query.Get(oidc.FormParameterClientID))
-		assert.Equal(t, testOIDCRedirectURI, query.Get(oidc.FormParameterRedirectURI))
-		assert.Equal(t, oidc.ScopeOpenID, query.Get(oidc.FormParameterScope))
+		assert.Equal(t, "openid_connect", query.Get("flow"))
+		assert.NotEmpty(t, query.Get("flow_id"))
+
+		assert.Empty(t, query.Get(oidc.FormParameterClientID))
+		assert.Empty(t, query.Get(oidc.FormParameterRedirectURI))
+		assert.Empty(t, query.Get(oidc.FormParameterScope))
 	})
 
 	t.Run("ShouldHandleMalformedMultipartForm", func(t *testing.T) {
@@ -483,7 +486,7 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 		r.Header.Set(fasthttp.HeaderContentType, "multipart/form-data; boundary=abc")
 		r.Body = io.NopCloser(strings.NewReader("not a valid multipart body"))
 
-		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -494,7 +497,7 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 		assert.Equal(t, oidc.FrontendEndpointPathConsentCompletion, location.Path)
 		assert.NotEmpty(t, location.Query().Get("error"))
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationMultipartError, regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationFailed, nil)
 	})
 }
 

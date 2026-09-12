@@ -69,7 +69,7 @@ func TestOpenIDConnectUserinfoExtra(t *testing.T) {
 
 		rwa, ra := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
 
-		OAuth2AuthorizationGET(mock.Ctx, rwa, ra)
+		OAuth2Authorization(mock.Ctx, rwa, ra)
 
 		require.Equal(t, http.StatusSeeOther, rwa.Code)
 

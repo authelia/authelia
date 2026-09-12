@@ -18,7 +18,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func TestOAuth2AuthorizationGETPushedAuthorizationRequest(t *testing.T) {
+func TestOAuth2AuthorizationPushedAuthorizationRequest(t *testing.T) {
 	t.Run("ShouldAuthorizePushedRequest", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
@@ -43,7 +43,7 @@ func TestOAuth2AuthorizationGETPushedAuthorizationRequest(t *testing.T) {
 			oidc.FormParameterRequestURI: []string{requestURI},
 		})
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
@@ -74,7 +74,7 @@ func TestOAuth2AuthorizationGETPushedAuthorizationRequest(t *testing.T) {
 			oidc.FormParameterRequestURI: []string{requestURI},
 		})
 
-		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+		OAuth2Authorization(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusSeeOther, rw.Code)
 
