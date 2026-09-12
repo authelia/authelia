@@ -705,6 +705,35 @@ const (
 		UPDATE %s
 		SET session_data = ?
 		WHERE id = ?;`
+
+	queryFmtInsertOAuth2SessionID = `
+		INSERT INTO %s (issuer, sector_id, public_id, sid, created_at)
+		VALUES(?, ?, ?, ?, ?);`
+
+	queryFmtSelectOAuth2SessionIDBySector = `
+		SELECT id, issuer, sector_id, public_id, sid, created_at
+		FROM %s
+		WHERE issuer = ? AND sector_id = ? AND public_id = ?;`
+
+	queryFmtSelectOAuth2SessionIDBySessionID = `
+		SELECT id, issuer, sector_id, public_id, sid, created_at
+		FROM %s
+		WHERE issuer = ? AND sid = ?;`
+
+	queryFmtSelectOAuth2SessionIDsOldest = `
+		SELECT id, issuer, sector_id, public_id, sid, created_at
+		FROM %s
+		WHERE id > ?
+		ORDER BY id
+		LIMIT ?;`
+
+	queryFmtDeleteOAuth2SessionID = `
+		DELETE FROM %s
+		WHERE issuer = ? AND sid = ?;`
+
+	queryFmtDeleteOAuth2SessionIDByPublicID = `
+		DELETE FROM %s
+		WHERE issuer = ? AND public_id = ?;`
 )
 
 const (

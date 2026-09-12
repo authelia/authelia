@@ -5,10 +5,14 @@
 package service
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // ProvisionSessionCollector provisions the service which periodically collects expired sessions from the session
@@ -29,6 +33,44 @@ func ProvisionSessionCollector(ctx Context) (service Provider, err error) {
 	}
 
 	return collector, nil
+}
+
+// ProvisionOAuth2SessionIDCollector provisions the service which periodically collects OpenID Connect session id
+// mappings whose session no longer exists. No service is provisioned when there is no session repository or storage
+// provider.
+func ProvisionOAuth2SessionIDCollector(ctx Context) (service Provider, err error) {
+	providers := ctx.GetProviders()
+
+	repository := providers.SessionRepository
+	store := providers.StorageProvider
+
+	if repository == nil || store == nil || ctx.GetConfiguration().IdentityProviders.OIDC == nil {
+		return nil, nil
+	}
+
+	collector := NewCollector("oauth2_session_id", oidc.NewSessionIDCollector(store, sessionIDLookup{repository: repository}), ctx)
+
+	if collector == nil {
+		return nil, nil
+	}
+
+	return collector, nil
+}
+
+// sessionIDLookup adapts a session.Repository to the oidc.SessionIDLookup interface without exposing session package
+// types to internal/oidc.
+type sessionIDLookup struct {
+	repository session.Repository
+}
+
+// GetByPublicID implements the oidc.SessionIDLookup interface.
+func (l sessionIDLookup) GetByPublicID(ctx context.Context, issuer, pid string) (found bool, err error) {
+	record, err := l.repository.GetByPublicID(ctx, issuer, pid)
+	if err != nil {
+		return false, err
+	}
+
+	return record != nil, nil
 }
 
 // NewCollector creates a new Collector with the appropriate logger etc. A nil Collector is returned when the

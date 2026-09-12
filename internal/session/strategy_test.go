@@ -54,6 +54,39 @@ func TestDefaultStrategy_NewDefault(t *testing.T) {
 	}
 }
 
+func TestDefaultStrategy_GetIssuerShouldReturnNonEmptySignature(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+
+	issuer := strategy.GetIssuer()
+
+	assert.NotEmpty(t, issuer)
+	assert.Len(t, issuer, 64)
+}
+
+func TestDefaultStrategy_GetIssuerShouldBeStableAcrossCalls(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+
+	first := strategy.GetIssuer()
+	second := strategy.GetIssuer()
+
+	assert.Equal(t, first, second)
+}
+
+func TestDefaultStrategy_GetIssuerShouldBeDerivedFromCookieDomain(t *testing.T) {
+	strategyA := newTestStrategy(t, func(config *schema.SessionCookie) {
+		config.Domain = "example.com"
+	})
+	strategyB := newTestStrategy(t, func(config *schema.SessionCookie) {
+		config.Domain = "example.com"
+	})
+	strategyC := newTestStrategy(t, func(config *schema.SessionCookie) {
+		config.Domain = "other.example.com"
+	})
+
+	assert.Equal(t, strategyA.GetIssuer(), strategyB.GetIssuer())
+	assert.NotEqual(t, strategyA.GetIssuer(), strategyC.GetIssuer())
+}
+
 func TestDefaultStrategy_GetShouldReturnDefaultSessionForAnonymousRequest(t *testing.T) {
 	strategy := newTestStrategy(t, nil)
 	ctx := newTestContext()
@@ -204,6 +237,33 @@ func TestDefaultStrategy_RegenerateShouldChangeCookieAndPreserveSession(t *testi
 
 	require.NoError(t, err)
 	assert.Equal(t, testUsername, actual.Username)
+}
+
+func TestDefaultStrategy_RegenerateShouldPreservePublicID(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	before, err := strategy.Get(ctx)
+	require.NoError(t, err)
+
+	originalSID := ctx.cookies[testName]
+	originalPublicID := before.PublicID
+	require.NotEmpty(t, originalPublicID)
+
+	require.NoError(t, strategy.Regenerate(ctx))
+
+	regeneratedSID := ctx.cookies[testName]
+	assert.NotEqual(t, originalSID, regeneratedSID)
+
+	after, err := strategy.Get(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, originalPublicID, after.PublicID)
 }
 
 func TestDefaultStrategy_RegenerateShouldNotErrorForAnonymousRequest(t *testing.T) {

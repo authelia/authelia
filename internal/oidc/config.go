@@ -80,6 +80,10 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		Config:   c,
 	}
 
+	c.Strategy.IDTokenValidation = &openid.DefaultIDTokenValidationStrategy{
+		Strategy: c.Strategy.JWT,
+	}
+
 	return c
 }
 
@@ -347,18 +351,16 @@ func (c *Config) LoadHandlers(store *Store) {
 			Config:   c,
 		},
 		&rfc8628.DeviceAuthorizeTokenEndpointHandler{
-			GenericCodeTokenEndpointHandler: oauth2.GenericCodeTokenEndpointHandler{
-				CodeTokenEndpointHandler: &rfc8628.DeviceCodeTokenHandler{
-					Strategy: c.Strategy.Core,
-					Storage:  store,
-					Config:   c,
-				},
-				AccessTokenStrategy:    c.Strategy.Core,
-				RefreshTokenStrategy:   c.Strategy.Core,
-				CoreStorage:            store,
-				TokenRevocationStorage: store,
-				Config:                 c,
+			CodeTokenEndpointHandler: &rfc8628.DeviceCodeTokenHandler{
+				Strategy: c.Strategy.Core,
+				Storage:  store,
+				Config:   c,
 			},
+			AccessTokenStrategy:    c.Strategy.Core,
+			RefreshTokenStrategy:   c.Strategy.Core,
+			CoreStorage:            store,
+			TokenRevocationStorage: store,
+			Config:                 c,
 		},
 
 		&openid.OpenIDConnectExplicitHandler{
@@ -1163,8 +1165,7 @@ func (c *Config) GetRequestObjectMaximumLifetime(ctx context.Context) (lifetime 
 	}
 }
 
-// GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout. It has no
-// default and may be nil.
+// GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout.
 func (c *Config) GetIDTokenValidationStrategy(ctx context.Context) (strategy oauthelia2.TokenValidationStrategy) {
 	return c.Strategy.IDTokenValidation
 }

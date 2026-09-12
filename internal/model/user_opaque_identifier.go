@@ -6,6 +6,7 @@ package model
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -39,4 +40,14 @@ type UserOpaqueIdentifier struct {
 // UserOpaqueIdentifiersExport represents a UserOpaqueIdentifier export file.
 type UserOpaqueIdentifiersExport struct {
 	Identifiers []UserOpaqueIdentifier `yaml:"identifiers" json:"identifiers" jsonschema:"title=Identifiers" jsonschema_description:"The list of opaque identifiers."`
+}
+
+// OAuth2SessionID is the mapping of an Authelia session's public identifier to the 'sid' claim issued to a sector.
+type OAuth2SessionID struct {
+	ID        int       `db:"id"`
+	Issuer    string    `db:"issuer"`
+	SectorID  string    `db:"sector_id"`
+	PublicID  string    `db:"public_id"`
+	SessionID uuid.UUID `db:"sid"`
+	CreatedAt time.Time `db:"created_at"`
 }

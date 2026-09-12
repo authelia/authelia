@@ -31,6 +31,7 @@ func TestUserSessionDeepCopyShouldPreserveNilReferences(t *testing.T) {
 	assert.Nil(t, session.TOTP)
 	assert.Nil(t, session.WebAuthn)
 	assert.Nil(t, session.Elevations.User)
+	assert.Nil(t, session.OpenIDConnectLogout)
 
 	session = UserSession{WebAuthn: &WebAuthn{}, Elevations: Elevations{User: &Elevation{}}}.deepCopy()
 
@@ -77,6 +78,7 @@ func TestStrategyCacheShouldIsolateMutationsBetweenConsumers(t *testing.T) {
 	first.WebAuthn.Extensions.Requested[0] = "mutated"
 	first.WebAuthn.Extensions.Extra["extension"] = "mutated"
 	first.Elevations.User.ID = 99
+	first.OpenIDConnectLogout.ClientID = "mutated"
 	first.Elevations.User.RemoteIP[len(first.Elevations.User.RemoteIP)-1] = 9
 
 	second, err := strategy.Get(ctx)
@@ -91,6 +93,7 @@ func TestStrategyCacheShouldIsolateMutationsBetweenConsumers(t *testing.T) {
 	assert.Equal(t, "extension", second.WebAuthn.Extensions.Requested[0])
 	assert.Equal(t, "value", second.WebAuthn.Extensions.Extra["extension"])
 	assert.Equal(t, 1, second.Elevations.User.ID)
+	assert.Equal(t, "client", second.OpenIDConnectLogout.ClientID)
 	assert.Equal(t, "192.0.2.1", second.Elevations.User.RemoteIP.String())
 }
 
@@ -105,6 +108,7 @@ func newPopulatedUserSession() (session UserSession) {
 	session.PasswordResetUsername = &reset
 	session.TOTP = &TOTP{Issuer: "issuer", Algorithm: "SHA1", Digits: 6, Period: 30, Secret: "secret"}
 	session.Elevations.User = &Elevation{ID: 1, RemoteIP: net.ParseIP("192.0.2.1"), Expires: time.Unix(1700000000, 0).UTC()}
+	session.OpenIDConnectLogout = &OpenIDConnectLogout{FlowID: "flow", ClientID: "client", RedirectURI: "https://app.example.com/logged-out", State: "state", Expires: time.Unix(1700000000, 0).UTC()}
 	session.WebAuthn = &WebAuthn{
 		Description: "description",
 		SessionData: &webauthn.SessionData{
