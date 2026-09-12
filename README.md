@@ -580,15 +580,10 @@ for providing us with free licenses to their great tools.
 * [<img src="https://www.authelia.com/svgs/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
 * [<img src="https://www.authelia.com/svgs/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
 
-#### Microsoft
+#### Buildkite
 
-Our pipeline agents which we rely on for productivity are hosted on [Azure](https://azure.microsoft.com/?from=Authelia)
-and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
-which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
-
-[<img src="https://www.authelia.com/svgs/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
-
-[<img src="https://www.authelia.com/svgs/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
+Our pipeline agents rely on the [Buildkite](https://buildkite.com) CI platform. This is an amazing product which allows
+us to use our own infrastructure to orchestrate complex and secure pipelines.
 
 ### Open Collective
 
