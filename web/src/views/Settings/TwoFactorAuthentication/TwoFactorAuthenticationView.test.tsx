@@ -340,6 +340,16 @@ describe("redirect after enrollment", () => {
         expect(screen.getByTestId("redirect-dialog")).toBeInTheDocument();
     });
 
+    it("does not show the redirect dialog when the user already has Duo configured", () => {
+        mocks.userInfo = { ...userInfo, has_duo: true, has_totp: false, has_webauthn: false };
+
+        render(<TwoFactorAuthenticationView />);
+
+        fireEvent.click(screen.getByTestId("otp-register-success"));
+
+        expect(screen.queryByTestId("redirect-dialog")).not.toBeInTheDocument();
+    });
+
     it("does not re-trigger the redirect dialog for a later registration in the same session", () => {
         mocks.userInfo = { ...userInfo, has_totp: false, has_webauthn: false };
 

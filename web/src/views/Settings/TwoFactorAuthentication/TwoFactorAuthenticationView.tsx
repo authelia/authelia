@@ -39,7 +39,9 @@ const TwoFactorAuthenticationView = function () {
     const hasWebAuthn = userInfo?.has_webauthn ?? false;
 
     const [redirectDialogOpen, setRedirectDialogOpen] = useState(false);
+    // null until userInfo resolves; then whether the user had any MFA device (TOTP, WebAuthn, or Duo) on load.
     const hadDevicesBeforeRef = useRef<boolean | null>(null);
+    // A registration can complete before userInfo resolves; buffer it and replay once hadDevicesBeforeRef is known.
     const pendingRegistrationSuccessRef = useRef(false);
 
     useEffect(() => {
@@ -47,7 +49,7 @@ const TwoFactorAuthenticationView = function () {
             return;
         }
 
-        hadDevicesBeforeRef.current = userInfo.has_totp || userInfo.has_webauthn;
+        hadDevicesBeforeRef.current = userInfo.has_totp || userInfo.has_webauthn || userInfo.has_duo;
 
         if (pendingRegistrationSuccessRef.current) {
             pendingRegistrationSuccessRef.current = false;
