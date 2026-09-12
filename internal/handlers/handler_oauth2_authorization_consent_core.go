@@ -140,7 +140,7 @@ func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaC
 
 	handleOAuth2PushedAuthorizeConsent(ctx, requester, r.Form)
 
-	http.Redirect(rw, r, redirectionURL.String(), http.StatusFound)
+	http.Redirect(rw, r, redirectionURL.String(), http.StatusSeeOther)
 
 	return nil, true
 }
@@ -220,7 +220,7 @@ func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issu
 
 	ctx.GetLogger().Debugf(logFmtDbgConsentRedirect, requester.GetID(), client.GetID(), client.GetConsentPolicy(), location)
 
-	http.Redirect(rw, r, location.String(), http.StatusFound)
+	http.Redirect(rw, r, location.String(), http.StatusSeeOther)
 }
 
 func handleOAuth2PushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester oauthelia2.Requester, form url.Values) {
@@ -257,7 +257,7 @@ func handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx *middlewares.Authel
 
 	redirectionURL.RawQuery = query.Encode()
 
-	http.Redirect(rw, r, redirectionURL.String(), http.StatusFound)
+	http.Redirect(rw, r, redirectionURL.String(), http.StatusSeeOther)
 }
 
 func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession) (redirectURL *url.URL) {

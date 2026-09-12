@@ -85,7 +85,7 @@ func TestRedirectAuthorizeErrorFieldResponseStrategy(t *testing.T) {
 
 			strategy.WriteErrorFieldResponse(context.Background(), rw, nil, tc.rfc)
 
-			assert.Equal(t, http.StatusFound, rw.Code)
+			assert.Equal(t, http.StatusSeeOther, rw.Code)
 			assert.Equal(t, "no-store", rw.Header().Get("Cache-Control"))
 			assert.Equal(t, "no-cache", rw.Header().Get("Pragma"))
 
