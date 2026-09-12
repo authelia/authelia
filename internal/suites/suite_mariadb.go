@@ -46,10 +46,12 @@ func init() {
 
 	GlobalRegistry.Register(mariadbSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
+		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
+		Description:     "This suite has been created to test Authelia with MariaDB as the storage backend and LDAP as the user backend.",
 	})
 }

@@ -119,7 +119,7 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 	}
 
 	if diff.Percentage <= tolerancePercentage {
-		t.Logf("snapshot %s differs by %d/%d pixels (%.2f%%) — within tolerance (%.2f%%)",
+		t.Logf("snapshot %s differs by %d/%d pixels (%.2f%%) - within tolerance (%.2f%%)",
 			baselinePath, diff.DifferingPixels, diff.TotalPixels, diff.Percentage, tolerancePercentage)
 
 		_ = os.Remove(actualPath)

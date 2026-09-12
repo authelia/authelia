@@ -44,11 +44,13 @@ func init() {
 
 	GlobalRegistry.Register(cliSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
+		Description: `This suite has been created to test the Authelia command line interface, covering the
+configuration validation, password hashing, certificate generation, storage and access control subcommands.`,
 	})
 }

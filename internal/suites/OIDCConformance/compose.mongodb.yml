@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+services:
+  conformance-mongodb:
+    image: 'mongo:6.0.13'
+    cpus: 2
+    mem_limit: 2g
+    networks:
+      authelianet: {}
+
+  conformance-server:
+    depends_on:
+      - 'conformance-mongodb'
+...

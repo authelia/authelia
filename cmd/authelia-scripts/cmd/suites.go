@@ -351,8 +351,16 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 
 	defer results.Close()
 
+	output := &testOutputWriter{out: os.Stdout, buildkite: os.Getenv("BUILDKITE") == "true", grouped: os.Getenv("BUILDKITE") == "true" && os.Getenv("SUITE_DEBUG") == "true"}
+
+	defer func() {
+		if err := output.Flush(); err != nil {
+			log.Errorf("Error writing the test summary: %v", err)
+		}
+	}()
+
 	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
-	cmd.Stdout = io.MultiWriter(&testOutputWriter{out: os.Stdout}, results)
+	cmd.Stdout = io.MultiWriter(output, results)
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 
