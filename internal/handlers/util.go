@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
@@ -42,7 +43,7 @@ type emailEventBody struct {
 	Suffix string
 }
 
-func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, body emailEventBody, eventDetails map[string]any) {
+func ctxLogEvent(ctx *middlewares.AutheliaCtx, eventType, username, description string, body emailEventBody, eventDetails map[string]any) {
 	var (
 		details *authentication.UserDetails
 		err     error
@@ -52,33 +53,90 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, bod
 
 	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred looking up user details for user '%s' while attempting to alert them of an important event", username)
+
+		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserCredential{
+			Type:         eventType,
+			Subject:      events.Subject{Username: username, RemoteIP: ctx.RemoteIP().String()},
+			Description:  eventCredentialDescription(eventDetails),
+			Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, description, nil, nil),
+		}))
+
 		return
 	}
 
-	if len(details.Emails) == 0 {
-		ctx.Logger.WithError(fmt.Errorf("no email address was found for user")).Errorf("Error occurred looking up user details for user '%s' while attempting to alert them of an important event", username)
-		return
+	notified := len(details.Emails) != 0
+
+	if !notified {
+		err = fmt.Errorf("no email address was found for user")
+
+		ctx.Logger.WithError(err).Errorf("Error occurred looking up user details for user '%s' while attempting to alert them of an important event", username)
+	} else {
+		data := templates.EmailEventValues{
+			Title:       description,
+			DisplayName: details.DisplayName,
+			RemoteIP:    ctx.RemoteIP().String(),
+			Details:     eventDetails,
+			BodyPrefix:  body.Prefix,
+			BodyEvent:   body.Body,
+			BodySuffix:  body.Suffix,
+		}
+
+		ctx.Logger.Debugf("Getting user addresses for notification")
+
+		addresses := details.Addresses()
+
+		ctx.Logger.Debugf("Sending an email to user %s (%s) to inform them of an important event.", username, addresses[0].String())
+
+		err = ctx.Providers.Notifier.Send(ctx, addresses[0], description, ctx.Providers.Templates.GetEventEmailTemplate(), data)
 	}
 
-	data := templates.EmailEventValues{
-		Title:       description,
+	ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserCredential{
+		Type:        eventType,
+		Username:    username,
 		DisplayName: details.DisplayName,
+		Emails:      details.Emails,
 		RemoteIP:    ctx.RemoteIP().String(),
-		Details:     eventDetails,
-		BodyPrefix:  body.Prefix,
-		BodyEvent:   body.Body,
-		BodySuffix:  body.Suffix,
+		Description: eventCredentialDescription(eventDetails),
+		Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, description, recipientsFromDetails(username, details), &events.NotificationValues{
+			BodyPrefix: body.Prefix,
+			BodyEvent:  body.Body,
+			BodySuffix: body.Suffix,
+			Details:    eventDetails,
+		}),
+	}))
+
+	if notified && err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred sending notification to user '%s' while attempting to alert them of an important event", username)
+	}
+}
+
+func eventCredentialDescription(eventDetails map[string]any) string {
+	value, ok := eventDetails[eventLogKeyDescription]
+	if !ok {
+		return ""
 	}
 
-	ctx.Logger.Debugf("Getting user addresses for notification")
+	description, ok := value.(string)
+	if !ok {
+		return ""
+	}
 
-	addresses := details.Addresses()
+	return description
+}
 
-	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform them of an important event.", username, addresses[0].String())
+func recipientsFromDetails(username string, details *authentication.UserDetails) (recipients []events.Recipient) {
+	if details == nil || len(details.Emails) == 0 {
+		return nil
+	}
 
-	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], description, ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred sending notification to user '%s' while attempting to alert them of an important event", username)
-		return
+	// Only the first address is notified, because UserDetails.Addresses preserves the order of Emails and every send
+	// site passes addresses[0]. Listing the rest would name recipients which received nothing.
+	return []events.Recipient{
+		{
+			Email:       details.Emails[0],
+			Username:    username,
+			DisplayName: details.DisplayName,
+		},
 	}
 }
 

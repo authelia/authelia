@@ -7,6 +7,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -19,6 +20,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -32,7 +34,7 @@ func newDocsJSONSchemaCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newDocsJSONSchemaConfigurationCmd(), newDocsJSONSchemaUserDatabaseCmd(), newDocsJSONSchemaExportsCmd())
+	cmd.AddCommand(newDocsJSONSchemaConfigurationCmd(), newDocsJSONSchemaUserDatabaseCmd(), newDocsJSONSchemaExportsCmd(), newDocsJSONSchemaWebhooksCmd())
 
 	return cmd
 }
@@ -92,6 +94,18 @@ func newDocsJSONSchemaConfigurationCmd() *cobra.Command {
 		Use:   "configuration",
 		Short: "Generate docs JSON schema for the configuration",
 		RunE:  docsJSONSchemaConfigurationRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newDocsJSONSchemaWebhooksCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   dirDocsStaticJSONSchemasWebhooks,
+		Short: "Generate docs JSON schema for the webhook event payloads",
+		RunE:  docsJSONSchemaWebhooksRunE,
 
 		DisableAutoGenTag: true,
 	}
@@ -221,31 +235,94 @@ func docsJSONSchemaUserDatabaseRunE(cmd *cobra.Command, args []string) (err erro
 	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &authentication.FileUserDatabase{}, dir, file, jsonschemaKoanfMapper)
 }
 
-//nolint:gocyclo
+func docsJSONSchemaWebhooksRunE(cmd *cobra.Command, _ []string) (err error) {
+	var dir, eventsDir string
+
+	if eventsDir, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDirEvents); err != nil {
+		return err
+	}
+
+	if dir, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDocs, cmdFlagDocsStatic, cmdFlagDocsStaticJSONSchemas, cmdFlagDocsStaticJSONSchemasWebhooks); err != nil {
+		return err
+	}
+
+	var r *jsonschema.Reflector
+
+	if r, err = newWebhookJSONSchemaReflector(eventsDir); err != nil {
+		return err
+	}
+
+	dir = webhookJSONSchemaDir(dir)
+
+	for _, document := range webhookJSONSchemaDocuments() {
+		if err = writeJSONSchemaFile(reflectWebhookJSONSchema(r, document.Value, document.Name), dir, document.Name+extJSON); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type webhookJSONSchemaDocument struct {
+	Name  string
+	Value any
+}
+
+func webhookJSONSchemaDocuments() (documents []webhookJSONSchemaDocument) {
+	names := events.Registered()
+
+	documents = make([]webhookJSONSchemaDocument, 0, len(names)+2)
+	documents = append(documents,
+		webhookJSONSchemaDocument{Name: fileDocsStaticJSONSchemasWebhooksEnvelope, Value: &events.Envelope{}},
+		webhookJSONSchemaDocument{Name: fileDocsStaticJSONSchemasWebhooksBatch, Value: &events.EnvelopeBatch{}},
+	)
+
+	for _, name := range names {
+		descriptor, ok := events.Lookup(name)
+		if !ok {
+			continue
+		}
+
+		documents = append(documents, webhookJSONSchemaDocument{Name: name, Value: descriptor.New()})
+	}
+
+	return documents
+}
+
+func webhookJSONSchemaDir(dir string) string {
+	return filepath.Join(dir, "v"+events.ContractVersion)
+}
+
+func newWebhookJSONSchemaReflector(dir string) (r *jsonschema.Reflector, err error) {
+	r = &jsonschema.Reflector{
+		Anonymous:                 true,
+		ExpandedStruct:            true,
+		AllowAdditionalProperties: true,
+	}
+
+	if err = jsonschemaAddGoComments(r, dir); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+func reflectWebhookJSONSchema(r *jsonschema.Reflector, v any, name string) (s *jsonschema.Schema) {
+	s = r.Reflect(v)
+
+	s.ID = jsonschema.ID(fmt.Sprintf(urlFormatJSONSchemaWebhooks, events.ContractVersion, name))
+
+	return s
+}
+
 func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.SemanticVersion, schemaDir string, v any, dir, file string, mapper func(reflect.Type) *jsonschema.Schema) (err error) {
 	r := &jsonschema.Reflector{
 		RequiredFromJSONSchemaTags: true,
 		Mapper:                     mapper,
 	}
 
-	if runtime.GOOS == windows {
-		mapComments := map[string]string{}
-
-		if err = jsonschema.ExtractGoComments(goModuleBase, schemaDir, mapComments); err != nil {
-			return err
-		}
-
-		if r.CommentMap == nil {
-			r.CommentMap = map[string]string{}
-		}
-
-		for key, comment := range mapComments {
-			r.CommentMap[strings.ReplaceAll(key, `\`, `/`)] = comment
-		}
-	} else {
-		if err = r.AddGoComments(goModuleBase, schemaDir); err != nil {
-			return err
-		}
+	if err = jsonschemaAddGoComments(r, schemaDir); err != nil {
+		return err
 	}
 
 	var (
@@ -303,30 +380,60 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 	return nil
 }
 
+func jsonschemaAddGoComments(r *jsonschema.Reflector, dir string) (err error) {
+	if runtime.GOOS != windows {
+		return r.AddGoComments(goModuleBase, dir)
+	}
+
+	mapComments := map[string]string{}
+
+	if err = jsonschema.ExtractGoComments(goModuleBase, dir, mapComments); err != nil {
+		return err
+	}
+
+	if r.CommentMap == nil {
+		r.CommentMap = map[string]string{}
+	}
+
+	for key, comment := range mapComments {
+		r.CommentMap[strings.ReplaceAll(key, `\`, `/`)] = comment
+	}
+
+	return nil
+}
+
 func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err error) {
+	return writeJSONSchemaFile(schema, filepath.Join(dir, version, pathJSONSchema), file+extJSON)
+}
+
+func writeJSONSchemaFile(schema *jsonschema.Schema, dir, file string) (err error) {
 	var (
 		f *os.File
 	)
 
-	if _, err = os.Stat(filepath.Join(dir, version, pathJSONSchema)); err != nil && os.IsNotExist(err) {
-		if err = os.MkdirAll(filepath.Join(dir, version, pathJSONSchema), 0755); err != nil {
+	if _, err = os.Stat(dir); err != nil && os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0755); err != nil {
 			return err
 		}
 	}
 
-	if f, err = os.Create(filepath.Join(dir, version, pathJSONSchema, file+extJSON)); err != nil {
+	if f, err = os.Create(filepath.Join(dir, file)); err != nil {
 		return err
 	}
 
-	encoder := json.NewEncoder(f)
-
-	encoder.SetIndent("", "  ")
-
-	if err = encoder.Encode(schema); err != nil {
+	if err = encodeJSONSchema(f, schema); err != nil {
 		return err
 	}
 
 	return f.Close()
+}
+
+func encodeJSONSchema(w io.Writer, schema *jsonschema.Schema) (err error) {
+	encoder := json.NewEncoder(w)
+
+	encoder.SetIndent("", "  ")
+
+	return encoder.Encode(schema)
 }
 
 func getJSONSchemaOutputPath(cmd *cobra.Command, flag string) (dir, file string, err error) {

@@ -575,6 +575,11 @@
     "env": "AUTHELIA_LOG_LEVEL"
   },
   {
+    "path": "notifier.disable",
+    "secret": false,
+    "env": "AUTHELIA_NOTIFIER_DISABLE"
+  },
+  {
     "path": "notifier.disable_startup_check",
     "secret": false,
     "env": "AUTHELIA_NOTIFIER_DISABLE_STARTUP_CHECK"
@@ -1358,5 +1363,10 @@
     "path": "webauthn.timeout",
     "secret": false,
     "env": "AUTHELIA_WEBAUTHN_TIMEOUT"
+  },
+  {
+    "path": "webhooks.startup_check",
+    "secret": false,
+    "env": "AUTHELIA_WEBHOOKS_STARTUP_CHECK"
   }
 ]

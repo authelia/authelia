@@ -18,6 +18,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -142,6 +143,9 @@ type AuthzContext interface {
 
 	// RecordAuthn should record the authentication of the user.
 	RecordAuthn(success, banned bool, authType string)
+
+	// EmitEvent should emit the given event.
+	EmitEvent(event *events.Event)
 
 	// RecordAuthenticationDuration should record the time taken by the user to perform an authentication attempt.
 	RecordAuthenticationDuration(success bool, elapsed time.Duration)

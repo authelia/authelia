@@ -1159,6 +1159,11 @@
           "title": "Notifier",
           "description": "Notifier Configuration."
         },
+        "webhooks": {
+          "$ref": "#/$defs/Webhooks",
+          "title": "Webhooks",
+          "description": "Webhooks configuration."
+        },
         "server": {
           "$ref": "#/$defs/Server",
           "title": "Server",
@@ -3008,6 +3013,12 @@
     },
     "Notifier": {
       "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the notifier entirely. Requires at least one webhook destination to be configured.",
+          "default": false
+        },
         "disable_startup_check": {
           "type": "boolean",
           "title": "Disable Startup Check",
@@ -4700,6 +4711,315 @@
       "additionalProperties": false,
       "type": "object",
       "description": "WebAuthnSelectionCriteria represents the WebAuthn authenticator selection criteria configuration."
+    },
+    "WebhookAuthentication": {
+      "properties": {
+        "bearer": {
+          "$ref": "#/$defs/WebhookAuthenticationBearer",
+          "title": "Bearer",
+          "description": "Bearer token authentication."
+        },
+        "basic": {
+          "$ref": "#/$defs/WebhookAuthenticationBasic",
+          "title": "Basic",
+          "description": "Basic authentication."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "WebhookAuthentication represents the credentials presented to a destination."
+    },
+    "WebhookAuthenticationBasic": {
+      "properties": {
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username."
+        },
+        "password": {
+          "type": "string",
+          "title": "Password",
+          "description": "The password."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "username",
+        "password"
+      ],
+      "description": "WebhookAuthenticationBasic represents basic authentication for a destination."
+    },
+    "WebhookAuthenticationBearer": {
+      "properties": {
+        "token": {
+          "type": "string",
+          "title": "Token",
+          "description": "The token value."
+        },
+        "header": {
+          "type": "string",
+          "title": "Header",
+          "description": "The header the token is sent in.",
+          "default": "Authorization"
+        },
+        "scheme": {
+          "type": "string",
+          "title": "Scheme",
+          "description": "The scheme prefixed to the token. Configure as empty for a bare API key header.",
+          "default": "Bearer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "token"
+      ],
+      "description": "WebhookAuthenticationBearer represents bearer token authentication for a destination."
+    },
+    "WebhookBatch": {
+      "properties": {
+        "size": {
+          "type": "integer",
+          "title": "Size",
+          "description": "The number of events delivered in a single request. Batching is disabled when this is absent or 0."
+        },
+        "max_wait": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Maximum Wait",
+          "description": "The longest an event waits for the batch to fill before the batch is delivered regardless."
+        },
+        "immediate": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Immediate",
+          "description": "The event types which bypass batching and are delivered on their own as soon as they occur, either exact names or prefix globs ending in an asterisk."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "WebhookBatch represents the batching policy for a destination."
+    },
+    "WebhookDestination": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "The unique name of this destination used in logs and metrics."
+        },
+        "address": {
+          "type": "string",
+          "format": "uri",
+          "title": "Address",
+          "description": "The HTTPS address events are delivered to."
+        },
+        "events": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Events",
+          "description": "The event types this destination receives, either exact names or prefix globs ending in an asterisk."
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The timeout for an individual delivery attempt."
+        },
+        "buffer_size": {
+          "type": "integer",
+          "title": "Buffer Size",
+          "description": "The number of events which may be queued for this destination before events are dropped.",
+          "default": 256
+        },
+        "disable_redaction": {
+          "type": "boolean",
+          "title": "Disable Redaction",
+          "description": "Includes credential equivalent values such as one-time codes and reset link URLs in payloads. A receiver holding these values can take over any account.",
+          "default": false
+        },
+        "signature": {
+          "$ref": "#/$defs/WebhookSignature",
+          "title": "Signature",
+          "description": "The HMAC signature properties."
+        },
+        "authentication": {
+          "$ref": "#/$defs/WebhookAuthentication",
+          "title": "Authentication",
+          "description": "The credentials presented to the receiver."
+        },
+        "headers": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object",
+          "title": "Headers",
+          "description": "Additional static headers included with every request."
+        },
+        "validation": {
+          "$ref": "#/$defs/WebhookValidation",
+          "title": "Validation",
+          "description": "The CloudEvents abuse protection handshake performed before any event is delivered."
+        },
+        "batch": {
+          "$ref": "#/$defs/WebhookBatch",
+          "title": "Batch",
+          "description": "The batching properties. Batching is disabled unless 'size' is configured."
+        },
+        "retry": {
+          "$ref": "#/$defs/WebhookRetry",
+          "title": "Retry",
+          "description": "The retry policy for failed deliveries."
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS connection properties. Disabling certificate verification allows an interceptor to read the credentials and the event bodies sent to this destination, so it should not be used for a destination which is sent credentials."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "address",
+        "events"
+      ],
+      "description": "WebhookDestination represents a single webhook receiver."
+    },
+    "WebhookRetry": {
+      "properties": {
+        "attempts": {
+          "type": "integer",
+          "title": "Attempts",
+          "description": "The maximum number of delivery attempts including the first.",
+          "default": 3
+        },
+        "initial_interval": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Initial Interval",
+          "description": "The backoff interval before the second attempt."
+        },
+        "maximum_interval": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Maximum Interval",
+          "description": "The ceiling applied to the backoff interval."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "WebhookRetry represents the retry policy for a destination."
+    },
+    "WebhookSignature": {
+      "properties": {
+        "secret": {
+          "type": "string",
+          "title": "Secret",
+          "description": "The shared secret used to sign payloads. Signing is disabled when empty."
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "sha256",
+            "sha512"
+          ],
+          "title": "Algorithm",
+          "description": "The HMAC hash algorithm.",
+          "default": "sha256"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "WebhookSignature represents the HMAC signature configuration for a destination."
+    },
+    "WebhookValidation": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Skips the abuse protection handshake and delivers events without asking the destination to confirm it accepts them.",
+          "default": false
+        },
+        "origin": {
+          "type": "string",
+          "title": "Origin",
+          "description": "The origin presented to the destination. Used only when the origin cannot be derived from the configuration, unless 'force_origin' is enabled."
+        },
+        "force_origin": {
+          "type": "boolean",
+          "title": "Force Origin",
+          "description": "Presents the configured 'origin' even when an origin can be derived from the configuration.",
+          "default": false
+        },
+        "rate": {
+          "type": "integer",
+          "title": "Rate",
+          "description": "The delivery rate in requests per minute requested from the destination. An unrestricted rate is requested when this is absent or 0."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "WebhookValidation represents the CloudEvents abuse protection handshake for a destination."
+    },
+    "Webhooks": {
+      "properties": {
+        "startup_check": {
+          "type": "boolean",
+          "title": "Startup Check",
+          "description": "Performs a connectivity check against every destination at startup.",
+          "default": false
+        },
+        "destinations": {
+          "items": {
+            "$ref": "#/$defs/WebhookDestination"
+          },
+          "type": "array",
+          "title": "Destinations",
+          "description": "The webhook destinations which receive events."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Webhooks represents the configuration of the webhook subsystem."
     },
     "X509CertificateChain": {
       "type": "string",

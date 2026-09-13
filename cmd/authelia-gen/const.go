@@ -6,6 +6,10 @@ package main
 
 const (
 	dirCurrent = "./"
+	dirEvents  = "internal/events"
+
+	dirRepositoryRoot = "../.."
+
 	dirLocales = "internal/server/locales"
 	dirWeb     = "web"
 
@@ -22,13 +26,14 @@ const (
 	fileServerGenerated = "internal/server/gen.go"
 	fileScriptsGen      = "cmd/authelia-scripts/cmd/gen.go"
 
-	dirDocs                  = "docs"
-	dirDocsContent           = "content"
-	dirDocsStatic            = "static"
-	dirDocsStaticJSONSchemas = "schemas"
-	dirDocsData              = "data"
-	dirDocsADR               = "reference/architecture-decision-log"
-	dirDocsCLIReference      = "reference/cli"
+	dirDocs                          = "docs"
+	dirDocsContent                   = "content"
+	dirDocsStatic                    = "static"
+	dirDocsStaticJSONSchemas         = "schemas"
+	dirDocsStaticJSONSchemasWebhooks = "webhooks"
+	dirDocsData                      = "data"
+	dirDocsADR                       = "reference/architecture-decision-log"
+	dirDocsCLIReference              = "reference/cli"
 
 	fileDocsDataLanguages  = "languages.json"
 	fileDocsDataMisc       = "misc.json"
@@ -39,6 +44,8 @@ const (
 	fileDocsStaticJSONSchemasExportsTOTP        = "exports.totp"
 	fileDocsStaticJSONSchemasExportsWebAuthn    = "exports.webauthn"
 	fileDocsStaticJSONSchemasExportsIdentifiers = "exports.identifiers"
+	fileDocsStaticJSONSchemasWebhooksEnvelope   = "envelope"
+	fileDocsStaticJSONSchemasWebhooksBatch      = "envelope-batch"
 
 	dirDocsStaticImages             = "images"
 	dirDocsStaticImagesContributors = "contributors"
@@ -56,6 +63,8 @@ const (
 	extJSON        = ".json"
 	extYAML        = ".yaml"
 )
+
+const urlFormatJSONSchemaWebhooks = "https://www.authelia.com/schemas/webhooks/v%s/%s.json"
 
 const (
 	dateFmtRFC2822 = "Mon, _2 Jan 2006 15:04:05 -0700"
@@ -103,10 +112,12 @@ const (
 	cmdFlagDirLocales                             = "dir.locales"
 	cmdFlagDirSchema                              = "dir.schema"
 	cmdFlagDirAuthentication                      = "dir.authentication"
+	cmdFlagDirEvents                              = "dir.events"
 	cmdFlagDocsCLIReference                       = "dir.docs.cli-reference"
 	cmdFlagDocsContent                            = "dir.docs.content"
 	cmdFlagDocsStatic                             = "dir.docs.static"
 	cmdFlagDocsStaticJSONSchemas                  = "dir.docs.static.json-schemas"
+	cmdFlagDocsStaticJSONSchemasWebhooks          = "dir.docs.static.json-schemas.webhooks"
 	cmdFlagDocsData                               = "dir.docs.data"
 	cmdFlagDocsADR                                = "dir.docs.adr"
 	cmdFlagDocsDataMisc                           = "file.docs.data.misc"

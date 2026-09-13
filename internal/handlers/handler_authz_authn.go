@@ -423,14 +423,14 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 
 	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
-			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), "", regulation.AuthType1FA, object.String(), object.Method, err)
 
 			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 		}
 
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to retrieve user details for user %s: %w", username, err)
 	} else if details == nil {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), "", regulation.AuthType1FA, object.String(), object.Method, err)
 
 		ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
@@ -439,7 +439,7 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 
 	if ban, value, expires, err = ctx.GetProviders().Regulator.BanCheck(ctx, details.Username); err != nil {
 		if errors.Is(err, regulation.ErrUserIsBanned) {
-			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), details.Username, regulation.AuthType1FA, object.String(), object.Method, nil)
 
 			return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", details.Username, header, err)
 		}
@@ -453,20 +453,20 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 		if isRegulatorSkippedErr(err) {
 			ctx.GetLogger().WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, details.Username)
 		} else {
-			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), details.Username, regulation.AuthType1FA, object.String(), object.Method, err)
 		}
 
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", details.Username, header, err)
 	}
 
 	if !valid {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), details.Username, regulation.AuthType1FA, object.String(), object.Method, nil)
 
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", header, details.Username)
 	}
 
 	if !cached {
-		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), details.Username, regulation.AuthType1FA, object.String(), object.Method, nil)
 	}
 
 	return details, authentication.OneFactor, nil
