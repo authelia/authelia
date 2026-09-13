@@ -262,8 +262,8 @@ importers:
         version: 8.3.0(yaml@2.9.0)
     optionalDependencies:
       hugo-extended:
-        specifier: 0.165.0
-        version: 0.165.0
+        specifier: 0.166.0
+        version: 0.166.0
 
 packages:
 
@@ -1584,8 +1584,8 @@ packages:
   hookified@2.2.0:
     resolution: {integrity: sha512-p/LgFzRN5FeoD3DLS6bkUapeye6E4SI6yJs6KetENd18S+FBthqYq2amJUWpt5z0EQwwHemidjY5OqJGEKm5uA==}
 
-  hugo-extended@0.165.0:
-    resolution: {integrity: sha512-+5NMCukM+/ITfWWGBtycRrR5L3MRmAaxl1O2StS+jPapoqJJu1L3ux0LidcxfN7Rp2DAKTX+EZaUhw+paj/uiw==}
+  hugo-extended@0.166.0:
+    resolution: {integrity: sha512-vv0OylKYYQ10RoEc0b2kXup1MOAzI3E7bBW3Znje/4yOB5LDqalDW0+OYHMro6/DkP87St8uwccSbQuZVLZGnA==}
     engines: {node: '>=18.17'}
     hasBin: true
 
@@ -3911,7 +3911,7 @@ snapshots:
 
   hookified@2.2.0: {}
 
-  hugo-extended@0.165.0:
+  hugo-extended@0.166.0:
     dependencies:
       adm-zip: 0.6.1
       tar: 7.5.22
