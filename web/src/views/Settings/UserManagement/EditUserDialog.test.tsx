@@ -62,6 +62,50 @@ const user: UserDetailsExtended = {
     username: "john",
 };
 
+// A separate metadata/user fixture covering every attribute type UserFormField dispatches on.
+// Kept isolated from `metadata`/`user` above (used only by its own test) because the "prefixes
+// extra fields" test asserts the *entire* extra sub-object verbatim; adding more extra-typed
+// attributes to the shared metadata would leak into that object and break the strict equality.
+const allTypesMetadata = {
+    required_attributes: ["username"],
+    supported_attributes: {
+        backup_email: { type: "email" },
+        birthdate: { type: "date" },
+        custom_field: { type: "text" },
+        display_name: { type: "text" },
+        groups: { multiple: true, type: "groups" },
+        // extra attribute with a name distinct from "birthdate" so it exercises the generic
+        // type-based date dispatch rather than the name-based special-casing "birthdate" gets
+        hire_date: { type: "date" },
+        locality: { type: "text" },
+        login_count: { type: "number" },
+        mail: { multiple: true, type: "email" },
+        newsletter: { type: "checkbox" },
+        password: { type: "password" },
+        phone_number: { type: "tel" },
+        username: { type: "text" },
+        website: { type: "url" },
+    },
+};
+
+const allTypesUser: UserDetailsExtended = {
+    address: { locality: "Paris" },
+    birthdate: "1990-01-01",
+    display_name: "John",
+    extra: {
+        backup_email: "old@example.com",
+        custom_field: "a",
+        hire_date: "2020-01-01",
+        login_count: 3,
+        newsletter: false,
+    },
+    groups: ["dev"],
+    mail: ["john@example.com"],
+    phone_number: "+15551234567",
+    username: "john",
+    website: "https://example.com",
+};
+
 const onClose = vi.fn();
 
 const byId = (id: string) => document.getElementById(id) as HTMLInputElement;
@@ -173,6 +217,60 @@ it("prefixes extra fields in the update mask and nests them under extra", async 
 
     await waitFor(() => expect(patchChangeUser).toHaveBeenCalledOnce());
     expect(patchChangeUser).toHaveBeenCalledWith("john", { extra: { custom_field: "b" } }, ["extra.custom_field"]);
+});
+
+it("submits the correct JS type for every additional field type when edited", async () => {
+    vi.mocked(patchChangeUser).mockResolvedValue(undefined);
+    mocks.metadata = allTypesMetadata;
+
+    render(<EditUserDialog open={true} user={allTypesUser} onClose={onClose} />);
+
+    fireEvent.click(screen.getByText("Show Additional Fields"));
+
+    fireEvent.change(byId("edit-user-phone_number"), { target: { value: "+442071234567" } });
+    fireEvent.change(byId("edit-user-website"), { target: { value: "https://example.org" } });
+    fireEvent.change(byId("edit-user-birthdate"), { target: { value: "1991-02-02" } });
+    fireEvent.change(byId("edit-user-extra-hire_date"), { target: { value: "2024-05-01" } });
+    fireEvent.click(byId("edit-user-extra-newsletter"));
+    fireEvent.change(byId("edit-user-extra-login_count"), { target: { value: "9" } });
+    fireEvent.change(byId("edit-user-extra-backup_email"), { target: { value: "new@example.com" } });
+
+    await act(async () => {
+        fireEvent.click(submit());
+    });
+
+    await waitFor(() => expect(patchChangeUser).toHaveBeenCalledOnce());
+
+    const [username, body, mask] = vi.mocked(patchChangeUser).mock.calls[0];
+
+    expect(username).toBe("john");
+    expect(mask).toEqual(
+        expect.arrayContaining([
+            "phone_number",
+            "website",
+            "birthdate",
+            "extra.hire_date",
+            "extra.newsletter",
+            "extra.login_count",
+            "extra.backup_email",
+        ]),
+    );
+    expect(mask).not.toContain("display_name");
+    expect(mask).not.toContain("address.locality");
+    expect(mask).not.toContain("groups");
+
+    expect(body.phone_number).toBe("+442071234567");
+    expect(body.website).toBe("https://example.org");
+    expect(body.birthdate).toBe("1991-02-02");
+    expect(body.extra).toEqual({
+        backup_email: "new@example.com",
+        custom_field: "a",
+        hire_date: "2024-05-01",
+        login_count: 9,
+        newsletter: true,
+    });
+    expect(typeof body.extra!.login_count).toBe("number");
+    expect(typeof body.extra!.newsletter).toBe("boolean");
 });
 
 it("notifies an error and keeps the dialog open when the patch fails", async () => {
