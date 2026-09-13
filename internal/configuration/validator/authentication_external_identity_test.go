@@ -116,13 +116,24 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'id' must be unique but it's configured multiple times"},
 		},
 		{
-			Name: "ShouldAllowOpenIDConnectProvidersWithDifferentIssuers",
+			Name: "ShouldAllowOneDiscordProviderAndOpenIDConnectProvidersWithDifferentIssuers",
 			Have: &schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
 					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret"},
 					{ID: "example", Name: "Example", Issuer: "https://id.example.com", ClientID: "abc", ClientSecret: "secret"},
+					{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret"},
 				},
 			},
+		},
+		{
+			Name: "ShouldRaiseErrorOnMultipleDiscordProviders",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret"},
+					{ID: "discord2", Type: "discord", Name: "Discord 2", ClientID: "456", ClientSecret: "secret"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: option 'type' must only be 'discord' for one provider but it's configured for the providers 'discord' and 'discord2'"},
 		},
 		{
 			Name: "ShouldRaiseErrorOnDuplicateOpenIDConnectIssuer",
@@ -136,13 +147,14 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 			Errors: []string{"authentication_backend: external_identity: providers: option 'issuer' must be unique for 'openid_connect' providers but 'https://accounts.google.com' is configured for the providers 'google' and 'google2'"},
 		},
 		{
-			Name: "ShouldRaiseErrorOnUnknownType",
+			Name: "ShouldNotReportDuplicateTypesForProvidersWithADuplicateID",
 			Have: &schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
-					{ID: "twitch", Type: "twitch", Name: "Twitch", ClientID: "123", ClientSecret: "secret"},
+					{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret"},
+					{ID: "discord", Type: "discord", Name: "Discord 2", ClientID: "456", ClientSecret: "secret"},
 				},
 			},
-			Errors: []string{"authentication_backend: external_identity: providers: provider 'twitch': option 'type' must be one of 'openid_connect' but it's configured as 'twitch'"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'discord': option 'id' must be unique but it's configured multiple times"},
 		},
 		{
 			Name: "ShouldRaiseErrorOnInsecureIssuer",
@@ -357,9 +369,112 @@ func TestValidateAuthenticationBackendExternalIdentityAllowDuplicateIssuer(t *te
 	}
 }
 
+func TestValidateAuthenticationBackendExternalIdentityDiscord(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     schema.AuthenticationBackendExternalIdentityProvider
+		Expected *schema.AuthenticationBackendExternalIdentityProvider
+		Errors   []string
+	}{
+		{
+			Name: "ShouldApplyDefaults",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret"},
+			Expected: &schema.AuthenticationBackendExternalIdentityProvider{
+				ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret",
+				Scopes:                  []string{"identify", "email"},
+				ResponseMode:            "query",
+				TokenEndpointAuthMethod: "client_secret_basic",
+				PKCE:                    schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+			},
+		},
+		{
+			Name: "ShouldForceIdentifyScope",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret", Scopes: []string{"email"}, TokenEndpointAuthMethod: "client_secret_post"},
+			Expected: &schema.AuthenticationBackendExternalIdentityProvider{
+				ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret",
+				Scopes:                  []string{"identify", "email"},
+				ResponseMode:            "query",
+				TokenEndpointAuthMethod: "client_secret_post",
+				PKCE:                    schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+			},
+		},
+		{
+			Name: "ShouldRaiseErrorOnOpenIDConnectOptions",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{
+				ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret",
+				Issuer:                         "https://discord.com",
+				IDTokenSignedResponseAlg:       "RS256",
+				AuthenticationMethodsReference: schema.AuthenticationBackendExternalIdentityProviderAMR{Trust: true},
+				Discovery:                      schema.AuthenticationBackendExternalIdentityProviderDiscovery{Disable: true},
+				Endpoints:                      schema.AuthenticationBackendExternalIdentityProviderEndpoints{Authorization: "https://discord.com/oauth2/authorize", Token: "https://discord.com/api/oauth2/token", UserInfo: "https://discord.com/api/v10/users/@me", JSONWebKeys: "https://discord.com/api/oauth2/keys"}, //nolint:gosec // Test URLs.
+				JSONWebKeys:                    []schema.JWK{{KeyID: "kid1"}},
+			},
+			Errors: []string{
+				"authentication_backend: external_identity: providers: provider 'discord': option 'issuer' is not supported by the 'discord' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'discord': option 'id_token_signed_response_alg' is not supported by the 'discord' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'discord': option 'authentication_methods_reference.trust' is not supported by the 'discord' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'discord': option 'discovery.disable' is not supported by the 'discord' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'discord': option 'endpoints' is not supported by the 'discord' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'discord': option 'jwks' is not supported by the 'discord' provider type but it's configured",
+			},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnSharedRedirectURI",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret", SharedRedirectURI: true},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'discord': option 'shared_redirect_uri' is not supported by the 'discord' provider type but it's configured"},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnFormPostResponseMode",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret", ResponseMode: "form_post"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'discord': option 'response_mode' must be one of 'query' but it's configured as 'form_post'"},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnNoneAuthMethod",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", TokenEndpointAuthMethod: "none"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'discord': option 'token_endpoint_auth_method' must be one of 'client_secret_basic' or 'client_secret_post' but it's configured as 'none'"},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnMissingSecret",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'discord': option 'client_secret' is required when the 'token_endpoint_auth_method' is 'client_secret_basic' but it's not configured"},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnUnknownType",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "twitch", Type: "twitch", Name: "Twitch", ClientID: "123", ClientSecret: "secret"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'twitch': option 'type' must be one of 'openid_connect' or 'discord' but it's configured as 'twitch'"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			config := &schema.AuthenticationBackendExternalIdentity{Providers: []schema.AuthenticationBackendExternalIdentityProvider{tc.Have}}
+			val := schema.NewStructValidator()
+
+			ValidateAuthenticationBackendExternalIdentity(config, val)
+
+			errs := make([]string, 0, len(val.Errors()))
+
+			for _, err := range val.Errors() {
+				errs = append(errs, err.Error())
+			}
+
+			if len(tc.Errors) == 0 {
+				assert.Empty(t, errs)
+			} else {
+				assert.Equal(t, tc.Errors, errs)
+			}
+
+			if tc.Expected != nil {
+				assert.Equal(t, *tc.Expected, config.Providers[0])
+			}
+		})
+	}
+}
+
 func TestValidateAuthenticationBackendExternalIdentityAuthenticationMethodsReference(t *testing.T) {
 	testCases := []struct {
 		Name   string
+		Type   string
 		Have   schema.AuthenticationBackendExternalIdentityProviderAMR
 		Errors []string
 	}{
@@ -381,13 +496,36 @@ func TestValidateAuthenticationBackendExternalIdentityAuthenticationMethodsRefer
 			Have:   schema.AuthenticationBackendExternalIdentityProviderAMR{Default: []string{"pwd", ""}},
 			Errors: []string{"authentication_backend: external_identity: providers: provider 'example': authentication_methods_reference: option 'default' must not contain empty values"},
 		},
+		{
+			Name: "ShouldAllowDefaultForDiscord",
+			Type: "discord",
+			Have: schema.AuthenticationBackendExternalIdentityProviderAMR{Default: []string{"pwd"}},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnEmptyDefaultForDiscord",
+			Type:   "discord",
+			Have:   schema.AuthenticationBackendExternalIdentityProviderAMR{Default: []string{""}},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'example': authentication_methods_reference: option 'default' must not contain empty values"},
+		},
+		{
+			Name: "ShouldRaiseErrorOnOverrideForDiscord",
+			Type: "discord",
+			Have: schema.AuthenticationBackendExternalIdentityProviderAMR{Default: []string{"pwd"}, Override: true},
+			Errors: []string{
+				"authentication_backend: external_identity: providers: provider 'example': option 'authentication_methods_reference.override' is not supported by the 'discord' provider type but it's configured",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			provider := schema.AuthenticationBackendExternalIdentityProvider{
-				ID: "example", Name: "Example", Issuer: "https://id.example.com", ClientID: "abc", ClientSecret: "secret",
+				ID: "example", Type: tc.Type, Name: "Example", ClientID: "abc", ClientSecret: "secret",
 				AuthenticationMethodsReference: tc.Have,
+			}
+
+			if tc.Type != "discord" {
+				provider.Issuer = "https://id.example.com"
 			}
 
 			config := &schema.AuthenticationBackendExternalIdentity{Providers: []schema.AuthenticationBackendExternalIdentityProvider{provider}}

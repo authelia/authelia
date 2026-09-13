@@ -34,6 +34,9 @@ const (
 	// ProviderTypeOpenIDConnect is the type of a provider which is an OpenID Connect 1.0 Provider.
 	ProviderTypeOpenIDConnect = "openid_connect"
 
+	// ProviderTypeDiscord is the type of a provider which is Discord.
+	ProviderTypeDiscord = "discord"
+
 	// ResponseModeQuery is the response mode which delivers the authorization response in the query of a GET request
 	// to the redirect URI.
 	ResponseModeQuery = "query"
@@ -53,6 +56,13 @@ const (
 	mimeApplicationXWWWFormURLEncoded = "application/x-www-form-urlencoded"
 
 	pushedAuthorizationResponseLimit = 1024 * 64
+)
+
+const (
+	discordIssuer                = "https://discord.com"
+	discordAuthorizationEndpoint = "https://discord.com/oauth2/authorize"
+	discordTokenEndpoint         = "https://discord.com/api/oauth2/token" //nolint:gosec // This is a URL, not a credential.
+	discordUserEndpoint          = "https://discord.com/api/v10/users/@me"
 )
 
 const (
@@ -109,4 +119,7 @@ var (
 	// ErrUserInfoSubjectMismatch is returned when the 'sub' claim of the UserInfo Response is not the 'sub' claim of
 	// the ID Token.
 	ErrUserInfoSubjectMismatch = errors.New("the userinfo response 'sub' claim does not match the id token 'sub' claim")
+
+	// ErrDiscordUserInvalid is returned when the Discord current user response could not be used.
+	ErrDiscordUserInvalid = errors.New("the discord user response is invalid")
 )

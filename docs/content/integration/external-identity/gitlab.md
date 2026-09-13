@@ -100,8 +100,8 @@ the link.
 
 ## Authentication Level
 
-A sign in with GitLab satisfies the `one_factor` policy. An `openid_connect` provider adopts no Authentication Method
-References by default: it only adopts the values it asserts
+A sign in with GitLab satisfies the `one_factor` policy. Unlike the `discord` provider type, an
+`openid_connect` provider adopts no Authentication Method References by default: it only adopts the values it asserts
 in the `amr` claim when [trust](../../configuration/first-factor/external-identity.md#trust) is enabled, and GitLab does
 not include an `amr` claim in its ID Tokens at the time of writing.
 
