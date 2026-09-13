@@ -37,6 +37,9 @@ const (
 	// ProviderTypeDiscord is the type of a provider which is Discord.
 	ProviderTypeDiscord = "discord"
 
+	// ProviderTypePlex is the type of a provider which is Plex.
+	ProviderTypePlex = "plex"
+
 	// ProviderTypeGitHub is the type of a provider which is GitHub.
 	ProviderTypeGitHub = "github"
 
@@ -78,6 +81,21 @@ const (
 	headerGitHubAPIVersion    = "X-GitHub-Api-Version"
 	githubAPIVersion          = "2022-11-28"
 	mimeApplicationGitHubJSON = "application/vnd.github+json"
+)
+
+const (
+	plexIssuer                = "https://plex.tv"
+	plexProduct               = "Authelia"
+	plexAuthorizationEndpoint = "https://app.plex.tv/auth"
+	plexPINsEndpoint          = "https://plex.tv/api/v2/pins"
+	plexUserEndpoint          = "https://plex.tv/api/v2/user"
+
+	headerPlexProduct          = "X-Plex-Product"
+	headerPlexVersion          = "X-Plex-Version"
+	headerPlexClientIdentifier = "X-Plex-Client-Identifier"
+	headerPlexDeviceName       = "X-Plex-Device-Name"
+	headerPlexLanguage         = "X-Plex-Language"
+	headerPlexToken            = "X-Plex-Token" //nolint:gosec // This is a header name, not a credential.
 )
 
 const (
@@ -140,4 +158,13 @@ var (
 
 	// ErrGitHubResponseInvalid is returned when a GitHub response could not be used.
 	ErrGitHubResponseInvalid = errors.New("the github response is invalid")
+
+	// ErrPlexResponseInvalid is returned when a Plex response could not be used.
+	ErrPlexResponseInvalid = errors.New("the plex response is invalid")
+
+	// ErrPlexPINMismatch is returned when the Plex PIN the browser returned is not the Plex PIN the flow created.
+	ErrPlexPINMismatch = errors.New("the plex pin returned does not match the plex pin requested")
+
+	// ErrPlexPINUnauthorized is returned when the Plex PIN has not been approved by the user.
+	ErrPlexPINUnauthorized = errors.New("the plex pin has not been authorized")
 )

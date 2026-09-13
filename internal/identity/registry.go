@@ -31,6 +31,8 @@ func NewProviders(config *schema.AuthenticationBackendExternalIdentity, caCertPo
 		switch provider.Type {
 		case ProviderTypeDiscord:
 			all = append(all, newDiscordProvider(provider, newProviderClient(caCertPool)))
+		case ProviderTypePlex:
+			all = append(all, newPlexProvider(provider, newProviderClient(caCertPool)))
 		case ProviderTypeGitHub:
 			all = append(all, newGitHubProvider(provider, newProviderClient(caCertPool)))
 		default:
