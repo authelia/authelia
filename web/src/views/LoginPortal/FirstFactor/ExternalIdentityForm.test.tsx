@@ -205,6 +205,7 @@ it("sends the flow the sign in was started from", async () => {
 it("renders an icon for each provider carrying its type and logo", async () => {
     getExternalIdentityProviders.mockResolvedValue([
         { id: "google", logo_uri: "https://cdn.example.com/google.png", name: "Google", type: "openid_connect" },
+        { id: "discord", name: "Discord", type: "discord" },
     ]);
 
     render(<ExternalIdentityForm disabled={false} rememberMe={false} />);
@@ -215,4 +216,5 @@ it("renders an icon for each provider carrying its type and logo", async () => {
         "data-logo-uri",
         "https://cdn.example.com/google.png",
     );
+    expect(screen.getByTestId("icon-discord")).toHaveAttribute("data-logo-uri", "");
 });
