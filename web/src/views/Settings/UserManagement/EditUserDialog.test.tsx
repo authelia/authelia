@@ -39,11 +39,14 @@ vi.mock("@services/UserManagement", () => ({
     patchChangeUser: vi.fn(),
 }));
 
+// The backend already prefixes extra (non-standard) attribute names with "extra." in
+// `supported_attributes` (see FileUserManagement.GetSupportedAttributes), so the fixture key
+// below mirrors that shape - "custom_field" alone is not how a real backend ever names it.
 const metadata = {
     required_attributes: ["username"],
     supported_attributes: {
-        custom_field: { type: "text" },
         display_name: { type: "text" },
+        "extra.custom_field": { type: "text" },
         groups: { multiple: true, type: "groups" },
         last_logged_in: { type: "text" },
         locality: { type: "text" },
@@ -69,18 +72,18 @@ const user: UserDetailsExtended = {
 const allTypesMetadata = {
     required_attributes: ["username"],
     supported_attributes: {
-        backup_email: { type: "email" },
         birthdate: { type: "date" },
-        custom_field: { type: "text" },
         display_name: { type: "text" },
-        groups: { multiple: true, type: "groups" },
+        "extra.backup_email": { type: "email" },
+        "extra.custom_field": { type: "text" },
         // extra attribute with a name distinct from "birthdate" so it exercises the generic
         // type-based date dispatch rather than the name-based special-casing "birthdate" gets
-        hire_date: { type: "date" },
+        "extra.hire_date": { type: "date" },
+        "extra.login_count": { type: "number" },
+        "extra.newsletter": { type: "checkbox" },
+        groups: { multiple: true, type: "groups" },
         locality: { type: "text" },
-        login_count: { type: "number" },
         mail: { multiple: true, type: "email" },
-        newsletter: { type: "checkbox" },
         password: { type: "password" },
         phone_number: { type: "tel" },
         username: { type: "text" },
