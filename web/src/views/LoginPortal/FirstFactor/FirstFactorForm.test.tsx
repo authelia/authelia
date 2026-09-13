@@ -58,7 +58,11 @@ vi.mock("@contexts/NotificationsContext", () => ({
 }));
 
 vi.mock("@layouts/LoginLayout", () => ({
-    default: (props: any) => <div data-testid="login-layout">{props.children}</div>,
+    default: (props: any) => (
+        <div data-testid="login-layout" data-title={props.title}>
+            {props.children}
+        </div>
+    ),
 }));
 
 vi.mock("@services/CapsLock", () => ({
@@ -90,10 +94,25 @@ vi.mock("@views/LoginPortal/FirstFactor/PasskeyForm", () => ({
     ),
 }));
 
+vi.mock("@views/LoginPortal/FirstFactor/ExternalIdentityForm", () => ({
+    default: (props: any) => (
+        <div data-testid="external-identity-form" data-disabled={String(props.disabled)}>
+            <button data-testid="external-identity-start" onClick={() => props.onLoadingChange(true)} />
+            <button data-testid="external-identity-stop" onClick={() => props.onLoadingChange(false)} />
+        </div>
+    ),
+}));
+
+vi.mock("@views/LoginPortal/FirstFactor/ExternalIdentityLinkNotice", () => ({
+    default: (props: any) => <div data-testid="external-identity-link-notice" data-provider={props.provider} />,
+}));
+
 const postFirstFactorMock = vi.mocked(postFirstFactor);
 
 const defaultProps = {
     disabled: false,
+    externalIdentityLink: undefined as string | undefined,
+    externalIdentityLogin: false,
     onAuthenticationStart: vi.fn(),
     onAuthenticationStop: vi.fn(),
     onAuthenticationSuccess: vi.fn(),
@@ -161,6 +180,51 @@ describe("rendering", () => {
     it("renders passkey form when passkey login is enabled", () => {
         renderForm({ passkeyLogin: true });
         expect(screen.getByTestId("passkey-form")).toBeInTheDocument();
+    });
+
+    it("renders the external identity form when external identity login is enabled", () => {
+        renderForm({ externalIdentityLogin: true });
+
+        expect(screen.getByTestId("external-identity-form")).toBeInTheDocument();
+        expect(screen.queryByTestId("external-identity-link-notice")).not.toBeInTheDocument();
+        expect(screen.getByTestId("login-layout")).toHaveAttribute("data-title", "Sign in");
+    });
+
+    it("does not spin the password sign in button while an external identity sign in is in flight", () => {
+        renderForm({ externalIdentityLogin: true });
+
+        const button = screen.getByText("Sign in").closest("button")!;
+
+        expect(button.querySelector('[data-slot="spinner"]')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByTestId("external-identity-start"));
+
+        expect(button).toBeDisabled();
+        expect(button.querySelector('[data-slot="spinner"]')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByTestId("external-identity-stop"));
+
+        expect(button).not.toBeDisabled();
+    });
+
+    it("does not submit the password sign in while an external identity sign in is in flight", () => {
+        renderForm({ externalIdentityLogin: true });
+
+        fireEvent.change(screen.getByLabelText("Username *"), { target: { value: "john" } });
+        fireEvent.change(screen.getByLabelText("Password *"), { target: { value: "password" } });
+        fireEvent.click(screen.getByTestId("external-identity-start"));
+
+        fireEvent.keyDown(screen.getByLabelText("Password *"), { key: "Enter" });
+
+        expect(postFirstFactorMock).not.toHaveBeenCalled();
+    });
+
+    it("renders the link notice instead of the external identity form when linking", () => {
+        renderForm({ externalIdentityLink: "google", externalIdentityLogin: true });
+
+        expect(screen.getByTestId("external-identity-link-notice")).toHaveAttribute("data-provider", "google");
+        expect(screen.queryByTestId("external-identity-form")).not.toBeInTheDocument();
+        expect(screen.getByTestId("login-layout")).toHaveAttribute("data-title", "Sign in to link your account");
     });
 
     it("renders reset password link when enabled", () => {

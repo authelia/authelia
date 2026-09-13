@@ -49,6 +49,9 @@ type UserSession struct {
 	RefreshTTL time.Time
 
 	Elevations Elevations
+
+	ExternalIdentity        *ExternalIdentityFlow
+	ExternalIdentityPending *ExternalIdentityPending
 }
 
 // TOTP holds the TOTP registration session data.
@@ -84,4 +87,39 @@ type Elevation struct {
 	ID       int
 	RemoteIP net.IP
 	Expires  time.Time
+}
+
+// ExternalIdentityFlow holds the in-flight external identity authorization state. It never leaves the
+// server-side session store.
+type ExternalIdentityFlow struct {
+	Provider       string
+	State          string
+	Nonce          string
+	CodeVerifier   string
+	Handle         string
+	Language       string
+	TargetURL      string
+	RequestMethod  string
+	KeepMeLoggedIn bool
+	Expires        time.Time
+
+	// FlowID, Flow, SubFlow, and UserCode identify the flow the user is resumed into once they have signed in, exactly
+	// as the parameters of the same names do for a password sign in.
+	FlowID   string
+	Flow     string
+	SubFlow  string
+	UserCode string
+}
+
+// ExternalIdentityPending holds validated claims from an unlinked external identity awaiting the user's decision. It
+// holds no tokens.
+type ExternalIdentityPending struct {
+	Provider       string
+	Type           string
+	Issuer         string
+	Subject        string
+	RemoteUsername string
+	DisplayName    string
+	Email          string
+	Expires        time.Time
 }
