@@ -13,6 +13,8 @@ export const LogoutRoute: string = "/logout";
 
 export const SettingsRoute: string = "/settings";
 export const SettingsTwoFactorAuthenticationSubRoute: string = "/two-factor-authentication";
+export const SettingsUserManagementSubRoute: string = "/users";
+export const SettingsGroupManagementSubRoute: string = "/groups";
 export const RevokeOneTimeCodeRoute: string = "/revoke/one-time-code";
 export const RevokeResetPasswordRoute: string = "/revoke/reset-password";
 export const SecuritySubRoute: string = "/security";
