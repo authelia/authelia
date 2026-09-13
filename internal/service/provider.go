@@ -5,6 +5,9 @@
 package service
 
 import (
+	"context"
+	"time"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -31,6 +34,14 @@ type ReloadableProvider interface {
 	Reload() (reloaded bool, err error)
 }
 
+// GarbageCollectorProvider represents the required methods to support periodic garbage collection of a backend. A
+// backend which expires records itself, such as Redis, should return a frequency of zero to indicate no collection
+// service is required.
+type GarbageCollectorProvider interface {
+	GarbageCollection(ctx context.Context) (err error)
+	GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration)
+}
+
 // Provisioner is a function which provisions a Provider.
 type Provisioner func(ctx Context) (provider Provider, err error)
 
@@ -42,5 +53,6 @@ func GetProvisioners() []Provisioner {
 		ProvisionUsersFileWatcher,
 		ProvisionLoggingSignal,
 		ProvisionGarbageCollector,
+		ProvisionSessionCollector,
 	}
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -39,7 +40,7 @@ func (s *HandlerSignTOTPSuite) SetupTest() {
 
 	userSession.Username = testUsername
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 
 	s.mock.Clock.Set(time.Unix(1701295903, 0))
 	s.mock.Ctx.Providers.Clock = &s.mock.Clock
@@ -74,6 +75,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -125,6 +130,10 @@ func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -173,6 +182,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -228,6 +241,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -289,6 +306,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURLDisableReuse
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -337,6 +358,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -386,6 +411,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -521,7 +550,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleAnonymous() {
 
 	us.Username = ""
 
-	s.Require().NoError(s.mock.Ctx.SaveSession(us))
+	s.Require().NoError(s.mock.Ctx.SaveSession(&us))
 
 	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token: "abc",
@@ -542,7 +571,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETAnonymous() {
 
 	us.Username = ""
 
-	s.Require().NoError(s.mock.Ctx.SaveSession(us))
+	s.Require().NoError(s.mock.Ctx.SaveSession(&us))
 
 	TimeBasedOneTimePasswordGET(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
@@ -732,6 +761,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnErrorOnInvalidBooleanMarkErrSu
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, model.AuthenticationAttempt{
@@ -834,6 +867,10 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleExistsHistoryWithDisableReusePoli
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -882,6 +919,10 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleFlow() {
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{

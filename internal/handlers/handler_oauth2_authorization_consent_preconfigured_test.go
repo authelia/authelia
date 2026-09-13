@@ -20,6 +20,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -91,7 +92,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfigured(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOAuth2AuthorizationConsentModePreConfigured(mock.Ctx, preConfIssuer, preConfClient, newPreConfUserSession(), preConfSubject, rw, httptest.NewRequest("GET", "https://auth.example.com", nil), newPreConfRequester(nil))
+			consent, handled := handleOAuth2AuthorizationConsentModePreConfigured(mock.Ctx, preConfIssuer, preConfClient, newPreConfUserSession(), &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}, preConfSubject, rw, httptest.NewRequest("GET", "https://auth.example.com", nil), newPreConfRequester(nil))
 
 			assert.Equal(t, tc.handled, handled)
 			assert.Nil(t, consent)
@@ -345,7 +346,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(mock.Ctx, preConfIssuer, preConfClient, newPreConfUserSession(), preConfSubject, rw, httptest.NewRequest("GET", "https://auth.example.com", nil), newPreConfRequester(tc.form))
+			consent, handled := handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(mock.Ctx, preConfIssuer, preConfClient, newPreConfUserSession(), &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}, preConfSubject, rw, httptest.NewRequest("GET", "https://auth.example.com", nil), newPreConfRequester(tc.form))
 
 			assert.Equal(t, tc.handled, handled)
 
@@ -552,7 +553,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOAuth2AuthorizationConsentModePreConfiguredWithID(mock.Ctx, preConfIssuer, preConfClient, newPreConfUserSession(), preConfSubject, preConfChallenge, rw, httptest.NewRequest("GET", "https://auth.example.com", nil), newPreConfRequester(tc.form))
+			consent, handled := handleOAuth2AuthorizationConsentModePreConfiguredWithID(mock.Ctx, preConfIssuer, preConfClient, newPreConfUserSession(), &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}, preConfSubject, preConfChallenge, rw, httptest.NewRequest("GET", "https://auth.example.com", nil), newPreConfRequester(tc.form))
 
 			assert.Equal(t, tc.handled, handled)
 
@@ -601,7 +602,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredMisc(t *testing.T) {
 
 		form := url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}}
 
-		consent, handled := handleOAuth2AuthorizationConsentModePreConfiguredWithID(mock.Ctx, preConfIssuer, preConfClient, newPreConfUserSession(), preConfSubject, preConfChallenge, rw, httptest.NewRequest("GET", "https://auth.example.com", nil), newPreConfRequester(form))
+		consent, handled := handleOAuth2AuthorizationConsentModePreConfiguredWithID(mock.Ctx, preConfIssuer, preConfClient, newPreConfUserSession(), &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}, preConfSubject, preConfChallenge, rw, httptest.NewRequest("GET", "https://auth.example.com", nil), newPreConfRequester(form))
 
 		assert.True(t, handled)
 		assert.Nil(t, consent)

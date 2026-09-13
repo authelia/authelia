@@ -27,11 +27,11 @@ func (s *LogoutSuite) SetupTest() {
 	provider, err := s.mock.Ctx.GetSessionProvider()
 	s.Assert().NoError(err)
 
-	userSession, err := provider.GetSession(s.mock.Ctx.RequestCtx)
+	userSession, err := provider.Get(s.mock.Ctx)
 	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
-	s.Assert().NoError(provider.SaveSession(s.mock.Ctx.RequestCtx, userSession))
+	s.Assert().NoError(provider.Save(s.mock.Ctx, userSession))
 }
 
 func (s *LogoutSuite) TearDownTest() {
@@ -100,7 +100,7 @@ func TestLogoutPOST(t *testing.T) {
 
 			us.Username = testUsername
 
-			require.NoError(t, mock.Ctx.SaveSession(us))
+			require.NoError(t, mock.Ctx.SaveSession(&us))
 
 			mock.Ctx.Request.SetBodyString(tc.have)
 

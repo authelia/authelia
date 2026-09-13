@@ -16,6 +16,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -31,7 +32,7 @@ func TestHandleFlowResponse(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, "", "not-a-flow", "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), "", "not-a-flow", "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -44,7 +45,7 @@ func TestHandleFlowResponse(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, "", flowNameOpenIDConnect, "not-a-subflow", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, "not-a-subflow", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -69,7 +70,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		userSession := session.UserSession{}
 
-		handleFlowResponse(mock.Ctx, &userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
+		handleFlowResponse(mock.Ctx, &userSession, &authentication.UserDetails{}, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -83,7 +84,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		clearForwardedHeaders(mock)
 
-		handleFlowResponse(mock.Ctx, userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
+		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -98,7 +99,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 			AccessControl: schema.AccessControl{DefaultPolicy: "one_factor"},
 		})
 
-		handleFlowResponse(mock.Ctx, userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
+		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 		body := redirectResponse{}
 
@@ -118,7 +119,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 		mock, userSession := newMockWithSession(t, 2)
 		defer mock.Close()
 
-		handleFlowResponse(mock.Ctx, userSession, "abc", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
+		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "abc", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 		body := redirectResponse{}
 
@@ -139,7 +140,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 			AccessControl: schema.AccessControl{DefaultPolicy: "two_factor"},
 		})
 
-		handleFlowResponse(mock.Ctx, userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
+		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 		mock.Assert200OK(t, nil)
 	})
@@ -148,7 +149,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 		mock, userSession := newMockWithSession(t, 1)
 		defer mock.Close()
 
-		handleFlowResponse(mock.Ctx, userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, strings.Repeat("A", 33))
+		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, strings.Repeat("A", 33))
 
 		mock.Assert200KO(t, messageOperationFailed)
 
@@ -165,7 +166,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 
-		handleFlowResponse(mock.Ctx, userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "ABCDEFGH")
+		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "ABCDEFGH")
 
 		mock.Assert200KO(t, messageOperationFailed)
 
@@ -186,7 +187,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		mock.Ctx.Response.Reset()
 
-		handleFlowResponse(mock.Ctx, userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
+		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
 
 		body := redirectResponse{}
 
@@ -218,7 +219,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		mock.Ctx.Response.Reset()
 
-		handleFlowResponse(mock.Ctx, userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
+		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
 
 		mock.Assert200OK(t, nil)
 
@@ -290,7 +291,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflowDeviceState(t *testing.
 
 			userSession := newTestOIDCUserSession(1)
 
-			handleFlowResponse(mock.Ctx, &userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
+			handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
 
 			mock.Assert200KO(t, messageOperationFailed)
 
@@ -309,7 +310,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflowDeviceState(t *testing.
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 

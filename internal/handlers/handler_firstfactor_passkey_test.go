@@ -46,7 +46,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 
 				require.NoError(t, err)
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com"}}}$`),
 			fasthttp.StatusOK,
@@ -74,7 +74,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.AuthenticationMethodRefs.KnowledgeBasedAuthentication = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}$`),
 			fasthttp.StatusForbidden,
@@ -107,7 +107,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "____")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "____")
@@ -212,7 +212,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			dataReqGood,
 			"",
@@ -259,7 +259,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 				mock.Ctx.Request.Header.Set("X-Original-URL", "123")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "123")
 			},
@@ -304,7 +304,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				}
 
 				require.NoError(t, err)
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "123")
 			},
@@ -336,7 +336,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -441,7 +441,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -546,7 +546,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -651,7 +651,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -751,7 +751,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -856,7 +856,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -958,7 +958,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1052,7 +1052,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1156,7 +1156,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1261,7 +1261,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1360,7 +1360,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1456,7 +1456,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1527,7 +1527,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1623,7 +1623,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
@@ -1672,7 +1672,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
@@ -1731,7 +1731,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			have:           dataReqNoHandleGood,
 			expectedStatus: fasthttp.StatusForbidden,
@@ -1775,7 +1775,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				}
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "123")
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			have:           dataReqGood,
 			expectedStatus: fasthttp.StatusForbidden,
@@ -1805,7 +1805,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1891,7 +1891,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			have:           "not json",
 			expectedStatus: fasthttp.StatusBadRequest,
@@ -1934,7 +1934,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			have:           `{"response":true}`,
 			expectedStatus: fasthttp.StatusBadRequest,
