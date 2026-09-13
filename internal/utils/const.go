@@ -152,6 +152,23 @@ const (
 const (
 	localeDefault          = "en"
 	localeNamespaceDefault = "portal"
-	extJSON                = ".json"
 	undefinedLocaleTag     = "und"
+)
+
+// File extensions for the file formats Authelia reads and writes.
+const (
+	// ExtHTML is the file extension for HTML files.
+	ExtHTML = ".html"
+
+	// ExtJSON is the file extension for JSON files.
+	ExtJSON = ".json"
+
+	// ExtYAML is the long file extension for YAML files.
+	ExtYAML = ".yaml"
+
+	// ExtYML is the short file extension for YAML files.
+	ExtYML = ".yml"
+
+	// ExtTOML is the file extension for TOML files.
+	ExtTOML = ".toml"
 )

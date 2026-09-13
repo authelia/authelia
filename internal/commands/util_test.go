@@ -7,17 +7,24 @@ package commands
 import (
 	"bytes"
 	"crypto/x509"
+	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestLoadXEnvCLIStringSliceValue(t *testing.T) {
@@ -560,24 +567,26 @@ func TestTermReadPasswordWithPrompt(t *testing.T) {
 	})
 }
 
-func TestExportYAMLWithJSONSchema(t *testing.T) {
+func TestWriteJSONSchema(t *testing.T) {
 	testCases := []struct {
-		name     string
-		schemaID string
-		data     any
-		expected []string
+		name       string
+		schemaName string
+		expected   string
 	}{
 		{
-			"ShouldExportSimpleStruct",
-			"export.test",
-			map[string]string{"key": "value"},
-			[]string{"yaml-language-server", "export.test", "key: value"},
+			"ShouldWriteConfigurationSchemaHeader",
+			"configuration",
+			"# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/configuration.json\n\n",
 		},
 		{
-			"ShouldExportSlice",
-			"export.items",
-			[]string{"a", "b"},
-			[]string{"yaml-language-server", "export.items", "- a", "- b"},
+			"ShouldWriteUserDatabaseSchemaHeader",
+			"user-database",
+			"# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/user-database.json\n\n",
+		},
+		{
+			"ShouldWriteSchemaWithDotInName",
+			"export.test",
+			"# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/export.test.json\n\n",
 		},
 	}
 
@@ -585,15 +594,275 @@ func TestExportYAMLWithJSONSchema(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 
-			err := exportYAMLWithJSONSchema(buf, tc.schemaID, tc.data)
+			err := exportYAMLFileWriteJSONSchema(buf, tc.schemaName)
 
 			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, buf.String())
+		})
+	}
 
-			for _, s := range tc.expected {
-				assert.Contains(t, buf.String(), s)
+	t.Run("ShouldReturnHeaderWriteError", func(t *testing.T) {
+		w := &failingStringWriter{failAt: 0}
+
+		err := exportYAMLFileWriteJSONSchema(w, "configuration")
+
+		assert.EqualError(t, err, "write failed")
+	})
+
+	t.Run("ShouldReturnTrailingWriteError", func(t *testing.T) {
+		w := &failingStringWriter{failAt: 1}
+
+		err := exportYAMLFileWriteJSONSchema(w, "configuration")
+
+		assert.EqualError(t, err, "write failed")
+	})
+}
+
+func TestImportFile(t *testing.T) {
+	type payload struct {
+		Theme string `yaml:"theme" toml:"theme" json:"theme"`
+	}
+
+	testCases := []struct {
+		name     string
+		filename string
+		body     string
+		expected string
+		err      string
+	}{
+		{
+			"ShouldParseYML",
+			"input.yml",
+			"theme: light\n",
+			"light",
+			"",
+		},
+		{
+			"ShouldParseYAML",
+			"input.yaml",
+			"theme: dark\n",
+			"dark",
+			"",
+		},
+		{
+			"ShouldParseTOML",
+			"input.toml",
+			`theme = "auto"` + "\n",
+			"auto",
+			"",
+		},
+		{
+			"ShouldParseJSON",
+			"input.json",
+			`{"theme":"grey"}`,
+			"grey",
+			"",
+		},
+		{
+			"ShouldFallBackToYAMLForUnknownExtension",
+			"input.cfg",
+			"theme: light\n",
+			"light",
+			"",
+		},
+		{
+			"ShouldFallBackToYAMLForNoExtension",
+			"input",
+			"theme: light\n",
+			"light",
+			"",
+		},
+		{
+			"ShouldErrorOnMalformedYML",
+			"input.yml",
+			"theme:\n\t- bad",
+			"",
+			"found character that cannot start any token",
+		},
+		{
+			"ShouldErrorOnMalformedYAML",
+			"input.yaml",
+			"theme:\n\t- bad",
+			"",
+			"found character that cannot start any token",
+		},
+		{
+			"ShouldErrorOnMalformedTOML",
+			"input.toml",
+			"theme = ",
+			"",
+			"toml:",
+		},
+		{
+			"ShouldErrorOnMalformedJSON",
+			"input.json",
+			"{not-json",
+			"",
+			"invalid character",
+		},
+		{
+			"ShouldErrorOnMalformedYAMLWithUnknownExtension",
+			"input.cfg",
+			"theme:\n\t- bad",
+			"",
+			"found character that cannot start any token",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var out payload
+
+			err := importFile(tc.filename, []byte(tc.body), &out)
+
+			if tc.err == "" {
+				require.NoError(t, err)
+				assert.Equal(t, tc.expected, out.Theme)
+			} else {
+				assert.ErrorContains(t, err, tc.err)
 			}
 		})
 	}
+}
+
+func TestInjectJSONSchema(t *testing.T) {
+	t.Run("ShouldInjectIntoStruct", func(t *testing.T) {
+		type payload struct {
+			Foo string `json:"foo"`
+		}
+
+		out, err := exportJSONFileInjectJSONSchema("export.test", payload{Foo: "bar"})
+
+		require.NoError(t, err)
+
+		m, ok := out.(map[string]any)
+		require.True(t, ok)
+
+		assert.Equal(t, "bar", m["foo"])
+		assert.Equal(t, "https://www.authelia.com/schemas/latest/json-schema/export.test.json", m["$schema"])
+	})
+
+	t.Run("ShouldInjectIntoMap", func(t *testing.T) {
+		out, err := exportJSONFileInjectJSONSchema("export.test", map[string]any{"a": 1, "b": "two"})
+
+		require.NoError(t, err)
+
+		m, ok := out.(map[string]any)
+		require.True(t, ok)
+
+		assert.Equal(t, "https://www.authelia.com/schemas/latest/json-schema/export.test.json", m["$schema"])
+		assert.Equal(t, "two", m["b"])
+	})
+
+	t.Run("ShouldErrorOnNonObjectPayload", func(t *testing.T) {
+		out, err := exportJSONFileInjectJSONSchema("export.test", []string{"a", "b"})
+
+		assert.Nil(t, out)
+		assert.ErrorContains(t, err, "payload is not a JSON object")
+	})
+
+	t.Run("ShouldErrorOnScalarPayload", func(t *testing.T) {
+		out, err := exportJSONFileInjectJSONSchema("export.test", "string")
+
+		assert.Nil(t, out)
+		assert.ErrorContains(t, err, "payload is not a JSON object")
+	})
+}
+
+func TestMarshal(t *testing.T) {
+	type payload struct {
+		WebAuthnCredentials []string `yaml:"webauthn_credentials" toml:"webauthn_credentials" json:"webauthn_credentials"`
+	}
+
+	v := payload{WebAuthnCredentials: []string{"alpha", "beta"}}
+
+	testCases := []struct {
+		name       string
+		extension  string
+		schemaName string
+		assertion  func(t *testing.T, contents string)
+	}{
+		{
+			"ShouldWriteYAMLWithSchemaHeader",
+			utils.ExtYML,
+			"export.test",
+			func(t *testing.T, contents string) {
+				assert.Contains(t, contents, "# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/export.test.json")
+				assert.Contains(t, contents, "webauthn_credentials:")
+				assert.Contains(t, contents, "- alpha")
+			},
+		},
+		{
+			"ShouldWriteYAMLWithoutSchemaWhenNameEmpty",
+			utils.ExtYML,
+			"",
+			func(t *testing.T, contents string) {
+				assert.NotContains(t, contents, "yaml-language-server")
+				assert.Contains(t, contents, "webauthn_credentials:")
+			},
+		},
+		{
+			"ShouldNotWriteTOMLWithSchemaHeader",
+			utils.ExtTOML,
+			"export.test",
+			func(t *testing.T, contents string) {
+				assert.NotContains(t, contents, "# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/export.test.json")
+				assert.Contains(t, contents, "webauthn_credentials")
+			},
+		},
+		{
+			"ShouldWriteJSONWithSchemaProperty",
+			utils.ExtJSON,
+			"export.test",
+			func(t *testing.T, contents string) {
+				assert.NotContains(t, contents, "yaml-language-server")
+
+				var m map[string]any
+
+				require.NoError(t, json.Unmarshal([]byte(contents), &m))
+
+				assert.Equal(t, "https://www.authelia.com/schemas/latest/json-schema/export.test.json", m["$schema"])
+				assert.Equal(t, []any{"alpha", "beta"}, m["webauthn_credentials"])
+			},
+		},
+		{
+			"ShouldWriteJSONWithoutSchemaWhenNameEmpty",
+			utils.ExtJSON,
+			"",
+			func(t *testing.T, contents string) {
+				var m map[string]any
+
+				require.NoError(t, json.Unmarshal([]byte(contents), &m))
+
+				_, has := m["$schema"]
+				assert.False(t, has)
+				assert.Equal(t, []any{"alpha", "beta"}, m["webauthn_credentials"])
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			filename := filepath.Join(dir, "out"+tc.extension)
+
+			require.NoError(t, exportFile(filename, v, tc.schemaName))
+
+			data, err := os.ReadFile(filename)
+			require.NoError(t, err)
+
+			tc.assertion(t, string(data))
+		})
+	}
+
+	t.Run("ShouldErrorOnJSONWithNonObjectPayload", func(t *testing.T) {
+		dir := t.TempDir()
+		filename := filepath.Join(dir, "out.json")
+
+		err := exportFile(filename, []string{"a", "b"}, "export.test")
+
+		assert.ErrorContains(t, err, "payload is not a JSON object")
+	})
 }
 
 func TestGetCryptoHashGenerateMapFlagsFromUse(t *testing.T) {
@@ -780,4 +1049,182 @@ type TestX509SystemCertPoolFactory struct {
 
 func (f *TestX509SystemCertPoolFactory) SystemCertPool() (*x509.CertPool, error) {
 	return f.pool, f.err
+}
+
+type failingStringWriter struct {
+	failAt int
+	calls  int
+}
+
+func (w *failingStringWriter) WriteString(s string) (int, error) {
+	defer func() { w.calls++ }()
+
+	if w.calls == w.failAt {
+		return 0, fmt.Errorf("write failed")
+	}
+
+	return len(s), nil
+}
+
+func TestExportFileImportFileRoundTrip(t *testing.T) {
+	createdAt := time.Date(2025, 4, 11, 4, 1, 31, 0, time.UTC)
+	lastUsedAt := time.Date(2025, 4, 12, 4, 1, 31, 0, time.UTC)
+
+	extensions := []string{utils.ExtYML, utils.ExtYAML, utils.ExtTOML, utils.ExtJSON}
+
+	t.Run("TOTPConfigurations", func(t *testing.T) {
+		expected := model.TOTPConfiguration{
+			CreatedAt:  createdAt,
+			LastUsedAt: sql.NullTime{Valid: true, Time: lastUsedAt},
+			Username:   "john",
+			Issuer:     "authelia.com",
+			Algorithm:  "SHA1",
+			Digits:     6,
+			Period:     30,
+			Secret:     []byte("abc123secret"),
+		}
+
+		for _, extension := range extensions {
+			t.Run(extension, func(t *testing.T) {
+				path := filepath.Join(t.TempDir(), "totp"+extension)
+
+				export := model.TOTPConfigurationExport{TOTPConfigurations: []model.TOTPConfiguration{expected}}
+
+				require.NoError(t, exportFile(path, export.ToData(), "export.totp"))
+
+				data, err := os.ReadFile(path)
+				require.NoError(t, err)
+
+				assert.Contains(t, string(data), "totp_configurations")
+				assert.Contains(t, string(data), "john")
+				assert.Contains(t, string(data), base64.StdEncoding.EncodeToString(expected.Secret))
+
+				imported := &model.TOTPConfigurationDataExport{}
+
+				require.NoError(t, importFile(path, data, imported))
+
+				actual, err := imported.ToExport()
+				require.NoError(t, err)
+				require.Len(t, actual.TOTPConfigurations, 1)
+
+				config := actual.TOTPConfigurations[0]
+
+				assert.Equal(t, expected.Username, config.Username)
+				assert.Equal(t, expected.Issuer, config.Issuer)
+				assert.Equal(t, expected.Algorithm, config.Algorithm)
+				assert.Equal(t, expected.Digits, config.Digits)
+				assert.Equal(t, expected.Period, config.Period)
+				assert.Equal(t, expected.Secret, config.Secret)
+				assert.True(t, expected.CreatedAt.Equal(config.CreatedAt))
+				assert.True(t, expected.LastUsedAt.Time.Equal(config.LastUsedAt.Time))
+			})
+		}
+	})
+
+	t.Run("WebAuthnCredentials", func(t *testing.T) {
+		expected := model.WebAuthnCredential{
+			CreatedAt:         createdAt,
+			LastUsedAt:        sql.NullTime{Valid: true, Time: lastUsedAt},
+			RPID:              "example.com",
+			Username:          "john",
+			Description:       "Primary",
+			KID:               model.NewBase64([]byte("abc")),
+			AAGUID:            uuid.NullUUID{Valid: true, UUID: uuid.MustParse("6acf852c-884f-4e9d-b184-292afa670e37")},
+			AttestationType:   "packed",
+			AttestationFormat: "packed",
+			Attachment:        "cross-platform",
+			Transport:         "usb,nfc",
+			SignCount:         5,
+			Discoverable:      true,
+			Present:           true,
+			Verified:          true,
+			PublicKey:         []byte("public key"),
+			Attestation:       []byte("attestation"),
+		}
+
+		for _, extension := range extensions {
+			t.Run(extension, func(t *testing.T) {
+				path := filepath.Join(t.TempDir(), "webauthn"+extension)
+
+				export := model.WebAuthnCredentialExport{WebAuthnCredentials: []model.WebAuthnCredential{expected}}
+
+				require.NoError(t, exportFile(path, export.ToData(), "export.webauthn"))
+
+				data, err := os.ReadFile(path)
+				require.NoError(t, err)
+
+				assert.Contains(t, string(data), "webauthn_credentials")
+				assert.Contains(t, string(data), "6acf852c-884f-4e9d-b184-292afa670e37")
+				assert.Contains(t, string(data), base64.StdEncoding.EncodeToString(expected.PublicKey))
+
+				imported := &model.WebAuthnCredentialDataExport{}
+
+				require.NoError(t, importFile(path, data, imported))
+
+				actual, err := imported.ToExport()
+				require.NoError(t, err)
+				require.Len(t, actual.WebAuthnCredentials, 1)
+
+				credential := actual.WebAuthnCredentials[0]
+
+				assert.Equal(t, expected.RPID, credential.RPID)
+				assert.Equal(t, expected.Username, credential.Username)
+				assert.Equal(t, expected.Description, credential.Description)
+				assert.Equal(t, expected.KID, credential.KID)
+				assert.Equal(t, expected.AAGUID, credential.AAGUID)
+				assert.Equal(t, expected.AttestationType, credential.AttestationType)
+				assert.Equal(t, expected.AttestationFormat, credential.AttestationFormat)
+				assert.Equal(t, expected.Attachment, credential.Attachment)
+				assert.Equal(t, expected.Transport, credential.Transport)
+				assert.Equal(t, expected.SignCount, credential.SignCount)
+				assert.Equal(t, expected.Discoverable, credential.Discoverable)
+				assert.Equal(t, expected.Present, credential.Present)
+				assert.Equal(t, expected.Verified, credential.Verified)
+				assert.Equal(t, expected.PublicKey, credential.PublicKey)
+				assert.Equal(t, expected.Attestation, credential.Attestation)
+				assert.True(t, expected.CreatedAt.Equal(credential.CreatedAt))
+				assert.True(t, expected.LastUsedAt.Time.Equal(credential.LastUsedAt.Time))
+			})
+		}
+	})
+
+	t.Run("UserOpaqueIdentifiers", func(t *testing.T) {
+		expected := model.UserOpaqueIdentifier{
+			ID:         10,
+			Service:    "openid",
+			SectorID:   "",
+			Username:   "john",
+			Identifier: uuid.MustParse("33e517d6-806f-47cb-bf35-c047c199b0f6"),
+		}
+
+		for _, extension := range extensions {
+			t.Run(extension, func(t *testing.T) {
+				path := filepath.Join(t.TempDir(), "identifiers"+extension)
+
+				export := model.UserOpaqueIdentifiersExport{Identifiers: []model.UserOpaqueIdentifier{expected}}
+
+				require.NoError(t, exportFile(path, export, "export.identifiers"))
+
+				data, err := os.ReadFile(path)
+				require.NoError(t, err)
+
+				assert.Contains(t, string(data), "identifiers")
+				assert.Contains(t, string(data), "33e517d6-806f-47cb-bf35-c047c199b0f6")
+				assert.NotContains(t, string(data), "ID", "the database identifier must not be included in the export")
+
+				imported := &model.UserOpaqueIdentifiersExport{}
+
+				require.NoError(t, importFile(path, data, imported))
+
+				require.Len(t, imported.Identifiers, 1)
+
+				assert.Equal(t, model.UserOpaqueIdentifier{
+					Service:    expected.Service,
+					SectorID:   expected.SectorID,
+					Username:   expected.Username,
+					Identifier: expected.Identifier,
+				}, imported.Identifiers[0])
+			})
+		}
+	})
 }

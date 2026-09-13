@@ -2,7 +2,7 @@
 title: "authelia storage user identifiers import"
 description: "Reference for the authelia storage user identifiers import command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T16:42:01+10:00
 draft: false
 images: []
 weight: 905
@@ -20,11 +20,12 @@ Import the identifiers from a YAML file
 
 ### Synopsis
 
-Import the identifiers from a YAML file.
+Import the identifiers from a file.
 
-This subcommand allows you to import the opaque identifiers for users from a YAML file.
+This subcommand allows you to import the opaque identifiers for users from a file. The format is determined by the
+extension of the file; '.toml' is read as TOML, '.json' as JSON, and anything else as YAML.
 
-The YAML file can either be automatically generated using the authelia storage user identifiers export command, or
+The file can either be automatically generated using the authelia storage user identifiers export command, or
 manually provided the file is in the same format.
 
 ```

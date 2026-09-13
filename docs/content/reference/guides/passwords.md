@@ -24,6 +24,10 @@ seo:
 
 This file should be set with read/write permissions as it could be updated by users resetting their passwords.
 
+The format is determined by the extension of the file; `.toml` is read and written as [TOML](#toml-format), `.json` as
+[JSON](#json-format), and anything else as [YAML](#yaml-format). Because Authelia writes the file back in the same
+format it reads, the extension of an existing file must not be changed without also converting its contents.
+
 ### YAML Format
 
 The format of the [YAML] file is documented via the [JSONSchema](schemas.md#json-schema). An example of this is as
@@ -85,6 +89,74 @@ users:
 It's recommended to check out the [Attributes Reference Guide](../../reference/guides/attributes.md) for more
 information on all of the attribute specifics, and it should be noted that all of the attributes are validated
 including the extra attributes which may not exist unless they are configured.
+
+### TOML Format
+
+The [TOML] format uses the same keys as the [YAML Format](#yaml-format), with each user represented as a table. An
+abbreviated example of this is as follows:
+
+```toml {title="users-database.toml"}
+[users.john]
+disabled = false
+displayname = 'John Doe'
+password = '$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'
+email = 'john.doe@authelia.com'
+groups = ['admins', 'dev']
+
+[users.bob]
+disabled = false
+displayname = 'Bob Dylan'
+password = '$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'
+email = 'bob.dylan@authelia.com'
+groups = ['dev']
+
+[users.bob.address]
+street_address = '2-3 Kitanomarukoen'
+locality = 'Chiyoda City'
+region = 'Tokyo'
+postal_code = '102-8321'
+country = 'Japan'
+
+[users.bob.extra]
+example = 'value'
+```
+
+### JSON Format
+
+The [JSON] format uses the same keys as the [YAML Format](#yaml-format), and the same
+[JSONSchema](schemas.md#json-schema) applies to it directly. An abbreviated example of this is as follows:
+
+```json {title="users-database.json"}
+{
+  "$schema": "https://www.authelia.com/schemas/latest/json-schema/user-database.json",
+  "users": {
+    "john": {
+      "disabled": false,
+      "displayname": "John Doe",
+      "password": "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM",
+      "email": "john.doe@authelia.com",
+      "groups": ["admins", "dev"]
+    },
+    "bob": {
+      "disabled": false,
+      "displayname": "Bob Dylan",
+      "password": "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM",
+      "email": "bob.dylan@authelia.com",
+      "groups": ["dev"],
+      "address": {
+        "street_address": "2-3 Kitanomarukoen",
+        "locality": "Chiyoda City",
+        "region": "Tokyo",
+        "postal_code": "102-8321",
+        "country": "Japan"
+      },
+      "extra": {
+        "example": "value"
+      }
+    }
+  }
+}
+```
 
 ## Passwords
 
@@ -301,5 +373,7 @@ This table suggests the parameters for the [SHA2 Crypt] algorithm:
 [FIPS-140 compliance]: https://csrc.nist.gov/publications/detail/fips/140/2/final
 [RFC9106 Parameter Choice]: https://datatracker.ietf.org/doc/html/rfc9106#section-4
 [YAML]: https://yaml.org/
+[TOML]: https://toml.io/
+[JSON]: https://www.json.org/
 [crypto hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
 [Password Hashing Competition]: https://en.wikipedia.org/wiki/Password_Hashing_Competition

@@ -280,9 +280,10 @@ This subcommand allows performing various tasks related to the opaque identifier
 
 	cmdAutheliaStorageUserIdentifiersExportShort = "Export the identifiers to a YAML file"
 
-	cmdAutheliaStorageUserIdentifiersExportLong = `Export the identifiers to a YAML file.
+	cmdAutheliaStorageUserIdentifiersExportLong = `Export the identifiers to a file.
 
-This subcommand allows exporting the opaque identifiers for users in order to back them up.`
+This subcommand allows exporting the opaque identifiers for users in order to back them up. The format is determined by
+the extension of the file; '.toml' is written as TOML, '.json' as JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserIdentifiersExportExample = `authelia storage user identifiers export
 authelia storage user identifiers export --file export.yml
@@ -291,11 +292,12 @@ authelia storage user identifiers export --file export.yml --encryption-key b345
 
 	cmdAutheliaStorageUserIdentifiersImportShort = "Import the identifiers from a YAML file"
 
-	cmdAutheliaStorageUserIdentifiersImportLong = `Import the identifiers from a YAML file.
+	cmdAutheliaStorageUserIdentifiersImportLong = `Import the identifiers from a file.
 
-This subcommand allows you to import the opaque identifiers for users from a YAML file.
+This subcommand allows you to import the opaque identifiers for users from a file. The format is determined by the
+extension of the file; '.toml' is read as TOML, '.json' as JSON, and anything else as YAML.
 
-The YAML file can either be automatically generated using the authelia storage user identifiers export command, or
+The file can either be automatically generated using the authelia storage user identifiers export command, or
 manually provided the file is in the same format.`
 
 	cmdAutheliaStorageUserIdentifiersImportExample = `authelia storage user identifiers import
@@ -337,7 +339,8 @@ This subcommand allows interacting with WebAuthn credentials.`
 
 	cmdAutheliaStorageUserWebAuthnImportLong = `Perform imports of the WebAuthn credentials.
 
-This subcommand allows importing WebAuthn credentials from the YAML format.`
+This subcommand allows importing WebAuthn credentials. The format is determined by the extension of the file; '.toml'
+is read as TOML, '.json' as JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserWebAuthnImportExample = `authelia storage user webauthn export
 authelia storage user webauthn import --file authelia.export.webauthn.yml
@@ -348,7 +351,8 @@ authelia storage user webauthn import --file authelia.export.webauthn.yml --encr
 
 	cmdAutheliaStorageUserWebAuthnExportLong = `Perform exports of the WebAuthn credentials.
 
-This subcommand allows exporting WebAuthn credentials to various formats.`
+This subcommand allows exporting WebAuthn credentials to various formats. The format is determined by the extension of
+the file; '.toml' is written as TOML, '.json' as JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserWebAuthnExportExample = `authelia storage user webauthn export
 authelia storage user webauthn export --file authelia.export.webauthn.yml
@@ -428,7 +432,8 @@ authelia storage user totp delete john --encryption-key b3453fde-ecc2-4a1f-9422-
 
 	cmdAutheliaStorageUserTOTPImportLong = `Perform imports of the TOTP configurations.
 
-This subcommand allows importing TOTP configurations from the YAML format.`
+This subcommand allows importing TOTP configurations. The format is determined by the extension of the file; '.toml'
+is read as TOML, '.json' as JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserTOTPImportExample = `authelia storage user totp import authelia.export.totp.yml
 authelia storage user totp import --config config.yml authelia.export.totp.yml
@@ -438,7 +443,9 @@ authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707d
 
 	cmdAutheliaStorageUserTOTPExportLong = `Perform exports of the TOTP configurations.
 
-This subcommand allows exporting TOTP configurations to importable YAML files, or use the subcommands to export them to other non-importable formats.`
+This subcommand allows exporting TOTP configurations to importable files, or use the subcommands to export them to other
+non-importable formats. The format is determined by the extension of the file; '.toml' is written as TOML, '.json' as
+JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserTOTPExportExample = `authelia storage user totp export --file example.yml
 authelia storage user totp export --config config.yml
