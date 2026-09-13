@@ -2,7 +2,7 @@
 title: "authelia storage"
 description: "Reference for the authelia storage command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2026-09-10T23:38:38+10:00
 draft: false
 images: []
 weight: 905
@@ -61,6 +61,7 @@ authelia storage --help
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
 * [authelia storage bans](authelia_storage_bans.md)	 - Manages user and ip bans
 * [authelia storage cache](authelia_storage_cache.md)	 - Manage storage cache
+* [authelia storage clean](authelia_storage_clean.md)	 - Removes stale rows from the database
 * [authelia storage encryption](authelia_storage_encryption.md)	 - Manage storage encryption
 * [authelia storage migrate](authelia_storage_migrate.md)	 - Perform or list migrations
 * [authelia storage schema-info](authelia_storage_schema-info.md)	 - Show the storage information
