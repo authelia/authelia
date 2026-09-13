@@ -676,10 +676,11 @@ var (
 const (
 	externalIdentityTypeOpenIDConnect = "openid_connect"
 	externalIdentityTypeDiscord       = "discord"
+	externalIdentityTypeGitHub        = "github"
 )
 
 var (
-	validExternalIdentityTypes                 = []string{externalIdentityTypeOpenIDConnect, externalIdentityTypeDiscord}
+	validExternalIdentityTypes                 = []string{externalIdentityTypeOpenIDConnect, externalIdentityTypeDiscord, externalIdentityTypeGitHub}
 	validExternalIdentityAlgs                  = []string{"ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "RS256", "RS384", "RS512"}
 	validExternalIdentityAuthMethods           = []string{"client_secret_basic", "client_secret_post", "none"}
 	validExternalIdentityConfidentialMethods   = []string{"client_secret_basic", "client_secret_post"}
@@ -687,6 +688,7 @@ var (
 	validExternalIdentityQueryResponseModes    = []string{"query"}
 	defaultExternalIdentityOpenIDConnectScopes = []string{"openid", "profile", "email"}
 	defaultExternalIdentityDiscordScopes       = []string{"identify", "email"}
+	defaultExternalIdentityGitHubScopes        = []string{"read:user", "user:email"}
 )
 
 var (

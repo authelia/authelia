@@ -149,6 +149,18 @@ type discordUser struct {
 	Verified   *bool   `json:"verified"`
 }
 
+type githubUser struct {
+	ID    int64   `json:"id"`
+	Login string  `json:"login"`
+	Name  *string `json:"name"`
+}
+
+type githubEmail struct {
+	Email    string `json:"email"`
+	Primary  bool   `json:"primary"`
+	Verified bool   `json:"verified"`
+}
+
 type discoveryCheck struct {
 	name   string
 	values []string

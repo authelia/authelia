@@ -91,6 +91,8 @@ func TestProvidersLogoURI(t *testing.T) {
 	}{
 		{"ShouldCarryTheLogoURIOfAnOpenIDConnectProvider", ProviderTypeOpenIDConnect, "https://op.example.com", "https://cdn.example.com/op.png", "https://cdn.example.com/op.png"},
 		{"ShouldCarryTheLogoURIOfADiscordProvider", ProviderTypeDiscord, "", "https://cdn.example.com/discord.png", "https://cdn.example.com/discord.png"},
+		{"ShouldCarryTheLogoURIOfAGitHubProvider", ProviderTypeGitHub, "", "https://cdn.example.com/github.png", "https://cdn.example.com/github.png"},
+		{"ShouldBeEmptyWhenItIsNotConfigured", ProviderTypeGitHub, "", "", ""},
 	}
 
 	for _, tc := range testCases {

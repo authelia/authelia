@@ -136,6 +136,16 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 			Errors: []string{"authentication_backend: external_identity: providers: option 'type' must only be 'discord' for one provider but it's configured for the providers 'discord' and 'discord2'"},
 		},
 		{
+			Name: "ShouldRaiseErrorOnMultipleGitHubProviders",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "github", Type: "github", Name: "GitHub", ClientID: "a", ClientSecret: "secret"},
+					{ID: "github2", Type: "github", Name: "GitHub 2", ClientID: "b", ClientSecret: "secret"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: option 'type' must only be 'github' for one provider but it's configured for the providers 'github' and 'github2'"},
+		},
+		{
 			Name: "ShouldRaiseErrorOnDuplicateOpenIDConnectIssuer",
 			Have: &schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
@@ -548,7 +558,90 @@ func TestValidateAuthenticationBackendExternalIdentityDiscord(t *testing.T) {
 		{
 			Name:   "ShouldRaiseErrorOnUnknownType",
 			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "twitch", Type: "twitch", Name: "Twitch", ClientID: "123", ClientSecret: "secret"},
-			Errors: []string{"authentication_backend: external_identity: providers: provider 'twitch': option 'type' must be one of 'openid_connect' or 'discord' but it's configured as 'twitch'"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'twitch': option 'type' must be one of 'openid_connect', 'discord', or 'github' but it's configured as 'twitch'"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			config := &schema.AuthenticationBackendExternalIdentity{Providers: []schema.AuthenticationBackendExternalIdentityProvider{tc.Have}}
+			val := schema.NewStructValidator()
+
+			ValidateAuthenticationBackendExternalIdentity(config, val)
+
+			errs := make([]string, 0, len(val.Errors()))
+
+			for _, err := range val.Errors() {
+				errs = append(errs, err.Error())
+			}
+
+			if len(tc.Errors) == 0 {
+				assert.Empty(t, errs)
+			} else {
+				assert.Equal(t, tc.Errors, errs)
+			}
+
+			if tc.Expected != nil {
+				assert.Equal(t, *tc.Expected, config.Providers[0])
+			}
+		})
+	}
+}
+
+func TestValidateAuthenticationBackendExternalIdentityGitHub(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     schema.AuthenticationBackendExternalIdentityProvider
+		Expected *schema.AuthenticationBackendExternalIdentityProvider
+		Errors   []string
+	}{
+		{
+			Name: "ShouldApplyDefaults",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc", ClientSecret: "secret"},
+			Expected: &schema.AuthenticationBackendExternalIdentityProvider{
+				ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc", ClientSecret: "secret",
+				Scopes:                  []string{"read:user", "user:email"},
+				ResponseMode:            "query",
+				TokenEndpointAuthMethod: "client_secret_basic",
+				PKCE:                    schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+			},
+		},
+		{
+			Name: "ShouldKeepTheConfiguredScopes",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc", ClientSecret: "secret", Scopes: []string{"read:user"}, TokenEndpointAuthMethod: "client_secret_post"},
+			Expected: &schema.AuthenticationBackendExternalIdentityProvider{
+				ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc", ClientSecret: "secret",
+				Scopes:                  []string{"read:user"},
+				ResponseMode:            "query",
+				TokenEndpointAuthMethod: "client_secret_post",
+				PKCE:                    schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+			},
+		},
+		{
+			Name: "ShouldAllowSharedRedirectURI",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc", ClientSecret: "secret", SharedRedirectURI: true},
+		},
+		{
+			Name: "ShouldRaiseErrorOnOpenIDConnectOptions",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{
+				ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc", ClientSecret: "secret",
+				Issuer:                   "https://github.com",
+				IDTokenSignedResponseAlg: "RS256",
+			},
+			Errors: []string{
+				"authentication_backend: external_identity: providers: provider 'github': option 'issuer' is not supported by the 'github' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'github': option 'id_token_signed_response_alg' is not supported by the 'github' provider type but it's configured",
+			},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnFormPostResponseMode",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc", ClientSecret: "secret", ResponseMode: "form_post"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'github': option 'response_mode' must be one of 'query' but it's configured as 'form_post'"},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnMissingSecret",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'github': option 'client_secret' is required when the 'token_endpoint_auth_method' is 'client_secret_basic' but it's not configured"},
 		},
 	}
 

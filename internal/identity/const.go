@@ -37,6 +37,9 @@ const (
 	// ProviderTypeDiscord is the type of a provider which is Discord.
 	ProviderTypeDiscord = "discord"
 
+	// ProviderTypeGitHub is the type of a provider which is GitHub.
+	ProviderTypeGitHub = "github"
+
 	// ResponseModeQuery is the response mode which delivers the authorization response in the query of a GET request
 	// to the redirect URI.
 	ResponseModeQuery = "query"
@@ -63,6 +66,20 @@ const (
 	discordAuthorizationEndpoint = "https://discord.com/oauth2/authorize"
 	discordTokenEndpoint         = "https://discord.com/api/oauth2/token" //nolint:gosec // This is a URL, not a credential.
 	discordUserEndpoint          = "https://discord.com/api/v10/users/@me"
+)
+
+const (
+	githubIssuer                = "https://github.com/login/oauth"
+	githubAuthorizationEndpoint = "https://github.com/login/oauth/authorize"
+	githubTokenEndpoint         = "https://github.com/login/oauth/access_token" //nolint:gosec // This is a URL, not a credential.
+	githubUserEndpoint          = "https://api.github.com/user"
+	githubEmailsEndpoint        = "https://api.github.com/user/emails"
+
+	headerGitHubAPIVersion    = "X-GitHub-Api-Version"
+	githubAPIVersion          = "2026-03-10"
+	mimeApplicationGitHubJSON = "application/vnd.github+json"
+
+	githubEmailsPerPage = "100"
 )
 
 const (
@@ -129,4 +146,7 @@ var (
 
 	// ErrDiscordUserInvalid is returned when the Discord current user response could not be used.
 	ErrDiscordUserInvalid = errors.New("the discord user response is invalid")
+
+	// ErrGitHubResponseInvalid is returned when a GitHub response could not be used.
+	ErrGitHubResponseInvalid = errors.New("the github response is invalid")
 )

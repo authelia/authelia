@@ -19,7 +19,7 @@ seo:
 ---
 
 Authelia can sign users in with an account they hold at an external identity provider, such as an
-[OpenID Connect 1.0] Provider like GitLab, or Discord. This section contains guides for integrating
+[OpenID Connect 1.0] Provider like GitLab, Discord, or GitHub. This section contains guides for integrating
 specific external identity providers. See the [External Identity configuration] for a reference of every option and
 how signing in with an external identity provider works.
 
@@ -31,6 +31,7 @@ the configured user provider, and must have linked their external account to the
 ## Guides
 
 - [Discord](discord.md)
+- [GitHub](github.md)
 - [GitLab](gitlab.md)
 
 ## Common Steps

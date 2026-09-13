@@ -47,7 +47,7 @@ func validateAuthenticationBackendExternalIdentityProvidersUnique(config *schema
 		seen[provider.ID] = true
 
 		switch provider.Type {
-		case externalIdentityTypeDiscord:
+		case externalIdentityTypeDiscord, externalIdentityTypeGitHub:
 			types[provider.Type] = append(types[provider.Type], provider.ID)
 		case externalIdentityTypeOpenIDConnect:
 			if provider.Issuer == "" {
@@ -62,7 +62,7 @@ func validateAuthenticationBackendExternalIdentityProvidersUnique(config *schema
 		}
 	}
 
-	for _, providerType := range []string{externalIdentityTypeDiscord} {
+	for _, providerType := range []string{externalIdentityTypeDiscord, externalIdentityTypeGitHub} {
 		if len(types[providerType]) > 1 {
 			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderTypeDuplicate, providerType, utils.StringJoinAnd(types[providerType])))
 		}
@@ -111,6 +111,8 @@ func validateAuthenticationBackendExternalIdentityProvider(i int, config *schema
 		validateAuthenticationBackendExternalIdentityProviderOpenIDConnect(config, validator)
 	case externalIdentityTypeDiscord:
 		validateAuthenticationBackendExternalIdentityProviderDiscord(config, validator)
+	case externalIdentityTypeGitHub:
+		validateAuthenticationBackendExternalIdentityProviderGitHub(config, validator)
 	default:
 		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderType, config.ID, utils.StringJoinOr(validExternalIdentityTypes), config.Type))
 	}
@@ -164,6 +166,19 @@ func validateAuthenticationBackendExternalIdentityProviderDiscord(config *schema
 	validateAuthenticationBackendExternalIdentityProviderUnsupported(config, append(externalIdentityOpenIDConnectOnlyOptions(config), externalIdentityOption{"shared_redirect_uri", config.SharedRedirectURI}), validator)
 
 	validateAuthenticationBackendExternalIdentityProviderScopes(config, "identify", defaultExternalIdentityDiscordScopes)
+	validateAuthenticationBackendExternalIdentityProviderResponseMode(config, validExternalIdentityQueryResponseModes, validator)
+	validateAuthenticationBackendExternalIdentityProviderAuthMethod(config, validExternalIdentityConfidentialMethods, validator)
+	validateAuthenticationBackendExternalIdentityProviderPKCE(config, validator)
+	validateAuthenticationBackendExternalIdentityProviderAMRDefault(config, validator)
+}
+
+func validateAuthenticationBackendExternalIdentityProviderGitHub(config *schema.AuthenticationBackendExternalIdentityProvider, validator *schema.StructValidator) {
+	validateAuthenticationBackendExternalIdentityProviderUnsupported(config, externalIdentityOpenIDConnectOnlyOptions(config), validator)
+
+	if len(config.Scopes) == 0 {
+		config.Scopes = append([]string(nil), defaultExternalIdentityGitHubScopes...)
+	}
+
 	validateAuthenticationBackendExternalIdentityProviderResponseMode(config, validExternalIdentityQueryResponseModes, validator)
 	validateAuthenticationBackendExternalIdentityProviderAuthMethod(config, validExternalIdentityConfidentialMethods, validator)
 	validateAuthenticationBackendExternalIdentityProviderPKCE(config, validator)

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "External Identity"
-description: "Configuring external identity providers such as OpenID Connect 1.0 Providers and Discord as a first factor authentication method."
+description: "Configuring external identity providers such as OpenID Connect 1.0 Providers, Discord, and GitHub as a first factor authentication method."
 summary: "Authelia supports signing users in with an external identity provider. This section describes configuring this."
 date: 2026-09-04T09:00:00+10:00
 draft: false
@@ -27,6 +27,8 @@ Authelia can sign users in with an external identity provider. The following typ
 - `openid_connect`: any [OpenID Connect 1.0] Provider, such as another Authelia instance, an enterprise identity
   provider, or a public provider. Authelia acts as an [OpenID Connect 1.0] Relying Party.
 - `discord`: [Discord](https://discord.com/developers/docs/topics/oauth2), which is an OAuth 2.0 provider rather than an
+  [OpenID Connect 1.0] Provider.
+- `github`: [GitHub](https://docs.github.com/en/apps/oauth-apps), which is an OAuth 2.0 provider rather than an
   [OpenID Connect 1.0] Provider.
 
 Step-by-step guides for specific providers are available in the
@@ -94,6 +96,17 @@ authentication_backend:
         token_endpoint_auth_method: 'client_secret_basic'
         authentication_methods_reference:
           default: []
+      - id: 'github'
+        type: 'github'
+        name: 'GitHub'
+        client_id: 'Ov23liAbCdEfGhIjKlMn'
+        client_secret: 'insecure_secret'
+        scopes:
+          - 'read:user'
+          - 'user:email'
+        token_endpoint_auth_method: 'client_secret_basic'
+        authentication_methods_reference:
+          default: []
 ```
 
 ## Options
@@ -126,9 +139,9 @@ the external provider.
 
 {{< confkey type="string" default="openid_connect" required="no" >}}
 
-The type of the external provider. Must be one of `openid_connect` or `discord`. At most one `discord` provider may
-be configured, and every `openid_connect` provider must have a different [issuer](#issuer), as links are anchored to
-the issuer.
+The type of the external provider. Must be one of `openid_connect`, `discord`, or `github`. At most one `discord` and
+one `github` provider may be configured, and every `openid_connect` provider must have a different [issuer](#issuer),
+as links are anchored to the issuer.
 
 ### name
 
@@ -145,8 +158,8 @@ The logo displayed on the sign in button of this provider, which follows the `lo
 either be an `https` URI, or a `data` URI which declares an image media type.
 
 When it's not configured the button shows the logo bundled for the [type](#type) of the provider: the logo of the
-service for the `discord` type, and the OpenID logo for the `openid_connect` type. The bundled logo is also shown when
-the configured logo fails to load.
+service for the `discord` and `github` types, and the OpenID logo for the `openid_connect` type. The bundled logo is
+also shown when the configured logo fails to load.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 The logo is loaded by the browser of the user before they sign in. An `https` URI hosted by a third party therefore
@@ -183,6 +196,9 @@ The scopes requested from the external provider.
 - `discord`: the default is `identify` and `email`. The `identify` scope is mandatory and is automatically prepended to
   this list if it is not included in it. The `email` scope is not required, and the email address is only shown when
   Discord has verified it.
+- `github`: the default is `read:user` and `user:email`. No scope is mandatory, as GitHub grants access to the public
+  profile without one. The `user:email` scope is not required, and the email address is only shown when it is the
+  primary email address of the account and GitHub has verified it.
 
 ### response_mode
 
@@ -190,7 +206,7 @@ The scopes requested from the external provider.
 
 The [response mode](https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#ResponseModes) the external
 provider is asked to deliver the authorization response with. Must be one of `query` or `form_post` for
-`openid_connect` providers, and must be `query` for `discord` providers.
+`openid_connect` providers, and must be `query` for `discord` and `github` providers.
 
 With `query` the provider redirects the browser to the [Redirect URI](#redirect-uri) with the response in the query,
 and with `form_post` it has the browser `POST` the response to the same [Redirect URI](#redirect-uri) as a form. An
@@ -229,7 +245,7 @@ Regardless of this option, an `iss` parameter which is sent and does not exactly
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-_This option only applies to `openid_connect` providers._
+_This option only applies to `openid_connect` and `github` providers._
 
 Uses the [Redirect URI](#redirect-uri) shared by every provider with this option enabled instead of the
 [Redirect URI](#redirect-uri) of this provider. The shared [Redirect URI](#redirect-uri) does not identify the provider,
@@ -267,7 +283,7 @@ When Pushed Authorization Requests are used and no endpoint is known, the provid
 
 The client authentication method used at the token endpoint. Must be one of `client_secret_basic`,
 `client_secret_post`, or `none` for `openid_connect` providers, and one of `client_secret_basic` or
-`client_secret_post` for `discord` providers.
+`client_secret_post` for `discord` and `github` providers.
 
 ### pkce
 
@@ -332,8 +348,8 @@ the configured algorithm must be one of those values.
 ### authentication_methods_reference
 
 Controls the Authentication Method References a session adopts when a user signs in with this provider. Only the
-[default](#default) option applies to `discord` providers, as Discord does not assert anything about how the user
-authenticated. These providers always adopt the [default](#default) values, and
+[default](#default) option applies to `discord` and `github` providers, as neither Discord nor GitHub asserts
+anything about how the user authenticated. These providers always adopt the [default](#default) values, and
 when none are configured they adopt `pwd` and `kba`, the values of a password sign in with Authelia.
 
 The values an `openid_connect` provider adopts are decided as follows:
@@ -366,7 +382,7 @@ The [RFC8176](https://datatracker.ietf.org/doc/html/rfc8176) Authentication Meth
 provider asserts no `amr` claim, or in place of the values it asserts when [override](#override) is enabled. The
 values must not be empty.
 
-For `discord` providers these values are always adopted, and when none are configured the
+For `discord` and `github` providers these values are always adopted, and when none are configured the
 values of a password sign in with Authelia, `pwd` and `kba`, are adopted instead.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
@@ -493,11 +509,28 @@ Discord user the access token belongs to, as returned by Discord's current user 
 obtained directly from Discord's token endpoint over TLS. Accounts are linked on the Discord user ID, which never
 changes; the username, display name, and email address are only displayed.
 
+## GitHub
+
+A `github` provider signs users in with [GitHub](https://docs.github.com/en/apps/oauth-apps) using the OAuth 2.0
+authorization code flow with [Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636). GitHub's
+endpoints are fixed, so none of the endpoint or discovery options apply.
+
+To configure it, register an OAuth App or a GitHub App with GitHub, use the [Redirect URI](#redirect-uri) as its
+callback URL, and use its client ID and client secret as the [client_id](#client_id) and
+[client_secret](#client_secret). See the [GitHub integration guide](../../integration/external-identity/github.md) for
+step-by-step instructions.
+
+GitHub is not an [OpenID Connect 1.0] Provider, so there is no ID Token to validate. The identity is instead the GitHub
+user the access token belongs to, as returned by GitHub's authenticated user endpoint, with the access token obtained
+directly from GitHub's token endpoint over TLS. Accounts are linked on the GitHub user ID, which never changes; the
+username, display name, and email address are only displayed. The email address is the primary email address of the
+account from GitHub's user emails endpoint, and is only used when GitHub has verified it.
+
 ## Trusted Certificates
 
 Every request Authelia makes to the external provider is made over TLS and verifies the certificate of the provider.
-This includes the discovery document, the JSON Web Key Set, the token endpoint, the UserInfo endpoint, and Discord's current
-user endpoint. The certificate is trusted when it is issued by an authority trusted by the system, or by a certificate in the
+This includes the discovery document, the JSON Web Key Set, the token endpoint, the UserInfo endpoint, Discord's current
+user endpoint, and GitHub's user and user emails endpoints. The certificate is trusted when it is issued by an authority trusted by the system, or by a certificate in the
 [certificates_directory](../miscellaneous/introduction.md#certificates_directory). A provider whose certificate is
 issued by a private certificate authority is therefore trusted by placing that certificate authority in the
 [certificates_directory](../miscellaneous/introduction.md#certificates_directory); certificate verification cannot be
@@ -537,15 +570,18 @@ External identities are anchored to local accounts on the [type](#type) of the p
 the subject. The following table lists the attribute each type of provider takes each value from. Only the issuer and
 the subject identify the account; the username, display name, and email are only displayed.
 
-| Type             | Issuer                | Subject              | Username                       | Display Name                                 | Email                                                   |
-| :--------------- | :-------------------- | :------------------- | :----------------------------- | :------------------------------------------- | :------------------------------------------------------ |
-| `openid_connect` | the `iss` claim       | the `sub` claim      | the `preferred_username` claim | the `name` claim                             | the `email` claim                                       |
-| `discord`        | `https://discord.com` | the `id` of the user | the `username` of the user     | the `global_name`, or `username` when absent | the `email` of the user, only when `verified` is `true` |
+| Type             | Issuer                           | Subject              | Username                       | Display Name                                 | Email                                                                       |
+| :--------------- | :------------------------------- | :------------------- | :----------------------------- | :------------------------------------------- | :-------------------------------------------------------------------------- |
+| `openid_connect` | the `iss` claim                  | the `sub` claim      | the `preferred_username` claim | the `name` claim                             | the `email` claim                                                           |
+| `discord`        | `https://discord.com`            | the `id` of the user | the `username` of the user     | the `global_name`, or `username` when absent | the `email` of the user, only when `verified` is `true`                     |
+| `github`         | `https://github.com/login/oauth` | the `id` of the user | the `login` of the user        | the `name`, or `login` when absent           | the `email` of the user emails entry which is both `primary` and `verified` |
 
 The username, display name, and email of an `openid_connect` provider are the claims of the UserInfo response, and
 are only taken from the ID Token when the UserInfo response does not include them or the provider has no UserInfo
 endpoint. The issuer and subject are the claims of the ID Token. The attributes of a `discord` provider are
-those of the user returned by Discord's current user endpoint.
+those of the user returned by Discord's current user endpoint, and of a `github` provider those of the user returned by
+GitHub's authenticated user endpoint and its user emails endpoint. The GitHub `id` is a number, and is recorded as its
+decimal representation.
 
 A link is only ever matched when all three are the same, so an identity from a provider of one type never signs in with
 a link made through a provider of another type, even if the issuer and subject are the same. All three are covered by
@@ -555,8 +591,9 @@ Neither the email address nor the username participates in finding, matching, or
 display purposes only. This means a change of email address or username at the external provider does not affect an
 existing link, and an external account cannot be used to take over a local account which happens to share an email
 address. The email address is recorded whenever the provider returns one, and is otherwise left blank: an
-`openid_connect` provider only returns it when the `email` scope is requested and granted, and a `discord` provider only
-when Discord has verified it.
+`openid_connect` provider only returns it when the `email` scope is requested and granted, a `discord` provider only
+when Discord has verified it, and a `github` provider only when the `user:email` scope is granted and GitHub has
+verified the primary email address.
 
 A linking flow can be started from either of two places:
 
@@ -641,7 +678,7 @@ an `openid_connect` provider with [authentication_methods_reference.trust](#trus
 [authentication_methods_reference.default](#default) values, which together add both a knowledge factor and a possession
 factor, as described below.
 
-A sign in with a `discord` provider is treated as a password sign in with Authelia unless
+A sign in with a `discord` or `github` provider is treated as a password sign in with Authelia unless
 [authentication_methods_reference.default](#default) is configured: the session adopts `pwd` and `kba`, exactly as a
 username and password sign in does. A resource with the `two_factor` policy therefore asks the user for a second factor
 with Authelia, just as it does after a password sign in.
@@ -650,9 +687,9 @@ To let an `openid_connect` provider's assertion count towards `two_factor`, set
 [authentication_methods_reference.trust](#trust) for that provider. The provider's `amr` claim values are then merged
 into the session's Authentication Method References, and a claim asserting both a knowledge factor and a possession
 factor produces a session which satisfies the `two_factor` policy. This is opt-in per provider because it makes the
-external provider trusted to decide the authentication level of the session. Discord does not assert
-anything about how the user authenticated, so a `discord` provider never counts towards `two_factor` on its own
-assertion.
+external provider trusted to decide the authentication level of the session. Neither Discord nor GitHub asserts
+anything about how the user authenticated, so a `discord` or `github` provider never counts towards `two_factor` on
+its own assertion.
 
 The [authentication_methods_reference.default](#default) values count towards `two_factor` in the same way, for any
 type of provider, whenever they are adopted. This lets an administrator who knows how a provider authenticates its users
