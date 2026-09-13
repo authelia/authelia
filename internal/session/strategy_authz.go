@@ -228,6 +228,12 @@ func (a *DefaultAuthzStrategy) resolveRecord(ctx Context) (sid, aid string, sess
 		return "", aid, nil, nil, nil
 	}
 
+	if p.config.AnchorRemoteIP != nil && !isAnchored(session, ctx.RemoteIP()) {
+		logContext(ctx).Debug("Session authz cookie resolves to a session which isn't anchored to the network of the remote IP")
+
+		return "", aid, nil, nil, nil
+	}
+
 	return sid, aid, session, record, nil
 }
 

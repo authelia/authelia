@@ -13,6 +13,7 @@ func (s UserSession) deepCopy() (session UserSession) {
 	session = s
 
 	session.CSRF = slices.Clone(s.CSRF)
+	session.RemoteNetwork = slices.Clone(s.RemoteNetwork)
 	session.AuthenticationMethodRefs.Extra = slices.Clone(s.AuthenticationMethodRefs.Extra)
 	session.WebAuthn = s.WebAuthn.deepCopy()
 	session.Elevations.User = s.Elevations.User.deepCopy()
