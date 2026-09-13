@@ -6,7 +6,7 @@
 title: "Gitea"
 description: "Integrating Gitea with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-03-14T06:00:14+11:00
+date: 2026-09-13T13:00:14-7:00
 draft: false
 images: []
 weight: 620
@@ -27,9 +27,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
+  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
 - [Gitea]
-  - [v1.25.1](https://github.com/go-gitea/gitea/releases/tag/v1.25.1)
+  - [v1.27.3](https://github.com/go-gitea/gitea/releases/tag/v1.27.3)
 
 {{% oidc-common %}}
 
@@ -76,6 +76,7 @@ identity_providers:
           - 'openid'
           - 'email'
           - 'profile'
+          ## - 'groups' # add this line to enable group mapping
         response_types:
           - 'code'
         grant_types:
@@ -103,6 +104,11 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
    - Client ID (Key): `gitea`
    - Client Secret: `insecure_secret`
    - OpenID Connect Auto Discovery URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+6. For group mapping, configure the following options:
+   - Additional Scopes: groups
+   - Claim name providing group names for this source. (Optional): groups
+   - Group Claim value for administrator users. (Optional — requires claim name above)
+   - Group Claim value for restricted users. (Optional — requires claim name above)
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
@@ -136,11 +142,11 @@ SHOW_REGISTRATION_BUTTON                      = false
 ## See Also
 
 - [Gitea]
-  - [Config Cheat Sheet](https://docs.gitea.io/en-us/config-cheat-sheet)
-    - [OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
-    - [Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
+  - [Config Cheat Sheet](https://docs.gitea.com/en-us/config-cheat-sheet)
+    - [OpenID](https://docs.gitea.com/administration/config-cheat-sheet/#openid-openid)
+    - [Service](https://docs.gitea.com/en-us/config-cheat-sheet/#service-service)
 
 [Authelia]: https://www.authelia.com
-[Gitea]: https://gitea.io/
+[Gitea]: https://about.gitea.com/
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
