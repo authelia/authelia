@@ -6,6 +6,7 @@ package validator
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -34,6 +35,35 @@ func ValidateTOTP(config *schema.Configuration, validator *schema.StructValidato
 		config.TOTP.SecretSize = schema.DefaultTOTPConfiguration.SecretSize
 	} else if config.TOTP.SecretSize < schema.TOTPSecretSizeMinimum {
 		validator.Push(fmt.Errorf(errFmtTOTPInvalidSecretSize, schema.TOTPSecretSizeMinimum, config.TOTP.SecretSize))
+	}
+
+	validateTOTPApps(config, validator)
+}
+
+func validateTOTPApps(config *schema.Configuration, validator *schema.StructValidator) {
+	stores := []struct {
+		name     string
+		value    *schema.TOTPAppsStore
+		fallback url.URL
+	}{
+		{"apple_store", &config.TOTP.Apps.AppleStore, schema.DefaultTOTPApps.AppleStore.URL},
+		{"google_play", &config.TOTP.Apps.GooglePlay, schema.DefaultTOTPApps.GooglePlay.URL},
+	}
+
+	for _, store := range stores {
+		if store.value.Disable {
+			continue
+		}
+
+		if store.value.URL.String() == "" {
+			store.value.URL = store.fallback
+
+			continue
+		}
+
+		if store.value.URL.Scheme != schemeHTTPS {
+			validator.Push(fmt.Errorf(errFmtTOTPAppsInvalidScheme, store.name, store.value.URL.String(), store.value.URL.Scheme))
+		}
 	}
 }
 
