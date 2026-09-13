@@ -10,7 +10,7 @@ disableHugoGeneratorInject = true
 enableEmoji = true
 enableGitInfo = true
 enableRobotsTXT = true
-languageCode = "en-US"
+locale = "en-US"
 rssLimit = 10
 summarylength = 20 # 70 (default)
 
@@ -101,6 +101,12 @@ copyRight = "Copyright (c) 2016-%s Authelia"
 [imaging]
   anchor = "Center"
   bgColor = "#ffffff"
-  hint = "photo"
-  quality = 85
   resampleFilter = "Lanczos"
+  [imaging.avif]
+    hint = "photo"
+    quality = 85
+  [imaging.jpeg]
+    quality = 85
+  [imaging.webp]
+    hint = "photo"
+    quality = 85

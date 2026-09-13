@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -259,6 +260,60 @@ func (s *DocsSuite) TestStaticSvgAssetServed() {
 	require.True(s.T(), strings.HasPrefix(resp.Header.Get("Content-Type"), "image/svg+xml"), "expected image/svg+xml for %s, got %s", svgPath, resp.Header.Get("Content-Type"))
 	require.NotEmpty(s.T(), body, "expected non-empty body for %s", svgPath)
 	require.True(s.T(), strings.Contains(string(body), "<svg"), "expected <svg root tag in body of %s", svgPath)
+}
+
+func (s *DocsSuite) TestModuleMountsResolve() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	_, home := s.httpFetch(ctx, "/")
+
+	docsearch := regexp.MustCompile(`href="(/css/docsearch/[^"]+\.css)"`).FindSubmatch(home)
+	require.NotNil(s.T(), docsearch, "expected the homepage to link the @docsearch/css stylesheet")
+
+	for _, asset := range []struct {
+		mount, path, contentType string
+	}{
+		{"@docsearch/css", string(docsearch[1]), "text/css"},
+		{"bootstrap-icons", "/fonts/bootstrap-icons.woff2", "font/woff2"},
+		{"@thulite/doks-core/static", "/fonts/vendor/jost/jost-v4-latin-regular.woff2", "font/woff2"},
+	} {
+		resp, body := s.httpFetch(ctx, asset.path)
+		require.Equal(s.T(), http.StatusOK, resp.StatusCode, "expected 200 fetching %s from the %s mount", asset.path, asset.mount)
+		require.True(s.T(), strings.HasPrefix(resp.Header.Get("Content-Type"), asset.contentType), "expected %s for %s, got %s", asset.contentType, asset.path, resp.Header.Get("Content-Type"))
+		require.NotEmpty(s.T(), body, "expected non-empty body for %s", asset.path)
+	}
+
+	for _, rendered := range []struct {
+		mount, path, contains string
+	}{
+		{"@thulite/doks-core/layouts", "/blog/authelia--traefik-setup-guide/", `class="callout callout-note`},
+		{"@tabler/icons and @thulite/inline-svg", "/", "icon-tabler-brand-github"},
+		{"@thulite/seo", "/manifest.webmanifest", `"name"`},
+	} {
+		resp, body := s.httpFetch(ctx, rendered.path)
+		require.Equal(s.T(), http.StatusOK, resp.StatusCode, "expected 200 fetching %s", rendered.path)
+		require.Contains(s.T(), string(body), rendered.contains, "expected %s to render %q from the %s mount", rendered.path, rendered.contains, rendered.mount)
+	}
+}
+
+func (s *DocsSuite) TestLanguageConfigurationRendered() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, home := s.httpFetch(ctx, "/")
+	_, manifest := s.httpFetch(ctx, "/manifest.webmanifest")
+
+	for _, expected := range []struct {
+		name, body, contains string
+	}{
+		{"html lang attribute", string(home), `<html lang="en-US"`},
+		{"web manifest lang", string(manifest), `"lang": "en-US"`},
+		{"features prefooter", string(home), "section-features"},
+		{"support prefooter", string(home), `class="section section-md container-fluid bg-light"`},
+	} {
+		require.Contains(s.T(), expected.body, expected.contains, "expected the %s to contain %q", expected.name, expected.contains)
+	}
 }
 
 func (s *DocsSuite) TestOpenIDConnectProviderShortcodes() {

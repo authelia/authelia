@@ -20,19 +20,19 @@
   <div class="bg-dots"></div>
 </div>
 {{ end -}}
-{{ if eq $.Site.Language.LanguageName "English" }}
+{{ if eq $.Site.Language.Label "English" }}
 {{ partial "prefooter/features/en.html" . -}}
 {{ end }}
 {{ end }}
 
 {{ define "sidebar-footer" }}
 {{ if site.Params.doks.sectionFooter -}}
-{{ if eq $.Site.Language.LanguageName "English" }}
+{{ if eq $.Site.Language.Label "English" }}
 {{ partial "prefooter/support/en.html" . -}}
 {{ end }}
 {{ end -}}
 
-{{ if eq $.Site.Language.LanguageName "English" }}
+{{ if eq $.Site.Language.Label "English" }}
 {{ partial "prefooter/blog/en.html" . -}}
 {{ partial "prefooter/certified/en.html" . -}}
 {{ end }}
