@@ -352,9 +352,24 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	}
 }
 
+func TestShouldValidateConfigurationWithFiltersValues(t *testing.T) {
+	filters, err := NewFileFilters([]string{"./test_resources/config_values.values.yml"}, "template")
+	require.NoError(t, err)
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_values.yml"}, filters, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	assert.NoError(t, err)
+	assert.NotNil(t, config)
+	assert.NotNil(t, keys)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+	assert.Equal(t, "light", config.Theme)
+}
+
 func TestShouldValidateConfigurationWithFiltersWalk(t *testing.T) {
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_walk.yml"}, []BytesFilter{NewTemplateFileFilter()}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_walk.yml"}, []BytesFilter{NewTemplateFileFilter(nil)}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 	assert.NoError(t, err)
 	assert.NotNil(t, config)
 	assert.NotNil(t, keys)
@@ -365,7 +380,7 @@ func TestShouldValidateConfigurationWithFiltersWalk(t *testing.T) {
 
 func TestShouldValidateConfigurationWithRegexACL(t *testing.T) {
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_regex.yml"}, []BytesFilter{NewTemplateFileFilter()}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_regex.yml"}, []BytesFilter{NewTemplateFileFilter(nil)}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 	assert.NoError(t, err)
 	assert.NotNil(t, config)
 	assert.NotNil(t, keys)
@@ -402,7 +417,7 @@ func TestShouldValidateConfigurationWithRegexACL(t *testing.T) {
 
 func TestShouldValidateConfigurationWithFiltersGlob(t *testing.T) {
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_glob.yml"}, []BytesFilter{NewTemplateFileFilter()}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_glob.yml"}, []BytesFilter{NewTemplateFileFilter(nil)}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 	assert.NoError(t, err)
 	assert.NotNil(t, config)
 	assert.NotNil(t, keys)

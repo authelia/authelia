@@ -2,7 +2,7 @@
 title: "authelia crypto certificate rsa"
 description: "Reference for the authelia crypto certificate rsa command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T18:52:11+10:00
 draft: false
 images: []
 weight: 905
@@ -41,6 +41,7 @@ authelia crypto certificate rsa --help
 ```
   -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
       --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.values strings         file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
 ```
 
 ### SEE ALSO

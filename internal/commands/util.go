@@ -225,6 +225,7 @@ const (
 func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.BytesFilter, err error) {
 	var (
 		filterNames []string
+		valuesFiles []string
 		result      XEnvCLIResult
 	)
 
@@ -240,11 +241,45 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		return nil, nil, err
 	}
 
-	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
+	if valuesFiles, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFiltersValues, cmdFlagNameConfigFiltersValues); err != nil {
+		return nil, nil, err
+	}
+
+	if valuesFiles, err = loadXNormalizedValuesPaths(valuesFiles); err != nil {
+		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigFiltersValues, err)
+	}
+
+	if filters, err = configuration.NewFileFilters(valuesFiles, filterNames...); err != nil {
+		var errValues *configuration.FilterValuesError
+
+		if errors.As(err, &errValues) {
+			return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigFiltersValues, err)
+		}
+
 		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
 	}
 
 	return
+}
+
+// loadXNormalizedValuesPaths returns the given filter values file paths as absolute paths. Unlike the configuration
+// file paths these are always files, so no directory handling or stat occurs.
+func loadXNormalizedValuesPaths(paths []string) ([]string, error) {
+	if len(paths) == 0 {
+		return paths, nil
+	}
+
+	var err error
+
+	values := make([]string, len(paths))
+
+	for i, path := range paths {
+		if values[i], err = filepath.Abs(path); err != nil {
+			return nil, fmt.Errorf("failed to determine absolute path for '%s': %w", path, err)
+		}
+	}
+
+	return values, nil
 }
 
 func loadXNormalizedPaths(paths []string, result XEnvCLIResult) ([]string, error) {
