@@ -14,6 +14,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 type LogoutSuite struct {
@@ -129,6 +130,46 @@ func TestLogoutPOSTShouldHandleSessionDestroyError(t *testing.T) {
 	LogoutPOST(mock.Ctx)
 
 	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred destroying the user session during logout", "unable to destroy user session: unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+}
+
+func TestOpenIDConnectStateDoesNotSurviveLogout(t *testing.T) {
+	testCases := []struct {
+		Name string
+	}{
+		{Name: "ShouldClearFlowAndPendingOnLogout"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			userSession, err := mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			userSession.Username = "john"
+			userSession.ExternalIdentity = &session.ExternalIdentityFlow{Provider: "example"}
+			userSession.ExternalIdentityPending = &session.ExternalIdentityPending{Provider: "example"}
+
+			require.NoError(t, mock.Ctx.SaveSession(userSession))
+
+			userSession, err = mock.Ctx.GetSession()
+			require.NoError(t, err)
+			require.NotNil(t, userSession.ExternalIdentity)
+			require.NotNil(t, userSession.ExternalIdentityPending)
+			assert.Equal(t, "example", userSession.ExternalIdentity.Provider)
+			assert.Equal(t, "example", userSession.ExternalIdentityPending.Provider)
+
+			LogoutPOST(mock.Ctx)
+
+			userSession, err = mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			assert.Nil(t, userSession.ExternalIdentity)
+			assert.Nil(t, userSession.ExternalIdentityPending)
+		})
+	}
 }
 
 func TestRunLogoutSuite(t *testing.T) {

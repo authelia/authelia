@@ -20,6 +20,10 @@ const (
 	loopback = "127.0.0.1"
 )
 
+const (
+	envExternalIdentityOpenIDConnectAllowDuplicateIssuer = "X_AUTHELIA_DEV_EXTID_OPENID_CONNECT_ALLOW_DUPLICATE_ISSUER"
+)
+
 // Policy constants.
 const (
 	policyBypass    = "bypass"
@@ -99,6 +103,30 @@ const (
 		"it must be either in duration common syntax or one of 'disable', or 'always': %w"
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
+
+	errFmtExternalIdentityProvidersRequired         = "authentication_backend: external_identity: option 'providers' is required but it's not configured"
+	errFmtExternalIdentityProviderID                = "authentication_backend: external_identity: providers: provider #%d: option 'id' must match the pattern '%s' but it's configured as '%s'"
+	errFmtExternalIdentityProviderIDDuplicate       = "authentication_backend: external_identity: providers: provider '%s': option 'id' must be unique but it's configured multiple times"
+	errFmtExternalIdentityProviderTypeDuplicate     = "authentication_backend: external_identity: providers: option 'type' must only be '%s' for one provider but it's configured for the providers %s"
+	errFmtExternalIdentityProviderIssuerDuplicate   = "authentication_backend: external_identity: providers: option 'issuer' must be unique for 'openid_connect' providers but '%s' is configured for the providers %s"
+	errFmtExternalIdentityProviderType              = "authentication_backend: external_identity: providers: provider '%s': option 'type' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderOptionRequired    = "authentication_backend: external_identity: providers: provider '%s': option '%s' is required but it's not configured"
+	errFmtExternalIdentityProviderOptionUnsupported = "authentication_backend: external_identity: providers: provider '%s': option '%s' is not supported by the '%s' provider type but it's configured"
+	errFmtExternalIdentityProviderIssuerScheme      = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must have the 'https' scheme but it's configured as '%s'"
+	errFmtExternalIdentityProviderIssuerParse       = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must be a valid URL but it could not be parsed: %w"
+	errFmtExternalIdentityProviderAlg               = "authentication_backend: external_identity: providers: provider '%s': option 'id_token_signed_response_alg' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderUserInfoAlg       = "authentication_backend: external_identity: providers: provider '%s': option 'userinfo_signed_response_alg' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderAuthMethod        = "authentication_backend: external_identity: providers: provider '%s': option 'token_endpoint_auth_method' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderResponseMode      = "authentication_backend: external_identity: providers: provider '%s': option 'response_mode' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderPKCE              = "authentication_backend: external_identity: providers: provider '%s': pkce: option 'challenge_method' must be 'S256' but it's configured as '%s'"
+	errFmtExternalIdentityProviderEndpoint          = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' is required when discovery is disabled but it's not configured"
+	errFmtExternalIdentityProviderEndpointJWKS      = "authentication_backend: external_identity: providers: provider '%s': endpoints: option 'jwks' is required when discovery is disabled and no 'jwks' are configured but it's not configured"
+	errFmtExternalIdentityProviderEndpointPAR       = "authentication_backend: external_identity: providers: provider '%s': endpoints: option 'pushed_authorization_request' is required when 'require_pushed_authorization_requests' is enabled and discovery is disabled but it's not configured"
+	errFmtExternalIdentityProviderEndpointScheme    = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' must have the 'https' scheme but it's configured as '%s'"
+	errFmtExternalIdentityProviderEndpointParse     = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' must be a valid URL but it could not be parsed: %w"
+	errFmtExternalIdentityProviderSecretRequired    = "authentication_backend: external_identity: providers: provider '%s': option 'client_secret' is required when the 'token_endpoint_auth_method' is '%s' but it's not configured"
+	errFmtExternalIdentityProviderAMROverride       = "authentication_backend: external_identity: providers: provider '%s': authentication_methods_reference: option 'default' is required when 'override' is enabled but it's not configured"
+	errFmtExternalIdentityProviderAMRDefaultEmpty   = "authentication_backend: external_identity: providers: provider '%s': authentication_methods_reference: option 'default' must not contain empty values"
 
 	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"

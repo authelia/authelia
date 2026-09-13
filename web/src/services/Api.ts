@@ -13,6 +13,7 @@ export const OpenIDConnectDeviceAuthorizationPath = basePath + "/api/oidc/device
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
 export const FirstFactorPasskeyPath = basePath + "/api/firstfactor/passkey";
+export const FirstFactorExternalIdentityPath = basePath + "/api/firstfactor/external-identity";
 export const FirstFactorReauthenticatePath = basePath + "/api/firstfactor/reauthenticate";
 
 export const TOTPRegistrationPath = basePath + "/api/secondfactor/totp/register";
@@ -43,6 +44,9 @@ export const StatePath = basePath + "/api/state";
 export const UserInfoPath = basePath + "/api/user/info";
 export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";
 export const UserSessionElevationPath = basePath + "/api/user/session/elevation";
+export const UserExternalIdentityLinksPath = basePath + "/api/user/external-identity/links";
+export const UserExternalIdentityLinkPath = basePath + "/api/user/external-identity/link";
+export const UserExternalIdentityLinkPendingPath = basePath + "/api/user/external-identity/link/pending";
 
 export const ConfigurationPath = basePath + "/api/configuration";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";

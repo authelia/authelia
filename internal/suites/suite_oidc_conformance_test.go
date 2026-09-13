@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.yaml.in/yaml/v4"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc/conformance"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -115,7 +116,14 @@ func (s *OIDCConformanceSuite) SetupSuite() {
 
 		s.browsers = append(s.browsers, browser)
 
-		runner := NewConformanceRunner(s.client, browser, created.ID, created.Modules)
+		var runner *ConformanceRunner
+
+		if plan.Provider != "" {
+			runner = NewConformanceRelyingPartyRunner(s.client, browser, created.ID, created.Modules, plan.Provider)
+		} else {
+			runner = NewConformanceRunner(s.client, browser, created.ID, created.Modules)
+		}
+
 		runner.debug = suiteDebug()
 
 		s.outcomes[plan.Name] = runner.Run(ctx)
@@ -344,6 +352,16 @@ func (s *OIDCConformanceSuite) TestImplicitFormPost() {
 	s.assertPlan(conformance.NameImplicitFormPost)
 }
 
+// TestRelyingPartyBasic runs the Basic RP certification profile.
+func (s *OIDCConformanceSuite) TestRelyingPartyBasic() {
+	s.assertPlan(conformance.NameRelyingPartyBasic)
+}
+
+// TestRelyingPartyBasicFormPost runs the Basic RP certification profile with the form post response mode.
+func (s *OIDCConformanceSuite) TestRelyingPartyBasicFormPost() {
+	s.assertPlan(conformance.NameRelyingPartyBasicFormPost)
+}
+
 func TestOIDCConformanceSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
@@ -361,16 +379,19 @@ func TestOIDCConformanceGenerateRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 
 	expected := map[string]struct {
-		plan    string
-		variant bool
+		plan     string
+		variant  bool
+		provider string
 	}{
-		conformance.NameConfig:           {"oidcc-config-certification-test-plan", false},
-		conformance.NameBasic:            {"oidcc-basic-certification-test-plan", true},
-		conformance.NameBasicFormPost:    {"oidcc-formpost-basic-certification-test-plan", true},
-		conformance.NameHybrid:           {"oidcc-hybrid-certification-test-plan", true},
-		conformance.NameHybridFormPost:   {"oidcc-formpost-hybrid-certification-test-plan", true},
-		conformance.NameImplicit:         {"oidcc-implicit-certification-test-plan", true},
-		conformance.NameImplicitFormPost: {"oidcc-formpost-implicit-certification-test-plan", true},
+		conformance.NameConfig:                    {"oidcc-config-certification-test-plan", false, ""},
+		conformance.NameBasic:                     {"oidcc-basic-certification-test-plan", true, ""},
+		conformance.NameBasicFormPost:             {"oidcc-formpost-basic-certification-test-plan", true, ""},
+		conformance.NameHybrid:                    {"oidcc-hybrid-certification-test-plan", true, ""},
+		conformance.NameHybridFormPost:            {"oidcc-formpost-hybrid-certification-test-plan", true, ""},
+		conformance.NameImplicit:                  {"oidcc-implicit-certification-test-plan", true, ""},
+		conformance.NameImplicitFormPost:          {"oidcc-formpost-implicit-certification-test-plan", true, ""},
+		conformance.NameRelyingPartyBasic:         {"oidcc-client-basic-certification-test-plan", true, "conformance-rp-basic"},
+		conformance.NameRelyingPartyBasicFormPost: {"oidcc-client-formpost-basic-certification-test-plan", true, "conformance-rp-basic-form-post"},
 	}
 
 	require.Len(t, plans, len(expected))
@@ -389,6 +410,12 @@ func TestOIDCConformanceGenerateRoundTrip(t *testing.T) {
 
 	require.NotEmpty(t, ids)
 
+	providers := map[string]schema.AuthenticationBackendExternalIdentityProvider{}
+
+	for _, provider := range clients.AuthenticationBackend.ExternalIdentity.Providers {
+		providers[provider.ID] = provider
+	}
+
 	for _, plan := range plans {
 		want, ok := expected[plan.Name]
 
@@ -396,6 +423,26 @@ func TestOIDCConformanceGenerateRoundTrip(t *testing.T) {
 
 		assert.Equalf(t, want.plan, plan.PlanName, "the '%s' profile lost its conformance plan name", plan.Name)
 		assert.NotEmptyf(t, plan.Plan.Alias, "the '%s' profile lost its alias", plan.Name)
+		assert.Equalf(t, want.provider, plan.Provider, "the '%s' profile lost its provider", plan.Name)
+
+		if want.provider != "" {
+			require.NotNilf(t, plan.Variant, "the '%s' profile lost its variant", plan.Name)
+			assert.Equal(t, "static_client", plan.Variant.ClientRegistration)
+			assert.Equal(t, "plain_http_request", plan.Variant.RequestType)
+
+			require.NotNilf(t, plan.Plan.Client, "the '%s' profile lost its client", plan.Name)
+
+			provider, ok := providers[plan.Provider]
+			require.Truef(t, ok, "the '%s' profile's provider '%s' is not in the generated configuration", plan.Name, plan.Provider)
+
+			assert.Equal(t, plan.Plan.Client.ID, provider.ClientID)
+			assert.Equal(t, plan.Plan.Client.Secret, provider.ClientSecret)
+			assert.Equal(t, oidcConformanceBaseURL+"/test/a/"+plan.Plan.Alias+"/", provider.Issuer)
+			assert.Equal(t, oidcConformanceAutheliaURL+"/api/firstfactor/external-identity/"+plan.Provider+"/callback", plan.Plan.Client.RedirectURI)
+
+			continue
+		}
+
 		assert.NotEmptyf(t, plan.Plan.Server.DiscoveryURL, "the '%s' profile lost its discovery url", plan.Name)
 
 		if want.variant {

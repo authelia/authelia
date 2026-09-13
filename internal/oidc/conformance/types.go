@@ -10,9 +10,10 @@ import (
 
 // Suite represents a single OpenID Connect conformance suite.
 type Suite struct {
-	Name    string
-	Plan    Plan
-	Clients []schema.IdentityProvidersOpenIDConnectClient
+	Name      string
+	Plan      Plan
+	Clients   []schema.IdentityProvidersOpenIDConnectClient
+	Providers []schema.AuthenticationBackendExternalIdentityProvider
 }
 
 // Plan represents the test plan for a Suite.
@@ -48,6 +49,7 @@ type PlanVariant struct {
 	SenderConstrain          string `json:"sender_constrain,omitempty"`
 	AuthorizationRequestType string `json:"authorization_request_type,omitempty"`
 	OpenID                   string `json:"openid,omitempty"`
+	RequestType              string `json:"request_type,omitempty"`
 }
 
 // PlanServer represents the server details of a Plan.
@@ -66,6 +68,7 @@ type PlanServer struct {
 type PlanClient struct {
 	ID                   string `json:"client_id,omitempty"`
 	Secret               string `json:"client_secret,omitempty"`
+	RedirectURI          string `json:"redirect_uri,omitempty"`
 	Name                 string `json:"client_name,omitempty"`
 	Scope                string `json:"scope,omitempty"`
 	SecretJWTAlgorithm   string `json:"client_secret_jwt_alg,omitempty"`

@@ -34,7 +34,11 @@ func (s *UserSession) AuthenticationLevel(passkey2FA bool) authentication.Level 
 		return authentication.TwoFactor
 	case passkey2FA && s.AuthenticationMethodRefs.WebAuthn && s.AuthenticationMethodRefs.WebAuthnUserVerified:
 		return authentication.TwoFactor
+	case s.AuthenticationMethodRefs.FederatedIdentity && s.AuthenticationMethodRefs.FactorPossession():
+		return authentication.TwoFactor
 	case s.AuthenticationMethodRefs.FactorPossession() || s.AuthenticationMethodRefs.FactorKnowledge():
+		return authentication.OneFactor
+	case s.AuthenticationMethodRefs.FederatedIdentity:
 		return authentication.OneFactor
 	default:
 		return authentication.NotAuthenticated
@@ -54,6 +58,17 @@ func (s *UserSession) SetOneFactorPasskey(now time.Time, details *authentication
 	s.setOneFactor(now, details, keepMeLoggedIn)
 
 	s.setWebAuthn(hardware, userPresence, userVerified)
+}
+
+// SetOneFactorExternalIdentity sets the expected property values for one factor authentication performed by an external
+// identity provider. Only the FederatedIdentity Authentication Method Reference is set: Authelia does not
+// observe the authentication the user performed at the external provider and therefore cannot honestly assert any
+// RFC8176 value on their behalf. Callers which are configured to trust the external providers asserted values are
+// responsible for merging them into the AuthenticationMethodRefs after calling this.
+func (s *UserSession) SetOneFactorExternalIdentity(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
+	s.setOneFactor(now, details, keepMeLoggedIn)
+
+	s.AuthenticationMethodRefs.FederatedIdentity = true
 }
 
 func (s *UserSession) setOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {

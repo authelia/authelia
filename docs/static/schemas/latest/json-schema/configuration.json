@@ -354,11 +354,221 @@
           "$ref": "#/$defs/AuthenticationBackendLDAP",
           "title": "LDAP Backend",
           "description": "The LDAP authentication backend configuration."
+        },
+        "external_identity": {
+          "$ref": "#/$defs/AuthenticationBackendExternalIdentity",
+          "title": "External Identity",
+          "description": "The external identity configuration."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackend represents the configuration related to the authentication backend."
+    },
+    "AuthenticationBackendExternalIdentity": {
+      "properties": {
+        "providers": {
+          "items": {
+            "$ref": "#/$defs/AuthenticationBackendExternalIdentityProvider"
+          },
+          "type": "array",
+          "title": "Providers",
+          "description": "The list of external identity providers users may authenticate with."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendExternalIdentity represents the external identity configuration."
+    },
+    "AuthenticationBackendExternalIdentityProvider": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "ID",
+          "description": "The unique identifier for this provider which appears in URLs and stored links."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "openid_connect",
+            "discord"
+          ],
+          "title": "Type",
+          "description": "The type of the external identity provider.",
+          "default": "openid_connect"
+        },
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "The display name for this provider shown on the login page."
+        },
+        "issuer": {
+          "type": "string",
+          "format": "uri",
+          "title": "Issuer",
+          "description": "The issuer identifier of the external provider."
+        },
+        "client_id": {
+          "type": "string",
+          "title": "Client ID",
+          "description": "The client identifier issued to Authelia by the external provider."
+        },
+        "client_secret": {
+          "type": "string",
+          "title": "Client Secret",
+          "description": "The client secret issued to Authelia by the external provider."
+        },
+        "scopes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Scopes",
+          "description": "The scopes requested from the external provider.",
+          "default": [
+            "openid",
+            "profile",
+            "email"
+          ]
+        },
+        "response_mode": {
+          "type": "string",
+          "enum": [
+            "query",
+            "form_post"
+          ],
+          "title": "Response Mode",
+          "description": "The response mode the external provider is asked to deliver the authorization response with.",
+          "default": "query"
+        },
+        "token_endpoint_auth_method": {
+          "type": "string",
+          "enum": [
+            "client_secret_basic",
+            "client_secret_post",
+            "none"
+          ],
+          "title": "Token Endpoint Auth Method",
+          "description": "The client authentication method used at the token endpoint.",
+          "default": "client_secret_basic"
+        },
+        "id_token_signed_response_alg": {
+          "type": "string",
+          "title": "ID Token Signed Response Algorithm",
+          "description": "The JWS algorithm the ID Token must be signed with.",
+          "default": "RS256"
+        },
+        "pkce": {
+          "$ref": "#/$defs/AuthenticationBackendExternalIdentityProviderPKCE",
+          "title": "PKCE",
+          "description": "Proof Key for Code Exchange configuration."
+        },
+        "authentication_methods_reference": {
+          "$ref": "#/$defs/AuthenticationBackendExternalIdentityProviderAMR",
+          "title": "Authentication Methods Reference",
+          "description": "Configures the handling of the amr claim from this provider."
+        },
+        "discovery": {
+          "$ref": "#/$defs/AuthenticationBackendExternalIdentityProviderDiscovery",
+          "title": "Discovery",
+          "description": "Configures OpenID Connect Discovery 1.0 behavior for this provider."
+        },
+        "endpoints": {
+          "$ref": "#/$defs/AuthenticationBackendExternalIdentityProviderEndpoints",
+          "title": "Endpoints",
+          "description": "Explicit endpoints which override or replace discovery."
+        },
+        "jwks": {
+          "items": {
+            "$ref": "#/$defs/JWK"
+          },
+          "type": "array",
+          "title": "JSON Web Keys",
+          "description": "Inline JSON Web Keys used to verify ID Tokens instead of fetching them."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "issuer",
+        "client_id"
+      ],
+      "description": "AuthenticationBackendExternalIdentityProvider represents a single external identity provider."
+    },
+    "AuthenticationBackendExternalIdentityProviderAMR": {
+      "properties": {
+        "trust": {
+          "type": "boolean",
+          "title": "Trust",
+          "description": "Trusts the amr claim from this provider and merges it into the session authentication method references.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendExternalIdentityProviderAMR represents the amr claim handling for a provider."
+    },
+    "AuthenticationBackendExternalIdentityProviderDiscovery": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables OpenID Connect Discovery 1.0 requiring all endpoints to be explicitly configured.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendExternalIdentityProviderDiscovery represents the discovery configuration for a provider."
+    },
+    "AuthenticationBackendExternalIdentityProviderEndpoints": {
+      "properties": {
+        "authorization": {
+          "type": "string",
+          "format": "uri",
+          "title": "Authorization Endpoint",
+          "description": "The authorization endpoint of the external provider."
+        },
+        "token": {
+          "type": "string",
+          "format": "uri",
+          "title": "Token Endpoint",
+          "description": "The token endpoint of the external provider."
+        },
+        "userinfo": {
+          "type": "string",
+          "format": "uri",
+          "title": "UserInfo Endpoint",
+          "description": "The UserInfo endpoint of the external provider."
+        },
+        "jwks": {
+          "type": "string",
+          "format": "uri",
+          "title": "JSON Web Key Set URI",
+          "description": "The JSON Web Key Set URI of the external provider."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendExternalIdentityProviderEndpoints represents explicit endpoints for a provider."
+    },
+    "AuthenticationBackendExternalIdentityProviderPKCE": {
+      "properties": {
+        "challenge_method": {
+          "type": "string",
+          "enum": [
+            "S256"
+          ],
+          "title": "Challenge Method",
+          "description": "The PKCE code challenge method.",
+          "default": "S256"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendExternalIdentityProviderPKCE represents the PKCE configuration for a provider."
     },
     "AuthenticationBackendExtraAttribute": {
       "properties": {
@@ -3519,6 +3729,16 @@
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "OpenID Connect Revocation",
           "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."
+        },
+        "external_identity_start": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "External Identity Start",
+          "description": "Configures the rate limiter which applies to the endpoint that initializes an external identity login."
+        },
+        "external_identity_callback": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "External Identity Callback",
+          "description": "Configures the rate limiter which applies to the redirect URI endpoint for external identity logins."
         }
       },
       "additionalProperties": false,

@@ -59,4 +59,5 @@ authelia storage encryption rotate hmac --help
 * [authelia storage encryption rotate](authelia_storage_encryption_rotate.md)	 - Rotate storage encryption values
 * [authelia storage encryption rotate hmac otc](authelia_storage_encryption_rotate_hmac_otc.md)	 - Rotate the OTC HMAC key
 * [authelia storage encryption rotate hmac otp](authelia_storage_encryption_rotate_hmac_otp.md)	 - Rotate the OTP HMAC key
+* [authelia storage encryption rotate hmac external-identity-link](authelia_storage_encryption_rotate_hmac_external-identity-link.md)	 - Rotate the external identity link HMAC key
 

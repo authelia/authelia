@@ -56,6 +56,28 @@ type Provider interface {
 	LoadUserOpaqueIdentifierBySignature(ctx context.Context, service, sectorID, username string) (subject *model.UserOpaqueIdentifier, err error)
 
 	/*
+		Implementation for OpenID Connect 1.0 Relying Party Account Links.
+	*/
+
+	// SaveExternalIdentityLink saves an OpenID Connect 1.0 account link to the storage provider.
+	SaveExternalIdentityLink(ctx context.Context, link model.ExternalIdentityLink) (err error)
+
+	// LoadExternalIdentityLinkBySubject loads an external identity link by the provider type, issuer, and subject.
+	LoadExternalIdentityLinkBySubject(ctx context.Context, providerType, issuer, subject string) (link *model.ExternalIdentityLink, err error)
+
+	// LoadExternalIdentityLinksByUsername loads all OpenID Connect 1.0 account links for a user.
+	LoadExternalIdentityLinksByUsername(ctx context.Context, username string) (links []model.ExternalIdentityLink, err error)
+
+	// LoadExternalIdentityLinkByID loads an OpenID Connect 1.0 account link by its id.
+	LoadExternalIdentityLinkByID(ctx context.Context, id int) (link *model.ExternalIdentityLink, err error)
+
+	// UpdateExternalIdentityLinkSignIn updates the last used timestamp of an OpenID Connect 1.0 account link.
+	UpdateExternalIdentityLinkSignIn(ctx context.Context, id int, lastUsedAt time.Time) (err error)
+
+	// DeleteExternalIdentityLink deletes an OpenID Connect 1.0 account link owned by the given user.
+	DeleteExternalIdentityLink(ctx context.Context, username string, id int) (err error)
+
+	/*
 		Implementation for User TOTP Configurations.
 	*/
 
