@@ -5,8 +5,10 @@ import {
     isMethod2FA,
     postUserInfo,
     setPreferred2FAMethod,
+    to2FAString,
     toMethod2FA,
     toSecondFactorMethod,
+    toSecondFactorMethodOptional,
 } from "@services/UserInfo";
 
 vi.mock("@models/Methods", () => ({
@@ -66,4 +68,19 @@ it("sets preferred 2fa method", async () => {
     const result = await setPreferred2FAMethod(SecondFactorMethod.MobilePush);
     expect(PostWithOptionalResponse).toHaveBeenCalledWith("/user/2fa", { method: "mobile_push" });
     expect(result).toBe("response");
+});
+
+it("converts to an optional second factor method", () => {
+    expect(toSecondFactorMethodOptional("totp")).toBe(SecondFactorMethod.TOTP);
+    expect(toSecondFactorMethodOptional("webauthn")).toBe(SecondFactorMethod.WebAuthn);
+    expect(toSecondFactorMethodOptional("mobile_push")).toBe(SecondFactorMethod.MobilePush);
+    expect(toSecondFactorMethodOptional("")).toBeUndefined();
+    expect(toSecondFactorMethodOptional(undefined)).toBeUndefined();
+    expect(toSecondFactorMethodOptional("unknown")).toBeUndefined();
+});
+
+it("converts a second factor method to a display string", () => {
+    expect(to2FAString(SecondFactorMethod.TOTP)).toBe("TOTP");
+    expect(to2FAString(SecondFactorMethod.WebAuthn)).toBe("WebAuthn");
+    expect(to2FAString(SecondFactorMethod.MobilePush)).toBe("Mobile Push");
 });
