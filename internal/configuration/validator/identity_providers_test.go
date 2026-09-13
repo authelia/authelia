@@ -3444,6 +3444,52 @@ func TestValidateOIDCClients(t *testing.T) {
 	}
 }
 
+func TestValidateOIDCClientRequireSignedRequestObject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		provider bool
+		client   bool
+		alg      string
+		expected string
+	}{
+		{"ShouldNotErrorWhenNotRequired", false, false, oidc.SigningAlgNone, ""},
+		{"ShouldNotErrorWhenClientRequiredWithSignedAlg", false, true, oidc.SigningAlgRSAUsingSHA256, ""},
+		{"ShouldNotErrorWhenProviderRequiredWithSignedAlg", true, false, oidc.SigningAlgRSAUsingSHA256, ""},
+		{"ShouldNotErrorWhenClientRequiredWithEmptyAlg", false, true, "", ""},
+		{"ShouldErrorWhenClientRequiredWithAlgNone", false, true, oidc.SigningAlgNone, "identity_providers: oidc: clients: client 'test': option 'request_object_signing_alg' must not be configured as 'none' when the client option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"},
+		{"ShouldErrorWhenProviderRequiredWithAlgNone", true, false, oidc.SigningAlgNone, "identity_providers: oidc: clients: client 'test': option 'request_object_signing_alg' must not be configured as 'none' when the provider option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"},
+		{"ShouldErrorOnceWhenBothRequiredWithAlgNone", true, true, oidc.SigningAlgNone, "identity_providers: oidc: clients: client 'test': option 'request_object_signing_alg' must not be configured as 'none' when the client option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				RequireSignedRequestObject: tc.provider,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                         "test",
+						RequireSignedRequestObject: tc.client,
+						RequestObjectSigningAlg:    tc.alg,
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientRequireSignedRequestObject(0, config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+
+			if tc.expected == "" {
+				assert.Len(t, validator.Errors(), 0)
+			} else {
+				require.Len(t, validator.Errors(), 1)
+				assert.EqualError(t, validator.Errors()[0], tc.expected)
+			}
+		})
+	}
+}
+
 func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 	testCases := []struct {
 		name     string

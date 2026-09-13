@@ -145,6 +145,9 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					EncryptionEncA256GCM,
 				},
 			},
+			OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions: &OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions{
+				RequireSignedRequestObject: c.RequireSignedRequestObject,
+			},
 			OAuth2PushedAuthorizationDiscoveryOptions: &OAuth2PushedAuthorizationDiscoveryOptions{
 				RequirePushedAuthorizationRequests: c.RequirePushedAuthorizationRequests,
 			},

@@ -73,6 +73,7 @@ identity_providers:
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
         require_pushed_authorization_requests: false
+        require_signed_request_object: false
         require_pkce: false
         pkce_challenge_method: 'S256'
         authorization_signed_response_key_id: ''
@@ -441,6 +442,25 @@ authorization flow.
 This configuration option enforces the use of a [Pushed Authorization Requests] flow for this registered client.
 To enforce it for all clients see the global [pushed_authorizations enforce](provider.md#enforce) provider configuration
 option.
+
+### require_signed_request_object
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+A majority of clients will not support this option as it requires the client to sign its authorization requests.
+{{< /callout >}}
+
+This configuration option requires all authorization requests for this registered client be provided as a signed
+[Request Object](../../../integration/openid-connect/introduction.md#request-object) via either the `request` or
+`request_uri` parameter as described in [JWT-Secured Authorization Request]. Unsigned Request Objects do not satisfy
+this requirement, and as such the [request_object_signing_alg](#request_object_signing_alg) must not be `none` when this
+option is enabled. The client must also be registered with a key it can use to sign the Request Object, such as via the
+[jwks](#jwks) or [jwks_uri](#jwks_uri) options.
+
+This applies to requests made to the [Pushed Authorization Requests] endpoint in addition to the Authorization Endpoint.
+To enforce it for all clients see the global [require_signed_request_object](provider.md#require_signed_request_object)
+provider configuration option.
 
 ### require_pkce
 
@@ -1368,5 +1388,6 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[JWT-Secured Authorization Request]: https://datatracker.ietf.org/doc/html/rfc9101
 [jwks]: provider.md#jwks
 [JSON Web Key]: provider.md#jwks

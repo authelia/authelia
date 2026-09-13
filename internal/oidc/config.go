@@ -55,9 +55,10 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 			Enable:                       config.Discovery.JWTResponseAccessTokens,
 			EnableStatelessIntrospection: config.EnableJWTAccessTokenStatelessIntrospection,
 		},
-		Strategy:                        StrategyConfig{},
-		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
-		RevokeRefreshTokensExplicit:     true,
+		Strategy:                                           StrategyConfig{},
+		JWTSecuredAuthorizationLifespan:                    config.Lifespans.JWTSecuredAuthorization,
+		RequireSignedRequestObject:                         config.RequireSignedRequestObject,
+		RevokeRefreshTokensExplicit:                        true,
 		EnforceRevokeFlowRevokeRefreshTokensExplicitClient: true,
 		EnforceClientAssertionIssuerAudience:               false,
 		ClientCredentialsFlowImplicitGrantRequested:        true,
@@ -116,6 +117,7 @@ type Config struct {
 	JWTMaxDuration time.Duration
 
 	JWTSecuredAuthorizationLifespan time.Duration
+	RequireSignedRequestObject      bool
 
 	JWTAccessToken JWTAccessTokenConfig
 
@@ -1102,10 +1104,11 @@ func (c *Config) GetEnforceClientAssertionIssuerAudience(ctx context.Context) (e
 	return c.EnforceClientAssertionIssuerAudience
 }
 
-// GetRequireSignedRequestObject returns false as this Authorization Server does not globally require an
-// authorization request to be provided as a Request Object.
+// GetRequireSignedRequestObject indicates if all authorization requests must be provided as a signed Request Object
+// via either the 'request' or 'request_uri' parameter. This is equivalent to the 'require_signed_request_object'
+// authorization server metadata value.
 func (c *Config) GetRequireSignedRequestObject(ctx context.Context) (require bool) {
-	return false
+	return c.RequireSignedRequestObject
 }
 
 // GetRequireSignedRequestObjectSkipPushedAuthorizationRequests returns false as no global Request Object requirement

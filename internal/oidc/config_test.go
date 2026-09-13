@@ -244,6 +244,20 @@ func TestConfig_PAR(t *testing.T) {
 	assert.Equal(t, time.Minute*5, config.PAR.ContextLifespan)
 }
 
+func TestConfig_RequireSignedRequestObject(t *testing.T) {
+	ctx := context.Background()
+
+	config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, nil, nil)
+
+	assert.False(t, config.GetRequireSignedRequestObject(ctx))
+	assert.False(t, config.GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ctx))
+
+	config = oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{RequireSignedRequestObject: true}, nil, nil)
+
+	assert.True(t, config.GetRequireSignedRequestObject(ctx))
+	assert.False(t, config.GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ctx))
+}
+
 func TestNewConfig(t *testing.T) {
 	c := &schema.IdentityProvidersOpenIDConnect{
 		Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
