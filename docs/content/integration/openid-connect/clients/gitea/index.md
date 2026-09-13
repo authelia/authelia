@@ -142,9 +142,9 @@ SHOW_REGISTRATION_BUTTON                      = false
 ## See Also
 
 - [Gitea]
-  - [Config Cheat Sheet](https://docs.gitea.com/en-us/config-cheat-sheet)
+  - [Config Cheat Sheet](https://docs.gitea.com/administration/config-cheat-sheet/)
     - [OpenID](https://docs.gitea.com/administration/config-cheat-sheet/#openid-openid)
-    - [Service](https://docs.gitea.com/en-us/config-cheat-sheet/#service-service)
+    - [Service](https://docs.gitea.com/administration/config-cheat-sheet/#service-service)
 
 [Authelia]: https://www.authelia.com
 [Gitea]: https://about.gitea.com/
