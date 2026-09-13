@@ -63,6 +63,7 @@ const NewUserDialog = ({ onClose, open }: Props) => {
     const [groups, groupsRefetch, groupsLoading, groupsError] = useAllGroupsGET();
     const [showAdditional, setShowAdditional] = useState(false);
     const [verifyExitDialogOpen, setVerifyExitDialogOpen] = useState(false);
+    const [wasOpen, setWasOpen] = useState(open);
 
     const groupsFieldType = metadata?.supported_attributes?.groups?.type;
     const shouldFetchGroups = groupsFieldType === "groups";
@@ -90,13 +91,14 @@ const NewUserDialog = ({ onClose, open }: Props) => {
         },
     });
 
-    useEffect(() => {
+    if (open !== wasOpen) {
+        setWasOpen(open);
         if (!open) {
             reset();
             setShowAdditional(false);
             setVerifyExitDialogOpen(false);
         }
-    }, [open, reset]);
+    }
 
     const categorizeFields = () => {
         if (!metadata) return { basic: [], extra: [], optional: [], required: [] };
