@@ -9,6 +9,7 @@ import { IdCardLanyard } from "lucide-react";
 import DiscordSvg from "@assets/images/identity/discord.svg?react";
 import GitHubSvg from "@assets/images/identity/github.svg?react";
 import OpenIDSvg from "@assets/images/identity/openid.svg?react";
+import PlexSvg from "@assets/images/identity/plex.svg?react";
 
 export interface Props {
     type: string;
@@ -21,6 +22,7 @@ const marks: { [type: string]: typeof DiscordSvg } = {
     discord: DiscordSvg,
     github: GitHubSvg,
     openid_connect: OpenIDSvg,
+    plex: PlexSvg,
 };
 
 // ExternalIdentityIcon renders the icon of an external identity provider. The logo the provider is configured with is
