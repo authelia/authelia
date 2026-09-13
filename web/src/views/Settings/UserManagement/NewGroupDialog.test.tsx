@@ -101,6 +101,19 @@ it("closes without creating when cancel is clicked", () => {
     expect(onClose).toHaveBeenCalledOnce();
 });
 
+it("rejects an invalid group name without calling the API", async () => {
+    render(<NewGroupDialog open={true} onClose={onClose} />);
+
+    fireEvent.change(name(), { target: { value: "not a valid group!" } });
+
+    await act(async () => {
+        fireEvent.click(submit());
+    });
+
+    expect(await screen.findByText("Invalid group name")).toBeInTheDocument();
+    expect(postNewGroup).not.toHaveBeenCalled();
+});
+
 it("resets the form when reopened after closing", () => {
     const { rerender } = render(<NewGroupDialog open={true} onClose={onClose} />);
 
