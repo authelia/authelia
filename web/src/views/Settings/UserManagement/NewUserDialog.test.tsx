@@ -54,14 +54,23 @@ vi.mock("@utils/GeneratePassword", () => ({
 const ldapMetadata = {
     required_attributes: ["username", "password"],
     supported_attributes: {
+        // extra (non-standard) attribute exercising the single, non-multiple email path
+        backup_email: { type: "email" },
         birthdate: { type: "date" },
         custom_field: { type: "text" },
         display_name: { type: "text" },
         groups: { multiple: true, type: "groups" },
+        // extra attribute with a name distinct from "birthdate" so it exercises the generic
+        // type-based date dispatch rather than the name-based special-casing "birthdate" gets
+        hire_date: { type: "date" },
         last_logged_in: { type: "text" },
+        login_count: { type: "number" },
         mail: { multiple: true, type: "email" },
+        newsletter: { type: "checkbox" },
         password: { type: "password" },
+        phone_number: { type: "tel" },
         username: { type: "text" },
+        website: { type: "url" },
     },
 };
 
@@ -190,6 +199,52 @@ it("submits the user with extra attributes lifted into the extra object", async 
 
     expect(mockCreateSuccess).toHaveBeenCalledWith("User created successfully.");
     expect(onClose).toHaveBeenCalledOnce();
+});
+
+it("submits the correct JS type for every additional field type", async () => {
+    vi.mocked(postNewUser).mockResolvedValue(undefined);
+
+    render(<NewUserDialog open={true} onClose={onClose} />);
+
+    fireEvent.change(byId("new-user-username"), { target: { value: "jane" } });
+    fireEvent.change(byId("new-user-password"), { target: { value: "secret" } });
+    fireEvent.click(screen.getByText("Show Additional Fields"));
+
+    fireEvent.change(byId("new-user-birthdate"), { target: { value: "1990-01-01" } });
+    fireEvent.change(byId("new-user-phone_number"), { target: { value: "+15551234567" } });
+    fireEvent.change(byId("new-user-website"), { target: { value: "https://example.com" } });
+    fireEvent.change(byId("new-user-hire_date"), { target: { value: "2024-05-01" } });
+    fireEvent.click(byId("new-user-newsletter"));
+    fireEvent.change(byId("new-user-login_count"), { target: { value: "42" } });
+    fireEvent.change(byId("new-user-backup_email"), { target: { value: "me@example.com" } });
+
+    await act(async () => {
+        fireEvent.click(submit());
+    });
+
+    await waitFor(() => expect(postNewUser).toHaveBeenCalledOnce());
+
+    const body = vi.mocked(postNewUser).mock.calls[0][0] as any;
+
+    expect(body).toMatchObject({
+        birthdate: "1990-01-01",
+        phone_number: "+15551234567",
+        username: "jane",
+        website: "https://example.com",
+    });
+    expect(body.extra).toMatchObject({
+        backup_email: "me@example.com",
+        hire_date: "2024-05-01",
+        login_count: 42,
+        newsletter: true,
+    });
+    expect(typeof body.extra.login_count).toBe("number");
+    expect(typeof body.extra.newsletter).toBe("boolean");
+    expect(body).not.toHaveProperty("hire_date");
+    expect(body).not.toHaveProperty("newsletter");
+    expect(body).not.toHaveProperty("login_count");
+    expect(body).not.toHaveProperty("backup_email");
+    expect(body).not.toHaveProperty("custom_field");
 });
 
 it("rejects an invalid username without calling the API", async () => {
