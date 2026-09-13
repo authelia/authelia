@@ -39,6 +39,27 @@ var (
 	// ErrConsentMalformedChallengeID is sent when the Consent ID is not a UUID.
 	ErrConsentMalformedChallengeID = oauthelia2.ErrServerError.WithHint("Malformed consent session challenge ID.")
 
+	// ErrFlowCouldNotContinue is shown to the user when a login flow can't be continued. It deliberately describes the
+	// range of problems which lead here rather than which one occurred, so that it can't be used to determine whether a
+	// particular flow exists, has expired, or has already been responded to. The specific cause is recorded in the log
+	// and is only included in the debug field of the response when enable_client_debug_messages is enabled.
+	ErrFlowCouldNotContinue = oauthelia2.ErrInvalidRequest.WithHint("Could not continue the login flow. The request may have already been completed, may have expired, may have been superseded by a newer request, or may otherwise no longer be valid. Return to the application you are signing in to and try again.")
+
+	// ErrConsentMalformedForm is sent when the original authorization request form of a Consent Session cannot be decoded.
+	ErrConsentMalformedForm = oauthelia2.ErrServerError.WithHint("Malformed consent session request form data.")
+
+	// ErrDeviceCodeMalformedUserCode is sent when the user code of a Device Code Session is not a plausible user code.
+	ErrDeviceCodeMalformedUserCode = oauthelia2.ErrInvalidRequest.WithHint("Malformed device code session user code.")
+
+	// ErrDeviceCodeCouldNotLookup is sent when the Device Code Session for a user code can't be retrieved.
+	ErrDeviceCodeCouldNotLookup = oauthelia2.ErrInvalidRequest.WithHint("Failed to lookup the device code session. The user code is unknown or has expired.")
+
+	// ErrDeviceCodeCouldNotDetermineSignature is sent when the signature of a user code can't be determined.
+	ErrDeviceCodeCouldNotDetermineSignature = oauthelia2.ErrServerError.WithHint("Could not determine the signature of the device code session user code.")
+
+	// ErrDeviceCodeCouldNotPerform is sent when the Device Code Session can't be performed for varying reasons.
+	ErrDeviceCodeCouldNotPerform = oauthelia2.ErrInvalidRequest.WithHint("Could not perform the device authorization. The device code session has already been responded to, has expired, or otherwise does not appear to be valid for the authorization request.")
+
 	// ErrClientAuthorizationUserAccessDenied is sent when the user is denied access to a client.
 	ErrClientAuthorizationUserAccessDenied = oauthelia2.ErrAccessDenied.WithHint("The user was denied access to this client.")
 
@@ -72,38 +93,47 @@ func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ct
 		return
 	}
 
-	if rfc == nil {
-		rfc = oauthelia2.ErrServerError
-	}
-
-	location := issuer.JoinPath(FrontendEndpointPathConsentCompletion)
-
-	query := location.Query()
-
-	if len(rfc.ErrorField) != 0 {
-		query.Set("error", rfc.ErrorField)
-	}
-
-	if len(rfc.DescriptionField) != 0 {
-		query.Set("error_description", rfc.DescriptionField)
-	}
-
-	if rfc.CodeField != 0 {
-		query.Set("error_status_code", strconv.Itoa(rfc.CodeField))
-	}
-
-	if len(rfc.HintField) != 0 {
-		query.Set("error_hint", rfc.HintField)
-	}
-
-	if s.Config.GetSendDebugMessagesToClients(ctx) && len(rfc.DebugField) != 0 {
-		query.Set("error_debug", rfc.DebugField)
-	}
-
-	location.RawQuery = query.Encode()
+	location := ConsentCompletionURL(issuer, rfc, s.Config.GetSendDebugMessagesToClients(ctx))
 
 	rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
 	rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
 	rw.Header().Set(fasthttp.HeaderLocation, location.String())
 	rw.WriteHeader(http.StatusFound)
+}
+
+// ConsentCompletionURL returns the frontend consent completion URL for the given issuer with the fields of the given
+// error encoded into the query. A nil error is treated as a generic server error and the debug field is only included
+// when debug is true.
+func ConsentCompletionURL(issuer *url.URL, rfc *oauthelia2.RFC6749Error, debug bool) (location *url.URL) {
+	if rfc == nil {
+		rfc = oauthelia2.ErrServerError
+	}
+
+	location = issuer.JoinPath(FrontendEndpointPathConsentCompletion)
+
+	query := location.Query()
+
+	if len(rfc.ErrorField) != 0 {
+		query.Set(FrontendQueryArgError, rfc.ErrorField)
+	}
+
+	if len(rfc.DescriptionField) != 0 {
+		query.Set(FrontendQueryArgErrorDescription, rfc.DescriptionField)
+	}
+
+	if rfc.CodeField != 0 {
+		query.Set(FrontendQueryArgErrorStatusCode, strconv.Itoa(rfc.CodeField))
+	}
+
+	if len(rfc.HintField) != 0 {
+		query.Set(FrontendQueryArgErrorHint, rfc.HintField)
+	}
+
+	if debug && len(rfc.DebugField) != 0 {
+		query.Set(FrontendQueryArgErrorDebug, rfc.DebugField)
+	}
+
+	location.RawQuery = query.Encode()
+
+	return location
 }
