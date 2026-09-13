@@ -30,18 +30,26 @@ function DropdownMenuTrigger({ ...props }: ComponentProps<typeof MenuPrimitive.T
 
 function DropdownMenuContent({
     align,
+    anchor,
     className,
     side,
     sideOffset = 4,
     ...props
 }: ComponentProps<typeof MenuPrimitive.Popup> & {
     align?: ComponentProps<typeof MenuPrimitive.Positioner>["align"];
+    anchor?: ComponentProps<typeof MenuPrimitive.Positioner>["anchor"];
     side?: ComponentProps<typeof MenuPrimitive.Positioner>["side"];
     sideOffset?: number;
 }) {
     return (
         <MenuPrimitive.Portal>
-            <MenuPrimitive.Positioner align={align} side={side} sideOffset={sideOffset} className="z-50">
+            <MenuPrimitive.Positioner
+                anchor={anchor}
+                align={align}
+                side={side}
+                sideOffset={sideOffset}
+                className="z-50"
+            >
                 <MenuPrimitive.Popup
                     data-slot="dropdown-menu-content"
                     className={cn(popupClasses, "max-h-(--available-height)", className)}
