@@ -1,6 +1,6 @@
 import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { LayoutDashboard, Menu, Shield, ShieldCheck, X } from "lucide-react";
+import { LayoutDashboard, Menu, Shield, ShieldCheck, Users, UsersRound, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@components/UI/Button";
@@ -10,10 +10,14 @@ import { EncodedName } from "@constants/constants";
 import {
     IndexRoute,
     SecuritySubRoute,
+    SettingsGroupManagementSubRoute,
     SettingsRoute,
     SettingsTwoFactorAuthenticationSubRoute,
+    SettingsUserManagementSubRoute,
 } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
+import { useUserInfoGET } from "@hooks/UserInfo";
+import { useAdminConfigurationGET } from "@hooks/UserManagement";
 import { cn } from "@utils/Styles";
 
 export interface Props {
@@ -27,11 +31,42 @@ const SettingsLayout = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const [drawerOpen, setDrawerOpen] = useState(false);
 
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
+    const [adminConfig, fetchAdminConfig, , fetchAdminConfigError] = useAdminConfigurationGET();
+
+    useEffect(() => {
+        fetchUserInfo();
+        fetchAdminConfig();
+    }, [fetchUserInfo, fetchAdminConfig]);
+
     useEffect(() => {
         document.title = translate("Settings - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
     const drawerWidth = props.drawerWidth ?? defaultDrawerWidth;
+
+    const isItemVisible = useCallback(
+        (item: NavItem) => {
+            if (!item.requireAdmin && !item.requireGroupManagement) return true;
+
+            if (fetchAdminConfigError || !adminConfig || fetchUserInfoError || !userInfo) {
+                return false;
+            }
+
+            const isAdmin = adminConfig?.enabled && userInfo?.groups?.includes(adminConfig?.admin_group);
+
+            if (item.requireAdmin && !isAdmin) {
+                return false;
+            }
+
+            if (item.requireGroupManagement && !adminConfig?.group_management_enabled) {
+                return false;
+            }
+
+            return true;
+        },
+        [adminConfig, userInfo, fetchAdminConfigError, fetchUserInfoError],
+    );
 
     const handleToggleDrawer = (event: SyntheticEvent) => {
         if (
@@ -68,7 +103,7 @@ const SettingsLayout = function (props: Props) {
                         <SheetTitle className="my-4 text-lg font-medium">{translate("Settings")}</SheetTitle>
                         <Separator />
                         <ul className="list-none p-0">
-                            {navItems.map((item) => (
+                            {navItems.filter(isItemVisible).map((item) => (
                                 <DrawerNavItem
                                     key={item.keyname}
                                     keyname={item.keyname}
@@ -92,6 +127,8 @@ interface NavItem {
     text: string;
     pathname: string;
     icon?: ReactNode;
+    requireAdmin?: boolean;
+    requireGroupManagement?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -112,6 +149,21 @@ const navItems: NavItem[] = [
         keyname: "twofactor",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         text: "Two-Factor Authentication",
+    },
+    {
+        icon: <Users className="size-5 text-primary" />,
+        keyname: "users",
+        pathname: `${SettingsRoute}${SettingsUserManagementSubRoute}`,
+        requireAdmin: true,
+        text: "User Management",
+    },
+    {
+        icon: <UsersRound className="size-5 text-primary" />,
+        keyname: "groups",
+        pathname: `${SettingsRoute}${SettingsGroupManagementSubRoute}`,
+        requireAdmin: true,
+        requireGroupManagement: true,
+        text: "Group Management",
     },
     { icon: <X className="size-5 text-destructive" />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];
