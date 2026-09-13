@@ -128,6 +128,7 @@ SPDX-License-Identifier = "LicenseRef-Trademark"
 path = [
   "docs/static/images/oid-certification.jpg",
   "docs/static/images/oid-map.png",
+  "web/src/assets/images/identity/openid.svg",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "OpenID Foundation"

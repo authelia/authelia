@@ -324,6 +324,8 @@ func validateServerEndpointsHealth(config *schema.Configuration, validator *sche
 func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
 	validateServerEndpointsRateLimitDefault("openid_connect_pushed_authorization_request", &config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, validator)
 	validateServerEndpointsRateLimitDefault("openid_connect_token", &config.Server.Endpoints.RateLimits.OpenIDConnectToken, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectToken, validator)
+	validateServerEndpointsRateLimitDefault("external_identity_start", &config.Server.Endpoints.RateLimits.ExternalIdentityStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ExternalIdentityStart, validator)
+	validateServerEndpointsRateLimitDefault("external_identity_callback", &config.Server.Endpoints.RateLimits.ExternalIdentityCallback, schema.DefaultServerConfiguration.Endpoints.RateLimits.ExternalIdentityCallback, validator)
 
 	validateServerEndpointsRateLimitDefault("health", &config.Server.Endpoints.RateLimits.Health, schema.DefaultServerConfiguration.Endpoints.RateLimits.Health, validator)
 	validateServerEndpointsRateLimitDefault("reset_password_start", &config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
