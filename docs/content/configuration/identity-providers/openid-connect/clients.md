@@ -292,6 +292,147 @@ granted tokens.
 See the [Grant Types](../../../integration/openid-connect/introduction.md#grant-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#grant-types) for more information.
 
+### subject_token_types_supported
+
+{{< confkey type="list(string)" default="see below" required="no" >}}
+
+The [OAuth 2.0 Token Exchange] token types this client is permitted to present as the `subject_token`. The three
+supported token types are `urn:ietf:params:oauth:token-type:access_token`, `urn:ietf:params:oauth:token-type:refresh_token`,
+and `urn:ietf:params:oauth:token-type:id_token`. The `jwt`, `saml1`, and `saml2` subject token types defined by
+[RFC8693] are not supported.
+
+When the [grant_types](#grant_types) list for this client includes the
+`urn:ietf:params:oauth:grant-type:token-exchange` grant type and this option is not configured, it defaults to all
+three supported token types.
+
+### subject_token_issuers_supported
+
+{{< confkey type="list(string)" required="no" >}}
+
+The JWT `iss` claim values this client is permitted to present as the `subject_token`. An empty list (the default)
+disables the per-client issuer check.
+
+This option only applies to the `urn:ietf:params:oauth:token-type:id_token` subject token type. The `access_token`
+and `refresh_token` types are resolved by their signature against the tokens this provider issued and stored, so
+they have no `iss` claim to compare and this option has no effect on them. When the list is empty the `id_token`
+issuer must match this provider's own issuer.
+
+### actor_token_types_supported
+
+{{< confkey type="list(string)" required="no" >}}
+
+The [OAuth 2.0 Token Exchange] token types this client is permitted to present as the `actor_token`. The same three
+token types documented for [subject_token_types_supported](#subject_token_types_supported) apply here.
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+An empty list is **unrestricted**, not disabled. It does **not** prevent this client from presenting an
+`actor_token`.
+{{< /callout >}}
+
+Unlike [subject_token_types_supported](#subject_token_types_supported) and
+[request_token_types_supported](#request_token_types_supported), this option is not expanded to an explicit default.
+The list is only enforced when it is non-empty, so leaving it empty permits all three supported token types to be
+presented as an `actor_token`. Configure it explicitly to restrict which token types this client may present.
+
+Note that with an empty list the delegation itself is still gated by the
+[actor_token_without_may_act_allowed](#actor_token_without_may_act_allowed) option and the allow list of the client
+the subject token was issued to.
+
+### actor_token_issuers_supported
+
+{{< confkey type="list(string)" required="no" >}}
+
+The JWT `iss` claim values this client is permitted to present as the `actor_token`. An empty list (the default)
+disables the per-client issuer check.
+
+As with [subject_token_issuers_supported](#subject_token_issuers_supported), this option only applies to the
+`urn:ietf:params:oauth:token-type:id_token` actor token type; the `access_token` and `refresh_token` types are
+resolved by signature and carry no `iss` claim to compare.
+
+### actor_token_without_may_act_allowed
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option disables an [RFC8693] Section 4.4 safety check. It should only be enabled when an out-of-band
+mechanism authorizes the actor to act on behalf of the subject.
+{{< /callout >}}
+
+When enabled, this client is permitted to perform delegation with an `actor_token` against subject tokens that do
+not include a `may_act` claim naming the actor. By default the `may_act` claim is required, and its presence and
+content on the subject token is what authorizes a specific actor to act on behalf of the subject.
+
+Authelia does not currently issue the `may_act` claim on any token it mints. No token this provider issues can
+therefore satisfy the default check, and **enabling this option is consequently required for any delegation flow**
+using an `actor_token`. Without it every exchange presenting an `actor_token` is rejected with `invalid_grant`.
+
+This means delegation currently rests entirely on:
+
+1. The [subject_token_clients_supported](#subject_token_clients_supported) allow list of the client the subject
+   token was issued to, which authorizes the exchange at the client level only.
+2. Any out-of-band authorization the operator arranges themselves.
+
+Neither of those establishes that a _specific_ actor is permitted to act on behalf of a _specific_ subject, which
+is precisely what the `may_act` claim exists to express. Enable this option only when you have independently
+established that authorization; any client permitted to exchange a subject token can otherwise present itself as
+the actor for every subject whose token it can obtain.
+
+### request_token_types_supported
+
+{{< confkey type="list(string)" default="see below" required="no" >}}
+
+The [OAuth 2.0 Token Exchange] token types this client is permitted to name in `requested_token_type`. The same
+three token types documented for [subject_token_types_supported](#subject_token_types_supported) apply here.
+
+When the [grant_types](#grant_types) list for this client includes the
+`urn:ietf:params:oauth:grant-type:token-exchange` grant type and this option is not configured, it defaults to all
+three supported token types.
+
+### subject_token_clients_supported
+
+{{< confkey type="list" required="no" >}}
+
+The registered clients permitted to perform an [OAuth 2.0 Token Exchange] using tokens that were issued to this
+client as the `subject_token`. Each entry is either a bare client identifier string, or a mapping with a required
+`client_id` and an optional `requested_token_types` list which restricts the token types that client may request via
+`requested_token_type` when exchanging tokens issued to this client. An empty (or omitted) `requested_token_types`
+permits any token type the requesting client is itself permitted to request.
+
+A client may reference its own client identifier in this list; exchanging a client's tokens for itself is a
+legitimate arrangement. Each client may only be referenced once in this list.
+
+The [grant_types](#grant_types) requirement applies to both sides of the exchange: the client whose tokens are being
+exchanged (`api` below) and every client referenced in this option (`app-b` and `app-c` below) must each have the
+`urn:ietf:params:oauth:grant-type:token-exchange` grant type configured. Both requirements are enforced at
+configuration load, so a misconfiguration prevents Authelia from starting rather than failing at the token endpoint.
+
+A client configured with the `urn:ietf:params:oauth:grant-type:token-exchange` grant type must also be of the
+confidential client type, i.e. it must not have [public](#public) enabled. [RFC8693] requires the client to
+authenticate at the token endpoint, so a public client is rejected at configuration load.
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'api'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+        subject_token_clients_supported:
+          - 'app-b'
+          - client_id: 'app-c'
+            requested_token_types:
+              - 'urn:ietf:params:oauth:token-type:access_token'
+      - client_id: 'app-b'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+      - client_id: 'app-c'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+```
+
+In the above example, `app-b` may exchange tokens issued to the `api` client for any token type it's otherwise
+permitted to request, and `app-c` may exchange tokens issued to the `api` client but only for an access token.
+
 ### response_types
 
 {{< confkey type="list(string)" default="code" required="no" >}}
@@ -1370,3 +1511,5 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [jwks]: provider.md#jwks
 [JSON Web Key]: provider.md#jwks
+[OAuth 2.0 Token Exchange]: https://oauth.net/2/token-exchange/
+[RFC8693]: https://datatracker.ietf.org/doc/html/rfc8693

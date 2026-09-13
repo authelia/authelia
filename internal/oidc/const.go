@@ -58,6 +58,7 @@ const (
 	ClaimScopeNonStandard                    = "scp"
 	ClaimExtra                               = "ext"
 	ClaimSubject                             = "sub"
+	ClaimActor                               = "act"
 	ClaimFullName                            = "name"
 	ClaimGivenName                           = "given_name"
 	ClaimFamilyName                          = "family_name"
@@ -133,6 +134,15 @@ const (
 	GrantTypeAuthorizationCode = "authorization_code"
 	GrantTypeClientCredentials = "client_credentials"
 	GrantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code"
+	GrantTypeTokenExchange     = "urn:ietf:params:oauth:grant-type:token-exchange" //nolint:gosec
+)
+
+// RFC8693 Token Type URN strings.
+const (
+	TokenTypeAccessToken  = "urn:ietf:params:oauth:token-type:access_token"  //nolint:gosec // This is a token type identifier, not a credential.
+	TokenTypeRefreshToken = "urn:ietf:params:oauth:token-type:refresh_token" //nolint:gosec // This is a token type identifier, not a credential.
+	TokenTypeIDToken      = "urn:ietf:params:oauth:token-type:id_token"      //nolint:gosec // This is a token type identifier, not a credential.
+	TokenTypeJWT          = "urn:ietf:params:oauth:token-type:jwt"           //nolint:gosec // This is a token type identifier, not a credential.
 )
 
 // Client Auth Method strings.

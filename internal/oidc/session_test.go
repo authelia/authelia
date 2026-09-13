@@ -599,3 +599,75 @@ func TestSession_GetStorageSubject(t *testing.T) {
 		})
 	}
 }
+
+func TestSessionSetClaimActorNilExtraMap(t *testing.T) {
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	require.Nil(t, session.Extra)
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	require.NotPanics(t, func() {
+		session.SetClaimActor(act)
+	})
+
+	assert.Equal(t, act, session.Extra[oidc.ClaimActor])
+}
+
+func TestSessionSetClaimActorPropagatesToJWTClaims(t *testing.T) {
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	session.SetClaimActor(act)
+
+	require.NotNil(t, session.Claims)
+	require.NotNil(t, session.Claims.Extra)
+	assert.Equal(t, act, session.Claims.Extra[oidc.ClaimActor])
+}
+
+func TestSessionSetClaimActorNilDefaultSession(t *testing.T) {
+	session := &oidc.Session{}
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	require.NotPanics(t, func() {
+		session.SetClaimActor(act)
+	})
+
+	assert.Equal(t, act, session.Extra[oidc.ClaimActor])
+}
+
+func TestSessionAccessTokenClaimsMapIncludesActor(t *testing.T) {
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	session.SetClaimActor(act)
+
+	claims := session.AccessTokenClaimsMap()
+
+	require.NotNil(t, claims)
+	assert.Equal(t, act, claims[oidc.ClaimActor])
+}
+
+func TestSessionSetClaimActorMergesWithoutClobberingExistingClaims(t *testing.T) {
+	session := &oidc.Session{
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Extra: map[string]any{"unrelated": "claims-value"},
+			},
+		},
+		Extra: map[string]any{"unrelated": "extra-value"},
+	}
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	session.SetClaimActor(act)
+
+	assert.Equal(t, "extra-value", session.Extra["unrelated"])
+	assert.Equal(t, act, session.Extra[oidc.ClaimActor])
+
+	assert.Equal(t, "claims-value", session.Claims.Extra["unrelated"])
+	assert.Equal(t, act, session.Claims.Extra[oidc.ClaimActor])
+}

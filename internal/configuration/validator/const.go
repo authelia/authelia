@@ -262,6 +262,18 @@ const (
 		"%s but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntries = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
 		"but the values %s are present"
+	errFmtOIDCClientTokenExchangeWithoutGrantType = errFmtOIDCClientOption + "'%s' can only be configured when the " +
+		"'grant_types' option contains '" + oidc.GrantTypeTokenExchange + "'"
+	errFmtOIDCClientTokenExchangeUnknownClient = errFmtOIDCClientOption + "'%s' must only reference registered " +
+		"clients but the client '%s' does not exist"
+	errFmtOIDCClientTokenExchangeDuplicateClient = errFmtOIDCClientOption + "'%s' must only reference each client " +
+		"once but the client '%s' is referenced multiple times"
+	errFmtOIDCClientTokenExchangeClientWithoutGrantType = errFmtOIDCClientOption + "'%s' must only reference clients " +
+		"which have the '" + oidc.GrantTypeTokenExchange + "' value in their 'grant_types' option but the client " +
+		"'%s' does not"
+	errFmtOIDCClientTokenExchangeMayActWithAllActorTokens = errFmtOIDCClientOption + "'%s' is enabled while the '%s' " +
+		"option is empty which permits every supported token type to be presented as an 'actor_token' with the " +
+		"RFC8693 Section 4.4 'may_act' check disabled, which is the most permissive delegation configuration available"
 	errFmtOIDCClientUnknownScopeEntries = errFmtOIDCClientOption + "'%s' only expects the values " +
 		"%s but the unknown values %s are present and should generally only be used if a particular client requires a scope outside of our standard scopes"
 	errFmtOIDCClientInvalidEntriesScope = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
@@ -566,37 +578,44 @@ var (
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 const (
-	attrOIDCKey                         = "key"
-	attrOIDCKeyID                       = "key_id"
-	attrOIDCKeyUse                      = "use"
-	attrOIDCAlgorithm                   = "algorithm"
-	attrOIDCScopes                      = "scopes"
-	attrOIDCResponseTypes               = "response_types"
-	attrOIDCResponseModes               = "response_modes"
-	attrOIDCGrantTypes                  = "grant_types"
-	attrOIDCRedirectURIs                = "redirect_uris"
-	attrOIDCRequestURIs                 = "request_uris"
-	attrOIDCRequestObjectSigningAlg     = "request_object_signing_alg"
-	attrOIDCTokenAuthMethod             = "token_endpoint_auth_method"
-	attrOIDCTokenAuthSigningAlg         = "token_endpoint_auth_signing_alg"
-	attrOIDCRevocationAuthMethod        = "revocation_endpoint_auth_method"
-	attrOIDCRevocationAuthSigningAlg    = "revocation_endpoint_auth_signing_alg"
-	attrOIDCIntrospectionAuthMethod     = "introspection_endpoint_auth_method"
-	attrOIDCIntrospectionAuthSigningAlg = "introspection_endpoint_auth_signing_alg"
-	attrOIDCPARAuthMethod               = "pushed_authorization_request_endpoint_auth_method"
-	attrOIDCPARAuthSigningAlg           = "pushed_authorization_request_endpoint_auth_signing_alg"
-	attrOIDCDiscoSigAlg                 = "discovery_signed_response_alg"
-	attrOIDCDiscoSigKID                 = "discovery_signed_response_key_id"
-	attrOIDCAuthorizationPrefix         = "authorization"
-	attrOIDCIDTokenPrefix               = "id_token"
-	attrOIDCAccessTokenPrefix           = "access_token"
-	attrOIDCUserinfoPrefix              = "userinfo"
-	attrOIDCIntrospectionPrefix         = "introspection"
-	attrOIDCPKCEChallengeMethod         = "pkce_challenge_method"
-	attrOIDCRequestedAudienceMode       = "requested_audience_mode"
-	attrSessionAutheliaURL              = "authelia_url"
-	attrSessionDomain                   = "domain"
-	attrDefaultRedirectionURL           = "default_redirection_url"
+	attrOIDCKey                            = "key"
+	attrOIDCKeyID                          = "key_id"
+	attrOIDCKeyUse                         = "use"
+	attrOIDCAlgorithm                      = "algorithm"
+	attrOIDCScopes                         = "scopes"
+	attrOIDCResponseTypes                  = "response_types"
+	attrOIDCResponseModes                  = "response_modes"
+	attrOIDCGrantTypes                     = "grant_types"
+	attrOIDCRedirectURIs                   = "redirect_uris"
+	attrOIDCRequestURIs                    = "request_uris"
+	attrOIDCRequestObjectSigningAlg        = "request_object_signing_alg"
+	attrOIDCTokenAuthMethod                = "token_endpoint_auth_method"
+	attrOIDCTokenAuthSigningAlg            = "token_endpoint_auth_signing_alg"
+	attrOIDCRevocationAuthMethod           = "revocation_endpoint_auth_method"
+	attrOIDCRevocationAuthSigningAlg       = "revocation_endpoint_auth_signing_alg"
+	attrOIDCIntrospectionAuthMethod        = "introspection_endpoint_auth_method"
+	attrOIDCIntrospectionAuthSigningAlg    = "introspection_endpoint_auth_signing_alg"
+	attrOIDCPARAuthMethod                  = "pushed_authorization_request_endpoint_auth_method"
+	attrOIDCPARAuthSigningAlg              = "pushed_authorization_request_endpoint_auth_signing_alg"
+	attrOIDCDiscoSigAlg                    = "discovery_signed_response_alg"
+	attrOIDCDiscoSigKID                    = "discovery_signed_response_key_id"
+	attrOIDCAuthorizationPrefix            = "authorization"
+	attrOIDCIDTokenPrefix                  = "id_token"
+	attrOIDCAccessTokenPrefix              = "access_token"
+	attrOIDCUserinfoPrefix                 = "userinfo"
+	attrOIDCIntrospectionPrefix            = "introspection"
+	attrOIDCPKCEChallengeMethod            = "pkce_challenge_method"
+	attrOIDCRequestedAudienceMode          = "requested_audience_mode"
+	attrOIDCSubjectTokenTypesSupported     = "subject_token_types_supported"
+	attrOIDCSubjectTokenIssuersSupported   = "subject_token_issuers_supported"
+	attrOIDCActorTokenTypesSupported       = "actor_token_types_supported"
+	attrOIDCActorTokenIssuersSupported     = "actor_token_issuers_supported"
+	attrOIDCRequestTokenTypesSupported     = "request_token_types_supported"
+	attrOIDCSubjectTokenClientsSupported   = "subject_token_clients_supported"
+	attrOIDCActorTokenWithoutMayActAllowed = "actor_token_without_may_act_allowed"
+	attrSessionAutheliaURL                 = "authelia_url"
+	attrSessionDomain                      = "domain"
+	attrDefaultRedirectionURL              = "default_redirection_url"
 )
 
 var (
@@ -617,7 +636,8 @@ var (
 	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
-	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}
+	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode, oidc.GrantTypeTokenExchange}
+	validOIDCClientTokenExchangeTokenTypes   = []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken}
 
 	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
