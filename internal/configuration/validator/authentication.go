@@ -56,6 +56,10 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 	if config.LDAP != nil {
 		validateLDAPAuthenticationBackend(config, validator)
 	}
+
+	if config.ExternalIdentity != nil {
+		ValidateAuthenticationBackendExternalIdentity(config.ExternalIdentity, validator)
+	}
 }
 
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {

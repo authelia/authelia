@@ -25,10 +25,14 @@ import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
+import ExternalIdentityForm from "@views/LoginPortal/FirstFactor/ExternalIdentityForm";
+import ExternalIdentityLinkNotice from "@views/LoginPortal/FirstFactor/ExternalIdentityLinkNotice";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 export interface Props {
     disabled: boolean;
+    externalIdentityLogin: boolean;
+    externalIdentityLink?: string;
     passkeyLogin: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
@@ -246,9 +250,17 @@ const FirstFactorForm = function (props: Props) {
     );
 
     return (
-        <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
+        <LoginLayout
+            id="first-factor-stage"
+            title={props.externalIdentityLink ? translate("Sign in to link your account") : translate("Sign in")}
+        >
             <form id={"form-login"} onSubmit={(e) => e.preventDefault()}>
                 <div className="grid grid-cols-1 gap-5">
+                    {props.externalIdentityLink ? (
+                        <div className="w-full">
+                            <ExternalIdentityLinkNotice provider={props.externalIdentityLink} />
+                        </div>
+                    ) : null}
                     <div className="w-full">
                         <FloatingInput
                             ref={usernameRef}
@@ -347,6 +359,9 @@ const FirstFactorForm = function (props: Props) {
                                 props.onAuthenticationSuccess(url);
                             }}
                         />
+                    ) : null}
+                    {props.externalIdentityLogin && !props.externalIdentityLink ? (
+                        <ExternalIdentityForm disabled={disabled || loading} rememberMe={props.rememberMe} />
                     ) : null}
                     {props.resetPassword ? (
                         <div className="-my-2 flex w-full flex-row justify-end">

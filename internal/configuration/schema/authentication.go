@@ -20,6 +20,8 @@ type AuthenticationBackend struct {
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" yaml:"file,omitempty" toml:"file,omitempty" json:"file,omitempty" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" yaml:"ldap,omitempty" toml:"ldap,omitempty" json:"ldap,omitempty" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
+
+	ExternalIdentity *AuthenticationBackendExternalIdentity `koanf:"external_identity" yaml:"external_identity,omitempty" toml:"external_identity,omitempty" json:"external_identity,omitempty" jsonschema:"title=External Identity" jsonschema_description:"The external identity configuration."`
 }
 
 // AuthenticationBackendPasswordChange represents the configuration related to password reset functionality.

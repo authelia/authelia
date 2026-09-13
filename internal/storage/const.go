@@ -9,19 +9,20 @@ import (
 )
 
 const (
-	tableAuthenticationLogs   = "authentication_logs"
-	tableBannedUser           = "banned_user"
-	tableBannedIP             = "banned_ip"
-	tableCachedData           = "cached_data"
-	tableDuoDevices           = "duo_devices"
-	tableIdentityVerification = "identity_verification"
-	tableOneTimeCode          = "one_time_code"
-	tableTOTPConfigurations   = "totp_configurations"
-	tableTOTPHistory          = "totp_history"
-	tableUserOpaqueIdentifier = "user_opaque_identifier"
-	tableUserPreferences      = "user_preferences"
-	tableWebAuthnCredentials  = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
-	tableWebAuthnUsers        = "webauthn_users"
+	tableAuthenticationLogs        = "authentication_logs"
+	tableBannedUser                = "banned_user"
+	tableBannedIP                  = "banned_ip"
+	tableCachedData                = "cached_data"
+	tableDuoDevices                = "duo_devices"
+	tableIdentityVerification      = "identity_verification"
+	tableOneTimeCode               = "one_time_code"
+	tableTOTPConfigurations        = "totp_configurations"
+	tableTOTPHistory               = "totp_history"
+	tableUserOpaqueIdentifier      = "user_opaque_identifier"
+	tableUserExternalIdentityLinks = "user_external_identity_links"
+	tableUserPreferences           = "user_preferences"
+	tableWebAuthnCredentials       = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
+	tableWebAuthnUsers             = "webauthn_users"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
@@ -114,8 +115,9 @@ const (
 )
 
 const (
-	hmacNameOneTimeCode     = "otc"
-	hmacNameOneTimePassword = "otp"
+	hmacNameOneTimeCode          = "otc"
+	hmacNameOneTimePassword      = "otp"
+	hmacNameExternalIdentityLink = "external_identity_link"
 )
 
 const (

@@ -815,6 +815,16 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_ENABLE_PPROF"
   },
   {
+    "path": "server.endpoints.rate_limits.external_identity_callback.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_EXTERNAL_IDENTITY_CALLBACK_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.external_identity_start.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_EXTERNAL_IDENTITY_START_ENABLE"
+  },
+  {
     "path": "server.endpoints.rate_limits.openid_connect_introspection.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_INTROSPECTION_ENABLE"

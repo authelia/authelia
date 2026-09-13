@@ -119,6 +119,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectBannedIPLastTime = provider.db.Rebind(provider.sqlSelectBannedIPLastTime)
 	provider.sqlRevokeBannedIP = provider.db.Rebind(provider.sqlRevokeBannedIP)
 
+	provider.sqlInsertExternalIdentityLink = provider.db.Rebind(provider.sqlInsertExternalIdentityLink)
+	provider.sqlSelectExternalIdentityLinkBySubject = provider.db.Rebind(provider.sqlSelectExternalIdentityLinkBySubject)
+	provider.sqlSelectExternalIdentityLinksByUsername = provider.db.Rebind(provider.sqlSelectExternalIdentityLinksByUsername)
+	provider.sqlSelectExternalIdentityLinkByID = provider.db.Rebind(provider.sqlSelectExternalIdentityLinkByID)
+	provider.sqlUpdateExternalIdentityLinkSignIn = provider.db.Rebind(provider.sqlUpdateExternalIdentityLinkSignIn)
+	provider.sqlDeleteExternalIdentityLinkByUsernameAndID = provider.db.Rebind(provider.sqlDeleteExternalIdentityLinkByUsernameAndID)
+
 	provider.sqlSelectCachedData = provider.db.Rebind(provider.sqlSelectCachedData)
 	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)
 

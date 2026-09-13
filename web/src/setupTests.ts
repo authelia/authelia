@@ -50,4 +50,5 @@ document.body.dataset.resetpasswordcustomurl = "";
 document.body.dataset.privacypolicyurl = "";
 document.body.dataset.privacypolicyaccept = "false";
 document.body.dataset.passkeylogin = "true";
+document.body.dataset.externalidentitylogin = "false";
 document.body.dataset.theme = "light";

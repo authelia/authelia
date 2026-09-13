@@ -5,6 +5,7 @@
 import {
     getDuoSelfEnrollment,
     getEmbeddedVariable,
+    getExternalIdentityLogin,
     getLogoOverride,
     getPasskeyLogin,
     getPrivacyPolicyEnabled,
@@ -64,6 +65,16 @@ it("returns true when reset password is enabled", () => {
 it("returns true when passkey login is enabled", () => {
     document.body.dataset.passkeylogin = "true";
     expect(getPasskeyLogin()).toBe(true);
+});
+
+it("returns true when openid connect login is enabled", () => {
+    document.body.dataset.externalidentitylogin = "true";
+    expect(getExternalIdentityLogin()).toBe(true);
+});
+
+it("returns false when openid connect login is not true", () => {
+    document.body.dataset.externalidentitylogin = "false";
+    expect(getExternalIdentityLogin()).toBe(false);
 });
 
 it("returns the reset password custom URL", () => {

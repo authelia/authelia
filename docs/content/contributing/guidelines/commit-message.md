@@ -56,10 +56,10 @@ for, and the structure it must have.
   │       │
   │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|clock|
   │                          cmd|codecov|commands|configuration|deps|docker|duo|expression|go|
-  │                          golangci-lint|handlers|lefthook|logging|metrics|middlewares|mocks|
-  │                          model|notification|npm|ntp|oidc|random|regulation|renovate|reviewdog|
-  │                          server|service|session|storage|suites|templates|totp|utils|web|
-  │                          webauthn
+  │                          golangci-lint|handlers|identity|lefthook|logging|metrics|middlewares|
+  │                          mocks|model|notification|npm|ntp|oidc|random|regulation|renovate|
+  │                          reviewdog|server|service|session|storage|suites|templates|totp|utils|
+  │                          web|webauthn
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test
 ```
@@ -94,6 +94,7 @@ commit messages).
 - duo
 - expression
 - handlers
+- identity
 - logging
 - metrics
 - middlewares
