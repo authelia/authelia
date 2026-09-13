@@ -140,16 +140,23 @@ it("validates a comma separated multi email attribute", async () => {
 
     expect(screen.getByLabelText(/Email \(comma-separated\)/)).toBeInTheDocument();
 
-    fireEvent.change(byId("t-mail"), { target: { value: "a@b.co, nope" } });
+    const input = byId("t-mail");
+
+    fireEvent.change(input, { target: { value: "a@b.co" } });
+    fireEvent.keyDown(input, { key: "," });
+    fireEvent.change(input, { target: { value: "nope" } });
+    fireEvent.keyDown(input, { key: "Enter" });
     await submitForm();
 
     expect(screen.getByText("One or more invalid email addresses")).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
 
-    fireEvent.change(byId("t-mail"), { target: { value: "a@b.co, c@d.co" } });
+    fireEvent.click(screen.getByLabelText("Remove nope"));
+    fireEvent.change(input, { target: { value: "c@d.co" } });
+    fireEvent.keyDown(input, { key: "Enter" });
     await submitForm();
 
-    expect(onSubmit).toHaveBeenCalledWith({ mail: "a@b.co, c@d.co" }, expect.anything());
+    expect(onSubmit).toHaveBeenCalledWith({ mail: ["a@b.co", "c@d.co"] }, expect.anything());
 });
 
 it("renders a date input for the birthdate attribute", () => {

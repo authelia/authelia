@@ -207,6 +207,12 @@
 	"Error modifying user": "Error modifying user",
 	"No changes to save": "No changes to save",
 	"Exit": "Exit",
+	"Invalid email address": "Invalid email address",
+	"Invalid phone number": "Invalid phone number",
+	"One or more invalid email addresses": "One or more invalid email addresses",
+	"Usernames must contain only alphanumeric characters, hyphens (-), underscores (_), and commas (,) with a maximum length of 100 characters.": "Usernames must contain only alphanumeric characters, hyphens (-), underscores (_), and commas (,) with a maximum length of 100 characters.",
+	"Show Password": "Show Password",
+	"Hide Password": "Hide Password",
 	"user_management": {
 		"attributes": {
 			"username": {
