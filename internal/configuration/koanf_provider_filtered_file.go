@@ -69,29 +69,6 @@ type BytesFilter interface {
 	Filter(in []byte) (out []byte, err error)
 }
 
-// ExpandEnvBytesFilter is a BytesFilter which expands environment variables.
-type ExpandEnvBytesFilter struct {
-	log *logrus.Entry
-}
-
-// Name returns the name of this filter.
-func (f *ExpandEnvBytesFilter) Name() (name string) {
-	return filterExpandEnv
-}
-
-// Filter expands the environment variables in the given content.
-func (f *ExpandEnvBytesFilter) Filter(in []byte) (out []byte, err error) {
-	out = []byte(os.Expand(string(in), templates.FuncGetEnv))
-
-	if f.log.Level >= logrus.TraceLevel {
-		f.log.
-			WithField("content", base64.RawStdEncoding.EncodeToString(out)).
-			Trace("Expanded Env File Filter completed successfully")
-	}
-
-	return out, nil
-}
-
 // TemplateBytesFilter is a BytesFilter which executes the content as a Go template.
 type TemplateBytesFilter struct {
 	t   *template.Template
@@ -133,13 +110,13 @@ func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 // NewFileFiltersDefault returns the default list of BytesFilter.
 func NewFileFiltersDefault() []BytesFilter {
 	return []BytesFilter{
-		NewExpandEnvFileFilter(),
-		NewTemplateFileFilter(),
+		NewTemplateFileFilter("", ""),
 	}
 }
 
-// NewFileFilters returns a list of BytesFilter provided they are valid.
-func NewFileFilters(names []string) (filters []BytesFilter, err error) {
+// NewFileFilters returns a list of BytesFilter provided they are valid. The left and right values are forwarded to
+// NewTemplateFileFilter when the template filter is present; empty values use the defaults ({{ and }}).
+func NewFileFilters(names []string, left, right string) (filters []BytesFilter, err error) {
 	filters = make([]BytesFilter, len(names))
 
 	filterMap := map[string]int{}
@@ -149,9 +126,9 @@ func NewFileFilters(names []string) (filters []BytesFilter, err error) {
 
 		switch name {
 		case filterTemplate:
-			filters[i] = NewTemplateFileFilter()
-		case filterExpandEnv:
-			filters[i] = NewExpandEnvFileFilter()
+			filters[i] = NewTemplateFileFilter(left, right)
+		case filterRemovedExpandEnv:
+			return nil, fmt.Errorf("filter named '%s' has been removed, the '%s' filter should be used instead", filterRemovedExpandEnv, filterTemplate)
 		default:
 			return nil, fmt.Errorf("invalid filter named '%s'", name)
 		}
@@ -166,17 +143,11 @@ func NewFileFilters(names []string) (filters []BytesFilter, err error) {
 	return filters, nil
 }
 
-// NewExpandEnvFileFilter returns a new BytesFilter which passes the bytes through [os.Expand] using special env vars.
-func NewExpandEnvFileFilter() BytesFilter {
-	return &ExpandEnvBytesFilter{
-		log: logging.Logger().WithFields(map[string]any{filterField: filterExpandEnv}),
-	}
-}
-
-// NewTemplateFileFilter returns a new BytesFilter which passes the bytes through text/template.
-func NewTemplateFileFilter() BytesFilter {
+// NewTemplateFileFilter returns a new BytesFilter which passes the bytes through text/template. An empty value for
+// left or right uses the default delimiter ({{ or }} respectively).
+func NewTemplateFileFilter(left, right string) BytesFilter {
 	return &TemplateBytesFilter{
 		log: logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
-		t:   template.New("config.template").Funcs(templates.FuncMap()),
+		t:   template.New("config.template").Delims(left, right).Funcs(templates.FuncMap()),
 	}
 }

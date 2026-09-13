@@ -2,7 +2,7 @@
 title: "authelia storage user identifiers import"
 description: "Reference for the authelia storage user identifiers import command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T18:33:16+10:00
 draft: false
 images: []
 weight: 905
@@ -49,19 +49,21 @@ authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-942
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
-      --encryption-key string                 the storage encryption key to use
-      --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
-      --mysql.database string                 the MySQL database name (default "authelia")
-      --mysql.password string                 the MySQL password
-      --mysql.username string                 the MySQL username (default "authelia")
-      --postgres.address string               the PostgreSQL server address (default "tcp://127.0.0.1:5432")
-      --postgres.database string              the PostgreSQL database name (default "authelia")
-      --postgres.password string              the PostgreSQL password
-      --postgres.schema string                the PostgreSQL schema name (default "public")
-      --postgres.username string              the PostgreSQL username (default "authelia")
-      --sqlite.path string                    the SQLite database path
+  -c, --config strings                                   configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.filters strings                           list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.template.delimiter.left string    sets the left delimiter for the 'template' filter
+      --config.filters.template.delimiter.right string   sets the right delimiter for the 'template' filter
+      --encryption-key string                            the storage encryption key to use
+      --mysql.address string                             the MySQL server address (default "tcp://127.0.0.1:3306")
+      --mysql.database string                            the MySQL database name (default "authelia")
+      --mysql.password string                            the MySQL password
+      --mysql.username string                            the MySQL username (default "authelia")
+      --postgres.address string                          the PostgreSQL server address (default "tcp://127.0.0.1:5432")
+      --postgres.database string                         the PostgreSQL database name (default "authelia")
+      --postgres.password string                         the PostgreSQL password
+      --postgres.schema string                           the PostgreSQL schema name (default "public")
+      --postgres.username string                         the PostgreSQL username (default "authelia")
+      --sqlite.path string                               the SQLite database path
 ```
 
 ### SEE ALSO

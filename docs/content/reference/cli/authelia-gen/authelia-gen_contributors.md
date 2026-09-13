@@ -2,7 +2,7 @@
 title: "authelia-gen contributors"
 description: "Reference for the authelia-gen contributors command."
 lead: ""
-date: 2026-09-09T22:15:52+10:00
+date: 2026-09-12T18:33:16+10:00
 draft: false
 images: []
 weight: 915
