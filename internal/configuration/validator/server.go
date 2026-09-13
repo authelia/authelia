@@ -123,6 +123,7 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 // ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.
 func ValidateServerEndpoints(config *schema.Configuration, validator *schema.StructValidator) {
 	validateServerEndpointsRateLimits(config, validator)
+	validateServerEndpointsHealth(config, validator)
 
 	if config.Server.Endpoints.EnableExpvars {
 		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_expvars' should not be enabled in production"))
@@ -281,10 +282,48 @@ func validateServerAssetsIterate(keyRoot, path string, translations map[string]a
 	}
 }
 
+func validateServerEndpointsHealth(config *schema.Configuration, validator *schema.StructValidator) {
+	health := &config.Server.Endpoints.Health
+
+	if len(health.Providers) == 0 {
+		health.Providers = make([]string, len(schema.DefaultServerConfiguration.Endpoints.Health.Providers))
+
+		copy(health.Providers, schema.DefaultServerConfiguration.Endpoints.Health.Providers)
+	} else {
+		seen := make(map[string]bool, len(health.Providers))
+
+		for _, provider := range health.Providers {
+			if !utils.IsStringInSlice(provider, schema.ProviderNames) {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsHealthProviderUnknown, utils.StringJoinOr(schema.ProviderNames), provider))
+
+				continue
+			}
+
+			if seen[provider] {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsHealthProviderDuplicate, provider))
+			}
+
+			seen[provider] = true
+		}
+	}
+
+	switch {
+	case health.Cache < 0:
+		validator.Push(fmt.Errorf(errFmtServerEndpointsHealthCacheNegative, health.Cache))
+	case health.Cache == 0:
+		health.Cache = schema.DefaultServerConfiguration.Endpoints.Health.Cache
+	}
+
+	if health.Detailed && !health.Verbose {
+		validator.PushWarning(errors.New(errFmtServerEndpointsHealthDetailedNotVerbose))
+	}
+}
+
 func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
 	validateServerEndpointsRateLimitDefault("openid_connect_pushed_authorization_request", &config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, validator)
 	validateServerEndpointsRateLimitDefault("openid_connect_token", &config.Server.Endpoints.RateLimits.OpenIDConnectToken, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectToken, validator)
 
+	validateServerEndpointsRateLimitDefault("health", &config.Server.Endpoints.RateLimits.Health, schema.DefaultServerConfiguration.Endpoints.RateLimits.Health, validator)
 	validateServerEndpointsRateLimitDefault("reset_password_start", &config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
 	validateServerEndpointsRateLimitDefault("reset_password_finish", &config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
 

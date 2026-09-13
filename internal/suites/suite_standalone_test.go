@@ -6,6 +6,7 @@ package suites
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -293,6 +294,47 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
 	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+}
+
+func (s *StandaloneSuite) TestShouldServeVerboseHealthCheck() {
+	client := NewHTTPClient()
+
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/health/verbose", LoginBaseURL), nil)
+	s.Require().NoError(err)
+
+	res, err := client.Do(req)
+	s.Require().NoError(err)
+
+	defer res.Body.Close()
+
+	s.Assert().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	body, err := io.ReadAll(res.Body)
+	s.Require().NoError(err)
+
+	health := struct {
+		Status    string `json:"status"`
+		Cached    bool   `json:"cached"`
+		Providers map[string]struct {
+			Status string `json:"status"`
+			Took   string `json:"took"`
+			Error  string `json:"error"`
+		} `json:"providers"`
+	}{}
+
+	s.Require().NoError(json.Unmarshal(body, &health))
+
+	s.Assert().Equal("ok", health.Status)
+
+	// the suite configures these three, and each must have genuinely been probed.
+	for _, name := range []string{"storage", "session", "user"} {
+		s.Require().Contains(health.Providers, name)
+		s.Assert().Equal("ok", health.Providers[name].Status)
+		s.Assert().NotEmpty(health.Providers[name].Took)
+
+		// detailed is not enabled, so no provider message may be disclosed.
+		s.Assert().Empty(health.Providers[name].Error)
+	}
 }
 
 func (s *StandaloneSuite) TestShouldRecordMetrics() {
