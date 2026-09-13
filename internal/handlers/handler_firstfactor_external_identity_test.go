@@ -32,6 +32,17 @@ func TestFirstFactorExternalIdentityProvidersGET(t *testing.T) {
 			Expected: `{"status":"OK","data":{"providers":[{"id":"example","type":"openid_connect","name":"Example"}]}}`,
 		},
 		{
+			Name: "ShouldListTheLogoURIWhenConfigured",
+			Setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Providers.ExternalIdentity = identity.NewProviders(&schema.AuthenticationBackendExternalIdentity{
+					Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+						{ID: "discord", Type: "discord", Name: "Discord", ClientID: "abc", ClientSecret: "secret", LogoURI: "https://cdn.example.com/discord.png"},
+					},
+				}, nil)
+			},
+			Expected: `{"status":"OK","data":{"providers":[{"id":"discord","type":"discord","name":"Discord","logo_uri":"https://cdn.example.com/discord.png"}]}}`,
+		},
+		{
 			Name:     "ShouldReturnEmptyListWhenNotConfigured",
 			Setup:    nil,
 			Expected: `{"status":"OK","data":{"providers":[]}}`,

@@ -3,5 +3,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Package identity implements signing in to Authelia with external identity providers, such as OpenID Connect
-// 1.0 Providers.
+// 1.0 Providers and Discord.
 package identity
