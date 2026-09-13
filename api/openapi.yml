@@ -4120,6 +4120,13 @@ components:
           type: boolean
           examples:
             - false
+        require_signed_request_object:
+          description: >
+            Indicates where authorization request needs to be protected as Request Object and provided through either
+            request or request_uri parameter. If omitted, the default value is "false".
+          type: boolean
+          examples:
+            - false
         response_modes_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
@@ -4719,6 +4726,13 @@ components:
           description: >
             Boolean parameter indicating whether the authorization server accepts authorization request data only via
             PAR. If omitted, the default value is "false".
+          type: boolean
+          examples:
+            - false
+        require_signed_request_object:
+          description: >
+            Indicates where authorization request needs to be protected as Request Object and provided through either
+            request or request_uri parameter. If omitted, the default value is "false".
           type: boolean
           examples:
             - false

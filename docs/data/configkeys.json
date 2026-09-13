@@ -515,6 +515,11 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_REQUIRE_PUSHED_AUTHORIZATION_REQUESTS"
   },
   {
+    "path": "identity_providers.oidc.require_signed_request_object",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_REQUIRE_SIGNED_REQUEST_OBJECT"
+  },
+  {
     "path": "identity_validation.elevated_session.characters",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CHARACTERS"

@@ -68,6 +68,7 @@ type RegisteredClient struct {
 	Public               bool
 
 	RequirePushedAuthorizationRequests bool
+	RequireSignedRequestObject         bool
 
 	RequirePKCE                bool
 	RequirePKCEChallengeMethod bool
