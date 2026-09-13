@@ -72,9 +72,11 @@ const defaultProps = {
     onMethodChanged: vi.fn(),
     userInfo: {
         display_name: "John",
+        groups: [],
         has_duo: false,
         has_totp: true,
         has_webauthn: true,
+        username: "John",
     },
 } as any;
 

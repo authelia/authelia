@@ -19,7 +19,7 @@ vi.mock("@contexts/NotificationsContext", () => ({
 
 vi.mock("@hooks/UserInfo", () => ({
     useUserInfoGET: () => [
-        { display_name: "John Doe", emails: ["john@example.com"], groups: [] },
+        { display_name: "John Doe", emails: ["john@example.com"], groups: [], username: "johndoe" },
         vi.fn(),
         false,
         null,
