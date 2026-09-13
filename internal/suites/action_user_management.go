@@ -84,7 +84,7 @@ func (rs *RodSession) doScrollTableRight(t *testing.T, page *rod.Page, tableID s
 	_, err := page.Eval(`(id) => {
 		const root = document.getElementById(id);
 		if (!root) return;
-		const scroller = root.querySelector('.MuiDataGrid-virtualScroller') || root.querySelector('[data-slot="table-container"]') || root;
+		const scroller = root.querySelector('[data-slot="table-container"]') || root;
 		scroller.scrollLeft = scroller.scrollWidth;
 	}`, tableID)
 
@@ -184,6 +184,21 @@ func (rs *RodSession) doUserManagementSetPassword(t *testing.T, page *rod.Page, 
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "set-password-submit").Click("left", 1))
 
 	rs.verifyNotificationDisplayed(t, page, "Password updated successfully")
+}
+
+// doUserManagementSendPasswordResetEmail triggers a password reset email for a user through the row menu and
+// verify action confirmation dialog.
+func (rs *RodSession) doUserManagementSendPasswordResetEmail(t *testing.T, page *rod.Page, username string) {
+	rs.doScrollTableRight(t, page, userManagementTableID)
+
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, fmt.Sprintf("user-row-%s-more", username)).Click("left", 1))
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "user-menu-reset-email").Click("left", 1))
+
+	rs.WaitElementLocatedByID(t, page, "verify-action-dialog")
+
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "verify-action-confirm").Click("left", 1))
+
+	rs.verifyNotificationDisplayed(t, page, "Password reset email sent successfully")
 }
 
 // doUserManagementDeleteUser deletes a user through the type-to-confirm dialog.
