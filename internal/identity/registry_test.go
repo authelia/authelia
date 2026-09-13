@@ -92,6 +92,7 @@ func TestProvidersLogoURI(t *testing.T) {
 		{"ShouldCarryTheLogoURIOfAnOpenIDConnectProvider", ProviderTypeOpenIDConnect, "https://op.example.com", "https://cdn.example.com/op.png", "https://cdn.example.com/op.png"},
 		{"ShouldCarryTheLogoURIOfADiscordProvider", ProviderTypeDiscord, "", "https://cdn.example.com/discord.png", "https://cdn.example.com/discord.png"},
 		{"ShouldCarryTheLogoURIOfAGitHubProvider", ProviderTypeGitHub, "", "https://cdn.example.com/github.png", "https://cdn.example.com/github.png"},
+		{"ShouldCarryTheLogoURIOfAPlexProvider", ProviderTypePlex, "", "data:image/svg+xml;base64,PHN2Zy8+", "data:image/svg+xml;base64,PHN2Zy8+"},
 		{"ShouldBeEmptyWhenItIsNotConfigured", ProviderTypeGitHub, "", "", ""},
 	}
 
