@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Paperless"
-description: "Trusted Header SSO Integration for Paperless"
+description: "A guide on integrating Authelia with Paperless-ngx via the Trusted Header SSO authentication method including proxy and application configuration with examples."
 summary: ""
 date: 2024-04-13T13:46:05+10:00
 draft: false

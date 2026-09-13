@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Common"
-description: "Common configuration options and notations."
+description: "Reference guide for common Authelia configuration elements including address syntax, TLS settings, duration notation, and reusable dictionary references."
 summary: "This section details common configuration elements within the Authelia configuration. This section is mainly used as a reference for other sections as necessary."
 date: 2024-03-14T06:00:14+11:00
 draft: false

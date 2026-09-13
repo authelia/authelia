@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "4.39: Release Notes"
-description: "Authelia 4.39 release notes."
+description: "Authelia 4.39 release notes covering several major roadmap additions including new features, improvements, and important changes for all administrators."
 summary: "Authelia 4.39 has been released and the following is a guide on all the massive changes."
 date: 2025-03-16T21:03:35+11:00
 draft: false

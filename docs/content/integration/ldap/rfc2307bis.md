@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "RFC2307bis"
-description: ""
+description: "A guide on integrating Authelia with RFC2307bis compliant LDAP servers as an authentication backend including configuration examples, filters, and group setup."
 summary: ""
 date: 2025-05-22T10:12:47+00:00
 draft: false

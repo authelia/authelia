@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Proxies"
-description: "An integration guide for Authelia and several supported reverse proxies"
+description: "An integration guide for Authelia and several supported reverse proxies covering required headers, configuration approaches, and deployment consideration tips."
 summary: "An introduction into integrating Authelia with a reverse proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false

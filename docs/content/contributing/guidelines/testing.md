@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Testing"
-description: "Authelia Development Testing Guidelines"
+description: "Authelia development testing guidelines covering coverage expectations, test naming conventions, and requirements for bug fix and feature contributions."
 summary: "This section covers the testing guidelines."
 date: 2024-03-14T06:00:14+11:00
 draft: false
