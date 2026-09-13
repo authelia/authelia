@@ -417,6 +417,12 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 	r.OPTIONS(oidc.EndpointPathJWKs, policyCORSPublicGET.HandleOPTIONS)
 	r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(middlewareAPI(handlers.OAuth2JSONWebKeySetGET))))
 
+	var exposedHeaders []string
+
+	if config.IdentityProviders.OIDC != nil && config.IdentityProviders.OIDC.DPoP.Enabled {
+		exposedHeaders = []string{oidc.HeaderDPoPNonce}
+	}
+
 	policyCORSAuthorization := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
 		WithAllowedOrigins(allowedOrigins...).
@@ -460,6 +466,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithAllowCredentials(true).
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
 		WithAllowedOrigins(allowedOrigins...).
+		WithExposedHeaders(exposedHeaders...).
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointToken, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
@@ -477,6 +484,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithAllowCredentials(true).
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
 		WithAllowedOrigins(allowedOrigins...).
+		WithExposedHeaders(exposedHeaders...).
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointUserinfo, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 

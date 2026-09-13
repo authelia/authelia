@@ -62,6 +62,7 @@
 		"address": "Access your address",
 		"authelia.bearer.authz": "Access protected resources logged in as you",
 		"authelia.pam": "Authenticate to a Linux system as you",
+		"bound_key": "Bind your identity to a key held by this application",
 		"email": "Access your email addresses",
 		"groups": "Access your group memberships",
 		"offline_access": "Automatically refresh these permissions without user interaction",

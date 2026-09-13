@@ -17,10 +17,12 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/oauth2"
+	"authelia.com/provider/oauth2/handler/oidckb"
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/handler/par"
 	"authelia.com/provider/oauth2/handler/pkce"
 	"authelia.com/provider/oauth2/handler/rfc8628"
+	"authelia.com/provider/oauth2/handler/rfc9449"
 	"authelia.com/provider/oauth2/i18n"
 	"authelia.com/provider/oauth2/token/jwt"
 
@@ -54,6 +56,16 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		JWTAccessToken: JWTAccessTokenConfig{
 			Enable:                       config.Discovery.JWTResponseAccessTokens,
 			EnableStatelessIntrospection: config.EnableJWTAccessTokenStatelessIntrospection,
+		},
+		DPoP: DPoPConfig{
+			Enabled:                   config.DPoP.Enabled,
+			Enforced:                  config.DPoP.Enforced,
+			KeyBinding:                config.DPoP.KeyBinding,
+			NonceEnforced:             config.DPoP.NonceEnforced,
+			NonceLifespan:             config.DPoP.NonceLifespan,
+			ProofLifespan:             config.DPoP.ProofLifespan,
+			ClockSkew:                 config.DPoP.ClockSkew,
+			SigningAlgValuesSupported: DPoPSigningAlgValuesSupported(),
 		},
 		Strategy:                        StrategyConfig{},
 		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
@@ -97,16 +109,6 @@ type Config struct {
 	DisableRefreshTokenValidation bool
 	OmitRedirectScopeParameter    bool
 
-	DPoPEnabled       bool
-	DPoPEnforce       bool
-	DPoPNonceRequired bool
-
-	DPoPAllowedJWSAlgorithms []string
-	DPoPClockSkew            time.Duration
-	DPoPNonceLifespan        time.Duration
-	DPoPProofLifespan        time.Duration
-	DPoPStrategy             oauthelia2.DPoPStrategy
-
 	EnforceClientAssertionIssuerAudience bool
 
 	BackChannelLogoutLifespan    time.Duration
@@ -118,6 +120,7 @@ type Config struct {
 	JWTSecuredAuthorizationLifespan time.Duration
 
 	JWTAccessToken JWTAccessTokenConfig
+	DPoP           DPoPConfig
 
 	Hash      HashConfig
 	Strategy  StrategyConfig
@@ -192,12 +195,26 @@ type StrategyConfig struct {
 	RevocationEndpointClientAuth    oauthelia2.EndpointClientAuthStrategy
 	IntrospectionEndpointClientAuth oauthelia2.EndpointClientAuthStrategy
 	IDTokenValidation               oauthelia2.TokenValidationStrategy
+	DPoP                            oauthelia2.DPoPStrategy
 }
 
 // JWTAccessTokenConfig represents the JWT Access Token config.
 type JWTAccessTokenConfig struct {
 	Enable                       bool
 	EnableStatelessIntrospection bool
+}
+
+// DPoPConfig holds specific oauthelia2.Configurator information for RFC9449 Demonstrating Proof of Possession.
+type DPoPConfig struct {
+	Enabled                   bool
+	Enforced                  bool
+	KeyBinding                bool
+	NonceEnforced             bool
+	SigningAlgValuesSupported []string
+
+	ClockSkew     time.Duration
+	NonceLifespan time.Duration
+	ProofLifespan time.Duration
 }
 
 // PARConfig holds specific oauthelia2.Configurator information for Pushed Authorization Requests.
@@ -253,7 +270,7 @@ type HandlersConfig struct {
 	TokenEndpointBinding oauthelia2.TokenEndpointBindingHandlers
 
 	// RFC8628DeviceAuthorizeEndpointBinding is a list of handlers which bind a sender-constrained credential to a
-	// device authorization request.
+	// device authorization response.
 	RFC8628DeviceAuthorizeEndpointBinding oauthelia2.RFC8628DeviceAuthorizeEndpointBindingHandlers
 
 	// RFC7591ClientRegistrationEndpoint is a list of handlers that are called before the RFC 7591 Dynamic Client
@@ -290,6 +307,32 @@ type StatelessJWTStrategy struct {
 func (c *Config) LoadHandlers(store *Store) {
 	validator := openid.NewOpenIDConnectRequestValidator(c.Strategy.JWT, c)
 
+	var (
+		handlerDPoPAuthorize       any = nil
+		handlerDPoPDeviceAuthorize any = nil
+		handlerDPoPToken           any = nil
+
+		handlerKeyBindingAuthorize       any = nil
+		handlerKeyBindingDeviceAuthorize any = nil
+		handlerKeyBindingUserAuthorize   any = nil
+		handlerKeyBindingToken           any = nil
+	)
+
+	if c.DPoP.Enabled {
+		c.Strategy.DPoP = rfc9449.NewDefaultStrategy(c, store)
+
+		handlerDPoPAuthorize = &rfc9449.AuthorizeHandler{Config: c}
+		handlerDPoPDeviceAuthorize = &rfc9449.DeviceAuthorizeHandler{Config: c}
+		handlerDPoPToken = &rfc9449.Handler{Config: c, Strategy: c.Strategy.DPoP}
+
+		if c.DPoP.KeyBinding {
+			handlerKeyBindingAuthorize = &oidckb.AuthorizeHandler{Config: c}
+			handlerKeyBindingDeviceAuthorize = &oidckb.DeviceAuthorizeHandler{Config: c}
+			handlerKeyBindingUserAuthorize = &oidckb.UserAuthorizeHandler{Config: c}
+			handlerKeyBindingToken = &oidckb.Handler{Config: c}
+		}
+	}
+
 	var statelessJWT any
 
 	if c.JWTAccessToken.Enable && c.JWTAccessToken.EnableStatelessIntrospection {
@@ -303,6 +346,11 @@ func (c *Config) LoadHandlers(store *Store) {
 	}
 
 	handlers := []any{
+		handlerDPoPAuthorize,
+		handlerDPoPDeviceAuthorize,
+		handlerKeyBindingAuthorize,
+		handlerKeyBindingDeviceAuthorize,
+
 		&oauth2.AuthorizeExplicitGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
@@ -335,6 +383,7 @@ func (c *Config) LoadHandlers(store *Store) {
 			Strategy: c.Strategy.Core,
 			Config:   c,
 		},
+		handlerKeyBindingUserAuthorize,
 		&rfc8628.UserAuthorizeHandler{
 			Storage:  store,
 			Strategy: c.Strategy.Core,
@@ -440,13 +489,15 @@ func (c *Config) LoadHandlers(store *Store) {
 			Config:  c,
 		},
 
-		// Response Modes Handling.
 		&oauthelia2.DefaultResponseModeHandler{
 			Config: c,
 		},
 		&oauthelia2.RFC9207ResponseModeParameterHandler{
 			Config: c,
 		},
+
+		handlerDPoPToken,
+		handlerKeyBindingToken,
 	}
 
 	x := HandlersConfig{
@@ -454,48 +505,66 @@ func (c *Config) LoadHandlers(store *Store) {
 	}
 
 	for _, handler := range handlers {
-		if handler == nil {
-			continue
-		}
-
-		if h, ok := handler.(oauthelia2.AuthorizeEndpointHandler); ok {
-			x.AuthorizeEndpoint.Append(h)
-		}
-
-		if h, ok := handler.(oauthelia2.RFC8628DeviceAuthorizeEndpointHandler); ok {
-			x.RFC8628DeviceAuthorizeEndpoint.Append(h)
-		}
-
-		if h, ok := handler.(oauthelia2.RFC8628UserAuthorizeEndpointHandler); ok {
-			x.RFC8628UserAuthorizeEndpoint.Append(h)
-		}
-
-		if h, ok := handler.(oauthelia2.TokenEndpointHandler); ok {
-			x.TokenEndpoint.Append(h)
-		}
-
-		if h, ok := handler.(oauthelia2.TokenIntrospector); ok {
-			x.TokenIntrospection.Append(h)
-		}
-
-		if h, ok := handler.(oauthelia2.RevocationHandler); ok {
-			x.Revocation.Append(h)
-		}
-
-		if h, ok := handler.(oauthelia2.PushedAuthorizeEndpointHandler); ok {
-			x.PushedAuthorizeEndpoint.Append(h)
-		}
-
-		if h, ok := handler.(oauthelia2.ResponseModeHandler); ok {
-			x.ResponseMode.Append(h)
-		}
-
-		if h, ok := handler.(oauthelia2.ResponseModeParameterHandler); ok {
-			x.ResponseModeParameter.Append(h)
-		}
+		x.Append(handler)
 	}
 
 	c.Handlers = x
+}
+
+// Append registers a handler against every endpoint list whose interface it satisfies. A handler commonly satisfies
+// several, and a nil handler is one the configuration did not enable, so it is skipped rather than registered.
+func (h *HandlersConfig) Append(handler any) {
+	if handler == nil {
+		return
+	}
+
+	if x, ok := handler.(oauthelia2.AuthorizeEndpointHandler); ok {
+		h.AuthorizeEndpoint.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.RFC8628DeviceAuthorizeEndpointHandler); ok {
+		h.RFC8628DeviceAuthorizeEndpoint.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.RFC8628UserAuthorizeEndpointHandler); ok {
+		h.RFC8628UserAuthorizeEndpoint.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.TokenEndpointHandler); ok {
+		h.TokenEndpoint.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.TokenIntrospector); ok {
+		h.TokenIntrospection.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.RevocationHandler); ok {
+		h.Revocation.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.PushedAuthorizeEndpointHandler); ok {
+		h.PushedAuthorizeEndpoint.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.ResponseModeHandler); ok {
+		h.ResponseMode.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.ResponseModeParameterHandler); ok {
+		h.ResponseModeParameter.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.AuthorizeEndpointBindingHandler); ok {
+		h.AuthorizeEndpointBinding.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.RFC8628DeviceAuthorizeEndpointBindingHandler); ok {
+		h.RFC8628DeviceAuthorizeEndpointBinding.Append(x)
+	}
+
+	if x, ok := handler.(oauthelia2.TokenEndpointBindingHandler); ok {
+		h.TokenEndpointBinding.Append(x)
+	}
 }
 
 // GetAllowedPrompts returns the allowed prompts.
@@ -1006,50 +1075,50 @@ func (c *Config) GetIntrospectionEndpointClientAuthStrategy(ctx context.Context)
 
 // GetDPoPEnabled returns the DPoP enabled flag.
 func (c *Config) GetDPoPEnabled(ctx context.Context) (enabled bool) {
-	return c.DPoPEnabled
+	return c.DPoP.Enabled
 }
 
 // GetDPoPEnforce returns the DPoP enforcement flag.
 func (c *Config) GetDPoPEnforce(ctx context.Context) (enforce bool) {
-	return c.DPoPEnforce
+	return c.DPoP.Enforced
 }
 
 // GetDPoPAllowedJWSAlgorithms returns the allowed DPoP JWS algorithms.
 func (c *Config) GetDPoPAllowedJWSAlgorithms(ctx context.Context) (algs []string) {
-	return c.DPoPAllowedJWSAlgorithms
+	return c.DPoP.SigningAlgValuesSupported
 }
 
 // GetDPoPClockSkew returns the DPoP clock skew.
 func (c *Config) GetDPoPClockSkew(ctx context.Context) (skew time.Duration) {
-	return c.DPoPClockSkew
+	return c.DPoP.ClockSkew
 }
 
 // GetDPoPNonceRequired returns the DPoP nonce required flag.
 func (c *Config) GetDPoPNonceRequired(ctx context.Context) (required bool) {
-	return c.DPoPNonceRequired
+	return c.DPoP.NonceEnforced
 }
 
 // GetDPoPNonceLifespan returns the DPoP nonce lifespan.
 func (c *Config) GetDPoPNonceLifespan(ctx context.Context) (lifespan time.Duration) {
-	return c.DPoPNonceLifespan
+	return c.DPoP.NonceLifespan
 }
 
 // GetDPoPStrategy returns the DPoP strategy.
 func (c *Config) GetDPoPStrategy(ctx context.Context) (strategy oauthelia2.DPoPStrategy) {
-	return c.DPoPStrategy
+	return c.Strategy.DPoP
+}
+
+// GetOIDCKeyBindingEnabled returns the OpenID Connect Key Binding 1.0 enabled flag. It is not ANDead with the DPoP
+// enabled flag: every provider path which consults this one consults that one beside it, as key binding carries no
+// meaning without a proof of possession to bind.
+func (c *Config) GetOIDCKeyBindingEnabled(ctx context.Context) (enabled bool) {
+	return c.DPoP.KeyBinding
 }
 
 // GetMTLSEnabled returns false as RFC 8705 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens is
 // not implemented by this Authorization Server. Returning true here would have the provider offer confirmation
 // methods and client authentication paths which nothing in this implementation can satisfy.
 func (c *Config) GetMTLSEnabled(ctx context.Context) (enabled bool) {
-	return false
-}
-
-// GetOIDCKeyBindingEnabled returns false as OpenID Connect Key Binding 1.0 is not implemented by this Authorization
-// Server. Returning true here would have the provider assert the 'cnf' confirmation in ID Tokens and enforce the
-// profile's rules, neither of which the handlers this implementation registers can satisfy.
-func (c *Config) GetOIDCKeyBindingEnabled(ctx context.Context) (enabled bool) {
 	return false
 }
 
@@ -1064,11 +1133,11 @@ func (c *Config) GetAllowedIntrospectionAudiences(ctx context.Context) (audience
 // GetDPoPProofLifespan returns the DPoP proof lifespan, which together with the clock skew fixes the window a proof
 // is accepted in.
 func (c *Config) GetDPoPProofLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.DPoPProofLifespan <= 0 {
+	if c.DPoP.ProofLifespan <= 0 {
 		return lifespanDPoPProofDefault
 	}
 
-	return c.DPoPProofLifespan
+	return c.DPoP.ProofLifespan
 }
 
 // GetMTLSEnforce returns false as RFC 8705 is not implemented by this Authorization Server.
@@ -1144,23 +1213,25 @@ func (c *Config) GetBackChannelLogoutConcurrency(ctx context.Context) (n int) {
 	return c.BackChannelLogoutConcurrency
 }
 
-// GetAuthorizeEndpointBindingHandlers returns the authorization endpoint binding handlers. None are registered as
-// this Authorization Server implements no sender-constraining binding at that endpoint.
+// GetAuthorizeEndpointBindingHandlers returns the authorization endpoint binding handlers. The RFC 9449 Section 10.1
+// 'dpop_jkt' handler is registered here while DPoP is enabled, and nothing otherwise as this Authorization Server
+// implements no other sender-constraining binding at that endpoint.
 func (c *Config) GetAuthorizeEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.AuthorizeEndpointBindingHandlers) {
 	return c.Handlers.AuthorizeEndpointBinding
 }
 
-// GetTokenEndpointBindingHandlers returns the token endpoint binding handlers. None are registered as this
-// Authorization Server implements no sender-constraining binding at that endpoint beyond DPoP, which the provider
-// wires itself.
-func (c *Config) GetTokenEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.TokenEndpointBindingHandlers) {
-	return c.Handlers.TokenEndpointBinding
-}
-
-// GetRFC8628DeviceAuthorizeEndpointBindingHandlers returns the device authorization endpoint binding handlers. None
-// are registered as this Authorization Server implements no sender-constraining binding at that endpoint.
+// GetRFC8628DeviceAuthorizeEndpointBindingHandlers returns the device authorization endpoint binding handlers. The
+// RFC 9449 Section 10.1 'dpop_jkt' handler is registered here while DPoP is enabled, binding the device code to the
+// client's proof-of-possession key, and nothing otherwise.
 func (c *Config) GetRFC8628DeviceAuthorizeEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.RFC8628DeviceAuthorizeEndpointBindingHandlers) {
 	return c.Handlers.RFC8628DeviceAuthorizeEndpointBinding
+}
+
+// GetTokenEndpointBindingHandlers returns the token endpoint binding handlers. The RFC 9449 handler is registered
+// here while DPoP is enabled, and nothing otherwise as this Authorization Server implements no other
+// sender-constraining binding at that endpoint.
+func (c *Config) GetTokenEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.TokenEndpointBindingHandlers) {
+	return c.Handlers.TokenEndpointBinding
 }
 
 // The RFC 7591 Dynamic Client Registration and RFC 7592 Dynamic Client Registration Management surfaces below are

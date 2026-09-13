@@ -183,6 +183,8 @@ const (
 	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `jwks` is required"
 	errFmtOIDCProviderEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it's configured as '%s'"
+	errFmtOIDCProviderDPoPDurationNotPositive        = "identity_providers: oidc: dpop: option '%s' must be a positive duration but it's configured as '%s'"
+	errFmtOIDCProviderDPoPOptionRequiresEnabled      = "identity_providers: oidc: dpop: option '%s' can't be enabled when option 'enabled' is disabled"
 	errFmtOIDCProviderInsecureParameterEntropy       = "identity_providers: oidc: option 'minimum_parameter_entropy' is "
 	errFmtOIDCProviderInsecureParameterEntropyUnsafe = errFmtOIDCProviderInsecureParameterEntropy +
 		"configured to an unsafe and insecure value, it should at least be %d but it's configured to %d"
@@ -238,6 +240,9 @@ const (
 		"required to be empty when option 'public' is true"
 	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = errFmtOIDCClientInvalidSecretIs +
 		"required to be empty when option '%s' is configured as '%s'"
+	errFmtOIDCClientDPoPOptionRequiresEnabled = errFmtOIDCClientOption + "'%s' can't be enabled when the 'identity_providers: oidc: dpop: enabled' option is disabled"
+	errFmtOIDCClientScopeKeyBindingDisabled   = errFmtOIDCClientOption + "'scopes' has the value 'bound_key' which is ineffective when the 'identity_providers: oidc: dpop: key_binding' option is disabled"
+
 	errFmtOIDCClientIDTooLong           = errFmtOIDCClientOption + "'id' must not be more than 100 characters but it has %d characters"
 	errFmtOIDCClientIDInvalidCharacters = errFmtOIDCClientOption + "'id' must only contain RFC3986 unreserved characters"
 
@@ -515,7 +520,7 @@ var (
 	validAuthzImplementations       = []string{schema.AuthzImplementationAuthRequest, schema.AuthzImplementationForwardAuth, schema.AuthzImplementationExtAuthz, schema.AuthzImplementationLegacy}
 	validAuthzAuthnStrategies       = []string{schema.AuthzStrategyHeaderCookieSession, schema.AuthzStrategyHeaderAuthorization, schema.AuthzStrategyHeaderProxyAuthorization, schema.AuthzStrategyHeaderAuthRequestProxyAuthorization, schema.AuthzStrategyHeaderLegacy}
 	validAuthzAuthnHeaderStrategies = []string{schema.AuthzStrategyHeaderAuthorization, schema.AuthzStrategyHeaderProxyAuthorization, schema.AuthzStrategyHeaderAuthRequestProxyAuthorization}
-	validAuthzAuthnStrategySchemes  = []string{schema.SchemeBasic, schema.SchemeBearer}
+	validAuthzAuthnStrategySchemes  = []string{schema.SchemeBasic, schema.SchemeBearer, schema.SchemeDPoP}
 )
 
 var (
@@ -610,7 +615,7 @@ var (
 	validOIDCReservedCustomizableScopes      = []string{oidc.ScopeAutheliaPAM}
 	validOIDCReservedIDTokenClaims           = []string{oidc.ClaimJWTID, oidc.ClaimAuthorizedParty, oidc.ClaimScope, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
 	validOIDCClientClaims                    = []string{oidc.ClaimFullName, oidc.ClaimGivenName, oidc.ClaimFamilyName, oidc.ClaimMiddleName, oidc.ClaimNickname, oidc.ClaimPreferredUsername, oidc.ClaimProfile, oidc.ClaimPicture, oidc.ClaimWebsite, oidc.ClaimEmail, oidc.ClaimEmailVerified, oidc.ClaimGender, oidc.ClaimBirthdate, oidc.ClaimZoneinfo, oidc.ClaimLocale, oidc.ClaimPhoneNumber, oidc.ClaimPhoneNumberVerified, oidc.ClaimAddress, oidc.ClaimGroups, oidc.ClaimEmailAlts, oidc.ClaimRequestedAt, oidc.ClaimUpdatedAt}
-	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeAddress, oidc.ScopePhone, oidc.ScopeGroups, oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
+	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeAddress, oidc.ScopePhone, oidc.ScopeGroups, oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz, oidc.ScopeBoundKey}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment, oidc.ResponseModeJWT, oidc.ResponseModeFormPostJWT, oidc.ResponseModeQueryJWT, oidc.ResponseModeFragmentJWT}
 	validOIDCClientResponseTypes             = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
