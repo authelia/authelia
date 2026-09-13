@@ -51,22 +51,25 @@ vi.mock("@utils/GeneratePassword", () => ({
     generateRandomPassword: vi.fn(() => "Gen3rated!Pass"),
 }));
 
+// The backend already prefixes extra (non-standard) attribute names with "extra." in
+// `supported_attributes` (see FileUserManagement.GetSupportedAttributes), so the fixture keys
+// below mirror that shape for every attribute that isn't a real, named schema field.
 const ldapMetadata = {
     required_attributes: ["username", "password"],
     supported_attributes: {
-        // extra (non-standard) attribute exercising the single, non-multiple email path
-        backup_email: { type: "email" },
         birthdate: { type: "date" },
-        custom_field: { type: "text" },
         display_name: { type: "text" },
-        groups: { multiple: true, type: "groups" },
+        // extra (non-standard) attribute exercising the single, non-multiple email path
+        "extra.backup_email": { type: "email" },
+        "extra.custom_field": { type: "text" },
         // extra attribute with a name distinct from "birthdate" so it exercises the generic
         // type-based date dispatch rather than the name-based special-casing "birthdate" gets
-        hire_date: { type: "date" },
+        "extra.hire_date": { type: "date" },
+        "extra.login_count": { type: "number" },
+        "extra.newsletter": { type: "checkbox" },
+        groups: { multiple: true, type: "groups" },
         last_logged_in: { type: "text" },
-        login_count: { type: "number" },
         mail: { multiple: true, type: "email" },
-        newsletter: { type: "checkbox" },
         password: { type: "password" },
         phone_number: { type: "tel" },
         username: { type: "text" },
@@ -136,14 +139,14 @@ it("renders the basic fields and hides the additional ones behind a toggle", () 
     expect(byId("new-user-groups")).toBeInTheDocument();
     expect(byId("new-user-display_name")).toBeNull();
     expect(byId("new-user-birthdate")).toBeNull();
-    expect(byId("new-user-custom_field")).toBeNull();
+    expect(byId("new-user-extra-custom_field")).toBeNull();
     expect(byId("new-user-last_logged_in")).toBeNull();
 
     fireEvent.click(screen.getByText("Show Additional Fields"));
 
     expect(byId("new-user-display_name")).toBeInTheDocument();
     expect(byId("new-user-birthdate")).toHaveAttribute("type", "date");
-    expect(byId("new-user-custom_field")).toBeInTheDocument();
+    expect(byId("new-user-extra-custom_field")).toBeInTheDocument();
     expect(byId("new-user-last_logged_in")).toBeNull();
     expect(screen.getByText("Hide Additional Fields")).toBeInTheDocument();
 
@@ -180,7 +183,7 @@ it("submits the user with extra attributes lifted into the extra object", async 
     fireEvent.change(byId("new-user-password"), { target: { value: "secret" } });
     fireEvent.click(screen.getByText("Show Additional Fields"));
     fireEvent.change(byId("new-user-display_name"), { target: { value: "Jane" } });
-    fireEvent.change(byId("new-user-custom_field"), { target: { value: "x" } });
+    fireEvent.change(byId("new-user-extra-custom_field"), { target: { value: "x" } });
 
     await act(async () => {
         fireEvent.click(submit());
@@ -213,10 +216,10 @@ it("submits the correct JS type for every additional field type", async () => {
     fireEvent.change(byId("new-user-birthdate"), { target: { value: "1990-01-01" } });
     fireEvent.change(byId("new-user-phone_number"), { target: { value: "+15551234567" } });
     fireEvent.change(byId("new-user-website"), { target: { value: "https://example.com" } });
-    fireEvent.change(byId("new-user-hire_date"), { target: { value: "2024-05-01" } });
-    fireEvent.click(byId("new-user-newsletter"));
-    fireEvent.change(byId("new-user-login_count"), { target: { value: "42" } });
-    fireEvent.change(byId("new-user-backup_email"), { target: { value: "me@example.com" } });
+    fireEvent.change(byId("new-user-extra-hire_date"), { target: { value: "2024-05-01" } });
+    fireEvent.click(byId("new-user-extra-newsletter"));
+    fireEvent.change(byId("new-user-extra-login_count"), { target: { value: "42" } });
+    fireEvent.change(byId("new-user-extra-backup_email"), { target: { value: "me@example.com" } });
 
     await act(async () => {
         fireEvent.click(submit());

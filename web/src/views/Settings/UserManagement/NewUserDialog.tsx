@@ -151,22 +151,10 @@ const NewUserDialog = ({ onClose, open }: Props) => {
 
     const onSubmit = async (data: CreateUserRequest) => {
         try {
-            const { extra: extraFieldNames } = categorizeFields();
-            const requestData: any = { ...data };
-
-            const extraData: Record<string, any> = {};
-            (Object.keys(data) as Array<keyof CreateUserRequest>).forEach((key) => {
-                if (extraFieldNames.includes(key as string)) {
-                    extraData[key as string] = data[key];
-                    delete requestData[key];
-                }
-            });
-
-            if (Object.keys(extraData).length > 0) {
-                requestData.extra = extraData;
-            }
-
-            await postNewUser(requestData);
+            // Extra attribute names from the backend already carry the "extra." prefix (e.g.
+            // "extra.test_flag"), so react-hook-form nests their values under `data.extra` on its
+            // own - no manual lifting of top-level fields into an `extra` object is needed here.
+            await postNewUser(data);
             createSuccessNotification(translate("User created successfully."));
             reset();
             onClose();

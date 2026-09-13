@@ -152,8 +152,9 @@ const EditUserDialog = ({ onClose, open, user }: Props) => {
         if (!metadata) return null;
 
         const isAddressField = addressFields.includes(fieldName);
-        const isExtraField = extra.includes(fieldName);
-        const fieldPath = isAddressField ? `address.${fieldName}` : isExtraField ? `extra.${fieldName}` : fieldName;
+        // Extra attribute names from the backend already carry the "extra." prefix (e.g. "extra.test_flag"),
+        // so they need no further prefixing here - only bare address subfields do.
+        const fieldPath = isAddressField ? `address.${fieldName}` : fieldName;
 
         return {
             description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
