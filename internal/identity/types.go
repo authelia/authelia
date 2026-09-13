@@ -166,3 +166,22 @@ type discoveryCheck struct {
 	values []string
 	value  string
 }
+
+type plexPIN struct {
+	ID        int64   `json:"id"`
+	Code      string  `json:"code"`
+	AuthToken *string `json:"authToken"`
+}
+
+type plexUser struct {
+	UUID     string `json:"uuid"`
+	Username string `json:"username"`
+	Title    string `json:"title"`
+	Email    string `json:"email"`
+}
+
+type plexDevice struct {
+	name     string
+	version  string
+	language string
+}

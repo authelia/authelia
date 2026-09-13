@@ -145,3 +145,9 @@ path = "web/src/assets/images/identity/github.svg"
 precedence = "override"
 SPDX-FileCopyrightText = "GitHub, Inc."
 SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "web/src/assets/images/identity/plex.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "Plex, Inc."
+SPDX-License-Identifier = "LicenseRef-Trademark"

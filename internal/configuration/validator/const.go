@@ -676,11 +676,12 @@ var (
 const (
 	externalIdentityTypeOpenIDConnect = "openid_connect"
 	externalIdentityTypeDiscord       = "discord"
+	externalIdentityTypePlex          = "plex"
 	externalIdentityTypeGitHub        = "github"
 )
 
 var (
-	validExternalIdentityTypes                 = []string{externalIdentityTypeOpenIDConnect, externalIdentityTypeDiscord, externalIdentityTypeGitHub}
+	validExternalIdentityTypes                 = []string{externalIdentityTypeOpenIDConnect, externalIdentityTypeDiscord, externalIdentityTypePlex, externalIdentityTypeGitHub}
 	validExternalIdentityAlgs                  = []string{"ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "RS256", "RS384", "RS512"}
 	validExternalIdentityAuthMethods           = []string{"client_secret_basic", "client_secret_post", "none"}
 	validExternalIdentityConfidentialMethods   = []string{"client_secret_basic", "client_secret_post"}

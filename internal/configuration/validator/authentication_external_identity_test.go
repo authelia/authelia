@@ -116,12 +116,13 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'id' must be unique but it's configured multiple times"},
 		},
 		{
-			Name: "ShouldAllowOneDiscordProviderAndOpenIDConnectProvidersWithDifferentIssuers",
+			Name: "ShouldAllowOneDiscordAndPlexProviderAndOpenIDConnectProvidersWithDifferentIssuers",
 			Have: &schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
 					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret"},
 					{ID: "example", Name: "Example", Issuer: "https://id.example.com", ClientID: "abc", ClientSecret: "secret"},
 					{ID: "discord", Type: "discord", Name: "Discord", ClientID: "123", ClientSecret: "secret"},
+					{ID: "plex", Type: "plex", Name: "Plex", ClientID: "authelia-client"},
 				},
 			},
 		},
@@ -134,6 +135,17 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 				},
 			},
 			Errors: []string{"authentication_backend: external_identity: providers: option 'type' must only be 'discord' for one provider but it's configured for the providers 'discord' and 'discord2'"},
+		},
+		{
+			Name: "ShouldRaiseErrorOnMultiplePlexProviders",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "plex", Type: "plex", Name: "Plex", ClientID: "a"},
+					{ID: "plex2", Type: "plex", Name: "Plex 2", ClientID: "b"},
+					{ID: "plex3", Type: "plex", Name: "Plex 3", ClientID: "c"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: option 'type' must only be 'plex' for one provider but it's configured for the providers 'plex', 'plex2', and 'plex3'"},
 		},
 		{
 			Name: "ShouldRaiseErrorOnMultipleGitHubProviders",
@@ -558,7 +570,7 @@ func TestValidateAuthenticationBackendExternalIdentityDiscord(t *testing.T) {
 		{
 			Name:   "ShouldRaiseErrorOnUnknownType",
 			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "twitch", Type: "twitch", Name: "Twitch", ClientID: "123", ClientSecret: "secret"},
-			Errors: []string{"authentication_backend: external_identity: providers: provider 'twitch': option 'type' must be one of 'openid_connect', 'discord', or 'github' but it's configured as 'twitch'"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'twitch': option 'type' must be one of 'openid_connect', 'discord', 'plex', or 'github' but it's configured as 'twitch'"},
 		},
 	}
 
@@ -642,6 +654,102 @@ func TestValidateAuthenticationBackendExternalIdentityGitHub(t *testing.T) {
 			Name:   "ShouldRaiseErrorOnMissingSecret",
 			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "github", Type: "github", Name: "GitHub", ClientID: "Iv1.abc"},
 			Errors: []string{"authentication_backend: external_identity: providers: provider 'github': option 'client_secret' is required when the 'token_endpoint_auth_method' is 'client_secret_basic' but it's not configured"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			config := &schema.AuthenticationBackendExternalIdentity{Providers: []schema.AuthenticationBackendExternalIdentityProvider{tc.Have}}
+			val := schema.NewStructValidator()
+
+			ValidateAuthenticationBackendExternalIdentity(config, val)
+
+			errs := make([]string, 0, len(val.Errors()))
+
+			for _, err := range val.Errors() {
+				errs = append(errs, err.Error())
+			}
+
+			if len(tc.Errors) == 0 {
+				assert.Empty(t, errs)
+			} else {
+				assert.Equal(t, tc.Errors, errs)
+			}
+
+			if tc.Expected != nil {
+				assert.Equal(t, *tc.Expected, config.Providers[0])
+			}
+		})
+	}
+}
+
+func TestValidateAuthenticationBackendExternalIdentityPlex(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     schema.AuthenticationBackendExternalIdentityProvider
+		Expected *schema.AuthenticationBackendExternalIdentityProvider
+		Errors   []string
+	}{
+		{
+			Name: "ShouldApplyDefaults",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{ID: "plex", Type: "plex", Name: "Plex", ClientID: "authelia-client"},
+			Expected: &schema.AuthenticationBackendExternalIdentityProvider{
+				ID: "plex", Type: "plex", Name: "Plex", ClientID: "authelia-client",
+				ResponseMode: "query",
+			},
+		},
+		{
+			Name: "ShouldAllowDefaultAuthenticationMethodsReference",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{ID: "plex", Type: "plex", Name: "Plex", ClientID: "authelia-client", AuthenticationMethodsReference: schema.AuthenticationBackendExternalIdentityProviderAMR{Default: []string{"pwd"}}},
+		},
+		{
+			Name: "ShouldRaiseErrorOnUnsupportedOptions",
+			Have: schema.AuthenticationBackendExternalIdentityProvider{
+				ID: "plex", Type: "plex", Name: "Plex", ClientID: "authelia-client",
+				ClientSecret:                   "secret",
+				Scopes:                         []string{"openid"},
+				TokenEndpointAuthMethod:        "client_secret_basic",
+				PKCE:                           schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+				Issuer:                         "https://plex.tv",
+				IDTokenSignedResponseAlg:       "RS256",
+				AuthenticationMethodsReference: schema.AuthenticationBackendExternalIdentityProviderAMR{Trust: true, Default: []string{"pwd"}, Override: true},
+				Discovery:                      schema.AuthenticationBackendExternalIdentityProviderDiscovery{Disable: true},
+				Endpoints:                      schema.AuthenticationBackendExternalIdentityProviderEndpoints{Token: "https://plex.tv/api/v2/pins"}, //nolint:gosec // Test URL.
+				JSONWebKeys:                    []schema.JWK{{KeyID: "kid1"}},
+			},
+			Errors: []string{
+				"authentication_backend: external_identity: providers: provider 'plex': option 'client_secret' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'scopes' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'token_endpoint_auth_method' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'pkce.challenge_method' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'issuer' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'id_token_signed_response_alg' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'authentication_methods_reference.trust' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'authentication_methods_reference.override' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'discovery.disable' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'endpoints' is not supported by the 'plex' provider type but it's configured",
+				"authentication_backend: external_identity: providers: provider 'plex': option 'jwks' is not supported by the 'plex' provider type but it's configured",
+			},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnSharedRedirectURI",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "plex", Type: "plex", Name: "Plex", ClientID: "authelia-client", SharedRedirectURI: true},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'plex': option 'shared_redirect_uri' is not supported by the 'plex' provider type but it's configured"},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnFormPostResponseMode",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "plex", Type: "plex", Name: "Plex", ClientID: "authelia-client", ResponseMode: "form_post"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'plex': option 'response_mode' must be one of 'query' but it's configured as 'form_post'"},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnMissingClientID",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "plex", Type: "plex", Name: "Plex"},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'plex': option 'client_id' is required but it's not configured"},
+		},
+		{
+			Name:   "ShouldRaiseErrorOnEmptyDefaultAuthenticationMethodsReference",
+			Have:   schema.AuthenticationBackendExternalIdentityProvider{ID: "plex", Type: "plex", Name: "Plex", ClientID: "authelia-client", AuthenticationMethodsReference: schema.AuthenticationBackendExternalIdentityProviderAMR{Default: []string{""}}},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'plex': authentication_methods_reference: option 'default' must not contain empty values"},
 		},
 	}
 

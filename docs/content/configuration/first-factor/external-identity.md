@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "External Identity"
-description: "Configuring external identity providers such as OpenID Connect 1.0 Providers, Discord, and GitHub as a first factor authentication method."
+description: "Configuring external identity providers such as OpenID Connect 1.0 Providers, Discord, GitHub, and Plex as a first factor authentication method."
 summary: "Authelia supports signing users in with an external identity provider. This section describes configuring this."
 date: 2026-09-04T09:00:00+10:00
 draft: false
@@ -30,6 +30,8 @@ Authelia can sign users in with an external identity provider. The following typ
   [OpenID Connect 1.0] Provider.
 - `github`: [GitHub](https://docs.github.com/en/apps/oauth-apps), which is an OAuth 2.0 provider rather than an
   [OpenID Connect 1.0] Provider.
+- `plex`: [Plex](https://www.plex.tv), which signs users in with their Plex account using the PIN flow Plex apps use
+  rather than OAuth 2.0 or [OpenID Connect 1.0].
 
 Step-by-step guides for specific providers are available in the
 [External Identity integration](../../integration/external-identity/introduction.md) documentation.
@@ -107,6 +109,12 @@ authentication_backend:
         token_endpoint_auth_method: 'client_secret_basic'
         authentication_methods_reference:
           default: []
+      - id: 'plex'
+        type: 'plex'
+        name: 'Plex'
+        client_id: '71f3a2c8-5d4b-4e6a-9c0f-3b8e2d1a7f64'
+        authentication_methods_reference:
+          default: []
 ```
 
 ## Options
@@ -139,9 +147,9 @@ the external provider.
 
 {{< confkey type="string" default="openid_connect" required="no" >}}
 
-The type of the external provider. Must be one of `openid_connect`, `discord`, or `github`. At most one `discord` and
-one `github` provider may be configured, and every `openid_connect` provider must have a different [issuer](#issuer),
-as links are anchored to the issuer.
+The type of the external provider. Must be one of `openid_connect`, `discord`, `github`, or `plex`. At most one
+`discord`, one `github`, and one `plex` provider may be configured, and every `openid_connect` provider must have a
+different [issuer](#issuer), as links are anchored to the issuer.
 
 ### name
 
@@ -158,8 +166,8 @@ The logo displayed on the sign in button of this provider, which follows the `lo
 either be an `https` URI, or a `data` URI which declares an image media type.
 
 When it's not configured the button shows the logo bundled for the [type](#type) of the provider: the logo of the
-service for the `discord` and `github` types, and the OpenID logo for the `openid_connect` type. The bundled logo is
-also shown when the configured logo fails to load.
+service for the `discord`, `github`, and `plex` types, and the OpenID logo for the `openid_connect` type. The bundled
+logo is also shown when the configured logo fails to load.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 The logo is loaded by the browser of the user before they sign in. An `https` URI hosted by a third party therefore
@@ -173,12 +181,17 @@ URI served by Authelia itself, avoids this.
 
 The client identifier issued to Authelia by the external provider.
 
+For `plex` providers nothing is issued by Plex: this is the client identifier Authelia presents to Plex, which may be
+any value such as a UUID. See [Plex](#plex).
+
 ### client_secret
 
 {{< confkey type="string" required="situational" >}}
 
 The client secret issued to Authelia by the external provider. This is required unless
 [token_endpoint_auth_method](#token_endpoint_auth_method) is `none`.
+
+_This option does not apply to `plex` providers._
 
 Unlike the client secrets of the [OpenID Connect 1.0 Provider](../identity-providers/openid-connect/clients.md) role,
 this value is the plaintext secret rather than a hash of it, as Authelia must present it to the external provider.
@@ -199,6 +212,7 @@ The scopes requested from the external provider.
 - `github`: the default is `read:user` and `user:email`. No scope is mandatory, as GitHub grants access to the public
   profile without one. The `user:email` scope is not required, and the email address is only shown when it is the
   primary email address of the account and GitHub has verified it.
+- `plex`: scopes do not apply.
 
 ### response_mode
 
@@ -206,7 +220,7 @@ The scopes requested from the external provider.
 
 The [response mode](https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#ResponseModes) the external
 provider is asked to deliver the authorization response with. Must be one of `query` or `form_post` for
-`openid_connect` providers, and must be `query` for `discord` and `github` providers.
+`openid_connect` providers, and must be `query` for `discord`, `github`, and `plex` providers.
 
 With `query` the provider redirects the browser to the [Redirect URI](#redirect-uri) with the response in the query,
 and with `form_post` it has the browser `POST` the response to the same [Redirect URI](#redirect-uri) as a form. An
@@ -283,7 +297,7 @@ When Pushed Authorization Requests are used and no endpoint is known, the provid
 
 The client authentication method used at the token endpoint. Must be one of `client_secret_basic`,
 `client_secret_post`, or `none` for `openid_connect` providers, and one of `client_secret_basic` or
-`client_secret_post` for `discord` and `github` providers.
+`client_secret_post` for `discord` and `github` providers. It does not apply to `plex` providers.
 
 ### pkce
 
@@ -348,8 +362,8 @@ the configured algorithm must be one of those values.
 ### authentication_methods_reference
 
 Controls the Authentication Method References a session adopts when a user signs in with this provider. Only the
-[default](#default) option applies to `discord` and `github` providers, as neither Discord nor GitHub asserts
-anything about how the user authenticated. These providers always adopt the [default](#default) values, and
+[default](#default) option applies to `discord`, `github`, and `plex` providers, as none of Discord, GitHub, or Plex
+asserts anything about how the user authenticated. These providers always adopt the [default](#default) values, and
 when none are configured they adopt `pwd` and `kba`, the values of a password sign in with Authelia.
 
 The values an `openid_connect` provider adopts are decided as follows:
@@ -382,7 +396,7 @@ The [RFC8176](https://datatracker.ietf.org/doc/html/rfc8176) Authentication Meth
 provider asserts no `amr` claim, or in place of the values it asserts when [override](#override) is enabled. The
 values must not be empty.
 
-For `discord` and `github` providers these values are always adopted, and when none are configured the
+For `discord`, `github`, and `plex` providers these values are always adopted, and when none are configured the
 values of a password sign in with Authelia, `pwd` and `kba`, are adopted instead.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
@@ -526,11 +540,36 @@ directly from GitHub's token endpoint over TLS. Accounts are linked on the GitHu
 username, display name, and email address are only displayed. The email address is the primary email address of the
 account from GitHub's user emails endpoint, and is only used when GitHub has verified it.
 
+## Plex
+
+A `plex` provider signs users in with their [Plex](https://www.plex.tv) account. Plex does not offer OAuth 2.0 or
+[OpenID Connect 1.0] to third parties, so users are signed in with the PIN flow Plex apps use instead:
+
+1. Authelia creates a PIN with Plex.
+2. The user is sent to Plex to sign in and approve the PIN, and Plex returns them to the [Redirect URI](#redirect-uri).
+3. Authelia retrieves the token Plex issued for the approved PIN directly from Plex over TLS, and uses it to retrieve
+   the Plex account it belongs to.
+
+There is nothing to register with Plex and no client secret. The [client_id](#client_id) is the client identifier
+Authelia presents to Plex, which Plex shows the user as a device named `Authelia`. It may be any value, such as a UUID,
+but it should be unique to this Authelia instance and should not change, as Plex treats every value as a different
+device. None of the scope, token endpoint, PKCE, endpoint, or discovery options apply. See the
+[Plex integration guide](../../integration/external-identity/plex.md) for step-by-step instructions.
+
+The PIN is retained in the session of the user who started the flow, and the PIN the browser returns with must be that
+PIN, so a PIN approved in any other flow is rejected. Accounts are linked on the Plex account UUID, which never changes;
+the username, display name, and email address are only displayed.
+
+Authelia describes itself to Plex with the Authelia version, a device name of `Authelia (<origin>)` where `<origin>` is
+the origin of the portal the flow was started from, and the language the user chose in the portal. Plex shows these
+when the user approves the PIN and in the list of devices authorized to their Plex account.
+
 ## Trusted Certificates
 
 Every request Authelia makes to the external provider is made over TLS and verifies the certificate of the provider.
 This includes the discovery document, the JSON Web Key Set, the token endpoint, the UserInfo endpoint, Discord's current
-user endpoint, and GitHub's user and user emails endpoints. The certificate is trusted when it is issued by an authority trusted by the system, or by a certificate in the
+user endpoint, GitHub's user and user emails endpoints, and Plex's PIN and user endpoints. The certificate is trusted
+when it is issued by an authority trusted by the system, or by a certificate in the
 [certificates_directory](../miscellaneous/introduction.md#certificates_directory). A provider whose certificate is
 issued by a private certificate authority is therefore trusted by placing that certificate authority in the
 [certificates_directory](../miscellaneous/introduction.md#certificates_directory); certificate verification cannot be
@@ -570,18 +609,19 @@ External identities are anchored to local accounts on the [type](#type) of the p
 the subject. The following table lists the attribute each type of provider takes each value from. Only the issuer and
 the subject identify the account; the username, display name, and email are only displayed.
 
-| Type             | Issuer                           | Subject              | Username                       | Display Name                                 | Email                                                                       |
-| :--------------- | :------------------------------- | :------------------- | :----------------------------- | :------------------------------------------- | :-------------------------------------------------------------------------- |
-| `openid_connect` | the `iss` claim                  | the `sub` claim      | the `preferred_username` claim | the `name` claim                             | the `email` claim                                                           |
-| `discord`        | `https://discord.com`            | the `id` of the user | the `username` of the user     | the `global_name`, or `username` when absent | the `email` of the user, only when `verified` is `true`                     |
-| `github`         | `https://github.com/login/oauth` | the `id` of the user | the `login` of the user        | the `name`, or `login` when absent           | the `email` of the user emails entry which is both `primary` and `verified` |
+| Type             | Issuer                           | Subject                   | Username                       | Display Name                                 | Email                                                                       |
+| :--------------- | :------------------------------- | :------------------------ | :----------------------------- | :------------------------------------------- | :-------------------------------------------------------------------------- |
+| `openid_connect` | the `iss` claim                  | the `sub` claim           | the `preferred_username` claim | the `name` claim                             | the `email` claim                                                           |
+| `discord`        | `https://discord.com`            | the `id` of the user      | the `username` of the user     | the `global_name`, or `username` when absent | the `email` of the user, only when `verified` is `true`                     |
+| `github`         | `https://github.com/login/oauth` | the `id` of the user      | the `login` of the user        | the `name`, or `login` when absent           | the `email` of the user emails entry which is both `primary` and `verified` |
+| `plex`           | `https://plex.tv`                | the `uuid` of the account | the `username` of the account  | the `title`, or `username` when absent       | the `email` of the account                                                  |
 
 The username, display name, and email of an `openid_connect` provider are the claims of the UserInfo response, and
 are only taken from the ID Token when the UserInfo response does not include them or the provider has no UserInfo
 endpoint. The issuer and subject are the claims of the ID Token. The attributes of a `discord` provider are
-those of the user returned by Discord's current user endpoint, and of a `github` provider those of the user returned by
-GitHub's authenticated user endpoint and its user emails endpoint. The GitHub `id` is a number, and is recorded as its
-decimal representation.
+those of the user returned by Discord's current user endpoint, of a `github` provider those of the user returned by
+GitHub's authenticated user endpoint and its user emails endpoint, and of a `plex` provider those of the account
+returned by Plex's user endpoint. The GitHub `id` is a number, and is recorded as its decimal representation.
 
 A link is only ever matched when all three are the same, so an identity from a provider of one type never signs in with
 a link made through a provider of another type, even if the issuer and subject are the same. All three are covered by
@@ -592,8 +632,8 @@ display purposes only. This means a change of email address or username at the e
 existing link, and an external account cannot be used to take over a local account which happens to share an email
 address. The email address is recorded whenever the provider returns one, and is otherwise left blank: an
 `openid_connect` provider only returns it when the `email` scope is requested and granted, a `discord` provider only
-when Discord has verified it, and a `github` provider only when the `user:email` scope is granted and GitHub has
-verified the primary email address.
+when Discord has verified it, a `github` provider only when the `user:email` scope is granted and GitHub has verified
+the primary email address, and a `plex` provider always returns it.
 
 A linking flow can be started from either of two places:
 
@@ -678,7 +718,7 @@ an `openid_connect` provider with [authentication_methods_reference.trust](#trus
 [authentication_methods_reference.default](#default) values, which together add both a knowledge factor and a possession
 factor, as described below.
 
-A sign in with a `discord` or `github` provider is treated as a password sign in with Authelia unless
+A sign in with a `discord`, `github`, or `plex` provider is treated as a password sign in with Authelia unless
 [authentication_methods_reference.default](#default) is configured: the session adopts `pwd` and `kba`, exactly as a
 username and password sign in does. A resource with the `two_factor` policy therefore asks the user for a second factor
 with Authelia, just as it does after a password sign in.
@@ -687,9 +727,9 @@ To let an `openid_connect` provider's assertion count towards `two_factor`, set
 [authentication_methods_reference.trust](#trust) for that provider. The provider's `amr` claim values are then merged
 into the session's Authentication Method References, and a claim asserting both a knowledge factor and a possession
 factor produces a session which satisfies the `two_factor` policy. This is opt-in per provider because it makes the
-external provider trusted to decide the authentication level of the session. Neither Discord nor GitHub asserts
-anything about how the user authenticated, so a `discord` or `github` provider never counts towards `two_factor` on
-its own assertion.
+external provider trusted to decide the authentication level of the session. None of Discord, GitHub, or Plex asserts
+anything about how the user authenticated, so a `discord`, `github`, or `plex` provider never counts towards
+`two_factor` on its own assertion.
 
 The [authentication_methods_reference.default](#default) values count towards `two_factor` in the same way, for any
 type of provider, whenever they are adopted. This lets an administrator who knows how a provider authenticates its users
