@@ -118,6 +118,9 @@ identity_providers:
       allowed_origins:
         - 'https://{{< sitevar name="domain" nojs="example.com" >}}'
       allowed_origins_from_client_redirect_uris: false
+    backchannel_logout:
+      lifespan: '5 minutes'
+      concurrency: 10
 ```
 
 ## Options
@@ -706,6 +709,7 @@ option is at least in this list. The potential endpoints which this can be enabl
 - revocation
 - introspection
 - userinfo
+- end-session
 
 #### allowed_origins
 
@@ -746,6 +750,32 @@ identity_providers:
 Automatically adds the origin portion of all redirect URI's on all clients to the list of
 [allowed_origins](#allowed_origins), provided they have the scheme http or https and do not have the hostname of
 localhost.
+
+### backchannel_logout
+
+Controls how Authelia delivers Logout Tokens to the clients participating in a session which has ended, as per
+[OpenID Connect Back-Channel Logout 1.0]. A client only participates when it has a
+[backchannel_logout_uri](clients.md#backchannel_logout_uri) configured.
+
+Delivery occurs while the End-User waits for their logout to complete, so these options exist to bound how long an
+unresponsive client can make that wait. Delivery is best effort regardless: a client which can't be reached is logged
+and never prevents the End-User being logged out of Authelia or the other clients being notified.
+
+[OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html
+
+#### lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
+
+The duration a Logout Token is valid for. This should be long enough for a client to accept a token which was delayed
+in transit, and short enough that a token which is intercepted is of little use.
+
+#### concurrency
+
+{{< confkey type="integer" default="10" required="no" >}}
+
+The maximum number of Logout Tokens delivered at the same time. Raising this notifies a large number of clients sooner
+at the cost of more simultaneous outbound requests.
 
 ### clients
 

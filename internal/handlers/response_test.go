@@ -380,3 +380,39 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred getting the original form from the consent session", regexpAnyError)
 	})
 }
+
+func TestHandle1FAResponseShouldNotRedirectToPostLogoutRedirectURI(t *testing.T) {
+	testCases := []struct {
+		name      string
+		targetURI string
+	}{
+		{"ShouldNotRedirectToInsecurePostLogoutRedirectURI", "http://legacy.example.net/logged-out"},
+		{"ShouldNotRedirectToOffDomainPostLogoutRedirectURI", "https://app.example.net/logged-out"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Configuration.IdentityProviders.OIDC = &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID: "test",
+						PostLogoutRedirectURIs: []string{
+							"http://legacy.example.net/logged-out",
+							"https://app.example.net/logged-out",
+						},
+					},
+				},
+			}
+
+			Handle1FAResponse(mock.Ctx, tc.targetURI, fasthttp.MethodGet, testUsername, nil)
+
+			assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+			assert.NotContains(t, string(mock.Ctx.Response.Body()), tc.targetURI)
+			assert.NotContains(t, string(mock.Ctx.Response.Body()), "redirect")
+		})
+	}
+}

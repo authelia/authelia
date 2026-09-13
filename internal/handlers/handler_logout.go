@@ -29,15 +29,32 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetJSONError(messageOperationFailed)
 	}
 
+	// Captured before the session is destroyed as the Logout Tokens delivered below are addressed to the End-User
+	// whose session is ending.
+	//
+	// TODO: The 'sid' claim identifies the single End-User session which ended, allowing a Relying Party to end
+	// only its corresponding session. The user session does not yet carry a stable identifier to supply here. See
+	// the session rewrite.
+	var (
+		username string
+		sid      string
+	)
+
+	if userSession, errSession := ctx.GetSession(); errSession == nil {
+		username = userSession.Username
+	}
+
 	err = ctx.DestroySession()
 	if err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred destroying the user session during logout")
 		ctx.SetJSONError(messageOperationFailed)
+	} else if username != "" {
+		oidcBackChannelLogout(ctx, username, sid)
 	}
 
 	redirectionURL, err := url.ParseRequestURI(body.TargetURL)
 	if err == nil {
-		responseBody.SafeTargetURL = ctx.IsSafeRedirectionTargetURI(redirectionURL)
+		responseBody.SafeTargetURL = ctx.IsSafePostLogoutRedirectionTargetURI(redirectionURL)
 	}
 
 	if body.TargetURL != "" {

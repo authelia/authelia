@@ -36,6 +36,8 @@ type IdentityProvidersOpenIDConnect struct {
 
 	CORS IdentityProvidersOpenIDConnectCORS `koanf:"cors" yaml:"cors,omitempty" toml:"cors,omitempty" json:"cors,omitempty" jsonschema:"title=CORS" jsonschema_description:"Configuration options for Cross-Origin Request Sharing."`
 
+	BackChannelLogout IdentityProvidersOpenIDConnectBackChannelLogout `koanf:"backchannel_logout" yaml:"backchannel_logout,omitempty" toml:"backchannel_logout,omitempty" json:"backchannel_logout,omitempty" jsonschema:"title=Back-Channel Logout" jsonschema_description:"Configuration options for OpenID Connect Back-Channel Logout 1.0."`
+
 	Clients []IdentityProvidersOpenIDConnectClient `koanf:"clients" yaml:"clients,omitempty" toml:"clients,omitempty" json:"clients,omitempty" jsonschema:"title=Clients" jsonschema_description:"OpenID Connect 1.0 clients registry."`
 
 	AuthorizationPolicies map[string]IdentityProvidersOpenIDConnectPolicy       `koanf:"authorization_policies" yaml:"authorization_policies,omitempty" toml:"authorization_policies,omitempty" json:"authorization_policies,omitempty" jsonschema:"title=Authorization Policies" jsonschema_description:"Custom client authorization policies."`
@@ -164,6 +166,13 @@ type IdentityProvidersOpenIDConnectCORS struct {
 	AllowedOriginsFromClientRedirectURIs bool `koanf:"allowed_origins_from_client_redirect_uris" yaml:"allowed_origins_from_client_redirect_uris" toml:"allowed_origins_from_client_redirect_uris" json:"allowed_origins_from_client_redirect_uris" jsonschema:"default=false,title=Allowed Origins From Client Redirect URIs" jsonschema_description:"Automatically include the redirect URIs from the registered clients."`
 }
 
+// IdentityProvidersOpenIDConnectBackChannelLogout represents the OpenID Connect Back-Channel Logout 1.0
+// configuration for this provider.
+type IdentityProvidersOpenIDConnectBackChannelLogout struct {
+	Lifespan    time.Duration `koanf:"lifespan" yaml:"lifespan,omitempty" toml:"lifespan,omitempty" json:"lifespan,omitempty" jsonschema:"default=5 minutes,title=Lifespan" jsonschema_description:"The duration a Logout Token is valid for."`
+	Concurrency int           `koanf:"concurrency" yaml:"concurrency,omitempty" toml:"concurrency,omitempty" json:"concurrency,omitempty" jsonschema:"default=10,minimum=1,title=Concurrency" jsonschema_description:"The maximum number of Logout Tokens delivered concurrently."`
+}
+
 // IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client.
 type IdentityProvidersOpenIDConnectClient struct {
 	ID                  string          `koanf:"client_id" yaml:"client_id" toml:"client_id" json:"client_id" jsonschema:"required,minLength=1,title=Client ID" jsonschema_description:"The Client ID."`
@@ -172,8 +181,12 @@ type IdentityProvidersOpenIDConnectClient struct {
 	SectorIdentifierURI *url.URL        `koanf:"sector_identifier_uri" yaml:"sector_identifier_uri,omitempty" toml:"sector_identifier_uri,omitempty" json:"sector_identifier_uri" jsonschema:"title=Sector Identifier URI" jsonschema_description:"The Client Sector Identifier URI for Privacy Isolation via Pairwise subject types."`
 	Public              bool            `koanf:"public" yaml:"public" toml:"public" json:"public" jsonschema:"default=false,title=Public" jsonschema_description:"Enables the Public Client Type."`
 
-	RedirectURIs IdentityProvidersOpenIDConnectClientURIs `koanf:"redirect_uris" yaml:"redirect_uris,omitempty" toml:"redirect_uris,omitempty" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of whitelisted redirect URIs."`
-	RequestURIs  IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
+	RedirectURIs           IdentityProvidersOpenIDConnectClientURIs `koanf:"redirect_uris" yaml:"redirect_uris,omitempty" toml:"redirect_uris,omitempty" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of whitelisted redirect URIs."`
+	RequestURIs            IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
+	PostLogoutRedirectURIs IdentityProvidersOpenIDConnectClientURIs `koanf:"post_logout_redirect_uris" yaml:"post_logout_redirect_uris" toml:"post_logout_redirect_uris" json:"post_logout_redirect_uris" jsonschema:"title=Post Logout Redirect URIs" jsonschema_description:"List of whitelisted post logout redirect URIs."`
+
+	BackChannelLogoutURI             string `koanf:"backchannel_logout_uri" yaml:"backchannel_logout_uri,omitempty" toml:"backchannel_logout_uri,omitempty" json:"backchannel_logout_uri" jsonschema:"title=Back-Channel Logout URI" jsonschema_description:"The URI this provider delivers Logout Tokens to when a session this client participates in ends."`
+	BackChannelLogoutSessionRequired bool   `koanf:"backchannel_logout_session_required" yaml:"backchannel_logout_session_required" toml:"backchannel_logout_session_required" json:"backchannel_logout_session_required" jsonschema:"default=false,title=Back-Channel Logout Session Required" jsonschema_description:"Requires the 'sid' claim be included in the Logout Tokens delivered to this client."`
 
 	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
 	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
@@ -258,6 +271,10 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 			RefreshToken:  time.Minute * 90,
 		},
 		DeviceCode: time.Minute * 10,
+	},
+	BackChannelLogout: IdentityProvidersOpenIDConnectBackChannelLogout{
+		Lifespan:    time.Minute * 5,
+		Concurrency: 10,
 	},
 	EnforcePKCE: "public_clients_only",
 }

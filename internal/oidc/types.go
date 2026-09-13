@@ -73,11 +73,16 @@ type RegisteredClient struct {
 	RequirePKCEChallengeMethod bool
 	PKCEChallengeMethod        string
 
-	Audience      []string
-	Scopes        []string
-	RedirectURIs  []string
-	GrantTypes    []string
-	ResponseTypes []string
+	Audience               []string
+	Scopes                 []string
+	RedirectURIs           []string
+	PostLogoutRedirectURIs []string
+	GrantTypes             []string
+	ResponseTypes          []string
+
+	BackChannelLogoutURI             string
+	BackChannelLogoutSessionRequired bool
+
 	ResponseModes []oauthelia2.ResponseModeType
 
 	Lifespans      schema.IdentityProvidersOpenIDConnectLifespan
@@ -139,7 +144,8 @@ type RegisteredClient struct {
 	ConsentPolicy         ClientConsentPolicy
 	RequestedAudienceMode ClientRequestedAudienceMode
 
-	RequestURIs    []string
+	RequestURIs []string
+
 	JSONWebKeys    *jose.JSONWebKeySet
 	JSONWebKeysURI *url.URL
 }
@@ -152,6 +158,12 @@ type Client interface {
 
 	GetName() (name string)
 	GetSectorIdentifierURI() (sector string)
+
+	GetRedirectURIs() (redirectURIs []string)
+	GetPostLogoutRedirectURIs() (redirectURIs []string)
+
+	GetBackChannelLogoutURI() (uri string)
+	GetBackChannelLogoutSessionRequired() (required bool)
 
 	GetClaimsStrategy() (strategy ClaimsStrategy)
 

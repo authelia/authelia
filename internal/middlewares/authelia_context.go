@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -282,6 +283,11 @@ func (ctx *AutheliaCtx) GetCookieConfigFromAutheliaURL(autheliaURL *url.URL) (co
 }
 
 // IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
+//
+// This is the general purpose check and deliberately does not consider the registered post logout redirect URIs of
+// OpenID Connect 1.0 clients. Those are only a safe destination for a RP-Initiated Logout, so honoring them here
+// would make them a valid destination for every other redirection, such as the one performed after authentication.
+// Use IsSafePostLogoutRedirectionTargetURI for the logout flow instead.
 func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
 	if targetURI == nil {
 		return false
@@ -292,6 +298,37 @@ func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
 	}
 
 	return ctx.GetCookieDomainFromTargetURI(targetURI) != ""
+}
+
+// IsSafePostLogoutRedirectionTargetURI returns true if the targetURI is a safe redirection target per
+// IsSafeRedirectionTargetURI, or is exactly equal to a post logout redirect URI registered by an OpenID Connect 1.0
+// client.
+//
+// A Relying Party's post logout redirect URI is ordinarily outside the cookie domain, so it can't satisfy the general
+// purpose check. It is only trusted because an administrator registered it for the express purpose of being redirected
+// to after a logout, so this must only be used to determine the destination of a logout.
+func (ctx *AutheliaCtx) IsSafePostLogoutRedirectionTargetURI(targetURI *url.URL) bool {
+	if targetURI == nil {
+		return false
+	}
+
+	if ctx.IsSafeRedirectionTargetURI(targetURI) {
+		return true
+	}
+
+	if ctx.Configuration.IdentityProviders.OIDC == nil {
+		return false
+	}
+
+	raw := targetURI.String()
+
+	for _, client := range ctx.Configuration.IdentityProviders.OIDC.Clients {
+		if slices.Contains(client.PostLogoutRedirectURIs, raw) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // GetCookieDomain returns the cookie domain for the current request.
