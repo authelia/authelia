@@ -33,6 +33,8 @@ func NewProviders(config *schema.AuthenticationBackendExternalIdentity, caCertPo
 		switch provider.Type {
 		case ProviderTypeDiscord:
 			built = newDiscordProvider(provider, newProviderClient(caCertPool))
+		case ProviderTypeGitHub:
+			built = newGitHubProvider(provider, newProviderClient(caCertPool))
 		default:
 			built = newOpenIDConnectProvider(provider, newProviderClient(caCertPool))
 		}
