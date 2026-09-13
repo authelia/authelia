@@ -18,12 +18,13 @@ import (
 const (
 	externalIdentityTypeOpenIDConnect = "openid_connect"
 	externalIdentityTypeDiscord       = "discord"
+	externalIdentityTypeGitHub        = "github"
 )
 
 var reExternalIdentityProviderID = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,31}$`)
 
 var (
-	validExternalIdentityTypes                 = []string{externalIdentityTypeOpenIDConnect, externalIdentityTypeDiscord}
+	validExternalIdentityTypes                 = []string{externalIdentityTypeOpenIDConnect, externalIdentityTypeDiscord, externalIdentityTypeGitHub}
 	validExternalIdentityAlgs                  = []string{"ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "RS256", "RS384", "RS512"}
 	validExternalIdentityAuthMethods           = []string{"client_secret_basic", "client_secret_post", "none"}
 	validExternalIdentityConfidentialMethods   = []string{"client_secret_basic", "client_secret_post"}
@@ -31,6 +32,7 @@ var (
 	validExternalIdentityQueryResponseModes    = []string{"query"}
 	defaultExternalIdentityOpenIDConnectScopes = []string{"openid", "profile", "email"}
 	defaultExternalIdentityDiscordScopes       = []string{"identify", "email"}
+	defaultExternalIdentityGitHubScopes        = []string{"read:user", "user:email"}
 )
 
 // ValidateAuthenticationBackendExternalIdentity validates and updates the external identity configuration.
@@ -66,7 +68,7 @@ func validateAuthenticationBackendExternalIdentityProvidersUnique(config *schema
 		seen[provider.ID] = true
 
 		switch provider.Type {
-		case externalIdentityTypeDiscord:
+		case externalIdentityTypeDiscord, externalIdentityTypeGitHub:
 			types[provider.Type] = append(types[provider.Type], provider.ID)
 		case externalIdentityTypeOpenIDConnect:
 			if provider.Issuer == "" {
@@ -81,7 +83,7 @@ func validateAuthenticationBackendExternalIdentityProvidersUnique(config *schema
 		}
 	}
 
-	for _, providerType := range []string{externalIdentityTypeDiscord} {
+	for _, providerType := range []string{externalIdentityTypeDiscord, externalIdentityTypeGitHub} {
 		if len(types[providerType]) > 1 {
 			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderTypeDuplicate, providerType, utils.StringJoinAnd(types[providerType])))
 		}
@@ -128,6 +130,8 @@ func validateAuthenticationBackendExternalIdentityProvider(i int, config *schema
 		validateAuthenticationBackendExternalIdentityProviderOpenIDConnect(config, validator)
 	case externalIdentityTypeDiscord:
 		validateAuthenticationBackendExternalIdentityProviderDiscord(config, validator)
+	case externalIdentityTypeGitHub:
+		validateAuthenticationBackendExternalIdentityProviderGitHub(config, validator)
 	default:
 		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderType, config.ID, utils.StringJoinOr(validExternalIdentityTypes), config.Type))
 	}
@@ -181,6 +185,19 @@ func validateAuthenticationBackendExternalIdentityProviderDiscord(config *schema
 	validateAuthenticationBackendExternalIdentityProviderUnsupported(config, append(externalIdentityOpenIDConnectOnlyOptions(config), externalIdentityOption{"shared_redirect_uri", config.SharedRedirectURI}), validator)
 
 	validateAuthenticationBackendExternalIdentityProviderScopes(config, "identify", defaultExternalIdentityDiscordScopes)
+	validateAuthenticationBackendExternalIdentityProviderResponseMode(config, validExternalIdentityQueryResponseModes, validator)
+	validateAuthenticationBackendExternalIdentityProviderAuthMethod(config, validExternalIdentityConfidentialMethods, validator)
+	validateAuthenticationBackendExternalIdentityProviderPKCE(config, validator)
+	validateAuthenticationBackendExternalIdentityProviderAMRDefault(config, validator)
+}
+
+func validateAuthenticationBackendExternalIdentityProviderGitHub(config *schema.AuthenticationBackendExternalIdentityProvider, validator *schema.StructValidator) {
+	validateAuthenticationBackendExternalIdentityProviderUnsupported(config, externalIdentityOpenIDConnectOnlyOptions(config), validator)
+
+	if len(config.Scopes) == 0 {
+		config.Scopes = append([]string(nil), defaultExternalIdentityGitHubScopes...)
+	}
+
 	validateAuthenticationBackendExternalIdentityProviderResponseMode(config, validExternalIdentityQueryResponseModes, validator)
 	validateAuthenticationBackendExternalIdentityProviderAuthMethod(config, validExternalIdentityConfidentialMethods, validator)
 	validateAuthenticationBackendExternalIdentityProviderPKCE(config, validator)
