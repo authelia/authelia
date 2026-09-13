@@ -251,3 +251,24 @@ it("shows an error when the metadata fails to load", () => {
     expect(screen.getByText(/boom/)).toBeInTheDocument();
     expect(byId("new-user-submit")).toBeNull();
 });
+
+it("asks for confirmation on cancel when there are unsaved changes", () => {
+    render(<NewUserDialog open={true} onClose={onClose} />);
+
+    fireEvent.change(byId("new-user-username"), { target: { value: "jane" } });
+    fireEvent.click(byId("new-user-cancel"));
+
+    expect(screen.getByText("Unsaved Changes")).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(byId("verify-exit-cancel"));
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(byId("new-user-username").value).toBe("jane");
+
+    fireEvent.click(byId("new-user-cancel"));
+    fireEvent.click(byId("verify-exit-confirm"));
+
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(postNewUser).not.toHaveBeenCalled();
+});

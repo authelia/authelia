@@ -165,7 +165,7 @@ it("prefixes extra fields in the update mask and nests them under extra", async 
     render(<EditUserDialog open={true} user={user} onClose={onClose} />);
 
     fireEvent.click(screen.getByText("Show Additional Fields"));
-    fireEvent.change(byId("edit-user-custom_field"), { target: { value: "b" } });
+    fireEvent.change(byId("edit-user-extra-custom_field"), { target: { value: "b" } });
 
     await act(async () => {
         fireEvent.click(submit());
