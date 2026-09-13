@@ -133,6 +133,8 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 
 		validateSessionSameSite(i, config, validator)
 
+		validateSessionAnchorRemoteIP(i, config, validator)
+
 		domains = append(domains, d.Domain)
 	}
 }
@@ -273,6 +275,26 @@ func validateSessionSameSite(i int, config *schema.Session, validator *schema.St
 		}
 	} else if !utils.IsStringInSlice(config.Cookies[i].SameSite, validSessionSameSiteValues) {
 		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), utils.StringJoinOr(validSessionSameSiteValues), config.Cookies[i].SameSite))
+	}
+}
+
+func validateSessionAnchorRemoteIP(i int, config *schema.Session, validator *schema.StructValidator) {
+	anchor := config.Cookies[i].AnchorRemoteIP
+
+	if anchor == nil {
+		return
+	}
+
+	if anchor.IPv4Mask == 0 {
+		anchor.IPv4Mask = schema.DefaultSessionCookieAnchorRemoteIP.IPv4Mask
+	} else if anchor.IPv4Mask < 1 || anchor.IPv4Mask > 32 {
+		validator.Push(fmt.Errorf(errFmtSessionDomainAnchorRemoteIPMask, sessionDomainDescriptor(i, config.Cookies[i]), "ipv4_mask", 32, anchor.IPv4Mask))
+	}
+
+	if anchor.IPv6Mask == 0 {
+		anchor.IPv6Mask = schema.DefaultSessionCookieAnchorRemoteIP.IPv6Mask
+	} else if anchor.IPv6Mask < 1 || anchor.IPv6Mask > 128 {
+		validator.Push(fmt.Errorf(errFmtSessionDomainAnchorRemoteIPMask, sessionDomainDescriptor(i, config.Cookies[i]), "ipv6_mask", 128, anchor.IPv6Mask))
 	}
 }
 

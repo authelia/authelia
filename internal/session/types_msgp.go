@@ -25,6 +25,13 @@ type UserSession struct {
 	CookieDomain string `msg:"d"`
 	PublicID     string `msg:"p"`
 
+	// RemoteNetwork is the network address this session is anchored to when the session cookie configuration anchors
+	// sessions to the remote IP, and RemoteNetworkBits is the prefix length of that network. The prefix length is
+	// recorded with the session so that it's checked against the network it was anchored to, regardless of a later
+	// change to the configured masks.
+	RemoteNetwork     net.IP `msg:"ip,omitempty"`
+	RemoteNetworkBits uint8  `msg:"ipb,omitempty"`
+
 	// Username for this session.
 	//
 	// SECURITY NOTE: This value MUST NOT be changed directly except within test files, and should instead be changed

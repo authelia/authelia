@@ -42,7 +42,23 @@ type SessionCookie struct {
 	AutheliaURL           *url.URL `koanf:"authelia_url" yaml:"authelia_url,omitempty" toml:"authelia_url,omitempty" json:"authelia_url,omitempty" jsonschema:"format=uri,title=Authelia URL" jsonschema_description:"The Root Authelia URL to redirect users to for this session cookie configuration."`
 	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" yaml:"default_redirection_url,omitempty" toml:"default_redirection_url,omitempty" json:"default_redirection_url,omitempty" jsonschema:"format=uri,title=Default Redirection URL" jsonschema_description:"The default redirection URL for this session cookie configuration."`
 
+	AnchorRemoteIP *SessionCookieAnchorRemoteIP `koanf:"anchor_remote_ip" yaml:"anchor_remote_ip,omitempty" toml:"anchor_remote_ip,omitempty" json:"anchor_remote_ip,omitempty" jsonschema:"title=Anchor Remote IP" jsonschema_description:"Destroys sessions for this session cookie configuration when they're used from a remote IP outside of the network they were created from."`
+
 	Legacy bool `yaml:"-" toml:"-" json:"-"`
+}
+
+// SessionCookieAnchorRemoteIP represents the configuration for anchoring the sessions of a cookie domain to the network
+// of the remote IP.
+type SessionCookieAnchorRemoteIP struct {
+	IPv4Mask int `koanf:"ipv4_mask" yaml:"ipv4_mask,omitempty" toml:"ipv4_mask,omitempty" json:"ipv4_mask,omitempty" jsonschema:"default=32,minimum=1,maximum=32,title=IPv4 Mask" jsonschema_description:"The prefix length of the network sessions are anchored to when the remote IP is an IPv4 address."`
+	IPv6Mask int `koanf:"ipv6_mask" yaml:"ipv6_mask,omitempty" toml:"ipv6_mask,omitempty" json:"ipv6_mask,omitempty" jsonschema:"default=64,minimum=1,maximum=128,title=IPv6 Mask" jsonschema_description:"The prefix length of the network sessions are anchored to when the remote IP is an IPv6 address."`
+}
+
+// DefaultSessionCookieAnchorRemoteIP is the default configuration for anchoring sessions to the network of the remote
+// IP when it's configured.
+var DefaultSessionCookieAnchorRemoteIP = SessionCookieAnchorRemoteIP{
+	IPv4Mask: 32,
+	IPv6Mask: 64,
 }
 
 // DefaultSessionConfiguration is the default session configuration.

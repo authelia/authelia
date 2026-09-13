@@ -711,6 +711,84 @@ func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
 	}
 }
 
+func TestValidateSessionAnchorRemoteIP(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *schema.SessionCookieAnchorRemoteIP
+		expected *schema.SessionCookieAnchorRemoteIP
+		errs     []string
+	}{
+		{
+			"ShouldNotAnchorByDefault",
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldSetDefaultsWhenConfiguredWithoutValues",
+			&schema.SessionCookieAnchorRemoteIP{},
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: 32, IPv6Mask: 64},
+			nil,
+		},
+		{
+			"ShouldSetDefaultIPv6Mask",
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: 24},
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: 24, IPv6Mask: 64},
+			nil,
+		},
+		{
+			"ShouldSetDefaultIPv4Mask",
+			&schema.SessionCookieAnchorRemoteIP{IPv6Mask: 56},
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: 32, IPv6Mask: 56},
+			nil,
+		},
+		{
+			"ShouldNotOverrideConfiguredValues",
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: 1, IPv6Mask: 128},
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: 1, IPv6Mask: 128},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorWhenMasksTooLarge",
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: 33, IPv6Mask: 129},
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: 33, IPv6Mask: 129},
+			[]string{
+				"session: domain config #1 (domain 'example.com'): option 'anchor_remote_ip' option 'ipv4_mask' must be between 1 and 32 but it's configured as 33",
+				"session: domain config #1 (domain 'example.com'): option 'anchor_remote_ip' option 'ipv6_mask' must be between 1 and 128 but it's configured as 129",
+			},
+		},
+		{
+			"ShouldRaiseErrorWhenMasksNegative",
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: -1, IPv6Mask: -1},
+			&schema.SessionCookieAnchorRemoteIP{IPv4Mask: -1, IPv6Mask: -1},
+			[]string{
+				"session: domain config #1 (domain 'example.com'): option 'anchor_remote_ip' option 'ipv4_mask' must be between 1 and 32 but it's configured as -1",
+				"session: domain config #1 (domain 'example.com'): option 'anchor_remote_ip' option 'ipv6_mask' must be between 1 and 128 but it's configured as -1",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := newDefaultSessionConfig()
+
+			config.Session.Cookies[0].AnchorRemoteIP = tc.have
+
+			ValidateSession(&config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, err := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], err)
+			}
+
+			assert.Equal(t, tc.expected, config.Session.Cookies[0].AnchorRemoteIP)
+		})
+	}
+}
+
 func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()

@@ -194,6 +194,58 @@ must:
 
 If this option is absent you must use the appropriate query parameter or header for your relevant proxy.
 
+#### anchor_remote_ip
+
+{{< confkey type="structure" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The remote IP is determined from the first value of the `X-Forwarded-For` header when it's present, falling back to the
+IP of the connection. Your proxy must overwrite this header rather than append to a value supplied by the client,
+otherwise a client can present any remote IP it likes and this option provides no protection.
+{{< /callout >}}
+
+Anchors sessions for this session cookie domain to the network of the remote IP they're first saved from. When a session
+is used from a remote IP outside of that network it's destroyed, and the request continues with a new anonymous session,
+which requires the user to authenticate again. This includes a session anchored to an IPv4 network being used from an
+IPv6 address, and a session anchored to an IPv6 network being used from an IPv4 address.
+
+Sessions are not anchored by default. They're only anchored when this section is configured, in which case any of the
+options within it which are absent use their default value. For example the following anchors sessions using the default
+value for both options:
+
+```yaml {title="configuration.yml"}
+session:
+  cookies:
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      anchor_remote_ip: {}
+```
+
+The network a session is anchored to is recorded with the session. Changing the options within this section only affects
+the sessions which are created afterwards, and removing this section stops the check from being performed for every
+session.
+
+Sessions which were created before this option was enabled aren't anchored to any network, and are destroyed the first
+time they're used after it's enabled.
+
+Users whose remote IP regularly changes to one in another network, such as users of mobile networks, will be required to
+authenticate each time it changes.
+
+##### ipv4_mask
+
+{{< confkey type="integer" default="32" required="no" >}}
+
+The prefix length of the network sessions are anchored to when the remote IP is an IPv4 address, which must be between
+`1` and `32`. The default of `32` anchors sessions to the exact IPv4 address.
+
+##### ipv6_mask
+
+{{< confkey type="integer" default="64" required="no" >}}
+
+The prefix length of the network sessions are anchored to when the remote IP is an IPv6 address, which must be between
+`1` and `128`. The default of `64` anchors sessions to the network which is typically assigned to a single site, so that
+users of IPv6 temporary addresses aren't required to authenticate each time their address changes. A value of `128`
+anchors sessions to the exact IPv6 address.
+
 #### name
 
 {{< confkey type="string" required="no" >}}

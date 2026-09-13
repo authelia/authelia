@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"net"
 	"net/http"
 	"net/url"
 	"testing"
@@ -675,9 +676,14 @@ func (r *failingRepository) Get(_ context.Context, _, _ string) (record Record, 
 type testContext struct {
 	context.Context
 
-	cookies map[string]string
-	set     int
-	cleared *http.Cookie
+	cookies  map[string]string
+	set      int
+	cleared  *http.Cookie
+	remoteIP net.IP
+}
+
+func (c *testContext) RemoteIP() net.IP {
+	return c.remoteIP
 }
 
 func (c *testContext) GetCookie(name string) string {
@@ -854,7 +860,7 @@ func newTestCookie(label string) string {
 }
 
 func newTestContext() *testContext {
-	return &testContext{Context: context.Background(), cookies: map[string]string{}}
+	return &testContext{Context: context.Background(), cookies: map[string]string{}, remoteIP: testRemoteIP}
 }
 
 func newTestRepository() *testRepository {
