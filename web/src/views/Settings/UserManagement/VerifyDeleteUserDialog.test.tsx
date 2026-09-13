@@ -82,7 +82,7 @@ it("deletes the user, notifies and closes on success", async () => {
     expect(onCancel).toHaveBeenCalledOnce();
 });
 
-it("notifies an error and still closes when deletion fails", async () => {
+it("notifies an error and stays open when deletion fails", async () => {
     vi.mocked(deleteUser).mockRejectedValue(new Error("boom"));
 
     render(<VerifyDeleteUserDialog open={true} username="john" onCancel={onCancel} />);
@@ -95,7 +95,7 @@ it("notifies an error and still closes when deletion fails", async () => {
 
     expect(mockCreateError).toHaveBeenCalledWith("Error deleting user.");
     expect(mockCreateSuccess).not.toHaveBeenCalled();
-    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onCancel).not.toHaveBeenCalled();
 });
 
 it("closes without deleting when cancel is clicked", () => {

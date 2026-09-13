@@ -75,7 +75,7 @@ it("deletes the group, notifies and closes on success", async () => {
     expect(onCancel).toHaveBeenCalledOnce();
 });
 
-it("notifies an error and still closes when deletion fails", async () => {
+it("notifies an error and stays open when deletion fails", async () => {
     vi.mocked(deleteGroup).mockRejectedValue(new Error("boom"));
 
     render(<VerifyDeleteGroupDialog open={true} groupName="dev" onCancel={onCancel} />);
@@ -87,7 +87,7 @@ it("notifies an error and still closes when deletion fails", async () => {
     });
 
     expect(mockCreateError).toHaveBeenCalledWith("Error deleting group.");
-    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onCancel).not.toHaveBeenCalled();
 });
 
 it("closes without deleting when cancel is clicked", () => {
