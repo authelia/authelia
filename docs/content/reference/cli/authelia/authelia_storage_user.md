@@ -2,7 +2,7 @@
 title: "authelia storage user"
 description: "Reference for the authelia storage user command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 905
@@ -58,6 +58,7 @@ authelia storage user --help
 
 * [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
 * [authelia storage user identifiers](authelia_storage_user_identifiers.md)	 - Manage user opaque identifiers
+* [authelia storage user recovery-codes](authelia_storage_user_recovery-codes.md)	 - Manage user second-factor recovery codes
 * [authelia storage user totp](authelia_storage_user_totp.md)	 - Manage TOTP configurations
 * [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn credentials
 

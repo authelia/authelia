@@ -118,6 +118,12 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
 			Return(*resp.db, resp.err)
 
+		mock.StorageMock.
+			EXPECT().
+			CountUnusedRecoveryCodesByUsername(gomock.Any(), gomock.Any()).
+			AnyTimes().
+			Return(0, nil)
+
 		UserInfoGET(mock.Ctx)
 
 		if resp.err == nil {
@@ -262,6 +268,12 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			userSession.Username = testUsername
 			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 			assert.NoError(t, mock.Ctx.SaveSession(userSession))
+
+			mock.StorageMock.
+				EXPECT().
+				CountUnusedRecoveryCodesByUsername(gomock.Any(), gomock.Any()).
+				AnyTimes().
+				Return(0, nil)
 
 			if resp.db.Method == "" {
 				gomock.InOrder(

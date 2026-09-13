@@ -185,6 +185,12 @@ const (
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRShortMessageService = "sms"
+
+	// AMRRecoveryCode is a custom Authentication Method Reference Value that represents authentication via a
+	// single-use recovery code, used as a fallback when the user has lost access to their primary second factor.
+	//
+	// Authelia utilizes this when a user has used a recovery code to authenticate. Factor: Have, Channel: Browser.
+	AMRRecoveryCode = "rc"
 )
 
 var (

@@ -95,6 +95,12 @@ func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, hardware, userPresence
 	s.setWebAuthn(hardware, userPresence, userVerified)
 }
 
+// SetTwoFactorRecoveryCode sets the relevant recovery code AMR's and sets the factor to 2FA.
+func (s *UserSession) SetTwoFactorRecoveryCode(now time.Time) {
+	s.setTwoFactor(now)
+	s.AuthenticationMethodRefs.RecoveryCode = true
+}
+
 // SetTwoFactorPassword sets the relevant session values when a user authenticates with a password as the second factor.
 func (s *UserSession) SetTwoFactorPassword(now time.Time) {
 	s.setTwoFactor(now)

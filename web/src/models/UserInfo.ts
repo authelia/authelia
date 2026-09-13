@@ -11,4 +11,6 @@ export interface UserInfo {
     has_webauthn: boolean;
     has_totp: boolean;
     has_duo: boolean;
+    has_recovery_codes?: boolean;
+    low_recovery_codes?: boolean;
 }

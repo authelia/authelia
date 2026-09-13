@@ -760,6 +760,11 @@
     "env": "AUTHELIA_PRIVACY_POLICY_REQUIRE_USER_ACCEPTANCE"
   },
   {
+    "path": "recovery_codes.disable",
+    "secret": false,
+    "env": "AUTHELIA_RECOVERY_CODES_DISABLE"
+  },
+  {
     "path": "regulation.ban_time",
     "secret": false,
     "env": "AUTHELIA_REGULATION_BAN_TIME"
@@ -858,6 +863,11 @@
     "path": "server.endpoints.rate_limits.second_factor_password.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_PASSWORD_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.second_factor_recovery_code.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_RECOVERY_CODE_ENABLE"
   },
   {
     "path": "server.endpoints.rate_limits.second_factor_totp.enable",

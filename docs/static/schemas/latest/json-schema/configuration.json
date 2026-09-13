@@ -1129,6 +1129,11 @@
           "title": "TOTP",
           "description": "Time-based One-Time Password Configuration."
         },
+        "recovery_codes": {
+          "$ref": "#/$defs/RecoveryCodes",
+          "title": "Recovery Codes",
+          "description": "Recovery Codes Configuration."
+        },
         "duo_api": {
           "$ref": "#/$defs/DuoAPI",
           "title": "Duo API",
@@ -3268,6 +3273,19 @@
       "type": "object",
       "description": "PrivacyPolicy is the privacy policy configuration."
     },
+    "RecoveryCodes": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the recovery codes feature for all users.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "RecoveryCodes represents the configuration related to user-managed second-factor recovery codes."
+    },
     "RefreshIntervalDuration": {
       "oneOf": [
         {
@@ -3479,6 +3497,11 @@
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "Second Factor Duo",
           "description": "Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."
+        },
+        "second_factor_recovery_code": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Second Factor Recovery Code",
+          "description": "Configures the rate limiter which applies to the Recovery Code endpoint code submissions for the second factor flow."
         },
         "second_factor_password": {
           "$ref": "#/$defs/ServerEndpointRateLimit",
