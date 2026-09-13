@@ -210,6 +210,12 @@ const SettingsView = function () {
                                 </p>
                             </div>
                             <div className="border border-muted-foreground/50 rounded mb-2 p-2.5 w-full">
+                                <p>
+                                    {translate("Username")}: {userInfo?.username || ""}
+                                </p>
+                                <p>
+                                    {translate("Display Name")}: {userInfo?.display_name || ""}
+                                </p>
                                 <div className="flex items-center">
                                     <p className="mr-2">{translate("Email")}:</p>
                                     <p>{userInfo?.emails?.[0] || ""}</p>
