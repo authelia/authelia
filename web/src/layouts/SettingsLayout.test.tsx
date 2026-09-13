@@ -19,6 +19,7 @@ vi.mock("@constants/constants", () => ({
 vi.mock("@constants/Routes", () => ({
     IndexRoute: "/",
     SecuritySubRoute: "/security",
+    SettingsExternalIdentitySubRoute: "/external-identity",
     SettingsRoute: "/settings",
     SettingsTwoFactorAuthenticationSubRoute: "/two-factor-authentication",
 }));
@@ -29,6 +30,11 @@ vi.mock("@hooks/RouterNavigate", () => ({
 
 beforeEach(() => {
     mockNavigate.mockReset();
+    document.body.dataset.externalidentitylogin = "false";
+});
+
+afterEach(() => {
+    document.body.dataset.externalidentitylogin = "false";
 });
 
 it("renders with settings title and menu button", async () => {
@@ -117,4 +123,30 @@ it("does not navigate when the selected nav item is clicked", async () => {
         value: { pathname: "/" },
         writable: true,
     });
+});
+
+it("does not render the linked accounts nav item when no provider is configured", async () => {
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.queryByText("Linked Accounts")).not.toBeInTheDocument();
+});
+
+it("renders the linked accounts nav item when a provider is configured", async () => {
+    document.body.dataset.externalidentitylogin = "true";
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.getByText("Linked Accounts")).toBeInTheDocument();
 });

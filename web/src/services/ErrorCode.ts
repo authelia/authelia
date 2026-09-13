@@ -4,6 +4,11 @@
 
 export type ErrorCode =
     | "authentication_failed"
+    | "external_identity_link_conflict"
+    | "external_identity_link_failed"
+    | "external_identity_link_none_pending"
+    | "external_identity_login_failed"
+    | "external_identity_unlink_failed"
     | "identity_token_expired"
     | "identity_token_invalid_signature"
     | "identity_token_not_yet_valid"
@@ -26,6 +31,11 @@ export type ErrorCode =
 
 export const ErrorCodeTranslationKeys: Record<ErrorCode, string> = {
     authentication_failed: "Authentication failed, check your credentials",
+    external_identity_link_conflict: "That external account is already linked",
+    external_identity_link_failed: "Unable to link the external account",
+    external_identity_link_none_pending: "There is no external account awaiting a decision",
+    external_identity_login_failed: "Could not start the external login",
+    external_identity_unlink_failed: "Unable to remove the external account link",
     identity_token_expired: "The identity verification token has expired",
     identity_token_invalid_signature: "The identity verification token has an invalid signature",
     identity_token_not_yet_valid: "The identity verification token is only valid in the future",

@@ -163,6 +163,22 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 						{Period: time.Hour, Requests: 100},
 					},
 				},
+				ExternalIdentityStart: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 10 * time.Minute, Requests: 30},
+						{Period: time.Hour, Requests: 60},
+					},
+				},
+				ExternalIdentityCallback: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 10 * time.Minute, Requests: 30},
+						{Period: time.Hour, Requests: 60},
+					},
+				},
 			},
 		},
 	}

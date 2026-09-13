@@ -50,7 +50,6 @@ const (
 	conformanceCallbackPathPrefix              = "/test/a/"
 	conformanceSelectorAutheliaError           = `.notification[data-type="error"]`
 	conformanceSelectorCompletionError         = `[data-testid="openid-completion-outcome"][data-outcome="error"]`
-	conformanceElementTimeout                  = time.Second * 2
 	conformanceDriveInterval                   = time.Millisecond * 250
 	conformanceSettleTimeout                   = time.Second * 30
 	conformanceLegPatience                     = time.Second * 30
@@ -227,13 +226,11 @@ func (b *ConformanceBrowser) Close() {
 // ClearCookies discards every cookie in this context, for the modules whose instructions are to remove any cookies
 // received from the provider before proceeding.
 func (b *ConformanceBrowser) ClearCookies() error {
-	return proto.NetworkClearBrowserCookies{}.Call(b.page.Timeout(conformancePageTimeout))
+	return b.session.doClearCookies(b.page)
 }
 
 func (b *ConformanceBrowser) has(selector string) bool {
-	has, _, err := b.page.Timeout(conformanceElementTimeout).Has(selector)
-
-	return err == nil && has
+	return b.session.hasElement(b.page, selector)
 }
 
 func (b *ConformanceBrowser) hasAutheliaError() bool {
@@ -241,39 +238,11 @@ func (b *ConformanceBrowser) hasAutheliaError() bool {
 }
 
 func (b *ConformanceBrowser) url() string {
-	info, err := b.page.Timeout(conformancePageTimeout).Info()
-	if err != nil {
-		return ""
-	}
-
-	return info.URL
+	return b.session.pageURL(b.page)
 }
 
 func (b *ConformanceBrowser) title() string {
-	info, err := b.page.Timeout(conformancePageTimeout).Info()
-	if err != nil {
-		return ""
-	}
-
-	return info.Title
-}
-
-func (b *ConformanceBrowser) settle(ctx context.Context, selector, startURL string) error {
-	deadline := time.Now().Add(conformanceSettleTimeout)
-
-	for time.Now().Before(deadline) {
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-
-		if !b.has(selector) || b.url() != startURL {
-			return nil
-		}
-
-		time.Sleep(conformanceDriveInterval)
-	}
-
-	return fmt.Errorf("the form at '%s' was submitted but '%s' was still on screen %s later", startURL, selector, conformanceSettleTimeout)
+	return b.session.pageTitle(b.page)
 }
 
 // Drive navigates to uri and works the flow through to the conformance suite's callback. It is deliberately reactive:
@@ -356,17 +325,17 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 }
 
 func (b *ConformanceBrowser) signIn() (screenshot string, err error) {
-	if err = b.input(conformanceSelectorUsername, b.username); err != nil {
+	if err = b.session.doInput(b.page, conformanceSelectorUsername, b.username); err != nil {
 		return "", err
 	}
 
-	if err = b.input(conformanceSelectorPassword, b.password); err != nil {
+	if err = b.session.doInput(b.page, conformanceSelectorPassword, b.password); err != nil {
 		return "", err
 	}
 
 	screenshot = b.screenshot()
 
-	return screenshot, b.click(conformanceSelectorSignIn)
+	return screenshot, b.session.doClick(b.page, conformanceSelectorSignIn)
 }
 
 func (b *ConformanceBrowser) screenshot() string {
@@ -420,36 +389,6 @@ func conformanceLatest(current, next string) string {
 	return next
 }
 
-func (b *ConformanceBrowser) input(selector, value string) (err error) {
-	element, err := b.page.Timeout(elementLocateTimeout).Element(selector)
-	if err != nil {
-		return fmt.Errorf("error locating '%s': %w", selector, err)
-	}
-
-	if err = element.SelectAllText(); err != nil {
-		return fmt.Errorf("error selecting the text of '%s': %w", selector, err)
-	}
-
-	if err = element.Input(value); err != nil {
-		return fmt.Errorf("error typing into '%s': %w", selector, err)
-	}
-
-	return nil
-}
-
-func (b *ConformanceBrowser) click(selector string) (err error) {
-	element, err := b.page.Timeout(elementLocateTimeout).Element(selector)
-	if err != nil {
-		return fmt.Errorf("error locating '%s': %w", selector, err)
-	}
-
-	if err = element.Click(proto.InputMouseButtonLeft, 1); err != nil {
-		return fmt.Errorf("error clicking '%s': %w", selector, err)
-	}
-
-	return nil
-}
-
 type conformanceProgress struct {
 	patience time.Duration
 	url      string
@@ -483,7 +422,7 @@ func (b *ConformanceBrowser) submitSignIn(ctx context.Context, pageURL string, a
 		return "", fmt.Errorf("error signing in at '%s': %w", pageURL, err)
 	}
 
-	if err = b.settle(ctx, conformanceSelectorFirstFactor, pageURL); err != nil {
+	if err = b.session.doAwaitSubmitted(ctx, b.page, conformanceSelectorFirstFactor, pageURL); err != nil {
 		return "", fmt.Errorf("error signing in at '%s': %w", pageURL, err)
 	}
 
@@ -493,7 +432,7 @@ func (b *ConformanceBrowser) submitSignIn(ctx context.Context, pageURL string, a
 func (b *ConformanceBrowser) submitConsent(ctx context.Context, pageURL string, attempt int) (reauthentication bool, screenshot string, err error) {
 	b.trace.Logf("Accepting the consent decision form at '%s' (attempt %d)", pageURL, attempt)
 
-	if err = b.click(conformanceSelectorConsentAccept); err != nil {
+	if err = b.session.doClick(b.page, conformanceSelectorConsentAccept); err != nil {
 		return false, "", fmt.Errorf("error accepting consent at '%s': %w", pageURL, err)
 	}
 
@@ -507,17 +446,17 @@ func (b *ConformanceBrowser) submitConsent(ctx context.Context, pageURL string, 
 
 	b.trace.Logf("Answering the consent form's re-authentication step at '%s'", pageURL)
 
-	if err = b.input(conformanceSelectorConsentPassword, b.password); err != nil {
+	if err = b.session.doInput(b.page, conformanceSelectorConsentPassword, b.password); err != nil {
 		return true, "", fmt.Errorf("error answering the re-authentication step at '%s': %w", pageURL, err)
 	}
 
 	screenshot = b.screenshot()
 
-	if err = b.click(conformanceSelectorConsentAuthenticate); err != nil {
+	if err = b.session.doClick(b.page, conformanceSelectorConsentAuthenticate); err != nil {
 		return true, "", fmt.Errorf("error answering the re-authentication step at '%s': %w", pageURL, err)
 	}
 
-	if err = b.settle(ctx, conformanceSelectorConsentReauthentication, pageURL); err != nil {
+	if err = b.session.doAwaitSubmitted(ctx, b.page, conformanceSelectorConsentReauthentication, pageURL); err != nil {
 		return true, "", fmt.Errorf("error answering the re-authentication step at '%s': %w", pageURL, err)
 	}
 

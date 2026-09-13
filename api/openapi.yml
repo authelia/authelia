@@ -3733,6 +3733,11 @@ components:
           description: 'A stable machine readable code identifying the error.'
           enum:
             - 'authentication_failed'
+            - 'external_identity_link_conflict'
+            - 'external_identity_link_failed'
+            - 'external_identity_link_none_pending'
+            - 'external_identity_login_failed'
+            - 'external_identity_unlink_failed'
             - 'identity_token_expired'
             - 'identity_token_invalid_signature'
             - 'identity_token_not_yet_valid'

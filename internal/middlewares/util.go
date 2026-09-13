@@ -18,6 +18,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/identity"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
@@ -59,6 +60,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	}
 
 	providers.Authorizer = authorization.NewAuthorizer(config)
+	providers.ExternalIdentity = identity.NewProviders(config.AuthenticationBackend.ExternalIdentity, caCertPool)
 	providers.NTP = ntp.NewProvider(&config.NTP)
 	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, providers.Clock)

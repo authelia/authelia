@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"errors"
+	"time"
 
 	"github.com/valyala/fasthttp"
 
@@ -46,14 +47,26 @@ var (
 )
 
 const (
-	queryArgRD        = "rd"
-	queryArgRM        = "rm"
-	queryArgAuth      = "auth"
-	queryArgConsentID = "consent_id"
-	queryArgFlow      = "flow"
-	queryArgSubflow   = "subflow"
-	queryArgUserCode  = oidc.FormParameterUserCode
-	queryArgFlowID    = oidc.FormParameterFlowID
+	queryArgRD                    = "rd"
+	queryArgRM                    = "rm"
+	queryArgAuth                  = "auth"
+	queryArgConsentID             = "consent_id"
+	queryArgFlow                  = "flow"
+	queryArgSubflow               = "subflow"
+	queryArgUserCode              = oidc.FormParameterUserCode
+	queryArgFlowID                = oidc.FormParameterFlowID
+	queryArgState                 = oidc.FormParameterState
+	queryArgCode                  = "code"
+	queryArgISS                   = "iss"
+	queryArgError                 = "error"
+	queryArgErrorDescription      = "error_description"
+	queryArgErrorHint             = "error_hint"
+	queryArgLinkProvider          = "link_provider"
+	queryArgExternalIdentityError = "external_identity_error"
+)
+
+const (
+	formArgExternalIdentityRelay = "external_identity_relay"
 )
 
 var (
@@ -84,6 +97,11 @@ var (
 	messagePasswordWeak                          = middlewares.ErrorMessagePasswordPolicy
 	messageTOTPConfigurationNotFound             = middlewares.ErrorMessageTOTPConfigurationNotFound
 	messagePasswordBackendComplexity             = middlewares.ErrorMessagePasswordBackendComplexity
+	messageExternalIdentityLoginFailed           = middlewares.ErrorMessageExternalIdentityLoginFailed
+	messageExternalIdentityLinkFailed            = middlewares.ErrorMessageExternalIdentityLinkFailed
+	messageExternalIdentityLinkNonePending       = middlewares.ErrorMessageExternalIdentityLinkNonePending
+	messageExternalIdentityLinkConflict          = middlewares.ErrorMessageExternalIdentityLinkConflict
+	messageExternalIdentityUnlinkFailed          = middlewares.ErrorMessageExternalIdentityUnlinkFailed
 )
 
 const (
@@ -102,6 +120,8 @@ const (
 	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
+
+	logFmtErrExternalIdentityCallback = "Error occurred handling an external identity callback"
 )
 
 const (
@@ -163,10 +183,26 @@ var ldapPasswordComplexityErrors = []string{
 }
 
 const (
-	errStrReqBodyParse        = "error parsing the request body"
-	errStrRespBody            = "error occurred writing the response body"
-	errStrUserSessionData     = "error occurred retrieving the user session data"
-	errStrUserSessionDataSave = "error occurred saving the user session data"
+	errStrReqBodyParse                    = "error parsing the request body"
+	errStrRespBody                        = "error occurred writing the response body"
+	errStrUserSessionData                 = "error occurred retrieving the user session data"
+	errStrUserSessionDataSave             = "error occurred saving the user session data"
+	errStrExternalIdentityProviderUnknown = "the external provider is not configured"
+	errStrSessionProvider                 = "error occurred retrieving the session provider"
+)
+
+const (
+	timeoutExternalIdentityFlow    = time.Minute * 3
+	timeoutExternalIdentityPending = time.Minute * 15
+)
+
+const (
+	pathRoot                           = "/"
+	pathExternalIdentityLinkedAccounts = "/settings/external-identity"
+	pathExternalIdentityLink           = "/external-identity/link"
+	pathExternalIdentityError          = pathRoot + "?" + queryArgExternalIdentityError + "=true"
+	pathExternalIdentitySharedCallback = "/api/identity/callback"
+	pathFmtExternalIdentityCallback    = "/api/identity/%s/callback"
 )
 
 var (

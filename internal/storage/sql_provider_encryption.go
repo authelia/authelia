@@ -36,6 +36,8 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		size, table, desc = sha256.BlockSize, tableTOTPHistory, "totp history"
 	case hmacNameSession:
 		size, table, desc = sha256.BlockSize, tableSession, "sessions"
+	case hmacNameExternalIdentityLink:
+		return p.schemaEncryptionRotateHMACKeyExternalIdentityLink(ctx)
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
 	}
