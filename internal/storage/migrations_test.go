@@ -404,5 +404,5 @@ func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
 }
 
 const (
-	LatestVersion = 33
+	LatestVersion = 34
 )

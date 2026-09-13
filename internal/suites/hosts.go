@@ -59,6 +59,8 @@ func HostEntries() []HostEntry {
 
 		// OpenID Connect 1.0 conformance suite.
 		{Domain: "conformance.example.com", IP: portal},
+		// The external identity provider of the OpenIDConnectRelyingParty suite.
+		{Domain: "auth-upstream.example.com", IP: portal},
 
 		// For Traefik suite.
 		{Domain: "traefik.example.com", IP: portal},

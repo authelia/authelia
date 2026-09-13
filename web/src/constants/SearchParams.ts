@@ -45,3 +45,7 @@ export const ErrorCodeForbidden: string = "forbidden";
 export const FlowNameOpenIDConnect: string = "openid_connect";
 
 export const SubFlowNameDeviceAuthorization: string = "device_authorization";
+
+export const ExternalIdentityLinkProvider: string = "link_provider";
+
+export const ExternalIdentityError: string = "external_identity_error";

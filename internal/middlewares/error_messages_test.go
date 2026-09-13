@@ -16,7 +16,7 @@ import (
 )
 
 func TestErrorMessagesShouldHaveUniqueCodes(t *testing.T) {
-	require.Len(t, middlewares.ErrorMessages, 20)
+	require.Len(t, middlewares.ErrorMessages, 25)
 
 	pattern := regexp.MustCompile(`^[a-z0-9]+(_[a-z0-9]+)*$`)
 	seen := map[string]bool{}
