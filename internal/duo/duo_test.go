@@ -40,6 +40,130 @@ func TestAPIImpl_Call(t *testing.T) {
 	assert.NotNil(t, impl.BaseProvider)
 }
 
+func TestNew(t *testing.T) {
+	testCases := []struct {
+		name     string
+		config   *schema.Configuration
+		expected bool
+	}{
+		{
+			"ShouldReturnNilOnNilConfiguration",
+			nil,
+			false,
+		},
+		{
+			"ShouldReturnNilWhenDisabled",
+			&schema.Configuration{DuoAPI: schema.DuoAPI{Disable: true, Hostname: "duo.example.com", IntegrationKey: "ABC", SecretKey: "123"}},
+			false,
+		},
+		{
+			"ShouldReturnProviderWhenEnabled",
+			&schema.Configuration{DuoAPI: schema.DuoAPI{Hostname: "duo.example.com", IntegrationKey: "ABC", SecretKey: "123"}},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := New(tc.config)
+
+			if tc.expected {
+				assert.NotNil(t, provider)
+			} else {
+				assert.Nil(t, provider)
+			}
+		})
+	}
+}
+
+func TestProduction_StartupCheck(t *testing.T) {
+	testCases := []struct {
+		name  string
+		setup func(base *mocks.MockDuoBaseProvider)
+		err   string
+	}{
+		{
+			"ShouldPass",
+			func(base *mocks.MockDuoBaseProvider) {
+				gomock.InOrder(
+					base.EXPECT().
+						Call(fasthttp.MethodGet, "/auth/v2/ping", nil).
+						Return(&http.Response{StatusCode: fasthttp.StatusOK}, nil, nil),
+					base.EXPECT().
+						SignedCall(fasthttp.MethodGet, "/auth/v2/check", nil).
+						Return(&http.Response{StatusCode: fasthttp.StatusOK}, nil, nil),
+				)
+			},
+			"",
+		},
+		{
+			"ShouldHandlePingError",
+			func(base *mocks.MockDuoBaseProvider) {
+				base.EXPECT().
+					Call(fasthttp.MethodGet, "/auth/v2/ping", nil).
+					Return(nil, nil, fmt.Errorf("uguu"))
+			},
+			"error occurred performing duo ping request: uguu",
+		},
+		{
+			"ShouldHandlePingStatusCode",
+			func(base *mocks.MockDuoBaseProvider) {
+				base.EXPECT().
+					Call(fasthttp.MethodGet, "/auth/v2/ping", nil).
+					Return(&http.Response{StatusCode: fasthttp.StatusInternalServerError}, nil, nil)
+			},
+			"error occurred performing duo ping request: status code 500",
+		},
+		{
+			"ShouldHandleCheckError",
+			func(base *mocks.MockDuoBaseProvider) {
+				gomock.InOrder(
+					base.EXPECT().
+						Call(fasthttp.MethodGet, "/auth/v2/ping", nil).
+						Return(&http.Response{StatusCode: fasthttp.StatusOK}, nil, nil),
+					base.EXPECT().
+						SignedCall(fasthttp.MethodGet, "/auth/v2/check", nil).
+						Return(nil, nil, fmt.Errorf("uguu")),
+				)
+			},
+			"error occurred performing duo check request: uguu",
+		},
+		{
+			"ShouldHandleCheckStatusCode",
+			func(base *mocks.MockDuoBaseProvider) {
+				gomock.InOrder(
+					base.EXPECT().
+						Call(fasthttp.MethodGet, "/auth/v2/ping", nil).
+						Return(&http.Response{StatusCode: fasthttp.StatusOK}, nil, nil),
+					base.EXPECT().
+						SignedCall(fasthttp.MethodGet, "/auth/v2/check", nil).
+						Return(&http.Response{StatusCode: fasthttp.StatusUnauthorized}, nil, nil),
+				)
+			},
+			"error occurred performing duo check request: status code 401",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			base := mocks.NewMockDuoBaseProvider(ctrl)
+
+			tc.setup(base)
+
+			err := NewDuoAPI(base).StartupCheck()
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
+}
+
 func TestDuoProvider_PreAuthCall_JSONError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
