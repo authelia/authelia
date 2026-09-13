@@ -222,8 +222,8 @@ importers:
         specifier: 8.0.0
         version: 8.0.0(postcss@8.5.28)
       autoprefixer:
-        specifier: 10.5.6
-        version: 10.5.6(postcss@8.5.28)
+        specifier: 10.6.0
+        version: 10.6.0(postcss@8.5.28)
       basiclightbox:
         specifier: 5.0.4
         version: 5.0.4
@@ -1195,8 +1195,8 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
-  autoprefixer@10.5.6:
-    resolution: {integrity: sha512-HiH4oYNc5+DQEx/b8FPfMj+WHH/WWUBmbN5r1Uf/ixtfyFkk+wGIlfJT/RD5eAyzlwkeYRtZUCI8qrEi26pl2g==}
+  autoprefixer@10.6.0:
+    resolution: {integrity: sha512-A26d6qs9kqGgkmImIXMYvXTzqb4Qv7AVgpY1NXzr9Y659J8qHHnLOO/zE8ewIGFMprOolAoRAQYDgNryXIJKBw==}
     engines: {node: ^10 || ^12 || >=14}
     hasBin: true
     peerDependencies:
@@ -3452,7 +3452,7 @@ snapshots:
       '@babel/core': 7.29.7
       '@babel/preset-env': 7.29.7(@babel/core@7.29.7)
       '@fullhuman/postcss-purgecss': 8.0.0(postcss@8.5.28)
-      autoprefixer: 10.5.6(postcss@8.5.28)
+      autoprefixer: 10.6.0(postcss@8.5.28)
       lazysizes: 5.3.2
       modern-css-reset: 1.4.0
       postcss: 8.5.28
@@ -3533,7 +3533,7 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 4.0.7
 
-  autoprefixer@10.5.6(postcss@8.5.28):
+  autoprefixer@10.6.0(postcss@8.5.28):
     dependencies:
       browserslist: 4.28.9
       caniuse-lite: 1.0.30001810
