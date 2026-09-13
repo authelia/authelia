@@ -511,6 +511,7 @@ var Keys = []string{
 	"session",
 	"session.cookies",
 	"session.cookies[]",
+	"session.cookies[].anchor_remote_ip",
 	"session.cookies[].authelia_url",
 	"session.cookies[].default_redirection_url",
 	"session.cookies[].domain",

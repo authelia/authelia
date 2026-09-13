@@ -6,6 +6,7 @@ package session
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"time"
 
@@ -31,6 +32,10 @@ type Context interface {
 	// same name, domain, and path as the cookie being cleared, as user agents key cookies on all three and would
 	// otherwise retain the original.
 	ClearCookie(cookie *http.Cookie)
+
+	// RemoteIP returns the remote IP of the request, which sessions are anchored to when the session cookie
+	// configuration enables it.
+	RemoteIP() net.IP
 }
 
 // CachingContext is an optional interface a Context may implement to retain the session it loaded for the duration of

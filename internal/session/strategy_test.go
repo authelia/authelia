@@ -6,6 +6,7 @@ package session
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"net/url"
 	"testing"
@@ -531,12 +532,17 @@ func newTestCodec(t *testing.T) Codec {
 type testContext struct {
 	context.Context
 
-	cookies map[string]string
-	cleared *http.Cookie
+	cookies  map[string]string
+	cleared  *http.Cookie
+	remoteIP net.IP
 }
 
 func newTestContext() *testContext {
-	return &testContext{Context: context.Background(), cookies: map[string]string{}}
+	return &testContext{Context: context.Background(), cookies: map[string]string{}, remoteIP: testRemoteIP}
+}
+
+func (c *testContext) RemoteIP() net.IP {
+	return c.remoteIP
 }
 
 func (c *testContext) GetCookie(name string) string {

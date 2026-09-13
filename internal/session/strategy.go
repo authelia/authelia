@@ -114,6 +114,10 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		}
 	}
 
+	if p.config.AnchorRemoteIP && session.RemoteIP == nil {
+		session.RemoteIP = ctx.RemoteIP()
+	}
+
 	sid := p.codec.Sign([]byte(id))
 
 	if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
@@ -250,9 +254,29 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 		return id, nil, fmt.Errorf("error occurred getting session: domain does not match cookie domain")
 	}
 
+	// A session without a remote IP predates anchoring being enabled, so it's treated the same as a session anchored to
+	// another remote IP rather than being anchored to whichever remote IP happens to present it first.
+	if p.config.AnchorRemoteIP && (session.RemoteIP == nil || !session.RemoteIP.Equal(ctx.RemoteIP())) {
+		return p.replaceUnanchored(ctx, id, session)
+	}
+
 	p.setCached(ctx, session)
 
 	return id, session, nil
+}
+
+func (p *DefaultStrategy) replaceUnanchored(ctx Context, id string, session *UserSession) (string, *UserSession, error) {
+	if err := p.repository.Delete(ctx, p.issuer, id, session.PublicID, session.Username); err != nil {
+		return id, nil, fmt.Errorf("error occurred deleting session not anchored to the remote IP from backend: %w", err)
+	}
+
+	ctx.ClearCookie(p.newDeletionCookie())
+
+	userSession := p.NewDefault()
+
+	p.setCached(ctx, &userSession)
+
+	return "", &userSession, nil
 }
 
 // getCached returns the session the Context retained for this cookie domain. The value is copied so that a mutation

@@ -41,6 +41,7 @@ type SessionCookie struct {
 	Domain                string   `koanf:"domain" yaml:"domain,omitempty" toml:"domain,omitempty" json:"domain,omitempty" jsonschema:"format=hostname,title=Domain" jsonschema_description:"The domain for this session cookie configuration."`
 	AutheliaURL           *url.URL `koanf:"authelia_url" yaml:"authelia_url,omitempty" toml:"authelia_url,omitempty" json:"authelia_url,omitempty" jsonschema:"format=uri,title=Authelia URL" jsonschema_description:"The Root Authelia URL to redirect users to for this session cookie configuration."`
 	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" yaml:"default_redirection_url,omitempty" toml:"default_redirection_url,omitempty" json:"default_redirection_url,omitempty" jsonschema:"format=uri,title=Default Redirection URL" jsonschema_description:"The default redirection URL for this session cookie configuration."`
+	AnchorRemoteIP        bool     `koanf:"anchor_remote_ip" yaml:"anchor_remote_ip" toml:"anchor_remote_ip" json:"anchor_remote_ip" jsonschema:"default=false,title=Anchor Remote IP" jsonschema_description:"Destroys sessions for this session cookie configuration when they're used from a remote IP other than the one they were created from."`
 
 	Legacy bool `yaml:"-" toml:"-" json:"-"`
 }

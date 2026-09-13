@@ -6,6 +6,7 @@ package storage
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -214,6 +215,10 @@ func (c *testSessionContext) SetCookie(cookie *http.Cookie) {
 
 func (c *testSessionContext) ClearCookie(cookie *http.Cookie) {
 	delete(c.cookies, cookie.Name)
+}
+
+func (c *testSessionContext) RemoteIP() net.IP {
+	return net.ParseIP("192.0.2.1")
 }
 
 func newTestSessionProvider(t *testing.T) (ctx context.Context, provider *SQLiteProvider) {

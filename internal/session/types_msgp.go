@@ -25,6 +25,10 @@ type UserSession struct {
 	CookieDomain string `msg:"d"`
 	PublicID     string `msg:"p"`
 
+	// RemoteIP is the remote IP this session is anchored to when the session cookie configuration anchors sessions to
+	// the remote IP.
+	RemoteIP net.IP `msg:"ip,omitempty"`
+
 	// Username for this session.
 	//
 	// SECURITY NOTE: This value MUST NOT be changed directly except within test files, and should instead be changed

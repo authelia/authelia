@@ -850,6 +850,12 @@ session:
       ##      - Match the suffix of the host portion when prefixed with '.'.
       # default_redirection_url: 'https://www.example.com'
 
+      ## Anchors sessions to the remote IP they were first saved from. A session used from another remote IP is
+      ## destroyed.
+      ##
+      ## Please read https://www.authelia.com/c/session#anchor_remote_ip
+      # anchor_remote_ip: false
+
       ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
       ## Please read https://www.authelia.com/c/session#same_site
       # same_site: 'lax'

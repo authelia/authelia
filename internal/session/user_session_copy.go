@@ -12,6 +12,7 @@ import (
 func (s UserSession) deepCopy() (session UserSession) {
 	session = s
 
+	session.RemoteIP = slices.Clone(s.RemoteIP)
 	session.AuthenticationMethodRefs.Extra = slices.Clone(s.AuthenticationMethodRefs.Extra)
 	session.WebAuthn = s.WebAuthn.deepCopy()
 	session.Elevations.User = s.Elevations.User.deepCopy()
