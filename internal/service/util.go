@@ -6,9 +6,12 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strconv"
 	"sync"
 	"syscall"
 
@@ -24,7 +27,8 @@ func RunAll(ctx Context) (err error) {
 }
 
 // Run provisions and runs the services from the given provisioners until the context is cancelled, a SIGINT or
-// SIGTERM signal is received, or a service terminates.
+// SIGTERM signal is received, or a service terminates. It returns ErrApplicationReload if a service requested that the
+// application be reloaded rather than shut down.
 func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	cctx, cancel := context.WithCancel(ctx)
 
@@ -83,11 +87,21 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 		log.WithError(err).Error("Error occurred closing database connections")
 	}
 
+	var reload bool
+
 	if err = group.Wait(); err != nil {
-		log.WithError(err).Error("Error occurred waiting for shutdown")
+		if errors.Is(err, ErrApplicationReload) {
+			reload = true
+		} else {
+			log.WithError(err).Error("Error occurred waiting for shutdown")
+		}
 	}
 
 	log.Info("Shutdown complete")
+
+	if reload {
+		return ErrApplicationReload
+	}
 
 	return nil
 }
@@ -114,6 +128,13 @@ func shutdown(log *logrus.Entry, services []Provider) {
 	wg.Wait()
 }
 
+// IsConfigFileWatcherEnabled determines if a configuration change will cause the Authelia application to reload.
+func IsConfigFileWatcherEnabled() (enabled bool) {
+	value, err := strconv.ParseBool(os.Getenv(environmentVariableConfigReload))
+
+	return err == nil && value
+}
+
 func connectionType(isTLS bool) string {
 	if isTLS {
 		return "TLS"
@@ -133,4 +154,46 @@ func recoverErr(i any) error {
 	default:
 		return fmt.Errorf("recovered panic with unknown type: %v", v)
 	}
+}
+
+func newFileWatcherPaths(in []string) (paths FileWatcherPaths, err error) {
+	paths = make(FileWatcherPaths, len(in))
+
+	for i, path := range in {
+		if path == "" {
+			return nil, fmt.Errorf("path must be specified")
+		}
+
+		if path, err = filepath.Abs(path); err != nil {
+			return nil, fmt.Errorf("could not determine the absolute path of file '%s': %w", path, err)
+		}
+
+		var info os.FileInfo
+
+		if info, err = os.Stat(path); err != nil {
+			switch {
+			case os.IsNotExist(err):
+				return nil, fmt.Errorf("error stating file '%s': file does not exist", path)
+			case os.IsPermission(err):
+				return nil, fmt.Errorf("error stating file '%s': permission denied trying to read the file", path)
+			default:
+				return nil, fmt.Errorf("error stating file '%s': %w", path, err)
+			}
+		}
+
+		if info.IsDir() {
+			paths[i] = FileWatcherPath{
+				Directory: path,
+				Info:      info,
+			}
+		} else {
+			paths[i] = FileWatcherPath{
+				File:      filepath.Base(path),
+				Directory: filepath.Dir(path),
+				Info:      info,
+			}
+		}
+	}
+
+	return paths, nil
 }

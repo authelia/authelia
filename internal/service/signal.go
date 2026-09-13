@@ -25,11 +25,28 @@ func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
 
 	return &Signal{
 		name:    "log-reload",
+		signals: []os.Signal{syscall.SIGUSR1},
+		action: func() (bubble bool, err error) {
+			return false, logging.Reopen()
+		},
+		log:    ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
+		notify: make(chan os.Signal, 1),
+		quit:   make(chan struct{}),
+	}, nil
+}
+
+// ProvisionApplicationReloadSignal returns a Provider which performs an effective application reload when the relevant
+// signal is received.
+func ProvisionApplicationReloadSignal(ctx Context) (service Provider, err error) {
+	return &Signal{
+		name:    "application-reload",
 		signals: []os.Signal{syscall.SIGHUP},
-		action:  logging.Reopen,
-		log:     ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
-		notify:  make(chan os.Signal, 1),
-		quit:    make(chan struct{}),
+		action: func() (bubble bool, err error) {
+			return true, ErrApplicationReload
+		},
+		log:    ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "application-reload"}),
+		notify: make(chan os.Signal, 1),
+		quit:   make(chan struct{}),
 	}, nil
 }
 
@@ -37,7 +54,7 @@ func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
 type Signal struct {
 	name    string
 	signals []os.Signal
-	action  func() (err error)
+	action  func() (bubble bool, err error)
 	log     *logrus.Entry
 
 	notify chan os.Signal
@@ -64,10 +81,17 @@ func (service *Signal) Run() (err error) {
 	for {
 		select {
 		case s := <-service.notify:
-			if err = service.action(); err != nil {
-				service.log.WithError(err).Error("Error occurred executing service action.")
-			} else {
-				service.log.WithFields(map[string]any{"signal-received": s.String()}).Debug("Successfully executed service action.")
+			log := service.log.WithFields(map[string]any{"signal-received": s.String()})
+
+			var bubble bool
+
+			switch bubble, err = service.action(); {
+			case err != nil && bubble:
+				return err
+			case err != nil:
+				log.WithError(err).Error("Error occurred executing service action.")
+			default:
+				log.Debug("Successfully executed service action.")
 			}
 		case <-service.quit:
 			return nil

@@ -90,9 +90,14 @@ default uses the [RFC3339] layout, but optionally can be suffixed with the
 [Go Layout](https://pkg.go.dev/time#pkg-constants) semantics in the format of `{datetime:<layout>}` where `<layout>` is
 the layout supported by Go.
 
-When using a log file sending the Authelia process a SIGHUP will cause it to close and reopen the current log file and
-truncate it. This is useful for log rotation services which can force a reopen so the file descriptor open does not
+When using a log file sending the Authelia process a `SIGUSR1` will cause it to close and reopen the current log file
+and truncate it. This is useful for log rotation services which can force a reopen so the file descriptor open does not
 continue to append to the old log file.
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Prior to v4.40.0 this behavior was triggered by the `SIGHUP` signal. The `SIGHUP` signal now reloads the entire
+application, so log rotation configurations must be updated to send `SIGUSR1` instead.
+{{< /callout >}}
 
 #### File Path Examples
 

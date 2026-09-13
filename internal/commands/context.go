@@ -52,6 +52,7 @@ type CmdCtx struct {
 	trusted   *x509.CertPool
 
 	cconfig *CmdCtxConfig
+	cpaths  []string
 
 	factoryX509SystemCertPool utils.X509SystemCertPoolFactory
 }
@@ -100,6 +101,12 @@ func (ctx *CmdCtx) GetRandom() (random random.Provider) {
 // GetConfiguration returns *schema.Configuration satisfying part of the ServiceCtx.
 func (ctx *CmdCtx) GetConfiguration() *schema.Configuration {
 	return ctx.config
+}
+
+// GetConfigurationPaths returns the configuration file and directory paths which were loaded, satisfying part of the
+// ServiceCtx. The paths are retained separately to the CmdCtxConfig as it's discarded prior to the services running.
+func (ctx *CmdCtx) GetConfigurationPaths() (paths []string) {
+	return ctx.cpaths
 }
 
 // CheckSchemaVersion returns an error if the storage schema is not at the latest version.
@@ -433,6 +440,8 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 	if ctx.cconfig.files, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
 		return err
 	}
+
+	ctx.cpaths = ctx.cconfig.files
 
 	ctx.cconfig.filters = make([]string, len(filters))
 
