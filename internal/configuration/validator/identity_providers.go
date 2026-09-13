@@ -746,6 +746,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientSectorIdentifier(ctx, c, config, validator, errDeprecatedFunc)
 
 	validateOIDCClientPublicKeys(c, config, validator)
+	validateOIDCClientRequireSignedRequestObject(c, config, validator)
 
 	var (
 		method, alg                                  string
@@ -803,6 +804,19 @@ func validateOIDCClientPublicKeys(c int, config *schema.IdentityProvidersOpenIDC
 		}
 	case len(config.Clients[c].JSONWebKeys) != 0:
 		validateOIDCClientJSONWebKeysList(c, config, validator)
+	}
+}
+
+func validateOIDCClientRequireSignedRequestObject(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.Clients[c].RequestObjectSigningAlg != oidc.SigningAlgNone {
+		return
+	}
+
+	switch {
+	case config.Clients[c].RequireSignedRequestObject:
+		validator.Push(fmt.Errorf(errFmtOIDCClientRequireSignedRequestObjectAlgNone, config.Clients[c].ID, "client"))
+	case config.RequireSignedRequestObject:
+		validator.Push(fmt.Errorf(errFmtOIDCClientRequireSignedRequestObjectAlgNone, config.Clients[c].ID, "provider"))
 	}
 }
 
