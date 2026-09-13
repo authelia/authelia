@@ -364,6 +364,10 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 	if !reAuthzEndpointName.MatchString(name) {
 		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzInvalidName, name))
 	}
+
+	if config.Server.Endpoints.Authz[name].Implementation == schema.AuthzImplementationLegacy && config.Server.Endpoints.Authz[name].Headers.CookieSession {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzLegacyHeadersCookieSession, name, schema.AuthzImplementationLegacy))
+	}
 }
 
 //nolint:gocyclo
