@@ -39,6 +39,7 @@ const steps = ["Start", "Register", "Confirm"];
 interface Props {
     open: boolean;
     setClosed: () => void;
+    onRegistrationSuccess?: () => void;
 }
 
 interface Options {
@@ -136,6 +137,10 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
 
             props.setClosed();
             resetStates();
+
+            if (props.onRegistrationSuccess) {
+                props.onRegistrationSuccess();
+            }
         }, 750);
     }, [createSuccessNotification, props, resetStates, translate]);
 

@@ -34,6 +34,7 @@ const steps = ["Description", "Verification"];
 interface Props {
     open: boolean;
     setClosed: () => void;
+    onRegistrationSuccess?: () => void;
 }
 
 const WebAuthnCredentialRegisterDialog = function (props: Props) {
@@ -97,6 +98,11 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                                 item: translate("WebAuthn Credential"),
                             }),
                         );
+
+                        if (props.onRegistrationSuccess) {
+                            props.onRegistrationSuccess();
+                        }
+
                         break;
                     case AttestationResult.Failure:
                         createErrorNotification(response.message);
@@ -116,7 +122,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         } finally {
             handleClose();
         }
-    }, [props.open, options, createSuccessNotification, translate, createErrorNotification, handleClose]);
+    }, [props, options, createSuccessNotification, translate, createErrorNotification, handleClose]);
 
     useEffect(() => {
         (async function () {

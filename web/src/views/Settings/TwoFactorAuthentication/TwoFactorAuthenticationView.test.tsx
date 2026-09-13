@@ -63,6 +63,7 @@ vi.mock("@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel", () => ({
     default: (props: any) => (
         <div data-testid="otp-panel">
             <button data-testid="otp-refresh" onClick={() => props.handleRefreshState()} />
+            <button data-testid="otp-register-success" onClick={() => props.onRegistrationSuccess?.()} />
         </div>
     ),
 }));
@@ -83,8 +84,19 @@ vi.mock("@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel", () =
     default: (props: any) => (
         <div data-testid="webauthn-panel">
             <button data-testid="webauthn-refresh" onClick={() => props.handleRefreshState()} />
+            <button data-testid="webauthn-register-success" onClick={() => props.onRegistrationSuccess?.()} />
         </div>
     ),
+}));
+
+const mockRedirectDialogProps = vi.fn();
+
+vi.mock("@views/Settings/TwoFactorAuthentication/RedirectAfterEnrollmentDialog", () => ({
+    default: (props: { open: boolean; setClosed: () => void }) => {
+        mockRedirectDialogProps(props);
+
+        return props.open ? <div data-testid="redirect-dialog" /> : null;
+    },
 }));
 
 const bothMethods = { available_methods: new Set([SecondFactorMethod.TOTP, SecondFactorMethod.WebAuthn]) };
@@ -297,5 +309,74 @@ describe("refreshing", () => {
         fireEvent.click(screen.getByTestId("options-refresh"));
 
         await waitFor(() => expect(mocks.fetchUserInfo).toHaveBeenCalled());
+    });
+});
+
+describe("redirect after enrollment", () => {
+    it("does not show the redirect dialog when the user already has MFA devices", () => {
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.queryByTestId("redirect-dialog")).not.toBeInTheDocument();
+        expect(mockRedirectDialogProps).toHaveBeenCalledWith(expect.objectContaining({ open: false }));
+    });
+
+    it("shows the redirect dialog after registering the first OTP device", () => {
+        mocks.userInfo = { ...userInfo, has_totp: false, has_webauthn: false };
+
+        render(<TwoFactorAuthenticationView />);
+
+        fireEvent.click(screen.getByTestId("otp-register-success"));
+
+        expect(screen.getByTestId("redirect-dialog")).toBeInTheDocument();
+    });
+
+    it("shows the redirect dialog after registering the first WebAuthn device", () => {
+        mocks.userInfo = { ...userInfo, has_totp: false, has_webauthn: false };
+
+        render(<TwoFactorAuthenticationView />);
+
+        fireEvent.click(screen.getByTestId("webauthn-register-success"));
+
+        expect(screen.getByTestId("redirect-dialog")).toBeInTheDocument();
+    });
+
+    it("does not show the redirect dialog when the user already has Duo configured", () => {
+        mocks.userInfo = { ...userInfo, has_duo: true, has_totp: false, has_webauthn: false };
+
+        render(<TwoFactorAuthenticationView />);
+
+        fireEvent.click(screen.getByTestId("otp-register-success"));
+
+        expect(screen.queryByTestId("redirect-dialog")).not.toBeInTheDocument();
+    });
+
+    it("does not re-trigger the redirect dialog for a later registration in the same session", () => {
+        mocks.userInfo = { ...userInfo, has_totp: false, has_webauthn: false };
+
+        render(<TwoFactorAuthenticationView />);
+
+        fireEvent.click(screen.getByTestId("otp-register-success"));
+        expect(screen.getByTestId("redirect-dialog")).toBeInTheDocument();
+
+        mockRedirectDialogProps.mockClear();
+
+        fireEvent.click(screen.getByTestId("webauthn-register-success"));
+
+        expect(mockRedirectDialogProps).not.toHaveBeenCalled();
+        expect(screen.getByTestId("redirect-dialog")).toBeInTheDocument();
+    });
+
+    it("replays a registration success that happens before user info resolves", () => {
+        mocks.userInfo = undefined;
+
+        const { rerender } = render(<TwoFactorAuthenticationView />);
+
+        fireEvent.click(screen.getByTestId("otp-register-success"));
+        expect(screen.queryByTestId("redirect-dialog")).not.toBeInTheDocument();
+
+        mocks.userInfo = { ...userInfo, has_totp: false, has_webauthn: false };
+        rerender(<TwoFactorAuthenticationView />);
+
+        expect(screen.getByTestId("redirect-dialog")).toBeInTheDocument();
     });
 });
