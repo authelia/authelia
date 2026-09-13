@@ -744,6 +744,7 @@ func TestServerAuthzEndpointDefaults(t *testing.T) {
 			map[string]schema.ServerEndpointsAuthz{
 				"example": {
 					Implementation: "ForwardAuth",
+					Headers:        schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers,
 					AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
 						{
 							Name:    "HeaderAuthorization",
@@ -762,6 +763,7 @@ func TestServerAuthzEndpointDefaults(t *testing.T) {
 			map[string]schema.ServerEndpointsAuthz{
 				"example": {
 					Implementation: "ForwardAuth",
+					Headers:        schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers,
 					AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
 						{
 							Name:    "HeaderAuthorization",
@@ -982,6 +984,204 @@ func TestValidateServerAssets(t *testing.T) {
 				default:
 					t.Fatal("Expected regex or string for error type")
 				}
+			}
+		})
+	}
+}
+
+func TestServerAuthzEndpointHeaders(t *testing.T) {
+	testCases := []struct {
+		name    string
+		setup   func(config *schema.Configuration)
+		headers map[string]schema.ServerEndpointsAuthzHeader
+		errs    []string
+	}{
+		{
+			name: "ShouldAllowDefaultAttributes",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				schema.HeaderRemoteUser:   {UserAttribute: "username"},
+				schema.HeaderRemoteGroups: {UserAttribute: "groups"},
+				schema.HeaderRemoteName:   {UserAttribute: "display_name"},
+				schema.HeaderRemoteEmail:  {UserAttribute: "email"},
+			},
+		},
+		{
+			name: "ShouldAllowDerivedAttributes",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-Emails-Extra":          {UserAttribute: "emails_extra"},
+				"Remote-Email-Verified":        {UserAttribute: "email_verified"},
+				"Remote-Updated-At":            {UserAttribute: "updated_at"},
+				"Remote-Address":               {UserAttribute: "address"},
+				"Remote-Phone-Number-RFC3966":  {UserAttribute: "phone_number_rfc3966"},
+				"Remote-Phone-Number-Verified": {UserAttribute: "phone_number_verified"},
+			},
+		},
+		{
+			name: "ShouldAllowExtraAttributeFromFileBackend",
+			setup: func(config *schema.Configuration) {
+				config.AuthenticationBackend.File.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{
+					"employee_id": {ValueType: "integer"},
+				}
+			},
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-Employee-Id": {UserAttribute: "employee_id"},
+			},
+		},
+		{
+			name: "ShouldAllowDefinedUserAttribute",
+			setup: func(config *schema.Configuration) {
+				config.Definitions.UserAttributes = map[string]schema.UserAttribute{
+					"is_admin": {Expression: "'admins' in groups"},
+				}
+			},
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-Is-Admin": {UserAttribute: "is_admin"},
+			},
+		},
+		{
+			name: "ShouldErrorOnUnknownAttributes",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-Email": {UserAttribute: "email"},
+				"Remote-Teams": {UserAttribute: "teams"},
+			},
+			errs: []string{
+				"server: endpoints: authz: example: headers: Remote-Email: option 'user_attribute' must be a known user attribute but it's configured as 'email'",
+				"server: endpoints: authz: example: headers: Remote-Teams: option 'user_attribute' must be a known user attribute but it's configured as 'teams'",
+			},
+		},
+		{
+			name: "ShouldErrorOnInvalidHeaderNames",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote User":  {UserAttribute: "username"},
+				"Remote:Group": {UserAttribute: "groups"},
+			},
+			errs: []string{
+				"server: endpoints: authz: example: headers: Remote User: header name must only contain valid header name characters",
+				"server: endpoints: authz: example: headers: Remote:Group: header name must only contain valid header name characters",
+			},
+		},
+		{
+			name: "ShouldErrorOnReservedHeaderNames",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Content-Type":     {UserAttribute: "username"},
+				"Location":         {UserAttribute: "username"},
+				"set-cookie":       {UserAttribute: "username"},
+				"WWW-Authenticate": {UserAttribute: "username"},
+				"X-Authelia-URL":   {UserAttribute: "username"},
+			},
+			errs: []string{
+				"server: endpoints: authz: example: headers: Content-Type: header name must not be a standard or reserved header",
+				"server: endpoints: authz: example: headers: Location: header name must not be a standard or reserved header",
+				"server: endpoints: authz: example: headers: WWW-Authenticate: header name must not be a standard or reserved header",
+				"server: endpoints: authz: example: headers: X-Authelia-URL: header name must not be a standard or reserved header",
+				"server: endpoints: authz: example: headers: set-cookie: header name must not be a standard or reserved header",
+			},
+		},
+		{
+			name: "ShouldErrorOnReservedHeaderNamePrefixes",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Access-Control-Allow-Origin": {UserAttribute: "username"},
+				"Sec-Fetch-Site":              {UserAttribute: "username"},
+				"X-Forwarded-User":            {UserAttribute: "username"},
+				"X-Original-User":             {UserAttribute: "username"},
+			},
+			errs: []string{
+				"server: endpoints: authz: example: headers: Access-Control-Allow-Origin: header name must not be a standard or reserved header",
+				"server: endpoints: authz: example: headers: Sec-Fetch-Site: header name must not be a standard or reserved header",
+				"server: endpoints: authz: example: headers: X-Forwarded-User: header name must not be a standard or reserved header",
+				"server: endpoints: authz: example: headers: X-Original-User: header name must not be a standard or reserved header",
+			},
+		},
+		{
+			name: "ShouldErrorOnDuplicateHeaderNames",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-User": {UserAttribute: "username"},
+				"remote-user": {UserAttribute: "display_name"},
+			},
+			errs: []string{
+				"server: endpoints: authz: example: headers: remote-user: header name duplicates the 'Remote-User' header as header names are case-insensitive",
+			},
+		},
+		{
+			name: "ShouldAllowUncommonButValidHeaderNames",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote_User":   {UserAttribute: "username"},
+				"X-Team+Name":   {UserAttribute: "display_name"},
+				"Remote-Groups": {UserAttribute: "groups"},
+			},
+		},
+		{
+			name: "ShouldErrorOnMissingUserAttribute",
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-User": {},
+			},
+			errs: []string{
+				"server: endpoints: authz: example: headers: Remote-User: option 'user_attribute' is required",
+			},
+		},
+		{
+			name: "ShouldErrorOnAttributeNotMappedByLDAPBackend",
+			setup: func(config *schema.Configuration) {
+				config.AuthenticationBackend.File = nil
+				config.AuthenticationBackend.LDAP = &schema.AuthenticationBackendLDAP{}
+			},
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-Given-Name": {UserAttribute: "given_name"},
+			},
+			errs: []string{
+				"server: endpoints: authz: example: headers: Remote-Given-Name: option 'user_attribute' must be a known user attribute but it's configured as 'given_name'",
+			},
+		},
+		{
+			name: "ShouldAllowAttributeMappedByLDAPBackend",
+			setup: func(config *schema.Configuration) {
+				config.AuthenticationBackend.File = nil
+				config.AuthenticationBackend.LDAP = &schema.AuthenticationBackendLDAP{}
+				config.AuthenticationBackend.LDAP.Attributes.GivenName = "givenName"
+				config.AuthenticationBackend.LDAP.Attributes.PhoneNumber = "telephoneNumber"
+			},
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-Given-Name":           {UserAttribute: "given_name"},
+				"Remote-Phone-Number-RFC3966": {UserAttribute: "phone_number_rfc3966"},
+				"Remote-Updated-At":           {UserAttribute: "updated_at"},
+			},
+		},
+		{
+			name: "ShouldErrorOnDerivedAddressNotMappedByLDAPBackend",
+			setup: func(config *schema.Configuration) {
+				config.AuthenticationBackend.File = nil
+				config.AuthenticationBackend.LDAP = &schema.AuthenticationBackendLDAP{}
+			},
+			headers: map[string]schema.ServerEndpointsAuthzHeader{
+				"Remote-Address": {UserAttribute: "address"},
+			},
+			errs: []string{
+				"server: endpoints: authz: example: headers: Remote-Address: option 'user_attribute' must be a known user attribute but it's configured as 'address'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := newDefaultConfig()
+
+			if tc.setup != nil {
+				tc.setup(&config)
+			}
+
+			config.Server.Endpoints.Authz = map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: schema.AuthzImplementationForwardAuth, Headers: tc.headers},
+			}
+
+			ValidateServerEndpoints(&config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
 			}
 		})
 	}

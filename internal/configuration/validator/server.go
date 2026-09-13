@@ -348,8 +348,6 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 			break
 		case "":
 			endpoint.Implementation = schema.AuthzImplementationLegacy
-
-			config.Server.Endpoints.Authz[name] = endpoint
 		default:
 			if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
 				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, utils.StringJoinOr(validAuthzImplementations), endpoint.Implementation))
@@ -363,6 +361,104 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 
 	if !reAuthzEndpointName.MatchString(name) {
 		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzInvalidName, name))
+	}
+
+	// NOTE: With exclusion of the implementation set any options below this line.
+	if endpoint.Implementation == schema.AuthzImplementationLegacy && endpoint.Headers != nil {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzOptionLegacy, name, "headers"))
+	}
+
+	if endpoint.Headers == nil {
+		switch endpoint.Implementation {
+		case schema.AuthzImplementationLegacy:
+			break
+		case schema.AuthzImplementationAuthRequest:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameAuthRequest].Headers
+		case schema.AuthzImplementationExtAuthz:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameExtAuthz].Headers
+		case schema.AuthzImplementationForwardAuth:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers
+		}
+	} else {
+		validateServerEndpointsAuthzEndpointHeaders(config, name, endpoint, validator)
+	}
+
+	config.Server.Endpoints.Authz[name] = endpoint
+}
+
+func validateServerEndpointsAuthzEndpointHeaders(config *schema.Configuration, name string, endpoint schema.ServerEndpointsAuthz, validator *schema.StructValidator) {
+	headers := make([]string, 0, len(endpoint.Headers))
+
+	for header := range endpoint.Headers {
+		headers = append(headers, header)
+	}
+
+	sort.Strings(headers)
+
+	seen := make(map[string]string, len(headers))
+
+	for _, header := range headers {
+		validateServerEndpointsAuthzEndpointHeaderName(name, header, seen, validator)
+
+		switch attribute := endpoint.Headers[header].UserAttribute; {
+		case attribute == "":
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderUserAttributeMissing, name, header))
+		case !isUserAttributeValidAuthz(attribute, config):
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderUserAttribute, name, header, attribute))
+		}
+	}
+}
+
+func validateServerEndpointsAuthzEndpointHeaderName(name, header string, seen map[string]string, validator *schema.StructValidator) {
+	if !reAuthzEndpointHeaderName.MatchString(header) {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderInvalidName, name, header))
+
+		return
+	}
+
+	key := strings.ToLower(header)
+
+	if first, ok := seen[key]; ok {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderDuplicateName, name, header, first))
+
+		return
+	}
+
+	seen[key] = header
+
+	if utils.IsStringInSlice(key, reservedAuthzEndpointHeaderNames) {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderReservedName, name, header))
+
+		return
+	}
+
+	for _, prefix := range reservedAuthzEndpointHeaderPrefixes {
+		if strings.HasPrefix(key, prefix) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderReservedName, name, header))
+
+			return
+		}
+	}
+}
+
+func isUserAttributeValidAuthz(name string, config *schema.Configuration) (valid bool) {
+	if _, ok := config.Definitions.UserAttributes[name]; ok {
+		return true
+	}
+
+	switch name {
+	case attributeUserEmailVerified, attributeUserEmailsExtra, attributeUserUpdatedAt:
+		return true
+	case attributeUserPhoneNumberRFC3966, attributeUserPhoneNumberVerified:
+		return isUserAttributeValid(attributeUserPhoneNumber, config)
+	case attributeUserAddress:
+		return isUserAttributeValid(attributeUserStreetAddress, config) ||
+			isUserAttributeValid(attributeUserLocality, config) ||
+			isUserAttributeValid(attributeUserRegion, config) ||
+			isUserAttributeValid(attributeUserPostalCode, config) ||
+			isUserAttributeValid(attributeUserCountry, config)
+	default:
+		return isUserAttributeValid(name, config)
 	}
 }
 

@@ -441,18 +441,24 @@ const (
 	errFmtServerPathNotEndForwardSlash = "server: option 'address' must be a single subpath (i.e. '%s'), but '%s' contains multiple segments"
 	errFmtServerPathAlphaNumeric       = "server: option 'address' must have a path with only alphanumeric characters but it's configured as '%s'"
 
-	errFmtServerEndpointsAuthzImplementation            = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
-	errFmtServerEndpointsAuthzStrategy                  = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"
-	errFmtServerEndpointsAuthzSchemes                   = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' must only include the values %s but has '%s'"
-	errFmtServerEndpointsAuthzSchemesInvalidForStrategy = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' is not valid for the strategy"
-	errFmtServerEndpointsAuthzStrategyNoName            = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option 'name' must be configured"
-	errFmtServerEndpointsAuthzStrategySchemeOnlyOption  = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option '%s' can't be configured unless the '%s' scheme is configured but only the %s schemes are configured"
-	errFmtServerEndpointsAuthzStrategyDuplicate         = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
-	errFmtServerEndpointsAuthzPrefixDuplicate           = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
-	errFmtServerEndpointsRateLimitsBucketPeriodZero     = "server: endpoints: rate_limits: %s: bucket %d: option 'period' must have a value"
-	errFmtServerEndpointsRateLimitsBucketPeriodTooLow   = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
-	errFmtServerEndpointsRateLimitsBucketRequestsZero   = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
-	errFmtServerEndpointsAuthzInvalidName               = "server: endpoints: authz: %s: contains invalid characters"
+	errFmtServerEndpointsAuthzOptionLegacy               = "server: endpoints: authz: %s: option '%s' must not be configured for the 'Legacy' implementation"
+	errFmtServerEndpointsAuthzHeaderInvalidName          = "server: endpoints: authz: %s: headers: %s: header name must only contain valid header name characters"
+	errFmtServerEndpointsAuthzHeaderReservedName         = "server: endpoints: authz: %s: headers: %s: header name must not be a standard or reserved header"
+	errFmtServerEndpointsAuthzHeaderDuplicateName        = "server: endpoints: authz: %s: headers: %s: header name duplicates the '%s' header as header names are case-insensitive"
+	errFmtServerEndpointsAuthzHeaderUserAttributeMissing = "server: endpoints: authz: %s: headers: %s: option 'user_attribute' is required"
+	errFmtServerEndpointsAuthzHeaderUserAttribute        = "server: endpoints: authz: %s: headers: %s: option 'user_attribute' must be a known user attribute but it's configured as '%s'"
+	errFmtServerEndpointsAuthzImplementation             = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
+	errFmtServerEndpointsAuthzStrategy                   = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"
+	errFmtServerEndpointsAuthzSchemes                    = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' must only include the values %s but has '%s'"
+	errFmtServerEndpointsAuthzSchemesInvalidForStrategy  = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' is not valid for the strategy"
+	errFmtServerEndpointsAuthzStrategyNoName             = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option 'name' must be configured"
+	errFmtServerEndpointsAuthzStrategySchemeOnlyOption   = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option '%s' can't be configured unless the '%s' scheme is configured but only the %s schemes are configured"
+	errFmtServerEndpointsAuthzStrategyDuplicate          = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
+	errFmtServerEndpointsAuthzPrefixDuplicate            = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
+	errFmtServerEndpointsRateLimitsBucketPeriodZero      = "server: endpoints: rate_limits: %s: bucket %d: option 'period' must have a value"
+	errFmtServerEndpointsRateLimitsBucketPeriodTooLow    = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
+	errFmtServerEndpointsRateLimitsBucketRequestsZero    = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
+	errFmtServerEndpointsAuthzInvalidName                = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
 )
@@ -635,15 +641,20 @@ var (
 )
 
 var (
-	reKeyReplacer       = regexp.MustCompile(`\[\d+]`)
-	reDomainCharacters  = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$`)
-	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/._-]*)([a-zA-Z]))?$`)
-	reOpenIDConnectKID  = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
-	reRFC3986Unreserved = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
+	reKeyReplacer             = regexp.MustCompile(`\[\d+]`)
+	reDomainCharacters        = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$`)
+	reAuthzEndpointName       = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/._-]*)([a-zA-Z]))?$`)
+	reAuthzEndpointHeaderName = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$")
+	reOpenIDConnectKID        = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
+	reRFC3986Unreserved       = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
 )
 
 const (
 	attributeUserUsername       = "username"
+	attributeUserEmailVerified  = "email_verified"
+	attributeUserEmailsExtra    = "emails_extra"
+	attributeUserUpdatedAt      = "updated_at"
+	attributeUserAddress        = "address"
 	attributeUserGroups         = "groups"
 	attributeUserDisplayName    = "display_name"
 	attributeUserEmail          = "email"
@@ -661,12 +672,46 @@ const (
 	attributeUserLocale         = "locale"
 	attributeUserPhoneNumber    = "phone_number"
 	attributeUserPhoneExtension = "phone_extension"
-	attributeUserStreetAddress  = "street_address"
-	attributeUserLocality       = "locality"
-	attributeUserRegion         = "region"
-	attributeUserPostalCode     = "postal_code"
-	attributeUserCountry        = "country"
+
+	attributeUserPhoneNumberRFC3966  = "phone_number_rfc3966"
+	attributeUserPhoneNumberVerified = "phone_number_verified"
+
+	attributeUserStreetAddress = "street_address"
+	attributeUserLocality      = "locality"
+	attributeUserRegion        = "region"
+	attributeUserPostalCode    = "postal_code"
+	attributeUserCountry       = "country"
 )
+
+var reservedAuthzEndpointHeaderNames = []string{
+	// Message framing, representation metadata, and hop-by-hop headers.
+	"connection", "content-disposition", "content-encoding", "content-language", "content-length",
+	"content-location", "content-md5", "content-range", "content-type", "date", "expect", "forwarded", "host",
+	"keep-alive", "max-forwards", "proxy-connection", "range", "referer", "server", "te", "trailer",
+	"transfer-encoding", "upgrade", "user-agent", "via", "warning",
+
+	// Authentication, authorization, and session headers.
+	"authorization", "cookie", "proxy-authenticate", "proxy-authorization", "session-username", "set-cookie",
+	"www-authenticate",
+
+	// Redirection, caching, and conditional headers.
+	"age", "cache-control", "etag", "expires", "last-modified", "location", "pragma", "refresh", "retry-after",
+	"vary",
+
+	// Security headers.
+	"alt-svc", "clear-site-data", "content-security-policy", "content-security-policy-report-only", "expect-ct",
+	"feature-policy", "nel", "origin", "origin-agent-cluster", "permissions-policy", "referrer-policy",
+	"report-to", "strict-transport-security", "timing-allow-origin", "x-content-type-options",
+	"x-dns-prefetch-control", "x-download-options", "x-frame-options", "x-permitted-cross-domain-policies",
+	"x-xss-protection",
+
+	// Headers utilized by Authelia and the proxies which integrate with it.
+	"x-authelia-url", "x-real-ip",
+}
+
+var reservedAuthzEndpointHeaderPrefixes = []string{
+	"access-control-", "if-", "sec-", "x-forwarded-", "x-original-",
+}
 
 var validUserAttributes = []string{
 	attributeUserUsername,
