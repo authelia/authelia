@@ -133,3 +133,9 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "OpenID Foundation"
 SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "web/src/assets/images/identity/discord.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "Discord Inc."
+SPDX-License-Identifier = "LicenseRef-Trademark"

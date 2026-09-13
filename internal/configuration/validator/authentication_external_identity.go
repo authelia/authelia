@@ -33,6 +33,7 @@ func ValidateAuthenticationBackendExternalIdentity(config *schema.Authentication
 
 func validateAuthenticationBackendExternalIdentityProvidersUnique(config *schema.AuthenticationBackendExternalIdentity, validator *schema.StructValidator) {
 	var (
+		types   = map[string][]string{}
 		issuers = map[string][]string{}
 		order   []string
 		seen    = map[string]bool{}
@@ -45,15 +46,26 @@ func validateAuthenticationBackendExternalIdentityProvidersUnique(config *schema
 
 		seen[provider.ID] = true
 
-		if provider.Type != externalIdentityTypeOpenIDConnect || provider.Issuer == "" {
-			continue
-		}
+		switch provider.Type {
+		case externalIdentityTypeDiscord:
+			types[provider.Type] = append(types[provider.Type], provider.ID)
+		case externalIdentityTypeOpenIDConnect:
+			if provider.Issuer == "" {
+				continue
+			}
 
-		if _, ok := issuers[provider.Issuer]; !ok {
-			order = append(order, provider.Issuer)
-		}
+			if _, ok := issuers[provider.Issuer]; !ok {
+				order = append(order, provider.Issuer)
+			}
 
-		issuers[provider.Issuer] = append(issuers[provider.Issuer], provider.ID)
+			issuers[provider.Issuer] = append(issuers[provider.Issuer], provider.ID)
+		}
+	}
+
+	for _, providerType := range []string{externalIdentityTypeDiscord} {
+		if len(types[providerType]) > 1 {
+			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderTypeDuplicate, providerType, utils.StringJoinAnd(types[providerType])))
+		}
 	}
 
 	if utils.Dev && os.Getenv(envExternalIdentityOpenIDConnectAllowDuplicateIssuer) == "true" {
@@ -97,6 +109,8 @@ func validateAuthenticationBackendExternalIdentityProvider(i int, config *schema
 		config.Type = externalIdentityTypeOpenIDConnect
 
 		validateAuthenticationBackendExternalIdentityProviderOpenIDConnect(config, validator)
+	case externalIdentityTypeDiscord:
+		validateAuthenticationBackendExternalIdentityProviderDiscord(config, validator)
 	default:
 		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderType, config.ID, utils.StringJoinOr(validExternalIdentityTypes), config.Type))
 	}
@@ -142,6 +156,44 @@ func validateAuthenticationBackendExternalIdentityProviderOpenIDConnect(config *
 
 		if config.RequirePushedAuthorizationRequests && config.Endpoints.PushedAuthorizationRequest == "" {
 			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderEndpointPAR, config.ID))
+		}
+	}
+}
+
+func validateAuthenticationBackendExternalIdentityProviderDiscord(config *schema.AuthenticationBackendExternalIdentityProvider, validator *schema.StructValidator) {
+	validateAuthenticationBackendExternalIdentityProviderUnsupported(config, append(externalIdentityOpenIDConnectOnlyOptions(config), externalIdentityOption{"shared_redirect_uri", config.SharedRedirectURI}), validator)
+
+	validateAuthenticationBackendExternalIdentityProviderScopes(config, "identify", defaultExternalIdentityDiscordScopes)
+	validateAuthenticationBackendExternalIdentityProviderResponseMode(config, validExternalIdentityQueryResponseModes, validator)
+	validateAuthenticationBackendExternalIdentityProviderAuthMethod(config, validExternalIdentityConfidentialMethods, validator)
+	validateAuthenticationBackendExternalIdentityProviderPKCE(config, validator)
+	validateAuthenticationBackendExternalIdentityProviderAMRDefault(config, validator)
+}
+
+type externalIdentityOption struct {
+	name       string
+	configured bool
+}
+
+func externalIdentityOpenIDConnectOnlyOptions(config *schema.AuthenticationBackendExternalIdentityProvider) []externalIdentityOption {
+	return []externalIdentityOption{
+		{"issuer", config.Issuer != ""},
+		{"id_token_signed_response_alg", config.IDTokenSignedResponseAlg != ""},
+		{"authentication_methods_reference.trust", config.AuthenticationMethodsReference.Trust},
+		{"authentication_methods_reference.override", config.AuthenticationMethodsReference.Override},
+		{"discovery.disable", config.Discovery.Disable},
+		{"authorization_response_iss_parameter_supported", config.AuthorizationResponseIssParameterSupported},
+		{"require_pushed_authorization_requests", config.RequirePushedAuthorizationRequests},
+		{"userinfo_signed_response_alg", config.UserInfoSignedResponseAlg != ""},
+		{"endpoints", config.Endpoints != schema.AuthenticationBackendExternalIdentityProviderEndpoints{}},
+		{"jwks", len(config.JSONWebKeys) != 0},
+	}
+}
+
+func validateAuthenticationBackendExternalIdentityProviderUnsupported(config *schema.AuthenticationBackendExternalIdentityProvider, options []externalIdentityOption, validator *schema.StructValidator) {
+	for _, option := range options {
+		if option.configured {
+			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderOptionUnsupported, config.ID, option.name, config.Type))
 		}
 	}
 }

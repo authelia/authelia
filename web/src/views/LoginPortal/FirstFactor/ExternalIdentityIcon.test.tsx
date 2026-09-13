@@ -6,6 +6,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import ExternalIdentityIcon from "@views/LoginPortal/FirstFactor/ExternalIdentityIcon";
 
+vi.mock("@assets/images/identity/discord.svg?react", () => ({
+    default: () => <div data-testid="mark-discord" />,
+}));
+
 vi.mock("@assets/images/identity/openid.svg?react", () => ({
     default: () => <div data-testid="mark-openid" />,
 }));
@@ -23,14 +27,14 @@ it("prefers the configured logo over the bundled mark", () => {
     expect(screen.queryByTestId("mark-discord")).not.toBeInTheDocument();
 });
 
-it.each([["openid_connect", "mark-openid"]])(
-    "renders the bundled mark for the %s type without a logo",
-    (type, testid) => {
-        render(<ExternalIdentityIcon type={type} />);
+it.each([
+    ["discord", "mark-discord"],
+    ["openid_connect", "mark-openid"],
+])("renders the bundled mark for the %s type without a logo", (type, testid) => {
+    render(<ExternalIdentityIcon type={type} />);
 
-        expect(screen.getByTestId(testid)).toBeInTheDocument();
-    },
-);
+    expect(screen.getByTestId(testid)).toBeInTheDocument();
+});
 
 it("falls back to the generic icon for a type without a bundled mark", () => {
     render(<ExternalIdentityIcon type="some_future_type" />);

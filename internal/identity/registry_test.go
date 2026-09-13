@@ -17,14 +17,15 @@ func TestNewProvidersShouldBuildEachType(t *testing.T) {
 	providers := NewProviders(&schema.AuthenticationBackendExternalIdentity{
 		Providers: []schema.AuthenticationBackendExternalIdentityProvider{
 			{ID: "example", Type: ProviderTypeOpenIDConnect, Name: "Example", Issuer: "https://op.example.com", ClientID: "client", ResponseMode: ResponseModeFormPost, AuthenticationMethodsReference: schema.AuthenticationBackendExternalIdentityProviderAMR{Trust: true}},
+			{ID: "discord", Type: ProviderTypeDiscord, Name: "Discord", ClientID: "123", ClientSecret: "secret"},
 			{ID: "untyped", Name: "Untyped", Issuer: "https://untyped.example.com", ClientID: "client"},
 		},
 	}, nil)
 
 	require.NotNil(t, providers)
-	require.Len(t, providers.All(), 2)
+	require.Len(t, providers.All(), 3)
 
-	assert.Equal(t, []string{"example", "untyped"}, []string{providers.All()[0].ID(), providers.All()[1].ID()})
+	assert.Equal(t, []string{"example", "discord", "untyped"}, []string{providers.All()[0].ID(), providers.All()[1].ID(), providers.All()[2].ID()})
 
 	example, ok := providers.Get("example")
 	require.True(t, ok)
@@ -35,6 +36,17 @@ func TestNewProvidersShouldBuildEachType(t *testing.T) {
 	assert.Equal(t, "https://op.example.com", example.Issuer())
 	assert.Equal(t, ResponseModeFormPost, example.ResponseMode())
 	assert.Equal(t, []string{"pwd", "otp"}, example.AuthenticationMethodsReference([]string{"pwd", "otp"}))
+
+	discord, ok := providers.Get("discord")
+	require.True(t, ok)
+	require.IsType(t, &DiscordProvider{}, discord)
+
+	assert.Equal(t, "Discord", discord.Name())
+	assert.Equal(t, ProviderTypeDiscord, discord.Type())
+	assert.Equal(t, "https://discord.com", discord.Issuer())
+	assert.Equal(t, ResponseModeQuery, discord.ResponseMode())
+	assert.Equal(t, []string{"pwd", "kba"}, discord.AuthenticationMethodsReference(nil), "without default values a provider which asserts nothing adopts the values of a password sign in")
+	assert.Equal(t, []string{"pwd", "kba"}, discord.AuthenticationMethodsReference([]string{"otp"}), "a provider which asserts nothing never adopts asserted values")
 
 	untyped, ok := providers.Get("untyped")
 	require.True(t, ok)
@@ -78,6 +90,7 @@ func TestProvidersLogoURI(t *testing.T) {
 		Expected string
 	}{
 		{"ShouldCarryTheLogoURIOfAnOpenIDConnectProvider", ProviderTypeOpenIDConnect, "https://op.example.com", "https://cdn.example.com/op.png", "https://cdn.example.com/op.png"},
+		{"ShouldCarryTheLogoURIOfADiscordProvider", ProviderTypeDiscord, "", "https://cdn.example.com/discord.png", "https://cdn.example.com/discord.png"},
 	}
 
 	for _, tc := range testCases {

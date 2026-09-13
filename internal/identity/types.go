@@ -141,6 +141,14 @@ type CompletionRequest struct {
 	Now          time.Time
 }
 
+type discordUser struct {
+	ID         string  `json:"id"`
+	Username   string  `json:"username"`
+	GlobalName *string `json:"global_name"`
+	Email      *string `json:"email"`
+	Verified   *bool   `json:"verified"`
+}
+
 type discoveryCheck struct {
 	name   string
 	values []string
