@@ -516,6 +516,32 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 			},
 		},
 		{
+			name: "ShouldNotSaveResponseAgainForRespondedSessionWithPreConfiguration",
+			consent: &model.OAuth2ConsentSession{
+				ID:               1,
+				ChallengeID:      preConfChallenge,
+				ClientID:         testValue,
+				Subject:          uuid.NullUUID{UUID: preConfSubject, Valid: true},
+				RequestedAt:      time.Unix(1000000, 0),
+				ExpiresAt:        time.Unix(9000000000, 0),
+				RequestedScopes:  model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+				GrantedScopes:    model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+				Authorized:       true,
+				RespondedAt:      sql.NullTime{Time: time.Unix(1000001, 0), Valid: true},
+				PreConfiguration: sql.NullInt64{Int64: 10, Valid: true},
+			},
+			expected: &model.OAuth2ConsentSession{
+				ChallengeID:      preConfChallenge,
+				ClientID:         testValue,
+				GrantedScopes:    model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+				PreConfiguration: sql.NullInt64{Int64: 10, Valid: true},
+			},
+			handled: false,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectPreConfigRows(t, mock, newPreConfig(mock))
+			},
+		},
+		{
 			name: "ShouldReturnAuthorizedSessionWithoutPreConfiguration",
 			consent: &model.OAuth2ConsentSession{
 				ID:              1,
