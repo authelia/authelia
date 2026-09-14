@@ -280,8 +280,8 @@ as the default values of `{{` and `}}`.
 
 #### Functions
 
-In addition to the standard built-in functions we support several other functions which should operate simila to how
-Helm templates operater.
+In addition to the standard built-in functions we support several other functions. These functions should operate
+similarly to Helm template functions.
 
 See the [Templating Reference Guide](../../reference/guides/templating.md) for more information.
 
