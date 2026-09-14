@@ -357,6 +357,7 @@ var Keys = []string{
 	"server.endpoints.rate_limits.health.buckets[].period",
 	"server.endpoints.rate_limits.health.buckets[].requests",
 	"server.endpoints.rate_limits.health.enable",
+	"server.endpoints.rate_limits.health.ipv6_mask",
 	"server.endpoints.rate_limits.openid_connect_introspection.buckets",
 	"server.endpoints.rate_limits.openid_connect_introspection.buckets[].period",
 	"server.endpoints.rate_limits.openid_connect_introspection.buckets[].requests",
