@@ -63,6 +63,8 @@ func validateTOTPApps(config *schema.Configuration, validator *schema.StructVali
 
 		if store.value.URL.Scheme != schemeHTTPS {
 			validator.Push(fmt.Errorf(errFmtTOTPAppsInvalidScheme, store.name, store.value.URL.String(), store.value.URL.Scheme))
+		} else if store.value.URL.Host == "" {
+			validator.Push(fmt.Errorf(errFmtTOTPAppsMissingHost, store.name, store.value.URL.String()))
 		}
 	}
 }

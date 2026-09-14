@@ -52,6 +52,7 @@ func TestValidateTOTP(t *testing.T) {
 				AllowedAlgorithms: []string{schema.TOTPAlgorithmSHA1},
 				AllowedDigits:     []int{6},
 				AllowedPeriods:    []int{30},
+				Apps:              schema.DefaultTOTPApps,
 			},
 		},
 		{
@@ -77,6 +78,7 @@ func TestValidateTOTP(t *testing.T) {
 				AllowedAlgorithms: []string{schema.TOTPAlgorithmSHA1},
 				AllowedDigits:     []int{6},
 				AllowedPeriods:    []int{30},
+				Apps:              schema.DefaultTOTPApps,
 			},
 		},
 		{
@@ -156,6 +158,17 @@ func TestValidateTOTP(t *testing.T) {
 			errs: []string{
 				"totp: apps: apple_store: option 'url' is configured to 'market://details' which has the scheme 'market' but the scheme must be 'https'",
 				"totp: apps: google_play: option 'url' is configured to 'http://play.google.com' which has the scheme 'http' but the scheme must be 'https'",
+			},
+		},
+		{
+			desc: "ShouldRaiseErrorWhenTOTPAppHasNoHost",
+			have: schema.TOTP{
+				Apps: schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", OmitHost: true, Path: "/app"}},
+				},
+			},
+			errs: []string{
+				"totp: apps: apple_store: option 'url' is configured to 'https:/app' which does not have a host but it must be an absolute URL with a host",
 			},
 		},
 		{
@@ -244,6 +257,7 @@ func TestValidateTOTP(t *testing.T) {
 				assert.Equal(t, tc.expected.AllowedAlgorithms, config.TOTP.AllowedAlgorithms)
 				assert.Equal(t, tc.expected.AllowedDigits, config.TOTP.AllowedDigits)
 				assert.Equal(t, tc.expected.AllowedPeriods, config.TOTP.AllowedPeriods)
+				assert.Equal(t, tc.expected.Apps, config.TOTP.Apps)
 			} else {
 				expectedErrs := len(tc.errs)
 
