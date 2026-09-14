@@ -24,7 +24,9 @@ The units we distribute use `Type=notify`. Authelia notifies the service manager
 protocol which means:
 
 - The unit is only considered started once every listener is accepting connections and every service has been started,
-  so units ordered `After=authelia.service` do not start early.
+  so units ordered `After=authelia.service` do not start early. Note that `After=` only affects ordering when both units
+  are part of the same transaction and does not itself start `authelia.service`, so dependent units should also declare
+  `Wants=authelia.service` or `Requires=authelia.service`.
 - The unit is placed into the deactivating state as soon as a shutdown begins.
 - `systemctl reload authelia.service` sends `SIGHUP` which reopens the log file when the
   [log file path](../../configuration/miscellaneous/logging.md) is configured. This is always safe to run regardless of
@@ -32,16 +34,27 @@ protocol which means:
 - The watchdog configured via `WatchdogSec=` is kept alive at half the configured interval. Combined with
   `Restart=on-failure` this means a process which stops responding is restarted.
 
-None of this requires any configuration in Authelia. The notifications are only sent when the service manager requests
-them via the `NOTIFY_SOCKET` and `WATCHDOG_USEC` environment variables, so running Authelia outside of a service
+None of this requires any configuration in Authelia. The service manager sets the `NOTIFY_SOCKET` environment variable
+to provide the socket used for readiness and status notifications, and separately sets the `WATCHDOG_USEC` environment
+variable to the watchdog timeout when `WatchdogSec=` is configured. Setting `WatchdogSec=0` disables watchdog
+supervision. Notifications are only sent when these variables are present, so running Authelia outside of a service
 manager is unaffected.
 
 If you do not want the process restarted automatically, or you do not want the watchdog, you can override the relevant
-options with a drop-in file:
+options with a drop-in file. For the `authelia.service` unit:
 
 ```shell
 systemctl edit authelia.service
 ```
+
+For the `authelia@.service` template unit, the following applies the drop-in to every instance:
+
+```shell
+systemctl edit authelia@.service
+```
+
+Alternatively `systemctl edit authelia@<instance>.service` applies the drop-in to a single instance only, where
+`<instance>` is the instance name.
 
 ```ini
 [Service]
