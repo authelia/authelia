@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -23,12 +22,14 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 		attribute string
 		setup     func(mock *mocks.MockAutheliaCtx)
 		expected  bool
+		err       string
 	}{
 		{
 			"ShouldNotBeRequiredWithoutAnAttribute",
 			"",
 			nil,
 			false,
+			"",
 		},
 		{
 			"ShouldBeRequiredWhenTheAttributeIsTrue",
@@ -39,6 +40,7 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 					Return(newUserDetailsExtendedWithExtra(map[string]any{"pwd_reset": true}), nil)
 			},
 			true,
+			"",
 		},
 		{
 			"ShouldNotBeRequiredWhenTheAttributeIsFalse",
@@ -49,6 +51,7 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 					Return(newUserDetailsExtendedWithExtra(map[string]any{"pwd_reset": false}), nil)
 			},
 			false,
+			"",
 		},
 		{
 			"ShouldNotBeRequiredWhenTheAttributeIsAbsent",
@@ -59,6 +62,7 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 					Return(newUserDetailsExtendedWithExtra(map[string]any{}), nil)
 			},
 			false,
+			"",
 		},
 		{
 			"ShouldNotBeRequiredWhenTheAttributeIsNotABoolean",
@@ -69,6 +73,7 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 					Return(newUserDetailsExtendedWithExtra(map[string]any{"pwd_reset": "TRUE"}), nil)
 			},
 			false,
+			"",
 		},
 		{
 			"ShouldNotBeRequiredWhenTheDetailsAreUnavailable",
@@ -79,6 +84,7 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 					Return(nil, fmt.Errorf("failed to mock the details"))
 			},
 			false,
+			"error occurred retrieving extended user details to determine if a password change is required: failed to mock the details",
 		},
 	}
 
@@ -94,7 +100,15 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 				tc.setup(mock)
 			}
 
-			assert.Equal(t, tc.expected, isPasswordChangeRequired(mock.Ctx, testUsername))
+			required, err := isPasswordChangeRequired(mock.Ctx, testUsername)
+
+			assert.Equal(t, tc.expected, required)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
 		})
 	}
 }
@@ -104,7 +118,7 @@ func TestClearPasswordChangeRequired(t *testing.T) {
 		name      string
 		attribute string
 		setup     func(mock *mocks.MockAutheliaCtx)
-		logged    string
+		err       string
 	}{
 		{
 			"ShouldNotClearWithoutAClearAttribute",
@@ -138,7 +152,7 @@ func TestClearPasswordChangeRequired(t *testing.T) {
 			"",
 		},
 		{
-			"ShouldLogAnErrorWhenTheClearFails",
+			"ShouldReturnAnErrorWhenTheClearFails",
 			"pwd_reset",
 			func(mock *mocks.MockAutheliaCtx) {
 				gomock.InOrder(
@@ -150,7 +164,7 @@ func TestClearPasswordChangeRequired(t *testing.T) {
 						Return(fmt.Errorf("failed to mock the clear")),
 				)
 			},
-			"Error occurred clearing the attribute which requires the user change their password",
+			"error occurred clearing the 'pwd_reset' attribute which requires the user change their password: failed to mock the clear",
 		},
 	}
 
@@ -167,15 +181,13 @@ func TestClearPasswordChangeRequired(t *testing.T) {
 				tc.setup(mock)
 			}
 
-			clearPasswordChangeRequired(mock.Ctx, testUsername)
+			err := clearPasswordChangeRequired(mock.Ctx, testUsername)
 
-			if tc.logged == "" {
-				assert.Empty(t, mock.Hook.Entries)
-
-				return
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
 			}
-
-			mock.AssertLogEntryAdvanced(t, 0, logrus.ErrorLevel, tc.logged, map[string]any{"username": testUsername, "attribute": tc.attribute})
 		})
 	}
 }

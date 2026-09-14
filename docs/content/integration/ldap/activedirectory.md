@@ -102,7 +102,7 @@ the following conditions:
 A user who must change their password is refused a bind by Active Directory rather than being told so in an
 attribute, and Authelia reads that refusal and holds them at the password change form. Excluding them from the
 filter would mean they are never found and so never held, which is why the default admits them. When
-[password_change.disable](../../configuration/first-factor/introduction.md#disable) is `true` there is no form to
+[password_change.disable](../../configuration/first-factor/introduction.md#password-change-disable) is `true` there is no form to
 hold them at, so the default excludes them instead:
 
 ```text

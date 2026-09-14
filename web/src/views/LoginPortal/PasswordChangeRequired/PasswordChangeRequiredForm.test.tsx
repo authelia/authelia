@@ -52,12 +52,12 @@ it("changes the password and reports back", async () => {
     const onPasswordChanged = renderForm();
 
     type("old-password", "temporary");
-    type("new-password", "a-much-better-one");
-    type("repeat-new-password", "a-much-better-one");
+    type("new-password", "not-a-secret");
+    type("repeat-new-password", "not-a-secret");
 
     fireEvent.click(document.getElementById("password-change-button") as HTMLElement);
 
-    await waitFor(() => expect(postPasswordChange).toHaveBeenCalledWith("john", "temporary", "a-much-better-one"));
+    await waitFor(() => expect(postPasswordChange).toHaveBeenCalledWith("john", "temporary", "not-a-secret"));
     await waitFor(() => expect(onPasswordChanged).toHaveBeenCalled());
 });
 
@@ -65,7 +65,7 @@ it("refuses to submit when the new passwords differ", async () => {
     const onPasswordChanged = renderForm();
 
     type("old-password", "temporary");
-    type("new-password", "a-much-better-one");
+    type("new-password", "not-a-secret");
     type("repeat-new-password", "a-different-one");
 
     fireEvent.click(document.getElementById("password-change-button") as HTMLElement);
@@ -78,8 +78,8 @@ it("refuses to submit when the new passwords differ", async () => {
 it("refuses to submit without the current password", async () => {
     renderForm();
 
-    type("new-password", "a-much-better-one");
-    type("repeat-new-password", "a-much-better-one");
+    type("new-password", "not-a-secret");
+    type("repeat-new-password", "not-a-secret");
 
     fireEvent.click(document.getElementById("password-change-button") as HTMLElement);
 
@@ -92,8 +92,8 @@ it("keeps the user on the form when the change fails", async () => {
     const onPasswordChanged = renderForm();
 
     type("old-password", "wrong");
-    type("new-password", "a-much-better-one");
-    type("repeat-new-password", "a-much-better-one");
+    type("new-password", "not-a-secret");
+    type("repeat-new-password", "not-a-secret");
 
     fireEvent.click(document.getElementById("password-change-button") as HTMLElement);
 

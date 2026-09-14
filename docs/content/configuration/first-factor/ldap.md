@@ -229,7 +229,7 @@ The default value is dependent on the [implementation](#implementation), refer t
 [attribute defaults](../../integration/ldap) for more information.
 
 The `activedirectory` [implementation](#implementation) additionally depends on
-[password_change.disable](introduction.md#disable). Its default excludes users who must change their password at
+[password_change.disable](introduction.md#password-change-disable). Its default excludes users who must change their password at
 their next sign in only when they have no way to perform that change; see
 [Active Directory](introduction.md#active-directory) for why.
 

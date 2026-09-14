@@ -259,7 +259,7 @@ This means that should a user want to change a password they already know they a
 the user perform session elevation in addition to knowing their current password.
 
 Additionally, administrators can disable this functionality using the
-[disable](../../configuration/first-factor/introduction.md#disable-1) option.
+[disable](../../configuration/first-factor/introduction.md#password-change-disable) option.
 
 This also offers a technically more secure way for users to change their passwords, so it's quite reasonable to assume
 that this may offer an alternative for administrators who had previously disabled or wanted to disable the reset

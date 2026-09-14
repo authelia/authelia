@@ -42,6 +42,10 @@ const PasswordChangeRequiredForm = function (props: Props) {
     const { showPassword, toggleProps } = usePasswordVisibility();
 
     const handleSubmit = useCallback(async () => {
+        if (loading) {
+            return;
+        }
+
         setOldError(false);
         setNewError(false);
         setRepeatError(false);
@@ -78,7 +82,7 @@ const PasswordChangeRequiredForm = function (props: Props) {
             createErrorNotification(translate("There was an issue changing the password"));
             setLoading(false);
         }
-    }, [createErrorNotification, newPassword, oldPassword, props, repeatPassword, translate]);
+    }, [createErrorNotification, loading, newPassword, oldPassword, props, repeatPassword, translate]);
 
     return (
         <LoginLayout id="password-change-required" title={translate("Change your password")}>

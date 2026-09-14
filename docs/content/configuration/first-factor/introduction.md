@@ -81,7 +81,7 @@ this is configured to anything other than nothing or an empty string.
 
 ### password_change
 
-#### disable
+#### disable {#password-change-disable}
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
@@ -131,7 +131,7 @@ authentication_backend:
         value_type: 'boolean'
 ```
 
-This option can't be configured when [disable](#disable) is `true`, as the user would be held with no way to perform
+This option can't be configured when [disable](#password-change-disable) is `true`, as the user would be held with no way to perform
 the change. An attribute which resolves to something other than a boolean does not hold anybody back, and is logged
 as an error.
 
@@ -175,7 +175,7 @@ accepted, `ERROR_PASSWORD_MUST_CHANGE` and `ERROR_PASSWORD_EXPIRED`, and holds t
 either. A wrong password produces a different response and is refused as it always was.
 
 This is also why the default [users_filter](ldap.md#users_filter) for this implementation depends on
-[disable](#disable). A user the filter excludes is never found, so they are refused before a bind is ever attempted
+[disable](#password-change-disable). A user the filter excludes is never found, so they are refused before a bind is ever attempted
 and the response which would have held them is never seen. While password change is enabled the default admits
 them; disabling it adds `(!(pwdLastSet=0))` back, which excludes them again, because there would be no form for
 them to be held at. Writing [users_filter](ldap.md#users_filter) out yourself opts out of both and it is used
