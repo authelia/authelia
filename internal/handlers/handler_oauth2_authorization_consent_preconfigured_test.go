@@ -7,6 +7,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"regexp"
@@ -163,7 +164,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 					Return(nil)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
-				assert.Equal(t, 302, rw.Code)
+				assert.Equal(t, http.StatusSeeOther, rw.Code)
 				assert.Contains(t, rw.Header().Get("Location"), "flow=openid_connect")
 			},
 		},
@@ -183,7 +184,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 					Return(nil)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
-				assert.Equal(t, 302, rw.Code)
+				assert.Equal(t, http.StatusSeeOther, rw.Code)
 			},
 		},
 		{
@@ -202,7 +203,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 					Return(nil)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
-				assert.Equal(t, 302, rw.Code)
+				assert.Equal(t, http.StatusSeeOther, rw.Code)
 			},
 		},
 		{
@@ -221,7 +222,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 					Return(nil)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
-				assert.Equal(t, 302, rw.Code)
+				assert.Equal(t, http.StatusSeeOther, rw.Code)
 			},
 		},
 		{
@@ -326,7 +327,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 					Return(&model.OAuth2ConsentSession{ChallengeID: preConfChallenge, ClientID: testValue, RequestedAt: time.Unix(2000000, 0)}, nil)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
-				assert.Equal(t, 302, rw.Code)
+				assert.Equal(t, http.StatusSeeOther, rw.Code)
 				assert.Contains(t, rw.Header().Get("Location"), oidc.FrontendEndpointPathConsentDecision)
 			},
 		},
@@ -489,7 +490,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 				expectPreConfigRows(t, mock)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
-				assert.Equal(t, 302, rw.Code)
+				assert.Equal(t, http.StatusSeeOther, rw.Code)
 				assert.Contains(t, rw.Header().Get("Location"), preConfChallenge.String())
 			},
 		},
@@ -606,7 +607,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredMisc(t *testing.T) {
 		assert.True(t, handled)
 		assert.Nil(t, consent)
 
-		assert.Equal(t, 302, rw.Code)
+		assert.Equal(t, http.StatusSeeOther, rw.Code)
 		assert.Contains(t, rw.Header().Get("Location"), oidc.FrontendEndpointPathConsentDecision)
 	})
 
