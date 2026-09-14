@@ -10,10 +10,10 @@ import (
 )
 
 // GarbageCollectionFrequency returns the frequency the expired rows of the OAuth 2.0 DPoP tables should be collected
-// at, or zero when DPoP is disabled and no collection is required. This implements the
-// middlewares.GarbageCollectorProvider interface.
+// at, or zero when the provider is not configured. Collection continues while DPoP is disabled so rows written before it
+// was disabled are still removed. This implements the middlewares.GarbageCollectorProvider interface.
 func (p *OpenIDConnectProvider) GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration) {
-	if p == nil || p.Config == nil || !p.DPoP.Enabled {
+	if p == nil || p.Config == nil {
 		return 0
 	}
 

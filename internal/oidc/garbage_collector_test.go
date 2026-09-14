@@ -26,9 +26,9 @@ func TestOpenIDConnectProviderGarbageCollectionFrequency(t *testing.T) {
 		expected time.Duration
 	}{
 		{
-			"ShouldReturnZeroWhenDisabled",
+			"ShouldReturnFrequencyWhenDisabled",
 			false,
-			0,
+			time.Minute * 30,
 		},
 		{
 			"ShouldReturnFrequencyWhenEnabled",
