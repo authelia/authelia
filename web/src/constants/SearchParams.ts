@@ -38,6 +38,10 @@ export const ErrorStatusCode: string = "error_status_code";
 
 export const ErrorURI: string = "error_uri";
 
+export const ErrorCode: string = "ec";
+
+export const ErrorCodeForbidden: string = "forbidden";
+
 export const FlowNameOpenIDConnect: string = "openid_connect";
 
 export const SubFlowNameDeviceAuthorization: string = "device_authorization";

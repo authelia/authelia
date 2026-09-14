@@ -777,6 +777,14 @@ func TestAutheliaCtx_SetSpecialRedirect(t *testing.T) {
 			`<a href="https://example.com/">401 Unauthorized</a>`,
 			401,
 		},
+		{
+			"ShouldHandleForbidden",
+			"https://example.com",
+			403,
+			"https://example.com/",
+			`<a href="https://example.com/">403 Forbidden</a>`,
+			403,
+		},
 	}
 
 	for _, tc := range testCases {

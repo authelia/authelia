@@ -371,6 +371,10 @@ func (s *StandaloneSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
+func (s *StandaloneSuite) TestAccessDeniedScenario() {
+	suite.Run(s.T(), NewAccessDeniedScenario())
+}
+
 func (s *StandaloneSuite) Test2FATOTPScenario() {
 	suite.Run(s.T(), New2FATOTPScenario())
 }
