@@ -7,6 +7,7 @@ package authentication
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -428,7 +429,8 @@ func TestDatabaseModel_ReadFormats(t *testing.T) {
 
 		err := model.Read(path)
 
-		assert.EqualError(t, err, fmt.Sprintf("failed to read the '%s' file: open %s: no such file or directory", path, path))
+		require.ErrorIs(t, err, fs.ErrNotExist)
+		assert.ErrorContains(t, err, fmt.Sprintf("failed to read the '%s' file: ", path))
 	})
 }
 
