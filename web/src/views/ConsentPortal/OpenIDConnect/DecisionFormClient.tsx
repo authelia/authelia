@@ -21,8 +21,8 @@ function DecisionFormClient({ client_description, client_id, client_logo_uri }: 
     const named = client_description !== "";
 
     return (
-        <div className="flex w-full items-center gap-3 text-left">
-            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-muted-foreground">
+        <div className="flex w-full flex-col items-center justify-center gap-1.5 text-center">
+            <span className="flex size-24 shrink-0 items-center justify-center overflow-hidden text-muted-foreground">
                 {client_logo_uri && !logoLoadError ? (
                     <img
                         id={"openid-consent-client-logo"}
@@ -32,10 +32,10 @@ function DecisionFormClient({ client_description, client_id, client_logo_uri }: 
                         className="size-full object-contain"
                     />
                 ) : (
-                    <AppWindow className="size-5" />
+                    <AppWindow className="size-14" />
                 )}
             </span>
-            <span className="min-w-0 flex-1">
+            <span className="min-w-0 max-w-full">
                 <span
                     id={"openid-consent-client-name"}
                     data-testid={"openid-consent-client-name"}

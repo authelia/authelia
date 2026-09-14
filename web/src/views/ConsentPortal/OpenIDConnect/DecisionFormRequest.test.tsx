@@ -153,3 +153,34 @@ it("reports claim changes", () => {
 
     expect(onChangeClaims).toHaveBeenCalledWith([]);
 });
+
+it("renders the client identity outside the card", () => {
+    const { container } = render(
+        <DecisionFormRequest response={response()} claims={["name"]} onChangeClaims={vi.fn()} />,
+    );
+
+    const card = container.querySelector("[data-slot='card']");
+    const name = screen.getByTestId("openid-consent-client-name");
+
+    expect(card).toBeInTheDocument();
+    expect(card).not.toContainElement(name);
+});
+
+it("promotes the requested permissions heading to the card header", () => {
+    const { container } = render(
+        <DecisionFormRequest response={response()} claims={["name"]} onChangeClaims={vi.fn()} />,
+    );
+
+    const header = container.querySelector("[data-slot='card-header']");
+
+    expect(header).toHaveTextContent("Requested Permissions");
+    expect(container.querySelector("[data-slot='card-content']")).not.toHaveTextContent("Requested Permissions");
+});
+
+it("does not render a card header when there are no scopes", () => {
+    const { container } = render(
+        <DecisionFormRequest response={response({ scopes: [] })} claims={["name"]} onChangeClaims={vi.fn()} />,
+    );
+
+    expect(container.querySelector("[data-slot='card-header']")).toBeNull();
+});
