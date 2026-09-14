@@ -133,7 +133,12 @@ func (rs *RodSession) doAwaitSubmitted(ctx context.Context, page *rod.Page, sele
 			return ctx.Err()
 		}
 
-		if !rs.hasElement(page, selector) || rs.pageURL(page) != from {
+		// A query which fails says nothing about whether the form was submitted, so only an observed change counts.
+		if has, _, err := page.Timeout(pageHasTimeout).Has(selector); err == nil && !has {
+			return nil
+		}
+
+		if info, err := page.Timeout(pageActionTimeout).Info(); err == nil && info.URL != from {
 			return nil
 		}
 

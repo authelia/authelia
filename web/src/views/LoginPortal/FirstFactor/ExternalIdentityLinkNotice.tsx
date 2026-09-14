@@ -22,19 +22,28 @@ const ExternalIdentityLinkNotice = function (props: Props) {
     const navigate = useRouterNavigate();
     const getSignal = useAbortSignal();
 
-    const [name, setName] = useState(props.provider);
+    const [resolved, setResolved] = useState<{ name: string; provider: string }>();
 
     useEffect(() => {
+        let active = true;
+
         getExternalIdentityProviders(getSignal())
             .then((providers) => {
                 const provider = providers.find((value) => value.id === props.provider);
 
-                if (provider) {
-                    setName(provider.name);
+                if (active && provider) {
+                    setResolved({ name: provider.name, provider: props.provider });
                 }
             })
             .catch(() => {});
+
+        return () => {
+            active = false;
+        };
     }, [props.provider, getSignal]);
+
+    // A name resolved for a provider other than the current one is never shown.
+    const name = resolved?.provider === props.provider ? resolved.name : props.provider;
 
     return (
         <Alert id="external-identity-link-notice">

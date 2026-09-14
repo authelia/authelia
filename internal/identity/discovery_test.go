@@ -64,13 +64,49 @@ func TestDiscover(t *testing.T) {
 			Body:   `{}`,
 			Error:  "error discovering the provider: the discovery endpoint returned status code 404",
 		},
+		{
+			Name:   "ShouldRaiseErrorOnInsecureAuthorizationEndpoint",
+			Status: http.StatusOK,
+			Body:   `{"issuer":"%s","authorization_endpoint":"http://op.example.com/authorize","token_endpoint":"%[2]s/token","jwks_uri":"%[2]s/jwks.json"}`,
+			Error:  "error discovering the provider: the discovery document includes a url which does not use the https scheme: the 'authorization_endpoint' is 'http://op.example.com/authorize'",
+		},
+		{
+			Name:   "ShouldRaiseErrorOnInsecureTokenEndpoint",
+			Status: http.StatusOK,
+			Body:   `{"issuer":"%s","authorization_endpoint":"%[2]s/authorize","token_endpoint":"http://op.example.com/token","jwks_uri":"%[2]s/jwks.json"}`,
+			Error:  "error discovering the provider: the discovery document includes a url which does not use the https scheme: the 'token_endpoint' is 'http://op.example.com/token'",
+		},
+		{
+			Name:   "ShouldRaiseErrorOnInsecureUserInfoEndpoint",
+			Status: http.StatusOK,
+			Body:   `{"issuer":"%s","authorization_endpoint":"%[2]s/authorize","token_endpoint":"%[2]s/token","userinfo_endpoint":"http://op.example.com/userinfo","jwks_uri":"%[2]s/jwks.json"}`,
+			Error:  "error discovering the provider: the discovery document includes a url which does not use the https scheme: the 'userinfo_endpoint' is 'http://op.example.com/userinfo'",
+		},
+		{
+			Name:   "ShouldRaiseErrorOnInsecureJSONWebKeySetURI",
+			Status: http.StatusOK,
+			Body:   `{"issuer":"%s","authorization_endpoint":"%[2]s/authorize","token_endpoint":"%[2]s/token","jwks_uri":"http://op.example.com/jwks.json"}`,
+			Error:  "error discovering the provider: the discovery document includes a url which does not use the https scheme: the 'jwks_uri' is 'http://op.example.com/jwks.json'",
+		},
+		{
+			Name:   "ShouldRaiseErrorOnInsecurePushedAuthorizationRequestEndpoint",
+			Status: http.StatusOK,
+			Body:   `{"issuer":"%s","authorization_endpoint":"%[2]s/authorize","token_endpoint":"%[2]s/token","jwks_uri":"%[2]s/jwks.json","pushed_authorization_request_endpoint":"http://op.example.com/par"}`,
+			Error:  "error discovering the provider: the discovery document includes a url which does not use the https scheme: the 'pushed_authorization_request_endpoint' is 'http://op.example.com/par'",
+		},
+		{
+			Name:   "ShouldRaiseErrorOnRelativeEndpoint",
+			Status: http.StatusOK,
+			Body:   `{"issuer":"%s","authorization_endpoint":"/authorize","token_endpoint":"%[2]s/token","jwks_uri":"%[2]s/jwks.json"}`,
+			Error:  "error discovering the provider: the discovery document includes a url which does not use the https scheme: the 'authorization_endpoint' is '/authorize'",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			var server *httptest.Server
 
-			server = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			server = httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, pathWellKnownOpenIDConfiguration, r.URL.Path)
 
 				rw.Header().Set(headerContentType, mimeApplicationJSON)
@@ -84,6 +120,7 @@ func TestDiscover(t *testing.T) {
 			client := retryablehttp.NewClient()
 			client.Logger = nil
 			client.RetryMax = 0
+			client.HTTPClient = server.Client()
 
 			discovery, err := Discover(context.Background(), client, server.URL)
 
@@ -103,6 +140,28 @@ func TestDiscover(t *testing.T) {
 			assert.Equal(t, tc.Expected.AuthorizationResponseIssParameterSupported, discovery.AuthorizationResponseIssParameterSupported)
 		})
 	}
+}
+
+func TestDiscoverShouldRaiseErrorOnInsecureIssuer(t *testing.T) {
+	var server *httptest.Server
+
+	server = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set(headerContentType, mimeApplicationJSON)
+
+		_, _ = rw.Write([]byte(formatDiscoveryBody(`{"issuer":"%s","authorization_endpoint":"https://op.example.com/authorize","token_endpoint":"https://op.example.com/token","jwks_uri":"https://op.example.com/jwks.json"}`, server.URL)))
+	}))
+
+	defer server.Close()
+
+	client := retryablehttp.NewClient()
+	client.Logger = nil
+	client.RetryMax = 0
+
+	discovery, err := Discover(context.Background(), client, server.URL)
+
+	assert.Nil(t, discovery)
+	require.EqualError(t, err, "error discovering the provider: the discovery document includes a url which does not use the https scheme: the 'issuer' is '"+server.URL+"'")
+	assert.ErrorIs(t, err, ErrDiscoveryURLInsecure)
 }
 
 func formatDiscoveryBody(body, url string) string {

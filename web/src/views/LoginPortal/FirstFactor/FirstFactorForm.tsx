@@ -361,7 +361,7 @@ const FirstFactorForm = function (props: Props) {
                         />
                     ) : null}
                     {props.externalIdentityLogin && !props.externalIdentityLink ? (
-                        <ExternalIdentityForm disabled={disabled || loading} rememberMe={props.rememberMe} />
+                        <ExternalIdentityForm disabled={disabled || loading} rememberMe={rememberMe} />
                     ) : null}
                     {props.resetPassword ? (
                         <div className="-my-2 flex w-full flex-row justify-end">

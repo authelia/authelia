@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -59,5 +60,40 @@ func Discover(ctx context.Context, client *retryablehttp.Client, issuer string) 
 		return nil, fmt.Errorf("error discovering the provider: %w", ErrDiscoveryEndpointMissing)
 	}
 
+	if err = validateDiscoveryURLs(discovery); err != nil {
+		return nil, fmt.Errorf("error discovering the provider: %w", err)
+	}
+
 	return discovery, nil
+}
+
+// validateDiscoveryURLs ensures every URL in the discovery document uses the https scheme. These URLs are used to send
+// the client secret, the authorization code, and the access token, and to retrieve the keys ID Tokens are verified
+// with, so a plaintext scheme must never be accepted from the discovery document any more than from the configuration.
+func validateDiscoveryURLs(discovery *Discovery) (err error) {
+	urls := []struct {
+		name  string
+		value string
+	}{
+		{"issuer", discovery.Issuer},
+		{"authorization_endpoint", discovery.AuthorizationEndpoint},
+		{"token_endpoint", discovery.TokenEndpoint},
+		{"userinfo_endpoint", discovery.UserInfoEndpoint},
+		{"jwks_uri", discovery.JWKSURI},
+		{"pushed_authorization_request_endpoint", discovery.PushedAuthorizationRequestEndpoint},
+	}
+
+	for _, u := range urls {
+		if u.value == "" {
+			continue
+		}
+
+		var parsed *url.URL
+
+		if parsed, err = url.Parse(u.value); err != nil || parsed.Scheme != "https" || parsed.Host == "" {
+			return fmt.Errorf("%w: the '%s' is '%s'", ErrDiscoveryURLInsecure, u.name, u.value)
+		}
+	}
+
+	return nil
 }

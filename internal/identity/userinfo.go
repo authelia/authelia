@@ -22,8 +22,9 @@ import (
 // UserInfo requests the UserInfo Endpoint with the access token from the token response. It is only requested once
 // the ID Token has been validated, and the 'sub' claim of the UserInfo Response must exactly match the validated
 // 'sub' claim of the ID Token as the response may otherwise be substituted (OpenID Connect Core 1.0 Section 5.3.2).
-// The display claims of the UserInfo Response are only adopted where the ID Token did not provide them. When the
-// provider has no UserInfo Endpoint this does nothing.
+// A non-empty display claim of the UserInfo Response replaces the same claim of the ID Token, while a display claim the
+// UserInfo Response omits or leaves empty keeps the value of the ID Token. When the provider has no UserInfo Endpoint
+// this does nothing.
 func (p *OpenIDConnectProvider) UserInfo(ctx context.Context, accessToken string, claims *IdentityClaims) (err error) {
 	if err = p.Resolve(ctx); err != nil {
 		return err

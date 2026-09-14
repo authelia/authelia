@@ -116,7 +116,7 @@ const ExternalIdentityView = function () {
             createErrorNotification(
                 translate("There was a problem {{action}} the {{item}}", {
                     action: translate(action),
-                    item: `${providerName} account`,
+                    item: translate("{{name}} account", { name: providerName }),
                 }),
             );
         },
@@ -139,7 +139,7 @@ const ExternalIdentityView = function () {
             createSuccessNotification(
                 translate("Successfully {{action}} the {{item}}", {
                     action: translate(action),
-                    item: `${providerName} account`,
+                    item: translate("{{name}} account", { name: providerName }),
                 }),
             );
         },

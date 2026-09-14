@@ -231,7 +231,7 @@ func TestProviderResolveShouldResolvePushedAuthorizationRequests(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var server *httptest.Server
 
-			server = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			server = httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				rw.Header().Set(headerContentType, mimeApplicationJSON)
 
 				_, _ = rw.Write([]byte(`{"issuer":"` + server.URL + `","authorization_endpoint":"` + server.URL + `/authorize","token_endpoint":"` + server.URL + `/token","jwks_uri":"` + server.URL + `/jwks.json"` + tc.Metadata + `}`))
@@ -249,7 +249,7 @@ func TestProviderResolveShouldResolvePushedAuthorizationRequests(t *testing.T) {
 						Endpoints:                          schema.AuthenticationBackendExternalIdentityProviderEndpoints{PushedAuthorizationRequest: tc.ConfiguredURI},
 					},
 				},
-			}, nil))
+			}, newTestCertPool(server)))
 
 			require.True(t, ok)
 

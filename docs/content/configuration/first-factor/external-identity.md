@@ -693,9 +693,12 @@ generic error notification. The reason is only recorded in the logs.
 
 ## Authentication Level
 
-A sign in with an external provider satisfies the `one_factor` policy. It does not satisfy the `two_factor` policy,
-regardless of how the user authenticated at the external provider, because Authelia does not observe that
-authentication.
+A sign in with an external provider satisfies the `one_factor` policy. By default it does not satisfy the `two_factor`
+policy, regardless of how the user authenticated at the external provider, because Authelia does not observe that
+authentication. A session produced by an external provider only satisfies `two_factor` when it adopts `amr` values from
+an `openid_connect` provider with [authentication_methods_reference.trust](#trust) enabled, or adopts
+[authentication_methods_reference.default](#default) values, which together add both a knowledge factor and a possession
+factor, as described below.
 
 A sign in with a `discord`, `github`, or `plex` provider is treated as a password sign in with Authelia unless
 [authentication_methods_reference.default](#default) is configured: the session adopts `pwd` and `kba`, exactly as a

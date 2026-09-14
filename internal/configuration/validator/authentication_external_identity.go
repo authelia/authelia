@@ -317,8 +317,11 @@ func validateAuthenticationBackendExternalIdentityProviderEndpoints(config *sche
 			continue
 		}
 
-		if parsed.Scheme != schemeHTTPS {
+		switch {
+		case parsed.Scheme != schemeHTTPS:
 			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderEndpointScheme, config.ID, endpoint.name, parsed.Scheme))
+		case parsed.Host == "":
+			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderEndpointHost, config.ID, endpoint.name, endpoint.value))
 		}
 	}
 }
@@ -337,8 +340,11 @@ func validateAuthenticationBackendExternalIdentityProviderIssuer(config *schema.
 		return
 	}
 
-	if issuer.Scheme != "https" {
+	switch {
+	case issuer.Scheme != schemeHTTPS:
 		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderIssuerScheme, config.ID, issuer.Scheme))
+	case issuer.Host == "":
+		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderIssuerHost, config.ID, config.Issuer))
 	}
 }
 

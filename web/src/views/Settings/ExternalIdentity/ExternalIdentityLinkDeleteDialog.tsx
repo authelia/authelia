@@ -28,7 +28,7 @@ const ExternalIdentityLinkDeleteDialog = function (props: Props) {
             return;
         }
 
-        const item = `${props.link.provider_name} account`;
+        const item = translate("{{name}} account", { name: props.link.provider_name });
 
         try {
             await deleteExternalIdentityLink(props.link.id);
@@ -61,7 +61,9 @@ const ExternalIdentityLinkDeleteDialog = function (props: Props) {
             onConfirm={() => handleRemove().catch(console.error)}
             onCancel={handleCancel}
             title={translate("Remove {{item}}", {
-                item: props.link ? `${props.link.provider_name} account` : translate("Linked Accounts"),
+                item: props.link
+                    ? translate("{{name}} account", { name: props.link.provider_name })
+                    : translate("Linked Accounts"),
             })}
             text={translate("Remove the link to your {{name}} account", { name: props.link?.provider_name })}
         />

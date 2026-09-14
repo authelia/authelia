@@ -55,7 +55,7 @@ func TestProviderResolveShouldSelectTheIDTokenSigningAlg(t *testing.T) {
 				requests int
 			)
 
-			server = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			server = httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/.well-known/openid-configuration" {
 					requests++
 				}
@@ -91,7 +91,7 @@ func TestProviderResolveShouldSelectTheIDTokenSigningAlg(t *testing.T) {
 
 			provider, ok := getOpenIDConnectProvider(NewProviders(&schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{config},
-			}, nil))
+			}, newTestCertPool(server)))
 
 			require.True(t, ok)
 
@@ -172,7 +172,7 @@ func TestProviderResolveShouldValidateDiscoveryCapabilities(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var server *httptest.Server
 
-			server = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			server = httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				rw.Header().Set(headerContentType, mimeApplicationJSON)
 
 				_, _ = rw.Write([]byte(`{"issuer":"` + server.URL + `","authorization_endpoint":"` + server.URL + `/authorize","token_endpoint":"` + server.URL + `/token","jwks_uri":"` + server.URL + `/jwks.json"` + tc.Metadata + `}`))
@@ -191,7 +191,7 @@ func TestProviderResolveShouldValidateDiscoveryCapabilities(t *testing.T) {
 						PKCE:                     schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
 					},
 				},
-			}, nil))
+			}, newTestCertPool(server)))
 
 			require.True(t, ok)
 
@@ -236,7 +236,7 @@ func TestProviderAuthorizationResponseIssuerRequired(t *testing.T) {
 				requests int
 			)
 
-			server = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			server = httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/.well-known/openid-configuration" {
 					requests++
 				}
@@ -269,7 +269,7 @@ func TestProviderAuthorizationResponseIssuerRequired(t *testing.T) {
 
 			provider, ok := getOpenIDConnectProvider(NewProviders(&schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{config},
-			}, nil))
+			}, newTestCertPool(server)))
 
 			require.True(t, ok)
 
@@ -399,7 +399,7 @@ func TestProviderResolveShouldCacheTheDiscoveryDocument(t *testing.T) {
 
 	var server *httptest.Server
 
-	server = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+	server = httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		requests[r.URL.Path]++
 
 		rw.Header().Set(headerContentType, mimeApplicationJSON)
@@ -424,7 +424,7 @@ func TestProviderResolveShouldCacheTheDiscoveryDocument(t *testing.T) {
 				PKCE:                     schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
 			},
 		},
-	}, nil)
+	}, newTestCertPool(server))
 
 	provider, ok := getOpenIDConnectProvider(providers)
 
@@ -611,4 +611,12 @@ func TestProviderShouldExchangeAndRequestUserInfoWithTheTrustedCertificatePool(t
 
 	require.NoError(t, trusted.UserInfo(context.Background(), token.AccessToken, claims))
 	assert.Equal(t, "John Smith", claims.Name)
+}
+
+func newTestCertPool(server *httptest.Server) *x509.CertPool {
+	pool := x509.NewCertPool()
+
+	pool.AddCert(server.Certificate())
+
+	return pool
 }

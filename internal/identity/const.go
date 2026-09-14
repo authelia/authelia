@@ -113,6 +113,9 @@ var (
 	// ErrDiscoveryEndpointMissing is returned when the discovery document omits a required endpoint.
 	ErrDiscoveryEndpointMissing = errors.New("the discovery document is missing a required endpoint")
 
+	// ErrDiscoveryURLInsecure is returned when a URL in the discovery document does not use the https scheme.
+	ErrDiscoveryURLInsecure = errors.New("the discovery document includes a url which does not use the https scheme")
+
 	// ErrDiscoveryUnsupported is returned when the discovery document advertises capabilities which do not include a
 	// value the provider is configured to use.
 	ErrDiscoveryUnsupported = errors.New("the discovery document does not advertise support for the configured value")

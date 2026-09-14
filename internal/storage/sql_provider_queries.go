@@ -270,7 +270,7 @@ const (
 		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
 		FROM %s
 		WHERE username = ?
-		ORDER BY created_at;`
+		ORDER BY created_at, id;`
 
 	queryFmtSelectExternalIdentityLinkByID = `
 		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature

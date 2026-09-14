@@ -114,6 +114,8 @@ const (
 	errFmtExternalIdentityProviderOptionUnsupported = "authentication_backend: external_identity: providers: provider '%s': option '%s' is not supported by the '%s' provider type but it's configured"
 	errFmtExternalIdentityProviderIssuerScheme      = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must have the 'https' scheme but it's configured as '%s'"
 	errFmtExternalIdentityProviderIssuerParse       = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must be a valid URL but it could not be parsed: %w"
+	errFmtExternalIdentityProviderIssuerHost        = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must be an absolute URL with a host but it's configured as '%s'"
+	errFmtExternalIdentityProviderEndpointHost      = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' must be an absolute URL with a host but it's configured as '%s'"
 	errFmtExternalIdentityProviderAlg               = "authentication_backend: external_identity: providers: provider '%s': option 'id_token_signed_response_alg' must be one of %s but it's configured as '%s'"
 	errFmtExternalIdentityProviderUserInfoAlg       = "authentication_backend: external_identity: providers: provider '%s': option 'userinfo_signed_response_alg' must be one of %s but it's configured as '%s'"
 	errFmtExternalIdentityProviderAuthMethod        = "authentication_backend: external_identity: providers: provider '%s': option 'token_endpoint_auth_method' must be one of %s but it's configured as '%s'"

@@ -139,11 +139,21 @@ const LoginPortal = function (props: Props) {
 
             linkStartedRef.current = false;
 
+            createErrorNotification(translate("There was an issue signing in with the external provider"));
+
             return false;
         }
 
         return true;
-    }, [linkProvider, authenticationComplete, requestMethod, redirectionURL, redirector]);
+    }, [
+        linkProvider,
+        authenticationComplete,
+        requestMethod,
+        redirectionURL,
+        redirector,
+        createErrorNotification,
+        translate,
+    ]);
 
     const handleRedirection = useCallback(async () => {
         if (!redirectionURL) {

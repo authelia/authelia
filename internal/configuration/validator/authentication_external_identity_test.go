@@ -226,6 +226,35 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 			},
 		},
 		{
+			Name: "ShouldRaiseErrorOnOpaqueIssuer",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https:accounts.google.com", ClientID: "abc", ClientSecret: "secret"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'issuer' must be an absolute URL with a host but it's configured as 'https:accounts.google.com'"},
+		},
+		{
+			Name: "ShouldRaiseErrorOnOpaqueEndpoints",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{
+						ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret",
+						Endpoints: schema.AuthenticationBackendExternalIdentityProviderEndpoints{ //nolint:gosec // Test URLs.
+							Authorization:              "https:accounts.google.com/authorize",
+							Token:                      "https:accounts.google.com/token",
+							PushedAuthorizationRequest: "/par",
+						},
+					},
+				},
+			},
+			Errors: []string{
+				"authentication_backend: external_identity: providers: provider 'google': endpoints: option 'authorization' must be an absolute URL with a host but it's configured as 'https:accounts.google.com/authorize'",
+				"authentication_backend: external_identity: providers: provider 'google': endpoints: option 'token' must be an absolute URL with a host but it's configured as 'https:accounts.google.com/token'",
+				"authentication_backend: external_identity: providers: provider 'google': endpoints: option 'pushed_authorization_request' must have the 'https' scheme but it's configured as ''",
+			},
+		},
+		{
 			Name: "ShouldRaiseErrorOnInvalidResponseMode",
 			Have: &schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{

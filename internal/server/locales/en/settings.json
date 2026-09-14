@@ -1,5 +1,6 @@
 {
 	"{{algorithm}}, {{digits}} digits, {{seconds}} seconds": "{{algorithm}}, {{digits}} digits, {{seconds}} seconds",
+	"{{name}} account": "{{name}} account",
 	"A WebAuthn Credential with that Description already exists": "A WebAuthn Credential with that Description already exists",
 	"Accept": "Accept",
 	"Add": "Add",
