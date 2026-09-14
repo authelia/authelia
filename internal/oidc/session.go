@@ -192,6 +192,10 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 		claims.Extra[ClaimClientIdentifier] = s.ClientID
 	}
 
+	if act, ok := s.Extra[ClaimActor]; ok && act != nil {
+		claims.Extra[ClaimActor] = act
+	}
+
 	return claims
 }
 

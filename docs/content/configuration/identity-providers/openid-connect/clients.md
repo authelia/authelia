@@ -407,8 +407,9 @@ exchanged (`api` below) and every client referenced in this option (`app-b` and 
 configuration load, so a misconfiguration prevents Authelia from starting rather than failing at the token endpoint.
 
 A client configured with the `urn:ietf:params:oauth:grant-type:token-exchange` grant type must also be of the
-confidential client type, i.e. it must not have [public](#public) enabled. [RFC8693] requires the client to
-authenticate at the token endpoint, so a public client is rejected at configuration load.
+confidential client type, i.e. it must not have [public](#public) enabled. [RFC8693] leaves client authentication
+to the discretion of the authorization server; Authelia requires clients to authenticate at the token endpoint for
+this grant type, so a public client is rejected at configuration load.
 
 ```yaml {title="configuration.yml"}
 identity_providers:

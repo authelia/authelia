@@ -29,6 +29,8 @@ const (
 	testOIDCFormParameterSubjectTokenType   = "subject_token_type"
 	testOIDCFormParameterRequestedTokenType = "requested_token_type"
 	testOIDCFormParameterIssuedTokenType    = "issued_token_type"
+	testOIDCFormParameterActorToken         = "actor_token"
+	testOIDCFormParameterActorTokenType     = "actor_token_type"
 )
 
 // testOIDCTokenExchangeMutator adjusts the provider and client configurations of a Token Exchange test before the
@@ -184,6 +186,85 @@ func TestOAuth2TokenPOSTTokenExchange(t *testing.T) {
 		assert.NotEqual(t, http.StatusOK, rw.Code)
 
 		assert.Equal(t, "invalid_grant", getTestOAuth2ErrorResponse(t, rw)["error"])
+	})
+
+	t.Run("ShouldIncludeActorClaimWhenDelegatingWithActorToken", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCTokenExchangeFlow(t, mock, func(config *schema.IdentityProvidersOpenIDConnect, subject, exchange *schema.IdentityProvidersOpenIDConnectClient) {
+			config.Discovery.JWTResponseAccessTokens = true
+
+			exchange.AccessTokenSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+			exchange.AccessTokenSignedResponseKeyID = testOIDCKeyID
+			exchange.ActorTokenTypesSupported = []string{oidc.TokenTypeAccessToken}
+			exchange.ActorTokenWithoutMayActAllowed = true
+		})
+
+		subject := mustGetTestOIDCSubjectAccessToken(t, mock)
+		actor := mustGetTestOIDCSubjectAccessToken(t, mock)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCTokenEndpoint, url.Values{
+			testOIDCFormParameterGrantType:          []string{oidc.GrantTypeTokenExchange},
+			oidc.FormParameterClientID:              []string{testOIDCTokenExchangeID},
+			testOIDCFormParameterClientSecret:       []string{testOIDCClientSecretValue},
+			testOIDCFormParameterSubjectToken:       []string{subject},
+			testOIDCFormParameterSubjectTokenType:   []string{oidc.TokenTypeAccessToken},
+			testOIDCFormParameterActorToken:         []string{actor},
+			testOIDCFormParameterActorTokenType:     []string{oidc.TokenTypeAccessToken},
+			testOIDCFormParameterRequestedTokenType: []string{oidc.TokenTypeAccessToken},
+		})
+
+		OAuth2TokenPOST(mock.Ctx, rw, r)
+
+		response := getTestOAuth2ErrorResponse(t, rw)
+
+		require.Equal(t, http.StatusOK, rw.Code, response)
+
+		token, ok := response["access_token"].(string)
+
+		require.True(t, ok)
+
+		claims := mustDecodeTestJWTClaims(t, token)
+
+		act, ok := claims[oidc.ClaimActor].(map[string]any)
+
+		require.True(t, ok, "the 'act' claim must be present when an 'actor_token' is supplied: %v", claims)
+
+		assert.Equal(t, testOIDCAuthorizationCodeID, act[oidc.ClaimClientIdentifier], "the 'act' claim must identify the client the actor token was issued to")
+	})
+
+	t.Run("ShouldDenyDelegationWhenSubjectTokenLacksMayAct", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCTokenExchangeFlow(t, mock, func(config *schema.IdentityProvidersOpenIDConnect, subject, exchange *schema.IdentityProvidersOpenIDConnectClient) {
+			exchange.ActorTokenTypesSupported = []string{oidc.TokenTypeAccessToken}
+			exchange.ActorTokenWithoutMayActAllowed = false
+		})
+
+		subject := mustGetTestOIDCSubjectAccessToken(t, mock)
+		actor := mustGetTestOIDCSubjectAccessToken(t, mock)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCTokenEndpoint, url.Values{
+			testOIDCFormParameterGrantType:          []string{oidc.GrantTypeTokenExchange},
+			oidc.FormParameterClientID:              []string{testOIDCTokenExchangeID},
+			testOIDCFormParameterClientSecret:       []string{testOIDCClientSecretValue},
+			testOIDCFormParameterSubjectToken:       []string{subject},
+			testOIDCFormParameterSubjectTokenType:   []string{oidc.TokenTypeAccessToken},
+			testOIDCFormParameterActorToken:         []string{actor},
+			testOIDCFormParameterActorTokenType:     []string{oidc.TokenTypeAccessToken},
+			testOIDCFormParameterRequestedTokenType: []string{oidc.TokenTypeAccessToken},
+		})
+
+		OAuth2TokenPOST(mock.Ctx, rw, r)
+
+		assert.NotEqual(t, http.StatusOK, rw.Code)
+
+		response := getTestOAuth2ErrorResponse(t, rw)
+
+		assert.Equal(t, "invalid_grant", response["error"])
+		assert.Contains(t, response["error_description"], "may_act")
 	})
 }
 
