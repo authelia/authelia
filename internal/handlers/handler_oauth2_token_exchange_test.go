@@ -21,7 +21,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-const testOIDCTokenExchangeID = "token-exchange"
+const (
+	testOIDCTokenExchangeID = "token-exchange"
+	testOIDCActorID         = "actor"
+)
 
 //nolint:gosec // These are form parameter names, not credentials.
 const (
@@ -202,7 +205,7 @@ func TestOAuth2TokenPOSTTokenExchange(t *testing.T) {
 		})
 
 		subject := mustGetTestOIDCSubjectAccessToken(t, mock)
-		actor := mustGetTestOIDCSubjectAccessToken(t, mock)
+		actor := mustGetTestOIDCClientAccessToken(t, mock, testOIDCActorID)
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCTokenEndpoint, url.Values{
 			testOIDCFormParameterGrantType:          []string{oidc.GrantTypeTokenExchange},
@@ -231,7 +234,7 @@ func TestOAuth2TokenPOSTTokenExchange(t *testing.T) {
 
 		require.True(t, ok, "the 'act' claim must be present when an 'actor_token' is supplied: %v", claims)
 
-		assert.Equal(t, testOIDCAuthorizationCodeID, act[oidc.ClaimClientIdentifier], "the 'act' claim must identify the client the actor token was issued to")
+		assert.Equal(t, testOIDCActorID, act[oidc.ClaimClientIdentifier], "the 'act' claim must identify the client the actor token was issued to")
 	})
 
 	t.Run("ShouldDenyDelegationWhenSubjectTokenLacksMayAct", func(t *testing.T) {
@@ -292,7 +295,12 @@ func setupTestOIDCTokenExchangeFlow(t *testing.T, mock *mocks.MockAutheliaCtx, m
 		mutator(config, &subject, &exchange)
 	}
 
-	config.Clients = []schema.IdentityProvidersOpenIDConnectClient{subject, exchange}
+	// The actor client mirrors the subject client under a distinct identity so delegation tests can tell the actor
+	// token apart from the subject token.
+	actor := subject
+	actor.ID = testOIDCActorID
+
+	config.Clients = []schema.IdentityProvidersOpenIDConnectClient{subject, actor, exchange}
 
 	setupTestOIDCProvider(t, mock, config)
 	setupTestOIDCSessionStore(t, mock)
@@ -321,11 +329,22 @@ func newTestOIDCTokenExchangeClient(t *testing.T) schema.IdentityProvidersOpenID
 func mustGetTestOIDCSubjectAccessToken(t *testing.T, mock *mocks.MockAutheliaCtx) (token string) {
 	t.Helper()
 
-	code := mustGetTestOIDCAuthorizationCode(t, mock, newTestOIDCAuthorizationValues())
+	return mustGetTestOIDCClientAccessToken(t, mock, testOIDCAuthorizationCodeID)
+}
+
+// mustGetTestOIDCClientAccessToken performs the Authorization Code Flow as the given client and returns the issued
+// access token.
+func mustGetTestOIDCClientAccessToken(t *testing.T, mock *mocks.MockAutheliaCtx, clientID string) (token string) {
+	t.Helper()
+
+	values := newTestOIDCAuthorizationValues()
+	values.Set(oidc.FormParameterClientID, clientID)
+
+	code := mustGetTestOIDCAuthorizationCode(t, mock, values)
 
 	rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCTokenEndpoint, url.Values{
 		testOIDCFormParameterGrantType:    []string{oidc.GrantTypeAuthorizationCode},
-		oidc.FormParameterClientID:        []string{testOIDCAuthorizationCodeID},
+		oidc.FormParameterClientID:        []string{clientID},
 		testOIDCFormParameterClientSecret: []string{testOIDCClientSecretValue},
 		testOIDCFormParameterCode:         []string{code},
 		oidc.FormParameterRedirectURI:     []string{testOIDCRedirectURI},
