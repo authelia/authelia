@@ -360,6 +360,13 @@ identity_validation:
     ## authentication.
     # skip_second_factor: false
 
+    ## Requires the user has recently authenticated before the elevated session can be used. Options are 'disabled',
+    ## 'password', 'second_factor', or 'any'. This is in addition to the One-Time Code.
+    # require_reauthentication: 'disabled'
+
+    ## The duration after an authentication during which it satisfies the require_reauthentication option.
+    # reauthentication_lifespan: '5 minutes'
+
 ##
 ## NTP Configuration
 ##
