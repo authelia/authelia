@@ -345,6 +345,8 @@ func validateAuthenticationBackendExternalIdentityProviderIssuer(config *schema.
 		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderIssuerScheme, config.ID, issuer.Scheme))
 	case issuer.Host == "":
 		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderIssuerHost, config.ID, config.Issuer))
+	case issuer.RawQuery != "" || issuer.Fragment != "" || issuer.ForceQuery:
+		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderIssuerQuery, config.ID, config.Issuer))
 	}
 }
 

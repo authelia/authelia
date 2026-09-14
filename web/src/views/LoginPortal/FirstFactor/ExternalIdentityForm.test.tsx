@@ -146,6 +146,22 @@ it("disables the clicked button while the request is in flight", async () => {
     resolveStart({ authorization_url: "https://op.example.com/authorize?x=1" });
 });
 
+it("reports the loading state while the request is in flight and after it fails", async () => {
+    getExternalIdentityProviders.mockResolvedValue([{ id: "google", name: "Google" }]);
+    postExternalIdentityStart.mockRejectedValue(new Error("request failed"));
+
+    const onLoadingChange = vi.fn();
+
+    render(<ExternalIdentityForm disabled={false} rememberMe={false} onLoadingChange={onLoadingChange} />);
+
+    await waitFor(() => expect(screen.getByText("Sign in with Google")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText("Sign in with Google"));
+
+    await waitFor(() => expect(onLoadingChange).toHaveBeenLastCalledWith(false));
+    expect(onLoadingChange).toHaveBeenNthCalledWith(1, true);
+});
+
 it("sends the flow the sign in was started from", async () => {
     getExternalIdentityProviders.mockResolvedValue([{ id: "google", name: "Google" }]);
     postExternalIdentityStart.mockResolvedValue({ authorization_url: "https://op.example.com/authorize?x=1" });

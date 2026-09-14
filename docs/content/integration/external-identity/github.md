@@ -84,7 +84,7 @@ their GitHub username or email address without affecting the link.
 
 | Value        | Attribute                                                                                 |
 | :----------- | :---------------------------------------------------------------------------------------- |
-| Issuer       | always `https://github.com`                                                               |
+| Issuer       | always `https://github.com/login/oauth`                                                   |
 | Subject      | `id`, recorded as its decimal representation                                              |
 | Username     | `login`                                                                                   |
 | Display Name | `name`, or `login` when it is absent                                                      |

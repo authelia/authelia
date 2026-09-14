@@ -21,6 +21,8 @@ import { getExternalIdentityProviders, postExternalIdentityStart } from "@servic
 export interface Props {
     disabled: boolean;
     rememberMe: boolean;
+
+    onLoadingChange?: (loading: boolean) => void;
 }
 
 const ExternalIdentityForm = function (props: Props) {
@@ -51,6 +53,7 @@ const ExternalIdentityForm = function (props: Props) {
             }
 
             setLoading(id);
+            props.onLoadingChange?.(true);
 
             const signal = getSignal();
 
@@ -74,6 +77,7 @@ const ExternalIdentityForm = function (props: Props) {
                 if (signal.aborted) return;
 
                 setLoading(null);
+                props.onLoadingChange?.(false);
                 createErrorNotification(translate("There was an issue signing in with the external provider"));
             }
         },
@@ -85,7 +89,7 @@ const ExternalIdentityForm = function (props: Props) {
             flowID,
             subflow,
             userCode,
-            props.rememberMe,
+            props,
             getSignal,
             createErrorNotification,
             translate,

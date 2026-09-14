@@ -235,6 +235,24 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'issuer' must be an absolute URL with a host but it's configured as 'https:accounts.google.com'"},
 		},
 		{
+			Name: "ShouldRaiseErrorOnIssuerWithQuery",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com?tenant=abc", ClientID: "abc", ClientSecret: "secret"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'issuer' must not have a query or fragment but it's configured as 'https://accounts.google.com?tenant=abc'"},
+		},
+		{
+			Name: "ShouldRaiseErrorOnIssuerWithFragment",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com#abc", ClientID: "abc", ClientSecret: "secret"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'issuer' must not have a query or fragment but it's configured as 'https://accounts.google.com#abc'"},
+		},
+		{
 			Name: "ShouldRaiseErrorOnOpaqueEndpoints",
 			Have: &schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
