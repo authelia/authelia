@@ -39,8 +39,38 @@ func (p *SQLProvider) SaveRecoveryCode(ctx context.Context, code *model.Recovery
 
 	code.Signature = p.recoveryCodeHMACSignature([]byte(code.Username), []byte(model.NormalizeRecoveryCode(code.Plaintext)))
 
-	if _, err = p.db.ExecContext(ctx, p.sqlInsertRecoveryCode, code.Username, code.Signature, code.CreatedAt); err != nil {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertRecoveryCode, code.Username, code.Signature, code.CreatedAt); err != nil {
 		return fmt.Errorf("error inserting recovery code for user '%s': %w", code.Username, err)
+	}
+
+	return nil
+}
+
+// ReplaceRecoveryCodesByUsername revokes all active recovery codes for a username and saves the provided batch in a
+// single transaction, so a failure part way through leaves the prior batch intact.
+func (p *SQLProvider) ReplaceRecoveryCodesByUsername(ctx context.Context, username string, codes []*model.RecoveryCode, ip model.NullIP) (err error) {
+	if ctx, err = p.BeginTX(ctx); err != nil {
+		return fmt.Errorf("error beginning transaction to replace recovery codes for user '%s': %w", username, err)
+	}
+
+	if err = p.RevokeRecoveryCodesByUsername(ctx, username, ip); err == nil {
+		for _, code := range codes {
+			if err = p.SaveRecoveryCode(ctx, code); err != nil {
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		if rollbackErr := p.Rollback(ctx); rollbackErr != nil {
+			return fmt.Errorf("error rolling back transaction to replace recovery codes for user '%s': %w", username, rollbackErr)
+		}
+
+		return err
+	}
+
+	if err = p.Commit(ctx); err != nil {
+		return fmt.Errorf("error committing transaction to replace recovery codes for user '%s': %w", username, err)
 	}
 
 	return nil
@@ -79,12 +109,26 @@ func (p *SQLProvider) LoadRecoveryCodesByUsername(ctx context.Context, username 
 	return codes, nil
 }
 
-// ConsumeRecoveryCode marks a recovery code as consumed by stamping the consumption time and remote IP.
+// ConsumeRecoveryCode marks an active recovery code as consumed by stamping the consumption time and remote IP. It
+// returns ErrRecoveryCodeNotActive if the code has already been consumed or revoked.
 func (p *SQLProvider) ConsumeRecoveryCode(ctx context.Context, id int, ip model.NullIP) (err error) {
 	consumedAt := sql.NullTime{Valid: true, Time: time.Now()}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlConsumeRecoveryCode, consumedAt, ip, id); err != nil {
+	var (
+		result   sql.Result
+		affected int64
+	)
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlConsumeRecoveryCode, consumedAt, ip, id); err != nil {
 		return fmt.Errorf("error updating recovery code (consume) id '%d': %w", id, err)
+	}
+
+	if affected, err = result.RowsAffected(); err != nil {
+		return fmt.Errorf("error updating recovery code (consume) id '%d': %w", id, err)
+	}
+
+	if affected != 1 {
+		return fmt.Errorf("error updating recovery code (consume) id '%d': %w", id, ErrRecoveryCodeNotActive)
 	}
 
 	return nil
@@ -94,7 +138,7 @@ func (p *SQLProvider) ConsumeRecoveryCode(ctx context.Context, id int, ip model.
 func (p *SQLProvider) RevokeRecoveryCodesByUsername(ctx context.Context, username string, ip model.NullIP) (err error) {
 	revokedAt := sql.NullTime{Valid: true, Time: time.Now()}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlRevokeRecoveryCodesByUsername, revokedAt, ip, username); err != nil {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlRevokeRecoveryCodesByUsername, revokedAt, ip, username); err != nil {
 		return fmt.Errorf("error revoking recovery codes for user '%s': %w", username, err)
 	}
 

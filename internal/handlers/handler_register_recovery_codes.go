@@ -44,15 +44,7 @@ func RecoveryCodesGenerationPOST(ctx *middlewares.AutheliaCtx) {
 
 	now := ctx.GetClock().Now()
 
-	if err = ctx.Providers.StorageProvider.RevokeRecoveryCodesByUsername(ctx, userSession.Username, model.NewNullIP(ctx.RemoteIP())); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred generating recovery codes for user '%s': error revoking existing codes", userSession.Username)
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
+	codes := make([]*model.RecoveryCode, 0, model.RecoveryCodeBatchSize)
 	plaintexts := make([]string, 0, model.RecoveryCodeBatchSize)
 
 	for i := 0; i < model.RecoveryCodeBatchSize; i++ {
@@ -69,16 +61,17 @@ func RecoveryCodesGenerationPOST(ctx *middlewares.AutheliaCtx) {
 
 		code.CreatedAt = now
 
-		if err = ctx.Providers.StorageProvider.SaveRecoveryCode(ctx, code); err != nil {
-			ctx.GetLogger().WithError(err).Errorf("Error occurred generating recovery codes for user '%s': error inserting code %d", userSession.Username, i)
-
-			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-			ctx.SetJSONError(messageOperationFailed)
-
-			return
-		}
-
+		codes = append(codes, code)
 		plaintexts = append(plaintexts, code.Plaintext)
+	}
+
+	if err = ctx.Providers.StorageProvider.ReplaceRecoveryCodesByUsername(ctx, userSession.Username, codes, model.NewNullIP(ctx.RemoteIP())); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred generating recovery codes for user '%s': error replacing existing codes", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
 	}
 
 	if ctx.Providers.Metrics != nil {

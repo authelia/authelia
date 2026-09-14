@@ -35,9 +35,11 @@ func TestNewRecoveryCode(t *testing.T) {
 	assert.False(t, code.RevokedAt.Valid)
 
 	parts := strings.Split(code.Plaintext, "-")
-	assert.Len(t, parts, 2, "plaintext should be split into two halves by a hyphen")
-	assert.Len(t, parts[0], RecoveryCodeLength/2)
-	assert.Len(t, parts[1], RecoveryCodeLength/2)
+	assert.Len(t, parts, RecoveryCodeLength/RecoveryCodeGroupSize, "plaintext should be split into groups by hyphens")
+
+	for _, part := range parts {
+		assert.Len(t, part, RecoveryCodeGroupSize)
+	}
 
 	for _, c := range strings.Join(parts, "") {
 		assert.True(t, strings.ContainsRune(random.CharSetUnambiguousUpper, c), "code char %q must be in the unambiguous upper alphabet", c)
@@ -91,6 +93,7 @@ func TestNormalizeRecoveryCode(t *testing.T) {
 		{" ABCDE FGHIJ ", "ABCDEFGHIJ"},
 		{"abcde\tFGHIJ", "ABCDEFGHIJ"},
 		{"abcde\n-fghij", "ABCDEFGHIJ"},
+		{"abcde\u00a0fghij\u3000", "ABCDEFGHIJ"},
 		{"", ""},
 	}
 

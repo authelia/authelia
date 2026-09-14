@@ -920,6 +920,20 @@ func (mr *MockStorageMockRecorder) LoadWebAuthnUserByUserID(ctx, rpid, userID an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUserByUserID", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUserByUserID), ctx, rpid, userID)
 }
 
+// ReplaceRecoveryCodesByUsername mocks base method.
+func (m *MockStorage) ReplaceRecoveryCodesByUsername(ctx context.Context, username string, codes []*model.RecoveryCode, ip model.NullIP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceRecoveryCodesByUsername", ctx, username, codes, ip)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReplaceRecoveryCodesByUsername indicates an expected call of ReplaceRecoveryCodesByUsername.
+func (mr *MockStorageMockRecorder) ReplaceRecoveryCodesByUsername(ctx, username, codes, ip any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceRecoveryCodesByUsername", reflect.TypeOf((*MockStorage)(nil).ReplaceRecoveryCodesByUsername), ctx, username, codes, ip)
+}
+
 // RevokeBannedIP mocks base method.
 func (m *MockStorage) RevokeBannedIP(ctx context.Context, id int, expired time.Time) error {
 	m.ctrl.T.Helper()

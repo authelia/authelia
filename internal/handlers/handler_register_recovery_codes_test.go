@@ -25,12 +25,7 @@ func TestRecoveryCodesGenerationPOST_SurfacesSMTPFailure(t *testing.T) {
 	newRecoveryCodeUserCtx(t, mock)
 
 	mock.StorageMock.EXPECT().
-		RevokeRecoveryCodesByUsername(gomock.Any(), gomock.Eq(testUsername), gomock.Any()).
-		Return(nil)
-
-	mock.StorageMock.EXPECT().
-		SaveRecoveryCode(gomock.Any(), gomock.Any()).
-		Times(model.RecoveryCodeBatchSize).
+		ReplaceRecoveryCodesByUsername(gomock.Any(), gomock.Eq(testUsername), gomock.Len(model.RecoveryCodeBatchSize), gomock.Any()).
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
@@ -63,4 +58,20 @@ func TestRecoveryCodesGenerationPOST_RejectsAnonymous(t *testing.T) {
 	RecoveryCodesGenerationPOST(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+}
+
+func TestRecoveryCodesGenerationPOST_ReplaceFailureReturnsNoCodes(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	newRecoveryCodeUserCtx(t, mock)
+
+	mock.StorageMock.EXPECT().
+		ReplaceRecoveryCodesByUsername(gomock.Any(), gomock.Eq(testUsername), gomock.Len(model.RecoveryCodeBatchSize), gomock.Any()).
+		Return(errors.New("insert failed"))
+
+	RecoveryCodesGenerationPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusInternalServerError, mock.Ctx.Response.StatusCode())
+	assert.NotContains(t, string(mock.Ctx.Response.Body()), `"codes"`)
 }

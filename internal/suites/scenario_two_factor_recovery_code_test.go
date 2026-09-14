@@ -173,7 +173,7 @@ func (s *TwoFactorRecoveryCodeScenario) doRegisterRecoveryCodes(t *testing.T, pa
 	require.NoError(t, addBtn.Click("left", 1))
 
 	// The dialog auto-fires generation on open. Wait for the codes to render. Each code is shown on its own row;
-	// we read the body text and split on lines that match the XXXXX-XXXXX format.
+	// we read the body text and split on lines that match the XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX format.
 	codes := s.scrapeRecoveryCodes(t, page)
 
 	if len(codes) == 0 {
@@ -200,8 +200,8 @@ func (s *TwoFactorRecoveryCodeScenario) scrapeRecoveryCodes(t *testing.T, page *
 	text, err := body.Text()
 	require.NoError(t, err)
 
-	// Codes are 5-char + hyphen + 5-char from random.CharSetUnambiguousUpper (no 0/O/I/L/1/5).
-	re := regexp.MustCompile(`\b[ABCDEFGHJKLMNPQRTUVWYXZ2346789]{5}-[ABCDEFGHJKLMNPQRTUVWYXZ2346789]{5}\b`)
+	// Codes are 8 hyphen-separated groups of 4 chars from random.CharSetUnambiguousUpper (no 0/O/I/L/1/5).
+	re := regexp.MustCompile(`\b(?:[ABCDEFGHJKLMNPQRTUVWYXZ2346789]{4}-){7}[ABCDEFGHJKLMNPQRTUVWYXZ2346789]{4}\b`)
 	matches := re.FindAllString(text, -1)
 
 	seen := make(map[string]bool, len(matches))

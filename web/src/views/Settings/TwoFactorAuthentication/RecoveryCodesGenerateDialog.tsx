@@ -111,10 +111,14 @@ const RecoveryCodesGenerateDialog = function (props: Props) {
         <Dialog
             open={props.open}
             onOpenChange={(open) => {
-                if (!open) handleClose();
+                if (!open && (error || confirmMatches)) handleClose();
             }}
         >
-            <DialogContent showCloseButton={false} aria-labelledby="recovery-codes-generate-dialog-title">
+            <DialogContent
+                showCloseButton={false}
+                aria-labelledby="recovery-codes-generate-dialog-title"
+                className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl"
+            >
                 <DialogHeader>
                     <DialogTitle id="recovery-codes-generate-dialog-title">
                         {translate("Save your recovery codes")}
@@ -149,7 +153,7 @@ const RecoveryCodesGenerateDialog = function (props: Props) {
                         <div className="grid grid-cols-1 gap-1 rounded-md bg-muted p-4 font-mono">
                             {codes.map((c) => (
                                 <div key={c} className="flex items-center justify-between">
-                                    <span className="font-mono">{c}</span>
+                                    <span className="font-mono whitespace-nowrap">{c}</span>
                                     <CopyButton variant="ghost" tooltip={translate("Copy")} value={c}>
                                         {translate("Copy")}
                                     </CopyButton>

@@ -63,7 +63,7 @@ const RecoveryCodeMethod = function (props: Props) {
                 <Input
                     id="recovery-code-input"
                     autoFocus
-                    placeholder="XXXXX-XXXXX"
+                    placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     onKeyDown={(e) => {

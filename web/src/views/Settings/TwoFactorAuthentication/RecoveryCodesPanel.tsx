@@ -19,6 +19,7 @@ import {
 } from "@components/UI/Dialog";
 import { Spinner } from "@components/UI/Spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useRecoveryCodesStatus } from "@hooks/UserRecoveryCodes";
 import { UserInfo } from "@models/UserInfo";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
@@ -33,7 +34,9 @@ interface Props {
 const RecoveryCodesPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
-    const [status, fetchStatus, loading] = useRecoveryCodesStatus();
+    const { createErrorNotification } = useNotifications();
+
+    const [status, fetchStatus, loading, fetchStatusError] = useRecoveryCodesStatus();
 
     const [elevation, setElevation] = useState<UserSessionElevation>();
     const [dialogSFOpening, setDialogSFOpening] = useState(false);
@@ -45,6 +48,14 @@ const RecoveryCodesPanel = function (props: Props) {
     useEffect(() => {
         fetchStatus();
     }, [fetchStatus]);
+
+    useEffect(() => {
+        if (fetchStatusError) {
+            createErrorNotification(
+                translate("There was an issue retrieving the {{item}}", { item: translate("Recovery Codes") }),
+            );
+        }
+    }, [fetchStatusError, createErrorNotification, translate]);
 
     const resetDialogs = useCallback(() => {
         setDialogSFOpening(false);
@@ -149,7 +160,8 @@ const RecoveryCodesPanel = function (props: Props) {
 
     const hasCodes = status !== undefined && status.codes_total > 0;
     const codesUsed = status ? status.codes_total - status.codes_remaining : 0;
-    const lowCodes = props.info?.low_recovery_codes === true;
+    const lowCodes = status !== undefined && status.codes_remaining > 0 && status.codes_remaining <= 2;
+    const statusUnknown = status === undefined && fetchStatusError !== undefined;
 
     return (
         <Fragment>
@@ -201,7 +213,9 @@ const RecoveryCodesPanel = function (props: Props) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            <RecoveryCodesGenerateDialog open={dialogGenerateOpen} setClosed={handleGenerateDialogClosed} />
+            {dialogGenerateOpen ? (
+                <RecoveryCodesGenerateDialog open={dialogGenerateOpen} setClosed={handleGenerateDialogClosed} />
+            ) : null}
             <Card id={"recovery-codes-panel"} data-loading={loading ? "true" : "false"}>
                 <CardContent className="grid grid-cols-12 gap-4 p-4">
                     <div className="col-span-12">
@@ -223,63 +237,69 @@ const RecoveryCodesPanel = function (props: Props) {
                             </Alert>
                         </div>
                     ) : null}
-                    <div className="col-span-12">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger
-                                    render={
-                                        <span>
-                                            <Button
-                                                id={"recovery-codes-add"}
-                                                variant={"outline"}
-                                                color={"primary"}
-                                                onClick={handleGenerateClicked}
-                                                disabled={loading || dialogGenerateOpening || dialogGenerateOpen}
-                                            >
-                                                {dialogGenerateOpening ? <Spinner size={20} /> : null}
-                                                {hasCodes ? translate("Regenerate") : translate("Generate")}
-                                            </Button>
-                                        </span>
-                                    }
-                                />
-                                <TooltipContent>
-                                    {hasCodes
-                                        ? translate("Generate a new batch (this invalidates the old codes)")
-                                        : translate("Generate recovery codes for your account")}
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                    <div className="col-span-12">
-                        {hasCodes ? (
-                            <Fragment>
-                                <p className="text-sm">
-                                    {translate("{{used}} of {{total}} codes used", {
-                                        total: status!.codes_total,
-                                        used: codesUsed,
-                                    })}
-                                </p>
-                                {status!.generated_at ? (
-                                    <div className="text-xs text-muted-foreground">
-                                        {translate("Generated {{when}}", {
-                                            when: status!.generated_at.toLocaleString(),
-                                        })}
-                                    </div>
-                                ) : null}
-                                <div className="text-xs text-muted-foreground">
-                                    {status!.last_used_at
-                                        ? translate("Last used {{when}}", {
-                                              when: status!.last_used_at.toLocaleString(),
-                                          })
-                                        : translate("Never used")}
-                                </div>
-                            </Fragment>
-                        ) : (
-                            <p className="text-sm font-medium">
-                                {translate("No recovery codes have been generated yet.")}
-                            </p>
-                        )}
-                    </div>
+                    {statusUnknown ? null : (
+                        <Fragment>
+                            <div className="col-span-12">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger
+                                            render={
+                                                <span>
+                                                    <Button
+                                                        id={"recovery-codes-add"}
+                                                        variant={"outline"}
+                                                        color={"primary"}
+                                                        onClick={handleGenerateClicked}
+                                                        disabled={
+                                                            loading || dialogGenerateOpening || dialogGenerateOpen
+                                                        }
+                                                    >
+                                                        {dialogGenerateOpening ? <Spinner size={20} /> : null}
+                                                        {hasCodes ? translate("Regenerate") : translate("Generate")}
+                                                    </Button>
+                                                </span>
+                                            }
+                                        />
+                                        <TooltipContent>
+                                            {hasCodes
+                                                ? translate("Generate a new batch (this invalidates the old codes)")
+                                                : translate("Generate recovery codes for your account")}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                            <div className="col-span-12">
+                                {hasCodes ? (
+                                    <Fragment>
+                                        <p className="text-sm">
+                                            {translate("{{used}} of {{total}} codes used", {
+                                                total: status!.codes_total,
+                                                used: codesUsed,
+                                            })}
+                                        </p>
+                                        {status!.generated_at ? (
+                                            <div className="text-xs text-muted-foreground">
+                                                {translate("Generated {{when}}", {
+                                                    when: status!.generated_at.toLocaleString(),
+                                                })}
+                                            </div>
+                                        ) : null}
+                                        <div className="text-xs text-muted-foreground">
+                                            {status!.last_used_at
+                                                ? translate("Last used {{when}}", {
+                                                      when: status!.last_used_at.toLocaleString(),
+                                                  })
+                                                : translate("Never used")}
+                                        </div>
+                                    </Fragment>
+                                ) : (
+                                    <p className="text-sm font-medium">
+                                        {translate("No recovery codes have been generated yet.")}
+                                    </p>
+                                )}
+                            </div>
+                        </Fragment>
+                    )}
                 </CardContent>
             </Card>
         </Fragment>

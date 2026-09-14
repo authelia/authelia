@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -48,9 +49,20 @@ func (ctx *CmdCtx) StorageUserRecoveryCodesStatusRunE(cmd *cobra.Command, args [
 		return fmt.Errorf("failed to load recovery codes for user '%s': %w", user, err)
 	}
 
-	var unused, consumed, revoked int
+	var (
+		unused, consumed, revoked int
+		generatedAt, consumedAt   time.Time
+	)
 
 	for _, c := range codes {
+		if c.CreatedAt.After(generatedAt) {
+			generatedAt = c.CreatedAt
+		}
+
+		if c.ConsumedAt.Valid && c.ConsumedAt.Time.After(consumedAt) {
+			consumedAt = c.ConsumedAt.Time
+		}
+
 		switch {
 		case c.RevokedAt.Valid:
 			revoked++
@@ -65,6 +77,19 @@ func (ctx *CmdCtx) StorageUserRecoveryCodesStatusRunE(cmd *cobra.Command, args [
 
 	_, _ = fmt.Fprintf(w, "User: %s\n", user)
 	_, _ = fmt.Fprintf(w, "Recovery codes total: %d (unused: %d, consumed: %d, revoked: %d)\n", len(codes), unused, consumed, revoked)
+
+	lastGenerated, lastConsumed := "never", "never"
+
+	if !generatedAt.IsZero() {
+		lastGenerated = generatedAt.Format("2006-01-02 15:04 MST")
+	}
+
+	if !consumedAt.IsZero() {
+		lastConsumed = consumedAt.Format("2006-01-02 15:04 MST")
+	}
+
+	_, _ = fmt.Fprintf(w, "Last generated: %s\n", lastGenerated)
+	_, _ = fmt.Fprintf(w, "Last consumed: %s\n", lastConsumed)
 
 	return nil
 }
@@ -128,12 +153,9 @@ func (ctx *CmdCtx) StorageUserRecoveryCodesGenerateRunE(cmd *cobra.Command, args
 
 	user := args[0]
 
-	if err = ctx.providers.StorageProvider.RevokeRecoveryCodesByUsername(ctx, user, model.NullIP{}); err != nil {
-		return fmt.Errorf("failed to revoke existing recovery codes for user '%s': %w", user, err)
-	}
-
 	mc := cmdRecoveryCodeContext{Context: ctx, clk: ctx.GetClock(), rnd: ctx.GetRandom()}
 
+	batch := make([]*model.RecoveryCode, 0, model.RecoveryCodeBatchSize)
 	codes := make([]string, 0, model.RecoveryCodeBatchSize)
 
 	for i := 0; i < model.RecoveryCodeBatchSize; i++ {
@@ -142,11 +164,12 @@ func (ctx *CmdCtx) StorageUserRecoveryCodesGenerateRunE(cmd *cobra.Command, args
 			return fmt.Errorf("failed to generate recovery code %d for user '%s': %w", i, user, errGen)
 		}
 
-		if err = ctx.providers.StorageProvider.SaveRecoveryCode(ctx, code); err != nil {
-			return fmt.Errorf("failed to save recovery code %d for user '%s': %w", i, user, err)
-		}
-
+		batch = append(batch, code)
 		codes = append(codes, code.Plaintext)
+	}
+
+	if err = ctx.providers.StorageProvider.ReplaceRecoveryCodesByUsername(ctx, user, batch, model.NullIP{}); err != nil {
+		return fmt.Errorf("failed to replace recovery codes for user '%s': %w", user, err)
 	}
 
 	w := cmd.OutOrStdout()

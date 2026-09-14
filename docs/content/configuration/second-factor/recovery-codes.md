@@ -38,8 +38,8 @@ fallback link, and the related API endpoints all become unavailable.
 
 ## Behavior
 
-- Each generation produces 10 codes; each code is 10 alphanumeric characters from an unambiguous uppercase alphabet
-  (no `0/O/I/L/1/5`), formatted as `XXXXX-XXXXX` for readability.
+- Each generation produces 10 codes; each code is 32 alphanumeric characters from an unambiguous uppercase alphabet
+  (no `0/O/I/L/1/5`), formatted in groups of four as `XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX` for readability.
 - Codes are normalized server-side before lookup (uppercased; whitespace, hyphens, and underscores stripped) so users
   can enter them with or without the visual hyphen.
 - Storage is one-way: only an HMAC-SHA256 signature of each code is persisted, peppered with a per-deployment key

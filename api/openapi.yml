@@ -2718,6 +2718,9 @@ components:
             password_reset_disabled:
               type: boolean
               description: Value which indicates if users are allowed to reset their password.
+            recovery_codes_disabled:
+              type: boolean
+              description: Value which indicates if the recovery codes feature is disabled.
     handlers.configuration.PasswordPolicyConfigurationBody:
       type: object
       properties:

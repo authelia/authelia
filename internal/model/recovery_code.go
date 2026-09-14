@@ -15,8 +15,11 @@ import (
 )
 
 const (
-	// RecoveryCodeLength is the number of random characters in a recovery code, not counting the visual hyphen.
-	RecoveryCodeLength = 10
+	// RecoveryCodeLength is the number of random characters in a recovery code, not counting the visual hyphens.
+	RecoveryCodeLength = 32
+
+	// RecoveryCodeGroupSize is the number of characters between each visual hyphen in a recovery code.
+	RecoveryCodeGroupSize = 4
 
 	// RecoveryCodeBatchSize is the number of recovery codes generated per request.
 	RecoveryCodeBatchSize = 10
@@ -34,12 +37,16 @@ func NewRecoveryCode(ctx Context, username string) (code *RecoveryCode, err erro
 		return nil, fmt.Errorf("failed to generate recovery code random bytes: %w", err)
 	}
 
-	mid := RecoveryCodeLength / 2
+	groups := make([]string, 0, RecoveryCodeLength/RecoveryCodeGroupSize)
+
+	for i := 0; i < RecoveryCodeLength; i += RecoveryCodeGroupSize {
+		groups = append(groups, string(raw[i:i+RecoveryCodeGroupSize]))
+	}
 
 	return &RecoveryCode{
 		Username:  username,
 		CreatedAt: ctx.GetClock().Now(),
-		Plaintext: string(raw[:mid]) + "-" + string(raw[mid:]),
+		Plaintext: strings.Join(groups, "-"),
 	}, nil
 }
 
@@ -48,8 +55,7 @@ func NewRecoveryCode(ctx Context, username string) (code *RecoveryCode, err erro
 // formatting variations all match the same stored row.
 func NormalizeRecoveryCode(input string) string {
 	return strings.Map(func(r rune) rune {
-		switch r {
-		case ' ', '\t', '\n', '\r', '-', '_':
+		if r == '-' || r == '_' || unicode.IsSpace(r) {
 			return -1
 		}
 

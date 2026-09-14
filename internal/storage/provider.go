@@ -202,6 +202,10 @@ type Provider interface {
 	// transient plaintext on the model. The plaintext is never persisted.
 	SaveRecoveryCode(ctx context.Context, code *model.RecoveryCode) (err error)
 
+	// ReplaceRecoveryCodesByUsername revokes all active recovery codes for a username and saves the provided batch in
+	// a single transaction.
+	ReplaceRecoveryCodesByUsername(ctx context.Context, username string, codes []*model.RecoveryCode, ip model.NullIP) (err error)
+
 	// LoadRecoveryCode loads a recovery code from the storage provider given a username and a user-supplied raw code.
 	// The raw code is normalized and HMAC'd before lookup, so any of the formatting variations the user might enter
 	// match the same row.

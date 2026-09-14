@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 func newRecoveryCodeUserCtx(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -125,4 +126,38 @@ func TestRecoveryCodePOST_RejectsAnonymous(t *testing.T) {
 	RecoveryCodePOST(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+}
+
+func TestRecoveryCodePOST_RejectsWhenConsumeFails(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	newRecoveryCodeUserCtx(t, mock)
+
+	stored := &model.RecoveryCode{
+		ID:        42,
+		Username:  testUsername,
+		Signature: "deadbeef",
+		CreatedAt: time.Unix(1700000000, 0),
+	}
+
+	mock.StorageMock.EXPECT().
+		LoadRecoveryCode(gomock.Any(), gomock.Eq(testUsername), gomock.Any()).
+		Return(stored, nil)
+
+	mock.StorageMock.EXPECT().
+		ConsumeRecoveryCode(gomock.Any(), gomock.Eq(42), gomock.Any()).
+		Return(storage.ErrRecoveryCodeNotActive)
+
+	mock.Ctx.Request.SetBody([]byte(`{"code":"XYZ-1234"}`))
+
+	RecoveryCodePOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+
+	us, err := mock.Ctx.GetSession()
+	require.NoError(t, err)
+
+	assert.False(t, us.AuthenticationMethodRefs.RecoveryCode)
+	assert.Zero(t, us.SecondFactorAuthnTimestamp)
 }

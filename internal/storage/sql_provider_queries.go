@@ -144,7 +144,7 @@ const (
 	queryFmtConsumeRecoveryCode = `
 		UPDATE %s
 		SET consumed_at = ?, consumed_ip = ?
-		WHERE id = ?;`
+		WHERE id = ? AND consumed_at IS NULL AND revoked_at IS NULL;`
 
 	queryFmtRevokeRecoveryCodesByUsername = `
 		UPDATE %s
