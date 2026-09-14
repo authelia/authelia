@@ -79,6 +79,7 @@ func newDebugNotificationCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+// DebugNotificationRunE is the RunE for the authelia debug notification command.
 func (ctx *CmdCtx) DebugNotificationRunE(cmd *cobra.Command, _ []string) (err error) {
 	return runDebugNotification(cmd.OutOrStdout(), cmd.Flags(), ctx.config, ctx.trusted)
 }
