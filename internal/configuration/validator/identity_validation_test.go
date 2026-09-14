@@ -6,6 +6,7 @@ package validator
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,4 +51,51 @@ func TestShouldErrorOnInvalidCharLen(t *testing.T) {
 
 	assert.EqualError(t, validator.Errors()[0], "identity_validation: elevated_session: option 'characters' must be 20 or less but it's configured as 40")
 	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+}
+
+func TestShouldSetDefaultElevatedSessionReauthentication(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.IdentityValidation.ElevatedSession.RequireReauthentication = ""
+	config.IdentityValidation.ElevatedSession.ReauthenticationLifespan = 0
+
+	ValidateConfiguration(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+
+	assert.Equal(t, schema.ElevatedSessionReauthenticationDisabled, config.IdentityValidation.ElevatedSession.RequireReauthentication)
+	assert.Equal(t, time.Minute*5, config.IdentityValidation.ElevatedSession.ReauthenticationLifespan)
+}
+
+func TestShouldAcceptValidElevatedSessionReauthentication(t *testing.T) {
+	for _, mode := range []string{
+		schema.ElevatedSessionReauthenticationDisabled,
+		schema.ElevatedSessionReauthenticationPassword,
+		schema.ElevatedSessionReauthenticationSecondFactor,
+		schema.ElevatedSessionReauthenticationAny,
+	} {
+		t.Run(mode, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := newDefaultConfig()
+			config.IdentityValidation.ElevatedSession.RequireReauthentication = mode
+			config.IdentityValidation.ElevatedSession.ReauthenticationLifespan = time.Minute
+
+			ValidateConfiguration(&config, validator)
+			require.Len(t, validator.Errors(), 0)
+
+			assert.Equal(t, mode, config.IdentityValidation.ElevatedSession.RequireReauthentication)
+			assert.Equal(t, time.Minute, config.IdentityValidation.ElevatedSession.ReauthenticationLifespan)
+		})
+	}
+}
+
+func TestShouldErrorOnInvalidElevatedSessionReauthentication(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.IdentityValidation.ElevatedSession.RequireReauthentication = "totp"
+
+	ValidateConfiguration(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Warnings(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_validation: elevated_session: option 'require_reauthentication' must be one of 'disabled', 'password', 'second_factor', or 'any' but it's configured as 'totp'")
 }
