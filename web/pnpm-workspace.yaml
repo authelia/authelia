@@ -3,7 +3,7 @@ allowBuilds:
   unrs-resolver: true
 overrides:
   fast-uri: 4.1.4
-  js-yaml: 5.4.1
+  js-yaml: 5.4.2
   minimatch: 10.2.6
   picomatch: 4.0.7
   qs: 6.16.0
