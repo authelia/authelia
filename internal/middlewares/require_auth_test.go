@@ -260,6 +260,149 @@ func TestRequireElevated(t *testing.T) {
 	}
 }
 
+func TestRequireElevatedReauthentication(t *testing.T) {
+	type response struct {
+		Status string                                `json:"status"`
+		Data   middlewares.ElevatedForbiddenResponse `json:"data"`
+	}
+
+	now := time.Unix(1700000000, 0)
+
+	testCases := []struct {
+		name                     string
+		mode                     string
+		level                    authentication.Level
+		first                    int64
+		second                   int64
+		elevated                 bool
+		skip2FA                  bool
+		setup                    func(mock *mocks.MockAutheliaCtx)
+		expected                 int
+		expectedReauthentication bool
+		expectedElevation        bool
+	}{
+		{
+			name:                     "ShouldForbidStalePassword",
+			mode:                     schema.ElevatedSessionReauthenticationPassword,
+			level:                    authentication.OneFactor,
+			first:                    now.Add(-time.Hour).Unix(),
+			elevated:                 true,
+			expected:                 fasthttp.StatusForbidden,
+			expectedReauthentication: true,
+		},
+		{
+			name:     "ShouldPassFreshPasswordElevated",
+			mode:     schema.ElevatedSessionReauthenticationPassword,
+			level:    authentication.OneFactor,
+			first:    now.Add(-time.Minute).Unix(),
+			elevated: true,
+			expected: fasthttp.StatusOK,
+		},
+		{
+			name:              "ShouldRequireElevationAfterFreshPassword",
+			mode:              schema.ElevatedSessionReauthenticationPassword,
+			level:             authentication.OneFactor,
+			first:             now.Add(-time.Minute).Unix(),
+			expected:          fasthttp.StatusForbidden,
+			expectedElevation: true,
+		},
+		{
+			name:    "ShouldEvaluateGateBeforeSkipSecondFactor",
+			mode:    schema.ElevatedSessionReauthenticationSecondFactor,
+			level:   authentication.TwoFactor,
+			first:   now.Add(-time.Minute).Unix(),
+			second:  now.Add(-time.Hour).Unix(),
+			skip2FA: true,
+			setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, john).Return(model.UserInfo{HasWebAuthn: true}, nil)
+			},
+			expected:                 fasthttp.StatusForbidden,
+			expectedReauthentication: true,
+		},
+		{
+			name:    "ShouldPassSkipSecondFactorWithFreshSecondFactor",
+			mode:    schema.ElevatedSessionReauthenticationSecondFactor,
+			level:   authentication.TwoFactor,
+			second:  now.Add(-time.Minute).Unix(),
+			skip2FA: true,
+			setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, john).Return(model.UserInfo{HasWebAuthn: true}, nil)
+			},
+			expected: fasthttp.StatusOK,
+		},
+		{
+			name:     "ShouldFailClosedOnStorageError",
+			mode:     schema.ElevatedSessionReauthenticationSecondFactor,
+			level:    authentication.OneFactor,
+			second:   now.Add(-time.Minute).Unix(),
+			elevated: true,
+			setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, john).Return(model.UserInfo{}, errors.New("bad storage"))
+			},
+			expected:                 fasthttp.StatusForbidden,
+			expectedReauthentication: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Configuration.IdentityValidation.ElevatedSession = schema.IdentityValidationElevatedSession{
+				CodeLifespan:             time.Minute,
+				ElevationLifespan:        time.Minute,
+				Characters:               8,
+				SkipSecondFactor:         tc.skip2FA,
+				RequireReauthentication:  tc.mode,
+				ReauthenticationLifespan: time.Minute * 5,
+			}
+
+			mock.Ctx.Providers.Clock = &mock.Clock
+			mock.Clock.Set(now)
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedFor, "127.0.0.1")
+
+			userSession, err := mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			userSession.Username = john
+			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+			userSession.AuthenticationMethodRefs.WebAuthn = tc.level == authentication.TwoFactor
+			userSession.FirstFactorAuthnTimestamp = tc.first
+			userSession.SecondFactorAuthnTimestamp = tc.second
+			userSession.SecondFactorPossessionAuthnTimestamp = tc.second
+
+			if tc.elevated {
+				userSession.Elevations.User = &session.Elevation{
+					ID:       1,
+					Expires:  now.Add(time.Minute),
+					RemoteIP: net.ParseIP("127.0.0.1"),
+				}
+			}
+
+			require.NoError(t, mock.Ctx.SaveSession(userSession))
+
+			if tc.setup != nil {
+				tc.setup(mock)
+			}
+
+			middlewares.RequireElevated(NilHandler)(mock.Ctx)
+
+			assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
+
+			if tc.expected != fasthttp.StatusOK {
+				data := &response{}
+
+				require.NoError(t, json.Unmarshal(mock.Ctx.Response.Body(), data))
+
+				assert.Equal(t, tc.expectedReauthentication, data.Data.Reauthentication)
+				assert.Equal(t, tc.expectedElevation, data.Data.Elevation)
+			}
+		})
+	}
+}
+
 func NilHandler(ctx *middlewares.AutheliaCtx) {
 	ctx.SetContentTypeTextPlain()
 	ctx.Response.SetBodyString("Example Nil")
