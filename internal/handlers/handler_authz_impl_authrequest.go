@@ -38,3 +38,13 @@ func handleAuthzGetObjectAuthRequest(ctx AuthzContext) (object authorization.Obj
 func handleAuthzUnauthorizedAuthRequest(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
 	doAuthzRedirect(ctx, authn, redirectionURL, fasthttp.StatusUnauthorized)
 }
+
+func handleAuthzForbiddenAuthRequest(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
+	if redirectionURL == nil || authn.Type != AuthnTypeCookie {
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	doAuthzForbiddenRedirect(ctx, authn, redirectionURL, fasthttp.StatusForbidden)
+}

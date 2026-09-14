@@ -1,6 +1,7 @@
 {
 	"A notification has been sent to your smartphone": "A notification has been sent to your smartphone",
 	"Accept": "Accept",
+	"Access Denied": "Access Denied",
 	"Access protected resources logged in as you": "Access protected resources logged in as you",
 	"Access your email addresses": "Access your email addresses",
 	"Access your group membership": "Access your group membership",
@@ -107,6 +108,8 @@
 	"Username is required": "Username is required",
 	"Warning": "Warning",
 	"You cancelled the assertion request": "You cancelled the assertion request",
+	"You do not have permission to access this resource": "You do not have permission to access this resource",
+	"You do not have permission to access {{host}}": "You do not have permission to access {{host}}",
 	"You have made too many requests": "You have made too many requests",
 	"You must view and accept the Privacy Policy before using {{authelia}}.": "You must view and accept the \u003cpolicy\u003ePrivacy Policy\u003c/policy\u003e before using {{authelia}}",
 	"You're being signed out and redirected": "You're being signed out and redirected",

@@ -239,7 +239,8 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
 	case AuthzResultForbidden:
 		ctx.GetLogger().Infof("Access to '%s' is forbidden to user '%s'", object.URL.String(), authn.Username)
-		ctx.ReplyForbidden()
+
+		authz.handleForbidden(ctx, authn, authz.getForbiddenRedirectionURL(&object, autheliaURL))
 	case AuthzResultUnauthorized:
 		var handler HandlerAuthzUnauthorized
 
@@ -294,6 +295,22 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 	if object.Method != "" {
 		qry.Set(queryArgRM, object.Method)
 	}
+
+	redirectionURL.RawQuery = qry.Encode()
+
+	return redirectionURL
+}
+
+func (authz *Authz) getForbiddenRedirectionURL(object *authorization.Object, autheliaURL *url.URL) (redirectionURL *url.URL) {
+	if redirectionURL = authz.getRedirectionURL(object, autheliaURL); redirectionURL == nil {
+		return nil
+	}
+
+	redirectionURL = redirectionURL.JoinPath(pathError)
+
+	qry := redirectionURL.Query()
+
+	qry.Set(queryArgEC, queryValueECForbidden)
 
 	redirectionURL.RawQuery = qry.Encode()
 
