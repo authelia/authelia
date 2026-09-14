@@ -284,6 +284,9 @@ func validateServerAssetsIterate(keyRoot, path string, translations map[string]a
 func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
 	validateServerEndpointsRateLimitDefault("openid_connect_pushed_authorization_request", &config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, validator)
 	validateServerEndpointsRateLimitDefault("openid_connect_token", &config.Server.Endpoints.RateLimits.OpenIDConnectToken, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectToken, validator)
+	validateServerEndpointsRateLimitDefault("openid_connect_userinfo", &config.Server.Endpoints.RateLimits.OpenIDConnectUserInfo, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectUserInfo, validator)
+	validateServerEndpointsRateLimitDefault("openid_connect_introspection", &config.Server.Endpoints.RateLimits.OpenIDConnectIntrospection, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectIntrospection, validator)
+	validateServerEndpointsRateLimitDefault("openid_connect_revocation", &config.Server.Endpoints.RateLimits.OpenIDConnectRevocation, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectRevocation, validator)
 
 	validateServerEndpointsRateLimitDefault("reset_password_start", &config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
 	validateServerEndpointsRateLimitDefault("reset_password_finish", &config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
