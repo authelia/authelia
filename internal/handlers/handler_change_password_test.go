@@ -147,7 +147,7 @@ func TestChangePasswordPOST_ShouldFailWhenRequestBodyIsInvalid(t *testing.T) {
 
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
-	assert.Equal(t, messageUnableToChangePassword, errResponse.Message)
+	assert.Equal(t, messageUnableToChangePassword.Message, errResponse.Message)
 }
 
 func TestChangePasswordPOST_ShouldFailWhenOldPasswordIsIncorrect(t *testing.T) {
@@ -191,7 +191,7 @@ func TestChangePasswordPOST_ShouldFailWhenOldPasswordIsIncorrect(t *testing.T) {
 
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
-	assert.Equal(t, messageIncorrectPassword, errResponse.Message)
+	assert.Equal(t, messageIncorrectPassword.Message, errResponse.Message)
 }
 
 func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T) {
@@ -235,7 +235,7 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T
 
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
-	assert.Equal(t, messagePasswordWeak, errResponse.Message)
+	assert.Equal(t, messagePasswordWeak.Message, errResponse.Message)
 }
 
 func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserHasNoEmail(t *testing.T) {
@@ -342,7 +342,7 @@ func TestChangePasswordPOST_ShouldFailWhenSessionProviderUnavailable(t *testing.
 
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
-	assert.Equal(t, messageUnableToChangePassword, errResponse.Message)
+	assert.Equal(t, messageUnableToChangePassword.Message, errResponse.Message)
 
 	mock.AssertLastLogMessage(t, "Unable to change password for user: error occurred retrieving session provider", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 }
@@ -374,7 +374,7 @@ func TestChangePasswordPOST_ShouldFailWhenAuthenticationFails(t *testing.T) {
 
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
-	assert.Equal(t, messageOperationFailed, errResponse.Message)
+	assert.Equal(t, messageOperationFailed.Message, errResponse.Message)
 
 	mock.AssertLastLogMessage(t, "Unable to change password for user as authentication failed for the user", "authentication failed")
 }
@@ -406,7 +406,7 @@ func TestChangePasswordPOST_ShouldFailWhenChangePasswordErrorIsUnknown(t *testin
 
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
-	assert.Equal(t, messageOperationFailed, errResponse.Message)
+	assert.Equal(t, messageOperationFailed.Message, errResponse.Message)
 
 	mock.AssertLastLogMessage(t, "Unable to change password for user for an unknown reason", "ldap: connection refused")
 }

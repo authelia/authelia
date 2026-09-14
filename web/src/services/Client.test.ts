@@ -6,6 +6,7 @@ import axios from "axios";
 
 import { hasServiceError, toData, toDataRateLimited } from "@services/Api";
 import * as Client from "@services/Client";
+import { ServiceError } from "@services/ServiceError";
 
 vi.mock("axios");
 vi.mock("@services/Api");
@@ -58,6 +59,19 @@ it("throws on post error", async () => {
     await expect(Client.PostWithOptionalResponse("/path", {})).rejects.toThrow(
         "Failed POST to /path. Code: 400. Message: error",
     );
+});
+
+it("throws a service error carrying the status and code", async () => {
+    const mockRes = { data: { code: "password_policy", message: "error", status: "KO" }, status: 200 };
+    (axios.post as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ code: "password_policy", errored: true, message: "error" });
+
+    const err = await Client.PostWithOptionalResponse("/path", {}).catch((e) => e);
+
+    expect(err).toBeInstanceOf(ServiceError);
+    expect(err.message).toBe("Failed POST to /path. Code: 200. Message: error");
+    expect(err.status).toBe(200);
+    expect(err.code).toBe("password_policy");
 });
 
 it("throws on rate limited post error", async () => {
