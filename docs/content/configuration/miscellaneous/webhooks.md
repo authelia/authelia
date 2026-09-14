@@ -575,7 +575,9 @@ twice, so deduplicate on the envelope `id`, which is stable across every attempt
 - Events are not persisted, so a restart or a crash loses whatever was queued.
 
 Do not use webhooks as the system of record for anything you cannot afford to lose. They are a notification and
-automation mechanism, not an audit log. Each destination preserves the order in which events were emitted, and the event
+automation mechanism, not an audit log. Each destination preserves the order in which events were emitted unless it
+mixes delivery modes, in which case order is guaranteed only within a batch as described under
+[immediate](#immediate), and the event
 identifier is stable across retries so a receiver can deduplicate; see
 [Idempotency](../../reference/guides/webhook-events.md#idempotency).
 

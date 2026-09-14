@@ -179,13 +179,13 @@ func (dispatcher *Dispatcher) Emit(_ context.Context, event *events.Event) {
 		return
 	}
 
+	// The read lock is held until every destination has been offered the event, so Shutdown cannot drain and count the
+	// undelivered events while an enqueue is still in progress. Enqueue never blocks, so this cannot stall Shutdown.
 	dispatcher.mutex.RLock()
 
-	started := dispatcher.started
+	defer dispatcher.mutex.RUnlock()
 
-	dispatcher.mutex.RUnlock()
-
-	if !started {
+	if !dispatcher.started {
 		return
 	}
 
