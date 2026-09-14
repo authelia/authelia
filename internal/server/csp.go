@@ -18,30 +18,16 @@ func resolveOIDCConsentLogoURI(ctx *middlewares.AutheliaCtx) string {
 		return ""
 	}
 
-	raw := ctx.RequestCtx.QueryArgs().Peek(oidc.FormParameterFlowID)
-	if len(raw) == 0 {
+	if ctx.Providers.StorageProvider == nil || ctx.Providers.OpenIDConnect == nil {
 		return ""
 	}
 
-	flowID, err := uuid.ParseBytes(raw)
-	if err != nil {
+	clientID := resolveOIDCConsentClientID(ctx)
+	if clientID == "" {
 		return ""
 	}
 
-	if ctx.Providers.StorageProvider == nil {
-		return ""
-	}
-
-	consent, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID)
-	if err != nil || consent == nil {
-		return ""
-	}
-
-	if ctx.Providers.OpenIDConnect == nil {
-		return ""
-	}
-
-	client, err := ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID)
+	client, err := ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID)
 	if err != nil || client == nil {
 		return ""
 	}
@@ -52,6 +38,40 @@ func resolveOIDCConsentLogoURI(ctx *middlewares.AutheliaCtx) string {
 	}
 
 	return " https://" + logo.Host
+}
+
+func resolveOIDCConsentClientID(ctx *middlewares.AutheliaCtx) string {
+	args := ctx.QueryArgs()
+
+	if raw := args.Peek(oidc.FormParameterFlowID); len(raw) != 0 {
+		flowID, err := uuid.ParseBytes(raw)
+		if err != nil {
+			return ""
+		}
+
+		consent, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID)
+		if err != nil || consent == nil {
+			return ""
+		}
+
+		return consent.ClientID
+	}
+
+	if raw := args.Peek(oidc.FormParameterUserCode); len(raw) != 0 {
+		signature, err := ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, string(raw))
+		if err != nil {
+			return ""
+		}
+
+		device, err := ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature)
+		if err != nil || device == nil {
+			return ""
+		}
+
+		return device.ClientID
+	}
+
+	return ""
 }
 
 func isOIDCConsentShellPath(path string) bool {

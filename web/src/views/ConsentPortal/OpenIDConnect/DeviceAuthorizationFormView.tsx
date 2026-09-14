@@ -27,10 +27,12 @@ import {
 } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
+import { useRedirector } from "@hooks/Redirector";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { postConsentUserCode } from "@services/ConsentOpenIDConnect";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
+import { getBasePath } from "@utils/BasePath";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const normalizeUserCode = (value: string) => value.toUpperCase().replace(/\s+/g, "").slice(0, UserCodeLength);
@@ -48,6 +50,7 @@ function DeviceAuthorizationFormView({ state }: Props) {
 
     const navigate = useRouterNavigate();
     const { createErrorNotification } = useNotifications();
+    const redirector = useRedirector();
 
     const autoSubmittedRef = useRef(false);
 
@@ -78,9 +81,11 @@ function DeviceAuthorizationFormView({ state }: Props) {
             params.set(Flow, FlowNameOpenIDConnect);
             params.set(SubFlow, SubFlowNameDeviceAuthorization);
 
-            navigate(`${ConsentRoute}${ConsentOpenIDSubRoute}${ConsentDecisionSubRoute}`, true, true, true, params);
+            redirector(
+                `${getBasePath()}${ConsentRoute}${ConsentOpenIDSubRoute}${ConsentDecisionSubRoute}?${params.toString()}`,
+            );
         },
-        [createErrorNotification, navigate, translate],
+        [createErrorNotification, redirector, translate],
     );
 
     useEffect(() => {

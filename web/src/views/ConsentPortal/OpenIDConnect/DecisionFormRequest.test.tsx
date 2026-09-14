@@ -184,3 +184,29 @@ it("does not render a card header when there are no scopes", () => {
 
     expect(container.querySelector("[data-slot='card-header']")).toBeNull();
 });
+
+it("does not render a card when there is nothing to disclose", () => {
+    const { container } = render(
+        <DecisionFormRequest
+            response={response({ audience: [], claims: [], essential_claims: [], resource: [], scopes: [] })}
+            claims={[]}
+            onChangeClaims={vi.fn()}
+        />,
+    );
+
+    expect(container.querySelector("[data-slot='card']")).toBeNull();
+    expect(screen.getByTestId("openid-consent-client-name")).toBeInTheDocument();
+});
+
+it("does not render a card when there is nothing to disclose and it is collapsible", () => {
+    const { container } = render(
+        <DecisionFormRequest
+            response={response({ audience: [], claims: [], essential_claims: [], resource: [], scopes: [] })}
+            claims={[]}
+            onChangeClaims={vi.fn()}
+            collapsible
+        />,
+    );
+
+    expect(container.querySelector("[data-slot='card']")).toBeNull();
+});
