@@ -28,7 +28,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func newContributorsCmd() *cobra.Command {
+func newMiscContributorsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   cmdUseContributors,
 		Short: "Generate the contributors card",
