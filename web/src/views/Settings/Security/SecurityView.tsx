@@ -11,10 +11,11 @@ import { Card } from "@components/UI/Card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
+import { useElevationFlow } from "@hooks/ElevationFlow";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import { Configuration } from "@models/Configuration";
-import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
+import ReauthenticationDialog from "@views/Settings/Common/ReauthenticationDialog";
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog";
 
@@ -54,117 +55,30 @@ const SettingsView = function () {
     const { createErrorNotification } = useNotifications();
 
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
-    const [elevation, setElevation] = useState<UserSessionElevation>();
-    const [dialogSFOpening, setDialogSFOpening] = useState(false);
-    const [dialogIVOpening, setDialogIVOpening] = useState(false);
     const [dialogPWChangeOpen, setDialogPWChangeOpen] = useState(false);
-    const [dialogPWChangeOpening, setDialogPWChangeOpening] = useState(false);
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
-    const handleResetStateOpening = () => {
-        setDialogSFOpening(false);
-        setDialogIVOpening(false);
-        setDialogPWChangeOpening(false);
-    };
+    const handleRefreshError = useCallback(() => {
+        createErrorNotification(translate("Failed to get session elevation status"));
+    }, [createErrorNotification, translate]);
+
+    const handleCancelled = useCallback(() => setDialogPWChangeOpen(false), []);
+    const handleElevated = useCallback(() => setDialogPWChangeOpen(true), []);
+
+    const { identityVerificationDialogProps, reauthenticationDialogProps, reset, secondFactorDialogProps, start } =
+        useElevationFlow<"password">({
+            onCancelled: handleCancelled,
+            onElevated: handleElevated,
+            onRefreshError: handleRefreshError,
+        });
 
     const handleResetState = useCallback(() => {
-        handleResetStateOpening();
-
-        setElevation(undefined);
+        reset();
         setDialogPWChangeOpen(false);
-    }, []);
-
-    const handleOpenChangePWDialog = useCallback(() => {
-        handleResetStateOpening();
-        setDialogPWChangeOpen(true);
-    }, []);
-
-    const handleSFDialogClosed = (ok: boolean, changed: boolean) => {
-        if (!ok) {
-            console.warn("Second Factor dialog close callback failed, it was likely cancelled by the user.");
-
-            handleResetState();
-
-            return;
-        }
-
-        if (changed) {
-            handleElevationRefresh()
-                .then((refreshedElevation) => {
-                    if (refreshedElevation) {
-                        const isElevatedFromRefresh =
-                            refreshedElevation.elevated || refreshedElevation.skip_second_factor;
-                        if (isElevatedFromRefresh) {
-                            setElevation(undefined);
-                            if (dialogPWChangeOpening) {
-                                handleOpenChangePWDialog();
-                            }
-                        } else {
-                            setDialogIVOpening(true);
-                        }
-                    }
-                })
-                .catch((error) => {
-                    console.error(error);
-                    createErrorNotification(translate("Failed to get session elevation status"));
-                });
-        } else {
-            const isElevated = elevation && (elevation.elevated || elevation.skip_second_factor);
-            if (isElevated) {
-                setElevation(undefined);
-                if (dialogPWChangeOpening) {
-                    handleOpenChangePWDialog();
-                }
-            } else {
-                setDialogIVOpening(true);
-            }
-        }
-    };
-
-    const handleSFDialogOpened = () => {
-        setDialogSFOpening(false);
-    };
-
-    const handleIVDialogClosed = useCallback(
-        (ok: boolean) => {
-            if (!ok) {
-                console.warn(
-                    "Identity Verification dialog close callback failed, it was likely cancelled by the user.",
-                );
-
-                handleResetState();
-
-                return;
-            }
-
-            setElevation(undefined);
-            if (dialogPWChangeOpening) {
-                handleOpenChangePWDialog();
-            }
-        },
-        [dialogPWChangeOpening, handleOpenChangePWDialog, handleResetState],
-    );
-
-    const handleIVDialogOpened = () => {
-        setDialogIVOpening(false);
-    };
-
-    const handleElevationRefresh = async () => {
-        const result = await getUserSessionElevation();
-        setElevation(result);
-        return result;
-    };
-
-    const handleElevation = () => {
-        handleElevationRefresh().catch(console.error);
-
-        setDialogSFOpening(true);
-    };
+    }, [reset]);
 
     const handleChangePassword = () => {
-        setDialogPWChangeOpening(true);
-
-        handleElevation();
+        start("password");
     };
 
     useEffect(() => {
@@ -183,19 +97,9 @@ const SettingsView = function () {
 
     return (
         <Fragment>
-            <SecondFactorDialog
-                info={userInfo}
-                elevation={elevation}
-                opening={dialogSFOpening}
-                handleClosed={handleSFDialogClosed}
-                handleOpened={handleSFDialogOpened}
-            />
-            <IdentityVerificationDialog
-                opening={dialogIVOpening}
-                elevation={elevation}
-                handleClosed={handleIVDialogClosed}
-                handleOpened={handleIVDialogOpened}
-            />
+            <ReauthenticationDialog info={userInfo} {...reauthenticationDialogProps} />
+            <SecondFactorDialog info={userInfo} {...secondFactorDialogProps} />
+            <IdentityVerificationDialog {...identityVerificationDialogProps} />
             <ChangePasswordDialog
                 username={userInfo?.display_name || ""}
                 open={dialogPWChangeOpen}

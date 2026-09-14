@@ -84,3 +84,18 @@ it("shows generic error notification on other KO responses", async () => {
 
     expect(mockCreateError).toHaveBeenCalledOnce();
 });
+
+it("shows error notification when deletion fails with reauthentication required", async () => {
+    const { deleteUserTOTPConfiguration } = await import("@services/UserInfoTOTPConfiguration");
+    vi.mocked(deleteUserTOTPConfiguration).mockResolvedValue({
+        data: { elevation: false, reauthentication: true, status: "KO" },
+    } as any);
+
+    render(<OneTimePasswordDeleteDialog open={true} handleClose={vi.fn()} />);
+
+    await act(async () => {
+        fireEvent.click(screen.getByText("Remove"));
+    });
+
+    expect(mockCreateError).toHaveBeenCalledWith("You must reauthenticate to {{action}} a {{item}}");
+});
