@@ -99,14 +99,3 @@ func (p *Providers) healthCheckProvider(name string) (provider model.StartupChec
 		return nil, ErrHealthCheckProviderUnknown
 	}
 }
-
-// HealthChecksOK reports whether every check passed.
-func HealthChecksOK(checks []HealthCheck) (ok bool) {
-	for _, check := range checks {
-		if check.Err != nil {
-			return false
-		}
-	}
-
-	return true
-}

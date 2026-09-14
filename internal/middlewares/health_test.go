@@ -131,21 +131,3 @@ func TestProvidersHealthChecks(t *testing.T) {
 		})
 	}
 }
-
-func TestHealthChecksOK(t *testing.T) {
-	testCases := []struct {
-		name     string
-		have     []HealthCheck
-		expected bool
-	}{
-		{"ShouldBeOKWhenEmpty", nil, true},
-		{"ShouldBeOKWhenEveryCheckPassed", []HealthCheck{{Name: "storage"}, {Name: "user"}}, true},
-		{"ShouldNotBeOKWhenAnyCheckFailed", []HealthCheck{{Name: "storage"}, {Name: "user", Err: errors.New("bad")}}, false},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, HealthChecksOK(tc.have))
-		})
-	}
-}

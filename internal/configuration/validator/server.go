@@ -308,10 +308,12 @@ func validateServerEndpointsHealth(config *schema.Configuration, validator *sche
 	}
 
 	switch {
-	case health.Cache < 0:
-		validator.Push(fmt.Errorf(errFmtServerEndpointsHealthCacheNegative, health.Cache))
-	case health.Cache == 0:
-		health.Cache = schema.DefaultServerConfiguration.Endpoints.Health.Cache
+	case health.Cache == nil:
+		cache := *schema.DefaultServerConfiguration.Endpoints.Health.Cache
+
+		health.Cache = &cache
+	case *health.Cache < 0:
+		validator.Push(fmt.Errorf(errFmtServerEndpointsHealthCacheNegative, *health.Cache))
 	}
 
 	if health.Detailed && !health.Verbose {

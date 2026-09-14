@@ -42,7 +42,7 @@ type ServerEndpointHealth struct {
 
 	Providers []string `koanf:"providers" yaml:"providers,omitempty" toml:"providers,omitempty" json:"providers,omitempty" jsonschema:"title=Providers,enum=storage,enum=session,enum=user,enum=notification,enum=ntp,enum=expressions,enum=webauthn-metadata" jsonschema_description:"The providers probed by the verbose health check endpoint."`
 
-	Cache time.Duration `koanf:"cache" yaml:"cache,omitempty" toml:"cache,omitempty" json:"cache,omitempty" jsonschema:"title=Cache,default=10 seconds" jsonschema_description:"The duration a verbose health check result is reused for before the providers are probed again."`
+	Cache *time.Duration `koanf:"cache" yaml:"cache,omitempty" toml:"cache,omitempty" json:"cache,omitempty" jsonschema:"title=Cache,default=10 seconds" jsonschema_description:"The duration a verbose health check result is reused for before the providers are probed again."`
 }
 
 // ServerEndpointsAuthz is the Authz endpoints configuration for the HTTP server.
@@ -99,6 +99,8 @@ type ServerEndpointRateLimitBucket struct {
 	Period   time.Duration `koanf:"period" yaml:"period,omitempty" toml:"period,omitempty" json:"period,omitempty" jsonschema:"title=Period" jsonschema_description:"The period of time this rate limit bucket applies to."`
 	Requests int           `koanf:"requests" yaml:"requests" toml:"requests" json:"requests" jsonschema:"title=Requests" jsonschema_description:"The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."`
 }
+
+var defaultServerEndpointHealthCache = 10 * time.Second
 
 // DefaultServerConfiguration represents the default values of the Server.
 var DefaultServerConfiguration = Server{
@@ -164,7 +166,7 @@ var DefaultServerConfiguration = Server{
 		},
 		Health: ServerEndpointHealth{
 			Providers: []string{ProviderNameStorage, ProviderNameSession, ProviderNameUser},
-			Cache:     10 * time.Second,
+			Cache:     &defaultServerEndpointHealthCache,
 		},
 		RateLimits: ServerEndpointRateLimits{
 			Health: ServerEndpointRateLimit{

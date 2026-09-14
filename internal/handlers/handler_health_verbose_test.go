@@ -102,6 +102,56 @@ func TestHealthVerboseGET(t *testing.T) {
 	}
 }
 
+func TestHealthVerboseGETShouldReportTheOverallStatus(t *testing.T) {
+	testCases := []struct {
+		name           string
+		providers      []string
+		err            error
+		expectedStatus int
+		expectedState  string
+	}{
+		{
+			"ShouldReportOKWhenAllProvidersPass",
+			[]string{schema.ProviderNameStorage},
+			nil,
+			fasthttp.StatusOK,
+			"ok",
+		},
+		{
+			"ShouldReportDegradedWhenSomeProvidersFail",
+			[]string{schema.ProviderNameStorage, "nonexistent"},
+			nil,
+			fasthttp.StatusServiceUnavailable,
+			"degraded",
+		},
+		{
+			"ShouldReportErrorWhenAllProvidersFail",
+			[]string{schema.ProviderNameStorage, "nonexistent"},
+			errors.New("connection refused"),
+			fasthttp.StatusServiceUnavailable,
+			"error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Providers.StorageProvider = &healthTestStorage{err: tc.err}
+
+			HealthVerboseGET(schema.ServerEndpointHealth{Providers: tc.providers})(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
+
+			body := HealthVerboseResponse{}
+			require.NoError(t, json.Unmarshal(mock.Ctx.Response.Body(), &body))
+
+			assert.Equal(t, tc.expectedState, body.Status)
+		})
+	}
+}
+
 func TestHealthVerboseGETShouldReuseTheCachedResult(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -109,9 +159,11 @@ func TestHealthVerboseGETShouldReuseTheCachedResult(t *testing.T) {
 	provider := &healthTestStorage{}
 	mock.Ctx.Providers.StorageProvider = provider
 
+	cache := time.Minute
+
 	handler := HealthVerboseGET(schema.ServerEndpointHealth{
 		Providers: []string{schema.ProviderNameStorage},
-		Cache:     time.Minute,
+		Cache:     &cache,
 	})
 
 	handler(mock.Ctx)

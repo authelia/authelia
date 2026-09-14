@@ -228,7 +228,8 @@ Enables `/api/health/verbose`, which probes each of the configured [providers](#
 they all pass or `503` when any of them fails. This makes it suitable for a readiness probe, or for a load
 balancer which should stop routing to an instance whose database or authentication backend has gone away.
 
-The response names each provider and how long its probe took:
+The response names each provider and how long its probe took. The overall `status` is `ok` when every provider
+passes, `degraded` when some of them fail, and `error` when all of them fail:
 
 ```json
 {

@@ -64,7 +64,7 @@ func (c *healthVerboseCache) get(ctx *middlewares.AutheliaCtx, config schema.Ser
 
 	now := ctx.GetClock().Now()
 
-	if config.Cache > 0 && !c.at.IsZero() && now.Sub(c.at) < config.Cache {
+	if config.Cache != nil && *config.Cache > 0 && !c.at.IsZero() && now.Sub(c.at) < *config.Cache {
 		return c.response, c.status, true
 	}
 
@@ -86,10 +86,14 @@ func healthVerboseProbe(ctx *middlewares.AutheliaCtx, config schema.ServerEndpoi
 
 	status = fasthttp.StatusOK
 
+	failed := 0
+
 	for _, check := range checks {
 		result := HealthVerboseCheck{Status: "ok", Took: check.Took.String()}
 
 		if check.Err != nil {
+			failed++
+
 			result.Status = "error"
 
 			if config.Detailed {
@@ -103,9 +107,12 @@ func healthVerboseProbe(ctx *middlewares.AutheliaCtx, config schema.ServerEndpoi
 		response.Providers[check.Name] = result
 	}
 
-	if !middlewares.HealthChecksOK(checks) {
-		response.Status = "error"
-		status = fasthttp.StatusServiceUnavailable
+	switch {
+	case failed == 0:
+	case failed == len(checks):
+		response.Status, status = "error", fasthttp.StatusServiceUnavailable
+	default:
+		response.Status, status = "degraded", fasthttp.StatusServiceUnavailable
 	}
 
 	return response, status
