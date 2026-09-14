@@ -78,8 +78,8 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 }
 
 // SetJSONError sets the body of the response to an JSON error KO message.
-func (ctx *AutheliaCtx) SetJSONError(message string) {
-	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
+func (ctx *AutheliaCtx) SetJSONError(message ErrorMessage) {
+	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Code: message.Code, Message: message.Message}, 0); err != nil {
 		ctx.Logger.Error(err)
 	}
 }

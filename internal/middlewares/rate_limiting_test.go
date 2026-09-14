@@ -875,7 +875,7 @@ func TestHandlerRateLimitAPI(t *testing.T) {
 			assert.Equal(t, tc.expected, string(ctx.Response.Header.Peek(fasthttp.HeaderRetryAfter)))
 			assert.Equal(t, HeaderCacheControlNotStore, string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
 			assert.Equal(t, HeaderPragmaNoCache, string(ctx.Response.Header.Peek(fasthttp.HeaderPragma)))
-			assert.JSONEq(t, `{"status":"KO","message":"Too Many Requests"}`, string(ctx.Response.Body()))
+			assert.JSONEq(t, `{"status":"KO","code":"rate_limited","message":"Too Many Requests"}`, string(ctx.Response.Body()))
 		})
 	}
 }
