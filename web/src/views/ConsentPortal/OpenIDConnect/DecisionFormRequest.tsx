@@ -58,19 +58,19 @@ function DecisionFormRequest({ claims, collapsible, onChangeClaims, response }: 
                 client_description={response.client_description}
                 client_logo_uri={response.client_logo_uri}
             />
-            <Card className="gap-0 overflow-hidden py-0">
-                {hasScopes ? (
-                    <CardHeader className="px-4 pt-4 pb-2 text-left">
-                        <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                            {translate("Requested Permissions")}
-                        </h3>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                            {translate("The actions the application will be allowed to perform on your behalf")}
-                        </p>
-                    </CardHeader>
-                ) : null}
-                {collapsible ? (
-                    empty ? null : (
+            {empty ? null : (
+                <Card className="gap-0 overflow-hidden py-0">
+                    {hasScopes ? (
+                        <CardHeader className="px-4 pt-4 pb-2 text-left">
+                            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                {translate("Requested Permissions")}
+                            </h3>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                {translate("The actions the application will be allowed to perform on your behalf")}
+                            </p>
+                        </CardHeader>
+                    ) : null}
+                    {collapsible ? (
                         <div>
                             {hasScopes ? <Separator /> : null}
                             <button
@@ -86,14 +86,14 @@ function DecisionFormRequest({ claims, collapsible, onChangeClaims, response }: 
                             </button>
                             {open ? <div id={"openid-consent-request-details"}>{sections}</div> : null}
                         </div>
-                    )
-                ) : (
-                    <div>
-                        {hasScopes ? <Separator /> : null}
-                        {sections}
-                    </div>
-                )}
-            </Card>
+                    ) : (
+                        <div>
+                            {hasScopes ? <Separator /> : null}
+                            {sections}
+                        </div>
+                    )}
+                </Card>
+            )}
         </div>
     );
 }

@@ -12,12 +12,15 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/go-rod/rod"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -100,12 +103,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	assert.NoError(s.T(), err)
 
 	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
-
-	logo := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-client-logo")
-	logoSrc, err := logo.Attribute("src")
-	assert.NoError(s.T(), err)
-	assert.NotNil(s.T(), logoSrc)
-	assert.Equal(s.T(), "https://www.authelia.com/images/branding/logo.png", *logoSrc)
+	s.verifyOpenIDConsentClientLogo(s.T(), s.Context(ctx))
 
 	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept")
 
@@ -271,6 +269,8 @@ func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
 	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
 
 	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
+	s.verifyOpenIDConsentClientLogo(s.T(), s.Context(ctx))
+
 	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept")
 
 	s.verifyBodyContains(s.T(), s.Context(ctx), "Consent has been accepted and processed")
@@ -313,6 +313,126 @@ func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
 	assert.True(s.T(), strings.HasPrefix(token["access_token"].(string), "authelia_at_"))
 	assert.Equal(s.T(), scope, token["scope"])
 	assert.NotEmpty(s.T(), token["id_token"])
+}
+
+func (s *OIDCScenario) TestShouldShowClientLogoForDeviceAuthorizationWithEnteredUserCode() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	c := NewHTTPClient()
+
+	resp, err := c.PostForm(fmt.Sprintf("%s/api/oidc/device-authorization", LoginBaseURL), url.Values{
+		"client_id":     []string{"device-code"},
+		"client_secret": []string{"foobar"},
+		"scope":         []string{"openid profile email groups"},
+	})
+	s.Require().NoError(err)
+
+	defer resp.Body.Close()
+
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	var device struct {
+		UserCode        string `json:"user_code"`
+		VerificationURI string `json:"verification_uri"`
+	}
+
+	s.Require().NoError(json.NewDecoder(resp.Body).Decode(&device))
+	s.Require().NotEmpty(device.UserCode)
+	s.Require().NotEmpty(device.VerificationURI)
+
+	s.doVisit(s.T(), s.Context(ctx), device.VerificationURI)
+
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
+
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-device-auth-stage")
+	s.doFillFieldUntilSet(s.T(), s.WaitElementLocatedByID(s.T(), s.Context(ctx), "user-code"), device.UserCode)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "confirm-button")
+
+	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
+	s.verifyOpenIDConsentClientLogo(s.T(), s.Context(ctx))
+
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept")
+
+	s.verifyBodyContains(s.T(), s.Context(ctx), "Consent has been accepted and processed")
+}
+
+func (s *OIDCScenario) verifyOpenIDConsentClientLogo(tt *testing.T, page *rod.Page) {
+	const src = "https://www.authelia.com/images/branding/logo.png"
+
+	logo := s.WaitElementLocatedByID(tt, page, "openid-consent-client-logo")
+
+	actual, err := logo.Attribute("src")
+	require.NoError(tt, err)
+	require.NotNil(tt, actual)
+	assert.Equal(tt, src, *actual)
+
+	assert.NoError(tt, logo.Timeout(10*time.Second).Wait(rod.Eval(`() => this.complete && this.naturalWidth > 0`)), "the client logo did not load")
+
+	if os.Getenv("CI") != t {
+		return
+	}
+
+	assert.Contains(tt, s.getEnforcedContentSecurityPolicy(tt, page), "img-src 'self' data: https://www.authelia.com;", "the consent screen does not enforce a policy allowing the logo host")
+
+	info, err := page.Info()
+	require.NoError(tt, err)
+
+	consent, err := url.Parse(info.URL)
+	require.NoError(tt, err)
+
+	other := *consent
+	other.Path = "/"
+
+	c := NewHTTPClient()
+
+	for _, u := range []*url.URL{consent, &other} {
+		resp, err := c.Get(u.String())
+		require.NoError(tt, err)
+
+		_ = resp.Body.Close()
+
+		policy := resp.Header.Get("Content-Security-Policy")
+
+		require.NotEmpty(tt, policy, "no Content-Security-Policy for %s", u)
+
+		if u == consent {
+			assert.Contains(tt, policy, "img-src 'self' data: https://www.authelia.com;", "the logo host is not allowed for %s", u)
+		} else {
+			assert.NotContains(tt, policy, "https://www.authelia.com", "the logo host is allowed for %s", u)
+		}
+	}
+}
+
+func (s *OIDCScenario) getEnforcedContentSecurityPolicy(tt *testing.T, page *rod.Page) string {
+	result, err := page.Eval(`() => new Promise((resolve) => {
+		const timer = setTimeout(() => resolve(''), 5000);
+
+		document.addEventListener('securitypolicyviolation', (event) => {
+			if (event.effectiveDirective !== 'img-src') {
+				return;
+			}
+
+			clearTimeout(timer);
+			resolve(event.originalPolicy);
+		});
+
+		new Image().src = 'https://csp-probe.invalid/probe.png';
+	})`)
+	require.NoError(tt, err)
+
+	policy := result.Value.Str()
+
+	require.NotEmpty(tt, policy, "the page does not enforce a Content-Security-Policy for images")
+
+	return policy
 }
 
 func TestRunOIDCScenario(t *testing.T) {
