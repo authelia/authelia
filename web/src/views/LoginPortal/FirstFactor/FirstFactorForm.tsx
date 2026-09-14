@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { KeyboardEvent, useActionState, useEffect, useEffectEvent, useRef, useState } from "react";
+import { KeyboardEvent, startTransition, useActionState, useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { BroadcastChannel } from "broadcast-channel";
@@ -97,7 +97,7 @@ const FirstFactorForm = function (props: Props) {
         };
     }, []);
 
-    const [, handleSignIn, isPending] = useActionState<null>(async () => {
+    const [, signInAction, isPending] = useActionState<null>(async () => {
         if (username === "" || password === "") {
             if (username === "") {
                 setUsernameError(true);
@@ -140,6 +140,10 @@ const FirstFactorForm = function (props: Props) {
 
         return null;
     }, null);
+
+    const handleSignIn = () => {
+        startTransition(() => signInAction());
+    };
 
     const disabled = isPending || passkeyAuthenticating;
 
@@ -235,7 +239,7 @@ const FirstFactorForm = function (props: Props) {
 
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
-            <form id={"form-login"} action={handleSignIn} noValidate>
+            <form id={"form-login"} action={signInAction} noValidate>
                 <div className="grid grid-cols-1 gap-5">
                     <div className="w-full">
                         <FloatingInput

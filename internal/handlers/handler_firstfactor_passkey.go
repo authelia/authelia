@@ -95,7 +95,7 @@ func FirstFactorPasskeyGET(conditionalMediation bool) middlewares.RequestHandler
 			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrRespBody)
 
 			ctx.SetStatusCode(fasthttp.StatusForbidden)
-			ctx.SetJSONError(messageUnableToRegisterSecurityKey)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
 			return
 		}
