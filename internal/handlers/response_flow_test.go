@@ -338,4 +338,5 @@ func assertConsentCompletionRedirect(t *testing.T, mock *mocks.MockAutheliaCtx, 
 	assert.Equal(t, debug, query.Get(queryArgErrorDebug))
 	assert.Equal(t, flowNameOpenIDConnect, query.Get(queryArgFlow))
 	assert.Equal(t, subflow, query.Get(queryArgSubflow))
+	assert.Empty(t, query.Get(queryArgFlowID))
 }
