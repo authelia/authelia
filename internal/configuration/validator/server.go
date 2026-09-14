@@ -297,6 +297,8 @@ func validateServerEndpointsRateLimits(config *schema.Configuration, validator *
 }
 
 func validateServerEndpointsRateLimitDefault(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimitIPv6Mask(name, config, validator)
+
 	if len(config.Buckets) == 0 {
 		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
 
@@ -309,6 +311,8 @@ func validateServerEndpointsRateLimitDefault(name string, config *schema.ServerE
 }
 
 func validateServerEndpointsRateLimitDefaultWeighted(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, weight time.Duration, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimitIPv6Mask(name, config, validator)
+
 	if len(config.Buckets) == 0 {
 		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
 
@@ -323,6 +327,15 @@ func validateServerEndpointsRateLimitDefaultWeighted(name string, config *schema
 	}
 
 	validateServerEndpointsRateLimitBuckets(name, config, validator)
+}
+
+func validateServerEndpointsRateLimitIPv6Mask(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	switch {
+	case config.IPv6Mask == 0:
+		config.IPv6Mask = schema.DefaultServerEndpointRateLimitIPv6Mask
+	case config.IPv6Mask < schema.MinimumServerEndpointRateLimitIPv6Mask, config.IPv6Mask > schema.MaximumServerEndpointRateLimitIPv6Mask:
+		validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsIPv6Mask, name, config.IPv6Mask, schema.MinimumServerEndpointRateLimitIPv6Mask, schema.MaximumServerEndpointRateLimitIPv6Mask))
+	}
 }
 
 func validateServerEndpointsRateLimitBuckets(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
