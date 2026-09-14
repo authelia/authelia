@@ -107,12 +107,26 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 			Error("Unable to update password change state")
 		ctx.SetJSONError(messageOperationFailed)
 
+		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserPassword{
+			Type:     events.TypeUserPasswordChanged,
+			Username: username,
+			RemoteIP: ctx.RemoteIP().String(),
+		}))
+
 		return
 	}
 
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred retrieving user details")
+
+		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserPassword{
+			Type:         events.TypeUserPasswordChanged,
+			Username:     username,
+			RemoteIP:     ctx.RemoteIP().String(),
+			Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, "Password changed successfully", nil, nil),
+		}))
+
 		ctx.ReplyOK()
 
 		return

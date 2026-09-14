@@ -451,6 +451,15 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserDetailsAreUnavailabl
 		GetDetails(testUsername).
 		Return(nil, fmt.Errorf("user not found"))
 
+	mock.EventsMock.EXPECT().
+		Emit(mock.Ctx, gomock.Cond(func(event *events.Event) bool {
+			data, ok := event.Data.(*events.DataUserPassword)
+
+			return ok && event.Type == events.TypeUserPasswordChanged && data.Username == testUsername &&
+				data.Notification != nil && !data.Notification.Sent && data.Notification.Error == "user not found"
+		})).
+		Times(1)
+
 	ChangePasswordPOST(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
