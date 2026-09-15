@@ -379,7 +379,7 @@ func TestValidateWebAuthnRelyingParties(t *testing.T) {
 							UserVerification: protocol.VerificationRequired,
 						},
 						Filtering: schema.WebAuthnFiltering{
-							ProhibitBackupEligibility: true,
+							ProhibitBackupEligibility: new(true),
 							ProhibitedAAGUIDs:         []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
 						},
 					},
@@ -399,8 +399,44 @@ func TestValidateWebAuthnRelyingParties(t *testing.T) {
 						UserVerification: protocol.VerificationRequired,
 					},
 					Filtering: schema.WebAuthnFiltering{
-						ProhibitBackupEligibility: true,
+						ProhibitBackupEligibility: new(true),
 						ProhibitedAAGUIDs:         []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+					},
+				},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotOverrideExplicitFalseProhibitBackupEligibility",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					WebAuthnBase: schema.WebAuthnBase{
+						DisplayName:          "Global",
+						Timeout:              time.Second * 30,
+						ConveyancePreference: protocol.PreferDirectAttestation,
+						Filtering: schema.WebAuthnFiltering{
+							ProhibitBackupEligibility: new(true),
+						},
+					},
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							WebAuthnBase: schema.WebAuthnBase{
+								Filtering: schema.WebAuthnFiltering{
+									ProhibitBackupEligibility: new(false),
+								},
+							},
+						},
+					},
+				},
+			},
+			map[string]schema.WebAuthnBase{
+				"example.com": {
+					DisplayName:          "Global",
+					Timeout:              time.Second * 30,
+					ConveyancePreference: protocol.PreferDirectAttestation,
+					Filtering: schema.WebAuthnFiltering{
+						ProhibitBackupEligibility: new(false),
 					},
 				},
 			},
@@ -983,6 +1019,51 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 			},
 			[]string{
 				"webauthn: relying_parties: example.com: option 'origins' is invalid: error validating related origins: the origins have 6 distinct registrable domain labels but clients only process 5 of them, so origins beyond that limit are ignored",
+			},
+		},
+		{
+			"ShouldErrorOnEquivalentOriginDuplicatedAcrossRelyingParties",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com"), mustParseURL("https://shared.com")},
+						},
+						"other.com": {
+							Origins: []*url.URL{mustParseURL("https://other.com"), mustParseURL("HTTPS://Shared.com:443")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+						{AutheliaURL: mustParseURL("https://other.com")},
+						{AutheliaURL: mustParseURL("https://shared.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: option 'origins' has value 'https://shared.com' which can only be defined in one relying party but it's defined in 'example.com' and 'other.com'",
+			},
+		},
+		{
+			"ShouldErrorOnEquivalentOriginDuplicatedInRelyingParty",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com"), mustParseURL("https://Example.com:443")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' has value 'https://Example.com:443' defined more than once",
 			},
 		},
 		{

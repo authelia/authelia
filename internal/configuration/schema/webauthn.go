@@ -66,9 +66,15 @@ type WebAuthnSelectionCriteria struct {
 
 // WebAuthnFiltering represents the WebAuthn authenticator filtering configuration.
 type WebAuthnFiltering struct {
-	ProhibitBackupEligibility bool        `koanf:"prohibit_backup_eligibility" yaml:"prohibit_backup_eligibility" toml:"prohibit_backup_eligibility" json:"prohibit_backup_eligibility" jsonschema:"default=false,title=Prohibit Backup Eligibility" jsonschema_description:"Prohibits registering authenticators which claim backup eligibility i.e. exporting credentials off of the device."`
+	ProhibitBackupEligibility *bool       `koanf:"prohibit_backup_eligibility" yaml:"prohibit_backup_eligibility" toml:"prohibit_backup_eligibility" json:"prohibit_backup_eligibility" jsonschema:"default=false,title=Prohibit Backup Eligibility" jsonschema_description:"Prohibits registering authenticators which claim backup eligibility i.e. exporting credentials off of the device."`
 	PermittedAAGUIDs          []uuid.UUID `koanf:"permitted_aaguids" yaml:"permitted_aaguids,omitempty" toml:"permitted_aaguids,omitempty" json:"permitted_aaguids,omitempty" jsonschema:"title=Permitted AAGUIDs" jsonschema_description:"List of allowed WebAuthn AAGUIDs. No other authenticator can be registered."`
 	ProhibitedAAGUIDs         []uuid.UUID `koanf:"prohibited_aaguids" yaml:"prohibited_aaguids,omitempty" toml:"prohibited_aaguids,omitempty" json:"prohibited_aaguids,omitempty" jsonschema:"title=Prohibited AAGUIDs" jsonschema_description:"List of prohibited WebAuthn AAGUIDs. Authenticators with these AAGUIDs cannot be registered."`
+}
+
+// IsProhibitBackupEligibility returns true if backup eligible credentials are prohibited. The option is nullable so a
+// relying party can tell an omitted value, which inherits the global value, apart from an explicit false.
+func (f WebAuthnFiltering) IsProhibitBackupEligibility() bool {
+	return f.ProhibitBackupEligibility != nil && *f.ProhibitBackupEligibility
 }
 
 // WebAuthnRelyingParty represents the configuration of a single WebAuthn relying party, i.e. a relying party id and

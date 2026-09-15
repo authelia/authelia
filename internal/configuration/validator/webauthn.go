@@ -97,7 +97,7 @@ func validateWebAuthnRelyingPartyBase(base, defaults *schema.WebAuthnBase, prefi
 		validator.PushWarning(fmt.Errorf(errFmtWebAuthnPasskeyDiscoverability, prefix, protocol.ResidentKeyRequirementPreferred, protocol.ResidentKeyRequirementRequired))
 	}
 
-	if !base.Filtering.ProhibitBackupEligibility {
+	if base.Filtering.ProhibitBackupEligibility == nil {
 		base.Filtering.ProhibitBackupEligibility = defaults.Filtering.ProhibitBackupEligibility
 	}
 
@@ -214,15 +214,19 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 
 		value := origin.String()
 
-		if seen[value] {
+		// Origins are keyed by the same values webauthn.IsOriginEqual compares so equivalent origins which differ only
+		// in case or an explicit default port are detected as duplicates.
+		key := webauthn.OriginKey(origin)
+
+		if seen[key] {
 			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginDuplicateSelf, prefix, value))
 
 			continue
 		}
 
-		seen[value] = true
+		seen[key] = true
 
-		origins[value] = append(origins[value], relyingPartyID)
+		origins[key] = append(origins[key], relyingPartyID)
 
 		if !found && strings.EqualFold(origin.Hostname(), relyingPartyID) {
 			found = true
