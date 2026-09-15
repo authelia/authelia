@@ -208,6 +208,11 @@ compatibility limit and rejects a configuration where the origins of a single re
 labels between them. Origins which share a label, for example the same brand across several country code top level
 domains, only cost one label between them.
 
+Clients process the origins in the order they appear in the document. Once a client has seen its maximum number of
+labels it skips any later origin which would introduce a new label, while a later origin which reuses a label it has
+already seen remains usable. Authelia preserves the order of this list in the document, so list higher priority origins
+first.
+
 #### opaque_origins
 
 {{< confkey type="list(string)" required="no" >}}
