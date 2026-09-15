@@ -506,3 +506,23 @@ func (t *testConfigContext) GetUserProvider() authentication.UserProvider { retu
 func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
 }
+
+func TestNewConfigRegistersRFC8693TokenTypes(t *testing.T) {
+	c := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, nil, nil)
+
+	types := c.GetRFC8693TokenTypes(context.TODO())
+
+	require.NotNil(t, types)
+	assert.Len(t, types, 3)
+
+	for _, name := range []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken} {
+		tokenType, ok := types[name]
+
+		require.True(t, ok, "token type %s must be registered", name)
+		require.NotNil(t, tokenType)
+		assert.Equal(t, name, tokenType.GetName(context.TODO()))
+	}
+
+	assert.NotContains(t, types, oidc.TokenTypeJWT)
+	assert.Equal(t, oidc.TokenTypeAccessToken, c.GetDefaultRFC8693RequestedTokenType(context.TODO()))
+}

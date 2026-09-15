@@ -2732,3 +2732,48 @@ func init() {
 
 	x509CACertificateEd25519, x509CAPrivateKeyEd25519, x509CertificateEd25519, x509PrivateKeyEd25519 = MustLoadCryptoSet("Ed25519", false)
 }
+
+func TestStringToTokenExchangePolicyHookFunc(t *testing.T) {
+	hook := configuration.StringToTokenExchangePolicyHookFunc()
+
+	expectedType := reflect.TypeOf(schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{})
+
+	testCases := []struct {
+		name     string
+		from     reflect.Type
+		to       reflect.Type
+		have     any
+		expected any
+	}{
+		{
+			"ShouldDecodeStringShorthand",
+			reflect.TypeOf(""),
+			expectedType,
+			"app-b",
+			schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{ClientID: "app-b"},
+		},
+		{
+			"ShouldSkipNonStringInput",
+			reflect.TypeOf(0),
+			expectedType,
+			5,
+			5,
+		},
+		{
+			"ShouldSkipUnrelatedTargetType",
+			reflect.TypeOf(""),
+			reflect.TypeOf(""),
+			"app-b",
+			"app-b",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := hook(tc.from, tc.to, tc.have)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}

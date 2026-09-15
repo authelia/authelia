@@ -2172,6 +2172,7 @@ paths:
                 - $ref: '#/components/schemas/openid.spec.AccessRequest.RefreshTokenFlow'
                 - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientCredentialsFlow'
                 - $ref: '#/components/schemas/openid.spec.AccessRequest.DeviceCodeFlow'
+                - $ref: '#/components/schemas/openid.spec.AccessRequest.TokenExchangeFlow'
       responses:
         "200":
           description: OK
@@ -4011,6 +4012,7 @@ components:
               - 'client_credentials'
               - 'refresh_token'
               - 'urn:ietf:params:oauth:grant-type:device_code'
+              - 'urn:ietf:params:oauth:grant-type:token-exchange'
           items:
             $ref: '#/components/schemas/openid.spec.GrantType'
         device_authorization_endpoint:
@@ -4469,6 +4471,7 @@ components:
               - 'client_credentials'
               - 'refresh_token'
               - 'urn:ietf:params:oauth:grant-type:device_code'
+              - 'urn:ietf:params:oauth:grant-type:token-exchange'
           items:
             $ref: '#/components/schemas/openid.spec.GrantType'
         id_token_encryption_alg_values_supported:
@@ -5570,6 +5573,100 @@ components:
               examples:
                 - 'openid profile groups'
               type: string
+    openid.spec.AccessRequest.TokenExchangeFlow:
+      allOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
+        - type: object
+          required:
+            - 'grant_type'
+            - 'subject_token'
+            - 'subject_token_type'
+          properties:
+            grant_type:
+              description: Value MUST be set to "urn:ietf:params:oauth:grant-type:token-exchange".
+              enum:
+                - 'urn:ietf:params:oauth:grant-type:token-exchange'
+              type: string
+            subject_token:
+              description: >
+                A security token that represents the identity of the party on behalf of whom the request is being made.
+                The token MUST have been issued by this Authorization Server, and the client it was issued to MUST list
+                the requesting client in its 'subject_token_clients_supported' configuration option.
+              examples:
+                - 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
+              type: string
+            subject_token_type:
+              description: >
+                An identifier for the type of the token in the 'subject_token' parameter. The requesting client MUST
+                permit this type via its 'subject_token_types_supported' configuration option.
+              enum:
+                - 'urn:ietf:params:oauth:token-type:access_token'
+                - 'urn:ietf:params:oauth:token-type:refresh_token'
+                - 'urn:ietf:params:oauth:token-type:id_token'
+              examples:
+                - 'urn:ietf:params:oauth:token-type:access_token'
+              type: string
+            actor_token:
+              description: >
+                A security token that represents the identity of the acting party in a delegation request. If present
+                the 'actor_token_type' parameter is REQUIRED, and the issued token carries the RFC8693 Section 4.1
+                'act' claim describing this party. When omitted the exchange is an impersonation request and the issued
+                token represents the subject acting alone.
+              examples:
+                - 'authelia_at_R7JhF7RbAXTcQeBoTQbGBMQLnvupnQMPsczYHdGY_XA.CbNPVoYHNskRsyMAZjPqBTUMNRexFRpNtQxfBAjWQms'
+              type: string
+            actor_token_type:
+              description: >
+                An identifier for the type of the token in the 'actor_token' parameter. REQUIRED when 'actor_token' is
+                present and MUST NOT be included otherwise. The requesting client MUST permit this type via its
+                'actor_token_types_supported' configuration option.
+              enum:
+                - 'urn:ietf:params:oauth:token-type:access_token'
+                - 'urn:ietf:params:oauth:token-type:refresh_token'
+                - 'urn:ietf:params:oauth:token-type:id_token'
+              examples:
+                - 'urn:ietf:params:oauth:token-type:access_token'
+              type: string
+            requested_token_type:
+              description: >
+                An identifier for the type of the token the client is requesting. If omitted the default is
+                'urn:ietf:params:oauth:token-type:access_token'. The requesting client MUST permit this type via its
+                'request_token_types_supported' configuration option.
+              enum:
+                - 'urn:ietf:params:oauth:token-type:access_token'
+                - 'urn:ietf:params:oauth:token-type:refresh_token'
+                - 'urn:ietf:params:oauth:token-type:id_token'
+              examples:
+                - 'urn:ietf:params:oauth:token-type:access_token'
+              type: string
+            scope:
+              description: >
+                The scope of the access request as described by Section 3.3. The requested scope MUST NOT exceed the
+                scope the requesting client is registered for, and if omitted is treated as equal to the scope of the
+                'subject_token'.
+              examples:
+                - 'openid profile groups'
+              type: string
+            audience:
+              description: >
+                The logical name of the target service where the client intends to use the requested token. Each value
+                MUST be permitted by the requesting client's 'audience' configuration option.
+              type: array
+              examples:
+                - - 'https://api.{{ .Domain | default "example.com" }}'
+              items:
+                type: string
+            resource:
+              description: >
+                The RFC8707 Resource Indicator identifying the target service where the client intends to use the
+                requested token. Each value MUST be an absolute URI without a fragment component and be permitted by
+                the requesting client's 'audience' configuration option.
+              type: array
+              examples:
+                - - 'https://api.{{ .Domain | default "example.com" }}'
+              items:
+                type: string
+                format: uri
     openid.spec.AccessResponse:
       type: object
       required:
@@ -5626,6 +5723,18 @@ components:
             The scope of the access token as described by Section 3.3 if it differs from the requested scope.
           examples:
             - 'openid profile groups'
+          type: string
+        issued_token_type:
+          description: >
+            An identifier for the type of the token issued in the 'access_token' parameter. REQUIRED when responding to
+            a RFC8693 Token Exchange request and omitted otherwise. Note that RFC8693 Section 2.2.1 requires the issued
+            token be returned in the 'access_token' parameter regardless of its type.
+          enum:
+            - 'urn:ietf:params:oauth:token-type:access_token'
+            - 'urn:ietf:params:oauth:token-type:refresh_token'
+            - 'urn:ietf:params:oauth:token-type:id_token'
+          examples:
+            - 'urn:ietf:params:oauth:token-type:access_token'
           type: string
     openid.spec.AuthorizeRequest:
       type: object
@@ -5879,6 +5988,7 @@ components:
         - 'implicit'
         - 'client_credentials'
         - "urn:ietf:params:oauth:grant-type:device_code"
+        - "urn:ietf:params:oauth:grant-type:token-exchange"
       examples:
         - 'authorization_code'
       type: string
