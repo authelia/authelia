@@ -43,3 +43,31 @@ func TestIsSerializationFailure(t *testing.T) {
 		})
 	}
 }
+
+func TestIsUniqueViolation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{name: "ShouldNotMatchNil", err: nil, expected: false},
+		{name: "ShouldNotMatchGeneric", err: errors.New("some error"), expected: false},
+		{name: "ShouldMatchSQLiteUnique", err: sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintUnique}, expected: true},
+		{name: "ShouldMatchSQLitePrimaryKey", err: sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintPrimaryKey}, expected: true},
+		{name: "ShouldMatchSQLiteUniqueWrapped", err: fmt.Errorf("error upserting session: %w", sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintUnique}), expected: true},
+		{name: "ShouldNotMatchSQLiteNotNull", err: sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintNotNull}, expected: false},
+		{name: "ShouldNotMatchSQLiteBusy", err: sqlite3.Error{Code: sqlite3.ErrBusy}, expected: false},
+		{name: "ShouldMatchMySQLDuplicateEntry", err: &mysql.MySQLError{Number: codeMySQLDuplicateEntry}, expected: true},
+		{name: "ShouldMatchMySQLDuplicateEntryWrapped", err: fmt.Errorf("error upserting session: %w", &mysql.MySQLError{Number: codeMySQLDuplicateEntry}), expected: true},
+		{name: "ShouldNotMatchMySQLDeadlock", err: &mysql.MySQLError{Number: codeMySQLLockDeadlock}, expected: false},
+		{name: "ShouldMatchPostgresUniqueViolation", err: &pgconn.PgError{Code: codePostgresUniqueViolation}, expected: true},
+		{name: "ShouldMatchPostgresUniqueViolationWrapped", err: fmt.Errorf("error upserting session: %w", &pgconn.PgError{Code: codePostgresUniqueViolation}), expected: true},
+		{name: "ShouldNotMatchPostgresSerializationFailure", err: &pgconn.PgError{Code: codePostgresSerializationFailure}, expected: false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsUniqueViolation(tc.err))
+		})
+	}
+}
