@@ -455,8 +455,9 @@ This configuration option requires all authorization requests for this registere
 [Request Object](../../../integration/openid-connect/introduction.md#request-object) via either the `request` or
 `request_uri` parameter as described in [JWT-Secured Authorization Request]. Unsigned Request Objects do not satisfy
 this requirement, and as such the [request_object_signing_alg](#request_object_signing_alg) must not be `none` when this
-option is enabled. The client must also be registered with a key it can use to sign the Request Object, such as via the
-[jwks](#jwks) or [jwks_uri](#jwks_uri) options.
+option is enabled. The client must also be registered with the public key Authelia uses to verify the Request Object
+signature, such as via the [jwks](#jwks) or [jwks_uri](#jwks_uri) options. The client retains the corresponding private
+key to sign the Request Object and it must never be provided to Authelia.
 
 This applies to requests made to the [Pushed Authorization Requests] endpoint in addition to the Authorization Endpoint.
 To enforce it for all clients see the global [require_signed_request_object](provider.md#require_signed_request_object)
