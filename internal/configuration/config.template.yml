@@ -1335,6 +1335,12 @@ session:
     ## must be available when configured. Most clients completely ignore this and it has a performance cost.
     # discovery_signed_response_key_id: ''
 
+    ## Requires the use of Pushed Authorization Requests for all clients when set to true.
+    # require_pushed_authorization_requests: false
+
+    ## Requires all authorization requests for all clients be provided as a signed Request Object when set to true.
+    # require_signed_request_object: false
+
     ## Authorization Policies which can be utilized by clients. The 'policy_name' is an arbitrary value that you pick
     ## which is utilized as the value for the 'authorization_policy' on the client.
     # authorization_policies:
@@ -1451,6 +1457,9 @@ session:
 
         ## Requires the use of Pushed Authorization Requests for this client when set to true.
         # require_pushed_authorization_requests: false
+
+        ## Requires all authorization requests for this client be provided as a signed Request Object when set to true.
+        # require_signed_request_object: false
 
         ## Enforces the use of PKCE for this client when set to true.
         # require_pkce: false
