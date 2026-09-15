@@ -45,7 +45,7 @@ func (p *Provider) StartupCheck() (err error) {
 func (p *Provider) offset() (offset time.Duration, err error) {
 	var conn net.Conn
 
-	if conn, err = net.Dial(p.config.Address.Network(), p.config.Address.NetworkAddress()); err != nil {
+	if conn, err = net.DialTimeout(p.config.Address.Network(), p.config.Address.NetworkAddress(), 5*time.Second); err != nil {
 		return offset, fmt.Errorf("error occurred during dial: %w", err)
 	}
 
