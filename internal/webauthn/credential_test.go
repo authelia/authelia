@@ -72,7 +72,7 @@ func TestVerifyCredential(t *testing.T) {
 			config: &schema.WebAuthn{
 				WebAuthnBase: schema.WebAuthnBase{
 					Filtering: schema.WebAuthnFiltering{
-						ProhibitBackupEligibility: true,
+						ProhibitBackupEligibility: new(true),
 						PermittedAAGUIDs: []uuid.UUID{
 							uuid.MustParse("e87c6826-9e40-4a69-a68a-523d45a10941"),
 						},

@@ -201,10 +201,12 @@ A list of trusted origins for this relying party. Each of these values must be t
 `authelia_url` values in the session cookies section of the config, and must not be duplicated across any of the other
 relying parties. Every value must be an absolute URL with the `http` or `https` scheme, a host, and no path.
 
-Clients only process the first five distinct registrable domain labels in the
-[well known document](#well-known-document), so the origins of a single relying party must not have more than five
-distinct labels between them. Origins which share a label, for example the same brand across several country code top
-level domains, only cost one label between them.
+Clients must support at least five distinct registrable domain labels in the
+[well known document](#well-known-document) and may apply a different maximum as a matter of their own policy, ignoring
+any origins beyond it. As five is the only limit every client is guaranteed to honor, Authelia treats it as the
+compatibility limit and rejects a configuration where the origins of a single relying party have more than five distinct
+labels between them. Origins which share a label, for example the same brand across several country code top level
+domains, only cost one label between them.
 
 #### opaque_origins
 
