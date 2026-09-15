@@ -235,3 +235,28 @@ func TestNewProviders(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatRequestMethod(t *testing.T) {
+	testCases := []struct {
+		name     string
+		method   string
+		expected string
+	}{
+		{"ShouldReturnRFC7231Method", fasthttp.MethodGet, fasthttp.MethodGet},
+		{"ShouldReturnRFC7231MethodPatch", fasthttp.MethodPatch, fasthttp.MethodPatch},
+		{"ShouldReturnRFC4918Method", schema.MethodPropFind, schema.MethodPropFind},
+		{"ShouldReturnIANAMethod", schema.MethodQuery, schema.MethodQuery},
+		{"ShouldReturnIANAMethodWithHyphen", schema.MethodVersionControl, schema.MethodVersionControl},
+		{"ShouldUppercaseLowercaseMethod", "get", fasthttp.MethodGet},
+		{"ShouldUppercaseMixedCaseMethod", "PropFind", schema.MethodPropFind},
+		{"ShouldReturnEmptyForUnknownMethod", "FOO", ""},
+		{"ShouldReturnEmptyForEmptyMethod", "", ""},
+		{"ShouldReturnEmptyForMethodWithWhitespace", " GET", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, formatRequestMethod(tc.method))
+		})
+	}
+}

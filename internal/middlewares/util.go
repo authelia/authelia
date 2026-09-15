@@ -6,6 +6,8 @@ package middlewares
 
 import (
 	"crypto/x509"
+	"slices"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 
@@ -101,4 +103,14 @@ func NewAuthenticationProvider(config *schema.Configuration, caCertPool *x509.Ce
 	default:
 		return nil
 	}
+}
+
+func formatRequestMethod(method string) string {
+	method = strings.ToUpper(method)
+
+	if slices.Contains(schema.HTTPMethods, method) {
+		return method
+	}
+
+	return ""
 }

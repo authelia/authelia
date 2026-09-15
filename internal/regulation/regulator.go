@@ -46,7 +46,7 @@ func (r *Regulator) HandleAttempt(ctx Context, successful bool, ban *Ban, reques
 		Type:          authType,
 		RemoteIP:      model.NewNullIP(ctx.RemoteIP()),
 		RequestURI:    requestURI,
-		RequestMethod: requestMethod,
+		RequestMethod: FormatRequestMethod(requestMethod),
 	}
 
 	var err error
