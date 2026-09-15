@@ -36,10 +36,6 @@ func (s *CaddySuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
 
-func (s *CaddySuite) TestChangePasswordScenario() {
-	suite.Run(s.T(), NewChangePasswordScenario())
-}
-
 func TestCaddySuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

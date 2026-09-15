@@ -1261,6 +1261,37 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefault
 	suite.Equal(memberof, suite.config.LDAP.GroupSearchMode)
 }
 
+func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldAdmitUsersWhoMustChangeTheirPassword() {
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+
+	suite.Equal(schema.LDAPUsersFilterActiveDirectory, suite.config.LDAP.UsersFilter)
+	suite.NotContains(suite.config.LDAP.UsersFilter, "(!(pwdLastSet=0))")
+}
+
+func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldExcludeUsersWhoMustChangeTheirPasswordWhenPasswordChangeIsDisabled() {
+	suite.config.PasswordChange.Disable = true
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+
+	suite.Equal(schema.LDAPUsersFilterActiveDirectoryExcludeMustChange, suite.config.LDAP.UsersFilter)
+	suite.Contains(suite.config.LDAP.UsersFilter, "(!(pwdLastSet=0))")
+}
+
+func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldNotReplaceAConfiguredUsersFilterWhenPasswordChangeIsDisabled() {
+	suite.config.PasswordChange.Disable = true
+	suite.config.LDAP.UsersFilter = "(&({username_attribute}={input})(objectCategory=person))"
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Equal("(&({username_attribute}={input})(objectCategory=person))", suite.config.LDAP.UsersFilter)
+}
+
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldRaiseErrorOnInvalidURLWithHTTP() {
 	suite.config.LDAP.Address = &schema.AddressLDAP{Address: MustParseAddress("http://dc1:389")}
 
@@ -1519,5 +1550,176 @@ func (suite *LDAPImplementationSuite) NotEqualImplementationDefaults(expected sc
 
 	if expected.Attributes.MemberOf != "" {
 		suite.NotEqual(expected.Attributes.MemberOf, suite.config.LDAP.Attributes.MemberOf)
+	}
+}
+
+func TestValidateAuthenticationBackendPasswordChange(t *testing.T) {
+	testCases := []struct {
+		name string
+		have *schema.Configuration
+		errs []string
+	}{
+		{
+			"ShouldAllowAnUnsetAttribute",
+			&schema.Configuration{},
+			nil,
+		},
+		{
+			"ShouldAllowAnAttributeFromTheDefinitions",
+			&schema.Configuration{
+				Definitions: schema.Definitions{
+					UserAttributes: map[string]schema.UserAttribute{"must_change_password": {}},
+				},
+				AuthenticationBackend: schema.AuthenticationBackend{
+					PasswordChange: schema.AuthenticationBackendPasswordChange{RequiredAttribute: "must_change_password"},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnAnUndefinedAttribute",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					PasswordChange: schema.AuthenticationBackendPasswordChange{RequiredAttribute: "nonexistent"},
+				},
+			},
+			[]string{"authentication_backend: password_change: option 'required_attribute' is configured as 'nonexistent' but that attribute is not defined"},
+		},
+		{
+			"ShouldRaiseErrorWhenPasswordChangeIsDisabled",
+			&schema.Configuration{
+				Definitions: schema.Definitions{
+					UserAttributes: map[string]schema.UserAttribute{"must_change_password": {}},
+				},
+				AuthenticationBackend: schema.AuthenticationBackend{
+					PasswordChange: schema.AuthenticationBackendPasswordChange{
+						Disable:           true,
+						RequiredAttribute: "must_change_password",
+					},
+				},
+			},
+			[]string{"authentication_backend: password_change: option 'required_attribute' can't be configured when option 'disable' is true"},
+		},
+		{
+			"ShouldAllowAClearAttributeFromTheFileBackend",
+			&schema.Configuration{
+				Definitions: schema.Definitions{
+					UserAttributes: map[string]schema.UserAttribute{"must_change_password": {}},
+				},
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{
+						ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{"pwd_reset": {ValueType: "boolean"}},
+					},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{
+						RequiredAttribute: "must_change_password",
+						ClearAttribute:    "pwd_reset",
+					},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldAllowAClearAttributeFromTheLDAPBackend",
+			&schema.Configuration{
+				Definitions: schema.Definitions{
+					UserAttributes: map[string]schema.UserAttribute{"must_change_password": {}},
+				},
+				AuthenticationBackend: schema.AuthenticationBackend{
+					LDAP: &schema.AuthenticationBackendLDAP{
+						Attributes: schema.AuthenticationBackendLDAPAttributes{
+							Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+								"pwdReset": {AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"}},
+							},
+						},
+					},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{
+						RequiredAttribute: "must_change_password",
+						ClearAttribute:    "pwdReset",
+					},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldAllowAClearAttributeUsingTheLDAPAttributeName",
+			&schema.Configuration{
+				Definitions: schema.Definitions{
+					UserAttributes: map[string]schema.UserAttribute{"must_change_password": {}},
+				},
+				AuthenticationBackend: schema.AuthenticationBackend{
+					LDAP: &schema.AuthenticationBackendLDAP{
+						Attributes: schema.AuthenticationBackendLDAPAttributes{
+							Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+								"pwdReset": {Name: "pwd_reset", AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"}},
+							},
+						},
+					},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{
+						RequiredAttribute: "must_change_password",
+						ClearAttribute:    "pwd_reset",
+					},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnAClearAttributeWhichIsNotAnExtraAttribute",
+			&schema.Configuration{
+				Definitions: schema.Definitions{
+					UserAttributes: map[string]schema.UserAttribute{"must_change_password": {}},
+				},
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{
+						RequiredAttribute: "must_change_password",
+						ClearAttribute:    "pwd_reset",
+					},
+				},
+			},
+			[]string{"authentication_backend: password_change: option 'clear_attribute' is configured as 'pwd_reset' but that attribute is not a configured extra attribute"},
+		},
+		{
+			"ShouldRaiseErrorOnAClearAttributeWhichIsOnlyADefinition",
+			&schema.Configuration{
+				Definitions: schema.Definitions{
+					UserAttributes: map[string]schema.UserAttribute{"must_change_password": {}, "pwd_reset": {}},
+				},
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{
+						RequiredAttribute: "must_change_password",
+						ClearAttribute:    "pwd_reset",
+					},
+				},
+			},
+			[]string{"authentication_backend: password_change: option 'clear_attribute' is configured as 'pwd_reset' but that attribute is not a configured extra attribute"},
+		},
+		{
+			"ShouldRaiseErrorOnAClearAttributeWithoutARequiredAttribute",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{
+						ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{"pwd_reset": {ValueType: "boolean"}},
+					},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{ClearAttribute: "pwd_reset"},
+				},
+			},
+			[]string{"authentication_backend: password_change: option 'clear_attribute' can't be configured without option 'required_attribute'"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			validateAuthenticationBackendPasswordChange(tc.have, validator)
+
+			errs := validator.Errors()
+			require.Len(t, errs, len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, errs[i], expected)
+			}
+		})
 	}
 }

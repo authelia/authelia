@@ -22,6 +22,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -368,6 +369,148 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel(s.mock.Ctx.Configuration.WebAuthn.EnablePasskey2FA))
 	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
 	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
+}
+
+func (s *FirstFactorSuite) TestShouldHoldUserWhenTheBackendRequiresAPasswordChange() {
+	s.mock.UserProviderMock.
+		EXPECT().
+		CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+		Return(false, fmt.Errorf("%w: LDAP Result Code 49", authentication.ErrPasswordChangeRequired))
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		GetDetails(gomock.Eq(testValue)).
+		Return(&authentication.UserDetails{
+			Username: testValue,
+			Emails:   []string{"test@example.com"},
+			Groups:   []string{"dev", "admins"},
+		}, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello"
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
+
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	assert.True(s.T(), userSession.IsPasswordChangeRequired())
+	assert.Equal(s.T(), authentication.NotAuthenticated, userSession.AuthenticationLevel(s.mock.Ctx.Configuration.WebAuthn.EnablePasskey2FA))
+}
+
+func (s *FirstFactorSuite) TestShouldFailWhenThePasswordChangeRequirementCannotBeDetermined() {
+	s.mock.Ctx.Providers.UserAttributeResolver = &expression.UserAttributes{}
+	s.mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+		Return(true, nil)
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		GetDetails(gomock.Eq(testValue)).
+		Return(&authentication.UserDetails{
+			Username: testValue,
+			Emails:   []string{"test@example.com"},
+			Groups:   []string{"dev", "admins"},
+		}, nil)
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		GetDetailsExtended(gomock.Eq(testValue)).
+		Return(nil, fmt.Errorf("failed to mock the details"))
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello"
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred determining if a password change is required", "error occurred retrieving extended user details to determine if a password change is required: failed to mock the details")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	assert.False(s.T(), userSession.IsPasswordChangeRequired())
+	assert.Equal(s.T(), authentication.NotAuthenticated, userSession.AuthenticationLevel(s.mock.Ctx.Configuration.WebAuthn.EnablePasskey2FA))
+}
+
+func (s *FirstFactorSuite) TestShouldNotHoldUserWhenPasswordChangeIsDisabled() {
+	s.mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.Disable = true
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+		Return(false, fmt.Errorf("%w: LDAP Result Code 49", authentication.ErrPasswordChangeRequired))
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		GetDetails(gomock.Eq(testValue)).
+		Return(&authentication.UserDetails{
+			Username: testValue,
+			Emails:   []string{"test@example.com"},
+			Groups:   []string{"dev", "admins"},
+		}, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello"
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, s.mock.Ctx.Response.StatusCode())
+
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	assert.False(s.T(), userSession.IsPasswordChangeRequired())
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {

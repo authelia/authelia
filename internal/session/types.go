@@ -46,6 +46,11 @@ type UserSession struct {
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
 
+	// PasswordChangeRequiredUsername is set when a user has proven their password but the authentication backend
+	// says it must be changed before they go any further. The session deliberately holds no authentication level
+	// while it is set: the password they proved is one an administrator issued, and it opens nothing.
+	PasswordChangeRequiredUsername *string
+
 	RefreshTTL time.Time
 
 	Elevations Elevations
