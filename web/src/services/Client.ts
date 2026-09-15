@@ -4,6 +4,7 @@
 
 import axios from "axios";
 
+import { CSRFHeaderName } from "@constants/constants";
 import {
     RateLimitedData,
     ServiceResponse,
@@ -12,6 +13,12 @@ import {
     toDataRateLimited,
     validateStatusTooManyRequests,
 } from "@services/Api";
+import { getCSRFCookieName } from "@utils/Configuration";
+
+axios.defaults.xsrfCookieName = getCSRFCookieName();
+axios.defaults.xsrfHeaderName = CSRFHeaderName;
+axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
 
 export async function PutWithOptionalResponse<T = undefined>(
     path: string,

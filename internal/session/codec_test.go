@@ -39,6 +39,7 @@ func TestSecureCodec_Verify(t *testing.T) {
 		{"ShouldNotVerifyTruncatedSignature", data, codec.Sign(data)[:32], false},
 		{"ShouldNotVerifyInvalidHex", data, "not-a-hex-signature", false},
 		{"ShouldNotVerifyEmptySignature", data, "", false},
+		{"ShouldNotVerifyCSRFSignature", data, codec.SignCSRF(data), false},
 	}
 
 	for _, tc := range testCases {
@@ -46,6 +47,49 @@ func TestSecureCodec_Verify(t *testing.T) {
 			assert.Equal(t, tc.expected, codec.Verify(tc.data, tc.signature))
 		})
 	}
+}
+
+func TestSecureCodec_VerifyCSRF(t *testing.T) {
+	codec := newTestCodec(t)
+
+	keys := newTestHMACKeys()
+	keys.SessionCSRF = []byte("another-csrf-hmac-key")
+
+	other, err := NewCodec(testSecret, keys, random.NewMathematical())
+	require.NoError(t, err)
+
+	data := []byte("a-csrf-secret")
+
+	testCases := []struct {
+		name      string
+		data      []byte
+		signature string
+		expected  bool
+	}{
+		{"ShouldVerifyValidSignature", data, codec.SignCSRF(data), true},
+		{"ShouldNotVerifySignatureOfOtherData", data, codec.SignCSRF([]byte("other-data")), false},
+		{"ShouldNotVerifySignatureFromAnotherCSRFKey", data, other.SignCSRF(data), false},
+		{"ShouldNotVerifySessionSignature", data, codec.Sign(data), false},
+		{"ShouldNotVerifySessionAuthzSignature", data, codec.SignAuthz(data), false},
+		{"ShouldNotVerifyTruncatedSignature", data, codec.SignCSRF(data)[:32], false},
+		{"ShouldNotVerifyInvalidHex", data, "not-a-hex-signature", false},
+		{"ShouldNotVerifyEmptySignature", data, "", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, codec.VerifyCSRF(tc.data, tc.signature))
+		})
+	}
+}
+
+func TestSecureCodec_SignCSRFShouldDifferFromSign(t *testing.T) {
+	codec := newTestCodec(t)
+
+	data := []byte("the-same-data")
+
+	assert.NotEqual(t, codec.Sign(data), codec.SignCSRF(data))
+	assert.Len(t, codec.SignCSRF(data), 64)
 }
 
 func TestSecureCodec_GenerateSessionID(t *testing.T) {

@@ -264,28 +264,28 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	delayerPassword := middlewares.NewTimingAttackDelay(10, time.Second).SetRecord(true)
 
-	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPasswordPOST(delayerPassword)))
-	r.POST("/api/firstfactor/reauthenticate", middleware1FA(handlers.FirstFactorReauthenticatePOST(delayerPassword)))
-	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
+	r.POST("/api/firstfactor", middlewareAPI(middlewares.RequireCSRFToken(handlers.FirstFactorPasswordPOST(delayerPassword))))
+	r.POST("/api/firstfactor/reauthenticate", middleware1FA(middlewares.RequireCSRFToken(handlers.FirstFactorReauthenticatePOST(delayerPassword))))
+	r.POST("/api/logout", middlewareAPI(middlewares.RequireCSRFToken(handlers.LogoutPOST)))
 
 	if !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		rateLimitResetPasswordStart := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ResetPasswordStart), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
 		rateLimitResetPasswordFinish := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ResetPasswordFinish), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
 
 		r.POST("/api/reset-password/identity/start", middlewareAPI(rateLimitResetPasswordStart(handlers.ResetPasswordIdentityStart)))
-		r.POST("/api/reset-password/identity/finish", middlewareAPI(rateLimitResetPasswordFinish(handlers.ResetPasswordIdentityFinish)))
+		r.POST("/api/reset-password/identity/finish", middlewareAPI(rateLimitResetPasswordFinish(middlewares.RequireCSRFToken(handlers.ResetPasswordIdentityFinish))))
 
-		r.POST("/api/reset-password", middlewareAPI(handlers.ResetPasswordPOST))
-		r.DELETE("/api/reset-password", middlewareAPI(rateLimitResetPasswordFinish(handlers.ResetPasswordDELETE)))
+		r.POST("/api/reset-password", middlewareAPI(middlewares.RequireCSRFToken(handlers.ResetPasswordPOST)))
+		r.DELETE("/api/reset-password", middlewareAPI(rateLimitResetPasswordFinish(middlewares.RequireCSRFToken(handlers.ResetPasswordDELETE))))
 	}
 
 	if !config.AuthenticationBackend.PasswordChange.Disable {
-		r.POST("/api/change-password", middlewareElevated1FA(handlers.ChangePasswordPOST))
+		r.POST("/api/change-password", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.ChangePasswordPOST)))
 	}
 
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
-	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
+	r.POST("/api/user/info/2fa_method", middleware1FA(middlewares.RequireCSRFToken(handlers.MethodPreferencePOST)))
 
 	middlewareElevatePOST := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone, middlewares.CrossSiteRequestForgery).
@@ -298,10 +298,10 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		Build()
 
 	r.GET("/api/user/session/elevation", middleware1FA(handlers.UserSessionElevationGET))
-	r.POST("/api/user/session/elevation", middlewareElevatePOST(handlers.UserSessionElevationPOST))
-	r.PUT("/api/user/session/elevation", middlewareElevatePUT(handlers.UserSessionElevationPUT))
+	r.POST("/api/user/session/elevation", middlewareElevatePOST(middlewares.RequireCSRFToken(handlers.UserSessionElevationPOST)))
+	r.PUT("/api/user/session/elevation", middlewareElevatePUT(middlewares.RequireCSRFToken(handlers.UserSessionElevationPUT)))
 
-	r.DELETE("/api/user/session/elevation/{id}", middlewareAPI(handlers.UserSessionElevateDELETE))
+	r.DELETE("/api/user/session/elevation/{id}", middlewareAPI(middlewares.RequireCSRFToken(handlers.UserSessionElevateDELETE)))
 
 	if !config.TOTP.Disable {
 		middlewareRateLimitTOTP := middlewares.NewBridgeBuilder(*config, providers).
@@ -310,39 +310,39 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 			Build()
 
 		r.GET("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordGET))
-		r.POST("/api/secondfactor/totp", middlewareRateLimitTOTP(handlers.TimeBasedOneTimePasswordPOST))
-		r.DELETE("/api/secondfactor/totp", middlewareElevated1FA(handlers.TOTPConfigurationDELETE))
+		r.POST("/api/secondfactor/totp", middlewareRateLimitTOTP(middlewares.RequireCSRFTokenBrowser(handlers.TimeBasedOneTimePasswordPOST)))
+		r.DELETE("/api/secondfactor/totp", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.TOTPConfigurationDELETE)))
 
 		r.GET("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterGET))
-		r.PUT("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterPUT))
-		r.POST("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterPOST))
-		r.DELETE("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterDELETE))
+		r.PUT("/api/secondfactor/totp/register", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.TOTPRegisterPUT)))
+		r.POST("/api/secondfactor/totp/register", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.TOTPRegisterPOST)))
+		r.DELETE("/api/secondfactor/totp/register", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.TOTPRegisterDELETE)))
 	}
 
 	if !config.WebAuthn.Disable {
 		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionGET))
-		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))
+		r.POST("/api/secondfactor/webauthn", middleware1FA(middlewares.RequireCSRFToken(handlers.WebAuthnAssertionPOST)))
 
 		if config.WebAuthn.EnablePasskeyLogin {
 			r.GET("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyGET))
-			r.POST("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyPOST))
+			r.POST("/api/firstfactor/passkey", middlewareAPI(middlewares.RequireCSRFToken(handlers.FirstFactorPasskeyPOST)))
 
 			middlewareRateLimitPassword := middlewares.NewBridgeBuilder(*config, providers).
 				WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone, middlewares.CrossSiteRequestForgery).
 				WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorPassword), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
 				Build()
 
-			r.POST("/api/secondfactor/password", middlewareRateLimitPassword(handlers.SecondFactorPasswordPOST(delayerPassword)))
+			r.POST("/api/secondfactor/password", middlewareRateLimitPassword(middlewares.RequireCSRFToken(handlers.SecondFactorPasswordPOST(delayerPassword))))
 		}
 
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
 
-		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
-		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPOST))
-		r.DELETE("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationDELETE))
+		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.WebAuthnRegistrationPUT)))
+		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.WebAuthnRegistrationPOST)))
+		r.DELETE("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.WebAuthnRegistrationDELETE)))
 
-		r.PUT("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialPUT))
-		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
+		r.PUT("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.WebAuthnCredentialPUT)))
+		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(middlewares.RequireCSRFToken(handlers.WebAuthnCredentialDELETE)))
 	}
 
 	if !config.DuoAPI.Disable {
@@ -367,8 +367,8 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		r.GET("/api/secondfactor/duo", middleware1FA(handlers.DuoGET))
 		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET(duoAPI)))
-		r.POST("/api/secondfactor/duo", middlewareRateLimitDuo(handlers.DuoPOST(duoAPI)))
-		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
+		r.POST("/api/secondfactor/duo", middlewareRateLimitDuo(middlewares.RequireCSRFTokenBrowser(handlers.DuoPOST(duoAPI))))
+		r.POST("/api/secondfactor/duo_device", middleware1FA(middlewares.RequireCSRFToken(handlers.DuoDevicePOST)))
 	}
 
 	if config.Server.Endpoints.EnablePprof {
@@ -413,7 +413,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 	).Build()
 
 	r.GET(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), bridge(handlers.OAuth2ConsentGET)))
-	r.POST(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), middlewares.CrossSiteRequestForgery(bridge(handlers.OAuth2ConsentPOST))))
+	r.POST(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), middlewares.CrossSiteRequestForgery(bridge(middlewares.RequireCSRFToken(handlers.OAuth2ConsentPOST)))))
 
 	allowedOrigins := utils.StringSliceFromURLs(config.IdentityProviders.OIDC.CORS.AllowedOrigins)
 
@@ -447,7 +447,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 
 	r.OPTIONS(oidc.EndpointPathDeviceAuthorization, policyCORSDeviceAuthorization.HandleOnlyOPTIONS)
 	r.POST(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), policyCORSDeviceAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2DeviceAuthorizationPOST)))))
-	r.PUT(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), middlewares.CrossSiteRequestForgery(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2DeviceAuthorizationPUT)))))
+	r.PUT(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), middlewares.CrossSiteRequestForgery(bridge(middlewares.RequireCSRFToken(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2DeviceAuthorizationPUT))))))
 
 	policyCORSPAR := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).

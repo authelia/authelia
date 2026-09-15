@@ -162,7 +162,7 @@ func TestDefaultStrategy_SaveShouldDiscardTheAuthzCookieAndIndex(t *testing.T) {
 		names = append(names, cookie.Name)
 	}
 
-	assert.ElementsMatch(t, []string{testName, testNameAuthz}, names)
+	assert.ElementsMatch(t, []string{testName, testNameAuthz, testNameCSRF}, names)
 }
 
 func TestDefaultStrategy_SaveShouldReturnErrorWhenDiscardFails(t *testing.T) {
@@ -285,6 +285,7 @@ func TestUserSession_RequiresPersistence(t *testing.T) {
 		{"ShouldNotRequireForIdentifiersAndActivity", func(userSession *UserSession) {
 			userSession.CookieDomain = testDomain
 			userSession.PublicID = "abc"
+			userSession.CSRF = []byte("abc")
 			userSession.LastActivity = 1
 			userSession.KeepMeLoggedIn = true
 			userSession.RefreshTTL = time.Unix(1, 0)
@@ -317,6 +318,7 @@ func TestUserSession_RequiresPersistenceShouldConsiderEveryField(t *testing.T) {
 	disregarded := map[string]bool{
 		"CookieDomain":   true,
 		"PublicID":       true,
+		"CSRF":           true,
 		"KeepMeLoggedIn": true,
 		"LastActivity":   true,
 		"RefreshTTL":     true,
@@ -350,6 +352,8 @@ func setTestNonZero(t *testing.T, value reflect.Value) {
 		value.SetInt(1)
 	case reflect.Pointer:
 		value.Set(reflect.New(value.Type().Elem()))
+	case reflect.Slice:
+		value.Set(reflect.MakeSlice(value.Type(), 1, 1))
 	case reflect.Struct:
 		if value.Type() == reflect.TypeFor[time.Time]() {
 			value.Set(reflect.ValueOf(time.Unix(1, 0)))

@@ -231,6 +231,12 @@ Two cookies are issued for every session once the user has signed in:
   used to sign in, to change credentials, or to perform any other action against the API. The only exception is that
   signing in or signing out without a session cookie ends the session the authorization cookie belongs to.
 
+A third cookie, which uses the configured name with the suffix `_csrf`, delivers the CSRF token of the session to the
+portal. It isn't used to identify the session and is only accepted alongside the session cookie, as the value of the
+`X-CSRF-Token` header which the portal includes with requests that change state. It is always issued with a SameSite
+value of Strict to the Authelia host alone, is readable by the portal so that it can include the token, and is
+replaced whenever the session cookie is replaced.
+
 The authorization cookie is linked to the session. It is replaced whenever the session cookie is replaced and stops
 working as soon as the session is destroyed. When the session cookie is valid but the authorization cookie is missing
 or no longer matches the session, Authelia issues the authorization cookie again the next time the user visits the

@@ -25,6 +25,10 @@ type UserSession struct {
 	CookieDomain string `msg:"d"`
 	PublicID     string `msg:"p"`
 
+	// CSRF is the random secret the CSRF token of this session is derived from. It's regenerated alongside the session
+	// identifier, and can be regenerated independently of it.
+	CSRF []byte `msg:"csrf,omitempty"`
+
 	// Username for this session.
 	//
 	// SECURITY NOTE: This value MUST NOT be changed directly except within test files, and should instead be changed

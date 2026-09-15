@@ -94,9 +94,27 @@ type Strategy interface {
 	// preserving the session data. It mitigates session fixation and is expected at every authentication level change.
 	Regenerate(ctx Context) (err error)
 
-	// Destroy removes the persisted session of the request and instructs the user agent to discard both cookies. A
-	// request which carries no session cookie has the session its authz cookie is linked to removed instead.
+	// Destroy removes the persisted session of the request and instructs the user agent to discard the session cookie,
+	// the authz cookie, and the CSRF cookie. A request which carries no session cookie has the session its authz cookie
+	// is linked to removed instead.
 	Destroy(ctx Context) (err error)
+
+	// CSRFToken returns the CSRF token of the established session of the request. It returns ErrCSRFTokenNoSession when
+	// the request has no established session, and ErrCSRFTokenInvalid when the session has no CSRF secret.
+	CSRFToken(ctx Context) (token string, err error)
+
+	// VerifyCSRFToken returns nil if the token is the CSRF token of the established session of the request. It returns
+	// ErrCSRFTokenNoSession when the request has no established session, and ErrCSRFTokenInvalid when the token doesn't
+	// match.
+	VerifyCSRFToken(ctx Context, token string) (err error)
+
+	// RegenerateCSRFToken replaces the CSRF secret of the established session of the request without changing the
+	// session identifier, and delivers the new token to the user agent.
+	RegenerateCSRFToken(ctx Context) (err error)
+
+	// SetCSRFCookie delivers the CSRF token of the established session of the request to the user agent, generating a
+	// CSRF secret for an established session which has none.
+	SetCSRFCookie(ctx Context) (err error)
 
 	// Authz returns the restricted view of this Strategy which the authorization endpoints use. The view resolves the
 	// session from the authz cookie alone and can only update the activity of the session or destroy it.
@@ -218,6 +236,10 @@ type Codec interface {
 	// and is never stored by the Repository itself.
 	GenerateSessionID() (id []byte, err error)
 
+	// GenerateCSRFSecret returns a new random CSRF secret, which is stored in the session and signed to derive the CSRF
+	// token delivered to the user agent.
+	GenerateCSRFSecret() (secret []byte, err error)
+
 	// Verify returns true when the signature is the signature of the given data, comparing them in constant time. A
 	// signature which isn't valid hexadecimal is never verified.
 	Verify(data []byte, signature string) bool
@@ -231,8 +253,12 @@ type Codec interface {
 	// authz cookie value is derived from and signed with to derive the identifier its index is stored against.
 	SignAuthz(data []byte) string
 
+	// VerifyCSRF returns true when the signature is the CSRF signature of the given data, comparing them in constant
+	// time. It uses the session CSRF key, so a signature produced for any other purpose is never verified.
+	VerifyCSRF(data []byte, signature string) bool
+
 	// SignCSRF returns the hexadecimal encoded HMAC signature of the given data using the session CSRF key, which is
-	// reserved for values which protect against cross-site request forgery.
+	// how the CSRF token is derived from the CSRF secret of a session.
 	SignCSRF(data []byte) string
 
 	// Seal marshals and encrypts the session, binding the result to the cookie domain and the identifier it's stored
