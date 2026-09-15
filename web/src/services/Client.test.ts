@@ -207,6 +207,22 @@ it("throws on get with optional data error", async () => {
     await expect(Client.GetWithOptionalData("/path")).rejects.toThrow("Failed GET from /path. Code: 400.");
 });
 
+it.each([
+    ["Get", Client.Get],
+    ["GetWithOptionalData", Client.GetWithOptionalData],
+])("throws a service error carrying the status and code on %s", async (_, fn) => {
+    const mockRes = { data: { code: "totp_configuration_not_found", message: "error", status: "KO" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ code: "totp_configuration_not_found", errored: true, message: "error" });
+
+    const err = await fn("/path").catch((e) => e);
+
+    expect(err).toBeInstanceOf(ServiceError);
+    expect(err.message).toBe("Failed GET from /path. Code: 200.");
+    expect(err.status).toBe(200);
+    expect(err.code).toBe("totp_configuration_not_found");
+});
+
 it("throws on get with optional data returning undefined", async () => {
     const mockRes = { data: { status: "OK" }, status: 200 };
     (axios.get as any).mockResolvedValue(mockRes);

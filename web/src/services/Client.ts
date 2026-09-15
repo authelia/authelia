@@ -108,8 +108,10 @@ export async function Put<T>(path: string, body?: any, signal?: AbortSignal) {
 export async function Get<T = undefined>(path: string, signal?: AbortSignal): Promise<T> {
     const res = await axios.get<ServiceResponse<T>>(path, { signal });
 
-    if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new ServiceError(`Failed GET from ${path}. Code: ${res.status}.`, res.status);
+    const { code, errored } = hasServiceError(res);
+
+    if (res.status !== 200 || errored) {
+        throw new ServiceError(`Failed GET from ${path}. Code: ${res.status}.`, res.status, code);
     }
 
     const d = toData<T>(res);
@@ -124,8 +126,10 @@ export async function Get<T = undefined>(path: string, signal?: AbortSignal): Pr
 export async function GetWithOptionalData<T = undefined>(path: string, signal?: AbortSignal): Promise<null | T> {
     const res = await axios.get<ServiceResponse<T>>(path, { signal });
 
-    if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new ServiceError(`Failed GET from ${path}. Code: ${res.status}.`, res.status);
+    const { code, errored } = hasServiceError(res);
+
+    if (res.status !== 200 || errored) {
+        throw new ServiceError(`Failed GET from ${path}. Code: ${res.status}.`, res.status, code);
     }
 
     const d = toData<T>(res);

@@ -559,7 +559,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETErrorLoadConfiguration() {
 	)
 
 	TimeBasedOneTimePasswordGET(s.mock.Ctx)
-	s.mock.Assert500KO(s.T(), messageTOTPConfigurationNotFound)
+	s.mock.Assert500KO(s.T(), messageOperationFailed)
 
 	s.AssertLastLogMessage("Error occurred retrieving TOTP configuration for user 'john': error occurred retrieving the configuration from the storage backend", "nah")
 }

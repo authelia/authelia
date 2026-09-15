@@ -51,7 +51,7 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 		} else {
 			ctx.GetLogger().WithError(err).Errorf("Error occurred retrieving TOTP configuration for user '%s': error occurred retrieving the configuration from the storage backend", userSession.Username)
 			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-			ctx.SetJSONError(messageTOTPConfigurationNotFound)
+			ctx.SetJSONError(messageOperationFailed)
 		}
 
 		return
