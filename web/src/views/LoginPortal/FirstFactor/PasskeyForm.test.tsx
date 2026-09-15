@@ -9,12 +9,15 @@ import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyRespon
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 const mocks = vi.hoisted(() => ({
+    autofillPending: null as null | Promise<boolean>,
     autofillSupported: false,
+    cancelCeremony: vi.fn(),
     queryParams: {} as Record<string, null | string>,
 }));
 
 vi.mock("@simplewebauthn/browser", () => ({
-    browserSupportsWebAuthnAutofill: () => Promise.resolve(mocks.autofillSupported),
+    browserSupportsWebAuthnAutofill: () => mocks.autofillPending ?? Promise.resolve(mocks.autofillSupported),
+    WebAuthnAbortService: { cancelCeremony: mocks.cancelCeremony },
 }));
 
 vi.mock("react-i18next", () => ({
@@ -86,6 +89,7 @@ async function answerRememberMe(rememberMe: boolean) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mocks.autofillPending = null;
     mocks.autofillSupported = false;
     mocks.queryParams = {};
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -455,6 +459,38 @@ describe("conditional mediation", () => {
         unmount();
 
         await waitFor(() => expect(getOptionsMock).not.toHaveBeenCalled());
+    });
+
+    it("does not start when an explicit ceremony began while autofill support was being checked", async () => {
+        let resolveAutofill: (value: boolean) => void = () => {};
+        mocks.autofillPending = new Promise((r) => (resolveAutofill = r));
+
+        getResultMock.mockReturnValue(new Promise(() => {}) as any);
+
+        const { props } = renderForm();
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
+
+        resolveAutofill(true);
+
+        await mocks.autofillPending;
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(getOptionsMock).toHaveBeenCalledTimes(1);
+        expect(getOptionsMock).toHaveBeenCalledWith(expect.anything(), false);
+        expect(props.onAuthenticationStop).not.toHaveBeenCalled();
+    });
+
+    it("cancels any pending ceremony when the component unmounts", () => {
+        const { unmount } = renderForm();
+
+        expect(mocks.cancelCeremony).not.toHaveBeenCalled();
+
+        unmount();
+
+        expect(mocks.cancelCeremony).toHaveBeenCalledTimes(1);
     });
 });
 

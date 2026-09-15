@@ -4,7 +4,7 @@
 
 import { Fragment, useEffect, useEffectEvent, useRef, useState } from "react";
 
-import { browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
+import { WebAuthnAbortService, browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
@@ -43,28 +43,26 @@ const PasskeyForm = function (props: Props) {
 
     const [loading, setLoading] = useState(false);
 
+    const loadingRef = useRef(false);
     const unmountedRef = useRef(false);
 
     const handleSignIn = async (conditionalMediation: boolean) => {
-        if (loading) return;
+        if (loadingRef.current) return;
 
-        // A conditional ceremony waits in the background for the user to pick a credential from the browser's
-        // autofill, so until they do the form must neither present itself as busy nor report failures: the user never
-        // asked for it, and the explicit button remains available to them.
         let interactive = !conditionalMediation;
 
         const startUI = () => {
             interactive = true;
 
+            loadingRef.current = true;
             props.onAuthenticationStart();
             setLoading(true);
         };
 
         const stopUI = () => {
-            // A ceremony only ever tears down the busy state it put up itself: a conditional ceremony is superseded by
-            // an explicit one, and must not clear the busy state belonging to the ceremony that replaced it.
             if (!interactive) return;
 
+            loadingRef.current = false;
             props.onAuthenticationStop();
             setLoading(false);
         };
@@ -108,9 +106,6 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            // The user has picked a credential, so from here the ceremony is theirs regardless of how it started. The
-            // remember me choice is only put to them at this point, so that a conditionally mediated sign in asks at
-            // the same point an explicit one does rather than ahead of any user intent.
             if (conditionalMediation) startUI();
 
             const rememberMe = await promptRememberMe();
@@ -169,6 +164,8 @@ const PasskeyForm = function (props: Props) {
 
         return () => {
             unmountedRef.current = true;
+
+            WebAuthnAbortService.cancelCeremony();
         };
     }, []);
 
