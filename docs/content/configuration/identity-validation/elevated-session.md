@@ -76,6 +76,10 @@ The One-Time Code process is still required in addition to second factor authent
 This option only affects users who have at least one second factor method configured; users without any configured
 second factor method perform the One-Time Code process as normal.
 
+Enabling this option also makes the second factor methods available for registration in the user settings even when
+no [access control](../security/access-control.md) rule uses the `two_factor` policy. Without that, an instance which
+elevates sessions with a second factor would give users no way to register the method it asks them for.
+
 ### skip_second_factor
 
 {{< confkey type="boolean" default="false" required="no" >}}
@@ -84,6 +88,9 @@ Treats sessions which have performed second factor authentication as elevated, s
 entirely. In addition, users who have only performed first factor authentication but have a second factor method
 configured are offered the choice to either perform the One-Time Code process or perform second factor authentication
 instead.
+
+As with [require_second_factor](#require_second_factor), enabling this option makes the second factor methods
+available for registration in the user settings even when no access control rule uses the `two_factor` policy.
 
 This option can be combined with the [require_second_factor](#require_second_factor) option to make second factor
 authentication both necessary and sufficient for elevation: users with a configured second factor method must perform
