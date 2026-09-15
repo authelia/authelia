@@ -923,6 +923,7 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 	s.Contains(output, "webauthn_credentials")
 	s.Contains(output, "totp_configurations")
 	s.Contains(output, "one_time_code")
+	s.Contains(output, "recovery_codes")
 	s.Contains(output, "totp_history")
 	s.Contains(output, "user_opaque_identifier")
 	s.Contains(output, "webauthn_users")
