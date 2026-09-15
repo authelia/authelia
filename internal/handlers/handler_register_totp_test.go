@@ -74,7 +74,7 @@ func TestShouldReturnTOTPRegisterOptions(t *testing.T) {
 			"ShouldHandleAnonymous",
 			schema.TOTP{DefaultAlgorithm: "SHA256", AllowedAlgorithms: []string{"SHA1", "SHA256"}, DefaultDigits: 6, AllowedDigits: []int{6, 8}, DefaultPeriod: 30, AllowedPeriods: []int{30, 60, 90}},
 			nil,
-			`{"status":"KO","message":"Unable to retrieve TOTP registration options."}`,
+			`{"status":"KO","code":"totp_options_failed","message":"Unable to retrieve TOTP registration options."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred retrieving TOTP registration options", "user is anonymous")
@@ -86,7 +86,7 @@ func TestShouldReturnTOTPRegisterOptions(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Unable to retrieve TOTP registration options."}`,
+			`{"status":"KO","code":"totp_options_failed","message":"Unable to retrieve TOTP registration options."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred retrieving TOTP registration options: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -175,7 +175,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 					mock.TOTPMock.EXPECT().Options().Return(*totp.NewTOTPOptionsFromSchema(mock.Ctx.Configuration.TOTP)),
 				)
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a TOTP registration session for user 'john': error occurred validating registration options selection", "the algorithm 'SHA1', period '30', or length '20' was not permitted by configured policy")
@@ -186,7 +186,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 			schema.DefaultTOTPConfiguration,
 			`{"algorithm":"SHA1","length":6,"period":30}`,
 			nil,
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a TOTP registration session", "user is anonymous")
@@ -199,7 +199,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a TOTP registration session: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -219,7 +219,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a TOTP registration session for user 'john': error parsing the request body", "invalid character 'S' after object key")
@@ -259,7 +259,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 						Return(nil, fmt.Errorf("no issuer")),
 				)
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a TOTP registration session for user 'john': error generating TOTP configuration", "no issuer")
@@ -303,7 +303,7 @@ func TestTOTPRegisterDELETE(t *testing.T) {
 		{
 			"ShouldFailAnonymous",
 			nil,
-			`{"status":"KO","message":"Unable to delete one-time password registration session."}`,
+			`{"status":"KO","code":"totp_register_session_delete_failed","message":"Unable to delete one-time password registration session."}`,
 			fasthttp.StatusForbidden,
 			nil,
 		},
@@ -352,7 +352,7 @@ func TestTOTPRegisterDELETE(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Unable to delete one-time password registration session."}`,
+			`{"status":"KO","code":"totp_register_session_delete_failed","message":"Unable to delete one-time password registration session."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting a TOTP registration session: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -410,7 +410,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session for user 'john': the user did not initiate a registration session on their current session", "")
@@ -438,7 +438,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session for user 'john': error parsing the request body", "invalid character '1' after object key:value pair")
@@ -466,7 +466,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session for user 'john': error occurred validating the session", "the registration session is expired")
@@ -477,7 +477,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 			schema.DefaultTOTPConfiguration,
 			`{"token":012345"}`,
 			nil,
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session", "user is anonymous")
@@ -490,7 +490,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -525,7 +525,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(false, uint64(0), nil),
 				)
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session for user 'john'", "user input did not match any expected value")
@@ -560,7 +560,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(false, uint64(0), fmt.Errorf("pink staple")),
 				)
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session for user 'john': error occurred validating the user input against the session", "pink staple")
@@ -853,7 +853,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(fmt.Errorf("failed to connect")),
 				)
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session for user 'john': error occurred saving the TOTP configuration to the storage backend", "failed to connect")
@@ -892,7 +892,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(fmt.Errorf("failed to connect")),
 				)
 			},
-			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			`{"status":"KO","code":"totp_register_failed","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a TOTP registration session for user 'john': error occurred saving the TOTP history to the storage backend", "failed to connect")
@@ -938,7 +938,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 		{
 			"ShouldFailAnonymous",
 			nil,
-			`{"status":"KO","message":"Unable to delete one-time password."}`,
+			`{"status":"KO","code":"totp_delete_failed","message":"Unable to delete one-time password."}`,
 			fasthttp.StatusForbidden,
 			nil,
 		},
@@ -1043,7 +1043,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					mock.StorageMock.EXPECT().DeleteTOTPConfiguration(mock.Ctx, testUsername).Return(fmt.Errorf("not a sql")),
 				)
 			},
-			`{"status":"KO","message":"Unable to delete one-time password."}`,
+			`{"status":"KO","code":"totp_delete_failed","message":"Unable to delete one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting a TOTP configuration for user 'john': error occurred deleting configuration from the storage backend", "not a sql")
@@ -1071,7 +1071,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 						Return(nil, fmt.Errorf("not found")),
 				)
 			},
-			`{"status":"KO","message":"Unable to delete one-time password."}`,
+			`{"status":"KO","code":"totp_delete_failed","message":"Unable to delete one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting a TOTP configuration for user 'john': error occurred loading configuration from the storage backend", "not found")
@@ -1082,7 +1082,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Unable to delete one-time password."}`,
+			`{"status":"KO","code":"totp_delete_failed","message":"Unable to delete one-time password."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting a TOTP configuration: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
