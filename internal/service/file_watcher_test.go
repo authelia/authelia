@@ -510,6 +510,8 @@ func TestProvisionConfigFileWatcher(t *testing.T) {
 	}
 
 	t.Run("ShouldNotProvisionWhenDisabled", func(t *testing.T) {
+		t.Setenv(environmentVariableConfigReload, "")
+
 		service, err := ProvisionConfigFileWatcher(newCtx([]string{file}))
 
 		assert.NoError(t, err)
