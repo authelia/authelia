@@ -21,7 +21,7 @@ func TestAutheliaCtxShouldReturnTheErrorWhenTheSessionBackendFails(t *testing.T)
 
 	defer mock.Close()
 
-	provider, err := session.NewProvider(&mock.Ctx.Configuration, []byte("cd21a70d4d24b23e0d1ae0a5cf6c4e1d3e2b8a5f7c9d0e1f2a3b4c5d6e7f8a9b"), mock.Ctx.Providers.Clock, mock.Ctx.Providers.Random, &failingSessionRepository{Repository: cache.NewSessionRepository(cache.NewMemory())})
+	provider, err := session.NewProvider(&mock.Ctx.Configuration, []byte("cd21a70d4d24b23e0d1ae0a5cf6c4e1d3e2b8a5f7c9d0e1f2a3b4c5d6e7f8a9b"), []byte("a-csrf-hmac-key"), mock.Ctx.Providers.Clock, mock.Ctx.Providers.Random, &failingSessionRepository{Repository: cache.NewSessionRepository(cache.NewMemory())})
 	require.NoError(t, err)
 
 	mock.Ctx.Providers.Session = provider

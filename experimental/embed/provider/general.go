@@ -44,11 +44,12 @@ func NewAuthorizer(config *schema.Configuration) *authorization.Authorizer {
 }
 
 // NewSession creates a new session.Provider given a valid configuration. The hmac key is used to sign session
-// identifiers and the repository is the backend the sessions are persisted to.
+// identifiers, the csrfHMAC key is used to sign session CSRF secrets and must differ from the hmac key, and the
+// repository is the backend the sessions are persisted to.
 //
 // Warning: This method may panic if the provided configuration isn't validated.
-func NewSession(config *schema.Configuration, hmac []byte, clock clock.Provider, random random.Provider, repository session.Repository) (provider session.Provider, err error) {
-	return session.NewProvider(config, hmac, clock, random, repository)
+func NewSession(config *schema.Configuration, hmac, csrfHMAC []byte, clock clock.Provider, random random.Provider, repository session.Repository) (provider session.Provider, err error) {
+	return session.NewProvider(config, hmac, csrfHMAC, clock, random, repository)
 }
 
 // NewRegulator creates a new *regulation.Regulator given a valid configuration.

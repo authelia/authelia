@@ -13,13 +13,13 @@ import (
 )
 
 // NewProvider returns a new Provider with a Strategy for every configured session cookie domain, each sharing the
-// Codec derived from the session secret and HMAC key.
-func NewProvider(config *schema.Configuration, hmac []byte, clock clock.Provider, random random.Provider, repository Repository) (provider Provider, err error) {
+// Codec derived from the session secret, the session HMAC key, and the CSRF HMAC key.
+func NewProvider(config *schema.Configuration, hmac, csrfHMAC []byte, clock clock.Provider, random random.Provider, repository Repository) (provider Provider, err error) {
 	var (
 		codec Codec
 	)
 
-	if codec, err = NewCodec(config.Session.Secret, hmac, random); err != nil {
+	if codec, err = NewCodec(config.Session.Secret, hmac, csrfHMAC, random); err != nil {
 		return nil, err
 	}
 

@@ -209,7 +209,7 @@ func TestStorageSessionRepositoryShouldBackSessionStrategy(t *testing.T) {
 		},
 	}
 
-	sessionProvider, err := session.NewProvider(config, []byte("an-hmac-key"), clock.New(), random.NewMathematical(), NewSessionRepository(provider))
+	sessionProvider, err := session.NewProvider(config, []byte("an-hmac-key"), []byte("a-csrf-hmac-key"), clock.New(), random.NewMathematical(), NewSessionRepository(provider))
 	require.NoError(t, err)
 
 	strategy, err := sessionProvider.GetStrategy("example.com")

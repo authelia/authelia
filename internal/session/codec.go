@@ -18,8 +18,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewCodec returns a new SecureCodec.
-func NewCodec(rawKey string, hmacKey []byte, random random.Provider) (codec Codec, err error) {
+// NewCodec returns a new SecureCodec. The hmacKey signs session identifiers, and the csrfKey signs CSRF secrets, which
+// keeps a signature produced for one purpose from being valid for the other.
+func NewCodec(rawKey string, hmacKey, csrfKey []byte, random random.Provider) (codec Codec, err error) {
 	reader := hkdf.New(sha256.New, []byte(rawKey), nil, []byte(hkdfKeyInfoCodec))
 
 	key := make([]byte, 32)
@@ -31,17 +32,19 @@ func NewCodec(rawKey string, hmacKey []byte, random random.Provider) (codec Code
 	return &SecureCodec{
 		encKey:  key,
 		hmacKey: hmacKey,
+		csrfKey: csrfKey,
 		random:  random,
 
 		charsetSessionID: randomSessionChars,
 	}, nil
 }
 
-// SecureCodec is the default Codec which signs session identifiers with a HMAC key and seals session data with an
-// authenticated encryption key derived from the session secret.
+// SecureCodec is the default Codec which signs session identifiers with a HMAC key, signs CSRF secrets with a separate
+// HMAC key, and seals session data with an authenticated encryption key derived from the session secret.
 type SecureCodec struct {
 	encKey  []byte
 	hmacKey []byte
+	csrfKey []byte
 
 	random random.Provider
 
@@ -65,16 +68,20 @@ func (c *SecureCodec) GenerateSessionID() (id string, err error) {
 	return c.random.StringCustomErr(32, c.charsetSessionID)
 }
 
-// Verify returns true if the given signature is the signature of the given data, comparing them in constant time.
-func (c *SecureCodec) Verify(data []byte, signature string) bool {
-	actual, err := hex.DecodeString(signature)
-	if err != nil {
-		return false
+// GenerateCSRFSecret returns a new random CSRF secret which is stored in the session and signed to derive the CSRF token.
+func (c *SecureCodec) GenerateCSRFSecret() (secret []byte, err error) {
+	secret = make([]byte, 32)
+
+	if _, err = io.ReadFull(c.random, secret); err != nil {
+		return nil, err
 	}
 
-	expected := c.sign(data)
+	return secret, nil
+}
 
-	return hmac.Equal(expected, actual)
+// Verify returns true if the given signature is the signature of the given data, comparing them in constant time.
+func (c *SecureCodec) Verify(data []byte, signature string) bool {
+	return hmacVerify(c.hmacKey, data, signature)
 }
 
 // Sign returns the hex encoded HMAC signature of the given data.
@@ -82,8 +89,32 @@ func (c *SecureCodec) Sign(data []byte) string {
 	return hex.EncodeToString(c.sign(data))
 }
 
+// VerifyCSRF returns true if the given signature is the CSRF signature of the given data, comparing them in constant
+// time.
+func (c *SecureCodec) VerifyCSRF(data []byte, signature string) bool {
+	return hmacVerify(c.csrfKey, data, signature)
+}
+
+// SignCSRF returns the hex encoded HMAC signature of the given data using the CSRF key.
+func (c *SecureCodec) SignCSRF(data []byte) string {
+	return hex.EncodeToString(hmacSign(c.csrfKey, data))
+}
+
 func (c *SecureCodec) sign(data []byte) []byte {
-	mac := hmac.New(sha256.New, c.hmacKey)
+	return hmacSign(c.hmacKey, data)
+}
+
+func hmacVerify(key, data []byte, signature string) bool {
+	actual, err := hex.DecodeString(signature)
+	if err != nil {
+		return false
+	}
+
+	return hmac.Equal(hmacSign(key, data), actual)
+}
+
+func hmacSign(key, data []byte) []byte {
+	mac := hmac.New(sha256.New, key)
 	mac.Write(data)
 
 	return mac.Sum(nil)

@@ -90,6 +90,23 @@ type Strategy interface {
 
 	// Destroy removes the persisted session of the request and instructs the user agent to discard the session cookie.
 	Destroy(ctx Context) (err error)
+
+	// CSRFToken returns the CSRF token of the established session of the request. It returns ErrCSRFTokenNoSession when
+	// the request has no established session, and ErrCSRFTokenInvalid when the session has no CSRF secret.
+	CSRFToken(ctx Context) (token string, err error)
+
+	// VerifyCSRFToken returns nil if the token is the CSRF token of the established session of the request. It returns
+	// ErrCSRFTokenNoSession when the request has no established session, and ErrCSRFTokenInvalid when the token doesn't
+	// match.
+	VerifyCSRFToken(ctx Context, token string) (err error)
+
+	// RegenerateCSRFToken replaces the CSRF secret of the established session of the request without changing the
+	// session identifier, and delivers the new token to the user agent.
+	RegenerateCSRFToken(ctx Context) (err error)
+
+	// SetCSRFCookie delivers the CSRF token of the established session of the request to the user agent, generating a
+	// CSRF secret for an established session which has none.
+	SetCSRFCookie(ctx Context) (err error)
 }
 
 // The Record is a session as a Repository holds it. It carries the signature the session is stored against alongside
@@ -159,6 +176,10 @@ type Codec interface {
 	// never stored by the Repository itself.
 	GenerateSessionID() (id string, err error)
 
+	// GenerateCSRFSecret returns a new random CSRF secret, which is stored in the session and signed to derive the CSRF
+	// token delivered to the user agent.
+	GenerateCSRFSecret() (secret []byte, err error)
+
 	// Verify returns true when the signature is the signature of the given data, comparing them in constant time. A
 	// signature which isn't valid hexadecimal is never verified.
 	Verify(data []byte, signature string) bool
@@ -166,6 +187,14 @@ type Codec interface {
 	// Sign returns the hexadecimal encoded HMAC signature of the given data. The session cookie value is signed this way
 	// to derive the identifier a session is stored against, so the Repository never holds the cookie value itself.
 	Sign(data []byte) string
+
+	// VerifyCSRF returns true when the signature is the CSRF signature of the given data, comparing them in constant
+	// time. It uses the key dedicated to CSRF, so a signature produced for any other purpose is never verified.
+	VerifyCSRF(data []byte, signature string) bool
+
+	// SignCSRF returns the hexadecimal encoded HMAC signature of the given data using the key dedicated to CSRF, which
+	// is how the CSRF token is derived from the CSRF secret of a session.
+	SignCSRF(data []byte) string
 
 	// Seal marshals and encrypts the session, binding the result to the cookie domain and the identifier it's stored
 	// against so that it can't be opened after being moved to another domain or another record.

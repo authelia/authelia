@@ -22,6 +22,7 @@ import (
 func TestProvidersFinalize(t *testing.T) {
 	hmacKey := func(mock *mocks.MockAutheliaCtx) {
 		mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, "session", sha256.BlockSize).Return(make([]byte, sha256.BlockSize), nil)
+		mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, "csrf", sha256.BlockSize).Return(make([]byte, sha256.BlockSize), nil)
 	}
 
 	testCases := []struct {
@@ -43,6 +44,16 @@ func TestProvidersFinalize(t *testing.T) {
 			},
 			nil,
 			"failed to load the key",
+		},
+		{
+			"ShouldErrorWhenTheCSRFHMACKeyCannotBeLoaded",
+			"internal",
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, "session", sha256.BlockSize).Return(make([]byte, sha256.BlockSize), nil)
+				mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, "csrf", sha256.BlockSize).Return(nil, errors.New("failed to load the csrf key"))
+			},
+			nil,
+			"failed to load the csrf key",
 		},
 	}
 

@@ -1,8 +1,8 @@
 ---
-title: "authelia storage encryption rotate hmac"
-description: "Reference for the authelia storage encryption rotate hmac command."
+title: "authelia storage encryption rotate hmac session-csrf"
+description: "Reference for the authelia storage encryption rotate hmac session-csrf command."
 lead: ""
-date: 2026-04-03T20:58:18+11:00
+date: 2026-09-16T10:00:00+10:00
 draft: false
 images: []
 weight: 905
@@ -14,26 +14,34 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia storage encryption rotate hmac
+## authelia storage encryption rotate hmac session-csrf
 
-Rotate HMAC keys
+Rotate the session CSRF HMAC key
 
 ### Synopsis
 
-Rotate HMAC keys.
+Rotate the session CSRF HMAC key.
 
-This subcommand allows rotation of HMAC keys used for various purposes.
+This subcommand allows rotation of the HMAC key used to derive the CSRF token of a session from the CSRF secret held within it. No table is truncated by this subcommand.
+
+Users are not signed out by this rotation as their sessions are unaffected, however every CSRF token issued before it is rejected until the user agent obtains a new one, which occurs the next time it loads the portal.
+
+```
+authelia storage encryption rotate hmac session-csrf [flags]
+```
 
 ### Examples
 
 ```
-authelia storage encryption rotate hmac --help
+authelia storage encryption rotate hmac session-csrf --config config.yml
+authelia storage encryption rotate hmac session-csrf --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 ```
 
 ### Options
 
 ```
-  -h, --help   help for hmac
+  -f, --force   force the rotation without confirmation
+  -h, --help    help for session-csrf
 ```
 
 ### Options inherited from parent commands
@@ -56,9 +64,5 @@ authelia storage encryption rotate hmac --help
 
 ### SEE ALSO
 
-* [authelia storage encryption rotate](authelia_storage_encryption_rotate.md)	 - Rotate storage encryption values
-* [authelia storage encryption rotate hmac otc](authelia_storage_encryption_rotate_hmac_otc.md)	 - Rotate the OTC HMAC key
-* [authelia storage encryption rotate hmac otp](authelia_storage_encryption_rotate_hmac_otp.md)	 - Rotate the OTP HMAC key
-* [authelia storage encryption rotate hmac session](authelia_storage_encryption_rotate_hmac_session.md)	 - Rotate the session HMAC key
-* [authelia storage encryption rotate hmac session-csrf](authelia_storage_encryption_rotate_hmac_session-csrf.md)	 - Rotate the session CSRF HMAC key
+* [authelia storage encryption rotate hmac](authelia_storage_encryption_rotate_hmac.md)	 - Rotate HMAC keys
 

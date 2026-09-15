@@ -32,7 +32,7 @@ func TestNewProvider(t *testing.T) {
 		},
 	}
 
-	provider, err := NewProvider(config, []byte(testHMACKey), clock.New(), random.NewMathematical(), newTestRepository())
+	provider, err := NewProvider(config, []byte(testHMACKey), []byte(testHMACKey+"-csrf"), clock.New(), random.NewMathematical(), newTestRepository())
 
 	require.NoError(t, err)
 	require.NotNil(t, provider)
@@ -70,7 +70,7 @@ func TestNewProvider(t *testing.T) {
 }
 
 func TestDefaultProvider_StartupCheck(t *testing.T) {
-	provider, err := NewProvider(&schema.Configuration{Session: schema.Session{Secret: testSecret}}, []byte(testHMACKey), clock.New(), random.NewMathematical(), newTestRepository())
+	provider, err := NewProvider(&schema.Configuration{Session: schema.Session{Secret: testSecret}}, []byte(testHMACKey), []byte(testHMACKey+"-csrf"), clock.New(), random.NewMathematical(), newTestRepository())
 
 	require.NoError(t, err)
 

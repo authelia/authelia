@@ -34,8 +34,11 @@ import (
 // testSessionHMACKey is a fixed HMAC key used to sign session identifiers in tests.
 var testSessionHMACKey = []byte("cd21a70d4d24b23e0d1ae0a5cf6c4e1d3e2b8a5f7c9d0e1f2a3b4c5d6e7f8a9b")
 
+// testSessionCSRFHMACKey is a fixed HMAC key used to sign session CSRF secrets in tests.
+var testSessionCSRFHMACKey = []byte("9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a")
+
 func newMockSessionProvider(config *schema.Configuration, clock clock.Provider, random random.Provider) (provider session.Provider, err error) {
-	return session.NewProvider(config, testSessionHMACKey, clock, random, cache.NewSessionRepository(cache.NewMemory()))
+	return session.NewProvider(config, testSessionHMACKey, testSessionCSRFHMACKey, clock, random, cache.NewSessionRepository(cache.NewMemory()))
 }
 
 // NewSessionProvider returns a session.Provider backed by an in-memory repository for use in tests.

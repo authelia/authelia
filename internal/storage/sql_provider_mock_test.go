@@ -2179,6 +2179,35 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().Commit().Return(nil)
 			},
 		},
+		{
+			name:     "ShouldErrSetCryptographyKeyForSessionCSRFAndRollback",
+			hmacName: "csrf",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_csrf", gomock.Any()).Return(nil, errors.New("upsert failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error setting the hmac key: upsert failed",
+		},
+		{
+			name:     "ShouldErrCommitForSessionCSRF",
+			hmacName: "csrf",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_csrf", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().Commit().Return(errors.New("commit failed"))
+			},
+			expectErr: "error committing transaction to rotate hmac key: commit failed",
+		},
+		{
+			name:     "ShouldSucceedForSessionCSRFWithoutTruncating",
+			hmacName: "csrf",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_csrf", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().Commit().Return(nil)
+			},
+		},
 	}
 
 	for _, tc := range testCases {

@@ -68,11 +68,13 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 }
 
 // Finalize completes the provider construction which depends on other providers, resolving the configured session
-// storage backend and the HMAC key the session provider signs identifiers with.
+// storage backend, the HMAC key the session provider signs identifiers with, and the HMAC key it signs CSRF secrets
+// with.
 func (p *Providers) Finalize(ctx ServiceContext) (err error) {
 	var (
 		repository  session.Repository
 		sessionHMAC []byte
+		csrfHMAC    []byte
 	)
 
 	switch name := ctx.GetConfiguration().Session.Storage; name {
@@ -88,7 +90,11 @@ func (p *Providers) Finalize(ctx ServiceContext) (err error) {
 		return err
 	}
 
-	if p.Session, err = session.NewProvider(ctx.GetConfiguration(), sessionHMAC, p.Clock, p.Random, repository); err != nil {
+	if csrfHMAC, err = p.StorageProvider.LoadHMACKey(ctx, "csrf", sha256.BlockSize); err != nil {
+		return err
+	}
+
+	if p.Session, err = session.NewProvider(ctx.GetConfiguration(), sessionHMAC, csrfHMAC, p.Clock, p.Random, repository); err != nil {
 		return err
 	}
 

@@ -5,6 +5,7 @@
 package session
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -114,6 +115,12 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		}
 	}
 
+	if len(session.CSRF) == 0 {
+		if session.CSRF, err = p.codec.GenerateCSRFSecret(); err != nil {
+			return fmt.Errorf("error occurred generating session CSRF secret: %w", err)
+		}
+	}
+
 	sid := p.codec.Sign([]byte(id))
 
 	if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
@@ -131,6 +138,7 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	p.setCached(ctx, session)
 
 	ctx.SetCookie(cookie)
+	ctx.SetCookie(p.newCSRFCookie(session.CSRF, cookie.Expires))
 
 	return nil
 }
@@ -158,6 +166,14 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 	if len(oldSID) != 0 {
 		var data []byte
 
+		// The CSRF secret is regenerated alongside the session identifier of an established session, so a token issued
+		// before an authentication level change isn't accepted after it.
+		if session.PublicID != "" {
+			if session.CSRF, err = p.codec.GenerateCSRFSecret(); err != nil {
+				return fmt.Errorf("error occurred generating session CSRF secret: %w", err)
+			}
+		}
+
 		if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
 			return fmt.Errorf("error occurred encoding session: %w", err)
 		}
@@ -165,9 +181,17 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 		if err = p.repository.ChangeID(ctx, p.issuer, oldSID, sid, session.PublicID, session.Username, expiration, data); err != nil {
 			return fmt.Errorf("error occurred changing session ID: %w", err)
 		}
+
+		p.setCached(ctx, session)
 	}
 
-	ctx.SetCookie(p.newCookie(id, p.getExpires(expiration)))
+	expires := p.getExpires(expiration)
+
+	ctx.SetCookie(p.newCookie(id, expires))
+
+	if len(session.CSRF) != 0 {
+		ctx.SetCookie(p.newCSRFCookie(session.CSRF, expires))
+	}
 
 	return nil
 }
@@ -191,9 +215,132 @@ func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
 
 	p.setCached(ctx, nil)
 
+	ctx.ClearCookie(p.newCSRFDeletionCookie())
 	ctx.ClearCookie(p.newDeletionCookie())
 
 	return nil
+}
+
+// CSRFToken returns the CSRF token of the established session of the request. The token is the CSRF secret stored in
+// the session signed alongside the cookie domain, so the secret itself is never delivered to the user agent. It returns
+// ErrCSRFTokenNoSession when the request has no established session, and ErrCSRFTokenInvalid when the established
+// session has no CSRF secret.
+func (p *DefaultStrategy) CSRFToken(ctx Context) (token string, err error) {
+	var session *UserSession
+
+	if session, err = p.getCSRFSession(ctx); err != nil {
+		return "", err
+	}
+
+	if len(session.CSRF) == 0 {
+		return "", ErrCSRFTokenInvalid
+	}
+
+	return p.csrfToken(session.CSRF), nil
+}
+
+// VerifyCSRFToken returns nil if the token is the CSRF token of the established session of the request, comparing them
+// in constant time. It returns ErrCSRFTokenNoSession when the request has no established session, ErrCSRFTokenInvalid
+// when the token doesn't match, and any other error when the session couldn't be retrieved.
+func (p *DefaultStrategy) VerifyCSRFToken(ctx Context, token string) (err error) {
+	var session *UserSession
+
+	if session, err = p.getCSRFSession(ctx); err != nil {
+		return err
+	}
+
+	if len(session.CSRF) == 0 || len(token) == 0 || !p.codec.VerifyCSRF(p.csrfTokenMessage(session.CSRF), token) {
+		return ErrCSRFTokenInvalid
+	}
+
+	return nil
+}
+
+// RegenerateCSRFToken replaces the CSRF secret of the established session of the request without changing the session
+// identifier, persisting the session and delivering the new token to the user agent. Tokens issued before it are no
+// longer accepted. It returns ErrCSRFTokenNoSession when the request has no established session.
+func (p *DefaultStrategy) RegenerateCSRFToken(ctx Context) (err error) {
+	var session *UserSession
+
+	if session, err = p.getCSRFSession(ctx); err != nil {
+		return err
+	}
+
+	if session.CSRF, err = p.codec.GenerateCSRFSecret(); err != nil {
+		return fmt.Errorf("error occurred generating session CSRF secret: %w", err)
+	}
+
+	return p.Save(ctx, session)
+}
+
+// SetCSRFCookie delivers the CSRF token of the established session of the request to the user agent, generating a CSRF
+// secret for an established session which has none. A request without an established session has no token to deliver,
+// which isn't an error.
+func (p *DefaultStrategy) SetCSRFCookie(ctx Context) (err error) {
+	var session *UserSession
+
+	if session, err = p.getCSRFSession(ctx); err != nil {
+		if errors.Is(err, ErrCSRFTokenNoSession) {
+			return nil
+		}
+
+		return err
+	}
+
+	if len(session.CSRF) == 0 {
+		return p.RegenerateCSRFToken(ctx)
+	}
+
+	ctx.SetCookie(p.newCSRFCookie(session.CSRF, p.getExpires(p.getExpiration(*session))))
+
+	return nil
+}
+
+func (p *DefaultStrategy) getCSRFSession(ctx Context) (session *UserSession, err error) {
+	if _, session, err = p.get(ctx); err != nil {
+		return nil, err
+	}
+
+	if session == nil || session.PublicID == "" {
+		return nil, ErrCSRFTokenNoSession
+	}
+
+	return session, nil
+}
+
+func (p *DefaultStrategy) csrfToken(secret []byte) (token string) {
+	return p.codec.SignCSRF(p.csrfTokenMessage(secret))
+}
+
+func (p *DefaultStrategy) csrfTokenMessage(secret []byte) (message []byte) {
+	message = make([]byte, 0, len(csrfTokenPrefix)+len(p.config.Domain)+1+len(secret))
+
+	message = append(message, csrfTokenPrefix...)
+	message = append(message, p.config.Domain...)
+	message = append(message, ':')
+
+	return append(message, secret...)
+}
+
+func (p *DefaultStrategy) newCSRFCookie(secret []byte, expires time.Time) (cookie *http.Cookie) {
+	return p.newCSRFCookieValue(p.csrfToken(secret), expires)
+}
+
+func (p *DefaultStrategy) newCSRFDeletionCookie() (cookie *http.Cookie) {
+	return p.newCSRFCookieValue("", p.clock.Now().Add(-cookieDeletionOffset))
+}
+
+func (p *DefaultStrategy) newCSRFCookieValue(value string, expires time.Time) (cookie *http.Cookie) {
+	//nolint:gosec // The cookie is deliberately readable by scripts, and carries a token derived from the session rather than the session identifier.
+	return &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    value,
+		Path:     "/",
+		Expires:  expires,
+		Secure:   true,
+		HttpOnly: false,
+		SameSite: http.SameSiteStrictMode,
+	}
 }
 
 func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err error) {

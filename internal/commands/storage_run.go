@@ -386,18 +386,22 @@ func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []
 		return err
 	}
 
-	var table string
+	// The name is the key name held by the storage provider, which isn't necessarily the name of the subcommand, and the
+	// table is the one truncated by the rotation which is empty for a key which protects no table.
+	var table, name string
 
 	switch cmd.Use {
 	case "otc":
-		table = "one_time_code"
+		table, name = "one_time_code", "otc"
 	case "otp":
-		table = "totp_history"
+		table, name = "totp_history", "otp"
 	case "session":
-		table = "session"
+		table, name = "session", "session"
+	case "session-csrf":
+		name = "csrf"
 	}
 
-	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, table, cmd.Use, force)
+	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, table, name, force)
 }
 
 func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store storage.Provider, table, name string, force bool) (err error) {
@@ -411,9 +415,18 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 	}
 
 	if !force {
-		var confirmed bool
+		var (
+			confirmed bool
+			prompt    string
+		)
 
-		if confirmed, err = termReadConfirmation(fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table), "ROTATE"); err != nil {
+		if table == "" {
+			prompt = fmt.Sprintf("This will rotate the '%s' HMAC key, this is not reversible, type 'ROTATE' and press return to continue: ", name)
+		} else {
+			prompt = fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table)
+		}
+
+		if confirmed, err = termReadConfirmation(prompt, "ROTATE"); err != nil {
 			return err
 		}
 
@@ -426,7 +439,11 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 		return err
 	}
 
-	_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and cleanly truncated the '%s' table.\n", name, table)
+	if table == "" {
+		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully.\n", name)
+	} else {
+		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and cleanly truncated the '%s' table.\n", name, table)
+	}
 
 	return nil
 }
