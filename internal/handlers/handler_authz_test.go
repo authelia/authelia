@@ -1634,6 +1634,62 @@ func (s *AuthzSuite) TestShouldSetHeadersFromExtendedUserAttributes() {
 	s.Equal("", string(mock.Ctx.Response.Header.Peek("Remote-Unknown")))
 }
 
+func (s *AuthzSuite) TestShouldNotAuthenticateWhenExtendedUserDetailsAreEmpty() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	testCases := []struct {
+		name    string
+		details *authentication.UserDetailsExtended
+	}{
+		{"ShouldHandleNil", nil},
+		{"ShouldHandleEmptyUsername", &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			mock := mocks.NewMockAutheliaCtx(s.T())
+
+			defer mock.Close()
+
+			setUpMockClock(mock)
+
+			authz := s.Builder().WithConfig(&mock.Ctx.Configuration).WithEndpointHeaders(map[string]schema.ServerEndpointsAuthzHeader{
+				schema.HeaderRemoteUser: {UserAttribute: expression.AttributeUserUsername},
+				"Remote-Given-Name":     {UserAttribute: expression.AttributeUserGivenName},
+			}).Build()
+
+			targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+			s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+			userSession, err := mock.Ctx.GetSession()
+			s.Require().NoError(err)
+
+			userSession.Username = testUsername
+			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+			s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+			mock.UserProviderMock.EXPECT().
+				GetDetailsExtended(gomock.Eq(testUsername)).
+				Return(tc.details, nil).Times(1)
+
+			authz.Handler(mock.Ctx)
+
+			s.Equal("", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
+			s.Equal("", string(mock.Ctx.Response.Header.Peek("Remote-Given-Name")))
+
+			userSession, err = mock.Ctx.GetSession()
+			s.Require().NoError(err)
+
+			s.Equal("", userSession.Username)
+		})
+	}
+}
+
 func (s *AuthzSuite) TestShouldNotRetrieveUserDetailsWhenHeadersOnlyRequireSessionAttributes() {
 	if s.setRequest == nil {
 		s.T().Skip()
