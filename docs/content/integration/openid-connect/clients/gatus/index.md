@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.27](https://github.com/authelia/authelia/releases/tag/v4.39.27)
 - [Gatus]
   - [v5.17.0](https://github.com/TwiN/gatus/releases/tag/v5.17.0)
 
