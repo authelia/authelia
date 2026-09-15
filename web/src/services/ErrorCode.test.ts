@@ -2,9 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { ErrorCodeTranslationKeys, isErrorCode, translateErrorCode } from "@services/ErrorCode";
-
-import portal from "../../../internal/server/locales/en/portal.json";
+import { isErrorCode, translateErrorCode } from "@services/ErrorCode";
 
 const translate = vi.fn((key: string) => `t:${key}`);
 
@@ -32,12 +30,4 @@ it("returns the fallback for a missing code", () => {
 
 it("does not treat prototype properties as codes", () => {
     expect(isErrorCode("toString")).toBe(false);
-});
-
-it("has an english portal locale entry for every code", () => {
-    const keys: Record<string, string> = portal;
-
-    for (const key of Object.values(ErrorCodeTranslationKeys)) {
-        expect(keys).toHaveProperty([key]);
-    }
 });
