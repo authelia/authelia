@@ -7,6 +7,7 @@ package webauthn
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 
@@ -44,7 +45,7 @@ func IsCredentialCreationDiscoverable(logger *logrus.Entry, response *protocol.P
 // ValidateCredentialAllowed returns an error if the given credential is prohibited by the filters configured for the
 // relying party the ceremony was performed against.
 func ValidateCredentialAllowed(config *schema.WebAuthnBase, credential *model.WebAuthnCredential) (err error) {
-	if config.Filtering.ProhibitBackupEligibility && credential.BackupEligible {
+	if config.Filtering.IsProhibitBackupEligibility() && credential.BackupEligible {
 		return fmt.Errorf("error checking webauthn credential: filters have been configured which prohibit credentials that are backup eligible")
 	}
 
@@ -136,6 +137,24 @@ func IsOriginEqual(a, b *url.URL) (equal bool) {
 	}
 
 	return originEffectivePort(a) == originEffectivePort(b)
+}
+
+// OriginKey returns a canonical representation of the origin of a URL built from the same values IsOriginEqual
+// compares, so two URLs have the same key if and only if IsOriginEqual considers them equal. The scheme and hostname
+// are lower case and a port which is the default for the scheme is omitted.
+func OriginKey(u *url.URL) (key string) {
+	if u == nil {
+		return ""
+	}
+
+	scheme, hostname := strings.ToLower(u.Scheme), strings.ToLower(u.Hostname())
+
+	switch port := u.Port(); {
+	case port == "", port == originEffectivePort(&url.URL{Scheme: scheme}):
+		return scheme + "://" + hostname
+	default:
+		return scheme + "://" + net.JoinHostPort(hostname, port)
+	}
 }
 
 func originEffectivePort(u *url.URL) (port string) {

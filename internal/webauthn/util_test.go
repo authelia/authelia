@@ -120,13 +120,13 @@ func TestValidateCredentialAllowed(t *testing.T) {
 		},
 		{
 			"ShouldNotProhibitBackupEligibilityFalse",
-			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: true}},
+			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: new(true)}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"",
 		},
 		{
 			"ShouldProhibitBackupEligibilityTrue",
-			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: true}},
+			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: new(true)}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))), BackupEligible: true},
 			"error checking webauthn credential: filters have been configured which prohibit credentials that are backup eligible",
 		},
@@ -376,6 +376,29 @@ func MustParseURL(rawURL string) *url.URL {
 	}
 
 	return u
+}
+
+func TestOriginKey(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *url.URL
+		expected string
+	}{
+		{"ShouldHandleNil", nil, ""},
+		{"ShouldHandleHTTPS", &url.URL{Scheme: "https", Host: "example.com"}, "https://example.com"},
+		{"ShouldLowerCase", &url.URL{Scheme: "HTTPS", Host: "Example.COM"}, "https://example.com"},
+		{"ShouldOmitDefaultPortHTTPS", &url.URL{Scheme: "https", Host: "example.com:443"}, "https://example.com"},
+		{"ShouldOmitDefaultPortHTTP", &url.URL{Scheme: "http", Host: "example.com:80"}, "http://example.com"},
+		{"ShouldKeepNonDefaultPort", &url.URL{Scheme: "https", Host: "example.com:8443"}, "https://example.com:8443"},
+		{"ShouldKeepCrossSchemeDefaultPort", &url.URL{Scheme: "https", Host: "example.com:80"}, "https://example.com:80"},
+		{"ShouldHandleIPv6", &url.URL{Scheme: "https", Host: "[::1]:8443"}, "https://[::1]:8443"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, webauthn.OriginKey(tc.have))
+		})
+	}
 }
 
 func TestFormatError(t *testing.T) {
