@@ -7,6 +7,7 @@ package handlers
 import (
 	"encoding/json"
 
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -25,26 +26,20 @@ func WebAuthnWellKnownGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// The document is only served by the origins of a configured relying party. Any other origin has no related
-	// origins to declare, so it doesn't serve the resource at all.
-	if _, relyingParty := webauthn.GetRelatedOriginConfigByOrigin(ctx.GetConfiguration().WebAuthn, origin); relyingParty == nil {
-		ctx.GetLogger().Debugf("Origin '%s' does not match any configured WebAuthn relying party", origin.String())
+	config := ctx.GetConfiguration().WebAuthn
+
+	// Clients fetch the document from the relying party id host, so the document is only served when the hostname is
+	// the id of a configured relying party. Any other host has no related origins to declare.
+	relyingParty := webauthn.GetRelatedOriginConfigByRPID(config, origin.Hostname())
+	if config.Disable || relyingParty == nil {
+		ctx.GetLogger().Debugf("Hostname '%s' does not match any configured WebAuthn relying party id", origin.Hostname())
 
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 
 		return
 	}
 
-	provider, err := ctx.GetWebAuthnProvider()
-	if err != nil {
-		ctx.GetLogger().WithError(err).Error("Error occurred retrieving the webauthn provider for the request")
-
-		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-
-		return
-	}
-
-	related, err := provider.RelatedOrigins()
+	related, err := protocol.NewRelatedOrigins(relyingParty.StringOrigins()...)
 	if err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred retrieving the related origins for the request")
 

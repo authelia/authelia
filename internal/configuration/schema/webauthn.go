@@ -38,6 +38,8 @@ type WebAuthnBase struct {
 	Filtering WebAuthnFiltering `koanf:"filtering" yaml:"filtering,omitempty" toml:"filtering,omitempty" json:"filtering,omitempty" jsonschema:"title=Filtering" jsonschema_description:"WebAuthn Authenticator filtering settings."`
 
 	SelectionCriteria WebAuthnSelectionCriteria `koanf:"selection_criteria" yaml:"selection_criteria,omitempty" toml:"selection_criteria,omitempty" json:"selection_criteria,omitempty" jsonschema:"title=Selection Criteria" jsonschema_description:"WebAuthn Authenticator selection criteria settings."`
+
+	ExtensionsUnsolicitedOutputPolicy string `koanf:"extensions_unsolicited_output_policy" yaml:"extensions_unsolicited_output_policy,omitempty" toml:"extensions_unsolicited_output_policy,omitempty" json:"extensions_unsolicited_output_policy,omitempty" jsonschema:"default=reject,enum=reject,enum=ignore,title=Extensions Unsolicited Output Policy" jsonschema_description:"The policy for handling client extension outputs which were not requested by the WebAuthn relying party."`
 }
 
 // WebAuthnMetadata represents the WebAuthn Metadata Service configuration.
@@ -76,8 +78,6 @@ type WebAuthnRelyingParty struct {
 
 	Origins       []*url.URL `koanf:"origins" yaml:"origins,omitempty" toml:"origins,omitempty" json:"origins,omitempty" jsonschema:"title=Origins" jsonschema_description:"The list of allowed origins for the WebAuthn relying party."`
 	OpaqueOrigins []string   `koanf:"opaque_origins" yaml:"opaque_origins,omitempty" toml:"opaque_origins,omitempty" json:"opaque_origins,omitempty" jsonschema:"title=Opaque Origins" jsonschema_description:"The list of additional allowed origins for the WebAuthn relying party."`
-
-	ExtensionsUnsolicitedOutputPolicy string `koanf:"extensions_unsolicited_output_policy" yaml:"extensions_unsolicited_output_policy,omitempty" toml:"extensions_unsolicited_output_policy,omitempty" json:"extensions_unsolicited_output_policy,omitempty" jsonschema:"default=reject,enum=reject,enum=ignore,title=Extensions Unsolicited Output Policy" jsonschema_description:"The policy for handling client extension outputs which were not requested by the WebAuthn relying party."`
 }
 
 // StringOrigins returns the origins of the relying party as strings, skipping any which is not set so an empty origin
@@ -102,6 +102,8 @@ var DefaultWebAuthnConfiguration = WebAuthn{
 		DisplayName:          "Authelia",
 		Timeout:              time.Second * 60,
 		ConveyancePreference: protocol.PreferIndirectAttestation,
+
+		ExtensionsUnsolicitedOutputPolicy: "reject",
 	},
 	Metadata: WebAuthnMetadata{
 		Enabled:                       false,

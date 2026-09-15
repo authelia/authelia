@@ -172,8 +172,8 @@ func TestNewProvider(t *testing.T) {
 				},
 				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {
-						Origins:                           []*url.URL{mustParseURL("https://example.com")},
-						ExtensionsUnsolicitedOutputPolicy: webauthn.ExtensionsUnsolicitedOutputPolicyIgnore,
+						WebAuthnBase: schema.WebAuthnBase{ExtensionsUnsolicitedOutputPolicy: webauthn.ExtensionsUnsolicitedOutputPolicyIgnore},
+						Origins:      []*url.URL{mustParseURL("https://example.com")},
 					},
 				},
 			},
@@ -181,6 +181,37 @@ func TestNewProvider(t *testing.T) {
 			"",
 			func(t *testing.T, provider *webauthn.Provider) {
 				assert.Equal(t, protocol.UnsolicitedOutputPolicyIgnore, provider.WebAuthn.Config.ExtensionsUnsolicitedOutputPolicy)
+			},
+		},
+		{
+			"ShouldSetGlobalExtensionsUnsolicitedOutputPolicyIgnoreWithoutRelyingParties",
+			schema.WebAuthn{
+				WebAuthnBase: schema.WebAuthnBase{
+					DisplayName:                       "Authelia",
+					Timeout:                           time.Second * 60,
+					ConveyancePreference:              protocol.PreferIndirectAttestation,
+					ExtensionsUnsolicitedOutputPolicy: webauthn.ExtensionsUnsolicitedOutputPolicyIgnore,
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			"",
+			func(t *testing.T, provider *webauthn.Provider) {
+				assert.Equal(t, protocol.UnsolicitedOutputPolicyIgnore, provider.WebAuthn.Config.ExtensionsUnsolicitedOutputPolicy)
+			},
+		},
+		{
+			"ShouldDefaultGlobalExtensionsUnsolicitedOutputPolicyReject",
+			schema.WebAuthn{
+				WebAuthnBase: schema.WebAuthnBase{
+					DisplayName:          "Authelia",
+					Timeout:              time.Second * 60,
+					ConveyancePreference: protocol.PreferIndirectAttestation,
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			"",
+			func(t *testing.T, provider *webauthn.Provider) {
+				assert.Equal(t, protocol.UnsolicitedOutputPolicyReject, provider.WebAuthn.Config.ExtensionsUnsolicitedOutputPolicy)
 			},
 		},
 		{

@@ -504,6 +504,7 @@ var Keys = []string{
 	"webauthn.enable_passkey_login",
 	"webauthn.experimental_enable_passkey_upgrade",
 	"webauthn.experimental_enable_passkey_uv_two_factors",
+	"webauthn.extensions_unsolicited_output_policy",
 	"webauthn.filtering.permitted_aaguids",
 	"webauthn.filtering.prohibit_backup_eligibility",
 	"webauthn.filtering.prohibited_aaguids",

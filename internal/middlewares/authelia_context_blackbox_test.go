@@ -1377,7 +1377,7 @@ func TestAutheliaCtx_GetWebAuthnProviderWithRelatedOrigins(t *testing.T) {
 			map[string]schema.WebAuthnRelyingParty{
 				"login.example.com": {
 					Origins: []*url.URL{
-						{Scheme: "https", Host: "login.example.com"},
+						{Scheme: "https", Host: "login.example.com:8080"},
 						{Scheme: "http", Host: "auth.example.com"},
 					},
 				},
