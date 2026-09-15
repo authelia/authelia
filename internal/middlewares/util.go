@@ -13,7 +13,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
@@ -25,6 +27,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/webauthn"
+	"github.com/authelia/authelia/v4/internal/webhooks"
 )
 
 // SetContentTypeApplicationJSON sets the Content-Type header to `application/json; charset=utf-8`.
@@ -65,10 +68,16 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
 
 	switch {
+	case config.Notifier.Disable:
+		providers.Notifier = notification.NewDisabledNotifier()
 	case config.Notifier.SMTP != nil:
 		providers.Notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, caCertPool)
 	case config.Notifier.FileSystem != nil:
 		providers.Notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
+	}
+
+	if len(config.Webhooks.Destinations) != 0 {
+		providers.Events = webhooks.NewDispatcher(config, caCertPool, logging.Logger().WithField("service", "webhooks"))
 	}
 
 	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates)
@@ -77,6 +86,10 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		if providers.Metrics, err = metrics.NewPrometheus(); err != nil {
 			errs = append(errs, err)
 		}
+	}
+
+	if dispatcher, ok := providers.Events.(*webhooks.Dispatcher); ok && providers.Metrics != nil {
+		dispatcher.SetMetrics(providers.Metrics)
 	}
 
 	return providers, warns, errs
@@ -88,6 +101,7 @@ func NewProvidersBasic() Providers {
 		GarbageCollector: NewGarbageCollector(),
 		Clock:            clock.New(),
 		Random:           random.New(),
+		Events:           events.NewNoOpEmitter(),
 	}
 }
 

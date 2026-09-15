@@ -11,6 +11,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -104,6 +105,14 @@ func (r *Regulator) handleAttemptPossibleBannedIP(ctx Context, since time.Time) 
 
 		return
 	}
+
+	ctx.EmitEvent(events.NewEvent(&events.DataBan{
+		Type:       events.TypeSecurityBanApplied,
+		RemoteIP:   ctx.RemoteIP().String(),
+		Target:     ip.String(),
+		TargetType: events.TargetTypeIP,
+		Expires:    formatExpiresRFC3339(banexp),
+	}))
 }
 
 func (r *Regulator) handleAttemptPossibleBannedUser(ctx Context, since time.Time, username string) {
@@ -142,6 +151,15 @@ func (r *Regulator) handleAttemptPossibleBannedUser(ctx Context, since time.Time
 
 		return
 	}
+
+	ctx.EmitEvent(events.NewEvent(&events.DataBan{
+		Type:       events.TypeSecurityBanApplied,
+		Username:   username,
+		RemoteIP:   ctx.RemoteIP().String(),
+		Target:     username,
+		TargetType: events.TargetTypeUser,
+		Expires:    formatExpiresRFC3339(banexp),
+	}))
 }
 
 func (r *Regulator) banCheckIP(ctx Context) (ban BanType, value string, expires *time.Time, err error) {

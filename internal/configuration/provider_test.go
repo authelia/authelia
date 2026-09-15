@@ -1142,7 +1142,7 @@ func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
 	assert.Equal(t, "", config.Notifier.SMTP.Sender.Name)
 	assert.Equal(t, "", config.Notifier.SMTP.Sender.Address)
 
-	validator.ValidateNotifier(&config.Notifier, val)
+	validator.ValidateNotifier(&config.Notifier, &config.Webhooks, val)
 
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)

@@ -17,6 +17,14 @@ func returnBanResult(b BanType, v string, t sql.NullTime) (ban BanType, value st
 	return b, v, expires, ErrUserIsBanned
 }
 
+func formatExpiresRFC3339(expires *time.Time) string {
+	if expires == nil {
+		return ""
+	}
+
+	return expires.Format(time.RFC3339)
+}
+
 // FormatExpiresLong returns the long form representation of the given expiration time.
 func FormatExpiresLong(expires *time.Time) string {
 	if expires == nil {
