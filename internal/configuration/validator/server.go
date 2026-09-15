@@ -284,6 +284,9 @@ func validateServerAssetsIterate(keyRoot, path string, translations map[string]a
 func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
 	validateServerEndpointsRateLimitDefault("openid_connect_pushed_authorization_request", &config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, validator)
 	validateServerEndpointsRateLimitDefault("openid_connect_token", &config.Server.Endpoints.RateLimits.OpenIDConnectToken, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectToken, validator)
+	validateServerEndpointsRateLimitDefault("openid_connect_userinfo", &config.Server.Endpoints.RateLimits.OpenIDConnectUserInfo, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectUserInfo, validator)
+	validateServerEndpointsRateLimitDefault("openid_connect_introspection", &config.Server.Endpoints.RateLimits.OpenIDConnectIntrospection, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectIntrospection, validator)
+	validateServerEndpointsRateLimitDefault("openid_connect_revocation", &config.Server.Endpoints.RateLimits.OpenIDConnectRevocation, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectRevocation, validator)
 
 	validateServerEndpointsRateLimitDefault("reset_password_start", &config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
 	validateServerEndpointsRateLimitDefault("reset_password_finish", &config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
@@ -297,6 +300,8 @@ func validateServerEndpointsRateLimits(config *schema.Configuration, validator *
 }
 
 func validateServerEndpointsRateLimitDefault(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimitIPv6Mask(name, config, validator)
+
 	if len(config.Buckets) == 0 {
 		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
 
@@ -309,6 +314,8 @@ func validateServerEndpointsRateLimitDefault(name string, config *schema.ServerE
 }
 
 func validateServerEndpointsRateLimitDefaultWeighted(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, weight time.Duration, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimitIPv6Mask(name, config, validator)
+
 	if len(config.Buckets) == 0 {
 		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
 
@@ -323,6 +330,15 @@ func validateServerEndpointsRateLimitDefaultWeighted(name string, config *schema
 	}
 
 	validateServerEndpointsRateLimitBuckets(name, config, validator)
+}
+
+func validateServerEndpointsRateLimitIPv6Mask(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	switch {
+	case config.IPv6Mask == 0:
+		config.IPv6Mask = schema.DefaultServerEndpointRateLimitIPv6Mask
+	case config.IPv6Mask < schema.MinimumServerEndpointRateLimitIPv6Mask, config.IPv6Mask > schema.MaximumServerEndpointRateLimitIPv6Mask:
+		validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsIPv6Mask, name, config.IPv6Mask, schema.MinimumServerEndpointRateLimitIPv6Mask, schema.MaximumServerEndpointRateLimitIPv6Mask))
+	}
 }
 
 func validateServerEndpointsRateLimitBuckets(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {

@@ -77,9 +77,21 @@ type ServerEndpointRateLimits struct {
 
 // ServerEndpointRateLimit represents the rate limiter configuration for a single endpoint.
 type ServerEndpointRateLimit struct {
-	Enable  bool                            `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=true,title=Enable" jsonschema_description:"Enables the rate limiter for this endpoint."`
-	Buckets []ServerEndpointRateLimitBucket `koanf:"buckets" yaml:"buckets,omitempty" toml:"buckets,omitempty" json:"buckets,omitempty" jsonschema:"title=Buckets" jsonschema_description:"The list of rate limit buckets."`
+	Enable   bool                            `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=true,title=Enable" jsonschema_description:"Enables the rate limiter for this endpoint."`
+	IPv6Mask int                             `koanf:"ipv6_mask" yaml:"ipv6_mask,omitempty" toml:"ipv6_mask,omitempty" json:"ipv6_mask,omitempty" jsonschema:"default=64,minimum=48,maximum=128,title=IPv6 Mask" jsonschema_description:"The prefix length used to group IPv6 addresses into a single rate limit bucket."`
+	Buckets  []ServerEndpointRateLimitBucket `koanf:"buckets" yaml:"buckets,omitempty" toml:"buckets,omitempty" json:"buckets,omitempty" jsonschema:"title=Buckets" jsonschema_description:"The list of rate limit buckets."`
 }
+
+const (
+	// DefaultServerEndpointRateLimitIPv6Mask is the default prefix length used to group IPv6 addresses.
+	DefaultServerEndpointRateLimitIPv6Mask = 64
+
+	// MinimumServerEndpointRateLimitIPv6Mask is the minimum permitted prefix length used to group IPv6 addresses.
+	MinimumServerEndpointRateLimitIPv6Mask = 48
+
+	// MaximumServerEndpointRateLimitIPv6Mask is the maximum permitted prefix length used to group IPv6 addresses.
+	MaximumServerEndpointRateLimitIPv6Mask = 128
+)
 
 // ServerEndpointRateLimitBucket represents a single rate limit bucket.
 type ServerEndpointRateLimitBucket struct {
