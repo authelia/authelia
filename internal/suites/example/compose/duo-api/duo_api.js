@@ -169,7 +169,10 @@ function auth(req, res, next) {
 
     const expected = sign(req.method, req.headers.host || "", req.path, params, req.headers.date || "");
 
-    if (signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+    const actualBuffer = Buffer.from(signature, "utf8");
+    const expectedBuffer = Buffer.from(expected, "utf8");
+
+    if (actualBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(actualBuffer, expectedBuffer)) {
         return unauthorized(res);
     }
 
