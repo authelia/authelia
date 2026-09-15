@@ -201,6 +201,36 @@ func TestSQLProviderExternalIdentityLinks(t *testing.T) {
 		require.EqualError(t, err, "error inserting external identity link for user 'jane': UNIQUE constraint failed: user_external_identity_links.type, user_external_identity_links.issuer, user_external_identity_links.subject")
 	})
 
+	t.Run("ShouldDistinguishIssuersSharingLongPrefix", func(t *testing.T) {
+		prefix := "https://op.example.com/" + strings.Repeat("a", 191)
+
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "prefix1",
+			Issuer:    prefix + "/one",
+			Subject:   "prefixed",
+			Username:  "prefix",
+		}))
+
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "prefix2",
+			Issuer:    prefix + "/two",
+			Subject:   "prefixed",
+			Username:  "prefix",
+		}))
+
+		for name, issuer := range map[string]string{"prefix1": prefix + "/one", "prefix2": prefix + "/two"} {
+			loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", issuer, "prefixed")
+
+			require.NoError(t, err)
+			assert.Equal(t, name, loaded.Provider)
+			assert.Equal(t, issuer, loaded.Issuer)
+		}
+	})
+
 	t.Run("ShouldRejectDuplicateUsernameProvider", func(t *testing.T) {
 		err := provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
 			CreatedAt: time.Now().Truncate(time.Second),
