@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -127,4 +129,80 @@ func (c *testErrorContext) IssuerURL() (*url.URL, error) {
 	}
 
 	return c.issuer, nil
+}
+
+func TestConsentCompletionURL(t *testing.T) {
+	testCases := []struct {
+		name     string
+		rfc      *oauthelia2.RFC6749Error
+		debug    bool
+		expected url.Values
+	}{
+		{
+			"ShouldEncodeAllPopulatedFields",
+			&oauthelia2.RFC6749Error{
+				ErrorField:       "invalid_request",
+				DescriptionField: "The request is otherwise malformed.",
+				CodeField:        http.StatusBadRequest,
+				HintField:        "Could not perform consent.",
+			},
+			false,
+			url.Values{
+				"error":             []string{"invalid_request"},
+				"error_description": []string{"The request is otherwise malformed."},
+				"error_status_code": []string{"400"},
+				"error_hint":        []string{"Could not perform consent."},
+			},
+		},
+		{
+			"ShouldOmitEmptyFields",
+			&oauthelia2.RFC6749Error{ErrorField: "server_error"},
+			false,
+			url.Values{"error": []string{"server_error"}},
+		},
+		{
+			"ShouldIncludeDebugWhenEnabled",
+			&oauthelia2.RFC6749Error{ErrorField: "server_error", DebugField: "internal debug info"},
+			true,
+			url.Values{"error": []string{"server_error"}, "error_debug": []string{"internal debug info"}},
+		},
+		{
+			"ShouldExcludeDebugWhenDisabled",
+			&oauthelia2.RFC6749Error{ErrorField: "server_error", DebugField: "internal debug info"},
+			false,
+			url.Values{"error": []string{"server_error"}},
+		},
+		{
+			"ShouldDefaultToServerErrorWhenNil",
+			nil,
+			false,
+			url.Values{
+				"error":             []string{oauthelia2.ErrServerError.ErrorField},
+				"error_description": []string{oauthelia2.ErrServerError.DescriptionField},
+				"error_status_code": []string{strconv.Itoa(oauthelia2.ErrServerError.CodeField)},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			issuer := &url.URL{Scheme: "https", Host: "auth.example.com"}
+
+			actual := ConsentCompletionURL(issuer, tc.rfc, tc.debug)
+
+			assert.True(t, strings.HasPrefix(actual.String(), "https://auth.example.com"+FrontendEndpointPathConsentCompletion+"?"), "unexpected URL: %s", actual)
+			assert.Equal(t, tc.expected, actual.Query())
+
+			assert.Equal(t, "", issuer.Path, "the issuer must not be mutated")
+		})
+	}
+
+	t.Run("ShouldRespectIssuerBasePath", func(t *testing.T) {
+		issuer := &url.URL{Scheme: "https", Host: "auth.example.com", Path: "/auth"}
+
+		actual := ConsentCompletionURL(issuer, oauthelia2.ErrInvalidRequest, false)
+
+		assert.Equal(t, "/auth"+FrontendEndpointPathConsentCompletion, actual.Path)
+		assert.Equal(t, "/auth", issuer.Path, "the issuer must not be mutated")
+	})
 }
