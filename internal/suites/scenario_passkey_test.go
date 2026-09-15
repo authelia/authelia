@@ -65,6 +65,7 @@ func (s *PasskeyScenario) SetupTest() {
 }
 
 func (s *PasskeyScenario) TearDownTest() {
+	s.doWebAuthnUpdateCredentials(s.T(), s.Page)
 	s.collectCoverage(s.Page)
 	s.MustClose()
 }
