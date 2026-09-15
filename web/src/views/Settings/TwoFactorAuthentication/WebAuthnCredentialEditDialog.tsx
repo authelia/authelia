@@ -80,6 +80,13 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                         item: translate("WebAuthn Credential"),
                     }),
                 );
+            } else if (response.data.reauthentication) {
+                createErrorNotification(
+                    translate("You must reauthenticate to {{action}} a {{item}}", {
+                        action: translate("update"),
+                        item: translate("WebAuthn Credential"),
+                    }),
+                );
             } else if (response.data.authentication) {
                 createErrorNotification(
                     translate("You must have a higher authentication level to {{action}} a {{item}}", {
