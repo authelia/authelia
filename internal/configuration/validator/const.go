@@ -6,6 +6,7 @@ package validator
 
 import (
 	"regexp"
+	"slices"
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -555,10 +556,11 @@ var (
 	validWebAuthnDiscoverability             = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
 	validRFC7231HTTPMethodVerbs              = []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodDelete, fasthttp.MethodTrace, fasthttp.MethodConnect, fasthttp.MethodOptions}
 	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
+	validIANAHTTPMethodVerbs                 = []string{"ACL", "BASELINE-CONTROL", "BIND", "CHECKIN", "CHECKOUT", "LABEL", "LINK", "MERGE", "MKACTIVITY", "MKCALENDAR", "MKREDIRECTREF", "MKWORKSPACE", "ORDERPATCH", "PRI", "QUERY", "REBIND", "REPORT", "SEARCH", "UNBIND", "UNCHECKOUT", "UNLINK", "UPDATE", "UPDATEREDIRECTREF", "VERSION-CONTROL"}
 )
 
 var (
-	validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+	validACLHTTPMethodVerbs = slices.Concat(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs, validIANAHTTPMethodVerbs)
 	validACLRulePolicies    = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 	validACLRuleOperators   = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
 )

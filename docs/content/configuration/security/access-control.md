@@ -326,14 +326,25 @@ permission to do GET requests, their authentication level was `one_factor`, and 
 who have done requests other than HEAD or GET which means the user experience may suffer. These are the reasons it's
 only recommended to use this to increase security where essential and for CORS preflight.
 
-The accepted and valid methods for this configuration option are those specified in well known RFCs. The RFCs and the
-relevant methods are listed in this table:
+The accepted and valid methods for this configuration option are those registered in the
+[IANA HTTP Method Registry](https://www.iana.org/assignments/http-methods/http-methods.xhtml) with the exception of
+the reserved `*` method. The RFCs and the relevant methods are listed in this table:
 
-|    RFC    |                        Methods                        |                     Additional Documentation                     |
-| :-------: | :---------------------------------------------------: | :--------------------------------------------------------------: |
-| [RFC7231] | GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
-| [RFC5789] |                         PATCH                         | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
-| [RFC4918] | PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK  |                                                                  |
+|    RFC     |                                                         Methods                                                         |                     Additional Documentation                     |
+| :--------: | :---------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------: |
+| [RFC7231]  |                                  GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE                                  | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
+| [RFC5789]  |                                                          PATCH                                                          | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
+| [RFC4918]  |                                  PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK                                   |                                                                  |
+| [RFC2068]  |                                                      LINK, UNLINK                                                       |                                                                  |
+| [RFC3253]  | BASELINE-CONTROL, CHECKIN, CHECKOUT, LABEL, MERGE, MKACTIVITY, MKWORKSPACE, REPORT, UNCHECKOUT, UPDATE, VERSION-CONTROL |                                                                  |
+| [RFC3648]  |                                                       ORDERPATCH                                                        |                                                                  |
+| [RFC3744]  |                                                           ACL                                                           |                                                                  |
+| [RFC4437]  |                                            MKREDIRECTREF, UPDATEREDIRECTREF                                             |                                                                  |
+| [RFC4791]  |                                                       MKCALENDAR                                                        |                                                                  |
+| [RFC5323]  |                                                         SEARCH                                                          |                                                                  |
+| [RFC5842]  |                                                  BIND, REBIND, UNBIND                                                   |                                                                  |
+| [RFC9113]  |                                                           PRI                                                           |                                                                  |
+| [RFC10008] |                                                          QUERY                                                          |                                                                  |
 
 [methods]: #methods
 
@@ -797,3 +808,13 @@ access_control:
 [RFC7231]: https://datatracker.ietf.org/doc/html/rfc7231
 [RFC5789]: https://datatracker.ietf.org/doc/html/rfc5789
 [RFC4918]: https://datatracker.ietf.org/doc/html/rfc4918
+[RFC2068]: https://datatracker.ietf.org/doc/html/rfc2068
+[RFC3253]: https://datatracker.ietf.org/doc/html/rfc3253
+[RFC3648]: https://datatracker.ietf.org/doc/html/rfc3648
+[RFC3744]: https://datatracker.ietf.org/doc/html/rfc3744
+[RFC4437]: https://datatracker.ietf.org/doc/html/rfc4437
+[RFC4791]: https://datatracker.ietf.org/doc/html/rfc4791
+[RFC5323]: https://datatracker.ietf.org/doc/html/rfc5323
+[RFC5842]: https://datatracker.ietf.org/doc/html/rfc5842
+[RFC9113]: https://datatracker.ietf.org/doc/html/rfc9113
+[RFC10008]: https://datatracker.ietf.org/doc/html/rfc10008
