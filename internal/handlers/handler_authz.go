@@ -251,7 +251,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 
 		handler(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
 	case AuthzResultAuthorized:
-		authz.handleAuthorized(ctx, authn)
+		authz.handleAuthorized(ctx, manager, authn)
 	}
 }
 
