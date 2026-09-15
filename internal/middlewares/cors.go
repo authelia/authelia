@@ -40,6 +40,7 @@ type CORSPolicyBuilder struct {
 	varySet     bool
 	methods     []string
 	headers     []string
+	exposed     []string
 	origins     []string
 	credentials bool
 	vary        []string
@@ -54,6 +55,7 @@ func (b *CORSPolicyBuilder) Build() (policy *CORSPolicy) {
 		credentials: []byte(strconv.FormatBool(b.credentials)),
 		origins:     b.buildOrigins(),
 		headers:     b.buildHeaders(),
+		exposed:     b.buildExposedHeaders(),
 		vary:        b.buildVary(),
 	}
 
@@ -108,6 +110,14 @@ func (b CORSPolicyBuilder) buildHeaders() (headers []byte) {
 	return headers
 }
 
+func (b CORSPolicyBuilder) buildExposedHeaders() (exposed []byte) {
+	if len(b.exposed) != 0 {
+		exposed = utils.JoinAndCanonicalizeHeaders(headerSeparator, b.exposed...)
+	}
+
+	return exposed
+}
+
 func (b CORSPolicyBuilder) buildVary() (vary []byte) {
 	if b.varySet {
 		if len(b.vary) != 0 {
@@ -158,6 +168,16 @@ func (b *CORSPolicyBuilder) WithAllowedHeaders(headers ...string) (policy *CORSP
 	return b
 }
 
+// WithExposedHeaders takes a list of header strings and sets the Access-Control-Expose-Headers header to that value.
+// Unlike the allowed headers there is no automatic behavior to fall back on: a response header a cross-origin caller
+// must be able to read is only readable when the server names it here, so a header which carries a value the client is
+// expected to act on has to be listed explicitly.
+func (b *CORSPolicyBuilder) WithExposedHeaders(headers ...string) (policy *CORSPolicyBuilder) {
+	b.exposed = headers
+
+	return b
+}
+
 // WithAllowCredentials takes bool and alters the default Access-Control-Allow-Credentials header.
 func (b *CORSPolicyBuilder) WithAllowCredentials(allow bool) (policy *CORSPolicyBuilder) {
 	b.credentials = allow
@@ -193,6 +213,7 @@ type CORSPolicy struct {
 	varyOnly    bool
 	methods     []byte
 	headers     []byte
+	exposed     []byte
 	origins     [][]byte
 	credentials []byte
 	vary        []byte
@@ -307,15 +328,13 @@ func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 				break
 			}
 		}
-
-		if len(allowedOrigin) == 0 {
-			return
-		}
 	}
 
-	if len(allowedOrigin) != 0 {
-		ctx.Response.Header.SetBytesKV(headerAccessControlAllowOrigin, allowedOrigin)
+	if len(allowedOrigin) == 0 {
+		return
 	}
+
+	ctx.Response.Header.SetBytesKV(headerAccessControlAllowOrigin, allowedOrigin)
 
 	if len(p.credentials) != 0 {
 		ctx.Response.Header.SetBytesKV(headerAccessControlAllowCredentials, p.credentials)
@@ -323,6 +342,10 @@ func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 
 	if len(p.maxAge) != 0 {
 		ctx.Response.Header.SetBytesKV(headerAccessControlMaxAge, p.maxAge)
+	}
+
+	if len(p.exposed) != 0 {
+		ctx.Response.Header.SetBytesKV(headerAccessControlExposeHeaders, p.exposed)
 	}
 
 	p.handleAllowedHeaders(ctx)
