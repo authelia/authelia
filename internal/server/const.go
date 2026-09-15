@@ -34,6 +34,8 @@ const (
 	pathAuthz           = "/api/authz"
 	pathAuthzLegacy     = "/api/verify"
 	pathParamAuthzEnvoy = "{extauthz:*}"
+
+	authzExtAuthzMethodMaxLength = 8
 )
 
 var (

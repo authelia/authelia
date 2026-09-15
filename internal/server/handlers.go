@@ -242,8 +242,10 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		default:
 			switch endpoint.Implementation {
 			case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
-				r.ANY(uri, handlerAuthz)
-				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handlerAuthz)
+				handlerExtAuthz := middlewares.Wrap(middlewares.NewMethodMaxLength(authzExtAuthzMethodMaxLength), handlerAuthz)
+
+				r.ANY(uri, handlerExtAuthz)
+				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handlerExtAuthz)
 			default:
 				r.GET(uri, handlerAuthz)
 				r.HEAD(uri, handlerAuthz)
