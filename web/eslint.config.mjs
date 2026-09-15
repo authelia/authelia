@@ -10,6 +10,8 @@ import importPlugin from "eslint-plugin-import";
 import perfectionist from "eslint-plugin-perfectionist";
 import prettierPluginRecommended from "eslint-plugin-prettier/recommended";
 
+import licenseHeader from "./eslint-rules/license-header.mjs";
+
 export default [
     {
         languageOptions: {
@@ -28,6 +30,17 @@ export default [
     {
         files: ["**/*.{ts,tsx}"],
         ...eslintReact.configs["recommended-typescript"],
+    },
+
+    {
+        files: ["**/*.{ts,tsx}"],
+        ignores: ["src/components/UI/**"],
+        plugins: {
+            authelia: { rules: { "license-header": licenseHeader } },
+        },
+        rules: {
+            "authelia/license-header": "error",
+        },
     },
 
     {
