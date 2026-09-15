@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "HumHub"
-description: "Integrating HumHub with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating HumHub with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-03-30T07:14:05+11:00
 draft: false

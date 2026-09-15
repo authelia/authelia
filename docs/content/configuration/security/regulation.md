@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Regulation"
-description: "Regulation Configuration"
+description: "Configuring the Authelia regulation system for brute-force protection including the maximum retries, find time window, ban duration, and regulation modes."
 summary: "Configuring the Regulation system."
 date: 2024-03-14T06:00:14+11:00
 draft: false

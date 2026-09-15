@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Organizr"
-description: "Trusted Header SSO Integration for Organizr"
+description: "A guide on integrating Authelia with Organizr via the Trusted Header SSO authentication method including configuration examples, tested versions, and usage."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

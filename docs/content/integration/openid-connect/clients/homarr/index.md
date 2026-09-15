@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Homarr"
-description: "Integrating Homarr with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Homarr with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-04-09T15:00:29+10:00
 draft: false

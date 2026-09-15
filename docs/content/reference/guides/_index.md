@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Guides"
-description: "Reference Prologue"
+description: "This section contains a collection of reference guides for Authelia covering topics such as passwords, branding, templating, metrics, attributes, and more."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

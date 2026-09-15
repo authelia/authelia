@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Measures"
-description: "An overview of the security measures Authelia implements."
+description: "An overview of the security measures Authelia implements including protections against brute-force attacks, cookie theft, open redirects, and exfiltration."
 summary: "An overview of the security measures Authelia implements."
 date: 2024-03-14T06:00:14+11:00
 draft: false
