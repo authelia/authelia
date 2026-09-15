@@ -2215,3 +2215,65 @@ func runStorageUserIdentifiersAdd(ctx context.Context, w io.Writer, store storag
 
 	return nil
 }
+
+// StorageCleanOAuth2RunE removes stale OpenID Connect 1.0 consent sessions and everything which cascades from them.
+func (ctx *CmdCtx) StorageCleanOAuth2RunE(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		dryRun bool
+		before time.Time
+	)
+
+	if before, err = storageCleanBefore(cmd, ctx.providers.Clock.Now()); err != nil {
+		return err
+	}
+
+	if dryRun, err = cmd.Flags().GetBool(cmdFlagNameDryRun); err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if dryRun {
+		var count int
+
+		if count, err = ctx.providers.StorageProvider.CountStaleOAuth2ConsentSessions(ctx, before); err != nil {
+			return err
+		}
+
+		fmt.Printf("Dry run: %d stale OpenID Connect 1.0 consent session(s) responded to and expired before %s would be removed, along with the sessions which reference them.\n", count, before.Format(time.RFC3339))
+
+		return nil
+	}
+
+	var deleted int
+
+	if deleted, err = ctx.providers.StorageProvider.DeleteStaleOAuth2ConsentSessions(ctx, before); err != nil {
+		return err
+	}
+
+	fmt.Printf("Removed %d stale OpenID Connect 1.0 consent session(s) responded to and expired before %s, along with the sessions which reference them.\n", deleted, before.Format(time.RFC3339))
+
+	return nil
+}
+
+func storageCleanBefore(cmd *cobra.Command, now time.Time) (before time.Time, err error) {
+	var raw string
+
+	if raw, err = cmd.Flags().GetString(cmdFlagNameBefore); err != nil {
+		return before, err
+	}
+
+	if raw == "" {
+		return now, nil
+	}
+
+	var duration time.Duration
+
+	if duration, err = utils.ParseDurationString(raw); err != nil {
+		return before, fmt.Errorf("error parsing the value of the --%s flag: %w", cmdFlagNameBefore, err)
+	}
+
+	return now.Add(-duration), nil
+}
