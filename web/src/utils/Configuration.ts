@@ -39,6 +39,14 @@ export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
 }
 
+export function getTOTPAppAppleStore() {
+    return getEmbeddedVariable("totpappapplestore");
+}
+
+export function getTOTPAppGooglePlay() {
+    return getEmbeddedVariable("totpappgoogleplay");
+}
+
 export function getPrivacyPolicyEnabled() {
     return getEmbeddedVariable("privacypolicyurl") !== "";
 }
