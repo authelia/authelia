@@ -195,12 +195,13 @@ func TestDefaultStrategy_DestroyShouldClearBothCookies(t *testing.T) {
 	require.NoError(t, strategy.Save(ctx, &userSession))
 	require.NoError(t, strategy.Destroy(ctx))
 
-	require.Len(t, ctx.cleared, 2)
+	require.Len(t, ctx.cleared, 3)
 
 	assert.Equal(t, testName, ctx.cleared[0].Name)
 	assert.Equal(t, testDomain, ctx.cleared[0].Domain)
 	assert.Equal(t, testNameAuthz, ctx.cleared[1].Name)
 	assert.Equal(t, "."+testDomain, ctx.cleared[1].Domain)
+	assert.Equal(t, testNameCSRF, ctx.cleared[2].Name)
 	assert.Empty(t, repository.data)
 }
 
@@ -301,10 +302,11 @@ func TestDefaultStrategy_DestroyShouldFollowTheAuthzCookieWithoutThePrimaryCooki
 	assert.Empty(t, repository.publicIDs)
 	assert.Empty(t, ctx.cookies)
 
-	require.Len(t, ctx.cleared, 2)
+	require.Len(t, ctx.cleared, 3)
 
 	assert.Equal(t, testName, ctx.cleared[0].Name)
 	assert.Equal(t, testNameAuthz, ctx.cleared[1].Name)
+	assert.Equal(t, testNameCSRF, ctx.cleared[2].Name)
 
 	actual, err := strategy.Authz().Get(newTestAuthzContext(saved))
 
@@ -365,7 +367,7 @@ func TestDefaultStrategy_DestroyShouldNotFollowAnAuthzCookieWhichDoesNotResolve(
 			assert.Contains(t, repository.data, testPrimaryKey(t, strategy, other))
 			assert.Contains(t, repository.data, testPointerKey(t, strategy, other))
 
-			require.Len(t, ctx.cleared, 2)
+			require.Len(t, ctx.cleared, 3)
 
 			actual, err := strategy.Get(other)
 
@@ -393,7 +395,7 @@ func TestStrategyShouldIgnoreAFailureToDeleteThePointer(t *testing.T) {
 			func(strategy Strategy, ctx *testContext, _ *UserSession) error {
 				return strategy.Regenerate(ctx)
 			},
-			2,
+			3,
 			nil,
 			true,
 		},
@@ -403,13 +405,17 @@ func TestStrategyShouldIgnoreAFailureToDeleteThePointer(t *testing.T) {
 				return strategy.Destroy(ctx)
 			},
 			0,
-			[]string{testName, testNameAuthz},
+			[]string{testName, testNameAuthz, testNameCSRF},
 			false,
 		},
 		{
 			"ShouldDestroyFromTheAuthzView",
 			func(strategy Strategy, ctx *testContext, _ *UserSession) error {
 				ctx.authz = true
+
+				// The CSRF cookie is a host only cookie of the portal so it never accompanies a request to the authz
+				// endpoints.
+				delete(ctx.cookies, testNameCSRF)
 
 				return strategy.Authz().Destroy(ctx)
 			},

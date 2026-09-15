@@ -36,7 +36,7 @@ func NewStrategy(config schema.SessionCookie, clock clock.Provider, codec Codec,
 		config:        config,
 		issuer:        codec.Sign([]byte(scope)),
 		domain:        newDomain(config.Domain, http.SameSiteStrictMode),
-		authzName:     config.Name + cookieNameSuffixAuthz,
+		authzName:     config.Name + CookieNameSuffixAuthz,
 		authzIssuer:   codec.SignAuthz([]byte(issuerPrefixAuthz + scope)),
 		authzDomain:   newDomain(config.Domain, sameSite),
 		authzSameSite: sameSite,
@@ -134,6 +134,10 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		}
 	}
 
+	if err = p.ensureCSRFSecret(session); err != nil {
+		return err
+	}
+
 	sid := p.codec.Sign(id)
 	authz, aid := p.getAuthzValue(sid)
 
@@ -158,6 +162,7 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	p.setCached(ctx, p.cacheKeyAuthz(), nil)
 
 	ctx.SetCookie(p.newCookie(id, expires))
+	ctx.SetCookie(p.newCSRFCookie(session.CSRF, expires))
 
 	if session.IsAnonymous() {
 		return nil
@@ -201,6 +206,14 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 
 		session.Expires = p.getExpiresAt(expiration)
 
+		// The CSRF secret is regenerated alongside the session identifier of an established session, so a token issued
+		// before an authentication level change isn't accepted after it.
+		if session.PublicID != "" {
+			if err = p.generateCSRFSecret(session); err != nil {
+				return err
+			}
+		}
+
 		if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
 			return fmt.Errorf("error occurred encoding session: %w", err)
 		}
@@ -227,6 +240,10 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 
 	ctx.SetCookie(p.newCookie(id, expires))
 
+	if len(session.CSRF) != 0 {
+		ctx.SetCookie(p.newCSRFCookie(session.CSRF, expires))
+	}
+
 	if len(authz) != 0 {
 		ctx.SetCookie(p.newAuthzCookie(authz, expires))
 	}
@@ -234,8 +251,8 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 	return nil
 }
 
-// Destroy removes the backend record for the current session and instructs the user agent to discard both the session
-// cookie and the authz cookie. A request which has no session cookie has the session its authz cookie is linked to
+// Destroy removes the backend record for the current session and instructs the user agent to discard the session
+// cookie, the authz cookie, and the CSRF cookie. A request which has no session cookie has the session its authz cookie is linked to
 // removed instead. It returns ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
 func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
 	if ctx.IsAuthzEndpointRequest() {
@@ -259,6 +276,7 @@ func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
 
 	ctx.ClearCookie(p.newDeletionCookie())
 	ctx.ClearCookie(p.newAuthzDeletionCookie())
+	ctx.ClearCookie(p.newCSRFDeletionCookie())
 
 	return nil
 }
@@ -296,6 +314,156 @@ func (p *DefaultStrategy) destroyByAuthz(ctx Context) (err error) {
 	}
 
 	return nil
+}
+
+// CSRFToken returns the CSRF token of the established session of the request. The token is the CSRF secret stored in
+// the session signed alongside the cookie domain, so the secret itself is never delivered to the user agent. It returns
+// ErrCSRFTokenNoSession when the request has no established session, and ErrCSRFTokenInvalid when the established
+// session has no CSRF secret.
+func (p *DefaultStrategy) CSRFToken(ctx Context) (token string, err error) {
+	var session *UserSession
+
+	if session, err = p.getCSRFSession(ctx); err != nil {
+		return "", err
+	}
+
+	if len(session.CSRF) == 0 {
+		return "", ErrCSRFTokenInvalid
+	}
+
+	return p.csrfToken(session.CSRF), nil
+}
+
+// VerifyCSRFToken returns nil if the token is the CSRF token of the established session of the request, comparing them
+// in constant time. It returns ErrCSRFTokenNoSession when the request has no established session, ErrCSRFTokenInvalid
+// when the token doesn't match, and any other error when the session couldn't be retrieved.
+func (p *DefaultStrategy) VerifyCSRFToken(ctx Context, token string) (err error) {
+	var session *UserSession
+
+	if session, err = p.getCSRFSession(ctx); err != nil {
+		return err
+	}
+
+	if len(session.CSRF) == 0 || len(token) == 0 || !p.codec.VerifyCSRF(p.csrfTokenMessage(session.CSRF), token) {
+		return ErrCSRFTokenInvalid
+	}
+
+	return nil
+}
+
+// RegenerateCSRFToken replaces the CSRF secret of the established session of the request without changing the session
+// identifier, persisting the session and delivering the new token to the user agent. Tokens issued before it are no
+// longer accepted. It returns ErrCSRFTokenNoSession when the request has no established session.
+func (p *DefaultStrategy) RegenerateCSRFToken(ctx Context) (err error) {
+	var session *UserSession
+
+	if session, err = p.getCSRFSession(ctx); err != nil {
+		return err
+	}
+
+	if err = p.generateCSRFSecret(session); err != nil {
+		return err
+	}
+
+	return p.Save(ctx, session)
+}
+
+// SetCSRFCookie delivers the CSRF token of the established session of the request to the user agent, generating a CSRF
+// secret for an established session which has none. A request without an established session has no token to deliver,
+// which isn't an error.
+func (p *DefaultStrategy) SetCSRFCookie(ctx Context) (err error) {
+	var session *UserSession
+
+	if session, err = p.getCSRFSession(ctx); err != nil {
+		if errors.Is(err, ErrCSRFTokenNoSession) {
+			return nil
+		}
+
+		return err
+	}
+
+	if len(session.CSRF) == 0 {
+		return p.RegenerateCSRFToken(ctx)
+	}
+
+	ctx.SetCookie(p.newCSRFCookie(session.CSRF, p.getCookieExpires(p.getExpiration(*session))))
+
+	return nil
+}
+
+// getCSRFSession returns the established session of the request. A request to an authorization endpoint never has one
+// as the session cookie is not honored there.
+func (p *DefaultStrategy) getCSRFSession(ctx Context) (session *UserSession, err error) {
+	if ctx.IsAuthzEndpointRequest() {
+		return nil, ErrCSRFTokenNoSession
+	}
+
+	if _, session, err = p.get(ctx, false); err != nil {
+		return nil, err
+	}
+
+	if session == nil || session.PublicID == "" {
+		return nil, ErrCSRFTokenNoSession
+	}
+
+	return session, nil
+}
+
+func (p *DefaultStrategy) ensureCSRFSecret(session *UserSession) (err error) {
+	if len(session.CSRF) != 0 {
+		return nil
+	}
+
+	return p.generateCSRFSecret(session)
+}
+
+func (p *DefaultStrategy) generateCSRFSecret(session *UserSession) (err error) {
+	if session.CSRF, err = p.codec.GenerateCSRFSecret(); err != nil {
+		return fmt.Errorf("error occurred generating session CSRF secret: %w", err)
+	}
+
+	return nil
+}
+
+func (p *DefaultStrategy) csrfToken(secret []byte) (token string) {
+	return p.codec.SignCSRF(p.csrfTokenMessage(secret))
+}
+
+func (p *DefaultStrategy) csrfTokenMessage(secret []byte) (message []byte) {
+	message = make([]byte, 0, len(cookieValuePrefixCSRFToken)+len(p.config.Domain)+1+len(secret))
+
+	message = append(message, cookieValuePrefixCSRFToken...)
+	message = append(message, p.config.Domain...)
+	message = append(message, ':')
+
+	return append(message, secret...)
+}
+
+// CSRFCookieName returns the name of the cookie which delivers the CSRF token of the session stored in the cookie with
+// the given name to the user agent.
+func CSRFCookieName(name string) string {
+	return name + CookieNameSuffixCSRFToken
+}
+
+func (p *DefaultStrategy) newCSRFCookie(secret []byte, expires time.Time) (cookie *http.Cookie) {
+	return p.newCSRFCookieValue(p.csrfToken(secret), expires)
+}
+
+func (p *DefaultStrategy) newCSRFDeletionCookie() (cookie *http.Cookie) {
+	return p.newCSRFCookieValue("", p.clock.Now().Add(-cookieDeletionOffset))
+}
+
+func (p *DefaultStrategy) newCSRFCookieValue(value string, expires time.Time) (cookie *http.Cookie) {
+	//nolint:gosec // The cookie is deliberately readable by scripts, and carries a token derived from the session rather than the session identifier.
+	return &http.Cookie{
+		Name:     CSRFCookieName(p.config.Name),
+		Value:    value,
+		Path:     "/",
+		Expires:  expires,
+		Secure:   true,
+		HttpOnly: false,
+		SameSite: http.SameSiteStrictMode,
+	}
 }
 
 func (p *DefaultStrategy) get(ctx Context, heal bool) (id string, session *UserSession, err error) {
@@ -427,7 +595,7 @@ func (p *DefaultStrategy) getCookieID(ctx Context, name string) (id []byte) {
 }
 
 func (p *DefaultStrategy) getAuthzValue(sid string) (value []byte, aid string) {
-	value, _ = hex.DecodeString(p.codec.SignAuthz([]byte(authzValuePrefix + p.issuer + ":" + sid)))
+	value, _ = hex.DecodeString(p.codec.SignAuthz([]byte(cookieValuePrefixAuthz + p.issuer + ":" + sid)))
 
 	return value, p.codec.SignAuthz(value)
 }

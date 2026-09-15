@@ -28,7 +28,7 @@ type HMACKeys struct {
 	// SessionAuthz is the key the authz cookie value is derived and signed with.
 	SessionAuthz []byte
 
-	// SessionCSRF is the key reserved for signing values which protect against cross-site request forgery.
+	// SessionCSRF is the key the CSRF token is derived from the CSRF secret of a session with.
 	SessionCSRF []byte
 }
 
@@ -92,16 +92,20 @@ func (c *SecureCodec) GenerateSessionID() (id []byte, err error) {
 	return id, nil
 }
 
-// Verify returns true if the given signature is the signature of the given data, comparing them in constant time.
-func (c *SecureCodec) Verify(data []byte, signature string) bool {
-	actual, err := hex.DecodeString(signature)
-	if err != nil {
-		return false
+// GenerateCSRFSecret returns a new random CSRF secret which is stored in the session and signed to derive the CSRF token.
+func (c *SecureCodec) GenerateCSRFSecret() (secret []byte, err error) {
+	secret = make([]byte, 32)
+
+	if _, err = io.ReadFull(c.random, secret); err != nil {
+		return nil, err
 	}
 
-	expected := sign(c.hmacKey, data)
+	return secret, nil
+}
 
-	return hmac.Equal(expected, actual)
+// Verify returns true if the given signature is the signature of the given data, comparing them in constant time.
+func (c *SecureCodec) Verify(data []byte, signature string) bool {
+	return verify(c.hmacKey, data, signature)
 }
 
 // Sign returns the hex encoded HMAC signature of the given data using the session key.
@@ -117,6 +121,21 @@ func (c *SecureCodec) SignAuthz(data []byte) string {
 // SignCSRF returns the hex encoded HMAC signature of the given data using the session CSRF key.
 func (c *SecureCodec) SignCSRF(data []byte) string {
 	return hex.EncodeToString(sign(c.hmacKeyCSRF, data))
+}
+
+// VerifyCSRF returns true if the given signature is the CSRF signature of the given data, comparing them in constant
+// time.
+func (c *SecureCodec) VerifyCSRF(data []byte, signature string) bool {
+	return verify(c.hmacKeyCSRF, data, signature)
+}
+
+func verify(key, data []byte, signature string) bool {
+	actual, err := hex.DecodeString(signature)
+	if err != nil {
+		return false
+	}
+
+	return hmac.Equal(sign(key, data), actual)
 }
 
 func sign(key, data []byte) []byte {

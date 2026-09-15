@@ -436,6 +436,17 @@ is ignored everywhere else, with one exception: when the session cookie is absen
 session the authorization cookie belongs to so that it can't outlive the user's intent. A sign out request which the
 browser reports as cross-site is refused so this can't be triggered by another site.
 
+Requests to the portal API which change state are refused when the browser reports that they originated from another
+origin, including other subdomains of the same site, using the `Sec-Fetch-Site` header or the `Origin` header when the
+former is unavailable. Sensitive requests additionally require the CSRF token of the session, which is derived from a
+secret held within the session using a key known only to Authelia, and is delivered to the portal in a separate cookie
+which is replaced whenever the session cookie is. A forged request can't include the token as another origin can't read
+it. The requests which complete a TOTP or Duo second factor only require the token from requests made by a browser, which
+are identified by the `Sec-Fetch-Site` or `Origin` header, so that other clients such as the
+[PAM module](../../integration/guides/pam-authelia/index.md) can perform them. A forged request is always made by a
+browser, and a forged request to these endpoints can't benefit the attacker in any case as it requires a valid one-time
+code or the user's approval, and only elevates the victim's own session.
+
 The validity period of session is highly configurable. For example, in a highly security conscious domain you could
 set the session [remember_me](../../configuration/session/introduction.md#remember_me) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the

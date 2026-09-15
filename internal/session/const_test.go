@@ -15,6 +15,7 @@ const (
 	testRememberMe   = time.Hour * 24
 	testName         = "my_session"
 	testNameAuthz    = "my_session_authz"
+	testNameCSRF     = "my_session_csrf"
 	testUsername     = "john"
 	testSecret       = "a-secret-value"
 	testHMACKey      = "an-hmac-key"
