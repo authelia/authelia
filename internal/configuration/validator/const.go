@@ -329,12 +329,28 @@ const (
 
 // WebAuthn Error constants.
 const (
-	errFmtWebAuthnConveyancePreference   = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnSelectionCriteria      = "webauthn: selection_criteria: option '%s' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnPasskeyDiscoverability = "webauthn: selection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
-	errFmtWebAuthnFiltering              = "webauthn: filtering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
-	errFmtWebAuthnBoolean                = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
-	errFmtWebAuthnMetadataString         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
+	errFmtWebAuthnConveyancePreference                   = "webauthn: %soption 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnSelectionCriteria                      = "webauthn: %sselection_criteria: option '%s' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnPasskeyDiscoverability                 = "webauthn: %sselection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
+	errFmtWebAuthnFiltering                              = "webauthn: %sfiltering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
+	errFmtWebAuthnRelyingPartyPrefix                     = "relying_parties: %s: "
+	errFmtWebAuthnRelyingPartyOpaqueOriginEmpty          = "webauthn: %soption 'opaque_origins' item #%d is empty but it must have a value"
+	errFmtWebAuthnRelyingPartyOpaqueOriginNotOpaque      = "webauthn: %soption 'opaque_origins' item #%d has value '%s' but it must be an opaque origin and this value belongs in the 'origins' option"
+	errFmtWebAuthnRelyingPartyOpaqueOriginUnknown        = "webauthn: %soption 'opaque_origins' item #%d has value '%s' but it must be an opaque origin a client conveys i.e. one prefixed with %s"
+	errFmtWebAuthnUnsolicitedOutputPolicy                = "webauthn: %soption 'extensions_unsolicited_output_policy' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnBoolean                                = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
+	errFmtWebAuthnMetadataString                         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
+	errFmtWebAuthnRelatedOriginsRelyingPartyIDEmpty      = "webauthn: relying_parties: a dictionary key is empty but each key must be a relying party id"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase = "webauthn: %sthe dictionary key is not lower case but it must be as it's the relying party id"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNoOrigin     = "webauthn: %soption 'origins' must have an origin with the relying party id as its hostname"
+	errFmtWebAuthnRelatedOriginsOriginsEmpty             = "webauthn: %soption 'origins' is empty but it must have at least one value"
+	errFmtWebAuthnRelatedOriginsOriginEmpty              = "webauthn: %soption 'origins' item #%d is empty"
+	errFmtWebAuthnRelatedOriginsOriginNotValidPath       = "webauthn: %soption 'origins' item #%d with value '%s' is invalid as it doesn't have an empty path"
+	errFmtWebAuthnRelatedOriginsOriginNotRelatable       = "webauthn: %soption 'origins' item #%d with value '%s' is invalid as it must be an absolute URL with the %s scheme and a host"
+	errFmtWebAuthnRelatedOriginsOriginDuplicate          = "webauthn: relying_parties: option 'origins' has value '%s' which can only be defined in one relying party but it's defined in %s"
+	errFmtWebAuthnRelatedOriginsOriginDuplicateSelf      = "webauthn: %soption 'origins' has value '%s' defined more than once"
+	errFmtWebAuthnRelatedOriginsOriginNotSessionCookie   = "webauthn: %soption 'origins' item #%d has value '%s' but this value is not a valid origin for any 'authelia_url' configured in the session cookies"
+	errFmtWebAuthnRelatedOriginsLabels                   = "webauthn: %soption 'origins' is invalid: %s"
 )
 
 // Access Control error constants.
