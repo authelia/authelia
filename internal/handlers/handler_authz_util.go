@@ -75,6 +75,16 @@ func getAuthzRedirectStatusCode(ctx AuthzContext, method string) (statusCode int
 func doAuthzRedirect(ctx AuthzContext, authn *Authn, redirectionURL *url.URL, statusCode int) {
 	ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
 
+	doAuthzSpecialRedirect(ctx, authn, redirectionURL, statusCode)
+}
+
+func doAuthzForbiddenRedirect(ctx AuthzContext, authn *Authn, redirectionURL *url.URL, statusCode int) {
+	ctx.GetLogger().Debugf(logFmtAuthzForbiddenRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+
+	doAuthzSpecialRedirect(ctx, authn, redirectionURL, statusCode)
+}
+
+func doAuthzSpecialRedirect(ctx AuthzContext, authn *Authn, redirectionURL *url.URL, statusCode int) {
 	switch authn.Object.Method {
 	case fasthttp.MethodHead:
 		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
