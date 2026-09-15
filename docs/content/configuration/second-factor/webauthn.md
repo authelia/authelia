@@ -32,6 +32,7 @@ webauthn:
   display_name: 'Authelia'
   attestation_conveyance_preference: 'indirect'
   timeout: '60 seconds'
+  extensions_unsolicited_output_policy: 'reject'
   relying_parties:
     example.com:
       display_name: 'Authelia'
@@ -151,6 +152,21 @@ Available Options:
 
 This adjusts the requested timeout for a WebAuthn interaction.
 
+### extensions_unsolicited_output_policy
+
+{{< confkey type="string" default="reject" required="no" >}}
+
+Controls what happens when a client returns a WebAuthn extension output that the relying party did not ask for. By
+default Authelia fails the ceremony, which is the recommended setting. Only use `ignore` if a client in your deployment
+is known to return extension outputs unprompted.
+
+Available Options:
+
+| Value  |                                      Description                                       |
+| :----: | :------------------------------------------------------------------------------------: |
+| reject | The ceremony fails when the client returns an extension output which was not requested |
+| ignore |          Extension outputs which were not requested are accepted and ignored           |
+
 ### relying_parties
 
 {{< confkey type="dictionary(object)" required="no" >}}
@@ -168,12 +184,13 @@ the ability to use WebAuthn including Passkeys.
 
 In addition to [origins](#origins) and [opaque_origins](#opaque_origins), each relying party accepts the
 [display_name](#display_name), [attestation_conveyance_preference](#attestation_conveyance_preference),
-[timeout](#timeout), [filtering](#filtering), and [selection_criteria](#selection_criteria) options. Any of these
-options which is not configured for a relying party defaults to the value configured at the `webauthn` level.
+[timeout](#timeout), [extensions_unsolicited_output_policy](#extensions_unsolicited_output_policy),
+[filtering](#filtering), and [selection_criteria](#selection_criteria) options. Any of these options which is not
+configured for a relying party defaults to the value configured at the `webauthn` level.
 
 When this is configured Authelia serves the [Related Origin Requests] well known document at
-`/.well-known/webauthn` on every origin of every relying party, which is how clients discover that the other origins of
-a relying party are permitted to perform ceremonies against it. See [well known document](#well-known-document) for
+`/.well-known/webauthn` on the relying party id host of every relying party, which is how clients discover that the
+other origins of a relying party are permitted to perform ceremonies against it. See [well known document](#well-known-document) for
 more information.
 
 #### origins
@@ -227,21 +244,6 @@ webauthn:
         - 'ios:bundle-id:com.example.app'
 ```
 
-#### extensions_unsolicited_output_policy
-
-{{< confkey type="string" default="reject" required="no" >}}
-
-Controls what happens when a client returns a WebAuthn extension output that the relying party did not ask for. By
-default Authelia fails the ceremony, which is the recommended setting. Only use `ignore` if a client in your deployment
-is known to return extension outputs unprompted.
-
-Available Options:
-
-| Value  |                                      Description                                       |
-| :----: | :------------------------------------------------------------------------------------: |
-| reject | The ceremony fails when the client returns an extension output which was not requested |
-| ignore |          Extension outputs which were not requested are accepted and ignored           |
-
 #### well known document
 
 When [relying_parties](#relying_parties) is configured Authelia serves the [Related Origin Requests] document at
@@ -249,8 +251,9 @@ When [relying_parties](#relying_parties) is configured Authelia serves the [Rela
 directly fetches `https://<relying party id>/.well-known/webauthn` and accepts the ceremony if the ceremony origin is
 declared there.
 
-The document is served on every origin of a configured relying party and declares the [origins](#origins) of the
-relying party that origin belongs to. An origin which does not belong to a configured relying party responds with a 404. [opaque_origins](#opaque_origins) never appear in the document.
+The document is served when the request hostname is the id of a configured relying party and declares the
+[origins](#origins) of that relying party. Any other hostname responds with a 404, including a hostname which is only
+one of the other origins of a relying party. [opaque_origins](#opaque_origins) never appear in the document.
 
 This means the relying party id must itself be reachable over HTTPS and proxied to Authelia, as that is where the
 client fetches the document from.

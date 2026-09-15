@@ -32,6 +32,7 @@ func TestWebAuthnShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultWebAuthnConfiguration.SelectionCriteria.UserVerification, config.WebAuthn.SelectionCriteria.UserVerification)
 	assert.Equal(t, schema.DefaultWebAuthnConfiguration.SelectionCriteria.Discoverability, config.WebAuthn.SelectionCriteria.Discoverability)
 	assert.Equal(t, schema.DefaultWebAuthnConfiguration.SelectionCriteria.Attachment, config.WebAuthn.SelectionCriteria.Attachment)
+	assert.Equal(t, "reject", config.WebAuthn.ExtensionsUnsolicitedOutputPolicy)
 }
 
 func TestWebAuthnPasskeyBooleans(t *testing.T) {
@@ -225,6 +226,23 @@ func TestWebAuthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 
 	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'attestation_conveyance_preference' must be one of 'none', 'indirect', or 'direct' but it's configured as 'no'")
 	assert.EqualError(t, validator.Errors()[1], "webauthn: selection_criteria: option 'user_verification' must be one of 'discouraged', 'preferred', or 'required' but it's configured as 'yes'")
+}
+
+func TestWebAuthnShouldRaiseErrorOnInvalidGlobalExtensionsUnsolicitedOutputPolicy(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		WebAuthn: schema.WebAuthn{
+			WebAuthnBase: schema.WebAuthnBase{
+				ExtensionsUnsolicitedOutputPolicy: "bad-policy",
+			},
+		},
+	}
+
+	ValidateWebAuthn(config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'extensions_unsolicited_output_policy' must be one of 'reject' or 'ignore' but it's configured as 'bad-policy'")
 }
 
 func TestValidateWebAuthn(t *testing.T) {
@@ -618,10 +636,10 @@ func TestValidateWebAuthnRelyingParties(t *testing.T) {
 				WebAuthn: schema.WebAuthn{
 					RelyingParties: map[string]schema.WebAuthnRelyingParty{
 						"a.example.com": {
-							ExtensionsUnsolicitedOutputPolicy: "reject",
+							WebAuthnBase: schema.WebAuthnBase{ExtensionsUnsolicitedOutputPolicy: "reject"},
 						},
 						"b.example.com": {
-							ExtensionsUnsolicitedOutputPolicy: "ignore",
+							WebAuthnBase: schema.WebAuthnBase{ExtensionsUnsolicitedOutputPolicy: "ignore"},
 						},
 					},
 				},
@@ -636,7 +654,7 @@ func TestValidateWebAuthnRelyingParties(t *testing.T) {
 				WebAuthn: schema.WebAuthn{
 					RelyingParties: map[string]schema.WebAuthnRelyingParty{
 						"example.com": {
-							ExtensionsUnsolicitedOutputPolicy: "bad-policy",
+							WebAuthnBase: schema.WebAuthnBase{ExtensionsUnsolicitedOutputPolicy: "bad-policy"},
 						},
 					},
 				},
@@ -763,7 +781,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: : option 'relying_party_id' is empty but it must have a value",
+				"webauthn: relying_parties: a dictionary key is empty but each key must be a relying party id",
 			},
 		},
 		{
@@ -783,7 +801,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: Example.com: relying party id is not lower case",
+				"webauthn: relying_parties: Example.com: the dictionary key is not lower case but it must be as it's the relying party id",
 			},
 		},
 		{
@@ -798,8 +816,8 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' item #1 is empty",
-				"webauthn: related_origins: example.com: option 'origins' must have an origin with the relying party id as its hostname",
+				"webauthn: relying_parties: example.com: option 'origins' item #1 is empty",
+				"webauthn: relying_parties: example.com: option 'origins' must have an origin with the relying party id as its hostname",
 			},
 		},
 		{
@@ -819,7 +837,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' item #1 with value 'https://example.com/path' is invalid as it doesn't have an empty path",
+				"webauthn: relying_parties: example.com: option 'origins' item #1 with value 'https://example.com/path' is invalid as it doesn't have an empty path",
 			},
 		},
 		{
@@ -839,7 +857,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' item #1 has value 'https://example.com' but this value is not a valid origin for any 'authelia_url' configured in the session cookies",
+				"webauthn: relying_parties: example.com: option 'origins' item #1 has value 'https://example.com' but this value is not a valid origin for any 'authelia_url' configured in the session cookies",
 			},
 		},
 		{
@@ -859,7 +877,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' item #1 has value 'https://example.com' but this value is not a valid origin for any 'authelia_url' configured in the session cookies",
+				"webauthn: relying_parties: example.com: option 'origins' item #1 has value 'https://example.com' but this value is not a valid origin for any 'authelia_url' configured in the session cookies",
 			},
 		},
 		{
@@ -879,7 +897,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' has value 'https://example.com' defined more than once",
+				"webauthn: relying_parties: example.com: option 'origins' has value 'https://example.com' defined more than once",
 			},
 		},
 		{
@@ -899,7 +917,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' must have an origin with the relying party id as its hostname",
+				"webauthn: relying_parties: example.com: option 'origins' must have an origin with the relying party id as its hostname",
 			},
 		},
 		{
@@ -912,7 +930,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' is empty but it must have at least one value",
+				"webauthn: relying_parties: example.com: option 'origins' is empty but it must have at least one value",
 			},
 		},
 		{
@@ -932,7 +950,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' item #2 with value 'ftp://other.com' is invalid as it must be an absolute URL with the 'http' or 'https' scheme and a host",
+				"webauthn: relying_parties: example.com: option 'origins' item #2 with value 'ftp://other.com' is invalid as it must be an absolute URL with the 'http' or 'https' scheme and a host",
 			},
 		},
 		{
@@ -964,7 +982,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: example.com: option 'origins' is invalid: error validating related origins: the origins have 6 distinct registrable domain labels but clients only process 5 of them, so origins beyond that limit are ignored",
+				"webauthn: relying_parties: example.com: option 'origins' is invalid: error validating related origins: the origins have 6 distinct registrable domain labels but clients only process 5 of them, so origins beyond that limit are ignored",
 			},
 		},
 		{
@@ -989,7 +1007,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: related_origins: option 'origins' has value 'https://shared.com' which can only be defined in one relying party but it's defined in 'example.com' and 'other.com'",
+				"webauthn: relying_parties: option 'origins' has value 'https://shared.com' which can only be defined in one relying party but it's defined in 'example.com' and 'other.com'",
 			},
 		},
 	}
@@ -1041,6 +1059,42 @@ func TestOriginMatchesCookieAutheliaURL(t *testing.T) {
 			},
 			mustParseURL("https://other.example.com"),
 			false,
+		},
+		{
+			"ShouldNotMatchWhenSchemeDiffers",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+					},
+				},
+			},
+			mustParseURL("http://auth.example.com"),
+			false,
+		},
+		{
+			"ShouldNotMatchWhenPortDiffers",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com:8443")},
+					},
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			false,
+		},
+		{
+			"ShouldMatchWhenPortIsDefaultForScheme",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com:443/authelia")},
+					},
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			true,
 		},
 		{
 			"ShouldSkipNilAutheliaURL",

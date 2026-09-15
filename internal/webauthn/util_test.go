@@ -298,6 +298,39 @@ func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
 			true,
 		},
 		{
+			"ShouldNotMatchWhenPortDiffers",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			MustParseURL("https://example.com:8443"),
+			"",
+			true,
+		},
+		{
+			"ShouldMatchWhenPortIsDefaultForScheme",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com:443")}},
+				},
+			},
+			MustParseURL("https://example.com"),
+			"example.com",
+			false,
+		},
+		{
+			"ShouldMatchWhenExplicitPortsEqual",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com:8443")}},
+				},
+			},
+			MustParseURL("HTTPS://Example.com:8443"),
+			"example.com",
+			false,
+		},
+		{
 			"ShouldNotMatchWhenOriginHasPath",
 			schema.WebAuthn{
 				RelyingParties: map[string]schema.WebAuthnRelyingParty{

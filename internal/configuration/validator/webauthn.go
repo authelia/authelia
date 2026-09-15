@@ -5,6 +5,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -108,6 +109,15 @@ func validateWebAuthnRelyingPartyBase(base, defaults *schema.WebAuthnBase, prefi
 	if len(base.Filtering.PermittedAAGUIDs) != 0 && len(base.Filtering.ProhibitedAAGUIDs) != 0 {
 		validator.Push(fmt.Errorf(errFmtWebAuthnFiltering, prefix))
 	}
+
+	switch base.ExtensionsUnsolicitedOutputPolicy {
+	case "":
+		base.ExtensionsUnsolicitedOutputPolicy = defaults.ExtensionsUnsolicitedOutputPolicy
+	case webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore:
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtWebAuthnUnsolicitedOutputPolicy, prefix, utils.StringJoinOr([]string{webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore}), base.ExtensionsUnsolicitedOutputPolicy))
+	}
 }
 
 // validateWebAuthnRelyingParties validates each relying party, defaulting the options they share with the global
@@ -126,20 +136,7 @@ func validateWebAuthnRelyingParties(config *schema.Configuration, validator *sch
 
 		validateWebAuthnRelyingPartyOpaqueOrigins(&relyingParty, prefix, validator)
 
-		validateWebAuthnRelyingPartyUnsolicitedOutputPolicy(&relyingParty, prefix, validator)
-
 		config.WebAuthn.RelyingParties[relyingPartyID] = relyingParty
-	}
-}
-
-func validateWebAuthnRelyingPartyUnsolicitedOutputPolicy(relyingParty *schema.WebAuthnRelyingParty, prefix string, validator *schema.StructValidator) {
-	switch relyingParty.ExtensionsUnsolicitedOutputPolicy {
-	case "":
-		relyingParty.ExtensionsUnsolicitedOutputPolicy = webauthn.ExtensionsUnsolicitedOutputPolicyReject
-	case webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore:
-		break
-	default:
-		validator.Push(fmt.Errorf(errFmtWebAuthnRelyingPartyUnsolicitedOutputPolicy, prefix, utils.StringJoinOr([]string{webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore}), relyingParty.ExtensionsUnsolicitedOutputPolicy))
 	}
 }
 
@@ -184,17 +181,19 @@ func validateWebAuthnRelatedOrigins(config *schema.Configuration, validator *sch
 // against the relying parties which declare it so the caller can detect origins declared more than once.
 func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, relyingPartyID string, relyingParty *schema.WebAuthnRelyingParty, origins map[string][]string, validator *schema.StructValidator) {
 	if relyingPartyID == "" {
-		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOptionEmpty, relyingPartyID, "relying_party_id"))
+		validator.Push(errors.New(errFmtWebAuthnRelatedOriginsRelyingPartyIDEmpty))
 
 		return
 	}
 
+	prefix := fmt.Sprintf(errFmtWebAuthnRelyingPartyPrefix, relyingPartyID)
+
 	if relyingPartyID != strings.ToLower(relyingPartyID) {
-		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase, relyingPartyID))
+		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase, prefix))
 	}
 
 	if len(relyingParty.Origins) == 0 {
-		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginsEmpty, relyingPartyID))
+		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginsEmpty, prefix))
 
 		return
 	}
@@ -208,7 +207,7 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 
 	for i, origin := range relyingParty.Origins {
 		if origin == nil {
-			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginEmpty, relyingPartyID, i+1))
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginEmpty, prefix, i+1))
 
 			continue
 		}
@@ -216,7 +215,7 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 		value := origin.String()
 
 		if seen[value] {
-			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginDuplicateSelf, relyingPartyID, value))
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginDuplicateSelf, prefix, value))
 
 			continue
 		}
@@ -230,13 +229,13 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 		}
 
 		if origin.Path != "" {
-			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotValidPath, relyingPartyID, i+1, value))
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotValidPath, prefix, i+1, value))
 
 			continue
 		}
 
 		if protocol.IsOpaqueOrigin(value) {
-			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotRelatable, relyingPartyID, i+1, value, utils.StringJoinOr([]string{schemeHTTP, schemeHTTPS})))
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotRelatable, prefix, i+1, value, utils.StringJoinOr([]string{schemeHTTP, schemeHTTPS})))
 
 			continue
 		}
@@ -244,19 +243,19 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 		relatable = append(relatable, value)
 
 		if !originMatchesCookieAutheliaURL(config, origin) {
-			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotSessionCookie, relyingPartyID, i+1, value))
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotSessionCookie, prefix, i+1, value))
 		}
 	}
 
 	if !found {
-		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNoOrigin, relyingPartyID))
+		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNoOrigin, prefix))
 	}
 
 	// The document served at the well known endpoint is built from these origins, so the limits a client applies when
 	// it reads that document have to hold here or the endpoint fails at request time instead.
 	if len(relatable) != 0 {
 		if _, err := protocol.NewRelatedOrigins(relatable...); err != nil {
-			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsLabels, relyingPartyID, err))
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsLabels, prefix, err))
 		}
 	}
 }
@@ -294,7 +293,7 @@ func originMatchesCookieAutheliaURL(config *schema.Configuration, origin *url.UR
 			continue
 		}
 
-		if domain.AutheliaURL.Hostname() == origin.Hostname() {
+		if webauthn.IsOriginEqual(domain.AutheliaURL, origin) {
 			return true
 		}
 	}

@@ -108,11 +108,7 @@ func GetRelatedOriginConfigByOrigin(config schema.WebAuthn, origin *url.URL) (re
 		ro = &r
 
 		for _, o := range ro.Origins {
-			if !strings.EqualFold(o.Scheme, origin.Scheme) {
-				continue
-			}
-
-			if !strings.EqualFold(o.Hostname(), origin.Hostname()) {
+			if o == nil || !IsOriginEqual(o, origin) {
 				continue
 			}
 
@@ -125,4 +121,34 @@ func GetRelatedOriginConfigByOrigin(config schema.WebAuthn, origin *url.URL) (re
 	}
 
 	return "", nil
+}
+
+// IsOriginEqual returns true if the scheme, hostname, and effective port of both URLs are equal. The scheme and
+// hostname are compared case-insensitively and a port which is the default for the scheme is treated as equal to no
+// port.
+func IsOriginEqual(a, b *url.URL) (equal bool) {
+	if a == nil || b == nil {
+		return false
+	}
+
+	if !strings.EqualFold(a.Scheme, b.Scheme) || !strings.EqualFold(a.Hostname(), b.Hostname()) {
+		return false
+	}
+
+	return originEffectivePort(a) == originEffectivePort(b)
+}
+
+func originEffectivePort(u *url.URL) (port string) {
+	if port = u.Port(); port != "" {
+		return port
+	}
+
+	switch strings.ToLower(u.Scheme) {
+	case "https":
+		return "443"
+	case "http":
+		return "80"
+	default:
+		return ""
+	}
 }
