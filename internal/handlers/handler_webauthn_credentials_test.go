@@ -229,7 +229,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialByID(mock.Ctx, 1).
-						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+						Return(&model.WebAuthnCredential{ID: 1, RPID: "login.example.com", Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -261,7 +261,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialByID(mock.Ctx, 1).
-						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+						Return(&model.WebAuthnCredential{ID: 1, RPID: "login.example.com", Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -293,7 +293,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialByID(mock.Ctx, 1).
-						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+						Return(&model.WebAuthnCredential{ID: 1, RPID: "login.example.com", Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -323,7 +323,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialByID(mock.Ctx, 1).
-						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+						Return(&model.WebAuthnCredential{ID: 1, RPID: "login.example.com", Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -353,7 +353,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialByID(mock.Ctx, 1).
-						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+						Return(&model.WebAuthnCredential{ID: 1, RPID: "login.example.com", Username: testUsername}, nil),
 				)
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "##!@#!@")
@@ -392,6 +392,32 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 			},
 		},
 		{
+			"ShouldHandleAnotherRelyingParty",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialByID(mock.Ctx, 1).
+						Return(&model.WebAuthnCredential{ID: 1, RPID: "example.com", Username: testUsername}, nil),
+				)
+			},
+			`{"description":"abc"}`,
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john'", "the credential with id '1' belongs to the relying party 'example.com' but the request is for the relying party 'login.example.com'")
+			},
+		},
+		{
 			"ShouldHandleFailUpdate",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -407,7 +433,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialByID(mock.Ctx, 1).
-						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+						Return(&model.WebAuthnCredential{ID: 1, RPID: "login.example.com", Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).

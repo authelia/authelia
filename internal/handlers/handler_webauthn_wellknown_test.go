@@ -74,7 +74,7 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 			"",
 		},
 		{
-			"ShouldReturnNotFoundWhenOriginSchemeDiffers",
+			"ShouldReturnNotFoundWhenHostnameIsOnlyARelatedOrigin",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				t.Helper()
 
@@ -82,6 +82,7 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 					"example.com": {
 						Origins: []*url.URL{
 							{Scheme: "https", Host: "example.com"},
+							{Scheme: "https", Host: "login.example.com:8080"},
 						},
 					},
 				}
@@ -112,6 +113,8 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 			"ShouldReturnSingleOriginWhenMatched",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				t.Helper()
+
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
 
 				mock.Ctx.Configuration.WebAuthn.RelyingParties = map[string]schema.WebAuthnRelyingParty{
 					"example.com": {

@@ -177,7 +177,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"!@NJK#N!@#IKJ!@NJK://login.example.com:8080/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred provisioning the configuration", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"!@NJK#N!@#IKJ!@NJK://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{

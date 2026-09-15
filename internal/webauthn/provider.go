@@ -31,8 +31,6 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 
 	var opaqueOrigins []string
 
-	policy := protocol.UnsolicitedOutputPolicyReject
-
 	rpid := origin.Hostname()
 	origins := []string{origin.String()}
 	base := ctx.GetConfiguration().WebAuthn.WebAuthnBase
@@ -49,11 +47,13 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 		origins = relyingParty.StringOrigins()
 		opaqueOrigins = relyingParty.OpaqueOrigins
 
-		if relyingParty.ExtensionsUnsolicitedOutputPolicy == ExtensionsUnsolicitedOutputPolicyIgnore {
-			policy = protocol.UnsolicitedOutputPolicyIgnore
-		}
-
 		base = relyingParty.WebAuthnBase
+	}
+
+	policy := protocol.UnsolicitedOutputPolicyReject
+
+	if base.ExtensionsUnsolicitedOutputPolicy == ExtensionsUnsolicitedOutputPolicyIgnore {
+		policy = protocol.UnsolicitedOutputPolicyIgnore
 	}
 
 	config := &gowebauthn.Config{
