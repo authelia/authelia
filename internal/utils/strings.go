@@ -323,3 +323,24 @@ func StringHasSuffixFold(s, suffix string) bool {
 func StringHasPrefixFold(s, prefix string) bool {
 	return len(s) >= len(prefix) && strings.EqualFold(s[:len(prefix)], prefix)
 }
+
+// StringSplitClean splits a string by the sep after trimming all leading and trailing whitespace. It then removes any
+// elements from the slice which when trimmed of any leading and trailing whitespace are an empty string.
+func StringSplitClean(s string, sep string) []string {
+	split := strings.Split(strings.TrimSpace(s), sep)
+
+	if len(split) == 0 || (len(split) == 1 && split[0] == "") {
+		return nil
+	}
+
+	result := make([]string, 0, len(split))
+
+	for _, item := range split {
+		item = strings.TrimSpace(item)
+		if item != "" {
+			result = append(result, item)
+		}
+	}
+
+	return result
+}

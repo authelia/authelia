@@ -65,7 +65,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 }
 
 // RootRunE is the RunE for the authelia root command.
-func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) RootRunE(cmd *cobra.Command, _ []string) (err error) {
 	ctx.log.Infof("Authelia %s is starting", utils.Version())
 
 	if utils.Dev {
@@ -105,5 +105,14 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 
 	ctx.log.Trace("Starting Services")
 
-	return service.RunAll(ctx)
+	if err = service.RunAll(ctx); err != nil {
+		if errors.Is(err, service.ErrApplicationReload) {
+			// The reload error is handled by the caller of the command, it's not a usage or reportable error.
+			cmd.SilenceErrors, cmd.SilenceUsage = true, true
+		}
+
+		return err
+	}
+
+	return nil
 }
