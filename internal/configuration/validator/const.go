@@ -273,8 +273,18 @@ const (
 	errFmtOIDCClientOptionMustScopeClientType       = errFmtOIDCClientOption + errFmtMustBeConfiguredAs + errFmtOIDCWhenScope + " and the '%s' client type but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntriesClientCredentials = errFmtOIDCClientOption + "'scopes' has the values " +
 		"%s however when utilizing the 'client_credentials' value for the 'grant_types' the values %s are not allowed"
-	errFmtOIDCClientInvalidEntryDuplicates = errFmtOIDCClientOption + "'%s' must have unique values but the values %s are duplicated"
-	errFmtOIDCClientInvalidValue           = errFmtOIDCClientOption +
+	errFmtOIDCClientInvalidEntryDuplicates           = errFmtOIDCClientOption + "'%s' must have unique values but the values %s are duplicated"
+	errFmtOIDCClientClientAssertionInsecureEmptyType = errFmtOIDCClientOption +
+		"'%s' is enabled which permits client assertions that omit the JWT 'typ' header, this is insecure as explicit " +
+		"typing guards an assertion against being confused with another JWT and should only be used when the client " +
+		"cannot be configured to send the 'typ' header"
+	errFmtOIDCClientClientAssertionInsecureTypes = errFmtOIDCClientOption +
+		"'%s' includes the type %s which is insecure as it does not distinguish a client assertion from another JWT, " +
+		"the explicit type '%s' should be preferred and another type should only be permitted when the client cannot " +
+		"be configured to send it"
+	errFmtOIDCClientClientAssertionEmptyTypeEntry = errFmtOIDCClientOption +
+		"'%s' must not have empty values but an empty value was present at index %d"
+	errFmtOIDCClientInvalidValue = errFmtOIDCClientOption +
 		errFmtMustBeOneOf
 	errFmtOIDCClientInvalidLifespan = errFmtOIDCClientOption +
 		"'lifespan' must not be configured when no custom lifespans are configured but it's configured as '%s'"
@@ -566,37 +576,39 @@ var (
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 const (
-	attrOIDCKey                         = "key"
-	attrOIDCKeyID                       = "key_id"
-	attrOIDCKeyUse                      = "use"
-	attrOIDCAlgorithm                   = "algorithm"
-	attrOIDCScopes                      = "scopes"
-	attrOIDCResponseTypes               = "response_types"
-	attrOIDCResponseModes               = "response_modes"
-	attrOIDCGrantTypes                  = "grant_types"
-	attrOIDCRedirectURIs                = "redirect_uris"
-	attrOIDCRequestURIs                 = "request_uris"
-	attrOIDCRequestObjectSigningAlg     = "request_object_signing_alg"
-	attrOIDCTokenAuthMethod             = "token_endpoint_auth_method"
-	attrOIDCTokenAuthSigningAlg         = "token_endpoint_auth_signing_alg"
-	attrOIDCRevocationAuthMethod        = "revocation_endpoint_auth_method"
-	attrOIDCRevocationAuthSigningAlg    = "revocation_endpoint_auth_signing_alg"
-	attrOIDCIntrospectionAuthMethod     = "introspection_endpoint_auth_method"
-	attrOIDCIntrospectionAuthSigningAlg = "introspection_endpoint_auth_signing_alg"
-	attrOIDCPARAuthMethod               = "pushed_authorization_request_endpoint_auth_method"
-	attrOIDCPARAuthSigningAlg           = "pushed_authorization_request_endpoint_auth_signing_alg"
-	attrOIDCDiscoSigAlg                 = "discovery_signed_response_alg"
-	attrOIDCDiscoSigKID                 = "discovery_signed_response_key_id"
-	attrOIDCAuthorizationPrefix         = "authorization"
-	attrOIDCIDTokenPrefix               = "id_token"
-	attrOIDCAccessTokenPrefix           = "access_token"
-	attrOIDCUserinfoPrefix              = "userinfo"
-	attrOIDCIntrospectionPrefix         = "introspection"
-	attrOIDCPKCEChallengeMethod         = "pkce_challenge_method"
-	attrOIDCRequestedAudienceMode       = "requested_audience_mode"
-	attrSessionAutheliaURL              = "authelia_url"
-	attrSessionDomain                   = "domain"
-	attrDefaultRedirectionURL           = "default_redirection_url"
+	attrOIDCKey                           = "key"
+	attrOIDCKeyID                         = "key_id"
+	attrOIDCKeyUse                        = "use"
+	attrOIDCAlgorithm                     = "algorithm"
+	attrOIDCScopes                        = "scopes"
+	attrOIDCResponseTypes                 = "response_types"
+	attrOIDCResponseModes                 = "response_modes"
+	attrOIDCGrantTypes                    = "grant_types"
+	attrOIDCRedirectURIs                  = "redirect_uris"
+	attrOIDCRequestURIs                   = "request_uris"
+	attrOIDCRequestObjectSigningAlg       = "request_object_signing_alg"
+	attrOIDCTokenAuthMethod               = "token_endpoint_auth_method"
+	attrOIDCTokenAuthSigningAlg           = "token_endpoint_auth_signing_alg"
+	attrOIDCRevocationAuthMethod          = "revocation_endpoint_auth_method"
+	attrOIDCRevocationAuthSigningAlg      = "revocation_endpoint_auth_signing_alg"
+	attrOIDCIntrospectionAuthMethod       = "introspection_endpoint_auth_method"
+	attrOIDCIntrospectionAuthSigningAlg   = "introspection_endpoint_auth_signing_alg"
+	attrOIDCPARAuthMethod                 = "pushed_authorization_request_endpoint_auth_method"
+	attrOIDCPARAuthSigningAlg             = "pushed_authorization_request_endpoint_auth_signing_alg"
+	attrOIDCDiscoSigAlg                   = "discovery_signed_response_alg"
+	attrOIDCDiscoSigKID                   = "discovery_signed_response_key_id"
+	attrOIDCAuthorizationPrefix           = "authorization"
+	attrOIDCIDTokenPrefix                 = "id_token"
+	attrOIDCAccessTokenPrefix             = "access_token"
+	attrOIDCUserinfoPrefix                = "userinfo"
+	attrOIDCIntrospectionPrefix           = "introspection"
+	attrOIDCPKCEChallengeMethod           = "pkce_challenge_method"
+	attrOIDCRequestedAudienceMode         = "requested_audience_mode"
+	attrOIDCClientAssertionAllowEmptyType = "client_assertion_jwt_validation_header_allow_empty_type"
+	attrOIDCClientAssertionAllowTypes     = "client_assertion_jwt_validation_header_allow_types"
+	attrSessionAutheliaURL                = "authelia_url"
+	attrSessionDomain                     = "domain"
+	attrDefaultRedirectionURL             = "default_redirection_url"
 )
 
 var (

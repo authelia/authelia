@@ -5680,3 +5680,79 @@ func init() {
 
 	keyRSA2048Legacy = MustLoadRSAPrivateKey("2048", "legacy")
 }
+
+func TestValidateOIDCClientAssertionJWTValidationHeader(t *testing.T) {
+	testCases := []struct {
+		name      string
+		allowNone bool
+		types     []string
+		warnings  []string
+		errors    []string
+	}{
+		{
+			name: "ShouldNotWarnWhenUnconfigured",
+		},
+		{
+			name:      "ShouldWarnWhenEmptyTypeAllowed",
+			allowNone: true,
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'client_assertion_jwt_validation_header_allow_empty_type' is enabled which permits client assertions that omit the JWT 'typ' header, this is insecure as explicit typing guards an assertion against being confused with another JWT and should only be used when the client cannot be configured to send the 'typ' header",
+			},
+		},
+		{
+			name:  "ShouldNotWarnWhenOnlyExplicitTypeConfigured",
+			types: []string{"client-authentication+jwt"},
+		},
+		{
+			name:  "ShouldWarnWhenGenericTypeConfigured",
+			types: []string{"client-authentication+jwt", "JWT"},
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'client_assertion_jwt_validation_header_allow_types' includes the type 'JWT' which is insecure as it does not distinguish a client assertion from another JWT, the explicit type 'client-authentication+jwt' should be preferred and another type should only be permitted when the client cannot be configured to send it",
+			},
+		},
+		{
+			name:  "ShouldWarnOnDuplicateTypes",
+			types: []string{"client-authentication+jwt", "client-authentication+jwt"},
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'client_assertion_jwt_validation_header_allow_types' must have unique values but the values 'client-authentication+jwt' are duplicated",
+			},
+		},
+		{
+			name:  "ShouldErrorOnEmptyTypeEntry",
+			types: []string{"client-authentication+jwt", ""},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'test': option 'client_assertion_jwt_validation_header_allow_types' must not have empty values but an empty value was present at index 1",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID: "test",
+						ClientAssertionJWTValidationHeaderAllowEmptyType: tc.allowNone,
+						ClientAssertionJWTValidationHeaderAllowTypes:     tc.types,
+					},
+				},
+			}
+
+			validateOIDCClientAssertionJWTValidationHeader(0, config, validator)
+
+			require.Len(t, validator.Warnings(), len(tc.warnings))
+
+			for i, warning := range tc.warnings {
+				assert.EqualError(t, validator.Warnings()[i], warning)
+			}
+
+			require.Len(t, validator.Errors(), len(tc.errors))
+
+			for i, err := range tc.errors {
+				assert.EqualError(t, validator.Errors()[i], err)
+			}
+		})
+	}
+}

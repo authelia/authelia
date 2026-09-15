@@ -46,6 +46,9 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ClientCredentialsFlowAllowImplicitScope: false,
 		AllowMultipleAuthenticationMethods:      config.AllowMultipleAuthenticationMethods,
 
+		ClientAssertionJWTValidationHeaderAllowEmptyType: config.ClientAssertionJWTValidationHeaderAllowEmptyType,
+		ClientAssertionJWTValidationHeaderAllowTypes:     config.ClientAssertionJWTValidationHeaderAllowTypes,
+
 		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
 
@@ -756,6 +759,24 @@ func (c *RegisteredClient) GetRequestedAudienceImplicit() (implicit bool) {
 // GetEnableDPoPBoundAccessTokens returns true if this client has DPoP bound access tokens enabled.
 func (c *RegisteredClient) GetEnableDPoPBoundAccessTokens() (enable bool) {
 	return c.DPoPBoundAccessTokens
+}
+
+// GetClientAssertionJWTValidationHeaderAllowEmptyType returns true if this client is permitted to send Client
+// Assertions which omit the JWT 'typ' header. This defaults to false as explicit typing guards an assertion against
+// being confused with another JWT, and is only enabled as an escape hatch for clients which cannot set the header.
+func (c *RegisteredClient) GetClientAssertionJWTValidationHeaderAllowEmptyType() (allow bool) {
+	return c.ClientAssertionJWTValidationHeaderAllowEmptyType
+}
+
+// GetClientAssertionJWTValidationHeaderAllowTypes returns the JWT 'typ' header values this client is permitted to send
+// Client Assertions with. This defaults to only the explicit 'client-authentication+jwt' type described by RFC7523bis
+// Section 4, and is only broadened as an escape hatch for clients which cannot set the header to that value.
+func (c *RegisteredClient) GetClientAssertionJWTValidationHeaderAllowTypes() (types []string) {
+	if len(c.ClientAssertionJWTValidationHeaderAllowTypes) == 0 {
+		return []string{jwt.JSONWebTokenTypeClientAuthentication}
+	}
+
+	return c.ClientAssertionJWTValidationHeaderAllowTypes
 }
 
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
