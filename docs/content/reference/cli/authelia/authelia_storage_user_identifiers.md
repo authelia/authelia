@@ -59,7 +59,7 @@ authelia storage user identifiers --help
 
 * [authelia storage user](authelia_storage_user.md)	 - Manages user settings
 * [authelia storage user identifiers add](authelia_storage_user_identifiers_add.md)	 - Add an opaque identifier for a user to the database
-* [authelia storage user identifiers export](authelia_storage_user_identifiers_export.md)	 - Export the identifiers to a YAML file
+* [authelia storage user identifiers export](authelia_storage_user_identifiers_export.md)	 - Export the identifiers to a file
 * [authelia storage user identifiers generate](authelia_storage_user_identifiers_generate.md)	 - Generate opaque identifiers in bulk
-* [authelia storage user identifiers import](authelia_storage_user_identifiers_import.md)	 - Import the identifiers from a YAML file
+* [authelia storage user identifiers import](authelia_storage_user_identifiers_import.md)	 - Import the identifiers from a file
 
