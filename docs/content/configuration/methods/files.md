@@ -64,8 +64,10 @@ In the instance of a file system notify event being observed that is a file path
 
 In the instance of a file system change being
 observed that is a file within a directory path defined in the [Configuration Paths](#configuration-paths) this will
-also cause a reload, regardless if the file is effectively a configuration file or not, and regardless of the type of
-file system notify event that was observed.
+also cause a reload, regardless if the file is effectively a configuration file or not.
+
+In both instances a reload is only triggered by `Create`, `Remove`, `Rename`, or `Write` file system notify events.
+`Chmod` events do not trigger a reload.
 
 In addition to the configuration paths you can define additional paths which will cause a reload with the
 `X_AUTHELIA_CONFIG_RELOAD_PATHS` environment variable. These paths are not included in the configuration, and this makes

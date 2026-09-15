@@ -435,8 +435,10 @@ func TestIsConfigFileWatcherEnabled(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if tc.set {
-				t.Setenv(environmentVariableConfigReload, tc.value)
+			t.Setenv(environmentVariableConfigReload, tc.value)
+
+			if !tc.set {
+				require.NoError(t, os.Unsetenv(environmentVariableConfigReload))
 			}
 
 			assert.Equal(t, tc.expected, IsConfigFileWatcherEnabled())
