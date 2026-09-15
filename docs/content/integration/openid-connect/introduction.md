@@ -485,7 +485,7 @@ The following information covers some security topics some users may wish to be 
 offer hardening to the flows in differing ways (i.e. some validate the authorization server and some validate the
 client / Relying Party) which are not essential but recommended.
 
-#### Explicit JWT Typing
+### Explicit JWT Typing
 
 Where relevant Authelia enforces validation of the JWT type header (`typ`) against the appropriate explicit value. This
 is done to prevent JWTs from being used in a way which is not intended. Specifically the following types are accepted by
@@ -506,7 +506,7 @@ a JWT library which defaults to the generic `JWT` type, can be individually gran
 [client_assertion_jwt_validation_header_allow_empty_type] client options. Both are insecure and log a warning at
 startup.
 
-#### Pushed Authorization Requests Endpoint
+### Pushed Authorization Requests Endpoint
 
 The [Pushed Authorization Requests] endpoint is discussed in depth in [RFC9126] as well as in the
 [OAuth 2.0 Pushed Authorization Requests](https://oauth.net/2/pushed-authorization-requests/) documentation.
@@ -540,7 +540,7 @@ The advantages of this approach are as follows:
    2. Clients using the public [Client Type] and utilizing [Proof Key for Code Exchange](#proof-key-for-code-exchange) never
       transmit the verifier over any front-channel making even the `plain` challenge method relatively secure.
 
-#### OAuth 2.0 Authorization Server Issuer Identification
+### OAuth 2.0 Authorization Server Issuer Identification
 
 The [RFC9207: OAuth 2.0 Authorization Server Issuer Identification] implementation allows Relying Parties to validate
 the Authorization Response was returned by the expected issuer by ensuring the response includes the exact issuer in
@@ -548,7 +548,7 @@ the response. This is an additional check in addition to the `state` parameter.
 
 This validation is not supported by many clients, but it should be utilized if it is supported.
 
-#### JWT Secured Authorization Response Mode (JARM)
+### JWT Secured Authorization Response Mode (JARM)
 
 The [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)] implementation similar to
 [OAuth 2.0 Authorization Server Issuer Identification](#oauth-20-authorization-server-issuer-identification) allows a
@@ -557,7 +557,7 @@ was not tampered with or forged as it is cryptographically signed.
 
 This response mode is not supported by many clients, but we recommend it is used if it's supported.
 
-#### Proof Key for Code Exchange
+### Proof Key for Code Exchange
 
 The [Proof Key for Code Exchange] mechanism is discussed in depth in [RFC7636] as well as in the
 [OAuth 2.0 Proof Key for Code Exchange](https://oauth.net/2/pkce/) documentation.
