@@ -124,6 +124,7 @@ type ValidateCtx struct {
 	tlsconfig *tls.Config
 
 	cacheSectorIdentifierURIs map[string][]string
+	cacheLogoURIProbes        map[string]error
 
 	context.Context
 }

@@ -27,6 +27,7 @@ interface ConsentPostResponseBody {
 export interface ConsentGetResponseBody {
     client_id: string;
     client_description: string;
+    client_logo_uri?: string;
     scopes: string[];
     audience: string[];
     resource: null | string[];

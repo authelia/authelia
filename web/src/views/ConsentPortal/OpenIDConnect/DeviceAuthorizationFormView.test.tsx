@@ -9,6 +9,7 @@ import DeviceAuthorizationFormView from "@views/ConsentPortal/OpenIDConnect/Devi
 
 const mocks = vi.hoisted(() => ({
     navigate: vi.fn(),
+    redirect: vi.fn(),
     userCode: { current: null as null | string },
 }));
 
@@ -18,6 +19,10 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("@hooks/OpenIDConnect", () => ({
     useUserCode: () => mocks.userCode.current,
+}));
+
+vi.mock("@hooks/Redirector", () => ({
+    useRedirector: () => mocks.redirect,
 }));
 
 vi.mock("@hooks/RouterNavigate", () => ({
@@ -50,14 +55,14 @@ vi.mock("@views/LoadingPage/LoadingPage", () => ({
 const renderView = (level: AuthenticationLevel = AuthenticationLevel.OneFactor) =>
     render(<DeviceAuthorizationFormView state={{ authentication_level: level } as any} />);
 
-const expectedQuery = (code: string) => {
+const expectedDecisionURL = (code: string) => {
     const query = new URLSearchParams();
 
     query.set("user_code", code);
     query.set("flow", "openid_connect");
     query.set("subflow", "device_authorization");
 
-    return query;
+    return `/consent/openid/decision?${query.toString()}`;
 };
 
 beforeEach(() => {
@@ -107,7 +112,7 @@ it("submits the form with the confirm button so a keyboard return works", () => 
     expect(screen.getByRole("button", { name: /Confirm/ })).toHaveAttribute("type", "submit");
 });
 
-it("navigates to the decision route when the code is submitted", async () => {
+it("loads the decision route when the code is submitted", async () => {
     renderView();
 
     await act(async () => {
@@ -118,13 +123,8 @@ it("navigates to the decision route when the code is submitted", async () => {
         fireEvent.click(screen.getByRole("button", { name: /Confirm/ }));
     });
 
-    expect(mocks.navigate).toHaveBeenCalledWith(
-        "/consent/openid/decision",
-        true,
-        true,
-        true,
-        expectedQuery("BGKMRTVX"),
-    );
+    expect(mocks.redirect).toHaveBeenCalledWith(expectedDecisionURL("BGKMRTVX"));
+    expect(mocks.navigate).not.toHaveBeenCalled();
 });
 
 it("uppercases the code as it is typed", async () => {
@@ -184,13 +184,7 @@ it("submits a code supplied in the url without waiting for the user", () => {
 
     renderView();
 
-    expect(mocks.navigate).toHaveBeenCalledWith(
-        "/consent/openid/decision",
-        true,
-        true,
-        true,
-        expectedQuery("BGKMRTVX"),
-    );
+    expect(mocks.redirect).toHaveBeenCalledWith(expectedDecisionURL("BGKMRTVX"));
 });
 
 it("submits a code supplied in the url only once", () => {
@@ -200,7 +194,7 @@ it("submits a code supplied in the url only once", () => {
 
     rerender(<DeviceAuthorizationFormView state={{ authentication_level: AuthenticationLevel.OneFactor } as any} />);
 
-    expect(mocks.navigate).toHaveBeenCalledTimes(1);
+    expect(mocks.redirect).toHaveBeenCalledTimes(1);
 });
 
 it("separates the account actions", () => {

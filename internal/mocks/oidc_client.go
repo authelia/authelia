@@ -557,6 +557,20 @@ func (mr *MockOIDCClientMockRecorder) GetJSONWebKeysURI() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJSONWebKeysURI", reflect.TypeOf((*MockOIDCClient)(nil).GetJSONWebKeysURI))
 }
 
+// GetLogoURI mocks base method.
+func (m *MockOIDCClient) GetLogoURI() *url.URL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLogoURI")
+	ret0, _ := ret[0].(*url.URL)
+	return ret0
+}
+
+// GetLogoURI indicates an expected call of GetLogoURI.
+func (mr *MockOIDCClientMockRecorder) GetLogoURI() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLogoURI", reflect.TypeOf((*MockOIDCClient)(nil).GetLogoURI))
+}
+
 // GetName mocks base method.
 func (m *MockOIDCClient) GetName() string {
 	m.ctrl.T.Helper()
