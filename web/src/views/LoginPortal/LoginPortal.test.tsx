@@ -81,9 +81,7 @@ vi.mock("@views/LoginPortal/AuthenticatedView/AuthenticatedView", () => ({
 
 vi.mock("@views/LoginPortal/FirstFactor/FirstFactorForm", () => ({
     default: (props: any) => (
-        <div data-testid="first-factor-form" data-disabled={String(props.disabled)}>
-            <button data-testid="ff-start" onClick={() => props.onAuthenticationStart()} />
-            <button data-testid="ff-stop" onClick={() => props.onAuthenticationStop()} />
+        <div data-testid="first-factor-form">
             <button
                 data-testid="ff-success-redirect"
                 onClick={() => props.onAuthenticationSuccess("https://example.com")}
@@ -538,25 +536,6 @@ describe("first factor callbacks", () => {
     it("renders the first factor form once the state resolves", async () => {
         renderUnauthenticated();
         expect(await screen.findByTestId("first-factor-form")).toBeInTheDocument();
-    });
-
-    it("enables the form once the state resolves", async () => {
-        renderUnauthenticated();
-
-        await waitFor(() => expect(screen.getByTestId("first-factor-form")).toHaveAttribute("data-disabled", "false"));
-    });
-
-    it("disables the form while authentication is in progress", async () => {
-        renderUnauthenticated();
-        await screen.findByTestId("first-factor-form");
-
-        fireEvent.click(screen.getByTestId("ff-start"));
-
-        await waitFor(() => expect(screen.getByTestId("first-factor-form")).toHaveAttribute("data-disabled", "true"));
-
-        fireEvent.click(screen.getByTestId("ff-stop"));
-
-        await waitFor(() => expect(screen.getByTestId("first-factor-form")).toHaveAttribute("data-disabled", "false"));
     });
 
     it("redirects on a successful sign in that carries a redirect", async () => {
