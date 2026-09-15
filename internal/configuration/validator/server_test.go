@@ -1041,11 +1041,11 @@ func TestServerAuthzEndpointHeaders(t *testing.T) {
 		{
 			name: "ShouldErrorOnUnknownAttributes",
 			headers: map[string]schema.ServerEndpointsAuthzHeader{
-				"Remote-Email": {UserAttribute: "email"},
+				"Remote-Mail":  {UserAttribute: "mail"},
 				"Remote-Teams": {UserAttribute: "teams"},
 			},
 			errs: []string{
-				"server: endpoints: authz: example: headers: Remote-Email: option 'user_attribute' must be a known user attribute but it's configured as 'email'",
+				"server: endpoints: authz: example: headers: Remote-Mail: option 'user_attribute' must be a known user attribute but it's configured as 'mail'",
 				"server: endpoints: authz: example: headers: Remote-Teams: option 'user_attribute' must be a known user attribute but it's configured as 'teams'",
 			},
 		},
