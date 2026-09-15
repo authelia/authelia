@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.27](https://github.com/authelia/authelia/releases/tag/v4.39.27)
 - [Komodo]
   - [v1.17.5](https://github.com/moghtech/komodo/releases/tag/v1.17.5)
 
