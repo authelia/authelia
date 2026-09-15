@@ -491,10 +491,10 @@ Where relevant Authelia enforces validation of the JWT type header (`typ`) again
 is done to prevent JWTs from being used in a way which is not intended. Specifically the following types are accepted by
 default:
 
-|             Use Case              |         JWT Type Header Value         |  Empty Permitted   |                                          Reference                                          |
-|:---------------------------------:|:-------------------------------------:|:------------------:|:-------------------------------------------------------------------------------------------:|
-|         Client Assertion          |      `client-authentication+jwt`      |         No         | [RFC7523bis](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4) |
-| JWT-Secured Authorization Request | `oauth-authz-req+jwt` or `JWT`        | Only when unsigned |              [RFC9101](https://www.rfc-editor.org/rfc/rfc9101.html#section-4)               |
+|             Use Case              |     JWT Type Header Value      |  Empty Permitted   |                                          Reference                                          |
+| :-------------------------------: | :----------------------------: | :----------------: | :-----------------------------------------------------------------------------------------: |
+|         Client Assertion          |  `client-authentication+jwt`   |         No         | [RFC7523bis](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4) |
+| JWT-Secured Authorization Request | `oauth-authz-req+jwt` or `JWT` | Only when unsigned |              [RFC9101](https://www.rfc-editor.org/rfc/rfc9101.html#section-4)               |
 
 For JWT-Secured Authorization Requests the generic `JWT` type is also accepted, and the header may be absent entirely
 when the client is registered with a [request_object_signing_alg] of `none`, as [OpenID Connect 1.0] does not require
