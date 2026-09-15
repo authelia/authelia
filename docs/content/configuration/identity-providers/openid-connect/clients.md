@@ -1277,7 +1277,9 @@ The fully qualified, `https` scheme, and appropriately signed URI for the JWKs e
 time. It's recommended that you configure this option to account for key rotation instead of [jwks](#jwks).
 
 This option or the [jwks](#jwks) option configures the trusted JSON Web Keys or JWKs for this registered client.
-This section is situationally required. These are used to validate the [JWT] assertions from clients.
+This section is situationally required. These are the public keys Authelia uses to validate the signed [JWT] assertions
+from clients such as [Client Assertions] and Request Objects. The client retains the corresponding private keys, which
+must never be shared with Authelia.
 
 Required when the following options are configured:
 
@@ -1322,7 +1324,9 @@ not be configured at the same time. It's recommended that you configure the [jwk
 key rotation instead of this option.
 
 This option or the [jwks_uri](#jwks_uri) option configures the trusted JSON Web Keys or JWKs for this registered client.
-This section is situationally required. These are used to validate the [JWT] assertions from clients.
+This section is situationally required. These are the public keys Authelia uses to validate the signed [JWT] assertions
+from clients such as [Client Assertions] and Request Objects. The client retains the corresponding private keys, which
+must never be shared with Authelia.
 
 Required when the following options are configured:
 
