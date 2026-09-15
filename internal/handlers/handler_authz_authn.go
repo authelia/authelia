@@ -170,6 +170,14 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 		}
 
 		return authn, fmt.Errorf("unable to retrieve details for user '%s': %w", userSession.Username, err)
+	} else if details == nil || details.GetUsername() == "" {
+		ctx.GetLogger().WithField("username", userSession.Username).Error("Error occurred while attempting to get user details for user: no user details were returned")
+
+		if err = manager.DestroySession(); err != nil {
+			ctx.GetLogger().WithError(err).Errorf("Unable to destroy user session")
+		}
+
+		return authn, fmt.Errorf("unable to retrieve details for user '%s': no user details were returned", userSession.Username)
 	}
 
 	return &Authn{
