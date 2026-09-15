@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Files"
-description: "Using the YAML File Configuration Method."
+description: "Using the YAML, TOML, and JSON File Configuration Method."
 summary: "Authelia can be configured via files. This section describes utilizing this method."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -48,7 +48,20 @@ from the context of the container more easily.
 
 ## Formats
 
-The only supported configuration file format is [YAML](#yaml).
+The supported configuration file formats are [YAML](#yaml), [TOML](#toml), and [JSON](#json). The format of each file
+is determined by its extension:
+
+|    Format     |   Extensions    |
+| :-----------: | :-------------: |
+| [YAML](#yaml) | `.yml`, `.yaml` |
+| [TOML](#toml) |     `.toml`     |
+| [JSON](#json) |     `.json`     |
+
+Files with any other extension are parsed as [YAML](#yaml) for backwards compatibility when they are explicitly
+specified, and are skipped entirely when they are discovered within a directory.
+
+Formats can be freely mixed. Multiple configuration files of differing formats are merged exactly the same way as
+multiple files of the same format, see [Multiple Configuration Files](#multiple-configuration-files).
 
 It's important that you sufficiently validate your configuration file. While we produce console errors for users in many
 misconfiguration scenarios it's not perfect. Each file type has recommended methods for validation.
@@ -85,6 +98,53 @@ a set of JSON schemas which you can include as a special comment in order to val
 [JSON Schema reference guide](../../reference/guides/schemas.md#json-schema) for more information including instructions
 on how to utilize the schemas.
 
+### TOML
+
+_Authelia_ loads a configuration file with the `.toml` extension using the [TOML](https://toml.io/) parser. For example:
+
+{{< envTabs "Run With TOML Configuration" >}}
+{{< envTab "Docker" >}}
+
+```bash
+docker run authelia/authelia:latest authelia --config configuration.toml
+```
+
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+
+```bash
+authelia --config configuration.toml
+```
+
+{{< /envTab >}}
+{{< /envTabs >}}
+
+### JSON
+
+_Authelia_ loads a configuration file with the `.json` extension using the JSON parser. For example:
+
+{{< envTabs "Run With JSON Configuration" >}}
+{{< envTab "Docker" >}}
+
+```bash
+docker run authelia/authelia:latest authelia --config configuration.json
+```
+
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+
+```bash
+authelia --config configuration.json
+```
+
+{{< /envTab >}}
+{{< /envTabs >}}
+
+#### JSON Validation
+
+The [JSON schemas](../../reference/guides/schemas.md#json-schema) we publish can be referenced directly from a JSON
+configuration file via the `$schema` property, which most editors will use to validate the file as you edit it.
+
 ## Multiple Configuration Files
 
 You can have multiple configuration files which will be merged in the order specified. If duplicate keys are specified
@@ -115,8 +175,8 @@ authelia --config configuration.yml,config-acl.yml,config-other.yml
 {{< /envTab >}}
 {{< /envTabs >}}
 
-Authelia's configuration files use the YAML format. A template with all possible options can be found at the root of the
-repository {{< github-link name="here" path="config.template.yml" >}}.
+A template with all possible options can be found at the root of the repository
+{{< github-link name="here" path="config.template.yml" >}}.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 You should not have configuration sections such as Access Control Rules or OpenID Connect 1.0

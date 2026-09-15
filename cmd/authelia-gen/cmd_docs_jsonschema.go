@@ -264,6 +264,8 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 
 	schema := r.Reflect(v)
 
+	jsonSchemaAddSchemaProperty(schema)
+
 	for _, versionName := range versions {
 		var out string
 
@@ -294,6 +296,29 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 	}
 
 	return nil
+}
+
+// jsonSchemaAddSchemaProperty adds the '$schema' property to the root object so JSON files may reference the schema
+// without failing validation, as the root object does not allow additional properties.
+func jsonSchemaAddSchemaProperty(schema *jsonschema.Schema) {
+	root := schema
+
+	if name, ok := strings.CutPrefix(schema.Ref, "#/$defs/"); ok {
+		if def, ok := schema.Definitions[name]; ok {
+			root = def
+		}
+	}
+
+	if root.Properties == nil {
+		return
+	}
+
+	root.Properties.Set("$schema", &jsonschema.Schema{
+		Type:        "string",
+		Format:      "uri",
+		Title:       "JSON Schema",
+		Description: "The JSON Schema which applies to this file.",
+	})
 }
 
 func jsonSchemaVersionTarget(version *model.SemanticVersion, versions []string) (target model.SemanticVersion, err error) {
@@ -332,7 +357,7 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 		}
 	}
 
-	if f, err = os.Create(filepath.Join(dir, version, pathJSONSchema, file+extJSON)); err != nil {
+	if f, err = os.Create(filepath.Join(dir, version, pathJSONSchema, file+utils.ExtJSON)); err != nil {
 		return err
 	}
 
