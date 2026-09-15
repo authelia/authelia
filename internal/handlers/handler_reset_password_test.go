@@ -665,5 +665,5 @@ func setTestPasswordResetUsername(t *testing.T, mock *mocks.MockAutheliaCtx) {
 
 	us.PasswordResetUsername = &username
 
-	require.NoError(t, mock.Ctx.SaveSession(us))
+	require.NoError(t, mock.Ctx.SaveSession(&us))
 }
