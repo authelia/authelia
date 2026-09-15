@@ -13,6 +13,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -340,14 +341,26 @@ func normalizeValues(value any) (normalized any, err error) {
 
 		return v, nil
 	case json.Number:
-		if i, ierr := v.Int64(); ierr == nil {
-			return i, nil
-		}
-
-		return v.Float64()
+		return normalizeJSONNumber(v)
 	default:
 		return value, nil
 	}
+}
+
+func normalizeJSONNumber(v json.Number) (normalized any, err error) {
+	if i, ierr := v.Int64(); ierr == nil {
+		return i, nil
+	}
+
+	if strings.ContainsAny(v.String(), ".eE") {
+		return v.Float64()
+	}
+
+	if u, uerr := strconv.ParseUint(v.String(), 10, 64); uerr == nil {
+		return u, nil
+	}
+
+	return nil, fmt.Errorf("integer '%s' is out of range", v)
 }
 
 func mergeValues(dst, src map[string]any) {

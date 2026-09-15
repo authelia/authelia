@@ -163,6 +163,17 @@ func TestNewFileFiltersValuesFiles(t *testing.T) {
 	}
 }
 
+func TestTemplateFilterShouldRenderLargeJSONIntegersExactly(t *testing.T) {
+	filters, err := NewFileFilters([]string{"./test_resources/config_values.numbers.large.json"}, "template")
+	require.NoError(t, err)
+	require.Len(t, filters, 1)
+
+	out, err := filters[0].Filter([]byte("big: {{ .Values.Big }}\nmax: {{ .Values.Max }}\n"))
+	require.NoError(t, err)
+
+	assert.Equal(t, "big: 9223372036854775808\nmax: 18446744073709551615\n", string(out))
+}
+
 func TestLoadValuesFile(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -244,6 +255,21 @@ func TestLoadValuesFile(t *testing.T) {
 			"./test_resources/config_values.list.yml",
 			nil,
 			"error parsing values file: the top-level value must be a mapping but it's a []interface {}",
+		},
+		{
+			"ShouldLoadJSONIntegersAboveMaxInt64WithoutRounding",
+			"./test_resources/config_values.numbers.large.json",
+			map[string]any{
+				"Big": uint64(9223372036854775808),
+				"Max": uint64(18446744073709551615),
+			},
+			"",
+		},
+		{
+			"ShouldErrorOnJSONIntegersAboveMaxUint64",
+			"./test_resources/config_values.numbers.overflow.json",
+			nil,
+			"error parsing values file: integer '18446744073709551616' is out of range",
 		},
 		{
 			"ShouldErrorOnKeysCollidingAfterNormalization",
