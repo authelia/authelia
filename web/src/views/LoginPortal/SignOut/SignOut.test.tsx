@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { checkSafePostLogoutRedirection } from "@services/SafeRedirection";
 import { signOut } from "@services/SignOut";
 import SignOut from "@views/LoginPortal/SignOut/SignOut";
 
@@ -28,8 +29,10 @@ vi.mock("@constants/Routes", () => ({
 }));
 
 vi.mock("@constants/SearchParams", () => ({
+    Confirm: "confirm",
     RedirectionRestoreURL: "rd_restore",
     RedirectionURL: "rd",
+    State: "state",
 }));
 
 vi.mock("@contexts/NotificationsContext", () => ({
@@ -54,10 +57,15 @@ vi.mock("@layouts/MinimalLayout", () => ({
     default: (props: any) => <div data-testid="layout">{props.children}</div>,
 }));
 
+vi.mock("@services/SafeRedirection", () => ({
+    checkSafePostLogoutRedirection: vi.fn(),
+}));
+
 vi.mock("@services/SignOut", () => ({
     signOut: vi.fn(),
 }));
 
+const checkSafeRedirectionMock = vi.mocked(checkSafePostLogoutRedirection);
 const signOutMock = vi.mocked(signOut);
 
 async function advance(ms: number) {
@@ -73,6 +81,7 @@ beforeEach(() => {
     mocks.redirectionURL = null;
     mocks.searchParams = new URLSearchParams();
     signOutMock.mockResolvedValue({ safeTargetURL: false } as any);
+    checkSafeRedirectionMock.mockResolvedValue({ ok: false } as any);
 });
 
 afterEach(() => {
@@ -208,5 +217,98 @@ describe("failures", () => {
         await advance(2000);
 
         expect(mocks.navigate).not.toHaveBeenCalled();
+    });
+});
+
+describe("confirmation", () => {
+    it("signs out immediately when confirmation is not requested", async () => {
+        render(<SignOut />);
+
+        expect(screen.queryByText(/Are you sure you want to sign out\?/)).not.toBeInTheDocument();
+        await waitFor(() => expect(signOutMock).toHaveBeenCalled());
+    });
+
+    it("asks for confirmation before signing out", async () => {
+        mocks.searchParams = new URLSearchParams({ confirm: "true" });
+
+        render(<SignOut />);
+
+        expect(screen.getByText(/Are you sure you want to sign out\?/)).toBeInTheDocument();
+        expect(signOutMock).not.toHaveBeenCalled();
+    });
+
+    it("signs out once the confirmation is accepted", async () => {
+        mocks.searchParams = new URLSearchParams({ confirm: "true" });
+
+        render(<SignOut />);
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("Sign out"));
+        });
+
+        await waitFor(() => expect(signOutMock).toHaveBeenCalled());
+        expect(screen.getByText(/You're being signed out and redirected/)).toBeInTheDocument();
+    });
+
+    it("does not sign out when the confirmation is rejected", async () => {
+        vi.useFakeTimers();
+        mocks.searchParams = new URLSearchParams({ confirm: "true" });
+
+        render(<SignOut />);
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("Cancel"));
+        });
+
+        expect(signOutMock).not.toHaveBeenCalled();
+        expect(mocks.navigate).toHaveBeenCalledWith("/");
+    });
+
+    it("redirects to a safe target URL when the confirmation is rejected", async () => {
+        vi.useFakeTimers();
+        mocks.searchParams = new URLSearchParams({ confirm: "true" });
+        mocks.redirectionURL = "https://app.example.com";
+        checkSafeRedirectionMock.mockResolvedValue({ ok: true } as any);
+
+        render(<SignOut />);
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("Cancel"));
+        });
+
+        expect(signOutMock).not.toHaveBeenCalled();
+        expect(mocks.redirector).toHaveBeenCalledWith("https://app.example.com");
+    });
+});
+
+describe("state", () => {
+    it("appends the state to a safe target URL", async () => {
+        vi.useFakeTimers();
+        mocks.searchParams = new URLSearchParams({ state: "abc123" });
+        mocks.redirectionURL = "https://app.example.com/logged-out";
+        signOutMock.mockResolvedValue({ safeTargetURL: true } as any);
+
+        render(<SignOut />);
+
+        await vi.waitFor(() => expect(signOutMock).toHaveBeenCalled());
+
+        await advance(2000);
+
+        expect(mocks.redirector).toHaveBeenCalledWith("https://app.example.com/logged-out?state=abc123");
+    });
+
+    it("preserves existing query parameters on the target URL", async () => {
+        vi.useFakeTimers();
+        mocks.searchParams = new URLSearchParams({ state: "abc123" });
+        mocks.redirectionURL = "https://app.example.com/logged-out?foo=bar";
+        signOutMock.mockResolvedValue({ safeTargetURL: true } as any);
+
+        render(<SignOut />);
+
+        await vi.waitFor(() => expect(signOutMock).toHaveBeenCalled());
+
+        await advance(2000);
+
+        expect(mocks.redirector).toHaveBeenCalledWith("https://app.example.com/logged-out?foo=bar&state=abc123");
     });
 });

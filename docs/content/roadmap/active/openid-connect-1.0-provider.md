@@ -192,6 +192,18 @@ See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Pro
 
 {{< roadmap-status stage="in-progress" version="v4.40.0" >}}
 
+Breaking Changes:
+
+- Removal of plaintext passwords except in cases that explicitly require them (HMAC-based client auth methods)
+
+Feature List:
+
+- [OpenID Connect RP-Initiated Logout 1.0](#openid-connect-rp-initiated-logout-10)
+
+### Beta 9
+
+{{< roadmap-status stage="in-progress" version="v4.41.0" >}}
+
 {{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 This version will contain one or more breaking changes per our
 [Versioning Policy](../../policies/versioning.md#experimental-features).
@@ -227,7 +239,7 @@ Potential Feature List:
 - Injecting Bearer JSON Web Tokens into Requests (backend authentication)
 - Revoke Tokens on User Logout or Expiration
 
-### Beta 9
+### Beta 10
 
 {{< roadmap-status >}}
 
@@ -236,7 +248,6 @@ Feature List:
 - [OpenID Connect Session Management 1.0](#openid-connect-session-management-10)
 - [OpenID Connect Back-Channel Logout 1.0](#openid-connect-back-channel-logout-10)
 - [OpenID Connect Front-Channel Logout 1.0](#openid-connect-front-channel-logout-10)
-- [OpenID Connect RP-Initiated Logout 1.0](#openid-connect-rp-initiated-logout-10)
 - [OpenID Connect Client-Initiated Backchannel Authentication Flow 1.0 (CIBA)](#openid-connect-client-initiated-backchannel-authentication-flow-10-ciba)
 
 Potential Feature List:
@@ -321,12 +332,17 @@ See also [Beta 9](#beta-9).
 
 #### OpenID Connect Back-Channel Logout 1.0
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="in-progress" version="v4.40.0" >}}
 
 For more information see the [OpenID Connect 1.0] website for the [OpenID Connect Back-Channel Logout 1.0]
 specification.
 
-Should be implemented at a similar time to [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
+The provider discovery metadata, the `backchannel_logout_uri` and `backchannel_logout_session_required` client
+metadata, and the delivery of signed Logout Tokens are implemented. Logout Tokens are not delivered yet as this
+requires recording which clients participated in which End-User session, which in turn depends on the session
+identifier (the `sid` claim) introduced by the session rework. This is also why
+`backchannel_logout_session_supported` is `false` in the discovery document, and why a client which registers
+`backchannel_logout_session_required` is skipped.
 
 See also [Beta 9](#beta-9).
 

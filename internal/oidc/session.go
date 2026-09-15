@@ -45,13 +45,17 @@ func NewSessionWithIssuerAndRequestedAt(ctx Context, issuer *url.URL, requestedA
 }
 
 // NewSessionWithRequester uses details from a Requester to generate an OpenIDSession.
-func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
+//
+// The sid is the identifier of the End-User session at this provider and may be empty, in which case the 'sid'
+// claim is omitted.
+func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username, sid string, amr []string, extra map[string]any,
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester oauthelia2.Requester, claims *ClaimsRequests) (session *Session) {
 	session = NewSessionWithRequestedAt(ctx.GetClock().Now())
 
 	session.SetValuesFromRequester(requester)
 	session.SetValuesFromConsentSession(consent)
 	session.SetValuesGeneral(ctx, issuer, kid, username, amr, authTime, claims, extra)
+	session.SetValuesSessionID(sid)
 
 	return session
 }
@@ -241,6 +245,22 @@ func (s *Session) SetValuesGeneral(ctx Context, issuer *url.URL, kid string, use
 	if len(extra) != 0 {
 		s.Claims.Extra = extra
 	}
+}
+
+// SetValuesSessionID sets the 'sid' claim which identifies the End-User session at this provider.
+//
+// The claim appears in ID Tokens, and in the Logout Tokens delivered by OpenID Connect Back-Channel Logout 1.0
+// where it lets a Relying Party log out the single session which ended rather than every session belonging to the
+// subject. Clients which register 'backchannel_logout_session_required' are only notified when it's present.
+//
+// An empty value leaves the claim absent, which is the correct representation of this provider not tracking a
+// session identifier.
+func (s *Session) SetValuesSessionID(sid string) {
+	if len(sid) == 0 {
+		return
+	}
+
+	s.Claims.SessionID = sid
 }
 
 // GetChallengeID returns the challenge id.

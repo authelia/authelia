@@ -430,6 +430,16 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC"
   },
   {
+    "path": "identity_providers.oidc.backchannel_logout.concurrency",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_BACKCHANNEL_LOGOUT_CONCURRENCY"
+  },
+  {
+    "path": "identity_providers.oidc.backchannel_logout.lifespan",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_BACKCHANNEL_LOGOUT_LIFESPAN"
+  },
+  {
     "path": "identity_providers.oidc.cors.allowed_origins_from_client_redirect_uris",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_CORS_ALLOWED_ORIGINS_FROM_CLIENT_REDIRECT_URIS"

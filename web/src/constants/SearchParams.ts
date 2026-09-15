@@ -26,6 +26,10 @@ export const DecisionAccepted: string = "accepted";
 
 export const DecisionRejected: string = "rejected";
 
+export const Confirm: string = "confirm";
+
+export const State: string = "state";
+
 export const Error: string = "error";
 
 export const ErrorDescription: string = "error_description";

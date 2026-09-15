@@ -50,6 +50,8 @@ identity_providers:
           - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/callback'
         request_uris:
           - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oidc/request-object.jwk'
+        backchannel_logout_uri: 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/logout/backchannel'
+        backchannel_logout_session_required: false
         audience:
           - 'https://app.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
@@ -229,17 +231,17 @@ useful for SPA's and CLI tools. This option requires setting the [client secret]
 
 {{< confkey type="list(string)" required="yes" >}}
 
-A list of valid callback URIs this client will redirect to. All other callbacks will be considered unsafe. The URIs are
-case-sensitive and they differ from application to application - the community has provided
-[a list of URL´s for common applications](../../../integration/openid-connect/introduction.md).
+A list of valid callback URIs this client will redirect to after authorization. All other callbacks will be considered
+unsafe. The URIs are case-sensitive and they differ from application to application. All redirect URIs are matched as
+per the requirements in the specification i.e. no patterns and it is an exact match.
 
-Some restrictions that have been placed on clients and
-their redirect URIs are as follows:
+The community has [provided configurations](../../../integration/openid-connect/introduction.md) for lots of common
+applications which may include example values.
+
+Some restrictions that have been placed on clients and their redirect URIs are as follows:
 
 1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
    attempt to authorize will fail and an error will be generated.
-2. The redirect URIs are case-sensitive.
-3. The URI must include a scheme and that scheme must be one of `http` or `https`.
 
 ### request_uris
 
@@ -249,6 +251,58 @@ A list of URIs which can be used for the OpenID Connect 1.0 Request Object to pa
 JSON Web Token remote URI using the `request_uri` parameter.
 
 These URIs must have the `https` scheme.
+
+### post_logout_redirect_uris
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of valid callback URIs this client will redirect to after a relying-party initiated logout. All other callbacks
+will be considered unsafe. The URIs are case-sensitive and they differ from application to application. All redirect
+URIs are matched as per the requirements in the specification i.e. no patterns and it is an exact match.
+
+The community has [provided configurations](../../../integration/openid-connect/introduction.md) for lots of common
+applications which may include example values.
+
+Some restrictions that have been placed on clients and their post logout redirect URIs are as follows:
+
+1. If a client attempts to perform an end session request with Authelia and its redirect URI is not listed in the client
+   configuration the attempt to perform the end session will fail and an error will be generated.
+2. The URI must be absolute i.e. it must include a scheme.
+3. The URI must not include a fragment component.
+
+### backchannel_logout_uri
+
+{{< confkey type="string" required="no" >}}
+
+The URI Authelia sends a Logout Token to when a session this client participated in ends, as per
+[OpenID Connect Back-Channel Logout 1.0]. Clients without this option configured are never notified.
+
+Authelia makes this request itself rather than the browser making it, so unlike the
+[redirect_uris](#redirect_uris) this URI must be reachable from Authelia. The `https` scheme is strongly recommended as
+the Logout Token identifies the End-User.
+
+Some restrictions that have been placed on this URI are as follows:
+
+1. The URI must be absolute i.e. it must include a scheme.
+2. The URI must not include a fragment component.
+
+Delivery is best effort. A client which is unreachable, or which rejects its Logout Token, is logged and does not
+prevent the other clients being notified or affect the End-User being logged out of Authelia.
+
+[OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html
+
+### backchannel_logout_session_required
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Whether this client requires the `sid` claim, which identifies the specific End-User session which ended, to be included
+in the Logout Tokens it is sent.
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Authelia does not currently include the `sid` claim in the tokens it issues, which is reflected by the
+`backchannel_logout_session_supported` value of the discovery document being `false`. While that remains the case a
+client with this option enabled is always skipped and is never sent a Logout Token.
+{{< /callout >}}
 
 ### audience
 
