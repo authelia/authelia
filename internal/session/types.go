@@ -63,6 +63,15 @@ type Strategy interface {
 	Save(ctx Context, userSession *UserSession) (err error)
 	Regenerate(ctx Context) (err error)
 	Destroy(ctx Context) (err error)
+
+	// CSRFToken returns the CSRF token bound to the session cookie of the request, or an empty string when there is none.
+	CSRFToken(ctx Context) (token string)
+
+	// VerifyCSRFToken returns true if the token is the CSRF token bound to the session cookie of the request.
+	VerifyCSRFToken(ctx Context, token string) bool
+
+	// SetCSRFCookie delivers the CSRF token bound to the session cookie of the request to the user agent.
+	SetCSRFCookie(ctx Context)
 }
 
 // The Record is a session as a Repository holds it. It carries the signature the session is stored against alongside

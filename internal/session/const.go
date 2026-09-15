@@ -25,6 +25,17 @@ const (
 	cookieDeletionOffset = time.Hour * 24
 )
 
+const (
+	// CSRFCookieName is the name of the cookie which delivers the CSRF token for the current session to the user agent.
+	CSRFCookieName = "authelia_csrf"
+
+	// csrfTokenPrefix separates the data the CSRF token is derived from and the data the session signature is derived
+	// from, as both are the session cookie value signed with the same key, and the latter is stored in the Repository.
+	//
+	//nolint:gosec
+	csrfTokenPrefix = "authelia:csrf:"
+)
+
 var (
 	expireUnlimited time.Time
 )

@@ -131,6 +131,7 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	p.setCached(ctx, session)
 
 	ctx.SetCookie(cookie)
+	ctx.SetCookie(p.newCSRFCookie(id, cookie.Expires))
 
 	return nil
 }
@@ -167,7 +168,10 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 		}
 	}
 
-	ctx.SetCookie(p.newCookie(id, p.getExpires(expiration)))
+	expires := p.getExpires(expiration)
+
+	ctx.SetCookie(p.newCookie(id, expires))
+	ctx.SetCookie(p.newCSRFCookie(id, expires))
 
 	return nil
 }
@@ -197,9 +201,81 @@ func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
 
 	p.setCached(ctx, nil)
 
+	ctx.ClearCookie(p.newCSRFDeletionCookie())
 	ctx.ClearCookie(p.newDeletionCookie())
 
 	return nil
+}
+
+// CSRFToken returns the CSRF token bound to the session cookie of the request, returning an empty string when the
+// request has no session cookie. The token is derived from the session cookie value rather than stored, so it changes
+// whenever the session identifier is regenerated and can't be learned from the Repository.
+func (p *DefaultStrategy) CSRFToken(ctx Context) (token string) {
+	if id := p.getCookieID(ctx); len(id) != 0 {
+		return p.csrfToken(id)
+	}
+
+	return ""
+}
+
+// VerifyCSRFToken returns true if the token is the CSRF token bound to the session cookie of the request, comparing
+// them in constant time. A request without a session cookie never has a valid token.
+func (p *DefaultStrategy) VerifyCSRFToken(ctx Context, token string) bool {
+	id := p.getCookieID(ctx)
+
+	if len(id) == 0 || len(token) == 0 {
+		return false
+	}
+
+	return p.codec.Verify([]byte(csrfTokenPrefix+id), token)
+}
+
+// SetCSRFCookie delivers the CSRF token bound to the session cookie of the request to the user agent, which allows a
+// session established before the token cookie existed to obtain it. A request without a session cookie, or with one
+// which can't be read, has no token to deliver.
+func (p *DefaultStrategy) SetCSRFCookie(ctx Context) {
+	id := p.getCookieID(ctx)
+
+	if len(id) == 0 {
+		return
+	}
+
+	_, session, err := p.get(ctx)
+	if err != nil || session == nil {
+		return
+	}
+
+	ctx.SetCookie(p.newCSRFCookie(id, p.getExpires(p.getExpiration(*session))))
+}
+
+func (p *DefaultStrategy) csrfToken(id string) (token string) {
+	return p.codec.Sign([]byte(csrfTokenPrefix + id))
+}
+
+// newCSRFCookie returns the cookie which delivers the CSRF token for the given session identifier. It's deliberately
+// readable by scripts so the portal can echo it in a request header, which is why it carries the token rather than the
+// session identifier. It has no domain so it's only sent to the host which issued it, and expires with the session
+// cookie so a remembered session retains its token.
+func (p *DefaultStrategy) newCSRFCookie(id string, expires time.Time) (cookie *http.Cookie) {
+	return p.newCSRFCookieValue(p.csrfToken(id), expires)
+}
+
+// newCSRFDeletionCookie returns an expired form of the CSRF token cookie which instructs the user agent to discard it.
+func (p *DefaultStrategy) newCSRFDeletionCookie() (cookie *http.Cookie) {
+	return p.newCSRFCookieValue("", p.clock.Now().Add(-cookieDeletionOffset))
+}
+
+func (p *DefaultStrategy) newCSRFCookieValue(value string, expires time.Time) (cookie *http.Cookie) {
+	//nolint:gosec // The cookie is deliberately readable by scripts, and carries a token derived from the session rather than the session identifier.
+	return &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    value,
+		Path:     "/",
+		Expires:  expires,
+		Secure:   true,
+		HttpOnly: false,
+		SameSite: http.SameSiteStrictMode,
+	}
 }
 
 func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err error) {

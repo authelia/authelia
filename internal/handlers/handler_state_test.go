@@ -15,6 +15,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestRunStateGetSuite(t *testing.T) {
@@ -129,4 +130,38 @@ func (s *StateGetSuite) TestShouldOmitDefaultRedirectionURLWhenNotConfigured() {
 
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "", actualBody.Data.DefaultRedirectionURL)
+}
+
+func (s *StateGetSuite) TestShouldDeliverCSRFTokenForExistingSession() {
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	userSession.Username = "john"
+	s.Require().NoError(s.mock.Ctx.SaveSession(&userSession))
+
+	s.mock.Ctx.Response.Header.DelAllCookies()
+
+	StateGET(s.mock.Ctx)
+
+	provider, err := s.mock.Ctx.GetSessionProvider()
+	s.Require().NoError(err)
+
+	cookie := &fasthttp.Cookie{}
+	cookie.SetKey(session.CSRFCookieName)
+
+	s.Require().True(s.mock.Ctx.Response.Header.Cookie(cookie))
+	s.Assert().NotEmpty(string(cookie.Value()))
+	s.Assert().Equal(provider.CSRFToken(s.mock.Ctx), string(cookie.Value()))
+	s.Assert().False(cookie.HTTPOnly())
+	s.Assert().True(provider.VerifyCSRFToken(s.mock.Ctx, string(cookie.Value())))
+}
+
+func (s *StateGetSuite) TestShouldNotDeliverCSRFTokenForAnonymousRequest() {
+	StateGET(s.mock.Ctx)
+
+	cookie := &fasthttp.Cookie{}
+	cookie.SetKey(session.CSRFCookieName)
+
+	s.Assert().Equal(fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
+	s.Assert().False(s.mock.Ctx.Response.Header.Cookie(cookie))
 }

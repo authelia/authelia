@@ -290,6 +290,114 @@ func TestDefaultStrategy_DestroyShouldClearCookieMatchingTheCookieItSet(t *testi
 	}
 }
 
+func TestDefaultStrategy_CSRFTokenShouldBeEmptyForAnonymousRequest(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	assert.Empty(t, strategy.CSRFToken(ctx))
+	assert.False(t, strategy.VerifyCSRFToken(ctx, ""))
+	assert.False(t, strategy.VerifyCSRFToken(ctx, "not-a-token"))
+
+	strategy.SetCSRFCookie(ctx)
+
+	assert.NotContains(t, ctx.cookies, CSRFCookieName)
+}
+
+func TestDefaultStrategy_SaveShouldDeliverVerifiableCSRFToken(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	token := ctx.cookies[CSRFCookieName]
+
+	require.NotEmpty(t, token)
+	assert.Equal(t, strategy.CSRFToken(ctx), token)
+	assert.True(t, strategy.VerifyCSRFToken(ctx, token))
+	assert.False(t, strategy.VerifyCSRFToken(ctx, ""))
+	assert.False(t, strategy.VerifyCSRFToken(ctx, token+"00"))
+	assert.False(t, strategy.VerifyCSRFToken(ctx, ctx.cookies[testName]))
+
+	assert.NotEqual(t, ctx.cookies[testName], token)
+
+	for key := range repository.data {
+		assert.NotContains(t, key, token)
+	}
+
+	cookie := ctx.set[CSRFCookieName]
+
+	require.NotNil(t, cookie)
+	assert.Equal(t, "", cookie.Domain)
+	assert.Equal(t, "/", cookie.Path)
+	assert.True(t, cookie.Secure)
+	assert.False(t, cookie.HttpOnly)
+	assert.Equal(t, http.SameSiteStrictMode, cookie.SameSite)
+	assert.False(t, cookie.Expires.IsZero())
+	assert.Equal(t, ctx.set[testName].Expires, cookie.Expires)
+}
+
+func TestDefaultStrategy_RegenerateShouldRotateCSRFToken(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	original := ctx.cookies[CSRFCookieName]
+
+	require.NoError(t, strategy.Regenerate(ctx))
+
+	regenerated := ctx.cookies[CSRFCookieName]
+
+	require.NotEmpty(t, regenerated)
+	assert.NotEqual(t, original, regenerated)
+	assert.True(t, strategy.VerifyCSRFToken(ctx, regenerated))
+	assert.False(t, strategy.VerifyCSRFToken(ctx, original))
+}
+
+func TestDefaultStrategy_DestroyShouldClearCSRFToken(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	token := ctx.cookies[CSRFCookieName]
+
+	require.NoError(t, strategy.Destroy(ctx))
+
+	assert.NotContains(t, ctx.cookies, CSRFCookieName)
+	assert.Empty(t, strategy.CSRFToken(ctx))
+	assert.False(t, strategy.VerifyCSRFToken(ctx, token))
+}
+
+func TestDefaultStrategy_SetCSRFCookieShouldDeliverTokenForExistingSession(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	token := ctx.cookies[CSRFCookieName]
+
+	delete(ctx.cookies, CSRFCookieName)
+
+	strategy.SetCSRFCookie(ctx)
+
+	assert.Equal(t, token, ctx.cookies[CSRFCookieName])
+	assert.True(t, strategy.VerifyCSRFToken(ctx, ctx.cookies[CSRFCookieName]))
+}
+
 func TestDefaultStrategy_DestroyShouldNotErrorForAnonymousRequest(t *testing.T) {
 	repository := newTestRepository()
 	strategy := newTestStrategyWithRepository(t, repository, nil)
@@ -518,6 +626,7 @@ type testContext struct {
 	context.Context
 
 	cookies map[string]string
+	set     map[string]*http.Cookie
 	cleared *http.Cookie
 }
 
@@ -527,6 +636,7 @@ func (c *testContext) GetCookie(name string) string {
 
 func (c *testContext) SetCookie(cookie *http.Cookie) {
 	c.cookies[cookie.Name] = cookie.Value
+	c.set[cookie.Name] = cookie
 }
 
 func (c *testContext) ClearCookie(cookie *http.Cookie) {
@@ -680,7 +790,7 @@ func newTestCodec(t *testing.T) Codec {
 }
 
 func newTestContext() *testContext {
-	return &testContext{Context: context.Background(), cookies: map[string]string{}}
+	return &testContext{Context: context.Background(), cookies: map[string]string{}, set: map[string]*http.Cookie{}}
 }
 
 func newTestRepository() *testRepository {

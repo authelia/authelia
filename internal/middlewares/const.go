@@ -30,6 +30,7 @@ var (
 	headerVary         = []byte(fasthttp.HeaderVary)
 	headerOrigin       = []byte(fasthttp.HeaderOrigin)
 	headerSecFetchSite = []byte("Sec-Fetch-Site")
+	headerXCSRFToken   = []byte("X-CSRF-Token")
 
 	headerAccessControlAllowCredentials = []byte(fasthttp.HeaderAccessControlAllowCredentials)
 	headerAccessControlAllowHeaders     = []byte(fasthttp.HeaderAccessControlAllowHeaders)
