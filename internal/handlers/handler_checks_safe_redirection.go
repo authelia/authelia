@@ -13,6 +13,17 @@ import (
 
 // CheckSafeRedirectionPOST handler checking whether the redirection to a given URL provided in body is safe.
 func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
+	checkSafeRedirection(ctx, ctx.IsSafeRedirectionTargetURI)
+}
+
+// CheckSafePostLogoutRedirectionPOST handler checking whether the redirection to a given URL provided in body is safe
+// as the destination of a logout. It additionally permits the post logout redirect URIs registered by OpenID Connect
+// 1.0 clients, which are not safe destinations for any other redirection.
+func CheckSafePostLogoutRedirectionPOST(ctx *middlewares.AutheliaCtx) {
+	checkSafeRedirection(ctx, ctx.IsSafePostLogoutRedirectionTargetURI)
+}
+
+func checkSafeRedirection(ctx *middlewares.AutheliaCtx, safe func(targetURI *url.URL) bool) {
 	var (
 		s   session.UserSession
 		err error
@@ -46,7 +57,7 @@ func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(checkURIWithinDomainResponseBody{OK: ctx.IsSafeRedirectionTargetURI(targetURI)}); err != nil {
+	if err = ctx.SetJSONBody(checkURIWithinDomainResponseBody{OK: safe(targetURI)}); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred setting the safe redirection response body")
 		ctx.SetJSONError(messageOperationFailed)
 

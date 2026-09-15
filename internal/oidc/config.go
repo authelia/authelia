@@ -80,6 +80,10 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		Config:   c,
 	}
 
+	c.Strategy.IDTokenValidation = &openid.DefaultIDTokenValidationStrategy{
+		Strategy: c.Strategy.JWT,
+	}
+
 	return c
 }
 
@@ -1114,8 +1118,7 @@ func (c *Config) GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ct
 	return false
 }
 
-// GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout. It has no
-// default and may be nil.
+// GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout.
 func (c *Config) GetIDTokenValidationStrategy(ctx context.Context) (strategy oauthelia2.TokenValidationStrategy) {
 	return c.Strategy.IDTokenValidation
 }

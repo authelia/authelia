@@ -5,6 +5,7 @@
 package oidc
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -69,6 +70,7 @@ func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer st
 	options.UserinfoEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathUserinfo)
 	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathIntrospection)
 	options.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathRevocation)
+	options.EndSessionEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathEndSession)
 
 	return options
 }
@@ -81,4 +83,24 @@ func (p *OpenIDConnectProvider) WriteDynamicAuthorizeError(ctx Context, rw http.
 	case oauthelia2.AuthorizeRequester:
 		p.WriteAuthorizeError(ctx, rw, r, err)
 	}
+}
+
+// RPInitiatedLogoutProvider is implemented by an oauthelia2.Provider which supports parsing and validating
+// OpenID Connect RP-Initiated Logout 1.0 end session requests.
+type RPInitiatedLogoutProvider interface {
+	NewRPInitiatedLogoutRequest(ctx context.Context, r *http.Request) (requester oauthelia2.RPInitiatedLogoutRequester, err error)
+}
+
+// NewRPInitiatedLogoutRequest parses and validates an OpenID Connect RP-Initiated Logout 1.0 end session request.
+//
+// It does not authenticate the client, end any session, or write a response. On error the returned requester never
+// has a post logout redirect URI, so an error can't be redirected to an unvalidated URI.
+func (p *OpenIDConnectProvider) NewRPInitiatedLogoutRequest(ctx context.Context, r *http.Request) (requester oauthelia2.RPInitiatedLogoutRequester, err error) {
+	provider, ok := p.Provider.(RPInitiatedLogoutProvider)
+	if !ok {
+		return oauthelia2.NewRPInitiatedLogoutRequest(), oauthelia2.ErrServerError.
+			WithDebug("The OpenID Connect 1.0 Provider does not support RP-Initiated Logout.")
+	}
+
+	return provider.NewRPInitiatedLogoutRequest(ctx, r)
 }
