@@ -122,12 +122,13 @@ run_scorecard() {
     #
     # Probe outcomes are not usable for this as their polarity is per probe: pinsDependencies reports False for an
     # unpinned dependency, while hasDangerousWorkflowScriptInjection reports True for an injection. A detail ending
-    # in path:line is reported there, and one describing the project as a whole against the scorecard workflow.
+    # in path:line, optionally a line range and scorecard remediation text, is reported there, and one describing
+    # the project as a whole against the scorecard workflow.
     findings=$(jq -r --arg anchor "${SCORECARD_ANCHOR}" '
       .checks[] | select(.score >= 0 and .score < 10) | .name as $check | (.details // [])[]
       | select(startswith("Warn: ")) | ltrimstr("Warn: ") | . as $detail
-      | (capture("^(?<msg>.*): (?<path>[^ :]+):(?<line>[0-9]+)$") // {msg: $detail, path: $anchor, line: "0"})
-      | "\(.path):\([(.line | tonumber), 1] | max):1: [\($check)] \(.msg)"
+      | (capture("^(?<msg>.*): (?<path>[^ :]+):(?<line>[0-9]+)(-[0-9]+)?(?<extra>: .*)?$") // {msg: $detail, path: $anchor, line: "0"})
+      | "\(.path):\([(.line | tonumber), 1] | max):1: [\($check)] \(.msg)\(.extra // "")"
     ' "${out}")
     if [ -n "${findings}" ]; then
       printf '%s\n' "${findings}"
