@@ -304,7 +304,7 @@ func TestDefaultStrategy_CSRFTokenShouldBeEmptyForAnonymousRequest(t *testing.T)
 
 	assert.NoError(t, strategy.SetCSRFCookie(ctx))
 
-	assert.NotContains(t, ctx.cookies, CSRFCookieName)
+	assert.NotContains(t, ctx.cookies, testNameCSRF)
 }
 
 func TestDefaultStrategy_CSRFTokenShouldReturnNoSessionForUnknownSessionCookie(t *testing.T) {
@@ -321,7 +321,7 @@ func TestDefaultStrategy_CSRFTokenShouldReturnNoSessionForUnknownSessionCookie(t
 
 	assert.NoError(t, strategy.SetCSRFCookie(ctx))
 
-	assert.NotContains(t, ctx.cookies, CSRFCookieName)
+	assert.NotContains(t, ctx.cookies, testNameCSRF)
 }
 
 func TestDefaultStrategy_SaveShouldDeliverVerifiableCSRFToken(t *testing.T) {
@@ -334,7 +334,7 @@ func TestDefaultStrategy_SaveShouldDeliverVerifiableCSRFToken(t *testing.T) {
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	token := ctx.cookies[CSRFCookieName]
+	token := ctx.cookies[testNameCSRF]
 
 	require.NotEmpty(t, token)
 	assert.Len(t, userSession.CSRF, 32)
@@ -356,7 +356,7 @@ func TestDefaultStrategy_SaveShouldDeliverVerifiableCSRFToken(t *testing.T) {
 		assert.NotContains(t, key, token)
 	}
 
-	cookie := ctx.set[CSRFCookieName]
+	cookie := ctx.set[testNameCSRF]
 
 	require.NotNil(t, cookie)
 	assert.Equal(t, "", cookie.Domain)
@@ -381,7 +381,7 @@ func TestDefaultStrategy_VerifyCSRFTokenShouldRejectTokenOfAnotherCookieDomain(t
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	token := ctx.cookies[CSRFCookieName]
+	token := ctx.cookies[testNameCSRF]
 
 	require.NotEmpty(t, token)
 	assert.NoError(t, strategy.VerifyCSRFToken(ctx, token))
@@ -399,11 +399,11 @@ func TestDefaultStrategy_RegenerateShouldRotateCSRFToken(t *testing.T) {
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	original := ctx.cookies[CSRFCookieName]
+	original := ctx.cookies[testNameCSRF]
 
 	require.NoError(t, strategy.Regenerate(ctx))
 
-	regenerated := ctx.cookies[CSRFCookieName]
+	regenerated := ctx.cookies[testNameCSRF]
 
 	require.NotEmpty(t, regenerated)
 	assert.NotEqual(t, original, regenerated)
@@ -420,11 +420,11 @@ func TestDefaultStrategy_DestroyShouldClearCSRFToken(t *testing.T) {
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	token := ctx.cookies[CSRFCookieName]
+	token := ctx.cookies[testNameCSRF]
 
 	require.NoError(t, strategy.Destroy(ctx))
 
-	assert.NotContains(t, ctx.cookies, CSRFCookieName)
+	assert.NotContains(t, ctx.cookies, testNameCSRF)
 
 	actual, err := strategy.CSRFToken(ctx)
 
@@ -442,14 +442,14 @@ func TestDefaultStrategy_SetCSRFCookieShouldDeliverTokenForExistingSession(t *te
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	token := ctx.cookies[CSRFCookieName]
+	token := ctx.cookies[testNameCSRF]
 
-	delete(ctx.cookies, CSRFCookieName)
+	delete(ctx.cookies, testNameCSRF)
 
 	require.NoError(t, strategy.SetCSRFCookie(ctx))
 
-	assert.Equal(t, token, ctx.cookies[CSRFCookieName])
-	assert.NoError(t, strategy.VerifyCSRFToken(ctx, ctx.cookies[CSRFCookieName]))
+	assert.Equal(t, token, ctx.cookies[testNameCSRF])
+	assert.NoError(t, strategy.VerifyCSRFToken(ctx, ctx.cookies[testNameCSRF]))
 }
 
 func TestDefaultStrategy_SaveShouldPreserveCSRFSecret(t *testing.T) {
@@ -461,13 +461,13 @@ func TestDefaultStrategy_SaveShouldPreserveCSRFSecret(t *testing.T) {
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	original := ctx.cookies[CSRFCookieName]
+	original := ctx.cookies[testNameCSRF]
 
 	userSession.KeepMeLoggedIn = true
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	assert.Equal(t, original, ctx.cookies[CSRFCookieName])
+	assert.Equal(t, original, ctx.cookies[testNameCSRF])
 	assert.NoError(t, strategy.VerifyCSRFToken(ctx, original))
 }
 
@@ -481,11 +481,11 @@ func TestDefaultStrategy_RegenerateCSRFTokenShouldRotateWithoutChangingSessionId
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
 	sessionCookie := ctx.cookies[testName]
-	original := ctx.cookies[CSRFCookieName]
+	original := ctx.cookies[testNameCSRF]
 
 	require.NoError(t, strategy.RegenerateCSRFToken(ctx))
 
-	regenerated := ctx.cookies[CSRFCookieName]
+	regenerated := ctx.cookies[testNameCSRF]
 
 	assert.Equal(t, sessionCookie, ctx.cookies[testName])
 	require.NotEmpty(t, regenerated)
@@ -525,7 +525,7 @@ func TestDefaultStrategy_SetCSRFCookieShouldGenerateSecretForSessionWithoutOne(t
 
 	repository.data[repository.key(sid, concrete.issuer)] = data
 
-	delete(ctx.cookies, CSRFCookieName)
+	delete(ctx.cookies, testNameCSRF)
 
 	token, err := strategy.CSRFToken(ctx)
 
@@ -534,7 +534,7 @@ func TestDefaultStrategy_SetCSRFCookieShouldGenerateSecretForSessionWithoutOne(t
 
 	require.NoError(t, strategy.SetCSRFCookie(ctx))
 
-	token = ctx.cookies[CSRFCookieName]
+	token = ctx.cookies[testNameCSRF]
 
 	require.NotEmpty(t, token)
 	assert.NoError(t, strategy.VerifyCSRFToken(ctx, token))

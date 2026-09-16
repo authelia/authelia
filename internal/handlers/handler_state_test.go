@@ -147,7 +147,7 @@ func (s *StateGetSuite) TestShouldDeliverCSRFTokenForExistingSession() {
 	s.Require().NoError(err)
 
 	cookie := &fasthttp.Cookie{}
-	cookie.SetKey(session.CSRFCookieName)
+	cookie.SetKey(session.CSRFCookieName("authelia_session"))
 
 	token, err := provider.CSRFToken(s.mock.Ctx)
 	s.Require().NoError(err)
@@ -163,7 +163,7 @@ func (s *StateGetSuite) TestShouldNotDeliverCSRFTokenForAnonymousRequest() {
 	StateGET(s.mock.Ctx)
 
 	cookie := &fasthttp.Cookie{}
-	cookie.SetKey(session.CSRFCookieName)
+	cookie.SetKey(session.CSRFCookieName("authelia_session"))
 
 	s.Assert().Equal(fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	s.Assert().False(s.mock.Ctx.Response.Header.Cookie(cookie))

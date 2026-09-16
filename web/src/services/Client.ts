@@ -4,7 +4,7 @@
 
 import axios from "axios";
 
-import { CSRFCookieName, CSRFHeaderName } from "@constants/constants";
+import { CSRFHeaderName } from "@constants/constants";
 import {
     RateLimitedData,
     ServiceResponse,
@@ -13,8 +13,9 @@ import {
     toDataRateLimited,
     validateStatusTooManyRequests,
 } from "@services/Api";
+import { getCSRFCookieName } from "@utils/Configuration";
 
-axios.defaults.xsrfCookieName = CSRFCookieName;
+axios.defaults.xsrfCookieName = getCSRFCookieName();
 axios.defaults.xsrfHeaderName = CSRFHeaderName;
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;

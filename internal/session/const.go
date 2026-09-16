@@ -30,13 +30,11 @@ const (
 )
 
 const (
-	// CSRFCookieName is the name of the cookie which delivers the CSRF token for the current session to the user agent.
-	CSRFCookieName = "authelia_csrf"
+	// CSRFCookieNameSuffix is appended to the session cookie name to derive the name of the cookie which delivers the
+	// CSRF token for the current session to the user agent, so that the token cookie of each session cookie domain is
+	// distinctly named.
+	CSRFCookieNameSuffix = "_csrf"
 
-	// csrfTokenPrefix identifies the data the CSRF token is derived from, which is the cookie domain and the random CSRF
-	// secret of the session. The token is signed with a key dedicated to CSRF, so this is defense in depth rather than
-	// the only separation from other signed data such as the session identifier.
-	//
 	//nolint:gosec
 	csrfTokenPrefix = "authelia:csrf:"
 )

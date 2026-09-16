@@ -449,33 +449,53 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 
 func TestTemplatedFileOptionsCommonData(t *testing.T) {
 	testCases := []struct {
-		name       string
-		rememberMe string
-		expectedRM string
+		name           string
+		rememberMe     string
+		csrfCookieName string
+		expectedRM     string
+		expectedCSRF   string
 	}{
 		{
 			"ShouldReturnDefaultRememberMe",
 			"",
+			"",
 			"true",
+			"authelia_session_csrf",
 		},
 		{
 			"ShouldOverrideRememberMe",
 			"false",
+			"",
 			"false",
+			"authelia_session_csrf",
+		},
+		{
+			"ShouldOverrideCSRFCookieName",
+			"",
+			"example2_session_csrf",
+			"true",
+			"example2_session_csrf",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			opts := NewTemplatedFileOptions(&schema.Configuration{})
+			opts := NewTemplatedFileOptions(&schema.Configuration{
+				Session: schema.Session{
+					SessionCookieCommon: schema.SessionCookieCommon{
+						Name: "authelia_session",
+					},
+				},
+			})
 
-			data := opts.CommonData("/", "/", "example.com", "nonce123", "en", "", tc.rememberMe)
+			data := opts.CommonData("/", "/", "example.com", "nonce123", "en", "", tc.rememberMe, tc.csrfCookieName)
 
 			assert.Equal(t, "/", data.Base)
 			assert.Equal(t, "example.com", data.Domain)
 			assert.Equal(t, "nonce123", data.CSPNonce)
 			assert.Equal(t, "en", data.Language)
 			assert.Equal(t, tc.expectedRM, data.RememberMe)
+			assert.Equal(t, tc.expectedCSRF, data.CSRFCookieName)
 		})
 	}
 }

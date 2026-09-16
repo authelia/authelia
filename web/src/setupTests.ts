@@ -43,6 +43,7 @@ const localStorageMock: LocalStorageMock = (function () {
 Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
 
 document.body.dataset.basepath = "";
+document.body.dataset.csrfcookiename = "authelia_session_csrf";
 document.body.dataset.duoselfenrollment = "true";
 document.body.dataset.rememberme = "true";
 document.body.dataset.resetpassword = "true";

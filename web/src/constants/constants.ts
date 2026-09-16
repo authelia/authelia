@@ -13,5 +13,4 @@ export const EncodedURL = [
     89, 50, 57, 116,
 ];
 
-export const CSRFCookieName = "authelia_csrf";
 export const CSRFHeaderName = "X-CSRF-Token";

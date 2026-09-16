@@ -322,6 +322,12 @@ func (p *DefaultStrategy) csrfTokenMessage(secret []byte) (message []byte) {
 	return append(message, secret...)
 }
 
+// CSRFCookieName returns the name of the cookie which delivers the CSRF token of the session stored in the cookie with
+// the given name to the user agent.
+func CSRFCookieName(name string) string {
+	return name + CSRFCookieNameSuffix
+}
+
 func (p *DefaultStrategy) newCSRFCookie(secret []byte, expires time.Time) (cookie *http.Cookie) {
 	return p.newCSRFCookieValue(p.csrfToken(secret), expires)
 }
@@ -333,7 +339,7 @@ func (p *DefaultStrategy) newCSRFDeletionCookie() (cookie *http.Cookie) {
 func (p *DefaultStrategy) newCSRFCookieValue(value string, expires time.Time) (cookie *http.Cookie) {
 	//nolint:gosec // The cookie is deliberately readable by scripts, and carries a token derived from the session rather than the session identifier.
 	return &http.Cookie{
-		Name:     CSRFCookieName,
+		Name:     CSRFCookieName(p.config.Name),
 		Value:    value,
 		Path:     "/",
 		Expires:  expires,
