@@ -15,7 +15,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
 )
 
 type StateGetSuite struct {
@@ -37,7 +36,7 @@ func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 	s.Assert().NoError(err)
 
 	userSession.Username = "username"
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 
 	StateGET(s.mock.Ctx)
 
@@ -69,7 +68,7 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 
 	userSession.Username = "john"
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 	require.NoError(s.T(), err)
 
 	StateGET(s.mock.Ctx)
@@ -109,11 +108,8 @@ func (s *StateGetSuite) TestShouldReturnForbiddenWhenSessionProviderUnavailable(
 }
 
 func (s *StateGetSuite) TestShouldOmitDefaultRedirectionURLWhenNotConfigured() {
-	config := s.mock.Ctx.Configuration.Session
-
-	config.Cookies[0].DefaultRedirectionURL = nil
-
-	s.mock.Ctx.Providers.SessionProvider = session.NewProvider(config, nil)
+	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = nil
+	s.mock.ResetSessionProvider()
 
 	StateGET(s.mock.Ctx)
 

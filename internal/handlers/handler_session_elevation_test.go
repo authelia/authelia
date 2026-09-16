@@ -19,6 +19,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -44,7 +45,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{
 					DisplayName: testDisplayName,
@@ -70,7 +71,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{
 					DisplayName: testDisplayName,
@@ -96,7 +97,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{
 					DisplayName: testDisplayName,
@@ -122,7 +123,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{
 					DisplayName: testDisplayName,
@@ -147,7 +148,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.AuthenticationMethodRefs.WebAuthn = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
@@ -166,7 +167,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.AuthenticationMethodRefs.WebAuthn = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
@@ -210,7 +211,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					Expires:  mock.Clock.Now().Add(10 * time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600}}`,
 			fasthttp.StatusOK,
@@ -232,7 +233,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					Expires:  mock.Clock.Now().Add(10 * time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600}}`,
 			fasthttp.StatusOK,
@@ -254,7 +255,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					Expires:  mock.Clock.Now().Add(10 * time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
@@ -284,7 +285,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					Expires:  mock.Clock.Now().Add(-time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":-60}}`,
 			fasthttp.StatusOK,
@@ -338,12 +339,9 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
-
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.RandomMock.EXPECT().
@@ -364,6 +362,9 @@ func TestUserSessionElevationPOST(t *testing.T) {
 							Code:      []byte("ABC123ABC1"),
 						}).
 						Return("abc123", nil),
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq(testUsername)).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.NotifierMock.EXPECT().Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Confirm your identity", gomock.Any(), templates.EmailIdentityVerificationOTCValues{
 						Title:              "Confirm your identity",
 						RevocationLinkURL:  "https://login.example.com:8080/revoke/one-time-code?id=AQIDBAUGRyKJEBESExQVAA",
@@ -388,12 +389,9 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
-
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.RandomMock.EXPECT().
@@ -414,6 +412,9 @@ func TestUserSessionElevationPOST(t *testing.T) {
 							Code:      []byte("ABC123ABC1"),
 						}).
 						Return("abc123", nil),
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq(testUsername)).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.NotifierMock.EXPECT().Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Confirm your identity", gomock.Any(), templates.EmailIdentityVerificationOTCValues{
 						Title:              "Confirm your identity",
 						RevocationLinkURL:  "https://login.example.com:8080/revoke/one-time-code?id=AQIDBAUGRyKJEBESExQVAA",
@@ -440,12 +441,10 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.RandomMock.EXPECT().
@@ -482,12 +481,9 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
-
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.RandomMock.EXPECT().
@@ -513,12 +509,9 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
-
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.RandomMock.EXPECT().
@@ -562,7 +555,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 			},
@@ -620,12 +613,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -662,12 +653,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -726,12 +715,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -766,12 +753,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"otc":ABC123ABC1"}`,
 			`{"status":"KO","message":"Operation failed."}`,
@@ -788,12 +773,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"otc":"ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1"}`,
 			`{"status":"KO","message":"Operation failed."}`,
@@ -810,12 +793,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -854,12 +835,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:         1,
@@ -895,12 +874,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -936,12 +913,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -976,12 +951,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -1016,12 +989,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.
@@ -1045,12 +1016,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.
@@ -1122,12 +1091,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -1164,12 +1131,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -1208,12 +1173,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.
@@ -1237,12 +1200,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -1277,12 +1238,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:         1,
@@ -1318,12 +1277,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				code := &model.OneTimeCode{
 					ID:        1,
@@ -1359,12 +1316,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.
@@ -1388,12 +1343,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			base64.RawURLEncoding.EncodeToString([]byte("abc")),
 			`{"status":"KO","message":"Operation failed."}`,
@@ -1410,12 +1363,10 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.DisplayName = testDisplayName
-				us.Emails = []string{"john@example.com"}
 
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			"=====123123",
 			`{"status":"KO","message":"Operation failed."}`,
@@ -1476,12 +1427,10 @@ func TestUserSessionElevationPOSTShouldRegenerateSessionForPreventingSessionFixa
 	require.NoError(t, err)
 
 	us.Username = testUsername
-	us.DisplayName = testDisplayName
-	us.Emails = []string{"john@example.com"}
 
 	us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-	require.NoError(t, mock.Ctx.SaveSession(us))
+	require.NoError(t, mock.Ctx.SaveSession(&us))
 
 	gomock.InOrder(
 		mock.RandomMock.EXPECT().
@@ -1494,6 +1443,9 @@ func TestUserSessionElevationPOSTShouldRegenerateSessionForPreventingSessionFixa
 		mock.StorageMock.EXPECT().
 			SaveOneTimeCode(mock.Ctx, gomock.Any()).
 			Return("abc123", nil),
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 		mock.NotifierMock.EXPECT().
 			Send(mock.Ctx, gomock.Any(), "Confirm your identity", gomock.Any(), gomock.Any()).
 			Return(nil),
@@ -1526,12 +1478,10 @@ func TestUserSessionElevationPUTShouldRegenerateSessionForPreventingSessionFixat
 	require.NoError(t, err)
 
 	us.Username = testUsername
-	us.DisplayName = testDisplayName
-	us.Emails = []string{"john@example.com"}
 
 	us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-	require.NoError(t, mock.Ctx.SaveSession(us))
+	require.NoError(t, mock.Ctx.SaveSession(&us))
 
 	code := &model.OneTimeCode{
 		ID:        1,
