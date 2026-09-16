@@ -8,24 +8,6 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// The SecurityHeaders middleware adds several modern recommended security headers with safe values.
-func SecurityHeaders(next fasthttp.RequestHandler) fasthttp.RequestHandler {
-	return func(ctx *fasthttp.RequestCtx) {
-		SetStandardSecurityHeaders(ctx)
-
-		next(ctx)
-	}
-}
-
-// The SecurityHeadersRelaxed middleware adds several modern recommended security headers with relaxed values.
-func SecurityHeadersRelaxed(next fasthttp.RequestHandler) fasthttp.RequestHandler {
-	return func(ctx *fasthttp.RequestCtx) {
-		SetRelaxedSecurityHeaders(ctx)
-
-		next(ctx)
-	}
-}
-
 // The SecurityHeadersBase middleware adds several modern recommended security headers with relaxed values.
 func SecurityHeadersBase(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
@@ -35,22 +17,14 @@ func SecurityHeadersBase(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	}
 }
 
-// The SetStandardSecurityHeaders function adds several modern recommended security headers with safe values.
-func SetStandardSecurityHeaders(ctx *fasthttp.RequestCtx) {
-	SetBaseSecurityHeaders(ctx)
+// The SecurityHeadersCORPCrossOrigin middleware overrides the Cross-Origin-Resource-Policy header with the value
+// 'cross-origin'. It must be applied after SecurityHeadersBase, which sets the restrictive value it overrides.
+func SecurityHeadersCORPCrossOrigin(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		SetSecurityHeadersCORPCrossOrigin(ctx)
 
-	ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueSameOrigin)
-	ctx.Response.Header.SetBytesKV(headerCrossOriginEmbedderPolicy, headerValueRequireCORP)
-	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueSameSite)
-}
-
-// The SetRelaxedSecurityHeaders function adds several modern recommended security headers with relaxed values.
-func SetRelaxedSecurityHeaders(ctx *fasthttp.RequestCtx) {
-	SetBaseSecurityHeaders(ctx)
-
-	ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueSameOrigin)
-	ctx.Response.Header.SetBytesKV(headerCrossOriginEmbedderPolicy, headerValueUnsafeNone)
-	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueCrossOrigin)
+		next(ctx)
+	}
 }
 
 // SetBaseSecurityHeaders sets the security headers applied to every response.
@@ -60,6 +34,13 @@ func SetBaseSecurityHeaders(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetBytesKV(headerPermissionsPolicy, headerValuePermissionsPolicy)
 	ctx.Response.Header.SetBytesKV(headerXFrameOptions, headerValueDENY)
 	ctx.Response.Header.SetBytesKV(headerXDNSPrefetchControl, headerValueOff)
+	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueSameOrigin)
+}
+
+// SetSecurityHeadersCORPCrossOrigin sets the Cross-Origin-Resource-Policy header with the value 'cross-origin', for the
+// deliberately public responses which a Relying Party is expected to fetch from another origin.
+func SetSecurityHeadersCORPCrossOrigin(ctx *fasthttp.RequestCtx) {
+	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueCrossOrigin)
 }
 
 // SecurityHeadersCSPNone middleware adds the Content-Security-Policy header with the value "default-src 'none';".

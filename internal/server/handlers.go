@@ -150,7 +150,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		WithPreMiddlewares(middlewares.SecurityHeadersBase).Build()
 
 	bridgeSwagger := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeadersRelaxed, middlewares.SecurityHeadersCSPSelf).Build()
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersCSPSelf).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet).
@@ -390,10 +390,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 // RegisterOpenIDConnectRoutes handles registration of OpenID Connect 1.0 routes.
 func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration, providers middlewares.Providers) {
-	middlewareAPI := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-		Build()
-
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet).
 		WithAllowedOrigins("*").
@@ -403,19 +399,26 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		middlewares.SecurityHeadersBase, middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
 	).Build()
 
+	// The discovery documents and the JSON Web Key Set are deliberately public, so unlike every other response they
+	// permit another origin to load them as a subresource.
+	bridgePublic := middlewares.NewBridgeBuilder(*config, providers).WithPreMiddlewares(
+		middlewares.SecurityHeadersBase, middlewares.SecurityHeadersCORPCrossOrigin,
+		middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
+	).Build()
+
 	r.GET(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), bridge(handlers.OAuth2ConsentGET)))
 	r.POST(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), bridge(handlers.OAuth2ConsentPOST)))
 
 	allowedOrigins := utils.StringSliceFromURLs(config.IdentityProviders.OIDC.CORS.AllowedOrigins)
 
 	r.OPTIONS(oidc.EndpointPathWellKnownOAuthAuthorizationServer, policyCORSPublicGET.HandleOPTIONS)
-	r.GET(oidc.EndpointPathWellKnownOAuthAuthorizationServer, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "oauth_configuration"), policyCORSPublicGET.Middleware(bridge(handlers.WellKnownOAuthAuthorizationServerGET))))
+	r.GET(oidc.EndpointPathWellKnownOAuthAuthorizationServer, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "oauth_configuration"), policyCORSPublicGET.Middleware(bridgePublic(handlers.WellKnownOAuthAuthorizationServerGET))))
 
 	r.OPTIONS(oidc.EndpointPathWellKnownOpenIDConfiguration, policyCORSPublicGET.HandleOPTIONS)
-	r.GET(oidc.EndpointPathWellKnownOpenIDConfiguration, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "openid_configuration"), policyCORSPublicGET.Middleware(bridge(handlers.WellKnownOpenIDConfigurationGET))))
+	r.GET(oidc.EndpointPathWellKnownOpenIDConfiguration, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "openid_configuration"), policyCORSPublicGET.Middleware(bridgePublic(handlers.WellKnownOpenIDConfigurationGET))))
 
 	r.OPTIONS(oidc.EndpointPathJWKs, policyCORSPublicGET.HandleOPTIONS)
-	r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(middlewareAPI(handlers.OAuth2JSONWebKeySetGET))))
+	r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(bridgePublic(handlers.OAuth2JSONWebKeySetGET))))
 
 	policyCORSAuthorization := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).

@@ -467,7 +467,7 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err er
 			return
 		}
 
-		middlewares.SetStandardSecurityHeaders(ctx.RequestCtx)
+		middlewares.SetBaseSecurityHeaders(ctx.RequestCtx)
 		middlewares.SetContentTypeApplicationJSON(ctx.RequestCtx)
 
 		switch {

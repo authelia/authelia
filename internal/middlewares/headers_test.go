@@ -19,38 +19,6 @@ func TestHeaders(t *testing.T) {
 		expect     func(t *testing.T, ctx *fasthttp.RequestCtx)
 	}{
 		{
-			"ShouldHandleSecurityHeaders",
-			SecurityHeaders,
-			nil,
-			func(t *testing.T, ctx *fasthttp.RequestCtx) {
-				assert.Equal(t, "nosniff", string(ctx.Response.Header.Peek(fasthttp.HeaderXContentTypeOptions)))
-				assert.Equal(t, "strict-origin-when-cross-origin", string(ctx.Response.Header.Peek(fasthttp.HeaderReferrerPolicy)))
-				assert.Equal(t, "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()", string(ctx.Response.Header.Peek("Permissions-Policy")))
-				assert.Equal(t, "DENY", string(ctx.Response.Header.Peek(fasthttp.HeaderXFrameOptions)))
-				assert.Equal(t, "off", string(ctx.Response.Header.Peek("X-DNS-Prefetch-Control")))
-
-				assert.Equal(t, "same-origin", string(ctx.Response.Header.Peek("Cross-Origin-Opener-Policy")))
-				assert.Equal(t, "require-corp", string(ctx.Response.Header.Peek("Cross-Origin-Embedder-Policy")))
-				assert.Equal(t, "same-site", string(ctx.Response.Header.Peek("Cross-Origin-Resource-Policy")))
-			},
-		},
-		{
-			"ShouldHandleSecurityHeadersRelaxed",
-			SecurityHeadersRelaxed,
-			nil,
-			func(t *testing.T, ctx *fasthttp.RequestCtx) {
-				assert.Equal(t, "nosniff", string(ctx.Response.Header.Peek(fasthttp.HeaderXContentTypeOptions)))
-				assert.Equal(t, "strict-origin-when-cross-origin", string(ctx.Response.Header.Peek(fasthttp.HeaderReferrerPolicy)))
-				assert.Equal(t, "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()", string(ctx.Response.Header.Peek("Permissions-Policy")))
-				assert.Equal(t, "DENY", string(ctx.Response.Header.Peek(fasthttp.HeaderXFrameOptions)))
-				assert.Equal(t, "off", string(ctx.Response.Header.Peek("X-DNS-Prefetch-Control")))
-
-				assert.Equal(t, "same-origin", string(ctx.Response.Header.Peek("Cross-Origin-Opener-Policy")))
-				assert.Equal(t, "unsafe-none", string(ctx.Response.Header.Peek("Cross-Origin-Embedder-Policy")))
-				assert.Equal(t, "cross-origin", string(ctx.Response.Header.Peek("Cross-Origin-Resource-Policy")))
-			},
-		},
-		{
 			"ShouldHandleSecurityHeadersBase",
 			SecurityHeadersBase,
 			nil,
@@ -60,6 +28,25 @@ func TestHeaders(t *testing.T) {
 				assert.Equal(t, "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()", string(ctx.Response.Header.Peek("Permissions-Policy")))
 				assert.Equal(t, "DENY", string(ctx.Response.Header.Peek(fasthttp.HeaderXFrameOptions)))
 				assert.Equal(t, "off", string(ctx.Response.Header.Peek("X-DNS-Prefetch-Control")))
+
+				assert.Equal(t, "same-origin", string(ctx.Response.Header.Peek("Cross-Origin-Resource-Policy")))
+
+				// The popup based OpenID Connect 1.0 authorization flow of a Relying Party depends on these remaining unset.
+				assert.Empty(t, string(ctx.Response.Header.Peek("Cross-Origin-Opener-Policy")))
+				assert.Empty(t, string(ctx.Response.Header.Peek("Cross-Origin-Embedder-Policy")))
+			},
+		},
+		{
+			"ShouldOverrideCORSResourcePolicyForPublicResources",
+			func(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+				return SecurityHeadersBase(SecurityHeadersCORPCrossOrigin(next))
+			},
+			nil,
+			func(t *testing.T, ctx *fasthttp.RequestCtx) {
+				assert.Equal(t, "cross-origin", string(ctx.Response.Header.Peek("Cross-Origin-Resource-Policy")))
+
+				assert.Equal(t, "nosniff", string(ctx.Response.Header.Peek(fasthttp.HeaderXContentTypeOptions)))
+				assert.Empty(t, string(ctx.Response.Header.Peek("Cross-Origin-Opener-Policy")))
 			},
 		},
 		{

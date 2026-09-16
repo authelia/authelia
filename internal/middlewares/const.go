@@ -48,8 +48,6 @@ var (
 	headerContentType           = []byte(fasthttp.HeaderContentType)
 
 	headerPermissionsPolicy         = []byte("Permissions-Policy")
-	headerCrossOriginOpenerPolicy   = []byte("Cross-Origin-Opener-Policy")
-	headerCrossOriginEmbedderPolicy = []byte("Cross-Origin-Embedder-Policy")
 	headerCrossOriginResourcePolicy = []byte("Cross-Origin-Resource-Policy")
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
 )
@@ -78,9 +76,6 @@ var (
 	headerValueDENY                    = []byte("DENY")
 	headerValueSameOrigin              = []byte("same-origin")
 	headerValueCrossOrigin             = []byte("cross-origin")
-	headerValueSameSite                = []byte("same-site")
-	headerValueUnsafeNone              = []byte("unsafe-none")
-	headerValueRequireCORP             = []byte("require-corp")
 	headerValueNoCache                 = []byte(HeaderPragmaNoCache)
 	headerValueNoStore                 = []byte(HeaderCacheControlNotStore)
 	headerValuePermissionsPolicy       = []byte("accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()")
