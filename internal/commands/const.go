@@ -822,8 +822,10 @@ const (
 	cmdFlagNameConfig    = "config"
 	cmdFlagEnvNameConfig = "X_AUTHELIA_CONFIG"
 
-	cmdFlagNameConfigExpFilters = "config.experimental.filters"
-	cmdFlagEnvNameConfigFilters = "X_AUTHELIA_CONFIG_FILTERS"
+	cmdFlagNameConfigExpFilters       = "config.experimental.filters"
+	cmdFlagNameConfigFiltersValues    = "config.filters.values"
+	cmdFlagEnvNameConfigFilters       = "X_AUTHELIA_CONFIG_FILTERS"
+	cmdFlagEnvNameConfigFiltersValues = "X_AUTHELIA_CONFIG_FILTERS_VALUES"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
@@ -923,19 +925,28 @@ var (
 const (
 	helpTopicConfigFilters = `Configuration Filters are a system for templating configuration files.
 
-Using the --config.experimental.filters flag users can define multiple filters to apply to all configuration files that
-are loaded by Authelia. These filters are applied after loading the file data from the filesystem, but before they are
-parsed by the relevant file format parser.
+To configure a list of filters use the --config.experimental.filters flag or the X_AUTHELIA_CONFIG_FILTERS environment
+variable. Multiple filters can be specified which apply to all configuration files that are loaded by Authelia. These
+filters are applied after loading the file data from the filesystem, but before they are parsed by the relevant file
+format parser.
 
 The filters are processed in the order specified, and the content of each configuration file is logged as a base64 raw
 string when the log level is set to trace.
+
+To make values available to the filters you can use the --config.filters.values flag or the
+X_AUTHELIA_CONFIG_FILTERS_VALUES environment variable to specify the paths of one or more values files which will be
+parsed for this purpose. The supported file extensions are '.yml', '.yaml', '.json', and '.toml'. Multiple files are
+loaded in the order specified, and the values from later files are deep-merged over the values from earlier files. The
+values files are only loaded when one of the configured filters utilizes them, otherwise they're ignored and a warning
+is logged.
 
 The following filters are available:
 
 	template:
 
 		This filter uses the go template system to filter the file. In addition to the standard functions, several
-		custom functions exist to facilitate this process.
+		custom functions exist to facilitate this process. This filter has access to the data from the values files via
+		the '.Values' field, and the Authelia version and build metadata via the '.Authelia' field.
 
 		For a full list of functions see: https://www.authelia.com/reference/guides/templating/#functions
 

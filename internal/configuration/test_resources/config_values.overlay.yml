@@ -1,0 +1,7 @@
+# yamllint disable-file
+---
+Example:
+  Value: 'dark'
+Extra:
+  Added: 'yes'
+...
