@@ -69,11 +69,6 @@ webauthn:
     validate_status_permitted: []
     validate_status_prohibited: []
 
-duo_api:
-  hostname: 'duo.example.com'
-  integration_key: 'ABCDEFGHIJKL'
-  secret_key: 'abcdefghijklmnopqrstuvwxyz123456789'
-
 access_control:
   default_policy: bypass
   rules:
