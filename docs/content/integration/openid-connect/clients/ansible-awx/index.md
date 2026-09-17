@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.27](https://github.com/authelia/authelia/releases/tag/v4.39.27)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Ansible AWX]
   - [v24.6.1](https://github.com/ansible/awx/releases/tag/24.6.1)
 
