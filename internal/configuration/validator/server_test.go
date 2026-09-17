@@ -581,6 +581,36 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			[]string{"server: endpoints: authz: legacy: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"},
 		},
 		{
+			"ShouldErrorOnHeadersCookieSessionWithLegacyImplementationNamedLegacy",
+			map[string]schema.ServerEndpointsAuthz{
+				"legacy": {Implementation: "Legacy", Headers: schema.ServerEndpointsAuthzHeaders{CookieSession: true}},
+			},
+			[]string{"server: endpoints: authz: legacy: headers: option 'cookie_session' can't be enabled for an endpoint with the 'Legacy' implementation"},
+		},
+		{
+			"ShouldErrorOnHeadersCookieSessionWithLegacyImplementationBlankNamedLegacy",
+			map[string]schema.ServerEndpointsAuthz{
+				"legacy": {Headers: schema.ServerEndpointsAuthzHeaders{CookieSession: true}},
+			},
+			[]string{"server: endpoints: authz: legacy: headers: option 'cookie_session' can't be enabled for an endpoint with the 'Legacy' implementation"},
+		},
+		{
+			"ShouldErrorOnHeadersCookieSessionWithLegacyImplementation",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "Legacy", Headers: schema.ServerEndpointsAuthzHeaders{CookieSession: true}},
+			},
+			[]string{"server: endpoints: authz: example: headers: option 'cookie_session' can't be enabled for an endpoint with the 'Legacy' implementation"},
+		},
+		{
+			"ShouldAllowHeadersCookieSessionWithNonLegacyImplementations",
+			map[string]schema.ServerEndpointsAuthz{
+				"forward-auth": {Implementation: "ForwardAuth", Headers: schema.ServerEndpointsAuthzHeaders{CookieSession: true}},
+				"ext-authz":    {Implementation: "ExtAuthz", Headers: schema.ServerEndpointsAuthzHeaders{CookieSession: true}},
+				"auth-request": {Implementation: "AuthRequest", Headers: schema.ServerEndpointsAuthzHeaders{CookieSession: true}},
+			},
+			nil,
+		},
+		{
 			"ShouldErrorOnInvalidAuthnStrategies",
 			map[string]schema.ServerEndpointsAuthz{
 				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "bad-name"}}},
