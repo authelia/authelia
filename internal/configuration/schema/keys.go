@@ -165,6 +165,8 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].authorization_signed_response_alg",
 	"identity_providers.oidc.clients[].authorization_signed_response_key_id",
 	"identity_providers.oidc.clients[].claims_policy",
+	"identity_providers.oidc.clients[].client_assertion_jwt_validation_header_allow_empty_type",
+	"identity_providers.oidc.clients[].client_assertion_jwt_validation_header_allow_types",
 	"identity_providers.oidc.clients[].client_id",
 	"identity_providers.oidc.clients[].client_name",
 	"identity_providers.oidc.clients[].client_secret",

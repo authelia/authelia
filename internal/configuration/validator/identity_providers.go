@@ -747,6 +747,8 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 
 	validateOIDCClientPublicKeys(c, config, validator)
 
+	validateOIDCClientAssertionJWTValidationHeader(c, config, validator)
+
 	var (
 		method, alg                                  string
 		confidential, public, econfidential, epublic bool
@@ -790,6 +792,46 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 
 	if public {
 		validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
+	}
+}
+
+func validateOIDCClientAssertionJWTValidationHeader(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.Clients[c].ClientAssertionJWTValidationHeaderAllowEmptyType {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientClientAssertionInsecureEmptyType, config.Clients[c].ID, attrOIDCClientAssertionAllowEmptyType))
+	}
+
+	if len(config.Clients[c].ClientAssertionJWTValidationHeaderAllowTypes) == 0 {
+		return
+	}
+
+	var duplicates, inexplicit []string
+
+	seen := map[string]bool{}
+
+	for i, t := range config.Clients[c].ClientAssertionJWTValidationHeaderAllowTypes {
+		if t == "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientClientAssertionEmptyTypeEntry, config.Clients[c].ID, attrOIDCClientAssertionAllowTypes, i))
+
+			continue
+		}
+
+		if seen[t] {
+			duplicates = append(duplicates, t)
+		}
+
+		seen[t] = true
+
+		if t != jwt.JSONWebTokenTypeClientAuthentication {
+			inexplicit = append(inexplicit, t)
+		}
+	}
+
+	if len(duplicates) != 0 {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCClientAssertionAllowTypes, utils.StringJoinAnd(duplicates)))
+	}
+
+	if len(inexplicit) != 0 {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientClientAssertionInsecureTypes, config.Clients[c].ID, attrOIDCClientAssertionAllowTypes, utils.StringJoinAnd(inexplicit), jwt.JSONWebTokenTypeClientAuthentication))
 	}
 }
 
