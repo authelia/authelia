@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.27](https://github.com/authelia/authelia/releases/tag/v4.39.27)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Drupal]
   - [v10.4.0](https://www.drupal.org/project/drupal/releases/10.4.0)
 

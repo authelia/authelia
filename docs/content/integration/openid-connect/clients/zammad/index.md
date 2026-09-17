@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.27](https://github.com/authelia/authelia/releases/tag/v4.39.27)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Zammad]
   - [v6.5.0](https://github.com/zammad/zammad/releases/tag/6.5.0)
 
