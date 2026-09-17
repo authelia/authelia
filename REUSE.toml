@@ -26,6 +26,7 @@ path = [
 	"docs/static/images/contributors/**",
 	"docs/static/keys/**",
 	"docs/static/schemas/webhooks/**",
+	"internal/authentication/users_database.template.json",
 	"internal/configuration/test_resources/**",
 	"internal/storage/migrations/**",
 	"internal/suites/common/pki/**",
