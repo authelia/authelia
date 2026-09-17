@@ -68,6 +68,20 @@ const (
 )
 
 const (
+	// HeaderRemoteUser is the header which by default communicates the username of the authenticated user.
+	HeaderRemoteUser = "Remote-User"
+
+	// HeaderRemoteGroups is the header which by default communicates the groups of the authenticated user.
+	HeaderRemoteGroups = "Remote-Groups"
+
+	// HeaderRemoteName is the header which by default communicates the display name of the authenticated user.
+	HeaderRemoteName = "Remote-Name"
+
+	// HeaderRemoteEmail is the header which by default communicates the email of the authenticated user.
+	HeaderRemoteEmail = "Remote-Email"
+)
+
+const (
 	// LDAPImplementationCustom is the string for the custom LDAP implementation.
 	LDAPImplementationCustom = "custom"
 
