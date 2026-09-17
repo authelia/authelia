@@ -25,6 +25,7 @@ import (
 type mockServiceCtx struct {
 	ctx       context.Context
 	config    *schema.Configuration
+	cpaths    []string
 	logger    *logrus.Entry
 	providers middlewares.Providers
 }
@@ -39,6 +40,10 @@ func (m *mockServiceCtx) GetProviders() middlewares.Providers {
 
 func (m *mockServiceCtx) GetConfiguration() *schema.Configuration {
 	return m.config
+}
+
+func (m *mockServiceCtx) GetConfigurationPaths() []string {
+	return m.cpaths
 }
 
 func (m *mockServiceCtx) Deadline() (deadline time.Time, ok bool) {
@@ -95,9 +100,9 @@ func TestSignalService_Run(t *testing.T) {
 			logger.SetLevel(logrus.TraceLevel)
 
 			actionCalled := false
-			action := func() error {
+			action := func() (bubble bool, err error) {
 				actionCalled = true
-				return tc.actionError
+				return false, tc.actionError
 			}
 
 			service := &Signal{
@@ -233,7 +238,7 @@ func TestLogReopenFiles(t *testing.T) {
 	p, err := os.FindProcess(os.Getpid())
 	require.NoError(t, err)
 
-	err = p.Signal(syscall.SIGHUP)
+	err = p.Signal(syscall.SIGUSR1)
 	require.NoError(t, err)
 
 	time.Sleep(100 * time.Millisecond)
@@ -254,10 +259,10 @@ func TestSignalRunShouldNotReturnStaleActionError(t *testing.T) {
 	service := &Signal{
 		name:    "test",
 		signals: []os.Signal{syscall.SIGHUP},
-		action: func() error {
+		action: func() (bubble bool, err error) {
 			called <- struct{}{}
 
-			return errors.New("action failed")
+			return false, errors.New("action failed")
 		},
 		log:    logrus.New().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
 		notify: make(chan os.Signal, 1),
@@ -316,7 +321,7 @@ func TestSignalShutdownShouldNotBlock(t *testing.T) {
 			service := &Signal{
 				name:    "test",
 				signals: []os.Signal{syscall.SIGHUP},
-				action:  func() error { return nil },
+				action:  func() (bubble bool, err error) { return false, nil },
 				log:     logrus.New().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
 				notify:  make(chan os.Signal, 1),
 				quit:    make(chan struct{}),
@@ -360,7 +365,7 @@ func TestSignalShutdownShouldNotBlock(t *testing.T) {
 
 func TestSignalService_Shutdown(t *testing.T) {
 	logger := logrus.New()
-	action := func() error { return nil }
+	action := func() (bubble bool, err error) { return false, nil }
 	service := &Signal{
 		name:    "test",
 		signals: []os.Signal{syscall.SIGHUP},
@@ -387,4 +392,40 @@ func TestSignalService_Shutdown(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("service did not shut down within timeout")
 	}
+}
+
+func TestProvisionApplicationReloadSignal(t *testing.T) {
+	ctx := newMockServiceCtx()
+
+	service, err := ProvisionApplicationReloadSignal(ctx)
+
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	assert.Equal(t, "application-reload", service.ServiceName())
+	assert.Equal(t, "signal", service.ServiceType())
+	assert.NotNil(t, service.Log())
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		errCh <- service.Run()
+	}()
+
+	// Give the service a moment to start.
+	time.Sleep(100 * time.Millisecond)
+
+	p, err := os.FindProcess(os.Getpid())
+	require.NoError(t, err)
+
+	require.NoError(t, p.Signal(syscall.SIGHUP))
+
+	select {
+	case err = <-errCh:
+		assert.ErrorIs(t, err, ErrApplicationReload)
+	case <-time.After(time.Second * 5):
+		t.Fatal("service did not return the reload error within timeout")
+	}
+
+	service.Shutdown()
 }

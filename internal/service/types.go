@@ -18,6 +18,7 @@ type Context interface {
 	GetLogger() *logrus.Entry
 	GetProviders() middlewares.Providers
 	GetConfiguration() *schema.Configuration
+	GetConfigurationPaths() []string
 
 	context.Context
 }
@@ -47,4 +48,8 @@ func (c *runContext) GetProviders() middlewares.Providers {
 
 func (c *runContext) GetConfiguration() *schema.Configuration {
 	return c.base.GetConfiguration()
+}
+
+func (c *runContext) GetConfigurationPaths() []string {
+	return c.base.GetConfigurationPaths()
 }
