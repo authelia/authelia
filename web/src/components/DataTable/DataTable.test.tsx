@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { Pencil, Trash2 } from "lucide-react";
 
 import { type ColumnDef, DataTable, type RowAction } from "@components/DataTable/DataTable";
@@ -9,8 +9,8 @@ interface Row {
 }
 
 const rows: Row[] = [
-    { displayName: "Alice A", username: "alice" },
     { displayName: "Bob B", username: "bob" },
+    { displayName: "Alice A", username: "alice" },
 ];
 
 const columns: ColumnDef<Row>[] = [
@@ -28,17 +28,26 @@ function baseProps() {
     return {
         columns,
         emptyText: "No rows",
-        filter: "",
         getRowId: (row: Row) => row.username,
         id: "user-management-table",
-        onFilterChange: vi.fn(),
-        onPaginationChange: vi.fn(),
-        onSortChange: vi.fn(),
-        pagination: { page: 1, pageSize: 25, total: rows.length },
         rowClassPrefix: "user-row-",
         rows,
-        sort: { direction: "asc" as const, field: "username" },
     };
+}
+
+function getColumnOptionsButton(headerText: string): HTMLElement {
+    const headerCell = screen.getByText(headerText).closest("th")!;
+
+    return within(headerCell).getByLabelText("Column options");
+}
+
+function tableBodyRowTexts(): string[] {
+    const table = document.getElementById("user-management-table")!;
+
+    return within(table)
+        .getAllByRole("row")
+        .filter((row) => row.querySelector("td"))
+        .map((row) => row.textContent ?? "");
 }
 
 beforeEach(() => {
@@ -54,79 +63,80 @@ it("renders one header cell per visible column and hides an initially-hidden col
     expect(screen.queryByText("Secret")).not.toBeInTheDocument();
 });
 
-it("shows a hidden column once toggled visible via the column menu", async () => {
+it("shows a hidden column once made visible via the Manage Columns dialog", async () => {
     render(<DataTable {...baseProps()} />);
 
-    fireEvent.click(document.getElementById("user-management-table-columns")!);
-    fireEvent.click(await screen.findByText("Secret"));
+    fireEvent.click(getColumnOptionsButton("Username"));
+    fireEvent.click(await screen.findByText("Manage Columns"));
+    fireEvent.click(await screen.findByRole("checkbox", { name: "Secret" }));
 
     expect(screen.getAllByText("hidden-value")).toHaveLength(rows.length);
 });
 
-it("persists column visibility toggles to localStorage", async () => {
+it("persists column visibility changes to localStorage under the v2 key", async () => {
     render(<DataTable {...baseProps()} />);
 
-    fireEvent.click(document.getElementById("user-management-table-columns")!);
-    fireEvent.click(await screen.findByRole("menuitemcheckbox", { name: "Username" }));
+    fireEvent.click(getColumnOptionsButton("Username"));
+    fireEvent.click(await screen.findByText("Hide Column"));
 
-    const stored = JSON.parse(window.localStorage.getItem("datatable:user-management-table:columns")!);
+    const stored = JSON.parse(window.localStorage.getItem("datatable:user-management-table:v2")!);
 
-    expect(stored.username).toBe(false);
+    expect(stored.columnVisibility.username).toBe(false);
 });
 
-it("clicking a sortable header toggles the sort direction, asc -> desc -> asc", () => {
-    const onSortChange = vi.fn();
-    const { rerender } = render(<DataTable {...baseProps()} onSortChange={onSortChange} />);
+it("clicking a sortable header cycles sort asc -> desc -> none", () => {
+    render(<DataTable {...baseProps()} />);
+
+    expect(tableBodyRowTexts()[0]).toContain("bob");
 
     fireEvent.click(screen.getByText("Username"));
-    expect(onSortChange).toHaveBeenLastCalledWith({ direction: "desc", field: "username" });
+    expect(tableBodyRowTexts()[0]).toContain("alice");
 
-    rerender(
-        <DataTable {...baseProps()} onSortChange={onSortChange} sort={{ direction: "desc", field: "username" }} />,
-    );
     fireEvent.click(screen.getByText("Username"));
-    expect(onSortChange).toHaveBeenLastCalledWith({ direction: "asc", field: "username" });
+    expect(tableBodyRowTexts()[0]).toContain("bob");
+
+    fireEvent.click(screen.getByText("Username"));
+    expect(tableBodyRowTexts()[0]).toContain("bob");
 });
 
 it("clicking a different column's header sorts that column ascending", () => {
-    const onSortChange = vi.fn();
-    render(<DataTable {...baseProps()} onSortChange={onSortChange} />);
+    render(<DataTable {...baseProps()} />);
 
     fireEvent.click(screen.getByText("Display Name"));
-    expect(onSortChange).toHaveBeenCalledWith({ direction: "asc", field: "displayName" });
+
+    expect(tableBodyRowTexts()[0]).toContain("Alice A");
 });
 
-it("debounces the search input, firing onFilterChange only after 250ms", () => {
+it("debounces the search input, narrowing rows only after 250ms", () => {
     vi.useFakeTimers();
-    const onFilterChange = vi.fn();
-    render(<DataTable {...baseProps()} onFilterChange={onFilterChange} />);
+    render(<DataTable {...baseProps()} />);
 
     const input = document.getElementById("user-management-table-search")!;
-    fireEvent.change(input, { target: { value: "al" } });
 
-    vi.advanceTimersByTime(249);
-    expect(onFilterChange).not.toHaveBeenCalled();
+    fireEvent.change(input, { target: { value: "alice" } });
+    act(() => vi.advanceTimersByTime(249));
+    expect(tableBodyRowTexts()).toHaveLength(2);
 
-    vi.advanceTimersByTime(1);
-    expect(onFilterChange).toHaveBeenCalledWith("al");
-    expect(onFilterChange).toHaveBeenCalledTimes(1);
+    act(() => vi.advanceTimersByTime(1));
+    expect(tableBodyRowTexts()).toHaveLength(1);
+    expect(tableBodyRowTexts()[0]).toContain("alice");
 
     vi.useRealTimers();
 });
 
-it("only the latest search value fires after rapid typing", () => {
+it("only the latest search value takes effect after rapid typing", () => {
     vi.useFakeTimers();
-    const onFilterChange = vi.fn();
-    render(<DataTable {...baseProps()} onFilterChange={onFilterChange} />);
+    render(<DataTable {...baseProps()} />);
 
     const input = document.getElementById("user-management-table-search")!;
-    fireEvent.change(input, { target: { value: "a" } });
-    vi.advanceTimersByTime(100);
-    fireEvent.change(input, { target: { value: "al" } });
-    vi.advanceTimersByTime(250);
 
-    expect(onFilterChange).toHaveBeenCalledTimes(1);
-    expect(onFilterChange).toHaveBeenCalledWith("al");
+    fireEvent.change(input, { target: { value: "b" } });
+    act(() => vi.advanceTimersByTime(100));
+    fireEvent.change(input, { target: { value: "bob" } });
+    act(() => vi.advanceTimersByTime(250));
+
+    expect(tableBodyRowTexts()).toHaveLength(1);
+    expect(tableBodyRowTexts()[0]).toContain("bob");
 
     vi.useRealTimers();
 });
@@ -145,19 +155,20 @@ it("clicking a row action invokes its onClick with the row", () => {
 
     fireEvent.click(document.getElementById("user-row-alice-edit")!);
 
-    expect(rowActions[0].onClick).toHaveBeenCalledWith(rows[0]);
+    expect(rowActions[0].onClick).toHaveBeenCalledWith(rows[1]);
 });
 
 it("double-clicking a row calls onRowDoubleClick with that row's data", () => {
     const onRowDoubleClick = vi.fn();
+
     render(<DataTable {...baseProps()} onRowDoubleClick={onRowDoubleClick} />);
 
     fireEvent.doubleClick(screen.getByText("alice"));
 
-    expect(onRowDoubleClick).toHaveBeenCalledWith(rows[0]);
+    expect(onRowDoubleClick).toHaveBeenCalledWith(rows[1]);
 });
 
-it("shows the empty text when there are no rows", () => {
+it("shows the empty text when there are no rows and no filters are active", () => {
     render(<DataTable {...baseProps()} rows={[]} />);
 
     expect(screen.getByText("No rows")).toBeInTheDocument();
@@ -169,20 +180,80 @@ it("shows a loading spinner overlay when loading", () => {
     expect(container.querySelector('[data-slot="spinner"]')).toBeInTheDocument();
 });
 
+it("shows a filtered-empty hint with a Clear Filters action when a filter matches nothing", () => {
+    vi.useFakeTimers();
+    render(<DataTable {...baseProps()} />);
+
+    const input = document.getElementById("user-management-table-search")!;
+
+    fireEvent.change(input, { target: { value: "nobody-matches-this" } });
+    act(() => vi.advanceTimersByTime(250));
+
+    expect(screen.getByText("There are no results for the current filter(s).")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Clear Filters"));
+
+    expect(tableBodyRowTexts()).toHaveLength(2);
+
+    vi.useRealTimers();
+});
+
+it("narrows rows using a per-column values filter", async () => {
+    render(<DataTable {...baseProps()} />);
+
+    fireEvent.click(getColumnOptionsButton("Username"));
+
+    const popover = (await screen.findByPlaceholderText("Search values")).closest(
+        '[data-slot="popover-content"]',
+    ) as HTMLElement;
+    const checkbox = within(popover).getByRole("checkbox", { name: "bob" });
+
+    fireEvent.click(checkbox);
+
+    expect(tableBodyRowTexts()).toHaveLength(1);
+    expect(tableBodyRowTexts()[0]).toContain("bob");
+});
+
+it("narrows the values checklist itself using the mini search field, without filtering rows", async () => {
+    render(<DataTable {...baseProps()} />);
+
+    fireEvent.click(getColumnOptionsButton("Username"));
+
+    const search = await screen.findByPlaceholderText("Search values");
+    const popover = search.closest('[data-slot="popover-content"]') as HTMLElement;
+
+    expect(within(popover).getByText("alice")).toBeInTheDocument();
+    expect(within(popover).getByText("bob")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "ali" } });
+
+    expect(within(popover).getByText("alice")).toBeInTheDocument();
+    expect(within(popover).queryByText("bob")).not.toBeInTheDocument();
+    expect(tableBodyRowTexts()).toHaveLength(2);
+});
+
+it("moves a column via the Manage Columns dialog", async () => {
+    render(<DataTable {...baseProps()} />);
+
+    fireEvent.click(getColumnOptionsButton("Username"));
+    fireEvent.click(await screen.findByText("Manage Columns"));
+    fireEvent.click((await screen.findAllByRole("button", { name: "Move Down" }))[0]);
+
+    const headers = within(document.getElementById("user-management-table")!)
+        .getAllByRole("columnheader", { hidden: true })
+        .map((header) => header.textContent);
+
+    expect(headers[0]).toContain("Display Name");
+    expect(headers[1]).toContain("Username");
+});
+
 it("only renders a bounded window of rows out of 500", () => {
     const manyRows: Row[] = Array.from({ length: 500 }, (_, index) => ({
         displayName: `Display ${index}`,
         username: `user${index}`,
     }));
 
-    render(
-        <DataTable
-            {...baseProps()}
-            getRowId={(row) => row.username}
-            pagination={{ page: 1, pageSize: 500, total: 500 }}
-            rows={manyRows}
-        />,
-    );
+    render(<DataTable {...baseProps()} initialPageSize={500} rows={manyRows} />);
 
     const table = document.getElementById("user-management-table")!;
     const renderedDataRows = within(table)

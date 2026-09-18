@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Button } from "@components/UI/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@components/UI/DropdownMenu";
@@ -30,17 +30,21 @@ function Pagination({
     return (
         <div
             data-slot="pagination"
-            className={cn("flex flex-wrap items-center justify-between gap-4 text-sm", className)}
+            className={cn(
+                "flex w-full min-w-0 flex-col items-center gap-3 text-sm sm:flex-row sm:justify-between",
+                className,
+            )}
         >
-            <div data-slot="pagination-range" className="text-muted-foreground">
-                {rangeStart}–{rangeEnd} of {total}
+            <div data-slot="pagination-range" className="text-center text-muted-foreground">
+                {rangeStart}-{rangeEnd} of {total}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
                 <DropdownMenu>
                     <DropdownMenuTrigger
                         render={
                             <Button id="pagination-page-size" size="sm" variant="outline">
                                 {pageSize} / page
+                                <ChevronDownIcon />
                             </Button>
                         }
                     />

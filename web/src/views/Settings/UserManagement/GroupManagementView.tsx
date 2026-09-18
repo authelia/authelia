@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { ColumnDef, DataTable, PaginationState, RowAction, SortState } from "@components/DataTable";
+import { ColumnDef, DataTable, RowAction } from "@components/DataTable";
 import { Button } from "@components/UI/Button";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useAllGroupsGET } from "@hooks/GroupManagement";
@@ -19,10 +19,6 @@ const GroupManagementView = () => {
     const { createErrorNotification } = useNotifications();
 
     const [groups, fetchGroups, loading, fetchGroupsError] = useAllGroupsGET();
-
-    const [sort, setSort] = useState<SortState>({ direction: "asc", field: "name" });
-    const [pagination, setPagination] = useState<Omit<PaginationState, "total">>({ page: 1, pageSize: 25 });
-    const [filter, setFilter] = useState("");
 
     const [groupToDelete, setGroupToDelete] = useState("");
     const [isNewGroupDialogOpen, setIsNewGroupDialogOpen] = useState(false);
@@ -65,6 +61,7 @@ const GroupManagementView = () => {
     const rowActions = useMemo<RowAction<GroupRow>[]>(
         () => [
             {
+                destructive: true,
                 icon: <Trash2 />,
                 id: () => "delete",
                 label: translate("Delete this {{item}}", { item: translate("Group") }),
@@ -74,32 +71,11 @@ const GroupManagementView = () => {
         [handleOpenVerifyDeleteGroupDialog, translate],
     );
 
-    const filteredSortedGroups = useMemo(() => {
-        const all = (groups ?? []).map((name): GroupRow => ({ name }));
-
-        const filtered = all.filter((row) => !filter || row.name.toLowerCase().includes(filter.toLowerCase()));
-
-        const sorted = [...filtered].sort((a, b) => {
-            const result = a.name.localeCompare(b.name);
-
-            return sort.direction === "asc" ? result : -result;
-        });
-
-        return sorted;
-    }, [filter, groups, sort.direction]);
-
-    const rows = useMemo(
-        () =>
-            filteredSortedGroups.slice(
-                (pagination.page - 1) * pagination.pageSize,
-                pagination.page * pagination.pageSize,
-            ),
-        [filteredSortedGroups, pagination.page, pagination.pageSize],
-    );
+    const rows = useMemo<GroupRow[]>(() => (groups ?? []).map((name) => ({ name })), [groups]);
 
     return (
-        <div className="flex flex-col">
-            <h4 className="mb-4 text-2xl font-semibold">{translate("Group Management")}</h4>
+        <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden px-4 pt-4 pb-6 sm:h-[calc(100dvh-6.5rem)] sm:px-0 sm:pt-0">
+            <h4 className="mb-4 shrink-0 text-2xl font-semibold">{translate("Group Management")}</h4>
 
             <NewGroupDialog onClose={handleCloseNewGroupDialog} open={isNewGroupDialogOpen} />
             <VerifyDeleteGroupDialog
@@ -108,27 +84,22 @@ const GroupManagementView = () => {
                 open={isVerifyDeleteGroupDialogOpen}
             />
 
-            <div className="mb-4">
-                <Button id="group-management-add" onClick={handleOpenNewGroupDialog}>
-                    {translate("Add a {{item}}", { item: translate("Group").toLowerCase() })}
-                </Button>
-            </div>
-
             <DataTable
                 columns={columns}
                 emptyText={translate("No {{item}} found", { item: translate("Group").toLowerCase() })}
-                filter={filter}
                 getRowId={(row) => row.name}
                 id="group-management-table"
+                initialSort={{ direction: "asc", field: "name" }}
                 loading={loading}
-                onFilterChange={setFilter}
-                onPaginationChange={(next) => setPagination(next)}
-                onSortChange={setSort}
-                pagination={{ ...pagination, total: filteredSortedGroups.length }}
                 rowActions={rowActions}
                 rowClassPrefix="group-row-"
                 rows={rows}
-                sort={sort}
+                toolbarEnd={
+                    <Button id="group-management-add" onClick={handleOpenNewGroupDialog}>
+                        <Plus />
+                        {translate("Add a {{item}}", { item: translate("Group").toLowerCase() })}
+                    </Button>
+                }
             />
         </div>
     );

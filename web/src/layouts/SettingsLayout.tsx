@@ -117,7 +117,7 @@ const SettingsLayout = function (props: Props) {
                     </div>
                 </SheetContent>
             </Sheet>
-            <main className="grow p-0 pt-14 sm:p-6 sm:pt-20">{props.children}</main>
+            <main className="min-w-0 grow p-0 pt-14 sm:p-6 sm:pt-20">{props.children}</main>
         </div>
     );
 };

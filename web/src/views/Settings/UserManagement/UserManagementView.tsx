@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { KeyRound, Mail, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { KeyRound, Mail, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { ColumnDef, DataTable, PaginationState, RowAction, SortState } from "@components/DataTable";
+import { ColumnDef, DataTable, RowAction } from "@components/DataTable";
 import { Button } from "@components/UI/Button";
 import {
     DropdownMenu,
@@ -32,10 +32,6 @@ const UserManagementView = () => {
     const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [users, fetchUsers, loading, fetchUsersError] = useAllUserInfoGET();
-
-    const [sort, setSort] = useState<SortState>({ direction: "asc", field: "username" });
-    const [pagination, setPagination] = useState<Omit<PaginationState, "total">>({ page: 1, pageSize: 25 });
-    const [filter, setFilter] = useState("");
 
     const [selectedUser, setSelectedUser] = useState<null | UserDetailsExtended>(null);
     const [userToDelete, setUserToDelete] = useState("");
@@ -193,16 +189,22 @@ const UserManagementView = () => {
             {
                 field: "last_logged_in",
                 header: translate("Last Log In"),
+                kind: "date",
+                raw: (row) => (row.last_logged_in ? new Date(row.last_logged_in).getTime() : null),
                 value: (row) => (row.last_logged_in ? new Date(row.last_logged_in).toLocaleString() : "-"),
             },
             {
                 field: "last_password_change",
                 header: translate("Last Password Change"),
+                kind: "date",
+                raw: (row) => (row.last_password_change ? new Date(row.last_password_change).getTime() : null),
                 value: (row) => (row.last_password_change ? new Date(row.last_password_change).toLocaleString() : "-"),
             },
             {
                 field: "user_created_at",
                 header: translate("User Created At"),
+                kind: "date",
+                raw: (row) => (row.user_created_at ? new Date(row.user_created_at).getTime() : null),
                 value: (row) => (row.user_created_at ? new Date(row.user_created_at).toLocaleString() : "-"),
             },
             {
@@ -249,6 +251,7 @@ const UserManagementView = () => {
                 onClick: (row) => handleOpenEditUserDialog(row.username),
             },
             {
+                destructive: true,
                 icon: <Trash2 />,
                 id: () => "delete",
                 label: translate("Delete this {{item}}", { item: translate("User") }),
@@ -264,38 +267,9 @@ const UserManagementView = () => {
         [handleOpenEditUserDialog, handleOpenMoreMenu, handleOpenVerifyDeleteUserDialog, translate],
     );
 
-    const filteredSortedUsers = useMemo(() => {
-        const all = users ?? [];
-
-        const matches = (row: UserDetailsExtended) =>
-            !filter || columns.some((column) => column.value(row).toLowerCase().includes(filter.toLowerCase()));
-
-        const filtered = all.filter(matches);
-        const column = columns.find((candidate) => candidate.field === sort.field);
-
-        const sorted = column
-            ? [...filtered].sort((a, b) => {
-                  const result = column.value(a).localeCompare(column.value(b));
-
-                  return sort.direction === "asc" ? result : -result;
-              })
-            : filtered;
-
-        return sorted;
-    }, [columns, filter, sort, users]);
-
-    const rows = useMemo(
-        () =>
-            filteredSortedUsers.slice(
-                (pagination.page - 1) * pagination.pageSize,
-                pagination.page * pagination.pageSize,
-            ),
-        [filteredSortedUsers, pagination.page, pagination.pageSize],
-    );
-
     return (
-        <div className="flex flex-col">
-            <h4 className="mb-4 text-2xl font-semibold">{translate("User Management")}</h4>
+        <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden px-4 pt-4 pb-6 sm:h-[calc(100dvh-6.5rem)] sm:px-0 sm:pt-0">
+            <h4 className="mb-4 shrink-0 text-2xl font-semibold">{translate("User Management")}</h4>
 
             <EditUserDialog
                 key={selectedUser?.username || "new"}
@@ -356,28 +330,23 @@ const UserManagementView = () => {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="mb-4">
-                <Button id="user-management-add" onClick={handleOpenNewUserDialog}>
-                    {translate("Add a {{item}}", { item: translate("User").toLowerCase() })}
-                </Button>
-            </div>
-
             <DataTable
                 columns={columns}
                 emptyText={translate("No {{item}} found", { item: translate("User").toLowerCase() })}
-                filter={filter}
                 getRowId={(row) => row.username}
                 id="user-management-table"
+                initialSort={{ direction: "asc", field: "username" }}
                 loading={loading}
-                onFilterChange={setFilter}
-                onPaginationChange={(next) => setPagination(next)}
                 onRowDoubleClick={(row) => handleOpenEditUserDialog(row.username)}
-                onSortChange={setSort}
-                pagination={{ ...pagination, total: filteredSortedUsers.length }}
                 rowActions={rowActions}
                 rowClassPrefix="user-row-"
-                rows={rows}
-                sort={sort}
+                rows={users ?? []}
+                toolbarEnd={
+                    <Button id="user-management-add" onClick={handleOpenNewUserDialog}>
+                        <Plus />
+                        {translate("Add a {{item}}", { item: translate("User").toLowerCase() })}
+                    </Button>
+                }
             />
         </div>
     );

@@ -15,7 +15,7 @@ function TableHeader({ className, ...props }: ComponentProps<"thead">) {
 }
 
 function TableBody({ className, ...props }: ComponentProps<"tbody">) {
-    return <tbody data-slot="table-body" className={cn("[&_tr:last-child]:border-0", className)} {...props} />;
+    return <tbody data-slot="table-body" className={cn(className)} {...props} />;
 }
 
 function TableFooter({ className, ...props }: ComponentProps<"tfoot">) {
@@ -57,7 +57,7 @@ function TableCell({ className, ...props }: ComponentProps<"td">) {
         <td
             data-slot="table-cell"
             className={cn(
-                "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+                "p-2 align-middle whitespace-nowrap select-text [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
                 className,
             )}
             {...props}
