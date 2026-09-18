@@ -549,9 +549,14 @@ func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, d
 
 func ldapDialBindOpts(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, dialer LDAPClientDialer, tls *tls.Config, dialOpts []ldap.DialOpt, options *LDAPClientFactoryOptions) (client LDAPExtendedClient, err error) {
 	var base LDAPBaseClient
+
+	start := time.Now()
+
 	if base, err = dialer.DialURL(options.Address, dialOpts...); err != nil {
 		return nil, fmt.Errorf("error occurred dialing address: %w", err)
 	}
+
+	log.WithField("address", options.Address).WithField("rtt", time.Since(start)).Trace("Performed LDAP dial")
 
 	base.SetTimeout(config.Timeout)
 
@@ -566,20 +571,28 @@ func ldapDialBindOpts(log *logrus.Entry, config *schema.AuthenticationBackendLDA
 	}
 
 	if tls != nil && !config.Address.IsExplicitlySecure() && config.StartTLS {
+		start = time.Now()
+
 		if err = client.StartTLS(tls); err != nil {
 			_ = client.Close()
 
 			return nil, fmt.Errorf("error occurred performing starttls: %w", err)
 		}
+
+		log.WithField("rtt", time.Since(start)).Trace("Performed LDAP starttls")
 	}
 
 	// TODO: Add additional bind logic here, such as MD5Bind, NTLMBind, NTLMUnauthenticatedBind, etc.
+	start = time.Now()
+
 	switch {
 	case options.Password == "" && options.PermitUnauthenticatedBind:
 		err = client.UnauthenticatedBind(options.Username)
 	default:
 		err = client.Bind(options.Username, options.Password)
 	}
+
+	log.WithField("username", options.Username).WithField("rtt", time.Since(start)).Trace("Performed LDAP bind")
 
 	if err != nil {
 		_ = client.Close()

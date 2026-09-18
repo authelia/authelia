@@ -279,7 +279,7 @@ func GenerateUserChangeLog(original *authentication.UserDetailsExtended, changes
 			}
 		}
 	}
-	//TODO: we probably shouldnt log entire urls -- they could be *really* long.
+	//TODO: we probably shouldn't log entire urls - they could be *really* long.
 	checkURL("profile", original.Profile, changes.Profile)
 	checkURL("picture", original.Picture, changes.Picture)
 	checkURL("website", original.Website, changes.Website)

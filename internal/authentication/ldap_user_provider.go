@@ -765,7 +765,17 @@ func (p *LDAPUserProvider) setPassword(client LDAPExtendedClient, profile *ldapU
 }
 
 func (p *LDAPUserProvider) search(client LDAPExtendedClient, request *ldap.SearchRequest) (result *ldap.SearchResult, err error) {
-	if result, err = client.Search(request); err != nil {
+	start := p.clock.Now()
+
+	result, err = client.Search(request)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("rtt", p.clock.Now().Sub(start)).
+		Trace("Performed LDAP search")
+
+	if err != nil {
 		var e *ldap.Error
 
 		if !errors.As(err, &e) {
@@ -809,7 +819,18 @@ func (p *LDAPUserProvider) searchReferral(referral string, request *ldap.SearchR
 		}
 	}()
 
-	if result, err = client.Search(request); err != nil {
+	start := p.clock.Now()
+
+	result, err = client.Search(request)
+
+	p.log.
+		WithField("referral", referral).
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("rtt", p.clock.Now().Sub(start)).
+		Trace("Performed LDAP search on referred server")
+
+	if err != nil {
 		return fmt.Errorf("error occurred performing search on referred LDAP server '%s': %w", referral, err)
 	}
 
@@ -1210,7 +1231,17 @@ func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserPr
 
 func (p *LDAPUserProvider) modify(client LDAPExtendedClient, modifyRequest *ldap.ModifyRequest) (err error) {
 	var result *ldap.ModifyResult
-	if result, err = client.ModifyWithResult(modifyRequest); err != nil {
+
+	start := p.clock.Now()
+
+	result, err = client.ModifyWithResult(modifyRequest)
+
+	p.log.
+		WithField("dn", modifyRequest.DN).
+		WithField("rtt", p.clock.Now().Sub(start)).
+		Trace("Performed LDAP modify")
+
+	if err != nil {
 		var e *ldap.Error
 
 		if !errors.As(err, &e) {
@@ -1256,7 +1287,17 @@ func (p *LDAPUserProvider) modify(client LDAPExtendedClient, modifyRequest *ldap
 
 func (p *LDAPUserProvider) pwdModify(client LDAPExtendedClient, pwdModifyRequest *ldap.PasswordModifyRequest) (err error) {
 	var result *ldap.PasswordModifyResult
-	if result, err = client.PasswordModify(pwdModifyRequest); err != nil {
+
+	start := p.clock.Now()
+
+	result, err = client.PasswordModify(pwdModifyRequest)
+
+	p.log.
+		WithField("dn", pwdModifyRequest.UserIdentity).
+		WithField("rtt", p.clock.Now().Sub(start)).
+		Trace("Performed LDAP password modify")
+
+	if err != nil {
 		var e *ldap.Error
 
 		if !errors.As(err, &e) {

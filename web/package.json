@@ -10,6 +10,7 @@
   "dependencies": {
     "@base-ui/react": "1.8.0",
     "@simplewebauthn/browser": "14.0.0",
+    "@tanstack/react-table": "9.2.4",
     "axios": "1.20.0",
     "broadcast-channel": "7.4.0",
     "class-variance-authority": "0.7.1",
@@ -21,6 +22,7 @@
     "qrcode.react": "4.2.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-hook-form": "7.72.0",
     "react-i18next": "17.0.13",
     "react-router": "8.3.1",
     "tailwind-merge": "3.6.0",

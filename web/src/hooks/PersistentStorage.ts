@@ -38,6 +38,8 @@ class MockStorage implements PersistentStorage {
 
 const persistentStorage = globalThis?.localStorage ? new LocalStorage() : new MockStorage();
 
+export { persistentStorage };
+
 export function usePersistentStorageValue<T>(key: string, initialValue?: T) {
     const [value, setValue] = useState<T>(() => {
         const valueFromStorage = persistentStorage.getItem(key);

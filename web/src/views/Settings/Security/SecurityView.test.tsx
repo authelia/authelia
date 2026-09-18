@@ -19,7 +19,7 @@ vi.mock("@contexts/NotificationsContext", () => ({
 
 vi.mock("@hooks/UserInfo", () => ({
     useUserInfoGET: () => [
-        { display_name: "John Doe", emails: ["john@example.com"], groups: [] },
+        { display_name: "John Doe", emails: ["john@example.com"], groups: [], username: "johndoe" },
         vi.fn(),
         false,
         null,
@@ -44,7 +44,7 @@ vi.mock("@views/Settings/Security/ChangePasswordDialog", () => ({
 
 it("renders user info and change password button", () => {
     render(<SecurityView />);
-    expect(screen.getByText(/John Doe/)).toBeInTheDocument();
+    expect(screen.getByText("Display Name: John Doe")).toBeInTheDocument();
     expect(screen.getByText("Change Password")).toBeInTheDocument();
 });
 
@@ -53,4 +53,11 @@ it("renders dialogs", () => {
     expect(screen.getByTestId("identity-dialog")).toBeInTheDocument();
     expect(screen.getByTestId("second-factor-dialog")).toBeInTheDocument();
     expect(screen.getByTestId("change-password-dialog")).toBeInTheDocument();
+});
+
+it("renders the username and display name", () => {
+    render(<SecurityView />);
+    expect(screen.getByText("Username: johndoe")).toBeInTheDocument();
+    expect(screen.getByText("Display Name: John Doe")).toBeInTheDocument();
+    expect(screen.getByText("john@example.com")).toBeInTheDocument();
 });

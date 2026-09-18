@@ -45,6 +45,13 @@ export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/pa
 
 export const LocaleInformationPath = basePath + "/locales";
 
+export const AdminConfigPath = basePath + "/api/admin/config";
+export const AdminUserRestPath = basePath + "/api/admin/users";
+export const AdminChangePasswordRestSubPath = "/password/change";
+export const AdminSendResetPasswordEmailRestSubPath = "/password/reset";
+export const AdminGroupRestPath = basePath + "/api/admin/groups";
+export const AdminUserAttributeMetadataPath = basePath + "/api/admin/user-fields";
+
 export interface AuthenticationErrorResponse extends ErrorResponse {
     authentication: boolean;
     elevation: boolean;
