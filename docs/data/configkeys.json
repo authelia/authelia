@@ -1230,6 +1230,26 @@
     "env": "AUTHELIA_TOTP_ALLOWED_PERIODS"
   },
   {
+    "path": "totp.apps.apple_store.disable",
+    "secret": false,
+    "env": "AUTHELIA_TOTP_APPS_APPLE_STORE_DISABLE"
+  },
+  {
+    "path": "totp.apps.apple_store.url",
+    "secret": false,
+    "env": "AUTHELIA_TOTP_APPS_APPLE_STORE_URL"
+  },
+  {
+    "path": "totp.apps.google_play.disable",
+    "secret": false,
+    "env": "AUTHELIA_TOTP_APPS_GOOGLE_PLAY_DISABLE"
+  },
+  {
+    "path": "totp.apps.google_play.url",
+    "secret": false,
+    "env": "AUTHELIA_TOTP_APPS_GOOGLE_PLAY_URL"
+  },
+  {
     "path": "totp.digits",
     "secret": false,
     "env": "AUTHELIA_TOTP_DIGITS"
