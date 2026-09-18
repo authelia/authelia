@@ -228,6 +228,11 @@ The LDAP filter to narrow down which users are valid. This is important to set c
 The default value is dependent on the [implementation](#implementation), refer to the
 [attribute defaults](../../integration/ldap) for more information.
 
+The `activedirectory` [implementation](#implementation) additionally depends on
+[password_change.disable](introduction.md#password-change-disable). Its default excludes users who must change their password at
+their next sign in only when they have no way to perform that change; see
+[Active Directory](introduction.md#active-directory) for why.
+
 ### additional_groups_dn
 
 {{< confkey type="string" required="no" >}}

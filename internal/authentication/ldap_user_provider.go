@@ -106,6 +106,10 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 	}
 
 	if uclient, err = p.factory.GetClient(WithUsername(profile.DN), WithPassword(password)); err != nil {
+		if p.config.Implementation == schema.LDAPImplementationActiveDirectory && ldapIsActiveDirectoryPasswordChangeRequired(err) {
+			return false, fmt.Errorf("%w: %v", ErrPasswordChangeRequired, err)
+		}
+
 		return false, fmt.Errorf("authentication failed. Cause: %w", err)
 	}
 
@@ -294,13 +298,18 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	}
 
 	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
-	if err != nil {
-		errorCode := getLDAPResultCode(err)
-		if errorCode == ldap.LDAPResultInvalidCredentials {
+
+	switch {
+	case err == nil:
+		break
+	case errors.Is(err, ErrPasswordChangeRequired):
+		userPasswordOk = true
+	default:
+		if getLDAPResultCode(err) == ldap.LDAPResultInvalidCredentials {
 			return ErrIncorrectPassword
-		} else {
-			return err
 		}
+
+		return err
 	}
 
 	if !userPasswordOk {
@@ -331,6 +340,54 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	}
 
 	return nil
+}
+
+// ClearExtraAttribute implements the UserProvider interface.
+func (p *LDAPUserProvider) ClearExtraAttribute(username string, attribute string) (err error) {
+	var name string
+
+	if name, err = p.resolveExtraAttribute(attribute); err != nil {
+		return err
+	}
+
+	var (
+		client  LDAPExtendedClient
+		profile *ldapUserProfile
+	)
+
+	if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
+		return fmt.Errorf("unable to clear attribute '%s' for user '%s'. Cause: %w", attribute, username, err)
+	}
+
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	if profile, err = p.getUserProfile(client, username); err != nil {
+		return fmt.Errorf("unable to clear attribute '%s' for user '%s'. Cause: %w", attribute, username, err)
+	}
+
+	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+
+	modifyRequest.Delete(name, nil)
+
+	if err = p.modify(client, modifyRequest); err != nil {
+		return fmt.Errorf("unable to clear attribute '%s' for user '%s'. Cause: %w", attribute, username, err)
+	}
+
+	return nil
+}
+
+func (p *LDAPUserProvider) resolveExtraAttribute(attribute string) (name string, err error) {
+	for directory, properties := range p.config.Attributes.Extra {
+		if properties.Name == attribute || (properties.Name == "" && directory == attribute) {
+			return directory, nil
+		}
+	}
+
+	return "", fmt.Errorf("unable to clear attribute '%s' as it is not a configured extra attribute", attribute)
 }
 
 func (p *LDAPUserProvider) setPassword(client LDAPExtendedClient, profile *ldapUserProfile, username, oldPassword, newPassword string) (err error) {

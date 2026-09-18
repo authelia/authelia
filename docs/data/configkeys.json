@@ -370,9 +370,19 @@
     "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERS_FILTER"
   },
   {
+    "path": "authentication_backend.password_change.clear_attribute",
+    "secret": false,
+    "env": "AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_CHANGE_CLEAR_ATTRIBUTE"
+  },
+  {
     "path": "authentication_backend.password_change.disable",
     "secret": false,
     "env": "AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_CHANGE_DISABLE"
+  },
+  {
+    "path": "authentication_backend.password_change.required_attribute",
+    "secret": false,
+    "env": "AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_CHANGE_REQUIRED_ATTRIBUTE"
   },
   {
     "path": "authentication_backend.password_reset.custom_url",

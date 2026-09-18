@@ -3583,6 +3583,180 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestShouldClearExtraAttribute(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	config := &schema.AuthenticationBackendLDAP{
+		Address:  testLDAPAddress,
+		User:     "cn=admin,dc=example,dc=com",
+		Password: "password",
+		Attributes: schema.AuthenticationBackendLDAPAttributes{
+			Username:    "uid",
+			Mail:        "mail",
+			DisplayName: "displayName",
+			MemberOf:    "memberOf",
+			Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+				"pwdReset": {Name: "pwd_reset", AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"}},
+			},
+		},
+		UsersFilter:       "uid={input}",
+		AdditionalUsersDN: "ou=users",
+		BaseDN:            "dc=example,dc=com",
+	}
+
+	mockDialer := NewMockLDAPClientDialer(ctrl)
+
+	mockClient := NewMockLDAPClient(ctrl)
+
+	dialURL := mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil)
+
+	setTimeout := mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second * 0))
+
+	provider := NewLDAPUserProviderWithFactory(config, false, NewStandardLDAPClientFactory(config, nil, mockDialer))
+
+	modifyRequest := ldap.NewModifyRequest(
+		"uid=test,dc=example,dc=com",
+		nil,
+	)
+
+	modifyRequest.Delete("pwdReset", nil)
+
+	dialURLOIDs := mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil)
+
+	setTimeoutOIDs := mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second * 0))
+
+	clientBindOIDs := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	clientCloseOIDs := mockClient.EXPECT().Close()
+
+	clientBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	clientClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	modify := mockClient.EXPECT().
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{}, nil)
+
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, clientClose)
+
+	err := provider.StartupCheck()
+	require.NoError(t, err)
+
+	err = provider.ClearExtraAttribute("john", "pwd_reset")
+	require.NoError(t, err)
+}
+
+func TestShouldNotClearAnExtraAttributeWhichIsNotConfigured(t *testing.T) {
+	config := &schema.AuthenticationBackendLDAP{
+		Address:  testLDAPAddress,
+		User:     "cn=admin,dc=example,dc=com",
+		Password: "password",
+		Attributes: schema.AuthenticationBackendLDAPAttributes{
+			Username: "uid",
+			Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+				"pwdReset": {Name: "pwd_reset", AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"}},
+			},
+		},
+		UsersFilter:       "uid={input}",
+		AdditionalUsersDN: "ou=users",
+		BaseDN:            "dc=example,dc=com",
+	}
+
+	provider := NewLDAPUserProviderWithFactory(config, false, NewStandardLDAPClientFactory(config, nil, nil))
+
+	testCases := []struct {
+		name      string
+		attribute string
+		err       string
+	}{
+		{
+			"ShouldErrorOnAnUnknownAttribute",
+			"nonexistent",
+			"unable to clear attribute 'nonexistent' as it is not a configured extra attribute",
+		},
+		{
+			"ShouldErrorOnTheDirectoryAttributeNameWhenItIsRenamed",
+			"pwdReset",
+			"unable to clear attribute 'pwdReset' as it is not a configured extra attribute",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.EqualError(t, provider.ClearExtraAttribute("john", tc.attribute), tc.err)
+		})
+	}
+}
+
 func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

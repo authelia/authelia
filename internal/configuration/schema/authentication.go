@@ -25,6 +25,9 @@ type AuthenticationBackend struct {
 // AuthenticationBackendPasswordChange represents the configuration related to password reset functionality.
 type AuthenticationBackendPasswordChange struct {
 	Disable bool `koanf:"disable" yaml:"disable" toml:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the Password Change option."`
+
+	RequiredAttribute string `koanf:"required_attribute" yaml:"required_attribute,omitempty" toml:"required_attribute,omitempty" json:"required_attribute,omitempty" jsonschema:"title=Required Attribute" jsonschema_description:"The name of a user attribute which, when true, requires the user change their password before they can authenticate."`
+	ClearAttribute    string `koanf:"clear_attribute" yaml:"clear_attribute,omitempty" toml:"clear_attribute,omitempty" json:"clear_attribute,omitempty" jsonschema:"title=Clear Attribute" jsonschema_description:"The name of an extra attribute which is cleared from the authentication backend after a required password change."`
 }
 
 // AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.
@@ -286,9 +289,21 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = Authenti
 	},
 }
 
+// The default 'users_filter' for the LDAPImplementationActiveDirectory Implementation, which of the two applies
+// depends on whether a user who must change their password has any way to do so.
+//
+// Active Directory refuses a bind for such a user rather than reporting it in an attribute, so Authelia reads it
+// from the bind response and holds them at the password change form. That only works if the filter finds them,
+// which is why the clause excluding them is not part of the default. Disabling password change leaves them nothing
+// to be held for, so the filter which excludes them is the default in that case instead.
+const (
+	LDAPUsersFilterActiveDirectory                  = "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))"
+	LDAPUsersFilterActiveDirectoryExcludeMustChange = "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))"
+)
+
 // DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory represents the default LDAP config for the LDAPImplementationActiveDirectory Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory = AuthenticationBackendLDAP{
-	UsersFilter:     "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))",
+	UsersFilter:     LDAPUsersFilterActiveDirectory,
 	GroupsFilter:    "(&(member={dn})(|(sAMAccountType=268435456)(sAMAccountType=536870912)))",
 	GroupSearchMode: ldapGroupSearchModeFilter,
 	Attributes: AuthenticationBackendLDAPAttributes{

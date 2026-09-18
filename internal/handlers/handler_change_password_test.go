@@ -17,6 +17,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 )
@@ -73,6 +74,119 @@ func TestChangePasswordPOST_ShouldSucceedWithValidCredentials(t *testing.T) {
 	mock.AssertLogEntryAdvanced(t, 1, logrus.DebugLevel, "User has changed their password", map[string]any{"username": testUsername})
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+}
+
+func TestChangePasswordPOST_ShouldClearTheAttributeAndDestroyTheHeldSession(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
+
+	mock.Ctx.Providers.UserAttributeResolver = &expression.UserAttributes{}
+
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.ClearAttribute = "pwd_reset"
+
+	userSession, err := mock.Ctx.GetSession()
+	assert.NoError(t, err)
+
+	userSession.SetPasswordChangeRequired(mock.Clock.Now(), testUsername)
+
+	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+
+	bodyBytes, err := json.Marshal(changePasswordRequestBody{
+		OldPassword: testPasswordOld,
+		NewPassword: testPasswordNew,
+	})
+
+	assert.NoError(t, err)
+	mock.Ctx.Request.SetBody(bodyBytes)
+
+	mock.Ctx.Providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(schema.PasswordPolicy{})
+
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().
+			ChangePassword(testUsername, testPasswordOld, testPasswordNew).
+			Return(nil),
+		mock.UserProviderMock.EXPECT().
+			GetDetailsExtended(testUsername).
+			Return(&authentication.UserDetailsExtended{
+				UserDetails: &authentication.UserDetails{Username: testUsername},
+				Extra:       map[string]any{"pwd_reset": true},
+			}, nil),
+		mock.UserProviderMock.EXPECT().
+			ClearExtraAttribute(testUsername, "pwd_reset").
+			Return(nil),
+		mock.UserProviderMock.EXPECT().
+			GetDetails(testUsername).
+			Return(&authentication.UserDetails{Emails: []string{testEmail}}, nil),
+	)
+
+	mock.NotifierMock.EXPECT().
+		Send(mock.Ctx, gomock.Any(), "Password changed successfully", gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	ChangePasswordPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+	userSession, err = mock.Ctx.GetSession()
+	assert.NoError(t, err)
+	assert.False(t, userSession.IsPasswordChangeRequired())
+	assert.Empty(t, userSession.Username)
+}
+
+func TestChangePasswordPOST_ShouldKeepTheHeldSessionWhenTheClearFails(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Providers.UserAttributeResolver = &expression.UserAttributes{}
+
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.ClearAttribute = "pwd_reset"
+
+	userSession, err := mock.Ctx.GetSession()
+	assert.NoError(t, err)
+
+	userSession.SetPasswordChangeRequired(mock.Clock.Now(), testUsername)
+
+	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+
+	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
+	assert.NoError(t, err)
+	mock.Ctx.Request.SetBody(bodyBytes)
+
+	mock.Ctx.Providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(schema.PasswordPolicy{})
+
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().
+			ChangePassword(testUsername, testPasswordOld, testPasswordNew).
+			Return(nil),
+		mock.UserProviderMock.EXPECT().
+			GetDetailsExtended(testUsername).
+			Return(&authentication.UserDetailsExtended{
+				UserDetails: &authentication.UserDetails{Username: testUsername},
+				Extra:       map[string]any{"pwd_reset": true},
+			}, nil),
+		mock.UserProviderMock.EXPECT().
+			ClearExtraAttribute(testUsername, "pwd_reset").
+			Return(fmt.Errorf("failed to mock the clear")),
+	)
+
+	ChangePasswordPOST(mock.Ctx)
+
+	errResponse := mock.GetResponseError(t)
+	assert.Equal(t, "KO", errResponse.Status)
+	assert.Equal(t, messageOperationFailed, errResponse.Message)
+
+	mock.AssertLastLogMessage(t, "Unable to complete the required password change for user", "error occurred clearing the 'pwd_reset' attribute which requires the user change their password: failed to mock the clear")
+
+	userSession, err = mock.Ctx.GetSession()
+	assert.NoError(t, err)
+	assert.True(t, userSession.IsPasswordChangeRequired())
+	assert.Equal(t, testUsername, userSession.Username)
 }
 
 func TestChangePasswordPOST_ShouldFailWhenPasswordPolicyNotMet(t *testing.T) {

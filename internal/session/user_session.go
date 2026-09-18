@@ -49,6 +49,20 @@ func (s *UserSession) SetOneFactorPassword(now time.Time, details *authenticatio
 	s.AuthenticationMethodRefs.UsernameAndPassword = true
 }
 
+// SetPasswordChangeRequired records that the user proved their password but must change it before they can
+// authenticate. No authentication level, timestamp or method reference is set: the session is a holding state which
+// permits nothing except the password change itself.
+func (s *UserSession) SetPasswordChangeRequired(now time.Time, username string) {
+	s.LastActivity = now.Unix()
+	s.Username = username
+	s.PasswordChangeRequiredUsername = &username
+}
+
+// IsPasswordChangeRequired returns true while the session is held pending a password change.
+func (s *UserSession) IsPasswordChangeRequired() bool {
+	return s.PasswordChangeRequiredUsername != nil && *s.PasswordChangeRequiredUsername != ""
+}
+
 // SetOneFactorPasskey sets the 1FA AMR's and expected property values for one factor passkey authentication.
 func (s *UserSession) SetOneFactorPasskey(now time.Time, details *authentication.UserDetails, keepMeLoggedIn, hardware, userPresence, userVerified bool) {
 	s.setOneFactor(now, details, keepMeLoggedIn)
