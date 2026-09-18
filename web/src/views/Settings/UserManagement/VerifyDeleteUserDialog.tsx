@@ -49,7 +49,7 @@ const VerifyDeleteUserDialog = (props: Props) => {
             createSuccessNotification(translate("User deleted successfully."));
             handleClose();
         } catch (err) {
-            console.log(err);
+            console.error(err);
             createErrorNotification(translate("Error deleting user."));
         }
     }, [canDelete, createErrorNotification, createSuccessNotification, handleClose, props.username, translate]);
