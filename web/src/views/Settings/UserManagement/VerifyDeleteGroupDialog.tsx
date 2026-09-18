@@ -49,7 +49,7 @@ const VerifyDeleteGroupDialog = (props: Props) => {
             createSuccessNotification(translate("Group deleted successfully."));
             handleClose();
         } catch (err) {
-            console.log(err);
+            console.error(err);
             createErrorNotification(translate("Error deleting group."));
         }
     }, [canDelete, createErrorNotification, createSuccessNotification, handleClose, props.groupName, translate]);
