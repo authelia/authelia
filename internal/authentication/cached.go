@@ -20,8 +20,9 @@ func NewCredentialCacheHMAC(h func() hash.Hash, lifespan time.Duration) *Credent
 	_, _ = rand.Read(secret)
 
 	return &CredentialCacheHMAC{
-		mu:       sync.Mutex{},
-		hash:     h,
+		mu:   sync.Mutex{},
+		hash: h,
+
 		secret:   secret,
 		lifespan: lifespan,
 
