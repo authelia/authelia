@@ -158,12 +158,14 @@ type OKResponse struct {
 // ErrorResponse model of an error response.
 type ErrorResponse struct {
 	Status  string `json:"status"`
+	Code    string `json:"code,omitempty"`
 	Message string `json:"message"`
 }
 
 // AuthenticationErrorResponse model of an error response.
 type AuthenticationErrorResponse struct {
 	Status         string `json:"status"`
+	Code           string `json:"code,omitempty"`
 	Message        string `json:"message"`
 	Authentication bool   `json:"authentication"`
 	Elevation      bool   `json:"elevation"`

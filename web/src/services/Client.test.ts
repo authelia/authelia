@@ -6,6 +6,7 @@ import axios from "axios";
 
 import { hasServiceError, toData, toDataRateLimited } from "@services/Api";
 import * as Client from "@services/Client";
+import { ServiceError } from "@services/ServiceError";
 
 vi.mock("axios");
 vi.mock("@services/Api");
@@ -58,6 +59,19 @@ it("throws on post error", async () => {
     await expect(Client.PostWithOptionalResponse("/path", {})).rejects.toThrow(
         "Failed POST to /path. Code: 400. Message: error",
     );
+});
+
+it("throws a service error carrying the status and code", async () => {
+    const mockRes = { data: { code: "password_policy", message: "error", status: "KO" }, status: 200 };
+    (axios.post as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ code: "password_policy", errored: true, message: "error" });
+
+    const err = await Client.PostWithOptionalResponse("/path", {}).catch((e) => e);
+
+    expect(err).toBeInstanceOf(ServiceError);
+    expect(err.message).toBe("Failed POST to /path. Code: 200. Message: error");
+    expect(err.status).toBe(200);
+    expect(err.code).toBe("password_policy");
 });
 
 it("throws on rate limited post error", async () => {
@@ -191,6 +205,22 @@ it("throws on get with optional data error", async () => {
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
     await expect(Client.GetWithOptionalData("/path")).rejects.toThrow("Failed GET from /path. Code: 400.");
+});
+
+it.each([
+    ["Get", Client.Get],
+    ["GetWithOptionalData", Client.GetWithOptionalData],
+])("throws a service error carrying the status and code on %s", async (_, fn) => {
+    const mockRes = { data: { code: "totp_configuration_not_found", message: "error", status: "KO" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ code: "totp_configuration_not_found", errored: true, message: "error" });
+
+    const err = await fn("/path").catch((e) => e);
+
+    expect(err).toBeInstanceOf(ServiceError);
+    expect(err.message).toBe("Failed GET from /path. Code: 200.");
+    expect(err.status).toBe(200);
+    expect(err.code).toBe("totp_configuration_not_found");
 });
 
 it("throws on get with optional data returning undefined", async () => {

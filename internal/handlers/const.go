@@ -9,6 +9,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -66,20 +67,22 @@ var (
 	qryValueBasic = []byte("basic")
 )
 
-const (
-	messageOperationFailed                       = "Operation failed."
-	messageAuthenticationFailed                  = "Authentication failed. Check your credentials."
-	messageUnableToOptionsOneTimePassword        = "Unable to retrieve TOTP registration options."            //nolint:gosec
-	messageUnableToRegisterOneTimePassword       = "Unable to set up one-time password."                      //nolint:gosec
-	messageUnableToDeleteRegisterOneTimePassword = "Unable to delete one-time password registration session." //nolint:gosec
-	messageUnableToDeleteOneTimePassword         = "Unable to delete one-time password."
-	messageUnableToRegisterSecurityKey           = "Unable to register your security key."
-	messageSecurityKeyDuplicateName              = "Another one of your security keys is already registered with that display name."
-	messageUnableToResetPassword                 = "Unable to reset your password."
-	messageUnableToChangePassword                = "Unable to change your password."
-	messageIncorrectPassword                     = "Incorrect Password"
-	messageMFAValidationFailed                   = "Authentication failed, please retry later."
-	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements."
+var (
+	messageOperationFailed                       = middlewares.ErrorMessageOperationFailed
+	messageAuthenticationFailed                  = middlewares.ErrorMessageAuthenticationFailed
+	messageUnableToOptionsOneTimePassword        = middlewares.ErrorMessageTOTPOptionsFailed
+	messageUnableToRegisterOneTimePassword       = middlewares.ErrorMessageTOTPRegisterFailed
+	messageUnableToDeleteRegisterOneTimePassword = middlewares.ErrorMessageTOTPRegisterSessionDeleteFailed
+	messageUnableToDeleteOneTimePassword         = middlewares.ErrorMessageTOTPDeleteFailed
+	messageUnableToRegisterSecurityKey           = middlewares.ErrorMessageWebAuthnRegisterFailed
+	messageSecurityKeyDuplicateName              = middlewares.ErrorMessageWebAuthnDuplicateName
+	messageUnableToResetPassword                 = middlewares.ErrorMessagePasswordResetFailed
+	messageUnableToChangePassword                = middlewares.ErrorMessagePasswordChangeFailed
+	messageIncorrectPassword                     = middlewares.ErrorMessagePasswordIncorrect
+	messageMFAValidationFailed                   = middlewares.ErrorMessageMFAValidationFailed
+	messagePasswordWeak                          = middlewares.ErrorMessagePasswordPolicy
+	messageTOTPConfigurationNotFound             = middlewares.ErrorMessageTOTPConfigurationNotFound
+	messagePasswordBackendComplexity             = middlewares.ErrorMessagePasswordBackendComplexity
 )
 
 const (
@@ -149,8 +152,6 @@ const (
 	enroll = "enroll"
 	auth   = "auth"
 )
-
-const ldapPasswordComplexityCode = "0000052D."
 
 var ldapPasswordComplexityCodes = []string{
 	"0000052D", "SynoNumber", "SynoMixedCase", "SynoExcludeNameDesc", "SynoSpecialChar",
