@@ -337,6 +337,21 @@ Unlike the other special scopes, `authelia.pam` is user-customizable: claims att
 `authelia.pam.username` claim, allowing operators to project additional user attributes into the access token or
 [UserInfo] response for use by downstream PAM-aware tooling.
 
+#### bound_key
+
+This scope requests an [ID Token] bound to the same proof-of-possession key the [Access Token] is bound to, as described
+by [OpenID Connect Key Binding 1.0]. The bound [ID Token] carries a `cnf` claim holding the public key, which lets a
+relying party confirm the token was issued to the holder of that key rather than merely presented by whoever obtained
+it.
+
+It must be requested alongside the `openid` scope, and the authorization request must carry the `dpop_jkt` parameter.
+Key binding is defined for the Authorization Code Flow and the Device Authorization Flow only; requesting it with any
+other response type is rejected.
+
+The scope has no effect unless
+[key_binding](../../configuration/identity-providers/openid-connect/provider.md#key_binding) is enabled on the issuer,
+which in turn requires Demonstrating Proof of Possession to be enabled.
+
 [OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -347,6 +362,7 @@ Unlike the other special scopes, `authelia.pam` is user-customizable: claims att
 [Standard Claims]: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
 [Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Offline Access]: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
+[OpenID Connect Key Binding 1.0]: https://openid.net/specs/openid-connect-key-binding-1_0.html
 [UserInfo Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 [Standard Attributes]: ../../reference/guides/attributes.md#standard-attributes
 [Custom Attributes]: ../../reference/guides/attributes.md#custom-attributes

@@ -1356,6 +1356,29 @@ session:
       # id_token: '1 hour'
       # refresh_token: '90 minutes'
 
+    ## Demonstrating Proof of Possession settings.
+    # dpop:
+      ## Enables DPoP.
+      # enabled: false
+
+      ## Enforces DPoP for all clients.
+      # enforced: false
+
+      ## Enables OpenID Connect Key Binding 1.0.
+      # key_binding: false
+
+      ## Enforces DPoP nonce usage.
+      # nonce_enforced: false
+
+      ## Sets the DPoP nonce lifespans.
+      # nonce_lifespan: '5 minutes'
+
+      ## Sets how long after the issued at time a DPoP proof remains valid.
+      # proof_lifespan: '10 seconds'
+
+      ## Sets the skew allowed for DPoP proofs.
+      # clock_skew: '30 seconds'
+
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
       ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.

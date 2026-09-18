@@ -42,6 +42,14 @@ func TestSession_Clone(t *testing.T) {
 			},
 			Headers:  &jwt.Headers{Extra: map[string]any{"kid": "123"}},
 			Username: "john",
+
+			// The RFC9449 and OpenID Connect Key Binding 1.0 state must survive a clone: the refresh flow rebuilds
+			// its request from a clone of the original session, so a thumbprint dropped here is a refreshed grant
+			// which is no longer sender-constrained.
+			JWKThumbprint:          "the-jkt",
+			RequestedJWKThumbprint: "the-requested-jkt",
+			PublicKeyJWK:           []byte(`{"kty":"EC"}`),
+			KeyBindingGranted:      true,
 		},
 		AccessToken: &oidc.AccessTokenSession{
 			Headers: map[string]any{"typ": "at+jwt"},
@@ -84,6 +92,15 @@ func TestSession_Clone(t *testing.T) {
 	assert.Equal(t, "john", session.ClaimRequests.UserInfo["name"].Value)
 	assert.Equal(t, "email", session.GrantedClaims[0])
 	assert.Equal(t, "y", session.Extra["x"])
+
+	assert.Equal(t, "the-jkt", clone.GetDPoPJWKThumbprint())
+	assert.Equal(t, "the-requested-jkt", clone.GetRequestedDPoPJWKThumbprint())
+	assert.Equal(t, []byte(`{"kty":"EC"}`), clone.GetDPoPPublicKeyJWK())
+	assert.True(t, clone.GetOIDCKeyBindingGranted())
+
+	clone.PublicKeyJWK[0] = 'X'
+
+	assert.Equal(t, []byte(`{"kty":"EC"}`), session.GetDPoPPublicKeyJWK())
 
 	clone, ok = (&oidc.Session{}).Clone().(*oidc.Session)
 	require.True(t, ok)
