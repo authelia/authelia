@@ -108,7 +108,7 @@ func (s *UserManagementUIScenario) TestShouldManageUserLifecycle() {
 	// Edit.
 	s.doUserManagementEditDisplayName(s.T(), s.Context(ctx), uiTestUserUsername, uiTestUserDisplayName2)
 	s.verifyUserRowExists(s.T(), s.Context(ctx), uiTestUserUsername)
-	s.Page.MustElementR(rowSelector(userManagementTableID, "user-row-"+uiTestUserUsername), uiTestUserDisplayName2)
+	s.MustElementR(rowSelector(userManagementTableID, "user-row-"+uiTestUserUsername), uiTestUserDisplayName2)
 
 	// Set password.
 	s.doUserManagementSetPassword(s.T(), s.Context(ctx), uiTestUserUsername, uiTestUserNewPassword)
