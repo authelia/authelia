@@ -42,6 +42,8 @@ access_control:
       policy: 'two_factor'
 
 session:
+  storage: 'cache'
+
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
   secret: 'insecure_session_secret'
 
@@ -52,10 +54,10 @@ session:
       expiration: '1 hour'
       inactivity: '5 minutes'
 
+cache:
   redis:
-    host: 'redis'
-    port: 6379
-    # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+    address: 'tcp://redis:6379'
+    # This secret can also be set using the env variables AUTHELIA_CACHE_REDIS_PASSWORD_FILE
     # password: authelia
 
 regulation:

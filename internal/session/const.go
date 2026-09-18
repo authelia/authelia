@@ -5,17 +5,22 @@
 package session
 
 import (
+	"errors"
 	"time"
 )
 
-const (
-	testDomain     = "example.com"
-	testExpiration = time.Second * 40
-	testName       = "my_session"
-	testUsername   = "john"
-)
+// ErrRepositoryGet is returned when the Repository fails to retrieve a session, as distinct from a session which is
+// absent or which can't be opened.
+var ErrRepositoryGet = errors.New("error occurred getting session from backend")
 
 const (
-	userSessionStorerKey = "UserSession"
-	randomSessionChars   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_!#$%^*"
+	randomSessionChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_!#$%^*"
+
+	hkdfKeyInfoCodec = "authelia:kdf:session:codec:encryption_key:v1"
+
+	cookieDeletionOffset = time.Hour * 24
+)
+
+var (
+	expireUnlimited time.Time
 )
