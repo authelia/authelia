@@ -39,6 +39,10 @@ export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
 }
 
+export function getRegistrationURL() {
+    return getEmbeddedVariable("registrationurl");
+}
+
 export function getPrivacyPolicyEnabled() {
     return getEmbeddedVariable("privacypolicyurl") !== "";
 }
