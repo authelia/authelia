@@ -147,6 +147,7 @@ const (
 	codeCSPDevelopmentDefaultSrc = "'self' 'unsafe-eval'"
 	codeCSPNone                  = "'none'"
 	codeCSPNonce                 = "${NONCE}"
+	codeCSPOIDCClientLogoURIs    = "${OIDC_CLIENT_LOGO_URIS}"
 )
 
 const (
@@ -162,7 +163,8 @@ var (
 		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPSelf},
 		{Name: "frame-src", Value: codeCSPNone},
 		{Name: "object-src", Value: codeCSPNone},
-		{Name: "style-src", Value: "'self' 'nonce-%s'"},
+		{Name: "img-src", Value: "'self' data:${OIDC_CLIENT_LOGO_URIS}"},
+		{Name: "style-src", Value: "'self' 'nonce-${NONCE}'"},
 		{Name: "frame-ancestors", Value: codeCSPNone},
 		{Name: "base-uri", Value: codeCSPSelf},
 	}

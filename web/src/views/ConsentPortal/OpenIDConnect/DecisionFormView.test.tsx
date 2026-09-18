@@ -911,3 +911,18 @@ it("separates the account actions", async () => {
     expect(separator).toBeInTheDocument();
     expect(separator).toHaveAttribute("data-orientation", "vertical");
 });
+
+it("renders the client logo with src and alt when client_logo_uri is provided", async () => {
+    await renderLoaded(response({ client_logo_uri: "https://example.com/logo.png" }));
+
+    const logo = screen.getByRole("img", { name: "Test Client" });
+
+    expect(logo).toHaveAttribute("id", "openid-consent-client-logo");
+    expect(logo).toHaveAttribute("src", "https://example.com/logo.png");
+});
+
+it("does not render the client logo when client_logo_uri is omitted", async () => {
+    const { container } = await renderLoaded();
+
+    expect(container.querySelector("#openid-consent-client-logo")).toBeNull();
+});

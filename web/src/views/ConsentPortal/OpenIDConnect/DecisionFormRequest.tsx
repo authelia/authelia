@@ -28,9 +28,11 @@ function DecisionFormRequest({ claims, collapsible, onChangeClaims, response }: 
 
     const [open, setOpen] = useState(false);
 
+    const hasScopes = (response.scopes?.length ?? 0) > 0;
+
     const sections = (
         <CardContent className="flex flex-col gap-5 px-4 py-5">
-            <DecisionFormScopes scopes={response.scopes} />
+            <DecisionFormScopes scopes={response.scopes} headless />
             <DecisionFormClaims
                 claims={response.claims}
                 checked={claims}
@@ -50,35 +52,49 @@ function DecisionFormRequest({ claims, collapsible, onChangeClaims, response }: 
         (response.resource?.length ?? 0) === 0;
 
     return (
-        <Card className="gap-0 overflow-hidden py-0">
-            <CardHeader className="px-4 py-4">
-                <DecisionFormClient client_id={response.client_id} client_description={response.client_description} />
-            </CardHeader>
-            {collapsible ? (
-                empty ? null : (
-                    <div>
-                        <Separator />
-                        <button
-                            type="button"
-                            id={"openid-consent-request-disclosure"}
-                            className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-xs font-medium text-muted-foreground hover:text-foreground"
-                            aria-expanded={open}
-                            aria-controls={"openid-consent-request-details"}
-                            onClick={() => setOpen((previous) => !previous)}
-                        >
-                            <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
-                            {open ? translate("Hide request details") : translate("Show request details")}
-                        </button>
-                        {open ? <div id={"openid-consent-request-details"}>{sections}</div> : null}
-                    </div>
-                )
-            ) : (
-                <div>
-                    <Separator />
-                    {sections}
-                </div>
+        <div className="flex w-full flex-col gap-4">
+            <DecisionFormClient
+                client_id={response.client_id}
+                client_description={response.client_description}
+                client_logo_uri={response.client_logo_uri}
+            />
+            {empty ? null : (
+                <Card className="gap-0 overflow-hidden py-0">
+                    {hasScopes ? (
+                        <CardHeader className="px-4 pt-4 pb-2 text-left">
+                            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                {translate("Requested Permissions")}
+                            </h3>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                {translate("The actions the application will be allowed to perform on your behalf")}
+                            </p>
+                        </CardHeader>
+                    ) : null}
+                    {collapsible ? (
+                        <div>
+                            {hasScopes ? <Separator /> : null}
+                            <button
+                                type="button"
+                                id={"openid-consent-request-disclosure"}
+                                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-xs font-medium text-muted-foreground hover:text-foreground"
+                                aria-expanded={open}
+                                aria-controls={"openid-consent-request-details"}
+                                onClick={() => setOpen((previous) => !previous)}
+                            >
+                                <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
+                                {open ? translate("Hide request details") : translate("Show request details")}
+                            </button>
+                            {open ? <div id={"openid-consent-request-details"}>{sections}</div> : null}
+                        </div>
+                    ) : (
+                        <div>
+                            {hasScopes ? <Separator /> : null}
+                            {sections}
+                        </div>
+                    )}
+                </Card>
             )}
-        </Card>
+        </div>
     );
 }
 
