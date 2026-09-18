@@ -8,13 +8,19 @@ import { postFirstFactor } from "@services/Password";
 import FirstFactorForm from "@views/LoginPortal/FirstFactor/FirstFactorForm";
 
 const mocks = vi.hoisted(() => ({
+    browserSupportsWebAuthn: true,
     capsLockModified: null as boolean | null,
+    channelClose: vi.fn(),
     channelListeners: [] as ((authenticated: boolean) => void)[],
     createErrorNotification: vi.fn(),
     navigate: vi.fn(),
     postMessage: vi.fn(),
     queryParams: {} as Record<string, null | string>,
     userCode: null as null | string,
+}));
+
+vi.mock("@simplewebauthn/browser", () => ({
+    browserSupportsWebAuthn: () => mocks.browserSupportsWebAuthn,
 }));
 
 vi.mock("react-i18next", () => ({
@@ -35,6 +41,7 @@ vi.mock("broadcast-channel", () => {
             mocks.channelListeners = mocks.channelListeners.filter((h) => h !== handler);
         });
         postMessage = mocks.postMessage;
+        close = mocks.channelClose;
     }
     return { BroadcastChannel: MockBroadcastChannel };
 });
@@ -93,9 +100,6 @@ vi.mock("@views/LoginPortal/FirstFactor/PasskeyForm", () => ({
 const postFirstFactorMock = vi.mocked(postFirstFactor);
 
 const defaultProps = {
-    disabled: false,
-    onAuthenticationStart: vi.fn(),
-    onAuthenticationStop: vi.fn(),
     onAuthenticationSuccess: vi.fn(),
     onChannelStateChange: vi.fn(),
     passkeyLogin: false,
@@ -107,8 +111,6 @@ const defaultProps = {
 function renderForm(props: Partial<typeof defaultProps> = {}) {
     const merged = {
         ...defaultProps,
-        onAuthenticationStart: vi.fn(),
-        onAuthenticationStop: vi.fn(),
         onAuthenticationSuccess: vi.fn(),
         onChannelStateChange: vi.fn(),
         ...props,
@@ -132,6 +134,7 @@ function fillCredentials(username = "john", password = "secret") {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mocks.browserSupportsWebAuthn = true;
     mocks.capsLockModified = null;
     mocks.channelListeners = [];
     mocks.queryParams = {};
@@ -172,11 +175,36 @@ describe("rendering", () => {
         expect(screen.queryByText("Reset password?")).not.toBeInTheDocument();
     });
 
-    it("disables the inputs and the sign in button when disabled", () => {
-        renderForm({ disabled: true });
-        expect(getUsername()).toBeDisabled();
+    it("renders the inputs enabled before any authentication is in flight", () => {
+        renderForm();
+        expect(getUsername()).not.toBeDisabled();
+        expect(getPassword()).not.toBeDisabled();
+        expect(screen.getByRole("button", { name: /Sign in/ })).not.toBeDisabled();
+    });
+
+    it("disables the inputs and the sign in button while a sign in is in flight", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        postFirstFactorMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        renderForm();
+
+        fillCredentials();
+        fireEvent.click(screen.getByRole("button", { name: /Sign in/ }));
+
+        await waitFor(() => expect(getUsername()).toBeDisabled());
         expect(getPassword()).toBeDisabled();
         expect(screen.getByRole("button", { name: /Sign in/ })).toBeDisabled();
+
+        resolve(undefined);
+        await waitFor(() => expect(getUsername()).not.toBeDisabled());
+    });
+
+    it("does not render the passkey form when the browser does not support WebAuthn", () => {
+        mocks.browserSupportsWebAuthn = false;
+
+        renderForm({ passkeyLogin: true });
+
+        expect(screen.queryByTestId("passkey-form")).not.toBeInTheDocument();
     });
 
     it("focuses the username field on mount", async () => {
@@ -187,14 +215,14 @@ describe("rendering", () => {
 
 describe("validation", () => {
     it("flags both fields when signing in with an empty form", async () => {
-        const { props } = renderForm();
+        renderForm();
 
         fireEvent.click(screen.getByRole("button", { name: /Sign in/ }));
 
         await waitFor(() => expect(getUsername()).toHaveAttribute("aria-invalid", "true"));
         expect(getPassword()).toHaveAttribute("aria-invalid", "true");
         expect(postFirstFactorMock).not.toHaveBeenCalled();
-        expect(props.onAuthenticationStart).not.toHaveBeenCalled();
+        expect(screen.getByRole("button", { name: /Sign in/ })).not.toBeDisabled();
     });
 
     it("flags only the password when the username is filled", async () => {
@@ -248,7 +276,6 @@ describe("sign in", () => {
         fireEvent.click(screen.getByRole("button", { name: /Sign in/ }));
 
         await waitFor(() => expect(props.onAuthenticationSuccess).toHaveBeenCalledWith("https://example.com/after"));
-        expect(props.onAuthenticationStart).toHaveBeenCalled();
         expect(mocks.postMessage).toHaveBeenCalledWith(true);
         expect(postFirstFactorMock).toHaveBeenCalledWith(
             "john",
@@ -326,7 +353,7 @@ describe("sign in", () => {
         await waitFor(() =>
             expect(mocks.createErrorNotification).toHaveBeenCalledWith("Incorrect username or password"),
         );
-        expect(props.onAuthenticationStop).toHaveBeenCalled();
+        await waitFor(() => expect(screen.getByRole("button", { name: /Sign in/ })).not.toBeDisabled());
         expect(props.onAuthenticationSuccess).not.toHaveBeenCalled();
         await waitFor(() => expect(getPassword()).toHaveValue(""));
         expect(getPassword()).toHaveFocus();
@@ -613,7 +640,7 @@ describe("login broadcast channel", () => {
         expect(props.onChannelStateChange).not.toHaveBeenCalled();
     });
 
-    it("removes the listener on unmount", () => {
+    it("removes the listener and closes the channel on unmount", () => {
         const { unmount } = renderForm();
 
         expect(mocks.channelListeners).toHaveLength(1);
@@ -621,24 +648,26 @@ describe("login broadcast channel", () => {
         unmount();
 
         expect(mocks.channelListeners).toHaveLength(0);
+        expect(mocks.channelClose).toHaveBeenCalled();
     });
 });
 
 describe("passkey integration", () => {
-    it("clears the credentials and starts loading when passkey authentication starts", async () => {
-        const { props } = renderForm({ passkeyLogin: true });
+    it("clears the credentials and disables the form when passkey authentication starts", async () => {
+        renderForm({ passkeyLogin: true });
 
         fillCredentials();
         fireEvent.click(screen.getByTestId("passkey-start"));
 
         await waitFor(() => expect(getUsername()).toHaveValue(""));
         expect(getPassword()).toHaveValue("");
-        expect(props.onAuthenticationStart).toHaveBeenCalled();
+        expect(getUsername()).toBeDisabled();
+        expect(screen.getByRole("button", { name: /Sign in/ })).toBeDisabled();
         expect(screen.getByTestId("passkey-form")).toHaveAttribute("data-disabled", "true");
     });
 
-    it("stops loading when passkey authentication stops", async () => {
-        const { props } = renderForm({ passkeyLogin: true });
+    it("re-enables the form when passkey authentication stops", async () => {
+        renderForm({ passkeyLogin: true });
 
         fireEvent.click(screen.getByTestId("passkey-start"));
         await waitFor(() => expect(screen.getByTestId("passkey-form")).toHaveAttribute("data-disabled", "true"));
@@ -646,7 +675,7 @@ describe("passkey integration", () => {
         fireEvent.click(screen.getByTestId("passkey-stop"));
 
         await waitFor(() => expect(screen.getByTestId("passkey-form")).toHaveAttribute("data-disabled", "false"));
-        expect(props.onAuthenticationStop).toHaveBeenCalled();
+        expect(getUsername()).not.toBeDisabled();
     });
 
     it("forwards passkey authentication success", async () => {
