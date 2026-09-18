@@ -24,6 +24,7 @@ interface Props {
     info?: UserInfo;
     config: null | undefined | UserInfoTOTPConfiguration;
     handleRefreshState: () => void;
+    onRegistrationSuccess?: () => void;
 }
 
 const OneTimePasswordPanel = function (props: Props) {
@@ -202,6 +203,7 @@ const OneTimePasswordPanel = function (props: Props) {
                     handleResetState();
                     props.handleRefreshState();
                 }}
+                onRegistrationSuccess={props.onRegistrationSuccess}
             />
             <OneTimePasswordInformationDialog
                 open={dialogInformationOpen}

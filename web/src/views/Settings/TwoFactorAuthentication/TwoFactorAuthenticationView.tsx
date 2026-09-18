@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +15,7 @@ import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfigu
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import { SecondFactorMethod } from "@models/Methods";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
+import RedirectAfterEnrollmentDialog from "@views/Settings/TwoFactorAuthentication/RedirectAfterEnrollmentDialog";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsDisabledPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsDisabledPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
@@ -36,6 +37,42 @@ const TwoFactorAuthenticationView = function () {
 
     const hasTOTP = userInfo?.has_totp ?? false;
     const hasWebAuthn = userInfo?.has_webauthn ?? false;
+
+    const [redirectDialogOpen, setRedirectDialogOpen] = useState(false);
+    // null until userInfo resolves; then whether the user had any MFA device (TOTP, WebAuthn, or Duo) on load.
+    const hadDevicesBeforeRef = useRef<boolean | null>(null);
+    // A registration can complete before userInfo resolves; buffer it and replay once hadDevicesBeforeRef is known.
+    const pendingRegistrationSuccessRef = useRef(false);
+
+    useEffect(() => {
+        if (!userInfo || hadDevicesBeforeRef.current !== null) {
+            return;
+        }
+
+        hadDevicesBeforeRef.current = userInfo.has_totp || userInfo.has_webauthn || userInfo.has_duo;
+
+        if (pendingRegistrationSuccessRef.current) {
+            pendingRegistrationSuccessRef.current = false;
+
+            if (hadDevicesBeforeRef.current === false) {
+                setRedirectDialogOpen(true);
+                hadDevicesBeforeRef.current = true;
+            }
+        }
+    }, [userInfo]);
+
+    const handleRegistrationSuccess = useCallback(() => {
+        if (hadDevicesBeforeRef.current === null) {
+            pendingRegistrationSuccessRef.current = true;
+
+            return;
+        }
+
+        if (hadDevicesBeforeRef.current === false) {
+            setRedirectDialogOpen(true);
+            hadDevicesBeforeRef.current = true;
+        }
+    }, []);
 
     const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
@@ -148,6 +185,7 @@ const TwoFactorAuthenticationView = function () {
                         info={userInfo}
                         config={userTOTPConfig}
                         handleRefreshState={handleRefreshTOTPState}
+                        onRegistrationSuccess={handleRegistrationSuccess}
                     />
                 </div>
             ) : null}
@@ -158,6 +196,7 @@ const TwoFactorAuthenticationView = function () {
                             info={userInfo}
                             credentials={userWebAuthnCredentials}
                             handleRefreshState={handleRefreshWebAuthnState}
+                            onRegistrationSuccess={handleRegistrationSuccess}
                         />
                     ) : (
                         <WebAuthnCredentialsDisabledPanel />
@@ -173,6 +212,7 @@ const TwoFactorAuthenticationView = function () {
                     />
                 </div>
             ) : null}
+            <RedirectAfterEnrollmentDialog open={redirectDialogOpen} setClosed={() => setRedirectDialogOpen(false)} />
         </div>
     );
 };
