@@ -134,18 +134,22 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.config.StatusCodeBadRequest = fasthttp.StatusUnauthorized
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
+		authz.handleForbidden = handleAuthzForbiddenStandard
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy
 	case AuthzImplForwardAuth:
 		authz.handleGetObject = handleAuthzGetObjectForwardAuth
 		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
+		authz.handleForbidden = handleAuthzForbiddenCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplAuthRequest:
 		authz.handleGetObject = handleAuthzGetObjectAuthRequest
 		authz.handleUnauthorized = handleAuthzUnauthorizedAuthRequest
+		authz.handleForbidden = handleAuthzForbiddenAuthRequest
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplExtAuthz:
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
 		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
+		authz.handleForbidden = handleAuthzForbiddenCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
 	}
 

@@ -24,6 +24,10 @@ func (s *EnvoySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
+func (s *EnvoySuite) TestAccessDeniedScenario() {
+	suite.Run(s.T(), NewAccessDeniedScenario())
+}
+
 func (s *EnvoySuite) Test2FATOTPScenario() {
 	suite.Run(s.T(), New2FATOTPScenario())
 }
