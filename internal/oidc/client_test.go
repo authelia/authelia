@@ -1030,6 +1030,36 @@ func TestNewClientPAR(t *testing.T) {
 	}
 }
 
+func TestNewClientRequireSignedRequestObject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.IdentityProvidersOpenIDConnectClient
+		expected bool
+	}{
+		{
+			"ShouldNotRequireSignedRequestObject",
+			schema.IdentityProvidersOpenIDConnectClient{},
+			false,
+		},
+		{
+			"ShouldRequireSignedRequestObject",
+			schema.IdentityProvidersOpenIDConnectClient{RequireSignedRequestObject: true},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			registered, ok := client.(*oidc.RegisteredClient)
+			require.True(t, ok)
+
+			assert.Equal(t, tc.expected, registered.GetRequireSignedRequestObject())
+		})
+	}
+}
+
 func TestClient_GetEffectiveLifespan(t *testing.T) {
 	type subcase struct {
 		name     string
