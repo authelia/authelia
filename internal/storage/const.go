@@ -39,6 +39,19 @@ const (
 	tableEncryption = "encryption"
 )
 
+// Queries for cleaning stale OAuth 2.0 consent sessions. A session is stale once it has expired and the user has
+// responded to it: the response is what makes it finished, and the expiry is what makes it safe to remove. Rows
+// which have never been responded to are left alone as a flow may still be in progress against them.
+const (
+	queryFmtCountStaleOAuth2ConsentSessions = `
+		SELECT COUNT(*)
+		FROM %s
+		WHERE expires_at IS NOT NULL AND expires_at < ? AND responded_at IS NOT NULL AND responded_at < ?;`
+
+	queryFmtDeleteStaleOAuth2ConsentSessions = `
+		DELETE FROM %s
+		WHERE expires_at IS NOT NULL AND expires_at < ? AND responded_at IS NOT NULL AND responded_at < ?;`
+)
 const (
 	tableAADPushedAuthorizationRequestSession = "oauth2_pushed_authorization_session"
 )

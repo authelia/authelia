@@ -1,0 +1,6 @@
+DROP INDEX oauth2_access_token_session_challenge_id_idx;
+DROP INDEX oauth2_authorization_code_session_challenge_id_idx;
+DROP INDEX oauth2_device_code_session_challenge_id_idx;
+DROP INDEX oauth2_openid_connect_session_challenge_id_idx;
+DROP INDEX oauth2_pkce_request_session_challenge_id_idx;
+DROP INDEX oauth2_refresh_token_session_challenge_id_idx;
