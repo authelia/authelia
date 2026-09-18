@@ -106,6 +106,27 @@
     ## Enables the expvars endpoint.
     # enable_expvars: false
 
+    ## Health check endpoint configuration.
+    # health:
+      ## Enables the verbose health check endpoint at /api/health/verbose which probes each configured provider.
+      ## The plain /api/health endpoint is unaffected by this option.
+      # verbose: false
+
+      ## Includes the provider error message in the verbose response. This may disclose connection strings and
+      ## host names to unauthenticated clients, so it should only be enabled while diagnosing a problem.
+      # detailed: false
+
+      ## The providers probed by the verbose endpoint. Probing 'notification' opens a connection to the SMTP
+      ## server and probing 'ntp' contacts an external server, so neither is included by default.
+      ## Options are 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', and 'webauthn-metadata'.
+      # providers:
+      #   - 'storage'
+      #   - 'session'
+      #   - 'user'
+
+      ## How long a result is reused before the providers are probed again. Set to '0' to probe on every request.
+      # cache: '10 seconds'
+
     ## Configure the authz endpoints.
     # authz:
       # forward-auth:
