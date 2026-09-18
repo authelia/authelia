@@ -35,7 +35,7 @@ it("renders the current range text", () => {
             total={120}
         />,
     );
-    expect(screen.getByText("1–25 of 120")).toBeInTheDocument();
+    expect(screen.getByText("1-25 of 120")).toBeInTheDocument();
 });
 
 it("renders the range for a middle page", () => {
@@ -48,7 +48,7 @@ it("renders the range for a middle page", () => {
             total={120}
         />,
     );
-    expect(screen.getByText("51–75 of 120")).toBeInTheDocument();
+    expect(screen.getByText("51-75 of 120")).toBeInTheDocument();
 });
 
 it("disables the previous button on the first page", () => {
