@@ -10,10 +10,11 @@ import { Button } from "@components/UI/Button";
 import { Card, CardContent } from "@components/UI/Card";
 import { Spinner } from "@components/UI/Spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
+import { useElevationFlow } from "@hooks/ElevationFlow";
 import { UserInfo } from "@models/UserInfo";
 import { WebAuthnCredential } from "@models/WebAuthn";
-import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
+import ReauthenticationDialog from "@views/Settings/Common/ReauthenticationDialog";
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import WebAuthnCredentialDeleteDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialDeleteDialog";
 import WebAuthnCredentialEditDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialEditDialog";
@@ -27,41 +28,37 @@ interface Props {
     handleRefreshState: () => void;
 }
 
+type Action = "delete" | "edit" | "register";
+
 const WebAuthnCredentialsPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
-    const [elevation, setElevation] = useState<UserSessionElevation>();
-
-    const [dialogSFOpening, setDialogSFOpening] = useState(false);
-    const [dialogIVOpening, setDialogIVOpening] = useState(false);
-
     const [dialogRegisterOpen, setDialogRegisterOpen] = useState(false);
-    const [dialogRegisterOpening, setDialogRegisterOpening] = useState(false);
 
     const [dialogInformationOpen, setDialogInformationOpen] = useState(false);
     const [indexInformation, setIndexInformation] = useState(-1);
 
     const [dialogEditOpen, setDialogEditOpen] = useState(false);
-    const [dialogEditOpening, setDialogEditOpening] = useState(false);
     const [indexEdit, setIndexEdit] = useState(-1);
 
     const [dialogDeleteOpen, setDialogDeleteOpen] = useState(false);
-    const [dialogDeleteOpening, setDialogDeleteOpening] = useState(false);
     const [indexDelete, setIndexDelete] = useState(-1);
 
-    const handleResetStateOpening = () => {
-        setDialogSFOpening(false);
-        setDialogIVOpening(false);
-        setDialogRegisterOpening(false);
-        setDialogEditOpening(false);
-        setDialogDeleteOpening(false);
-    };
+    const handleElevated = useCallback((action: Action) => {
+        switch (action) {
+            case "register":
+                setDialogRegisterOpen(true);
+                break;
+            case "edit":
+                setDialogEditOpen(true);
+                break;
+            case "delete":
+                setDialogDeleteOpen(true);
+                break;
+        }
+    }, []);
 
-    const handleResetState = useCallback(() => {
-        handleResetStateOpening();
-
-        setElevation(undefined);
-
+    const handleCancelled = useCallback(() => {
         setDialogRegisterOpen(false);
         setDialogEditOpen(false);
         setIndexEdit(-1);
@@ -69,126 +66,24 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         setIndexDelete(-1);
     }, []);
 
-    const handleOpenDialogRegister = useCallback(() => {
-        handleResetStateOpening();
-        setDialogRegisterOpen(true);
-    }, []);
+    const {
+        identityVerificationDialogProps,
+        pending,
+        reauthenticationDialogProps,
+        reset,
+        secondFactorDialogProps,
+        start,
+    } = useElevationFlow<Action>({ onCancelled: handleCancelled, onElevated: handleElevated });
 
-    const handleOpenDialogDelete = useCallback(() => {
-        handleResetStateOpening();
-        setDialogDeleteOpen(true);
-    }, []);
+    const handleResetState = useCallback(() => {
+        reset();
+        handleCancelled();
+    }, [handleCancelled, reset]);
 
-    const handleOpenDialogEdit = useCallback(() => {
-        handleResetStateOpening();
-        setDialogEditOpen(true);
-    }, []);
-
-    const handleSFDialogClosed = (ok: boolean, changed: boolean) => {
-        if (!ok) {
-            console.warn("Second Factor dialog close callback failed, it was likely cancelled by the user.");
-
-            handleResetState();
-
-            return;
-        }
-
-        if (changed) {
-            handleElevationRefresh()
-                .catch(console.error)
-                .then((refreshedElevation) => {
-                    if (refreshedElevation) {
-                        const isElevatedFromRefresh =
-                            refreshedElevation.elevated || refreshedElevation.skip_second_factor;
-                        if (isElevatedFromRefresh) {
-                            setElevation(undefined);
-                            if (dialogRegisterOpening) {
-                                handleOpenDialogRegister();
-                            } else if (dialogDeleteOpening) {
-                                handleOpenDialogDelete();
-                            } else if (dialogEditOpening) {
-                                handleOpenDialogEdit();
-                            }
-                        } else {
-                            setDialogIVOpening(true);
-                        }
-                    }
-                });
-        } else {
-            const isElevated = elevation && (elevation.elevated || elevation.skip_second_factor);
-            if (isElevated) {
-                setElevation(undefined);
-                if (dialogRegisterOpening) {
-                    handleOpenDialogRegister();
-                } else if (dialogDeleteOpening) {
-                    handleOpenDialogDelete();
-                } else if (dialogEditOpening) {
-                    handleOpenDialogEdit();
-                }
-            } else {
-                setDialogIVOpening(true);
-            }
-        }
-    };
-
-    const handleSFDialogOpened = () => {
-        setDialogSFOpening(false);
-    };
-
-    const handleIVDialogClosed = useCallback(
-        (ok: boolean) => {
-            if (!ok) {
-                console.warn(
-                    "Identity Verification dialog close callback failed, it was likely cancelled by the user.",
-                );
-
-                handleResetState();
-
-                return;
-            }
-
-            setElevation(undefined);
-
-            if (dialogRegisterOpening) {
-                handleOpenDialogRegister();
-            } else if (dialogDeleteOpening) {
-                handleOpenDialogDelete();
-            } else if (dialogEditOpening) {
-                handleOpenDialogEdit();
-            }
-        },
-        [
-            handleResetState,
-            handleOpenDialogRegister,
-            handleOpenDialogDelete,
-            handleOpenDialogEdit,
-            dialogRegisterOpening,
-            dialogDeleteOpening,
-            dialogEditOpening,
-        ],
-    );
-
-    const handleIVDialogOpened = useCallback(() => {
-        setDialogIVOpening(false);
-    }, []);
-
-    const handleElevationRefresh = async () => {
-        const result = await getUserSessionElevation();
-
-        setElevation(result);
-        return result;
-    };
-
-    const handleElevation = () => {
-        handleElevationRefresh().catch(console.error);
-
-        setDialogSFOpening(true);
-    };
+    const dialogRegisterOpening = pending === "register";
 
     const handleRegister = () => {
-        setDialogRegisterOpening(true);
-
-        handleElevation();
+        start("register");
     };
 
     const handleInformation = (index: number) => {
@@ -205,10 +100,8 @@ const WebAuthnCredentialsPanel = function (props: Props) {
 
         if (props.credentials.length + 1 < index) return;
 
-        setDialogEditOpening(true);
         setIndexEdit(index);
-
-        handleElevation();
+        start("edit");
     };
 
     const handleDelete = (index: number) => {
@@ -216,27 +109,15 @@ const WebAuthnCredentialsPanel = function (props: Props) {
 
         if (props.credentials.length + 1 < index) return;
 
-        setDialogDeleteOpening(true);
         setIndexDelete(index);
-
-        handleElevation();
+        start("delete");
     };
 
     return (
         <Fragment>
-            <SecondFactorDialog
-                info={props.info}
-                elevation={elevation}
-                opening={dialogSFOpening}
-                handleClosed={handleSFDialogClosed}
-                handleOpened={handleSFDialogOpened}
-            />
-            <IdentityVerificationDialog
-                elevation={elevation}
-                opening={dialogIVOpening}
-                handleClosed={handleIVDialogClosed}
-                handleOpened={handleIVDialogOpened}
-            />
+            <ReauthenticationDialog info={props.info} {...reauthenticationDialogProps} />
+            <SecondFactorDialog info={props.info} {...secondFactorDialogProps} />
+            <IdentityVerificationDialog {...identityVerificationDialogProps} />
             <WebAuthnCredentialRegisterDialog
                 open={dialogRegisterOpen}
                 setClosed={() => {

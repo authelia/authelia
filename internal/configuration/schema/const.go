@@ -201,3 +201,11 @@ const (
 	AddressSchemeSUBMISSIONS    = "submissions"
 	AddressSchemeFileDescriptor = "fd"
 )
+
+// Elevated Session reauthentication modes.
+const (
+	ElevatedSessionReauthenticationDisabled     = "disabled"
+	ElevatedSessionReauthenticationPassword     = "password"
+	ElevatedSessionReauthenticationSecondFactor = "second_factor"
+	ElevatedSessionReauthenticationAny          = "any"
+)

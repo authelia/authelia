@@ -141,6 +141,17 @@ describe("update failures", () => {
         );
     });
 
+    it("reports that reauthentication is required", async () => {
+        const { updateUserWebAuthnCredential } = await import("@services/WebAuthn");
+        vi.mocked(updateUserWebAuthnCredential).mockResolvedValue({
+            data: { elevation: false, reauthentication: true, status: "KO" },
+        } as any);
+
+        await update();
+
+        expect(mockCreateError).toHaveBeenCalledWith("You must reauthenticate to {{action}} a {{item}}");
+    });
+
     it("reports a generic failure", async () => {
         const { updateUserWebAuthnCredential } = await import("@services/WebAuthn");
         vi.mocked(updateUserWebAuthnCredential).mockResolvedValue({

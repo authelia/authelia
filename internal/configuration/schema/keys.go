@@ -279,6 +279,8 @@ var Keys = []string{
 	"identity_validation.elevated_session.characters",
 	"identity_validation.elevated_session.code_lifespan",
 	"identity_validation.elevated_session.elevation_lifespan",
+	"identity_validation.elevated_session.reauthentication_lifespan",
+	"identity_validation.elevated_session.require_reauthentication",
 	"identity_validation.elevated_session.require_second_factor",
 	"identity_validation.elevated_session.skip_second_factor",
 	"identity_validation.reset_password.jwt_algorithm",

@@ -127,12 +127,13 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, UserSession{
-		CookieDomain:               testDomain,
-		Username:                   testUsername,
-		LastActivity:               timeTwoFactor.Unix(),
-		FirstFactorAuthnTimestamp:  timeOneFactor.Unix(),
-		SecondFactorAuthnTimestamp: timeTwoFactor.Unix(),
-		AuthenticationMethodRefs:   authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, Duo: true, KnowledgeBasedAuthentication: true},
+		CookieDomain:                         testDomain,
+		Username:                             testUsername,
+		LastActivity:                         timeTwoFactor.Unix(),
+		FirstFactorAuthnTimestamp:            timeOneFactor.Unix(),
+		SecondFactorAuthnTimestamp:           timeTwoFactor.Unix(),
+		SecondFactorPossessionAuthnTimestamp: timeTwoFactor.Unix(),
+		AuthenticationMethodRefs:             authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, Duo: true, KnowledgeBasedAuthentication: true},
 	}, session)
 
 	assert.Equal(t, authentication.TwoFactor, session.AuthenticationLevel(false))
