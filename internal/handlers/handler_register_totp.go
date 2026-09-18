@@ -11,6 +11,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -258,7 +259,7 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 		Suffix: eventEmailAction2FAAddedSuffix,
 	}
 
-	ctxLogEvent(ctx, userSession.Username, eventLogAction2FAAdded, body, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryOneTimePassword})
+	ctxLogEvent(ctx, events.TypeUserCredentialTOTPAdded, userSession.Username, eventLogAction2FAAdded, body, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryOneTimePassword})
 
 	ctx.ReplyOK()
 }
@@ -355,7 +356,7 @@ func TOTPConfigurationDELETE(ctx *middlewares.AutheliaCtx) {
 		Suffix: eventEmailAction2FARemovedSuffix,
 	}
 
-	ctxLogEvent(ctx, userSession.Username, eventLogAction2FARemoved, body, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryOneTimePassword})
+	ctxLogEvent(ctx, events.TypeUserCredentialTOTPRemoved, userSession.Username, eventLogAction2FARemoved, body, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryOneTimePassword})
 
 	ctx.ReplyOK()
 }

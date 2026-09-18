@@ -41,6 +41,7 @@ type MockAutheliaCtx struct {
 	UserProviderMock *MockUserProvider
 	StorageMock      *MockStorage
 	NotifierMock     *MockNotifier
+	EventsMock       *MockEmitter
 	TOTPMock         *MockTOTP
 	RandomMock       *MockRandom
 
@@ -209,6 +210,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	mockAuthelia.NotifierMock = NewMockNotifier(mockAuthelia.Ctrl)
 	providers.Notifier = mockAuthelia.NotifierMock
+
+	mockAuthelia.EventsMock = NewMockEmitter(mockAuthelia.Ctrl)
+	providers.Events = mockAuthelia.EventsMock
 
 	providers.Authorizer = authorization.NewAuthorizer(
 		&config)

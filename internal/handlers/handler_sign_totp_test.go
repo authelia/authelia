@@ -19,6 +19,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -99,6 +100,8 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
+
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: testRedirectionURLString,
@@ -149,6 +152,8 @@ func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
+
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
 }
@@ -195,6 +200,8 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
@@ -252,6 +259,8 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
@@ -314,6 +323,8 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURLDisableReuse
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
+
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: "https://mydomain.example.com",
@@ -361,6 +372,8 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
@@ -411,6 +424,8 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 
 	r := regexp.MustCompile("^authelia_session=(.*); path=")
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
@@ -647,6 +662,8 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBoolean() {
 	r := regexp.MustCompile("^authelia_session=(.*); path=")
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
+	expectAuthnFailure(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP, events.ReasonInvalidCredentials)
+
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
 
@@ -687,6 +704,8 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErr() {
 
 	r := regexp.MustCompile("^authelia_session=(.*); path=")
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	expectAuthnFailure(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP, events.ReasonInvalidCredentials)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
@@ -757,6 +776,8 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnErrorOnInvalidBooleanMarkErrSu
 
 	r := regexp.MustCompile("^authelia_session=(.*); path=")
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
@@ -855,6 +876,8 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleExistsHistoryWithDisableReusePoli
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
+
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://www.example.com"})
@@ -902,6 +925,8 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleFlow() {
 	bodyBytes, err := json.Marshal(bodySignTOTPRequest{Token: "123456", Flow: "not-a-flow"})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodTOTP)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 
