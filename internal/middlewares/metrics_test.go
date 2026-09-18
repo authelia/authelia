@@ -186,6 +186,8 @@ func (m *mockMetricsRecorder) RecordAuthenticationDuration(success bool, elapsed
 	m.authDurCalls = append(m.authDurCalls, mockMetricsAuthDurCall{success, elapsed})
 }
 
+func (m *mockMetricsRecorder) RecordRecoveryCodesGenerated(_ int) {}
+
 func newRequestCtx(method string, statusCode int) *fasthttp.RequestCtx {
 	var (
 		ctx fasthttp.RequestCtx

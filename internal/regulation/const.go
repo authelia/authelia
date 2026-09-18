@@ -27,6 +27,9 @@ const (
 
 	// AuthTypePassword is the string representing an auth log for second-factor authentication via a Password.
 	AuthTypePassword = "Password"
+
+	// AuthTypeRecoveryCode is the string representing an auth log for second-factor authentication via a Recovery Code.
+	AuthTypeRecoveryCode = "RecoveryCode"
 )
 
 const (

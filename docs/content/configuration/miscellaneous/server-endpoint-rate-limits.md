@@ -67,6 +67,13 @@ server:
             requests: 10
           - period: '2 minutes'
             requests: 15
+      second_factor_recovery_code:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 10
+          - period: '2 minutes'
+            requests: 15
       session_elevation_start:
         enable: true
         buckets:
@@ -197,6 +204,13 @@ See [Common Options](#common-options) for the individual options for this sectio
 
 Configures the rate limiter which applies to the [Duo / Mobile Push](../second-factor/duo.md) endpoint which initializes
 the application authorization flow for the second factor flow.
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### second_factor_recovery_code
+
+Configures the rate limiter which applies to the [Recovery Codes](../second-factor/recovery-codes.md) endpoint code
+submissions for the second factor flow.
 
 See [Common Options](#common-options) for the individual options for this section.
 

@@ -28,6 +28,10 @@ var (
 	// ErrNoDuoDevice error thrown when no Duo device and method has been found in DB.
 	ErrNoDuoDevice = errors.New("no Duo device and method saved")
 
+	// ErrRecoveryCodeNotActive is returned when a recovery code could not be consumed because it has already been
+	// consumed or revoked.
+	ErrRecoveryCodeNotActive = errors.New("recovery code is not active")
+
 	// ErrNoAvailableMigrations is returned when no available migrations can be found.
 	ErrNoAvailableMigrations = errors.New("no available migrations")
 
