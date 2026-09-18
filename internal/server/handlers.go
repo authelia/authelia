@@ -15,6 +15,7 @@ import (
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -311,6 +312,12 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if !config.WebAuthn.Disable {
+		if len(config.WebAuthn.RelyingParties) != 0 {
+			r.OPTIONS(protocol.WellKnownPathWebAuthn, policyCORSPublicGET.HandleOPTIONS)
+			r.HEAD(protocol.WellKnownPathWebAuthn, policyCORSPublicGET.Middleware(bridge(handlers.WebAuthnWellKnownGET)))
+			r.GET(protocol.WellKnownPathWebAuthn, policyCORSPublicGET.Middleware(bridge(handlers.WebAuthnWellKnownGET)))
+		}
+
 		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionGET))
 		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))
 
