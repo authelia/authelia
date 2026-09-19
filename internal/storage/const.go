@@ -6,6 +6,7 @@ package storage
 
 import (
 	"regexp"
+	"time"
 )
 
 const (
@@ -16,6 +17,7 @@ const (
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
+	tableSession              = "session"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableTOTPHistory          = "totp_history"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
@@ -34,6 +36,8 @@ const (
 	tableOAuth2PARContext           = "oauth2_par_context"
 	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
 	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2SessionID            = "oauth2_session_id"
+	tableOAuth2SessionIDClient      = "oauth2_session_id_client"
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"
@@ -41,6 +45,11 @@ const (
 
 const (
 	tableAADPushedAuthorizationRequestSession = "oauth2_pushed_authorization_session"
+)
+
+const (
+	// sessionGarbageCollectionFrequency is the frequency expired sessions are removed from the session table at.
+	sessionGarbageCollectionFrequency = time.Minute * 5
 )
 
 const (
@@ -94,9 +103,11 @@ const (
 )
 
 const (
+	codeMySQLDuplicateEntry  uint16 = 1062
 	codeMySQLLockWaitTimeout uint16 = 1205
 	codeMySQLLockDeadlock    uint16 = 1213
 
+	codePostgresUniqueViolation      = "23505"
 	codePostgresSerializationFailure = "40001"
 	codePostgresDeadlockDetected     = "40P01"
 )
@@ -116,6 +127,7 @@ const (
 const (
 	hmacNameOneTimeCode     = "otc"
 	hmacNameOneTimePassword = "otp"
+	hmacNameSession         = "session"
 )
 
 const (

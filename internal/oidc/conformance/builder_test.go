@@ -503,6 +503,167 @@ func TestSuiteBuilder_Build(t *testing.T) {
 				},
 			},
 		},
+		{
+			"ShouldHandleRPInitiatedLogout",
+			&SuiteBuilder{"authelia", "rp-initiated-logout", "RP-Initiated Logout", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
+			Suite{
+				Name: "conformance-rp-initiated-logout",
+				Plan: Plan{
+					Name:        "oidcc-rp-initiated-logout-certification-test-plan",
+					Alias:       "conformance-rp-initiated-logout-authelia440",
+					Description: "Authelia 4.40 RP-Initiated Logout Certification Profile",
+					Publish:     "summary",
+					Variant: &PlanVariant{
+						ClientRegistration: "static_client",
+						ResponseType:       "code",
+					},
+					Server: PlanServer{
+						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+					},
+					Client: &PlanClient{
+						ID:     "conformance-certification-rp-initiated-logout-authelia440",
+						Secret: "present",
+					},
+					ClientAlternate: &PlanClient{
+						ID:     "conformance-certification-rp-initiated-logout-authelia440-alt",
+						Secret: "present",
+					},
+					ClientSecretPost: &PlanClient{
+						ID:     "conformance-certification-rp-initiated-logout-authelia440-post",
+						Secret: "present",
+					},
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:     "conformance-certification-rp-initiated-logout-authelia440",
+						Name:   "Authelia 4.40 RP-Initiated Logout Certification Profile",
+						Secret: secret,
+						RedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-rp-initiated-logout-authelia440/callback",
+						},
+						PostLogoutRedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-rp-initiated-logout-authelia440/post_logout_redirect",
+						},
+						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseTypes:           []string{"code"},
+						GrantTypes:              []string{"authorization_code", "refresh_token"},
+						TokenEndpointAuthMethod: "client_secret_basic",
+					},
+					{
+						ID:     "conformance-certification-rp-initiated-logout-authelia440-alt",
+						Name:   "Authelia 4.40 RP-Initiated Logout Certification Profile (Alternate)",
+						Secret: secret,
+						RedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-rp-initiated-logout-authelia440/callback",
+						},
+						PostLogoutRedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-rp-initiated-logout-authelia440/post_logout_redirect",
+						},
+						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseTypes:           []string{"code"},
+						GrantTypes:              []string{"authorization_code", "refresh_token"},
+						TokenEndpointAuthMethod: "client_secret_basic",
+					},
+					{
+						ID:     "conformance-certification-rp-initiated-logout-authelia440-post",
+						Name:   "Authelia 4.40 RP-Initiated Logout Certification Profile (Secret Post)",
+						Secret: secret,
+						RedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-rp-initiated-logout-authelia440/callback",
+						},
+						PostLogoutRedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-rp-initiated-logout-authelia440/post_logout_redirect",
+						},
+						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseTypes:           []string{"code"},
+						GrantTypes:              []string{"authorization_code", "refresh_token"},
+						TokenEndpointAuthMethod: "client_secret_post",
+					},
+				},
+			},
+		},
+		{
+			"ShouldHandleBackChannelLogout",
+			&SuiteBuilder{"authelia", "backchannel-logout", "Back-Channel Logout", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
+			Suite{
+				Name: "conformance-backchannel-logout",
+				Plan: Plan{
+					Name:        "oidcc-backchannel-rp-initiated-logout-certification-test-plan",
+					Alias:       "conformance-backchannel-logout-authelia440",
+					Description: "Authelia 4.40 Back-Channel Logout Certification Profile",
+					Publish:     "summary",
+					Variant: &PlanVariant{
+						ClientRegistration: "static_client",
+						ResponseType:       "code",
+					},
+					Server: PlanServer{
+						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+					},
+					Client: &PlanClient{
+						ID:     "conformance-certification-backchannel-logout-authelia440",
+						Secret: "present",
+					},
+					ClientAlternate: &PlanClient{
+						ID:     "conformance-certification-backchannel-logout-authelia440-alt",
+						Secret: "present",
+					},
+					ClientSecretPost: &PlanClient{
+						ID:     "conformance-certification-backchannel-logout-authelia440-post",
+						Secret: "present",
+					},
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:     "conformance-certification-backchannel-logout-authelia440",
+						Name:   "Authelia 4.40 Back-Channel Logout Certification Profile",
+						Secret: secret,
+						RedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/callback",
+						},
+						PostLogoutRedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/post_logout_redirect",
+						},
+						BackChannelLogoutURI:    "https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/backchannel_logout",
+						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseTypes:           []string{"code"},
+						GrantTypes:              []string{"authorization_code", "refresh_token"},
+						TokenEndpointAuthMethod: "client_secret_basic",
+					},
+					{
+						ID:     "conformance-certification-backchannel-logout-authelia440-alt",
+						Name:   "Authelia 4.40 Back-Channel Logout Certification Profile (Alternate)",
+						Secret: secret,
+						RedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/callback",
+						},
+						PostLogoutRedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/post_logout_redirect",
+						},
+						BackChannelLogoutURI:    "https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/backchannel_logout",
+						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseTypes:           []string{"code"},
+						GrantTypes:              []string{"authorization_code", "refresh_token"},
+						TokenEndpointAuthMethod: "client_secret_basic",
+					},
+					{
+						ID:     "conformance-certification-backchannel-logout-authelia440-post",
+						Name:   "Authelia 4.40 Back-Channel Logout Certification Profile (Secret Post)",
+						Secret: secret,
+						RedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/callback",
+						},
+						PostLogoutRedirectURIs: []string{
+							"https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/post_logout_redirect",
+						},
+						BackChannelLogoutURI:    "https://conformance.example.com/test/a/conformance-backchannel-logout-authelia440/backchannel_logout",
+						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseTypes:           []string{"code"},
+						GrantTypes:              []string{"authorization_code", "refresh_token"},
+						TokenEndpointAuthMethod: "client_secret_post",
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -526,6 +687,7 @@ func TestSuiteBuilder_Build(t *testing.T) {
 				assert.Equal(t, expected.Secret.Valid(), actual.Clients[i].Secret.Valid())
 
 				assert.Equal(t, expected.RedirectURIs, actual.Clients[i].RedirectURIs)
+				assert.Equal(t, expected.PostLogoutRedirectURIs, actual.Clients[i].PostLogoutRedirectURIs)
 				assert.Equal(t, expected.ResponseModes, actual.Clients[i].ResponseModes)
 				assert.Equal(t, expected.ResponseTypes, actual.Clients[i].ResponseTypes)
 				assert.Equal(t, expected.GrantTypes, actual.Clients[i].GrantTypes)
@@ -587,5 +749,5 @@ func TestBuilders(t *testing.T) {
 		}
 	}
 
-	assert.Equal(t, []string{NameConfig, NameBasic, NameBasicFormPost, NameHybrid, NameHybridFormPost, NameImplicit, NameImplicitFormPost}, names)
+	assert.Equal(t, []string{NameConfig, NameBasic, NameBasicFormPost, NameHybrid, NameHybridFormPost, NameImplicit, NameImplicitFormPost, NameRPInitiatedLogout, NameBackChannelLogout}, names)
 }

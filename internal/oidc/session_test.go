@@ -5,6 +5,7 @@
 package oidc_test
 
 import (
+	"encoding/json"
 	"net/url"
 	"testing"
 	"time"
@@ -598,4 +599,129 @@ func TestSession_GetStorageSubject(t *testing.T) {
 			assert.Equal(t, tc.expected, tc.have.GetStorageSubject())
 		})
 	}
+}
+
+func TestSession_SetID(t *testing.T) {
+	testCases := []struct {
+		name string
+		have *oidc.Session
+	}{
+		{"ShouldInitializeAnEmptySession", &oidc.Session{}},
+		{"ShouldInitializeAbsentClaimsAndHeaders", &oidc.Session{DefaultSession: &openid.DefaultSession{}}},
+		{"ShouldInitializeAbsentClaimsExtra", &oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{}, Headers: &jwt.Headers{}}}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.have.SetID("session-sid-value")
+
+			require.NotNil(t, tc.have.DefaultSession)
+			require.NotNil(t, tc.have.Claims)
+			require.NotNil(t, tc.have.Headers)
+
+			assert.Equal(t, "session-sid-value", tc.have.Claims.SessionID)
+			assert.NotNil(t, tc.have.Claims.Extra, "a nil claims map panics on the first extra claim written to it")
+			assert.NotNil(t, tc.have.Headers.Extra, "a nil headers map panics on the first extra header written to it")
+
+			assert.NotPanics(t, func() {
+				tc.have.Claims.Extra["example"] = "value"
+				tc.have.Headers.Extra["example"] = "value"
+			})
+		})
+	}
+
+	t.Run("ShouldPreserveExistingClaims", func(t *testing.T) {
+		session := oidc.NewSession()
+
+		session.Claims.Subject = "john"
+		session.Claims.Extra["preferred_username"] = "john"
+		session.Headers.Extra["kid"] = "abc"
+
+		session.SetID("session-sid-value")
+
+		assert.Equal(t, "session-sid-value", session.Claims.SessionID)
+		assert.Equal(t, "john", session.Claims.Subject)
+		assert.Equal(t, "john", session.Claims.Extra["preferred_username"])
+		assert.Equal(t, "abc", session.Headers.Extra["kid"])
+	})
+
+	t.Run("ShouldNotPanicOnNilSession", func(t *testing.T) {
+		var session *oidc.Session
+
+		assert.NotPanics(t, func() { session.SetID("session-sid-value") })
+	})
+}
+
+// TestSession_SidJSONRoundTrip asserts that the 'sid' claim set via Session.SetID survives being serialized into
+// the persisted session and read back, which is the mechanism a refresh grant relies on to reuse the sid minted at
+// authorization time instead of the token endpoint rebuilding the session from storage without it. It asserts the
+// claim lands at the specific JSON path the storage layer persists ('id_token.id_token_claims.sid') so a future
+// change to the embedding or struct tags that moved or dropped the field would fail this test, and it asserts the
+// key is omitted entirely when unset, which is what keeps the sid claim out of tokens for non-openid flows.
+func TestSession_SidJSONRoundTrip(t *testing.T) {
+	t.Run("ShouldRoundTripSidThroughStorageSerialization", func(t *testing.T) {
+		session := oidc.NewSession()
+		session.SetID("session-sid-value")
+
+		data, err := json.Marshal(session)
+		require.NoError(t, err)
+
+		var raw map[string]any
+
+		require.NoError(t, json.Unmarshal(data, &raw))
+
+		idToken, ok := raw["id_token"].(map[string]any)
+		require.True(t, ok, "expected an 'id_token' object in the serialized session")
+
+		claims, ok := idToken["id_token_claims"].(map[string]any)
+		require.True(t, ok, "expected an 'id_token_claims' object nested under 'id_token'")
+
+		assert.Equal(t, "session-sid-value", claims["sid"])
+
+		restored := oidc.NewSession()
+
+		require.NoError(t, json.Unmarshal(data, restored))
+
+		assert.Equal(t, "session-sid-value", restored.GetID())
+	})
+
+	t.Run("ShouldNotEmitSidWhenUnset", func(t *testing.T) {
+		session := oidc.NewSession()
+
+		data, err := json.Marshal(session)
+		require.NoError(t, err)
+
+		var raw map[string]any
+
+		require.NoError(t, json.Unmarshal(data, &raw))
+
+		idToken, ok := raw["id_token"].(map[string]any)
+		require.True(t, ok, "expected an 'id_token' object in the serialized session")
+
+		claims, ok := idToken["id_token_claims"].(map[string]any)
+		require.True(t, ok, "expected an 'id_token_claims' object nested under 'id_token'")
+
+		_, present := claims["sid"]
+		assert.False(t, present, "the 'sid' key must be omitted entirely when no session id is set")
+
+		restored := oidc.NewSession()
+
+		require.NoError(t, json.Unmarshal(data, restored))
+
+		assert.Equal(t, "", restored.GetID())
+	})
+}
+
+func TestNewSessionWithClientAndRequestedAt(t *testing.T) {
+	requestedAt := time.Unix(1700000000, 0)
+
+	session := oidc.NewSessionWithClientAndRequestedAt(&oidc.RegisteredClient{ID: "client-id"}, requestedAt)
+
+	assert.Equal(t, "client-id", session.ClientID)
+	assert.Equal(t, requestedAt.UTC(), session.RequestedAt)
+	assert.Empty(t, session.GetID())
+
+	session = oidc.NewSessionWithClientAndRequestedAt(nil, requestedAt)
+
+	assert.Empty(t, session.ClientID)
 }

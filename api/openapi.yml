@@ -631,12 +631,75 @@ paths:
       security:
         - authelia_auth: []
   /api/logout:
+    get:
+      operationId: getLogout
+      tags:
+        - Authentication
+      summary: Pending Logout
+      description: >
+        Reports whether the OpenID Connect RP-Initiated Logout 1.0 request of the given flow is awaiting the
+        confirmation of the user, in which case the user must be asked to confirm the logout before the POST request to
+        this endpoint is made with the flow.
+      parameters:
+        - in: query
+          name: flow_id
+          required: true
+          description: >
+            The identifier of the OpenID Connect RP-Initiated Logout 1.0 request, given to the logout page by the
+            redirect from the end session endpoint. A request is only reported or cancelled for its own flow.
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - '8c6f6e2a-5b3e-4f0a-9d1c-2e7b3a4f5c6d'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.logoutPendingResponseBody'
+      security:
+        - authelia_auth: []
+    delete:
+      operationId: deleteLogout
+      tags:
+        - Authentication
+      summary: Cancel Pending Logout
+      description: >
+        Cancels the OpenID Connect RP-Initiated Logout 1.0 request of the given flow awaiting the confirmation of the
+        user. The user remains logged in and the Relying Party is not redirected to.
+      parameters:
+        - in: query
+          name: flow_id
+          required: true
+          description: >
+            The identifier of the OpenID Connect RP-Initiated Logout 1.0 request, given to the logout page by the
+            redirect from the end session endpoint. A request is only reported or cancelled for its own flow.
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - '8c6f6e2a-5b3e-4f0a-9d1c-2e7b3a4f5c6d'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+      security:
+        - authelia_auth: []
     post:
       operationId: postLogout
       tags:
         - Authentication
       summary: Logout
-      description: The logout endpoint allows a user to logout and destroy a session.
+      description: >
+        The logout endpoint allows a user to logout and destroy a session. When the body carries the flow of an OpenID
+        Connect RP-Initiated Logout 1.0 request awaiting confirmation it is consumed, and if it carried a post logout
+        redirect URI the response includes where to redirect the user to. Without the flow the session is destroyed but
+        no Relying Party is redirected to.
       requestBody:
         required: true
         content:
@@ -2368,6 +2431,130 @@ paths:
           description: Internal Server Error
       security:
         - openid: []
+  /api/oidc/end-session:
+    get:
+      operationId: getOpenIDConnectEndSession
+      tags:
+        - OpenID Connect 1.0
+      summary: OpenID Connect 1.0 End Session Endpoint
+      description: >
+        This endpoint performs OpenID Connect RP-Initiated Logout 1.0 Requests.
+
+
+        The request is validated, the client is resolved from the client_id and/or id_token_hint parameters, and the
+        post_logout_redirect_uri parameter is matched against those registered for that client. No session is ended by
+        this endpoint; the validated request is stored in the session of the End-User, who is redirected to the logout
+        page with the flow_id of the request, where they must confirm the logout before it occurs. See
+        https://openid.net/specs/openid-connect-rpinitiated-1_0.html.
+      parameters:
+        - in: query
+          name: id_token_hint
+          required: false
+          description: >
+            RECOMMENDED. ID Token previously issued by the OP to the RP passed to the Logout Endpoint as a hint about
+            the End-User's current authenticated session with the Client. This is used as an indication of the identity
+            of the End-User that the RP is requesting be logged out by the OP. The OP need not be listed as an audience
+            of the ID Token when it is used as an id_token_hint value. An expired ID Token is accepted.
+          schema:
+            type: string
+            examples:
+              - 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjdjMDdjZDdhIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vIiwic3ViIjoiOWNiYTMyYTAtNjNhMi00MmQ1LTgzZWItZGZjNzU4OGEyMjIiLCJhdWQiOiJhcHAiLCJleHAiOjE1MTQ3OTc5NDIsImlhdCI6MTUxNDc5Nzg5Mn0.ZAQsJbGCJ2yPLkPCApjEMaGJHDFKbXHJQqMRSAFRGRE'
+        - in: query
+          name: logout_hint
+          required: false
+          description: >
+            OPTIONAL. Hint to the Authorization Server about the End-User that is logging out. The value and meaning of
+            this parameter is left up to the OP's discretion. For instance, the value might contain an email address,
+            phone number, username, or session identifier pertaining to the RP's session with the OP for the End-User.
+          schema:
+            type: string
+            examples:
+              - 'john'
+        - in: query
+          name: client_id
+          required: false
+          description: >
+            OPTIONAL. OAuth 2.0 Client Identifier valid at the Authorization Server. When both client_id and
+            id_token_hint are present they must identify the same client. The client_id parameter is required when the
+            post_logout_redirect_uri parameter is used without the id_token_hint parameter.
+          schema:
+            type: string
+            examples:
+              - 'app'
+        - in: query
+          name: post_logout_redirect_uri
+          required: false
+          description: >
+            OPTIONAL. URI to which the RP is requesting that the End-User's User Agent be redirected after a logout has
+            been performed. This URI MUST exactly match one of the Post-Logout Redirection URI values for the Client
+            pre-registered at the OP, with the matching performed as described in Section 6.2.1 of [RFC3986] (Simple
+            String Comparison). The use of this parameter requires either the client_id or id_token_hint parameter.
+          schema:
+            type: string
+            format: uri
+            examples:
+              - 'https://app.{{ .Domain | default "example.com" }}/logged-out'
+        - in: query
+          name: state
+          required: false
+          description: >
+            OPTIONAL. Opaque value used by the RP to maintain state between the logout request and the callback to the
+            endpoint specified by the post_logout_redirect_uri parameter. If included in the logout request, the OP
+            passes this value back to the RP using the state parameter when redirecting the User Agent back to the RP.
+          schema:
+            type: string
+            examples:
+              - 'oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
+        - in: query
+          name: ui_locales
+          required: false
+          description: >
+            Not Supported: End-User's preferred languages and scripts for the user interface, represented as a
+            space-separated list of BCP47 [RFC5646] language tag values, ordered by preference.
+          schema:
+            type: string
+      responses:
+        "302":
+          description: >
+            Found. Both successful and unsuccessful requests are redirected; errors are never redirected to an
+            unvalidated post logout redirect URI.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: >
+                Redirection location for the logout confirmation flow, or the consent completion flow which displays
+                the error when the request could not be processed.
+        "500":
+          description: Internal Server Error
+    post:
+      operationId: postOpenIDConnectEndSession
+      tags:
+        - OpenID Connect 1.0
+      summary: OpenID Connect 1.0 End Session Endpoint
+      description: >
+        This endpoint performs OpenID Connect RP-Initiated Logout 1.0 Requests.
+
+
+        A POST request is not processed directly: it is redirected to the equivalent GET request, as a cross-site POST
+        does not carry the session cookie of the End-User. The GET request is then validated and processed as
+        described for it. See https://openid.net/specs/openid-connect-rpinitiated-1_0.html.
+      requestBody:
+        description: RP-Initiated Logout Request Parameters.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/openid.spec.RPInitiatedLogoutRequest'
+      responses:
+        "303":
+          description: See Other. The request is redirected to the equivalent GET request.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: The end session endpoint with the request parameters in the query.
+        "500":
+          description: Internal Server Error
   /api/oidc/consent:
     get:
       operationId: getOpenIDConnectConsent
@@ -2849,6 +3036,14 @@ components:
           type: string
           examples:
             - 'https://redirect.{{ .Domain | default "example.com" }}'
+        flowID:
+          description: >
+            The flow of the OpenID Connect RP-Initiated Logout 1.0 request the user confirmed. Only when it matches the
+            pending request is that request consumed and its post logout redirect URI returned.
+          type: string
+          format: uuid
+          examples:
+            - '8c6f6e2a-5b3e-4f0a-9d1c-2e7b3a4f5c6d'
     handlers.logoutResponseBody:
       type: object
       properties:
@@ -2863,6 +3058,40 @@ components:
               type: boolean
               examples:
                 - true
+            redirectURL:
+              description: >
+                The validated post logout redirect URI of the OpenID Connect RP-Initiated Logout 1.0 request which was
+                consumed, including the state. When present the user must be redirected to it rather than the target
+                URL.
+              type: string
+              format: uri
+              examples:
+                - 'https://app.{{ .Domain | default "example.com" }}/logged-out?state=oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
+    handlers.logoutPendingResponseBody:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            pending:
+              description: Whether an OpenID Connect RP-Initiated Logout 1.0 request is awaiting confirmation.
+              type: boolean
+              examples:
+                - true
+            clientID:
+              description: The identifier of the client which requested the logout, if known.
+              type: string
+              examples:
+                - 'app'
+            clientName:
+              description: The name of the client which requested the logout, if known.
+              type: string
+              examples:
+                - 'Example App'
     handlers.redirectResponse:
       type: object
       properties:
@@ -4309,6 +4538,7 @@ components:
         - 'request_uri_parameter_supported'
         - 'require_request_uri_registration'
         - 'claims_parameter_supported'
+        - 'end_session_endpoint'
         - 'frontchannel_logout_supported'
         - 'frontchannel_logout_session_supported'
         - 'backchannel_logout_supported'
@@ -4335,14 +4565,14 @@ components:
             If omitted, the default value is false.
           type: boolean
           examples:
-            - false
+            - true
         backchannel_logout_supported:
           description: >
             Boolean value specifying whether the OP supports back-channel logout, with true indicating support. If
             omitted, the default value is false.
           type: boolean
           examples:
-            - false
+            - true
         claims_parameter_supported:
           description: >
             Boolean value specifying whether the OP supports use of the claims parameter, with true indicating support.
@@ -4442,6 +4672,15 @@ components:
             - - 'page'
           items:
             $ref: '#/components/schemas/openid.spec.DisplayType'
+        end_session_endpoint:
+          description: >
+            URL at the OP to which an RP can perform a redirect to request that the End-User be logged out at the OP.
+            See Also: OpenID Connect RP-Initiated Logout 1.0:
+            https://openid.net/specs/openid-connect-rpinitiated-1_0.html
+          type: string
+          format: uri
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/end-session'
         frontchannel_logout_session_supported:
           description: >
             Boolean value specifying whether the OP can pass iss (issuer) and sid (session ID) query parameters to
@@ -5794,6 +6033,61 @@ components:
             the value "fr-CA fr en" represents a preference for French as spoken in Canada, then French (without
             a region designation), followed by English (without a region designation). An error SHOULD NOT
             result if some or all of the requested locales are not supported by the OpenID Provider.
+          type: string
+    openid.spec.RPInitiatedLogoutRequest:
+      type: object
+      properties:
+        id_token_hint:
+          description: >
+            RECOMMENDED. ID Token previously issued by the OP to the RP passed to the Logout Endpoint as a hint
+            about the End-User's current authenticated session with the Client. This is used as an indication of
+            the identity of the End-User that the RP is requesting be logged out by the OP. The OP need not be
+            listed as an audience of the ID Token when it is used as an id_token_hint value. An expired ID Token
+            is accepted.
+          examples:
+            - 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjdjMDdjZDdhIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vIiwic3ViIjoiOWNiYTMyYTAtNjNhMi00MmQ1LTgzZWItZGZjNzU4OGEyMjIiLCJhdWQiOiJhcHAiLCJleHAiOjE1MTQ3OTc5NDIsImlhdCI6MTUxNDc5Nzg5Mn0.ZAQsJbGCJ2yPLkPCApjEMaGJHDFKbXHJQqMRSAFRGRE'
+          type: string
+        logout_hint:
+          description: >
+            OPTIONAL. Hint to the Authorization Server about the End-User that is logging out. The value and
+            meaning of this parameter is left up to the OP's discretion. For instance, the value might contain
+            an email address, phone number, username, or session identifier pertaining to the RP's session with
+            the OP for the End-User.
+          examples:
+            - 'john'
+          type: string
+        client_id:
+          description: >
+            OPTIONAL. OAuth 2.0 Client Identifier valid at the Authorization Server. When both client_id and
+            id_token_hint are present they must identify the same client. The client_id parameter is required
+            when the post_logout_redirect_uri parameter is used without the id_token_hint parameter.
+          examples:
+            - 'app'
+          type: string
+        post_logout_redirect_uri:
+          description: >
+            OPTIONAL. URI to which the RP is requesting that the End-User's User Agent be redirected after a
+            logout has been performed. This URI MUST exactly match one of the Post-Logout Redirection URI values
+            for the Client pre-registered at the OP, with the matching performed as described in Section 6.2.1
+            of [RFC3986] (Simple String Comparison). The use of this parameter requires either the client_id or
+            id_token_hint parameter.
+          examples:
+            - 'https://app.{{ .Domain | default "example.com" }}/logged-out'
+          type: string
+          format: uri
+        state:
+          description: >
+            OPTIONAL. Opaque value used by the RP to maintain state between the logout request and the callback
+            to the endpoint specified by the post_logout_redirect_uri parameter. If included in the logout
+            request, the OP passes this value back to the RP using the state parameter when redirecting the User
+            Agent back to the RP.
+          examples:
+            - 'oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
+          type: string
+        ui_locales:
+          description: >
+            Not Supported: End-User's preferred languages and scripts for the user interface, represented as a
+            space-separated list of BCP47 [RFC5646] language tag values, ordered by preference.
           type: string
     openid.spec.SubjectIdentifier:
       description: >

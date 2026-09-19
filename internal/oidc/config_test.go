@@ -6,7 +6,10 @@ package oidc_test
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -133,6 +136,12 @@ func TestConfig_Misc(t *testing.T) {
 
 	assert.False(t, config.DisableRefreshTokenValidation)
 	assert.False(t, config.GetDisableRefreshTokenValidation(ctx))
+
+	assert.False(t, config.GetDisableRefreshTokenRotation(ctx), "refresh tokens must continue to be rotated")
+	assert.Equal(t, time.Duration(0), config.GetJWTClockSkew(ctx), "a JWT issued in the future must continue to be rejected")
+	assert.False(t, config.GetRequireRedirectURIPushedAuthorizationRequests(ctx))
+	assert.False(t, config.GetRequireRequestObjectAudienceAndLifetime(ctx))
+	assert.Equal(t, time.Duration(0), config.GetRequestObjectMaximumLifetime(ctx))
 
 	assert.Equal(t, "", config.Issuers.AccessToken)
 	assert.Equal(t, "", config.GetAccessTokenIssuer(ctx))
@@ -505,4 +514,30 @@ func (t *testConfigContext) GetUserProvider() authentication.UserProvider { retu
 
 func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
+}
+
+func TestNewHTTPClientShouldTrustCertificatePool(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+	}))
+
+	defer server.Close()
+
+	pool := x509.NewCertPool()
+	pool.AddCert(server.Certificate())
+
+	trusted := oidc.NewHTTPClient(pool)
+	trusted.RetryMax = 0
+
+	response, err := trusted.Get(server.URL)
+	require.NoError(t, err)
+	require.NoError(t, response.Body.Close())
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	untrusted := oidc.NewHTTPClient(x509.NewCertPool())
+	untrusted.RetryMax = 0
+
+	_, err = untrusted.Get(server.URL)
+	assert.ErrorContains(t, err, "certificate")
 }

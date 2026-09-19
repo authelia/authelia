@@ -102,6 +102,44 @@ func TestRedirectAuthorizeErrorFieldResponseStrategy(t *testing.T) {
 	}
 }
 
+func TestNewConsentCompletionErrorURI(t *testing.T) {
+	issuer := &url.URL{Scheme: "https", Host: "auth.example.com", Path: "/base"}
+
+	rfc := &oauthelia2.RFC6749Error{
+		ErrorField:       "invalid_request",
+		DescriptionField: "The request is missing a required parameter.",
+		CodeField:        http.StatusBadRequest,
+		HintField:        "Parameter 'client_id' is missing.",
+		DebugField:       "internal debug info",
+	}
+
+	t.Run("ShouldBuildTheCompletionURIWithoutDebug", func(t *testing.T) {
+		location := NewConsentCompletionErrorURI(issuer, rfc, false)
+
+		assert.Equal(t, "/base"+FrontendEndpointPathConsentCompletion, location.Path)
+		assert.Equal(t, url.Values{
+			"error":             []string{"invalid_request"},
+			"error_description": []string{"The request is missing a required parameter."},
+			"error_status_code": []string{"400"},
+			"error_hint":        []string{"Parameter 'client_id' is missing."},
+		}, location.Query())
+	})
+
+	t.Run("ShouldIncludeDebugWhenEnabled", func(t *testing.T) {
+		assert.Equal(t, "internal debug info", NewConsentCompletionErrorURI(issuer, rfc, true).Query().Get("error_debug"))
+	})
+
+	t.Run("ShouldTreatANilErrorAsAServerError", func(t *testing.T) {
+		assert.Equal(t, "server_error", NewConsentCompletionErrorURI(issuer, nil, false).Query().Get("error"))
+	})
+
+	t.Run("ShouldNotModifyTheIssuer", func(t *testing.T) {
+		NewConsentCompletionErrorURI(issuer, rfc, false)
+
+		assert.Equal(t, "https://auth.example.com/base", issuer.String())
+	})
+}
+
 type testErrorConfig struct {
 	issuer    *url.URL
 	sendDebug bool

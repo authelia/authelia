@@ -1783,3 +1783,45 @@ func MustParseRequestURI(t *testing.T, uri string) (parsed *url.URL) {
 
 	return parsed
 }
+
+func TestNewOAuth2SessionsShouldRecordSessionID(t *testing.T) {
+	withSID := &oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{SessionID: "sid-1"}}}
+	withoutSID := &oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{}}}
+
+	testCases := []struct {
+		name     string
+		session  *oidc.Session
+		expected sql.NullString
+	}{
+		{"ShouldRecordSessionID", withSID, sql.NullString{String: "sid-1", Valid: true}},
+		{"ShouldRecordAbsentSessionID", withoutSID, sql.NullString{}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			request := oauthelia2.Request{
+				ID:      "example",
+				Client:  &oauthelia2.DefaultClient{ID: "client_id"},
+				Session: tc.session,
+			}
+
+			session, err := model.NewOAuth2SessionFromRequest("abc", &request)
+			require.NoError(t, err)
+
+			assert.Equal(t, "client_id", session.ClientID)
+			assert.Equal(t, tc.expected, session.SessionID)
+
+			device, err := model.NewOAuth2DeviceCodeSessionFromRequest(&oauthelia2.DeviceAuthorizeRequest{Request: request})
+			require.NoError(t, err)
+
+			assert.Equal(t, "client_id", device.ClientID)
+			assert.Equal(t, tc.expected, device.SessionID)
+
+			par, err := model.NewOAuth2PushedAuthorizationSession("urn:example", &oauthelia2.AuthorizeRequest{Request: request})
+			require.NoError(t, err)
+
+			assert.Equal(t, "client_id", par.ClientID)
+			assert.Equal(t, tc.expected, par.SessionID)
+		})
+	}
+}

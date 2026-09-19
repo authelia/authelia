@@ -84,7 +84,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 				IssuerPrivateKey: keyRSA2048,
 				CORS: schema.IdentityProvidersOpenIDConnectCORS{
-					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, oidc.EndpointEndSession},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
@@ -110,7 +110,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 				IssuerPrivateKey: keyRSA2048,
 				CORS: schema.IdentityProvidersOpenIDConnectCORS{
-					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, oidc.EndpointEndSession, "invalid_endpoint"},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
@@ -126,7 +126,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', 'userinfo', or 'end-session'")
 }
 
 //nolint:gosec // Test Credentials.
@@ -975,6 +975,124 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret_standard': option 'client_secret' is plaintext but for clients not using any endpoint authentication method 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 }
 
+func TestValidateOIDCClientPostLogoutRedirectURIs(t *testing.T) {
+	testCases := []struct {
+		name     string
+		public   bool
+		uris     []string
+		expected []string
+	}{
+		{
+			"ShouldAllowWebAndPrivateUseSchemesForConfidentialClients",
+			false,
+			[]string{
+				"https://app.example.com/logged-out",
+				"http://app.example.com/logged-out",
+				"com.example.app:/logged-out",
+				"oc://ios.owncloud.com/logged-out",
+			},
+			nil,
+		},
+		{
+			"ShouldAllowHTTPSAndPrivateUseSchemesForPublicClients",
+			true,
+			[]string{
+				"https://app.example.com/logged-out",
+				"com.example.app:/logged-out",
+			},
+			nil,
+		},
+		{
+			"ShouldRejectHTTPForPublicClients",
+			true,
+			[]string{"http://app.example.com/logged-out"},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'http://app.example.com/logged-out' must not use the 'http' scheme when option 'public' is true as this scheme is only permitted for the openid connect confidential client type",
+			},
+		},
+		{
+			"ShouldRejectSchemesWhichEvaluateContent",
+			false,
+			[]string{
+				"javascript:alert(document.cookie)",
+				"vbscript:msgbox",
+				"data:text/html,<script>alert(1)</script>",
+				"blob:https://app.example.com/uuid",
+				"file:///etc/passwd",
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'javascript:alert(document.cookie)' must not use the 'javascript' scheme",
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'vbscript:msgbox' must not use the 'vbscript' scheme",
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'data:text/html,<script>alert(1)</script>' must not use the 'data' scheme",
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'blob:https://app.example.com/uuid' must not use the 'blob' scheme",
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'file:///etc/passwd' must not use the 'file' scheme",
+			},
+		},
+		{
+			"ShouldRejectFragmentsIncludingEmptyOnes",
+			false,
+			[]string{
+				"https://app.example.com/logged-out#section",
+				"https://app.example.com/logged-out#",
+				"https://app.example.com/logged-out?a=b#",
+				"com.example.app:/logged-out#",
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'https://app.example.com/logged-out#section' must not have a fragment component",
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'https://app.example.com/logged-out#' must not have a fragment component",
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'https://app.example.com/logged-out?a=b#' must not have a fragment component",
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'com.example.app:/logged-out#' must not have a fragment component",
+			},
+		},
+		{
+			"ShouldAllowAnEncodedHashWhichIsNotAFragment",
+			false,
+			[]string{"https://app.example.com/logged%23out"},
+			nil,
+		},
+		{
+			"ShouldRejectSchemesWhichEvaluateContentRegardlessOfCase",
+			false,
+			[]string{"JavaScript:alert(1)"},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'JavaScript:alert(1)' must not use the 'javascript' scheme",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			have := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                     "test",
+						Public:                 tc.public,
+						PostLogoutRedirectURIs: tc.uris,
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientPostLogoutRedirectURIs(0, have, validator, nil)
+
+			assert.Len(t, validator.Warnings(), 0)
+
+			errs := make([]string, len(validator.Errors()))
+
+			for i, err := range validator.Errors() {
+				errs[i] = err.Error()
+			}
+
+			if len(tc.expected) == 0 {
+				assert.Empty(t, errs)
+			} else {
+				assert.Equal(t, tc.expected, errs)
+			}
+		})
+	}
+}
+
 // All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
 func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing.T) {
 	have := &schema.IdentityProvidersOpenIDConnect{
@@ -1715,6 +1833,408 @@ func TestValidateOIDCClients(t *testing.T) {
 				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' must have unique values but the values 'https://google.com' are duplicated",
 			},
 			nil,
+		},
+		{
+			"ShouldNotRaiseErrorOnValidPostLogoutRedirectURIs",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"https://app.example.com/logged-out",
+					"http://localhost:8080/logged-out",
+				}
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{"https://app.example.com/logged-out", "http://localhost:8080/logged-out"}), have.Clients[0].PostLogoutRedirectURIs)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidPostLogoutRedirectURIsMalformedURI",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"http://abc@%two",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'http://abc@%two' could not be parsed: parse \"http://abc@%two\": invalid URL escape \"%tw\"",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidPostLogoutRedirectURIsNotAbsolute",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"google.com",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'google.com' must have a scheme but it's absent",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidPostLogoutRedirectURIsWithFragment",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"https://app.example.com/logged-out#fragment",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'https://app.example.com/logged-out#fragment' must not have a fragment component",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnDuplicatePostLogoutRedirectURI",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"https://app.example.com/logged-out",
+					"https://app.example.com/logged-out",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' must have unique values but the values 'https://app.example.com/logged-out' are duplicated",
+			},
+			nil,
+		},
+		{
+			"ShouldNotRaiseErrorOnValidBackChannelLogoutURI",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "https://app.example.com/logout/backchannel"
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, "https://app.example.com/logout/backchannel", have.Clients[0].BackChannelLogoutURI)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotRaiseErrorOnAbsentBackChannelLogoutURIWithSessionRequired",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutSessionRequired = true
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Empty(t, have.Clients[0].BackChannelLogoutURI)
+				assert.True(t, have.Clients[0].BackChannelLogoutSessionRequired)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIMalformedURI",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "http://abc@%two"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'http://abc@%two' could not be parsed: parse \"http://abc@%two\": invalid URL escape \"%tw\"",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURINotAbsolute",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "app.example.com/logout/backchannel"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'app.example.com/logout/backchannel' must have a scheme but it's absent",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIWithFragment",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "https://app.example.com/logout/backchannel#fragment"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'https://app.example.com/logout/backchannel#fragment' must not have a fragment component",
+			},
+		},
+		{
+			"ShouldNotRaiseErrorOnValidBackChannelLogoutURIWithPortAndQuery",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "https://app.example.com:8443/logout/backchannel?tenant=abc&x=1"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotRaiseErrorOnValidBackChannelLogoutURIHTTPConfidential",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "http://app.internal/logout/backchannel"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIHTTPPublic",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].Public = true
+				have.Clients[0].Secret = nil
+				have.Clients[0].BackChannelLogoutURI = "http://app.example.com/logout/backchannel"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'http://app.example.com/logout/backchannel' must not use the 'http' scheme when option 'public' is true as this scheme is only permitted for the openid connect confidential client type",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIScheme",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "ftp://app.example.com/logout/backchannel"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'ftp://app.example.com/logout/backchannel' must use the 'https' or 'http' scheme but it uses the 'ftp' scheme",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIOpaque",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "https:app.example.com"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'https:app.example.com' must have a host but it's absent",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIWithEmptyFragment",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "https://app.example.com/logout/backchannel#"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'https://app.example.com/logout/backchannel#' must not have a fragment component",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIQuery",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "https://app.example.com/logout/backchannel?a=%zz"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'https://app.example.com/logout/backchannel?a=%zz' must have an 'application/x-www-form-urlencoded' formatted query component: invalid URL escape \"%zz\"",
+			},
 		},
 		{
 			"ShouldNotSetDefaultTokenEndpointClientAuthMethodConfidentialClientType",
