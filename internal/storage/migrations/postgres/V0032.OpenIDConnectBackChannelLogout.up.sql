@@ -17,3 +17,11 @@ ALTER TABLE oauth2_openid_connect_session ADD COLUMN session_id CHAR(36) NULL;
 ALTER TABLE oauth2_par_context ADD COLUMN session_id CHAR(36) NULL;
 ALTER TABLE oauth2_pkce_request_session ADD COLUMN session_id CHAR(36) NULL;
 ALTER TABLE oauth2_refresh_token_session ADD COLUMN session_id CHAR(36) NULL;
+
+CREATE INDEX oauth2_access_token_session_session_id_idx ON oauth2_access_token_session (session_id);
+CREATE INDEX oauth2_authorization_code_session_session_id_idx ON oauth2_authorization_code_session (session_id);
+CREATE INDEX oauth2_device_code_session_session_id_idx ON oauth2_device_code_session (session_id);
+CREATE INDEX oauth2_openid_connect_session_session_id_idx ON oauth2_openid_connect_session (session_id);
+CREATE INDEX oauth2_par_context_session_id_idx ON oauth2_par_context (session_id);
+CREATE INDEX oauth2_pkce_request_session_session_id_idx ON oauth2_pkce_request_session (session_id);
+CREATE INDEX oauth2_refresh_token_session_session_id_idx ON oauth2_refresh_token_session (session_id);

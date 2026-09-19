@@ -72,6 +72,14 @@ type OpenIDConnectLogout struct {
 	// State is the state parameter to return to the RedirectURI, if the request carried one.
 	State string `msg:"s,omitempty"`
 
+	// Subject is the 'sub' claim of the id_token_hint, if the request carried one. It's the pairwise subject for the
+	// sector of the Relying Party which requested the logout.
+	Subject string `msg:"sub,omitempty"`
+
+	// SessionID is the 'sid' claim of the id_token_hint, if the request carried one, which identifies the session the
+	// Relying Party requested be ended.
+	SessionID string `msg:"sid,omitempty"`
+
 	// Expires is when the request lapses if it hasn't been confirmed or cancelled.
 	Expires time.Time `msg:"exp"`
 }

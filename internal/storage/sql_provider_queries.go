@@ -590,6 +590,33 @@ const (
 		SET revoked = TRUE
 		WHERE request_id = ? AND revoked = FALSE;`
 
+	queryFmtRevokeOAuth2SessionBySessionID = `
+		UPDATE %s
+		SET revoked = TRUE
+		WHERE session_id = ? AND revoked = FALSE;`
+
+	queryFmtRevokeOAuth2SessionByClientIDAndSubject = `
+		UPDATE %s
+		SET revoked = TRUE
+		WHERE client_id = ? AND subject = ? AND revoked = FALSE;`
+
+	queryFmtSelectOAuth2SessionExistsByClientIDAndSubject = `
+		SELECT COUNT(id)
+		FROM %s
+		WHERE client_id = ? AND subject = ? AND revoked = FALSE;`
+
+	//nolint:gosec // Not a Credential.
+	queryFmtSelectOAuth2RefreshTokenSessionScopesBySessionID = `
+		SELECT signature, granted_scopes
+		FROM %s
+		WHERE session_id = ? AND revoked = FALSE;`
+
+	//nolint:gosec // Not a Credential.
+	queryFmtSelectOAuth2RefreshTokenSessionScopesByClientIDAndSubject = `
+		SELECT signature, granted_scopes
+		FROM %s
+		WHERE client_id = ? AND subject = ? AND revoked = FALSE;`
+
 	queryFmtDeactivateOAuth2Session = `
 		UPDATE %s
 		SET active = FALSE
@@ -721,6 +748,12 @@ const (
 		SELECT id, issuer, sector_id, public_id, sid, created_at
 		FROM %s
 		WHERE issuer = ? AND sid = ?;`
+
+	queryFmtSelectOAuth2SessionIDsByPublicID = `
+		SELECT id, issuer, sector_id, public_id, sid, created_at
+		FROM %s
+		WHERE issuer = ? AND public_id = ?
+		ORDER BY id;`
 
 	queryFmtSelectOAuth2SessionIDsOldest = `
 		SELECT id, issuer, sector_id, public_id, sid, created_at

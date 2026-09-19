@@ -53,7 +53,7 @@ func OpenIDConnectEndSession(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 		return
 	}
 
-	if err = oidcEndSessionValidateSubject(ctx, requester); err != nil {
+	if err = oidcEndSessionValidateHint(ctx, requester); err != nil {
 		oidcEndSessionRedirectError(ctx, rw, issuer, err)
 
 		return
@@ -91,41 +91,6 @@ func oidcEndSessionRedirectPost(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	oidcEndSessionRedirect(rw, location, http.StatusSeeOther)
 }
 
-func oidcEndSessionValidateSubject(ctx *middlewares.AutheliaCtx, requester oauthelia2.RPInitiatedLogoutRequester) (err error) {
-	subject := requester.GetSubject()
-
-	if subject == "" {
-		return nil
-	}
-
-	var userSession session.UserSession
-
-	if userSession, err = ctx.GetSession(); err != nil {
-		return oauthelia2.ErrServerError.WithHint("Could not load the session of the End-User.").WithWrap(err).WithDebugError(err)
-	}
-
-	if userSession.IsAnonymous() {
-		return nil
-	}
-
-	var (
-		id         uuid.UUID
-		identifier *model.UserOpaqueIdentifier
-	)
-
-	if id, err = uuid.Parse(subject); err == nil {
-		if identifier, err = ctx.Providers.StorageProvider.LoadUserOpaqueIdentifier(ctx, id); err != nil {
-			return oauthelia2.ErrServerError.WithHint("Could not determine the End-User the 'id_token_hint' was issued to.").WithWrap(err).WithDebugError(err)
-		}
-	}
-
-	if identifier == nil || !strings.EqualFold(identifier.Username, userSession.Username) {
-		return oauthelia2.ErrInvalidRequest.WithHint("The 'id_token_hint' was not issued to the currently authenticated End-User.")
-	}
-
-	return nil
-}
-
 func oidcEndSessionStore(ctx *middlewares.AutheliaCtx, requester oauthelia2.RPInitiatedLogoutRequester) (flowID string, err error) {
 	var (
 		userSession session.UserSession
@@ -154,6 +119,8 @@ func oidcEndSessionStore(ctx *middlewares.AutheliaCtx, requester oauthelia2.RPIn
 		logout.State = requester.GetState()
 	}
 
+	logout.Subject, logout.SessionID = requester.GetSubject(), requester.GetSessionID()
+
 	userSession.OpenIDConnectLogout = logout
 
 	if err = ctx.SaveSession(&userSession); err != nil {
@@ -161,6 +128,67 @@ func oidcEndSessionStore(ctx *middlewares.AutheliaCtx, requester oauthelia2.RPIn
 	}
 
 	return logout.FlowID, nil
+}
+
+// oidcEndSessionValidateHint declines a logout request whose id_token_hint identifies a session or End-User other than
+// the one authenticated, as OpenID Connect RP-Initiated Logout 1.0 Section 2 permits of a hint which doesn't correspond
+// to the current session. A hint is accepted when no End-User is authenticated, as the session it identifies is then
+// the one the logout ends.
+func oidcEndSessionValidateHint(ctx *middlewares.AutheliaCtx, requester oauthelia2.RPInitiatedLogoutRequester) (err error) {
+	var userSession session.UserSession
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		return oauthelia2.ErrServerError.WithHint("Could not obtain the session.").WithWrap(err).WithDebugError(err)
+	}
+
+	if userSession.IsAnonymous() || userSession.PublicID == "" {
+		return nil
+	}
+
+	if sid := requester.GetSessionID(); sid != "" {
+		var provider session.Strategy
+
+		if provider, err = ctx.GetSessionProvider(); err != nil {
+			return oauthelia2.ErrServerError.WithHint("Could not obtain the session provider.").WithWrap(err).WithDebugError(err)
+		}
+
+		var record *model.OAuth2SessionID
+
+		if record, err = ctx.Providers.StorageProvider.LoadOAuth2SessionIDBySessionID(ctx, provider.GetIssuer(), sid); err != nil {
+			return oauthelia2.ErrServerError.WithHint("Could not load the session identified by the 'id_token_hint'.").WithWrap(err).WithDebugError(err)
+		}
+
+		if record != nil {
+			if record.PublicID != userSession.PublicID {
+				return oauthelia2.ErrInvalidRequest.WithHint("The 'id_token_hint' identifies a session other than the one which is logged in.")
+			}
+
+			return nil
+		}
+	}
+
+	subject := requester.GetSubject()
+
+	if subject == "" {
+		return nil
+	}
+
+	var (
+		id         uuid.UUID
+		identifier *model.UserOpaqueIdentifier
+	)
+
+	if id, err = uuid.Parse(subject); err == nil {
+		if identifier, err = ctx.Providers.StorageProvider.LoadUserOpaqueIdentifier(ctx, id); err != nil {
+			return oauthelia2.ErrServerError.WithHint("Could not determine the End-User the 'id_token_hint' was issued to.").WithWrap(err).WithDebugError(err)
+		}
+	}
+
+	if identifier == nil || !strings.EqualFold(identifier.Username, userSession.Username) {
+		return oauthelia2.ErrInvalidRequest.WithHint("The 'id_token_hint' was not issued to the currently authenticated End-User.")
+	}
+
+	return nil
 }
 
 func oidcEndSessionRedirectError(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, issuer *url.URL, err error) {

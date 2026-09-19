@@ -53,13 +53,25 @@ func TestLogoutPOSTShouldDeliverBackChannelLogoutBeforeRemovingSessionIDs(t *tes
 				{Issuer: issuer, PublicID: userSession.PublicID, SessionID: sid, ClientID: "removed"},
 			}, nil),
 		mock.StorageMock.EXPECT().
-			DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).
-			DoAndReturn(func(_ any, _, _ string) error {
-				// The Logout Tokens must have been delivered before the session identifiers are removed.
+			LoadOAuth2SessionIDsByPublicID(gomock.Any(), issuer, userSession.PublicID).
+			Return([]model.OAuth2SessionID{
+				{Issuer: issuer, PublicID: userSession.PublicID, SessionID: sid},
+				{Issuer: issuer, PublicID: userSession.PublicID, SessionID: sidSector},
+			}, nil),
+		mock.StorageMock.EXPECT().
+			RevokeOAuth2SessionsBySessionID(gomock.Any(), sid.String()).
+			DoAndReturn(func(_ any, _ string) error {
+				// The Logout Tokens must have been delivered before the OAuth 2.0 sessions are revoked.
 				assert.Len(t, rp.Received(), 2)
 
 				return nil
 			}),
+		mock.StorageMock.EXPECT().
+			RevokeOAuth2SessionsBySessionID(gomock.Any(), sidSector.String()).
+			Return(nil),
+		mock.StorageMock.EXPECT().
+			DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).
+			Return(nil),
 	)
 
 	mock.Ctx.Request.SetBodyString(`{}`)
@@ -94,9 +106,16 @@ func TestLogoutPOSTShouldDeliverBackChannelLogoutBeforeRemovingSessionIDs(t *tes
 	issuerURL, err := mock.Ctx.IssuerURL()
 	require.NoError(t, err)
 
-	for _, claims := range received {
-		assert.Equal(t, issuerURL.String(), claims[oidc.ClaimIssuer])
+	for _, request := range rp.Requests() {
+		aud, _ := request.claims[oidc.ClaimAudience].([]any)
+
+		require.Len(t, aud, 1)
+
+		assertTestBackChannelLogoutRequest(t, request, issuerURL.String(), aud[0].(string))
 	}
+
+	// Section 2.4: each Relying Party receives a Logout Token with its own 'jti'.
+	assert.NotEqual(t, byAudience["notified"][oidc.ClaimJWTID], byAudience["notified-sector"][oidc.ClaimJWTID])
 
 	assert.Equal(t, sid.String(), byAudience["notified"][oidc.ClaimSessionID])
 	assert.Equal(t, subject.String(), byAudience["notified"][oidc.ClaimSubject])
@@ -115,6 +134,9 @@ func TestLogoutPOSTShouldRemoveSessionIDsWhenParticipantsFailToLoad(t *testing.T
 			LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), issuer, userSession.PublicID).
 			Return(nil, errors.New("connection refused")),
 		mock.StorageMock.EXPECT().
+			LoadOAuth2SessionIDsByPublicID(gomock.Any(), issuer, userSession.PublicID).
+			Return(nil, nil),
+		mock.StorageMock.EXPECT().
 			DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).
 			Return(nil),
 	)
@@ -127,15 +149,13 @@ func TestLogoutPOSTShouldRemoveSessionIDsWhenParticipantsFailToLoad(t *testing.T
 	assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
 }
 
-func TestOIDCBackChannelLogoutShouldSkipAnonymousSession(t *testing.T) {
+func TestOIDCBackChannelLogoutSessionShouldSkipWithoutPublicID(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
 	setupTestOIDCProvider(t, mock, nil)
 
-	oidcBackChannelLogout(mock.Ctx, &session.UserSession{PublicID: "public-id"})
-	oidcBackChannelLogout(mock.Ctx, &session.UserSession{Username: testUsername})
-	oidcBackChannelLogout(mock.Ctx, nil)
+	oidcBackChannelLogoutSession(mock.Ctx, "issuer", testUsername, "")
 }
 
 func TestOIDCBackChannelLogoutGroups(t *testing.T) {
@@ -191,11 +211,18 @@ func TestOIDCBackChannelLogoutGroups(t *testing.T) {
 	}, actual)
 }
 
+type testBackChannelLogoutRequest struct {
+	method      string
+	contentType string
+	header      map[string]any
+	claims      map[string]any
+}
+
 type testBackChannelLogoutRP struct {
 	*httptest.Server
 
-	mu     sync.Mutex
-	claims []map[string]any
+	mu       sync.Mutex
+	requests []testBackChannelLogoutRequest
 }
 
 func newTestBackChannelLogoutRP(t *testing.T) (rp *testBackChannelLogoutRP) {
@@ -217,25 +244,30 @@ func newTestBackChannelLogoutRP(t *testing.T) (rp *testBackChannelLogoutRP) {
 			return
 		}
 
-		payload, err := base64.RawURLEncoding.DecodeString(parts[1])
-		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
+		request := testBackChannelLogoutRequest{method: r.Method, contentType: r.Header.Get("Content-Type")}
 
-			return
-		}
+		for i, segment := range []*map[string]any{&request.header, &request.claims} {
+			decoded, err := base64.RawURLEncoding.DecodeString(parts[i])
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
 
-		claims := map[string]any{}
+				return
+			}
 
-		if err = json.Unmarshal(payload, &claims); err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
+			*segment = map[string]any{}
 
-			return
+			if err = json.Unmarshal(decoded, segment); err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
 		}
 
 		rp.mu.Lock()
-		rp.claims = append(rp.claims, claims)
+		rp.requests = append(rp.requests, request)
 		rp.mu.Unlock()
 
+		rw.Header().Set("Cache-Control", "no-store")
 		rw.WriteHeader(http.StatusOK)
 	}))
 
@@ -244,11 +276,52 @@ func newTestBackChannelLogoutRP(t *testing.T) (rp *testBackChannelLogoutRP) {
 	return rp
 }
 
-func (rp *testBackChannelLogoutRP) Received() []map[string]any {
+func (rp *testBackChannelLogoutRP) Requests() []testBackChannelLogoutRequest {
 	rp.mu.Lock()
 	defer rp.mu.Unlock()
 
-	return append([]map[string]any(nil), rp.claims...)
+	return append([]testBackChannelLogoutRequest(nil), rp.requests...)
+}
+
+func (rp *testBackChannelLogoutRP) Received() []map[string]any {
+	requests := rp.Requests()
+
+	claims := make([]map[string]any, len(requests))
+
+	for i, request := range requests {
+		claims[i] = request.claims
+	}
+
+	return claims
+}
+
+func assertTestBackChannelLogoutRequest(t *testing.T, request testBackChannelLogoutRequest, issuer, clientID string) {
+	t.Helper()
+
+	// Section 2.5: the request is an HTTP POST with an 'application/x-www-form-urlencoded' body.
+	assert.Equal(t, http.MethodPost, request.method)
+	assert.Equal(t, "application/x-www-form-urlencoded", request.contentType)
+
+	// Section 2.4: the Logout Token is signed, and the 'typ' header distinguishes it from other tokens.
+	assert.NotEqual(t, "none", request.header["alg"])
+	assert.Equal(t, "logout+jwt", request.header["typ"])
+
+	// Section 2.4: the 'iss', 'aud', 'iat', 'exp' and 'jti' claims are REQUIRED.
+	assert.Equal(t, issuer, request.claims[oidc.ClaimIssuer])
+	assert.Equal(t, []any{clientID}, request.claims[oidc.ClaimAudience])
+	assert.NotEmpty(t, request.claims[oidc.ClaimIssuedAt])
+	assert.NotEmpty(t, request.claims[oidc.ClaimExpirationTime])
+	assert.NotEmpty(t, request.claims[oidc.ClaimJWTID])
+
+	// Section 2.4: the 'events' claim is REQUIRED and its back-channel logout member is an empty JSON object.
+	events, ok := request.claims["events"].(map[string]any)
+
+	require.True(t, ok, "the 'events' claim must be present")
+	assert.Equal(t, map[string]any{}, events["http://schemas.openid.net/event/backchannel-logout"])
+
+	// Section 2.4: a Logout Token MUST contain either a 'sub' or a 'sid' claim, and a 'nonce' MUST NOT be present.
+	assert.True(t, request.claims[oidc.ClaimSubject] != nil || request.claims[oidc.ClaimSessionID] != nil)
+	assert.NotContains(t, request.claims, oidc.ClaimNonce)
 }
 
 func setupTestBackChannelLogout(t *testing.T, mock *mocks.MockAutheliaCtx, clients ...schema.IdentityProvidersOpenIDConnectClient) (userSession session.UserSession, issuer string) {
