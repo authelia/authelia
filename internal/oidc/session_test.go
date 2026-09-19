@@ -711,3 +711,17 @@ func TestSession_SidJSONRoundTrip(t *testing.T) {
 		assert.Equal(t, "", restored.GetID())
 	})
 }
+
+func TestNewSessionWithClientAndRequestedAt(t *testing.T) {
+	requestedAt := time.Unix(1700000000, 0)
+
+	session := oidc.NewSessionWithClientAndRequestedAt(&oidc.RegisteredClient{ID: "client-id"}, requestedAt)
+
+	assert.Equal(t, "client-id", session.ClientID)
+	assert.Equal(t, requestedAt.UTC(), session.RequestedAt)
+	assert.Empty(t, session.GetID())
+
+	session = oidc.NewSessionWithClientAndRequestedAt(nil, requestedAt)
+
+	assert.Empty(t, session.ClientID)
+}

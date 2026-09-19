@@ -212,3 +212,118 @@ func TestSQLProviderOAuth2SessionIDClient(t *testing.T) {
 		assert.Equal(t, []string{"client-a"}, clientIDs(records))
 	})
 }
+
+func TestSQLProviderOAuth2SessionsShouldPersistSessionID(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	sid := model.NewNullString(uuid.Must(uuid.NewRandom()).String())
+
+	for _, sessionType := range []OAuth2SessionType{
+		OAuth2SessionTypeAccessToken,
+		OAuth2SessionTypeAuthorizeCode,
+		OAuth2SessionTypeOpenIDConnect,
+		OAuth2SessionTypePKCEChallenge,
+		OAuth2SessionTypeRefreshToken,
+	} {
+		t.Run(sessionType.String(), func(t *testing.T) {
+			signature := "sig-" + sessionType.String()
+
+			require.NoError(t, provider.SaveOAuth2Session(ctx, sessionType, model.OAuth2Session{
+				ChallengeID: model.MustNullUUID(model.NewRandomNullUUID()),
+				Subject:     model.NewNullString("john"),
+				RequestID:   "req-" + sessionType.String(),
+				ClientID:    "client-id",
+				SessionID:   sid,
+				Signature:   signature,
+				Active:      true,
+				Session:     []byte(`{}`),
+			}))
+
+			session, err := provider.LoadOAuth2Session(ctx, sessionType, signature)
+			require.NoError(t, err)
+
+			assert.Equal(t, "client-id", session.ClientID)
+			assert.Equal(t, sid, session.SessionID)
+		})
+	}
+
+	t.Run("ShouldPersistAbsentSessionID", func(t *testing.T) {
+		require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
+			RequestID: "req-no-sid",
+			ClientID:  "client-id",
+			Signature: "sig-no-sid",
+			Active:    true,
+			Session:   []byte(`{}`),
+		}))
+
+		session, err := provider.LoadOAuth2Session(ctx, OAuth2SessionTypeAccessToken, "sig-no-sid")
+		require.NoError(t, err)
+
+		assert.False(t, session.SessionID.Valid)
+	})
+
+	t.Run("DeviceCode", func(t *testing.T) {
+		device := &model.OAuth2DeviceCodeSession{
+			RequestID:         "req-device",
+			ClientID:          "client-id",
+			Signature:         "sig-device",
+			UserCodeSignature: "sig-user-code",
+			Active:            true,
+			Session:           []byte(`{}`),
+		}
+
+		require.NoError(t, provider.SaveOAuth2DeviceCodeSession(ctx, device))
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, "sig-device")
+		require.NoError(t, err)
+
+		assert.Equal(t, "client-id", loaded.ClientID)
+		assert.False(t, loaded.SessionID.Valid, "the session identifier is not known until the End-User authorizes the device")
+
+		loaded.SessionID = sid
+
+		require.NoError(t, provider.UpdateOAuth2DeviceCodeSessionData(ctx, loaded))
+
+		loaded, err = provider.LoadOAuth2DeviceCodeSession(ctx, "sig-device")
+		require.NoError(t, err)
+
+		assert.Equal(t, sid, loaded.SessionID)
+
+		loaded.SessionID = model.NewNullString("")
+
+		require.NoError(t, provider.UpdateOAuth2DeviceCodeSession(ctx, loaded))
+
+		loaded, err = provider.LoadOAuth2DeviceCodeSession(ctx, "sig-device")
+		require.NoError(t, err)
+
+		assert.False(t, loaded.SessionID.Valid)
+	})
+
+	t.Run("PushedAuthorization", func(t *testing.T) {
+		require.NoError(t, provider.SaveOAuth2PushedAuthorizationSession(ctx, model.OAuth2PushedAuthorizationSession{
+			RequestID: "req-par",
+			ClientID:  "client-id",
+			SessionID: sid,
+			Signature: "sig-par",
+			Session:   []byte(`{}`),
+		}))
+
+		par, err := provider.LoadOAuth2PushedAuthorizationSession(ctx, "sig-par")
+		require.NoError(t, err)
+
+		assert.Equal(t, "client-id", par.ClientID)
+		assert.Equal(t, sid, par.SessionID)
+
+		par.SessionID = model.NewNullString("")
+
+		require.NoError(t, provider.UpdateOAuth2PushedAuthorizationSession(ctx, *par))
+
+		par, err = provider.LoadOAuth2PushedAuthorizationSession(ctx, "sig-par")
+		require.NoError(t, err)
+
+		assert.False(t, par.SessionID.Valid)
+	})
+}

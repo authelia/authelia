@@ -35,6 +35,19 @@ func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
 	return session
 }
 
+// NewSessionWithClientAndRequestedAt returns a new *Session for a request made by the given client before the End-User
+// is known, such as a Pushed Authorization Request or a Device Authorization Request, so the session still records the
+// client it belongs to.
+func NewSessionWithClientAndRequestedAt(client oauthelia2.Client, requestedAt time.Time) (session *Session) {
+	session = NewSessionWithRequestedAt(requestedAt)
+
+	if client != nil {
+		session.ClientID = client.GetID()
+	}
+
+	return session
+}
+
 // NewSessionWithIssuerAndRequestedAt returns a new *Session with the given issuer and requested at time.
 func NewSessionWithIssuerAndRequestedAt(ctx Context, issuer *url.URL, requestedAt time.Time) (session *Session) {
 	session = NewSessionWithRequestedAt(requestedAt)
