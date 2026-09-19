@@ -82,7 +82,7 @@
     "eslint-plugin-prettier": "5.5.6",
     "happy-dom": "20.14.5",
     "lefthook": "2.1.14",
-    "prettier": "3.9.7",
+    "prettier": "3.9.8",
     "tailwindcss": "4.3.3",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.0",
