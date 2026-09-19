@@ -896,6 +896,18 @@ func (z *OpenIDConnectLogout) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "State")
 				return
 			}
+		case "sub":
+			z.Subject, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Subject")
+				return
+			}
+		case "sid":
+			z.SessionID, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "SessionID")
+				return
+			}
 		case "exp":
 			z.Expires, err = dc.ReadTime()
 			if err != nil {
@@ -916,8 +928,8 @@ func (z *OpenIDConnectLogout) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *OpenIDConnectLogout) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(5)
-	var zb0001Mask uint8 /* 5 bits */
+	zb0001Len := uint32(7)
+	var zb0001Mask uint8 /* 7 bits */
 	_ = zb0001Mask
 	if z.RedirectURI == "" {
 		zb0001Len--
@@ -926,6 +938,14 @@ func (z *OpenIDConnectLogout) EncodeMsg(en *msgp.Writer) (err error) {
 	if z.State == "" {
 		zb0001Len--
 		zb0001Mask |= 0x8
+	}
+	if z.Subject == "" {
+		zb0001Len--
+		zb0001Mask |= 0x10
+	}
+	if z.SessionID == "" {
+		zb0001Len--
+		zb0001Mask |= 0x20
 	}
 	// variable map header, size zb0001Len
 	err = en.Append(0x80 | uint8(zb0001Len))
@@ -979,6 +999,30 @@ func (z *OpenIDConnectLogout) EncodeMsg(en *msgp.Writer) (err error) {
 				return
 			}
 		}
+		if (zb0001Mask & 0x10) == 0 { // if not omitted
+			// write "sub"
+			err = en.Append(0xa3, 0x73, 0x75, 0x62)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.Subject)
+			if err != nil {
+				err = msgp.WrapError(err, "Subject")
+				return
+			}
+		}
+		if (zb0001Mask & 0x20) == 0 { // if not omitted
+			// write "sid"
+			err = en.Append(0xa3, 0x73, 0x69, 0x64)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.SessionID)
+			if err != nil {
+				err = msgp.WrapError(err, "SessionID")
+				return
+			}
+		}
 		// write "exp"
 		err = en.Append(0xa3, 0x65, 0x78, 0x70)
 		if err != nil {
@@ -997,8 +1041,8 @@ func (z *OpenIDConnectLogout) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *OpenIDConnectLogout) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(5)
-	var zb0001Mask uint8 /* 5 bits */
+	zb0001Len := uint32(7)
+	var zb0001Mask uint8 /* 7 bits */
 	_ = zb0001Mask
 	if z.RedirectURI == "" {
 		zb0001Len--
@@ -1007,6 +1051,14 @@ func (z *OpenIDConnectLogout) MarshalMsg(b []byte) (o []byte, err error) {
 	if z.State == "" {
 		zb0001Len--
 		zb0001Mask |= 0x8
+	}
+	if z.Subject == "" {
+		zb0001Len--
+		zb0001Mask |= 0x10
+	}
+	if z.SessionID == "" {
+		zb0001Len--
+		zb0001Mask |= 0x20
 	}
 	// variable map header, size zb0001Len
 	o = append(o, 0x80|uint8(zb0001Len))
@@ -1028,6 +1080,16 @@ func (z *OpenIDConnectLogout) MarshalMsg(b []byte) (o []byte, err error) {
 			// string "s"
 			o = append(o, 0xa1, 0x73)
 			o = msgp.AppendString(o, z.State)
+		}
+		if (zb0001Mask & 0x10) == 0 { // if not omitted
+			// string "sub"
+			o = append(o, 0xa3, 0x73, 0x75, 0x62)
+			o = msgp.AppendString(o, z.Subject)
+		}
+		if (zb0001Mask & 0x20) == 0 { // if not omitted
+			// string "sid"
+			o = append(o, 0xa3, 0x73, 0x69, 0x64)
+			o = msgp.AppendString(o, z.SessionID)
 		}
 		// string "exp"
 		o = append(o, 0xa3, 0x65, 0x78, 0x70)
@@ -1078,6 +1140,18 @@ func (z *OpenIDConnectLogout) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "State")
 				return
 			}
+		case "sub":
+			z.Subject, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Subject")
+				return
+			}
+		case "sid":
+			z.SessionID, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "SessionID")
+				return
+			}
 		case "exp":
 			z.Expires, bts, err = msgp.ReadTimeBytes(bts)
 			if err != nil {
@@ -1098,7 +1172,7 @@ func (z *OpenIDConnectLogout) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *OpenIDConnectLogout) Msgsize() (s int) {
-	s = 1 + 4 + msgp.StringPrefixSize + len(z.FlowID) + 4 + msgp.StringPrefixSize + len(z.ClientID) + 4 + msgp.StringPrefixSize + len(z.RedirectURI) + 2 + msgp.StringPrefixSize + len(z.State) + 4 + msgp.TimeSize
+	s = 1 + 4 + msgp.StringPrefixSize + len(z.FlowID) + 4 + msgp.StringPrefixSize + len(z.ClientID) + 4 + msgp.StringPrefixSize + len(z.RedirectURI) + 2 + msgp.StringPrefixSize + len(z.State) + 4 + msgp.StringPrefixSize + len(z.Subject) + 4 + msgp.StringPrefixSize + len(z.SessionID) + 4 + msgp.TimeSize
 	return
 }
 

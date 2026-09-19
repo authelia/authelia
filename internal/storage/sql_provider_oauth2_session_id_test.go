@@ -327,3 +327,109 @@ func TestSQLProviderOAuth2SessionsShouldPersistSessionID(t *testing.T) {
 		assert.False(t, par.SessionID.Valid)
 	})
 }
+
+func TestSQLProviderOAuth2Logout(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	save := func(t *testing.T, sessionType OAuth2SessionType, signature, clientID, subject, sid string, scopes ...string) {
+		t.Helper()
+
+		require.NoError(t, provider.SaveOAuth2Session(ctx, sessionType, model.OAuth2Session{
+			ChallengeID:   model.MustNullUUID(model.NewRandomNullUUID()),
+			RequestID:     "req-" + signature,
+			ClientID:      clientID,
+			SessionID:     model.NewNullString(sid),
+			Signature:     signature,
+			Subject:       model.NewNullString(subject),
+			GrantedScopes: model.StringSlicePipeDelimited(scopes),
+			Active:        true,
+			Session:       []byte(`{}`),
+		}))
+	}
+
+	revoked := func(t *testing.T, sessionType OAuth2SessionType, signature string) bool {
+		t.Helper()
+
+		// A revoked session isn't loaded.
+		_, err := provider.LoadOAuth2Session(ctx, sessionType, signature)
+
+		return err != nil
+	}
+
+	t.Run("ShouldRevokeBySessionIDRetainingOfflineRefreshTokens", func(t *testing.T) {
+		sid, other := uuid.Must(uuid.NewRandom()).String(), uuid.Must(uuid.NewRandom()).String()
+
+		save(t, OAuth2SessionTypeAccessToken, "sid-access", "client", "john", sid, "openid")
+		save(t, OAuth2SessionTypeAuthorizeCode, "sid-code", "client", "john", sid, "openid")
+		save(t, OAuth2SessionTypeOpenIDConnect, "sid-openid", "client", "john", sid, "openid")
+		save(t, OAuth2SessionTypePKCEChallenge, "sid-pkce", "client", "john", sid, "openid")
+		save(t, OAuth2SessionTypeRefreshToken, "sid-refresh", "client", "john", sid, "openid")
+		save(t, OAuth2SessionTypeRefreshToken, "sid-refresh-offline", "client", "john", sid, "openid", "offline_access")
+		save(t, OAuth2SessionTypeRefreshToken, "sid-refresh-offline-alias", "client", "john", sid, "openid", "offline")
+		save(t, OAuth2SessionTypeAccessToken, "other-access", "client", "john", other, "openid")
+
+		require.NoError(t, provider.RevokeOAuth2SessionsBySessionID(ctx, sid))
+
+		assert.True(t, revoked(t, OAuth2SessionTypeAccessToken, "sid-access"))
+		assert.True(t, revoked(t, OAuth2SessionTypeAuthorizeCode, "sid-code"))
+		assert.True(t, revoked(t, OAuth2SessionTypeOpenIDConnect, "sid-openid"))
+		assert.True(t, revoked(t, OAuth2SessionTypePKCEChallenge, "sid-pkce"))
+		assert.True(t, revoked(t, OAuth2SessionTypeRefreshToken, "sid-refresh"))
+		assert.False(t, revoked(t, OAuth2SessionTypeRefreshToken, "sid-refresh-offline"))
+		assert.False(t, revoked(t, OAuth2SessionTypeRefreshToken, "sid-refresh-offline-alias"))
+		assert.False(t, revoked(t, OAuth2SessionTypeAccessToken, "other-access"))
+
+		// Revoking again is not an error.
+		require.NoError(t, provider.RevokeOAuth2SessionsBySessionID(ctx, sid))
+	})
+
+	t.Run("ShouldRevokeByClientIDAndSubjectRetainingOfflineRefreshTokens", func(t *testing.T) {
+		save(t, OAuth2SessionTypeAccessToken, "sub-access", "client-a", "jane", "", "openid")
+		save(t, OAuth2SessionTypeRefreshToken, "sub-refresh", "client-a", "jane", "", "openid")
+		save(t, OAuth2SessionTypeRefreshToken, "sub-refresh-offline", "client-a", "jane", "", "openid", "offline_access")
+		save(t, OAuth2SessionTypeAccessToken, "sub-access-other-client", "client-b", "jane", "", "openid")
+		save(t, OAuth2SessionTypeAccessToken, "sub-access-other-subject", "client-a", "jim", "", "openid")
+
+		has, err := provider.HasOAuth2SessionsByClientIDAndSubject(ctx, "client-a", "jane")
+		require.NoError(t, err)
+		assert.True(t, has)
+
+		has, err = provider.HasOAuth2SessionsByClientIDAndSubject(ctx, "client-c", "jane")
+		require.NoError(t, err)
+		assert.False(t, has)
+
+		require.NoError(t, provider.RevokeOAuth2SessionsByClientIDAndSubject(ctx, "client-a", "jane"))
+
+		assert.True(t, revoked(t, OAuth2SessionTypeAccessToken, "sub-access"))
+		assert.True(t, revoked(t, OAuth2SessionTypeRefreshToken, "sub-refresh"))
+		assert.False(t, revoked(t, OAuth2SessionTypeRefreshToken, "sub-refresh-offline"))
+		assert.False(t, revoked(t, OAuth2SessionTypeAccessToken, "sub-access-other-client"))
+		assert.False(t, revoked(t, OAuth2SessionTypeAccessToken, "sub-access-other-subject"))
+
+		// Only the offline refresh token remains, which still counts as a session held for the subject.
+		has, err = provider.HasOAuth2SessionsByClientIDAndSubject(ctx, "client-a", "jane")
+		require.NoError(t, err)
+		assert.True(t, has)
+	})
+
+	t.Run("ShouldLoadSessionIDsByPublicID", func(t *testing.T) {
+		a, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "https://a.example.com", "logout-public-id")
+		require.NoError(t, err)
+
+		b, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "https://b.example.com", "logout-public-id")
+		require.NoError(t, err)
+
+		_, err = provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "https://a.example.com", "unrelated-public-id")
+		require.NoError(t, err)
+
+		records, err := provider.LoadOAuth2SessionIDsByPublicID(ctx, "issuer", "logout-public-id")
+		require.NoError(t, err)
+		require.Len(t, records, 2)
+
+		assert.Equal(t, a.SessionID, records[0].SessionID)
+		assert.Equal(t, b.SessionID, records[1].SessionID)
+	})
+}

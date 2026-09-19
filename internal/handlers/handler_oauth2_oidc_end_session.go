@@ -15,6 +15,7 @@ import (
 	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -46,6 +47,12 @@ func OpenIDConnectEndSession(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 	var requester oauthelia2.RPInitiatedLogoutRequester
 
 	if requester, err = ctx.Providers.OpenIDConnect.NewRPInitiatedLogoutRequest(ctx, req); err != nil {
+		oidcEndSessionRedirectError(ctx, rw, issuer, err)
+
+		return
+	}
+
+	if err = oidcEndSessionValidateHint(ctx, requester); err != nil {
 		oidcEndSessionRedirectError(ctx, rw, issuer, err)
 
 		return
@@ -111,6 +118,8 @@ func oidcEndSessionStore(ctx *middlewares.AutheliaCtx, requester oauthelia2.RPIn
 		logout.State = requester.GetState()
 	}
 
+	logout.Subject, logout.SessionID = requester.GetSubject(), requester.GetSessionID()
+
 	userSession.OpenIDConnectLogout = logout
 
 	if err = ctx.SaveSession(&userSession); err != nil {
@@ -118,6 +127,63 @@ func oidcEndSessionStore(ctx *middlewares.AutheliaCtx, requester oauthelia2.RPIn
 	}
 
 	return logout.FlowID, nil
+}
+
+func oidcEndSessionValidateHint(ctx *middlewares.AutheliaCtx, requester oauthelia2.RPInitiatedLogoutRequester) (err error) {
+	var userSession session.UserSession
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		return oauthelia2.ErrServerError.WithHint("Could not obtain the session.").WithWrap(err).WithDebugError(err)
+	}
+
+	if userSession.Username == "" || userSession.PublicID == "" {
+		return nil
+	}
+
+	if sid := requester.GetSessionID(); sid != "" {
+		var provider session.Strategy
+
+		if provider, err = ctx.GetSessionProvider(); err != nil {
+			return oauthelia2.ErrServerError.WithHint("Could not obtain the session provider.").WithWrap(err).WithDebugError(err)
+		}
+
+		var record *model.OAuth2SessionID
+
+		if record, err = ctx.Providers.StorageProvider.LoadOAuth2SessionIDBySessionID(ctx, provider.GetIssuer(), sid); err != nil {
+			return oauthelia2.ErrServerError.WithHint("Could not load the session identified by the 'id_token_hint'.").WithWrap(err).WithDebugError(err)
+		}
+
+		if record != nil {
+			if record.PublicID != userSession.PublicID {
+				return oauthelia2.ErrInvalidRequest.WithHint("The 'id_token_hint' identifies a session other than the one which is logged in.")
+			}
+
+			return nil
+		}
+	}
+
+	subject, client := requester.GetSubject(), requester.GetClient()
+
+	if subject == "" || client == nil {
+		return nil
+	}
+
+	c, ok := client.(oidc.Client)
+	if !ok {
+		return nil
+	}
+
+	var expected uuid.UUID
+
+	if expected, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, c.GetSectorIdentifierURI(), userSession.Username); err != nil {
+		return oauthelia2.ErrServerError.WithHint("Could not determine the subject of the End-User which is logged in.").WithWrap(err).WithDebugError(err)
+	}
+
+	if expected.String() != subject {
+		return oauthelia2.ErrInvalidRequest.WithHint("The 'id_token_hint' identifies an End-User other than the one which is logged in.")
+	}
+
+	return nil
 }
 
 func oidcEndSessionRedirectError(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, issuer *url.URL, err error) {

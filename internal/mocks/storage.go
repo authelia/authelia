@@ -320,6 +320,21 @@ func (mr *MockStorageMockRecorder) GetOrCreateOAuth2SessionID(ctx, issuer, secto
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreateOAuth2SessionID", reflect.TypeOf((*MockStorage)(nil).GetOrCreateOAuth2SessionID), ctx, issuer, sectorID, publicID)
 }
 
+// HasOAuth2SessionsByClientIDAndSubject mocks base method.
+func (m *MockStorage) HasOAuth2SessionsByClientIDAndSubject(ctx context.Context, clientID, subject string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasOAuth2SessionsByClientIDAndSubject", ctx, clientID, subject)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasOAuth2SessionsByClientIDAndSubject indicates an expected call of HasOAuth2SessionsByClientIDAndSubject.
+func (mr *MockStorageMockRecorder) HasOAuth2SessionsByClientIDAndSubject(ctx, clientID, subject any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasOAuth2SessionsByClientIDAndSubject", reflect.TypeOf((*MockStorage)(nil).HasOAuth2SessionsByClientIDAndSubject), ctx, clientID, subject)
+}
+
 // LoadBannedIP mocks base method.
 func (m *MockStorage) LoadBannedIP(ctx context.Context, remoteIP model.IP) ([]model.BannedIP, error) {
 	m.ctrl.T.Helper()
@@ -603,6 +618,21 @@ func (m *MockStorage) LoadOAuth2SessionIDClientsByPublicID(ctx context.Context, 
 func (mr *MockStorageMockRecorder) LoadOAuth2SessionIDClientsByPublicID(ctx, issuer, publicID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2SessionIDClientsByPublicID", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2SessionIDClientsByPublicID), ctx, issuer, publicID)
+}
+
+// LoadOAuth2SessionIDsByPublicID mocks base method.
+func (m *MockStorage) LoadOAuth2SessionIDsByPublicID(ctx context.Context, issuer, publicID string) ([]model.OAuth2SessionID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2SessionIDsByPublicID", ctx, issuer, publicID)
+	ret0, _ := ret[0].([]model.OAuth2SessionID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2SessionIDsByPublicID indicates an expected call of LoadOAuth2SessionIDsByPublicID.
+func (mr *MockStorageMockRecorder) LoadOAuth2SessionIDsByPublicID(ctx, issuer, publicID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2SessionIDsByPublicID", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2SessionIDsByPublicID), ctx, issuer, publicID)
 }
 
 // LoadOAuth2SessionIDsOldest mocks base method.
@@ -1002,6 +1032,34 @@ func (m *MockStorage) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 func (mr *MockStorageMockRecorder) RevokeOAuth2SessionByRequestID(ctx, sessionType, requestID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2SessionByRequestID), ctx, sessionType, requestID)
+}
+
+// RevokeOAuth2SessionsByClientIDAndSubject mocks base method.
+func (m *MockStorage) RevokeOAuth2SessionsByClientIDAndSubject(ctx context.Context, clientID, subject string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeOAuth2SessionsByClientIDAndSubject", ctx, clientID, subject)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeOAuth2SessionsByClientIDAndSubject indicates an expected call of RevokeOAuth2SessionsByClientIDAndSubject.
+func (mr *MockStorageMockRecorder) RevokeOAuth2SessionsByClientIDAndSubject(ctx, clientID, subject any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2SessionsByClientIDAndSubject", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2SessionsByClientIDAndSubject), ctx, clientID, subject)
+}
+
+// RevokeOAuth2SessionsBySessionID mocks base method.
+func (m *MockStorage) RevokeOAuth2SessionsBySessionID(ctx context.Context, sid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeOAuth2SessionsBySessionID", ctx, sid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeOAuth2SessionsBySessionID indicates an expected call of RevokeOAuth2SessionsBySessionID.
+func (mr *MockStorageMockRecorder) RevokeOAuth2SessionsBySessionID(ctx, sid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2SessionsBySessionID", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2SessionsBySessionID), ctx, sid)
 }
 
 // RevokeOneTimeCode mocks base method.

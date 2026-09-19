@@ -80,14 +80,14 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if userSession, errSession := ctx.GetSession(); errSession == nil {
-		if logout := logoutPending(ctx, userSession, body.FlowID); logout != nil {
+		logout := logoutPending(ctx, userSession, body.FlowID)
+
+		if logout != nil {
 			responseBody.RedirectURL = logoutRedirectURL(logout)
 		}
 
-		oidcBackChannelLogout(ctx, &userSession)
+		oidcLogout(ctx, &userSession, logout)
 	}
-
-	logoutRemoveOAuth2SessionIDs(ctx)
 
 	err = ctx.DestroySession()
 	if err != nil {
@@ -108,34 +108,6 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 	if err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred setting the logout response body")
 		ctx.SetJSONError(messageOperationFailed)
-	}
-}
-
-func logoutRemoveOAuth2SessionIDs(ctx *middlewares.AutheliaCtx) {
-	if ctx.Configuration.IdentityProviders.OIDC == nil {
-		return
-	}
-
-	provider, err := ctx.GetSessionProvider()
-	if err != nil {
-		ctx.GetLogger().WithError(err).Error("Error occurred obtaining the session provider during logout")
-
-		return
-	}
-
-	userSession, err := ctx.GetSession()
-	if err != nil {
-		ctx.GetLogger().WithError(err).Error("Error occurred obtaining the user session during logout")
-
-		return
-	}
-
-	if userSession.PublicID == "" {
-		return
-	}
-
-	if err = ctx.Providers.StorageProvider.DeleteOAuth2SessionIDByPublicID(ctx, provider.GetIssuer(), userSession.PublicID); err != nil {
-		ctx.GetLogger().WithError(err).Error("Error occurred removing the OpenID Connect session identifiers during logout")
 	}
 }
 

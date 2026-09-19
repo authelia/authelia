@@ -232,6 +232,8 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectEncryptionValue: fmt.Sprintf(queryFmtSelectEncryptionValue, tableEncryption),
 
 		sqlFmtRenameTable: queryFmtRenameTable,
+
+		sqlOAuth2Logout: newSQLOAuth2LogoutQueries(func(query string) string { return query }),
 	}
 
 	return provider, nil
@@ -444,6 +446,9 @@ type SQLProvider struct {
 	sqlSelectOAuth2SessionIDClientsByPublicID string
 	sqlDeleteOAuth2SessionIDClient            string
 	sqlDeleteOAuth2SessionIDClientByPublicID  string
+
+	// Tables: oauth2_*_session, oauth2_par_context, and oauth2_session_id for logout.
+	sqlOAuth2Logout sqlOAuth2LogoutQueries
 
 	// Utility.
 	sqlSelectExistingTables string

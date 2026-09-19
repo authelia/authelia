@@ -53,13 +53,25 @@ func TestLogoutPOSTShouldDeliverBackChannelLogoutBeforeRemovingSessionIDs(t *tes
 				{Issuer: issuer, PublicID: userSession.PublicID, SessionID: sid, ClientID: "removed"},
 			}, nil),
 		mock.StorageMock.EXPECT().
-			DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).
-			DoAndReturn(func(_ any, _, _ string) error {
-				// The Logout Tokens must have been delivered before the session identifiers are removed.
+			LoadOAuth2SessionIDsByPublicID(gomock.Any(), issuer, userSession.PublicID).
+			Return([]model.OAuth2SessionID{
+				{Issuer: issuer, PublicID: userSession.PublicID, SessionID: sid},
+				{Issuer: issuer, PublicID: userSession.PublicID, SessionID: sidSector},
+			}, nil),
+		mock.StorageMock.EXPECT().
+			RevokeOAuth2SessionsBySessionID(gomock.Any(), sid.String()).
+			DoAndReturn(func(_ any, _ string) error {
+				// The Logout Tokens must have been delivered before the OAuth 2.0 sessions are revoked.
 				assert.Len(t, rp.Received(), 2)
 
 				return nil
 			}),
+		mock.StorageMock.EXPECT().
+			RevokeOAuth2SessionsBySessionID(gomock.Any(), sidSector.String()).
+			Return(nil),
+		mock.StorageMock.EXPECT().
+			DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).
+			Return(nil),
 	)
 
 	mock.Ctx.Request.SetBodyString(`{}`)
@@ -115,6 +127,9 @@ func TestLogoutPOSTShouldRemoveSessionIDsWhenParticipantsFailToLoad(t *testing.T
 			LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), issuer, userSession.PublicID).
 			Return(nil, errors.New("connection refused")),
 		mock.StorageMock.EXPECT().
+			LoadOAuth2SessionIDsByPublicID(gomock.Any(), issuer, userSession.PublicID).
+			Return(nil, nil),
+		mock.StorageMock.EXPECT().
 			DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).
 			Return(nil),
 	)
@@ -127,15 +142,13 @@ func TestLogoutPOSTShouldRemoveSessionIDsWhenParticipantsFailToLoad(t *testing.T
 	assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
 }
 
-func TestOIDCBackChannelLogoutShouldSkipAnonymousSession(t *testing.T) {
+func TestOIDCBackChannelLogoutSessionShouldSkipWithoutPublicID(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
 	setupTestOIDCProvider(t, mock, nil)
 
-	oidcBackChannelLogout(mock.Ctx, &session.UserSession{PublicID: "public-id"})
-	oidcBackChannelLogout(mock.Ctx, &session.UserSession{Username: testUsername})
-	oidcBackChannelLogout(mock.Ctx, nil)
+	oidcBackChannelLogoutSession(mock.Ctx, "issuer", testUsername, "")
 }
 
 func TestOIDCBackChannelLogoutGroups(t *testing.T) {

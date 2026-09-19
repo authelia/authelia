@@ -331,6 +331,22 @@ type Provider interface {
 	// issuer and session public identifier.
 	LoadOAuth2SessionIDClientsByPublicID(ctx context.Context, issuer, publicID string) (records []model.OAuth2SessionIDClient, err error)
 
+	// LoadOAuth2SessionIDsByPublicID returns every sector's session id mapping for the issuer and session public
+	// identifier.
+	LoadOAuth2SessionIDsByPublicID(ctx context.Context, issuer, publicID string) (records []model.OAuth2SessionID, err error)
+
+	// RevokeOAuth2SessionsBySessionID revokes every OAuth 2.0 session issued with the 'sid' claim value, except the
+	// refresh token sessions which were granted offline access.
+	RevokeOAuth2SessionsBySessionID(ctx context.Context, sid string) (err error)
+
+	// RevokeOAuth2SessionsByClientIDAndSubject revokes every OAuth 2.0 session of the client for the subject, except the
+	// refresh token sessions which were granted offline access.
+	RevokeOAuth2SessionsByClientIDAndSubject(ctx context.Context, clientID, subject string) (err error)
+
+	// HasOAuth2SessionsByClientIDAndSubject returns true when the client holds any OpenID Connect, refresh token, or
+	// access token session for the subject which hasn't been revoked.
+	HasOAuth2SessionsByClientIDAndSubject(ctx context.Context, clientID, subject string) (has bool, err error)
+
 	/*
 		Implementation for User Sessions.
 	*/
