@@ -72,7 +72,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "@vitest/coverage-istanbul": "5.0.1",
     "@vitest/ui": "5.0.1",
-    "eslint": "10.10.0",
+    "eslint": "10.11.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",
