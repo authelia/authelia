@@ -80,6 +80,10 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		Config:   c,
 	}
 
+	c.Strategy.IDTokenValidation = &openid.DefaultIDTokenValidationStrategy{
+		Strategy: c.Strategy.JWT,
+	}
+
 	return c
 }
 
@@ -613,6 +617,17 @@ func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable 
 	return c.DisableRefreshTokenValidation
 }
 
+// GetDisableRefreshTokenRotation returns false as refresh tokens are always rotated by the refresh token grant.
+func (c *Config) GetDisableRefreshTokenRotation(ctx context.Context) (disable bool) {
+	return false
+}
+
+// GetJWTClockSkew returns zero, so a JWT received from a client with an 'iat' or 'nbf' claim in the future is rejected
+// as it was before the clock skew became configurable.
+func (c *Config) GetJWTClockSkew(ctx context.Context) (skew time.Duration) {
+	return 0
+}
+
 // GetJWTSecuredAuthorizeResponseModeLifespan returns the configured JWT Secured Authorization lifespan.
 func (c *Config) GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration) {
 	if c.JWTSecuredAuthorizationLifespan.Seconds() <= 0 {
@@ -885,6 +900,12 @@ func (c *Config) GetRequirePushedAuthorizationRequests(ctx context.Context) (enf
 	return c.PAR.Require
 }
 
+// GetRequireRedirectURIPushedAuthorizationRequests returns false as the 'redirect_uri' parameter of a Pushed
+// Authorization Request may be omitted when the client has a single registered redirect URI.
+func (c *Config) GetRequireRedirectURIPushedAuthorizationRequests(ctx context.Context) (require bool) {
+	return false
+}
+
 // GetResponseModeHandlers returns the response mode handlers.
 func (c *Config) GetResponseModeHandlers(ctx context.Context) oauthelia2.ResponseModeHandlers {
 	return c.Handlers.ResponseMode
@@ -1114,8 +1135,19 @@ func (c *Config) GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ct
 	return false
 }
 
-// GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout. It has no
-// default and may be nil.
+// GetRequireRequestObjectAudienceAndLifetime returns false as a Request Object is not required to contain the 'aud',
+// 'nbf', and 'exp' claims, which RFC 9101 does not require.
+func (c *Config) GetRequireRequestObjectAudienceAndLifetime(ctx context.Context) (require bool) {
+	return false
+}
+
+// GetRequestObjectMaximumLifetime returns zero as the lifetime of a Request Object is only bounded when its audience
+// and lifetime are required.
+func (c *Config) GetRequestObjectMaximumLifetime(ctx context.Context) (lifetime time.Duration) {
+	return 0
+}
+
+// GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout.
 func (c *Config) GetIDTokenValidationStrategy(ctx context.Context) (strategy oauthelia2.TokenValidationStrategy) {
 	return c.Strategy.IDTokenValidation
 }

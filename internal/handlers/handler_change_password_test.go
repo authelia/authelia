@@ -21,11 +21,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
-const (
-	testPasswordOld = "old_password123"
-	testPasswordNew = "new_password456"
-)
-
 func TestChangePasswordPOST_ShouldSucceedWithValidCredentials(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
@@ -38,7 +33,7 @@ func TestChangePasswordPOST_ShouldSucceedWithValidCredentials(t *testing.T) {
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	oldPassword := testPasswordOld
 	newPassword := testPasswordNew
@@ -87,7 +82,7 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordPolicyNotMet(t *testing.T) {
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	oldPassword := testPasswordOld
 	newPassword := "weak"
@@ -137,7 +132,7 @@ func TestChangePasswordPOST_ShouldFailWhenRequestBodyIsInvalid(t *testing.T) {
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	mock.Ctx.Request.SetBody([]byte(`{invalid json`))
 
@@ -162,7 +157,7 @@ func TestChangePasswordPOST_ShouldFailWhenOldPasswordIsIncorrect(t *testing.T) {
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	oldPassword := testPasswordOld
 	newPassword := testPasswordNew
@@ -206,7 +201,7 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	oldPassword := testPasswordOld
 	newPassword := testPasswordOld
@@ -249,7 +244,7 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserHasNoEmail(t *testin
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	oldPassword := testPasswordOld
 	newPassword := testPasswordNew
@@ -293,7 +288,7 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenNotificationFails(t *tes
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	oldPassword := testPasswordOld
 	newPassword := testPasswordNew
@@ -356,7 +351,7 @@ func TestChangePasswordPOST_ShouldFailWhenAuthenticationFails(t *testing.T) {
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
 	assert.NoError(t, err)
@@ -388,7 +383,7 @@ func TestChangePasswordPOST_ShouldFailWhenChangePasswordErrorIsUnknown(t *testin
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
 	assert.NoError(t, err)
@@ -420,7 +415,7 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserDetailsAreUnavailabl
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
 	assert.NoError(t, err)
@@ -442,3 +437,40 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserDetailsAreUnavailabl
 
 	mock.AssertLastLogMessage(t, "Error occurred retrieving user details", "user not found")
 }
+
+func TestChangePasswordPOST_ShouldFailWhenSessionCannotBeRegenerated(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	repository := setupTestFailingSessionRepository(t, mock)
+
+	userSession, err := mock.Ctx.GetSession()
+	assert.NoError(t, err)
+
+	userSession.Username = testUsername
+
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+	repository.errChangeID = errTestSessionBackend
+
+	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
+	assert.NoError(t, err)
+	mock.Ctx.Request.SetBody(bodyBytes)
+
+	mock.Ctx.Providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(schema.PasswordPolicy{})
+
+	ChangePasswordPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusInternalServerError, mock.Ctx.Response.StatusCode())
+
+	errResponse := mock.GetResponseError(t)
+	assert.Equal(t, "KO", errResponse.Status)
+	assert.Equal(t, messageUnableToChangePassword, errResponse.Message)
+
+	mock.AssertLastLogMessage(t, "Unable to change password for user: failed to regenerate session", "error occurred changing session ID: backend unavailable")
+}
+
+const (
+	testPasswordOld = "old_password123"
+	testPasswordNew = "new_password456"
+)

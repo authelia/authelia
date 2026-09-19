@@ -15,6 +15,7 @@ import (
 
 const (
 	conformanceReauthenticationLeg  = 1
+	conformanceLogoutLeg            = 1
 	conformanceStatusConfigured     = "CONFIGURED"
 	conformanceStatusWaiting        = "WAITING"
 	conformanceStatusFinished       = "FINISHED"
@@ -62,6 +63,27 @@ var (
 		"oidcc-login-hint":                {ClearCookies: true},
 		"oidcc-prompt-none-not-logged-in": {ClearCookies: true},
 		"oidcc-ui-locales":                {ClearCookies: true},
+
+		// The RP-Initiated Logout modules authorize, then send the browser to the end session endpoint on the second leg.
+		// Authelia always asks for the logout to be confirmed, and every module accepts that. These two carry a valid
+		// id_token_hint and post_logout_redirect_uri, so the confirmed logout must return to the client.
+		"oidcc-rp-initiated-logout":          {Assert: conformanceAssertPostLogoutRedirect},
+		"oidcc-rp-initiated-logout-no-state": {Assert: conformanceAssertPostLogoutRedirect},
+
+		// These carry no post_logout_redirect_uri, so Authelia must log the user out without sending them anywhere. The
+		// placeholder asks for the resulting logged out page, which is the sign in form.
+		"oidcc-rp-initiated-logout-no-params":                   {Assert: conformanceAssertSignedOut, Screenshot: ConformanceScreenshotSignedOut},
+		"oidcc-rp-initiated-logout-no-post-logout-redirect-uri": {Assert: conformanceAssertSignedOut, Screenshot: ConformanceScreenshotSignedOut},
+		"oidcc-rp-initiated-logout-only-state":                  {Assert: conformanceAssertSignedOut, Screenshot: ConformanceScreenshotSignedOut},
+
+		// These carry a post_logout_redirect_uri which Authelia must not honor: one that is not registered, or one that
+		// cannot be tied to a client because the id_token_hint is missing, forged or unsigned. The module accepts an
+		// error page or a confirmation, and Authelia rejects the request outright, so it must be the error page.
+		"oidcc-rp-initiated-logout-bad-post-logout-redirect-uri":            {Assert: conformanceAssertLogoutErrorPage, Screenshot: ConformanceScreenshotErrorPage},
+		"oidcc-rp-initiated-logout-query-added-to-post-logout-redirect-uri": {Assert: conformanceAssertLogoutErrorPage, Screenshot: ConformanceScreenshotErrorPage},
+		"oidcc-rp-initiated-logout-no-id-token-hint":                        {Assert: conformanceAssertLogoutErrorPage, Screenshot: ConformanceScreenshotErrorPage},
+		"oidcc-rp-initiated-logout-bad-id-token-hint":                       {Assert: conformanceAssertLogoutErrorPage, Screenshot: ConformanceScreenshotErrorPage},
+		"oidcc-rp-initiated-logout-modified-id-token-hint":                  {Assert: conformanceAssertLogoutErrorPage, Screenshot: ConformanceScreenshotErrorPage},
 	}
 
 	conformanceUnattended = map[string]string{
@@ -114,6 +136,9 @@ const (
 
 	// ConformanceScreenshotErrorPage is Authelia's error page.
 	ConformanceScreenshotErrorPage
+
+	// ConformanceScreenshotSignedOut is the page Authelia leaves the user on after a logout with nowhere to return to.
+	ConformanceScreenshotSignedOut
 )
 
 func (o ConformanceOverride) screenshotOf(leg ConformanceLeg) string {
@@ -124,6 +149,8 @@ func (o ConformanceOverride) screenshotOf(leg ConformanceLeg) string {
 		}
 	case ConformanceScreenshotErrorPage:
 		return leg.ErrorScreenshot
+	case ConformanceScreenshotSignedOut:
+		return leg.SignedOutScreenshot
 	}
 
 	return ""
@@ -159,6 +186,46 @@ func conformanceAssertErrorPage(leg ConformanceLeg) error {
 	}
 
 	return nil
+}
+
+func conformanceAssertPostLogoutRedirect(leg ConformanceLeg) error {
+	if leg.Index != conformanceLogoutLeg {
+		return nil
+	}
+
+	switch {
+	case !leg.SignOutConfirmation:
+		return errors.New("expected Authelia to ask for the logout to be confirmed but it did not")
+	case leg.AutheliaError:
+		return errors.New("expected Authelia to return to the post_logout_redirect_uri after the logout but it showed an error page")
+	case leg.SignedOut:
+		return errors.New("expected Authelia to return to the post_logout_redirect_uri after the logout but it stayed on the sign in form")
+	}
+
+	return nil
+}
+
+func conformanceAssertSignedOut(leg ConformanceLeg) error {
+	if leg.Index != conformanceLogoutLeg {
+		return nil
+	}
+
+	switch {
+	case !leg.SignOutConfirmation:
+		return errors.New("expected Authelia to ask for the logout to be confirmed but it did not")
+	case !leg.SignedOut:
+		return errors.New("expected Authelia to leave the user signed out on its own page but it did not")
+	}
+
+	return nil
+}
+
+func conformanceAssertLogoutErrorPage(leg ConformanceLeg) error {
+	if leg.Index != conformanceLogoutLeg {
+		return nil
+	}
+
+	return conformanceAssertErrorPage(leg)
 }
 
 // ConformanceRunner walks one plan's modules in order.
@@ -476,8 +543,8 @@ func (r *ConformanceRunner) visitURLs(ctx context.Context, id string, override C
 			return progressed, err
 		}
 
-		r.trace.Logf("Finished leg %d: first factor %t, consent %t, reauthentication %t, error page %t",
-			index, leg.FirstFactor, leg.Consent, leg.Reauthentication, leg.AutheliaError)
+		r.trace.Logf("Finished leg %d: first factor %t, consent %t, reauthentication %t, error page %t, sign out confirmation %t, signed out %t",
+			index, leg.FirstFactor, leg.Consent, leg.Reauthentication, leg.AutheliaError, leg.SignOutConfirmation, leg.SignedOut)
 
 		legs.errorURL = leg.ErrorURL
 		legs.screenshot = conformanceLatest(legs.screenshot, override.screenshotOf(leg))

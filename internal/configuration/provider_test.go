@@ -58,7 +58,6 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	errFmt := utils.GetExpectedErrTxt("filenotfound")
 	errFmtDir := utils.GetExpectedErrTxt("isdir")
 
-	// ignore the errors before this as they are checked by the validator.
 	assert.EqualError(t, errs[0], fmt.Sprintf("secrets: error loading secret path %s into key 'authentication_backend.ldap.password': %s", dir, fmt.Sprintf(errFmtDir, dir)))
 	assert.EqualError(t, errs[1], fmt.Sprintf("secrets: error loading secret path %s into key 'duo_api.secret_key': file does not exist error occurred: %s", filepath.Join(dir, "duo"), fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
 	assert.EqualError(t, errs[2], fmt.Sprintf("secrets: error loading secret path %s into key 'identity_validation.reset_password.jwt_secret': file does not exist error occurred: %s", filepath.Join(dir, "jwt"), fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
@@ -327,7 +326,12 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 
 			assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
 			assert.Equal(t, "smtp://10.10.10.10:1025", config.Notifier.SMTP.Address.String())
-			assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
+
+			require.NotNil(t, config.Cache.RedisSentinel)
+			assert.Equal(t, "test", config.Cache.RedisSentinel.MasterName)
+			require.Len(t, config.Cache.RedisSentinel.Addresses, 1)
+			assert.Equal(t, "tcp://10.10.10.10:6379", config.Cache.RedisSentinel.Addresses[0].String())
+			assert.Nil(t, config.Cache.Redis)
 
 			require.Len(t, config.IdentityProviders.OIDC.Clients, 4)
 			assert.Equal(t, "$plaintext$example-abc", config.IdentityProviders.OIDC.Clients[0].Secret.String())
@@ -1315,16 +1319,6 @@ func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	assert.EqualError(t, val.Warnings()[0], "configuration keys 'server.host', 'server.port', and 'server.path' are deprecated in 4.38.0 and has been replaced by 'server.address' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://:9091/', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
 }
 
-func testSetEnv(t *testing.T, key, value string) {
-	t.Helper()
-
-	t.Setenv(DefaultEnvPrefix+key, value)
-}
-
-func testCreateFile(path, value string, perm os.FileMode) (err error) {
-	return os.WriteFile(path, []byte(value), perm)
-}
-
 func TestShouldErrorOnNoPath(t *testing.T) {
 	val := schema.NewStructValidator()
 	_, _, err := Load(val, NewFileSource(""))
@@ -1461,7 +1455,7 @@ func TestConfigurationTemplate(t *testing.T) {
 		doc := regexp.MustCompile(`^\s+?## `)
 		commented := regexp.MustCompile(`^(\s+)?# (.*)$`)
 		uncommented := regexp.MustCompile(`^(\s+)?\w+`)
-		ignore := regexp.MustCompile(`^(\s+)?# host: '/var/run/redis/redis.sock'`)
+		ignore := regexp.MustCompile(`^(\s+)?# address: 'unix:///var/run/redis/redis.sock'`)
 		scanner := bufio.NewScanner(f)
 
 		for scanner.Scan() {
@@ -1553,6 +1547,20 @@ func TestConfigurationTemplate(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 }
 
+const (
+	pathCrypto = "./test_resources/crypto/%s.%s"
+)
+
+func testSetEnv(t *testing.T, key, value string) {
+	t.Helper()
+
+	t.Setenv(DefaultEnvPrefix+key, value)
+}
+
+func testCreateFile(path, value string, perm os.FileMode) (err error) {
+	return os.WriteFile(path, []byte(value), perm)
+}
+
 func MustLoadCryptoSet(alg string, legacy bool, extra ...string) (certCA, keyCA, cert, key string) {
 	extraAlt := make([]string, len(extra))
 
@@ -1588,7 +1596,3 @@ func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
 
 	return string(data)
 }
-
-const (
-	pathCrypto = "./test_resources/crypto/%s.%s"
-)

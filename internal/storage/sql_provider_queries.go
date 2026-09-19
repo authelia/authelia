@@ -373,6 +373,67 @@ const (
 )
 
 const (
+	queryFmtUpsertSession = `
+		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		VALUES (?, ?, ?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+			public_id = IF(signature = VALUES(signature), VALUES(public_id), public_id),
+			username = IF(signature = VALUES(signature), VALUES(username), username),
+			expiration = IF(signature = VALUES(signature), VALUES(expiration), expiration),
+			data = IF(signature = VALUES(signature), VALUES(data), data);`
+
+	queryFmtUpsertSessionSQLite = `
+		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		VALUES (?, ?, ?, ?, ?, ?)
+			ON CONFLICT (issuer, signature)
+			DO UPDATE SET public_id = excluded.public_id, username = excluded.username, expiration = excluded.expiration, data = excluded.data;`
+
+	queryFmtUpsertSessionPostgreSQL = `
+		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		VALUES ($1, $2, $3, $4, $5, $6)
+			ON CONFLICT (issuer, signature)
+			DO UPDATE SET public_id = $3, username = $4, expiration = $5, data = $6;`
+
+	queryFmtSelectSession = `
+		SELECT signature, data
+		FROM %s
+		WHERE issuer = ? AND signature = ? AND expiration > ?;`
+
+	queryFmtSelectSessionByPublicID = `
+		SELECT signature, data
+		FROM %s
+		WHERE issuer = ? AND public_id = ? AND expiration > ?;`
+
+	queryFmtSelectSessionSignatureByPublicID = `
+		SELECT signature
+		FROM %s
+		WHERE issuer = ? AND public_id = ?;`
+
+	queryFmtSelectSessionSignaturesByUsername = `
+		SELECT signature
+		FROM %s
+		WHERE issuer = ? AND username = ? AND expiration > ?;`
+
+	queryFmtUpdateSessionData = `
+		UPDATE %s
+		SET expiration = ?, data = ?
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtUpdateSessionSignature = `
+		UPDATE %s
+		SET signature = ?, expiration = ?, data = ?
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtDeleteSession = `
+		DELETE FROM %s
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtDeleteSessionExpired = `
+		DELETE FROM %s
+		WHERE expiration <= ?;`
+)
+
+const (
 	queryFmtUpsertCachedData = `
 		REPLACE INTO %s (name, updated_at, encrypted, value)
 		VALUES (?, ?, ?, ?);`
@@ -644,6 +705,35 @@ const (
 		UPDATE %s
 		SET session_data = ?
 		WHERE id = ?;`
+
+	queryFmtInsertOAuth2SessionID = `
+		INSERT INTO %s (issuer, sector_id, public_id, sid, created_at)
+		VALUES(?, ?, ?, ?, ?);`
+
+	queryFmtSelectOAuth2SessionIDBySector = `
+		SELECT id, issuer, sector_id, public_id, sid, created_at
+		FROM %s
+		WHERE issuer = ? AND sector_id = ? AND public_id = ?;`
+
+	queryFmtSelectOAuth2SessionIDBySessionID = `
+		SELECT id, issuer, sector_id, public_id, sid, created_at
+		FROM %s
+		WHERE issuer = ? AND sid = ?;`
+
+	queryFmtSelectOAuth2SessionIDsOldest = `
+		SELECT id, issuer, sector_id, public_id, sid, created_at
+		FROM %s
+		WHERE id > ?
+		ORDER BY id
+		LIMIT ?;`
+
+	queryFmtDeleteOAuth2SessionID = `
+		DELETE FROM %s
+		WHERE issuer = ? AND sid = ?;`
+
+	queryFmtDeleteOAuth2SessionIDByPublicID = `
+		DELETE FROM %s
+		WHERE issuer = ? AND public_id = ?;`
 )
 
 const (
