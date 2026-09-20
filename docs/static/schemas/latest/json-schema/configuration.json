@@ -340,6 +340,11 @@
           "title": "Password Change",
           "description": "Allows configuration of the password change behavior."
         },
+        "registration": {
+          "$ref": "#/$defs/AuthenticationBackendRegistration",
+          "title": "Registration",
+          "description": "Allows configuration of the registration behavior."
+        },
         "refresh_interval": {
           "$ref": "#/$defs/RefreshIntervalDuration",
           "title": "Refresh Interval",
@@ -1073,6 +1078,19 @@
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendPasswordReset represents the configuration related to password reset functionality."
+    },
+    "AuthenticationBackendRegistration": {
+      "properties": {
+        "custom_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "Custom URL",
+          "description": "Displays a registration link on the login page which directs users to this specified URL."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendRegistration represents the configuration related to registration functionality."
     },
     "Configuration": {
       "properties": {

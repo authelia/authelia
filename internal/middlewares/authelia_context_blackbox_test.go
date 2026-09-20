@@ -126,16 +126,31 @@ func TestAutheliaCtx_AuthzPath(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     any
+		query    string
 		expected []byte
 	}{
 		{
 			"ShouldReturnValue",
 			"exy",
+			"",
 			[]byte("exy"),
 		},
 		{
-			"ShouldReturnValue",
+			"ShouldReturnValueWithQuery",
+			"/exy",
+			"abc=123&xyz=%20",
+			[]byte("/exy?abc=123&xyz=%20"),
+		},
+		{
+			"ShouldReturnNil",
 			nil,
+			"",
+			[]byte(nil),
+		},
+		{
+			"ShouldReturnNilWithQuery",
+			nil,
+			"abc=123",
 			[]byte(nil),
 		},
 	}
@@ -145,6 +160,7 @@ func TestAutheliaCtx_AuthzPath(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 			defer mock.Close()
 
+			mock.Ctx.Request.URI().SetQueryString(tc.query)
 			mock.Ctx.SetUserValue(middlewares.UserValueRouterKeyExtAuthzPath, tc.have)
 
 			assert.Equal(t, tc.expected, mock.Ctx.AuthzPath())
