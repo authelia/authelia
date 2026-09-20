@@ -222,6 +222,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
+		RegistrationURL:         config.AuthenticationBackend.Registration.CustomURL.String(),
 		PasswordChange:          strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
 		PrivacyPolicyURL:        "",
 		PrivacyPolicyAccept:     strFalse,
@@ -257,6 +258,7 @@ type TemplatedFileOptions struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	RegistrationURL        string
 	PasswordChange         string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
@@ -293,6 +295,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		RegistrationURL:        options.RegistrationURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
@@ -313,6 +316,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		RegistrationURL:        options.RegistrationURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
@@ -352,6 +356,7 @@ type TemplatedFileCommonData struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	RegistrationURL        string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
 	Session                string
