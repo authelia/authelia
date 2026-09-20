@@ -56,8 +56,8 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "21.2.2",
-    "@commitlint/config-conventional": "21.2.2",
+    "@commitlint/cli": "21.2.3",
+    "@commitlint/config-conventional": "21.2.3",
     "@eslint-react/eslint-plugin": "5.20.0",
     "@limegrass/eslint-plugin-import-alias": "1.6.1",
     "@tailwindcss/vite": "4.3.3",
