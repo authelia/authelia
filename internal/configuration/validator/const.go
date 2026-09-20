@@ -153,6 +153,8 @@ const (
 	errFmtTOTPInvalidDigits           = "totp: option 'digits' must be 6 or 8 but it's configured as '%d'"
 	errFmtTOTPInvalidAllowedDigit     = "totp: option 'allowed_digits' must only have the values 6 or 8 but one of the values is '%d'"
 	errFmtTOTPInvalidSecretSize       = "totp: option 'secret_size' must be %d or higher but it's configured as '%d'" //nolint:gosec
+	errFmtTOTPAppsInvalidScheme       = "totp: apps: %s: option 'url' is configured to '%s' which has the scheme '%s' but the scheme must be 'https'"
+	errFmtTOTPAppsMissingHost         = "totp: apps: %s: option 'url' is configured to '%s' which does not have a host but it must be an absolute URL with a host"
 )
 
 // Storage Error constants.

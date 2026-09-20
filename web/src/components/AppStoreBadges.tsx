@@ -8,8 +8,8 @@ import { cn } from "@utils/Styles";
 
 export interface Props {
     iconSize: number;
-    googlePlayLink: string;
-    appleStoreLink: string;
+    appleStoreLink?: string;
+    googlePlayLink?: string;
 
     targetBlank?: boolean;
     className?: string;
@@ -20,12 +20,16 @@ const AppStoreBadges = function (props: Props) {
 
     return (
         <div className={cn("flex items-center justify-center gap-2", props.className)}>
-            <a href={props.googlePlayLink} target={target} className="hover:underline">
-                <img src={GooglePlay} alt="google play" width={props.iconSize} />
-            </a>
-            <a href={props.appleStoreLink} target={target} className="hover:underline">
-                <img src={AppleStore} alt="apple store" width={props.iconSize} />
-            </a>
+            {props.appleStoreLink ? (
+                <a href={props.appleStoreLink} target={target} className="hover:underline">
+                    <img src={AppleStore} alt="apple store" width={props.iconSize} />
+                </a>
+            ) : null}
+            {props.googlePlayLink ? (
+                <a href={props.googlePlayLink} target={target} className="hover:underline">
+                    <img src={GooglePlay} alt="google play" width={props.iconSize} />
+                </a>
+            ) : null}
         </div>
     );
 };
