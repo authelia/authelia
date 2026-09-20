@@ -214,6 +214,15 @@ This subcommand allows rotation of the HMAC key used for one-time codes. In addi
 	cmdAutheliaStorageEncryptionRotateHMACOTCExample = `authelia storage encryption rotate hmac otc --config config.yml
 authelia storage encryption rotate hmac otc --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeShort = "Rotate the recovery code HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeLong = `Rotate the recovery code HMAC key.
+
+This subcommand allows rotation of the HMAC key used for recovery codes. In addition it truncates the 'recovery_codes' table, revoking every recovery code every user holds.`
+
+	cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeExample = `authelia storage encryption rotate hmac rc --config config.yml
+authelia storage encryption rotate hmac rc --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 
 	cmdAutheliaStorageBansLong = `Manages user and ip bans.

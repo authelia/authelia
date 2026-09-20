@@ -393,6 +393,8 @@ func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []
 		table = "one_time_code"
 	case "otp":
 		table = "totp_history"
+	case "rc":
+		table = "recovery_codes"
 	}
 
 	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, table, cmd.Use, force)

@@ -26,6 +26,10 @@ export const WebAuthnCredentialPath = basePath + "/api/secondfactor/webauthn/cre
 export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
 export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";
 
+export const RecoveryCodesStatusPath = basePath + "/api/secondfactor/recovery-codes";
+export const RecoveryCodesGeneratePath = basePath + "/api/secondfactor/recovery-codes/generate";
+export const CompleteRecoveryCodeSignInPath = basePath + "/api/secondfactor/recovery-code";
+
 export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo";
 export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
 export const CompletePasswordSignInPath = basePath + "/api/secondfactor/password";

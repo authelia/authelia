@@ -16,6 +16,7 @@ const (
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
+	tableRecoveryCodes        = "recovery_codes"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableTOTPHistory          = "totp_history"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
@@ -116,6 +117,7 @@ const (
 const (
 	hmacNameOneTimeCode     = "otc"
 	hmacNameOneTimePassword = "otp"
+	hmacNameRecoveryCode    = "rc"
 )
 
 const (

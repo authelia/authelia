@@ -82,6 +82,35 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, bod
 	}
 }
 
+func ctxNotifyEvent(ctx *middlewares.AutheliaCtx, username, description string, body emailEventBody, eventDetails map[string]any) error {
+	details, err := ctx.Providers.UserProvider.GetDetails(username)
+	if err != nil {
+		return fmt.Errorf("failed to look up user details: %w", err)
+	}
+
+	if len(details.Emails) == 0 {
+		return errors.New("user has no email address")
+	}
+
+	data := templates.EmailEventValues{
+		Title:       description,
+		DisplayName: details.DisplayName,
+		RemoteIP:    ctx.RemoteIP().String(),
+		Details:     eventDetails,
+		BodyPrefix:  body.Prefix,
+		BodyEvent:   body.Body,
+		BodySuffix:  body.Suffix,
+	}
+
+	addresses := details.Addresses()
+
+	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], description, ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
+		return fmt.Errorf("failed to send notification: %w", err)
+	}
+
+	return nil
+}
+
 func redactEmail(email string) string {
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {

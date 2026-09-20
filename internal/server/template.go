@@ -233,6 +233,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		EndpointsPasskeys:       !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
 		EndpointsTOTP:           !config.TOTP.Disable,
 		EndpointsDuo:            !config.DuoAPI.Disable,
+		EndpointsRecoveryCodes:  !config.RecoveryCodes.Disable,
 		EndpointsOpenIDConnect:  config.IdentityProviders.OIDC != nil,
 		EndpointsAuthz:          config.Server.Endpoints.Authz,
 	}
@@ -269,6 +270,7 @@ type TemplatedFileOptions struct {
 	EndpointsPasskeys       bool
 	EndpointsTOTP           bool
 	EndpointsDuo            bool
+	EndpointsRecoveryCodes  bool
 	EndpointsOpenIDConnect  bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
@@ -334,6 +336,7 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce st
 		Passkeys:       options.EndpointsPasskeys,
 		TOTP:           options.EndpointsTOTP,
 		Duo:            options.EndpointsDuo,
+		RecoveryCodes:  options.EndpointsRecoveryCodes,
 		OpenIDConnect:  options.EndpointsOpenIDConnect,
 		EndpointsAuthz: options.EndpointsAuthz,
 	}
@@ -371,6 +374,7 @@ type TemplatedFileOpenAPIData struct {
 	Passkeys       bool
 	TOTP           bool
 	Duo            bool
+	RecoveryCodes  bool
 	OpenIDConnect  bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
