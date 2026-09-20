@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
@@ -5,7 +9,9 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/go-crypt/crypt"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +48,275 @@ func TestDatabaseModel_Read(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.EqualError(t, model.Read(f), "could not parse the YAML database: yaml: while scanning for the next token at line 2: found character that cannot start any token")
+	assert.EqualError(t, model.Read(f), "could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token")
+}
+
+func TestFileUserDatabaseGetUserDetails(t *testing.T) {
+	john := FileUserDatabaseUserDetails{
+		Username:    "john",
+		DisplayName: "John Doe",
+		Email:       "john.doe@authelia.com",
+	}
+
+	users := map[string]FileUserDatabaseUserDetails{"john": john}
+
+	testCases := []struct {
+		name        string
+		users       map[string]FileUserDatabaseUserDetails
+		emails      map[string]string
+		aliases     map[string]string
+		searchEmail bool
+		searchCI    bool
+		have        string
+		expected    FileUserDatabaseUserDetails
+		err         string
+	}{
+		{
+			"ShouldLookupUsername",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"john",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupUnknownUsername",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"harry",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupUsernameWithMismatchedCase",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"JOHN",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldLookupEmail",
+			users,
+			map[string]string{"john.doe@authelia.com": "john"},
+			nil,
+			true,
+			false,
+			"JOHN.doe@authelia.com",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupEmailWhenSearchEmailDisabled",
+			users,
+			map[string]string{"john.doe@authelia.com": "john"},
+			nil,
+			false,
+			false,
+			"john.doe@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupEmailAliasForUserWhichNoLongerExists",
+			users,
+			map[string]string{"harry.potter@authelia.com": "harry"},
+			nil,
+			true,
+			false,
+			"harry.potter@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldLookupAlias",
+			users,
+			nil,
+			map[string]string{"john": "john"},
+			false,
+			true,
+			"JOHN",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupAliasWhenSearchCaseInsensitiveDisabled",
+			users,
+			nil,
+			map[string]string{"john": "john"},
+			false,
+			false,
+			"JOHN",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupAliasForUserWhichNoLongerExists",
+			users,
+			nil,
+			map[string]string{"harry": "harry"},
+			false,
+			true,
+			"HARRY",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotFallbackToAliasWhenEmailAliasForUserWhichNoLongerExists",
+			users,
+			map[string]string{"harry.potter@authelia.com": "harry"},
+			map[string]string{"harry.potter@authelia.com": "john"},
+			true,
+			true,
+			"harry.potter@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotFallbackToUsernameWhenAliasForUserWhichNoLongerExists",
+			users,
+			nil,
+			map[string]string{"john": "harry"},
+			false,
+			true,
+			"john",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			database := NewFileUserDatabase("", tc.searchEmail, tc.searchCI, nil)
+
+			database.Users = tc.users
+
+			if tc.emails != nil {
+				database.Emails = tc.emails
+			}
+
+			if tc.aliases != nil {
+				database.Aliases = tc.aliases
+			}
+
+			actual, err := database.GetUserDetails(tc.have)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestFileUserDatabaseShouldNotDeadlockOnSave(t *testing.T) {
+	const (
+		concurrency = 8
+		iterations  = 50
+		timeout     = 30 * time.Second
+	)
+
+	save := func(db *FileUserDatabase) {
+		for i := 0; i < iterations; i++ {
+			_ = db.Save()
+		}
+	}
+
+	set := func(db *FileUserDatabase) {
+		for i := 0; i < iterations; i++ {
+			details, err := db.GetUserDetails("john")
+			if err != nil {
+				continue
+			}
+
+			db.SetUserDetails("john", &details)
+		}
+	}
+
+	load := func(db *FileUserDatabase) {
+		for i := 0; i < iterations; i++ {
+			_ = db.Load()
+		}
+	}
+
+	get := func(db *FileUserDatabase) {
+		for i := 0; i < iterations; i++ {
+			_, _ = db.GetUserDetails("john")
+		}
+	}
+
+	testCases := []struct {
+		name    string
+		workers []func(db *FileUserDatabase)
+	}{
+		{
+			"ShouldNotDeadlockWithConcurrentSaves",
+			[]func(db *FileUserDatabase){save},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentSavesAndWrites",
+			[]func(db *FileUserDatabase){save, set},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentSavesAndLoads",
+			[]func(db *FileUserDatabase){save, load},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentSavesWritesLoadsAndReads",
+			[]func(db *FileUserDatabase){save, set, load, get},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				db := NewFileUserDatabase(path, false, false, nil)
+
+				require.NoError(t, db.Load())
+
+				done := make(chan struct{})
+
+				go func() {
+					defer close(done)
+
+					wg := &sync.WaitGroup{}
+
+					for _, worker := range tc.workers {
+						for i := 0; i < concurrency; i++ {
+							wg.Add(1)
+
+							go func() {
+								defer wg.Done()
+
+								worker(db)
+							}()
+						}
+					}
+
+					wg.Wait()
+				}()
+
+				select {
+				case <-done:
+					require.NoError(t, db.Load())
+				case <-time.After(timeout):
+					t.Fatalf("deadlock detected: the concurrent workload did not complete within %s", timeout)
+				}
+			})
+		})
+	}
 }
 
 //nolint:gosec // Test Credentials.
@@ -933,6 +1207,101 @@ func TestDatabaseModelExtended(t *testing.T) {
 			},
 			"",
 			"error occurred validating extra attributes for user 'example': attribute 'example' has the unknown item type 'uint8'",
+		},
+		{
+			"ShouldHandleArrayStringTypeMismatch",
+			&FileDatabaseUserDetailsModel{
+				Password:       "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng",
+				DisplayName:    "John Smith",
+				Email:          "jsmith@example.com",
+				Groups:         []string{"abc"},
+				GivenName:      "john",
+				MiddleName:     "jacob",
+				FamilyName:     "smith",
+				Nickname:       "johnny",
+				Gender:         "male",
+				Birthdate:      "2025",
+				Website:        "https://authelia.com",
+				Profile:        "https://authelia.com/jsmith",
+				Picture:        "https://authelia.com/jsmith.jpg",
+				ZoneInfo:       "unzone",
+				Locale:         "en-US",
+				PhoneNumber:    "129812",
+				PhoneExtension: "123",
+				Address: &FileUserDatabaseUserDetailsAddressModel{
+					StreetAddress: "123 Baker St",
+					Locality:      "Internet",
+					Region:        "Online",
+					PostalCode:    "98765",
+					Country:       "US",
+				},
+				Extra: map[string]any{
+					"example": []any{"abc", "123"},
+				},
+			},
+			&FileUserDatabaseUserDetails{
+				Username:       "example",
+				Password:       schema.NewPasswordDigest(digest),
+				DisplayName:    "John Smith",
+				GivenName:      "john",
+				MiddleName:     "jacob",
+				FamilyName:     "smith",
+				Nickname:       "johnny",
+				Gender:         "male",
+				Birthdate:      "2025",
+				Website:        mustParseURI("https://authelia.com"),
+				Profile:        mustParseURI("https://authelia.com/jsmith"),
+				Picture:        mustParseURI("https://authelia.com/jsmith.jpg"),
+				ZoneInfo:       "unzone",
+				Locale:         mustParseTag("en-US"),
+				PhoneNumber:    "129812",
+				PhoneExtension: "123",
+				Email:          "jsmith@example.com",
+				Groups:         []string{"abc"},
+				Address:        &FileUserDatabaseUserDetailsAddressModel{StreetAddress: "123 Baker St", Locality: "Internet", Region: "Online", PostalCode: "98765", Country: "US"},
+				Extra: map[string]any{
+					"example": []any{"abc", "123"},
+				},
+			},
+			&UserDetailsExtended{
+				GivenName:      "john",
+				FamilyName:     "smith",
+				MiddleName:     "jacob",
+				Nickname:       "johnny",
+				Profile:        mustParseURI("https://authelia.com/jsmith"),
+				Picture:        mustParseURI("https://authelia.com/jsmith.jpg"),
+				Website:        mustParseURI("https://authelia.com"),
+				Gender:         "male",
+				Birthdate:      "2025",
+				ZoneInfo:       "unzone",
+				Locale:         mustParseTag("en-US"),
+				PhoneNumber:    "129812",
+				PhoneExtension: "123",
+				Address: &UserDetailsAddress{
+					StreetAddress: "123 Baker St",
+					Locality:      "Internet",
+					Region:        "Online",
+					PostalCode:    "98765",
+					Country:       "US",
+				},
+				Extra: map[string]any{
+					"example": []any{"abc", "123"},
+				},
+				UserDetails: &UserDetails{
+					Username:    "example",
+					DisplayName: "John Smith",
+					Emails:      []string{"jsmith@example.com"},
+					Groups:      []string{"abc"},
+				},
+			},
+			map[string]expression.ExtraAttribute{
+				"example": schema.AuthenticationBackendExtraAttribute{
+					MultiValued: true,
+					ValueType:   "integer",
+				},
+			},
+			"",
+			"error occurred validating extra attributes for user 'example': attribute 'example' has the known item type 'string' but '[]integer' is the expected type",
 		},
 	}
 

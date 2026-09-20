@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -12,7 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func getStorageProvider(ctx *CmdCtx) (provider storage.Provider) {
+func getStorageProvider(ctx *CmdCtx) (provider storage.Provider, err error) {
 	return storage.NewProvider(ctx.config, ctx.trusted)
 }
 

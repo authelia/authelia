@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -37,7 +41,20 @@ func SetContentTypeTextPlain(ctx *fasthttp.RequestCtx) {
 func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (providers Providers, warns, errs []error) {
 	providers = NewProvidersBasic()
 
-	providers.StorageProvider = storage.NewProvider(config, caCertPool)
+	var err error
+
+	if providers.StorageProvider, err = storage.NewProvider(config, caCertPool); err != nil {
+		errs = append(errs, err)
+	}
+
+	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
+		errs = append(errs, err)
+	}
+
+	if providers.MetaDataService, err = webauthn.NewMetaDataProvider(config, providers.StorageProvider); err != nil {
+		errs = append(errs, err)
+	}
+
 	providers.Authorizer = authorization.NewAuthorizer(config)
 	providers.NTP = ntp.NewProvider(&config.NTP)
 	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
@@ -46,15 +63,6 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
-
-	var err error
-	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
-		errs = append(errs, err)
-	}
-
-	if providers.MetaDataService, err = webauthn.NewMetaDataProvider(config, providers.StorageProvider); err != nil {
-		errs = append(errs, err)
-	}
 
 	switch {
 	case config.Notifier.SMTP != nil:
@@ -66,7 +74,9 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates)
 
 	if config.Telemetry.Metrics.Enabled {
-		providers.Metrics = metrics.NewPrometheus()
+		if providers.Metrics, err = metrics.NewPrometheus(); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	return providers, warns, errs
@@ -75,8 +85,9 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 // NewProvidersBasic returns a new Providers with the simple providers.
 func NewProvidersBasic() Providers {
 	return Providers{
-		Clock:  clock.New(),
-		Random: random.New(),
+		GarbageCollector: NewGarbageCollector(),
+		Clock:            clock.New(),
+		Random:           random.New(),
 	}
 }
 

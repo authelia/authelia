@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Authorization"
 description: "An overview of Authelia's authorization capabilities including access control policies, OpenID Connect 1.0, trusted header SSO, and brute-force regulation."
 summary: ""

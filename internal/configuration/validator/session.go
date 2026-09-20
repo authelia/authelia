@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -60,7 +64,7 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 	switch {
 	case cookies == 0 && n != 0:
 		validator.PushWarning(errors.New(errFmtSessionDomainLegacy))
-		// Add legacy configuration to the domains list.
+
 		config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 			SessionCookieCommon: schema.SessionCookieCommon{
 				Name:              config.Session.Name,
@@ -107,9 +111,18 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 	}
 }
 
-// validateSessionDomainName returns error if the domain name is invalid.
 func validateSessionDomainName(i int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
+
+	if strings.HasPrefix(d.Domain, ".") {
+		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
+	}
+
+	if strings.Contains(d.Domain, ":") {
+		if host, _, err := net.SplitHostPort(d.Domain); err == nil {
+			validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPort, sessionDomainDescriptor(i, d), d.Domain, host))
+		}
+	}
 
 	switch {
 	case d.Domain == "":
@@ -118,8 +131,6 @@ func validateSessionDomainName(i int, config *schema.Session, validator *schema.
 	case strings.HasPrefix(d.Domain, "*."):
 		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, sessionDomainDescriptor(i, d), d.Domain))
 		return
-	case strings.HasPrefix(d.Domain, "."):
-		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
 	case net.ParseIP(d.Domain) != nil:
 		return
 	case !strings.Contains(d.Domain, "."):
@@ -151,7 +162,6 @@ func validateSessionExpiration(i int, config *schema.Session) {
 	}
 }
 
-// validateSessionUniqueCookieDomain Check the current domains do not share a root domain with previous domains.
 func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []string, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
 	if utils.IsStringInSliceF(d.Domain, domains, utils.HasDomainSuffix) {
@@ -163,8 +173,6 @@ func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []
 	}
 }
 
-// validateSessionCookiesURLs validates the AutheliaURL and DefaultRedirectionURL.
-//
 //nolint:gocyclo
 func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[i]

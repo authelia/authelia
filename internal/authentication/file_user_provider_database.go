@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
@@ -7,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/asaskevich/govalidator/v12"
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"go.yaml.in/yaml/v4"
@@ -17,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/expression"
 )
 
+// FileUserProviderDatabase is the interface implemented by the file user provider databases.
 type FileUserProviderDatabase interface {
 	Save() (err error)
 	Load() (err error)
@@ -51,15 +56,11 @@ type FileUserDatabase struct {
 	SearchEmail bool `json:"-"`
 	SearchCI    bool `json:"-"`
 
-	Extra map[string]expression.ExtraAttribute
+	Extra map[string]expression.ExtraAttribute `json:"-"`
 }
 
 // Save the database to disk.
 func (m *FileUserDatabase) Save() (err error) {
-	m.RLock()
-
-	defer m.RUnlock()
-
 	if err = m.ToDatabaseModel().Write(m.Path); err != nil {
 		return err
 	}
@@ -88,6 +89,8 @@ func (m *FileUserDatabase) Load() (err error) {
 
 // LoadAliases performs the loading of alias information from the database.
 func (m *FileUserDatabase) LoadAliases() (err error) {
+	m.Emails, m.Aliases = make(map[string]string, len(m.Users)), make(map[string]string, len(m.Users))
+
 	if m.SearchEmail || m.SearchCI {
 		for k, user := range m.Users {
 			if m.SearchEmail && user.Email != "" {
@@ -170,13 +173,21 @@ func (m *FileUserDatabase) GetUserDetails(username string) (user FileUserDatabas
 
 	if m.SearchEmail {
 		if key, ok := m.Emails[u]; ok {
-			return m.Users[key], nil
+			if user, ok = m.Users[key]; ok {
+				return user, nil
+			}
+
+			return FileUserDatabaseUserDetails{}, ErrUserNotFound
 		}
 	}
 
 	if m.SearchCI {
 		if key, ok := m.Aliases[u]; ok {
-			return m.Users[key], nil
+			if user, ok = m.Users[key]; ok {
+				return user, nil
+			}
+
+			return FileUserDatabaseUserDetails{}, ErrUserNotFound
 		}
 	}
 
@@ -195,9 +206,9 @@ func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserData
 
 	m.Lock()
 
-	m.Users[username] = *details
+	defer m.Unlock()
 
-	m.Unlock()
+	m.Users[username] = *details
 }
 
 // ToDatabaseModel converts the FileUserDatabase into the FileDatabaseModel for saving.
@@ -208,11 +219,11 @@ func (m *FileUserDatabase) ToDatabaseModel() (model *FileDatabaseModel) {
 
 	m.RLock()
 
+	defer m.RUnlock()
+
 	for user, details := range m.Users {
 		model.Users[user] = details.ToUserDetailsModel()
 	}
-
-	m.RUnlock()
 
 	return model
 }
@@ -244,6 +255,7 @@ type FileUserDatabaseUserDetails struct {
 	Extra map[string]any `json:"extra" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
 }
 
+// FileUserDatabaseUserDetailsAddressModel represents the address of a user in the file user database.
 type FileUserDatabaseUserDetailsAddressModel struct {
 	StreetAddress string `yaml:"street_address" json:"street_address,omitempty" jsonschema:"title=Street Address" jsonschema_description:"The street address for the user."`
 	Locality      string `yaml:"locality" json:"locality,omitempty" jsonschema:"title=Locality" jsonschema_description:"The locality for the user."`
@@ -305,6 +317,7 @@ func (m FileUserDatabaseUserDetails) ToExtendedUserDetails() (details *UserDetai
 func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUserDetailsModel) {
 	model = FileDatabaseUserDetailsModel{
 		Password:       m.Password.Encode(),
+		Disabled:       m.Disabled,
 		DisplayName:    m.DisplayName,
 		GivenName:      m.GivenName,
 		MiddleName:     m.MiddleName,
@@ -437,6 +450,8 @@ type FileDatabaseUserDetailsModel struct {
 	Extra map[string]any `yaml:"extra"`
 }
 
+// ValidateExtra returns an error if any extra attribute of this user does not match its definition.
+//
 //nolint:gocyclo
 func (m FileDatabaseUserDetailsModel) ValidateExtra(username string, extra map[string]expression.ExtraAttribute) (err error) {
 	for name, value := range m.Extra {
@@ -491,6 +506,8 @@ func (m FileDatabaseUserDetailsModel) ValidateExtra(username string, extra map[s
 			default:
 				return fmt.Errorf("error occurred validating extra attributes for user '%s': attribute '%s' has the unknown item type '%T'", username, name, v)
 			}
+
+			return fmt.Errorf("error occurred validating extra attributes for user '%s': attribute '%s' has the known item type '%T' but '[]%s' is the expected type", username, name, v, vt)
 		}
 	}
 

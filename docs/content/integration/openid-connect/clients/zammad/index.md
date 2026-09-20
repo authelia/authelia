@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Zammad"
 description: "A guide on integrating Zammad with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Zammad]
   - [v6.5.0](https://github.com/zammad/zammad/releases/tag/6.5.0)
 
@@ -33,13 +37,13 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `zammad`
-- __Authentication Name (Zammad):__ `authelia`:
-    - This option determines the redirect URI in the format of
-      `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
-      This means if you change this value you need to update the redirect URI.
+- **Application Root URL:** `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `zammad`
+- **Authentication Name (Zammad):** `authelia`:
+  - This option determines the redirect URI in the format of
+    `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
+    This means if you change this value you need to update the redirect URI.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -49,7 +53,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Zammad] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Zammad] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -103,7 +107,7 @@ To configure [Zammad] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 ## See Also
 
 - [Zammad]:
-    - [Security > Thirt Party Applications > OpenID Connect](https://admin-docs.zammad.org/en/pre-release/settings/security/third-party/openid-connect.html
+  - [Security > Thirt Party Applications > OpenID Connect](https://admin-docs.zammad.org/en/pre-release/settings/security/third-party/openid-connect.html
 
 [Authelia]: https://www.authelia.com
 [Zammad]: https://zammad.com/en

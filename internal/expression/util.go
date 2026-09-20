@@ -1,9 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package expression
 
 import (
-	"github.com/google/cel-go/cel"
-	"github.com/google/cel-go/common/types"
-	"github.com/google/cel-go/common/types/ref"
+	"cel.dev/cel-go/cel"
+	"cel.dev/cel-go/common/types"
+	"cel.dev/cel-go/common/types/ref"
+	"cel.dev/cel-go/ext"
 )
 
 func optExtra(name string, attribute ExtraAttribute) (opt cel.EnvOption) {
@@ -151,6 +156,7 @@ func newAttributeOAuth2AuthorizationRequestClaimValues() cel.EnvOption {
 	return cel.Variable(AttributeOpenIDAuthorizationRequestClaimValues, cel.ListType(cel.DynType))
 }
 
+// IsReservedAttribute returns true if the given attribute name is reserved.
 func IsReservedAttribute(key string) bool {
 	switch key {
 	case AttributeUserUsername, AttributeUserGroups, AttributeUserDisplayName, AttributeUserEmail, AttributeUserEmails,
@@ -208,8 +214,27 @@ func toNativeValueRefValMap(in map[ref.Val]ref.Val) (out map[string]any) {
 	return out
 }
 
+func withBaseCELEnvOpts(extra ...cel.EnvOption) (opts []cel.EnvOption) {
+	opts = make([]cel.EnvOption, 0, 8+len(extra))
+
+	opts = append(opts,
+		cel.OptionalTypes(),
+		ext.Lists(),
+		ext.Sets(),
+		ext.Strings(),
+		ext.Bindings(),
+		ext.Math(),
+		ext.Encoders(),
+		ext.Regex(),
+	)
+
+	opts = append(opts, extra...)
+
+	return opts
+}
+
 func getStandardCELEnvOpts() []cel.EnvOption {
-	return []cel.EnvOption{
+	return withBaseCELEnvOpts(
 		newAttributeUserUsername(),
 		newAttributeUserGroups(),
 		newAttributeUserDisplayName(),
@@ -241,5 +266,5 @@ func getStandardCELEnvOpts() []cel.EnvOption {
 		newAttributeUpdatedAt(),
 		newAttributeOAuth2AuthorizationRequestClaimValue(),
 		newAttributeOAuth2AuthorizationRequestClaimValues(),
-	}
+	)
 }

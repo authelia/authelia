@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package embed
 
 import (
@@ -24,11 +28,15 @@ func TestNewConfiguration(t *testing.T) {
 			paths: []string{"../../internal/configuration/test_resources/config.webauthn.yml"},
 			keys: []string{
 				"regulation.max_retries",
+				"server.endpoints.rate_limits.openid_connect_introspection.enable",
 				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
+				"server.endpoints.rate_limits.openid_connect_revocation.enable",
 				"server.endpoints.rate_limits.openid_connect_token.enable",
+				"server.endpoints.rate_limits.openid_connect_userinfo.enable",
 				"server.endpoints.rate_limits.reset_password_finish.enable",
 				"server.endpoints.rate_limits.reset_password_start.enable",
 				"server.endpoints.rate_limits.second_factor_duo.enable",
+				"server.endpoints.rate_limits.second_factor_password.enable",
 				"server.endpoints.rate_limits.second_factor_totp.enable",
 				"server.endpoints.rate_limits.session_elevation_finish.enable",
 				"server.endpoints.rate_limits.session_elevation_start.enable",
@@ -97,11 +105,15 @@ func TestNewConfiguration(t *testing.T) {
 				"server.endpoints.authz.forward-auth.authn_strategies[].name",
 				"server.endpoints.authz.forward-auth.implementation",
 				"server.endpoints.authz.legacy.implementation",
+				"server.endpoints.rate_limits.openid_connect_introspection.enable",
 				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
+				"server.endpoints.rate_limits.openid_connect_revocation.enable",
 				"server.endpoints.rate_limits.openid_connect_token.enable",
+				"server.endpoints.rate_limits.openid_connect_userinfo.enable",
 				"server.endpoints.rate_limits.reset_password_finish.enable",
 				"server.endpoints.rate_limits.reset_password_start.enable",
 				"server.endpoints.rate_limits.second_factor_duo.enable",
+				"server.endpoints.rate_limits.second_factor_password.enable",
 				"server.endpoints.rate_limits.second_factor_totp.enable",
 				"server.endpoints.rate_limits.session_elevation_finish.enable",
 				"server.endpoints.rate_limits.session_elevation_start.enable",

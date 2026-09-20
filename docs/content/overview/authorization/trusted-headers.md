@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Trusted Headers SSO"
 description: "An overview of Authelia's Trusted Headers SSO mechanism where reverse proxies inject response headers to identify authenticated users to protected applications."
 summary: "Trusted Headers is a simple header authorization framework supported by Authelia."
@@ -19,4 +23,3 @@ application. This is a very basic means that allows the target application to id
 to Authelia. This like all single-sign on technologies requires support by the protected application.
 
 You can read more about this in the [Trusted Header SSO Integration Guide](../../integration/trusted-header-sso/introduction.md).
-

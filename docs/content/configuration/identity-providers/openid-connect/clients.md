@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OpenID Connect 1.0 Clients"
 description: "Configuring the Authelia OpenID Connect 1.0 registered clients including client identifiers, secrets, grant types, scopes, and redirect URI configuration."
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure the registered clients."
@@ -182,12 +186,13 @@ of this option with the `https://` scheme per the requirements will cause Authel
 {{< /callout >}}
 
 A valid `sector_identifier_uri` will:
-  1. Have the scheme `https://`.
-  2. Be the absolute URI of a JSON document which:
-     1. Is a JSON array of strings (URIs).
-     2. Has every URI registered with this clients [redirect_uris](#redirect_uris) when compared using an exact string
-        match as defined in [OAuth 2.0 Security Best Current Practice Section 2.1].
-     3. May or may not have additional [redirect_uris](#redirect_uris) from other clients.
+
+1. Have the scheme `https://`.
+2. Be the absolute URI of a JSON document which:
+   1. Is a JSON array of strings (URIs).
+   2. Has every URI registered with this clients [redirect_uris](#redirect_uris) when compared using an exact string
+      match as defined in [OAuth 2.0 Security Best Current Practice Section 2.1].
+   3. May or may not have additional [redirect_uris](#redirect_uris) from other clients.
 
 [OAuth 2.0 Security Best Current Practice Section 2.1]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-2.1
 
@@ -205,7 +210,7 @@ the lookup of the subject identifier.
       2. Any client with a differing `sector_identifier_uri`.
 
 In specific but limited scenarios this option is beneficial for privacy reasons. In particular this is useful when the
-party utilizing the *Authelia* [OpenID Connect 1.0] Authorization Server is foreign and not controlled by the user. It would
+party utilizing the _Authelia_ [OpenID Connect 1.0] Authorization Server is foreign and not controlled by the user. It would
 prevent the third party utilizing the subject identifier with another third party in order to track the user.
 
 Keep in mind depending on the other claims they may still be able to perform this tracking and it is not a silver
@@ -249,13 +254,14 @@ These URIs must have the `https` scheme.
 
 {{< confkey type="list(string)" required="no" >}}
 
-A whitelist of audiences this client is allowed to request. These audiences were previously automatically granted to all
-access requests unless specifically requested otherwise. The current behavior is only those requested by the client in
-the `audience` parameter are granted. This behavior can be tuned using the
-[requested_audience_mode](#requested_audience_mode).
+A whitelist of audiences this client is allowed to request and be granted.
 
-This value does not generally affect the minted ID Tokens as they are always issued with the client identifier being the
-audience unless the [claims policy](#claims_policy) changes this behavior.
+The audience can be requested by the client specifically or can be implicitly granted. This behavior can be tuned using
+the [requested_audience_mode](#requested_audience_mode).
+
+This value should not generally affect the minted ID Tokens as the audience specifically applies to Access Tokens, and
+ID Tokens are always meant to be minted with the client identifier being the audience. You can tune this behavior using
+the [claims policy](#claims_policy).
 
 ### scopes
 
@@ -335,7 +341,6 @@ should not be used as a crutch for applications which do not implement the most 
 level of access control on their end.
 {{< /callout >}}
 
-
 The authorization policy for this client: either `one_factor`, `two_factor`, or one of the ones configured in the
 provider [authorization_policies](./provider.md#authorization_policies) section.
 
@@ -380,10 +385,10 @@ Controls the effective audience the client has requested. The following table de
 behavior. This value does not affect the issued ID Tokens as they are always issued with the client identifier being
 the audience.
 
-|  Value   |                                                   Description                                                    |
-|:--------:|:----------------------------------------------------------------------------------------------------------------:|
-| explicit |     Requires the client explicitly requests an audiences for an audience to be included in the issued tokens     |
-| implicit | Assumes if the client is requesting all audiences it is permitted to request if the audience parameter is absent |
+|  Value   |                                                           Description                                                           |
+| :------: | :-----------------------------------------------------------------------------------------------------------------------------: |
+| explicit |            Requires the client explicitly requests an audiences for an audience to be included in the issued tokens             |
+| implicit | Assumes if the client is requesting all audiences it is permitted to request if the audience and resource parameters are absent |
 
 ### consent_mode
 
@@ -399,7 +404,7 @@ Configures the fallback consent mode. If explicit consent or a condition that re
 setting has no effect. The following table describes the different modes:
 
 |     Value      |                                                                  Description                                                                   |
-|:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+| :------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: |
 |      auto      | Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`. |
 |    explicit    |                                   Requires the user provide unique explicit consent for every authorization.                                   |
 |    implicit    |    Automatically assumes consent for every authorization, never asking the user if they wish to give consent. See the specific notes below.    |
@@ -503,6 +508,10 @@ See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
 
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
+
 ### authorization_encrypted_response_key_id
 
 {{< confkey type="string" required="no" >}}
@@ -603,6 +612,10 @@ To be considered valid:
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
+
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
 
 ### id_token_encrypted_response_key_id
 
@@ -717,6 +730,10 @@ To be considered valid with exclusion of the value `none`:
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
+
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
 
 ### access_token_encrypted_response_key_id
 
@@ -838,6 +855,10 @@ See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
 
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
+
 ### userinfo_encrypted_response_key_id
 
 {{< confkey type="string" required="no" >}}
@@ -954,6 +975,10 @@ To be considered valid with exclusion of the value `none`:
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
+
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
 
 ### introspection_encrypted_response_key_id
 
@@ -1084,7 +1109,7 @@ It's recommended that you specifically configure this when the following options
 otherwise we assume the default value:
 
 |                   Configuration Option                    |        Value        | Default |
-|:---------------------------------------------------------:|:-------------------:|:-------:|
+| :-------------------------------------------------------: | :-----------------: | :-----: |
 | [token_endpoint_auth_method](#token_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [token_endpoint_auth_method](#token_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
@@ -1114,7 +1139,7 @@ It's recommended that you specifically configure this when the following options
 otherwise we assume the default value:
 
 |                        Configuration Option                         |        Value        | Default |
-|:-------------------------------------------------------------------:|:-------------------:|:-------:|
+| :-----------------------------------------------------------------: | :-----------------: | :-----: |
 | [revocation_endpoint_auth_method](#revocation_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [revocation_endpoint_auth_method](#revocation_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
@@ -1144,7 +1169,7 @@ It's recommended that you specifically configure this when the following options
 otherwise we assume the default value:
 
 |                           Configuration Option                            |        Value        | Default |
-|:-------------------------------------------------------------------------:|:-------------------:|:-------:|
+| :-----------------------------------------------------------------------: | :-----------------: | :-----: |
 | [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
@@ -1175,7 +1200,7 @@ It's recommended that you specifically configure this when the following options
 otherwise we assume the default value:
 
 |                                          Configuration Option                                           |        Value        | Default |
-|:-------------------------------------------------------------------------------------------------------:|:-------------------:|:-------:|
+| :-----------------------------------------------------------------------------------------------------: | :-----------------: | :-----: |
 | [pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
@@ -1296,19 +1321,19 @@ The public key portion of the JSON Web Key.
 The public key the clients use to sign/encrypt the [OpenID Connect 1.0] asserted [JWT]'s. The key is generated by the
 client application or the administrator of the client application.
 
-The key *__MUST__*:
+The key _**MUST**_:
 
-* Be a PEM block encoded in the DER base64 format ([RFC4648]).
-* Be either:
-  * An RSA public key:
-    * Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
-    * Have a key size of at least 2048 bits.
-  * An ECDSA public key:
-    * Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
-    * Use one of the following elliptical curves:
-      * P-256.
-      * P-384.
-      * P-512.
+- Be a PEM block encoded in the DER base64 format ([RFC4648]).
+- Be either:
+  - An RSA public key:
+    - Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
+    - Have a key size of at least 2048 bits.
+  - An ECDSA public key:
+    - Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
+    - Use one of the following elliptical curves:
+      - P-256.
+      - P-384.
+      - P-512.
 
 [PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
@@ -1336,6 +1361,7 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [RFC6234]: https://datatracker.ietf.org/doc/html/rfc6234
 [RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
 [RFC7468]: https://datatracker.ietf.org/doc/html/rfc7468
+[RFC8037]: https://datatracker.ietf.org/doc/html/rfc8037
 [RFC6749 Section 2.1]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.1
 [PKCE]: https://datatracker.ietf.org/doc/html/rfc7636
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth

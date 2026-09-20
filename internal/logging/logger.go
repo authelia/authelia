@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package logging
 
 import (
@@ -5,7 +9,6 @@ import (
 	"io"
 	"os"
 
-	logrus_stack "github.com/Gurpartap/logrus-stack"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -40,7 +43,7 @@ func initializeStackTracer(config schema.Log) {
 
 	// Ensure the stack trace hook is only initialized once.
 	stacktrace.Do(func() {
-		logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
+		logrus.AddHook(stackHook{CallerLevels: callerLevels, StackLevels: stackLevels})
 	})
 }
 
@@ -59,9 +62,15 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 	switch {
 	case config.FilePath != "":
-		lf = NewFile(config.FilePath)
+		writers = []io.Writer{}
 
-		if err = lf.Open(); err != nil {
+		if config.KeepStdout {
+			writers = append(writers, os.Stdout)
+		}
+
+		logFile = NewFile(config.FilePath)
+
+		if err = logFile.Open(); err != nil {
 			return err
 		}
 
@@ -72,11 +81,7 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 			})
 		}
 
-		writers = []io.Writer{lf}
-
-		if config.KeepStdout {
-			writers = append(writers, os.Stdout)
-		}
+		writers = append(writers, logFile)
 	default:
 		writers = []io.Writer{os.Stdout}
 	}
@@ -88,11 +93,11 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 // Reopen handles safely reopening the log file.
 func Reopen() (err error) {
-	if lf == nil {
+	if logFile == nil {
 		return fmt.Errorf("error reopening log file: file is not configured or open")
 	}
 
-	return lf.Reopen()
+	return logFile.Reopen()
 }
 
 func setLevelStr(level string, log bool) {

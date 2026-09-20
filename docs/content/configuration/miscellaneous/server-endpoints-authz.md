@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Server Authz Endpoints"
 description: "Configuring the Authelia server authorization endpoints including ForwardAuth, ExtAuthz, AuthRequest, and Legacy implementations with authentication strategies."
 summary: "Authelia supports several authorization endpoints on the internal web server. This section describes how to configure and tune them."

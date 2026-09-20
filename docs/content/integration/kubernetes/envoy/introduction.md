@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Envoy"
 description: "An introduction to integrating Authelia with Envoy in Kubernetes covering the two primary ingress options of Envoy Gateway and the Istio service mesh platform."
 summary: "A guide to integrating Authelia with Envoy in Kubernetes."

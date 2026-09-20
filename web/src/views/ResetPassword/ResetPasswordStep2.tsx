@@ -1,21 +1,28 @@
-import { useCallback, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, IconButton, InputAdornment } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import PasswordMeter from "@components/PasswordMeter";
+import { Button } from "@components/UI/Button";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+
+const uninitiated = Symbol("uninitiated");
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
@@ -27,7 +34,7 @@ const ResetPasswordStep2 = function () {
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createErrorNotification, createSuccessNotification } = useNotifications();
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
+    const { showPassword, toggleProps } = usePasswordVisibility();
 
     const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
         max_length: 0,
@@ -44,6 +51,8 @@ const ResetPasswordStep2 = function () {
     // the secret for OTP.
     const processToken = useQueryParam(IdentityToken);
 
+    const resetInitiatedRef = useRef<null | string | typeof uninitiated | undefined>(uninitiated);
+
     const handleRateLimited = useCallback(
         (_retryAfter: number) => {
             createErrorNotification(translate("You have made too many requests")); // TODO: Do we want to add the amount of seconds a user should retry in the message?
@@ -52,6 +61,12 @@ const ResetPasswordStep2 = function () {
     );
 
     useEffect(() => {
+        if (resetInitiatedRef.current === processToken) {
+            return;
+        }
+
+        resetInitiatedRef.current = processToken;
+
         const submitReset = async () => {
             if (!processToken) {
                 setFormDisabled(true);
@@ -85,6 +100,8 @@ const ResetPasswordStep2 = function () {
     const doResetPassword = async () => {
         setPassword1("");
         setPassword2("");
+        setErrorPassword1(false);
+        setErrorPassword2(false);
 
         if (password1 === "" || password2 === "") {
             if (password1 === "") {
@@ -119,6 +136,8 @@ const ResetPasswordStep2 = function () {
             } else {
                 createErrorNotification(translate("There was an issue resetting the password"));
             }
+
+            setFormDisabled(false);
         }
     };
 
@@ -130,67 +149,35 @@ const ResetPasswordStep2 = function () {
 
     return (
         <MinimalLayout title={translate("Enter new password")} id="reset-password-step2-stage">
-            <FormControl id={"form-reset-password"}>
-                <Grid
-                    container
-                    spacing={2}
-                    sx={{ marginBottom: (theme) => theme.spacing(2), marginTop: (theme) => theme.spacing(2) }}
-                >
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            id="password1-textfield"
-                            label={translate("New password")}
-                            variant="outlined"
-                            type={showPassword ? "text" : "password"}
-                            value={password1}
-                            disabled={formDisabled}
-                            onChange={(e) => setPassword1(e.target.value)}
-                            error={errorPassword1}
-                            sx={{ width: "100%" }}
-                            autoComplete="new-password"
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                size="large"
-                                                onMouseDown={() => setShowPassword(true)}
-                                                onMouseUp={() => setShowPassword(false)}
-                                                onMouseLeave={() => setShowPassword(false)}
-                                                onTouchStart={() => setShowPassword(true)}
-                                                onTouchEnd={() => setShowPassword(false)}
-                                                onTouchCancel={() => setShowPassword(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(true);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onKeyUp={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(false);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                            >
-                                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
-                        />
+            <div id={"form-reset-password"}>
+                <div className="my-4 grid grid-cols-1 gap-4">
+                    <div className="w-full">
+                        <Label htmlFor="password1-textfield">{translate("New password")}</Label>
+                        <div className="relative">
+                            <Input
+                                id="password1-textfield"
+                                type={showPassword ? "text" : "password"}
+                                value={password1}
+                                disabled={formDisabled}
+                                onChange={(e) => setPassword1(e.target.value)}
+                                error={errorPassword1}
+                                className="pr-10"
+                                autoComplete="new-password"
+                            />
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle password visibility")}
+                                showPassword={showPassword}
+                                {...toggleProps}
+                            />
+                        </div>
                         {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                             <PasswordMeter value={password1} policy={pPolicy} />
                         )}
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
+                    </div>
+                    <div className="w-full">
+                        <Label htmlFor="password2-textfield">{translate("Repeat new password")}</Label>
+                        <Input
                             id="password2-textfield"
-                            label={translate("Repeat new password")}
-                            variant="outlined"
                             type={showPassword ? "text" : "password"}
                             disabled={formDisabled}
                             value={password2}
@@ -202,37 +189,36 @@ const ResetPasswordStep2 = function () {
                                     ev.preventDefault();
                                 }
                             }}
-                            sx={{ width: "100%" }}
                             autoComplete="new-password"
                         />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="reset-button"
-                            variant="contained"
-                            color="primary"
-                            name="password1"
-                            disabled={formDisabled}
-                            onClick={handleResetClick}
-                            sx={{ width: "100%" }}
-                        >
-                            {translate("Reset")}
-                        </Button>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="cancel-button"
-                            variant="contained"
-                            color="primary"
-                            name="password2"
-                            onClick={handleCancelClick}
-                            sx={{ width: "100%" }}
-                        >
-                            {translate("Cancel")}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </FormControl>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="w-full">
+                            <Button
+                                id="reset-button"
+                                variant="default"
+                                name="password1"
+                                disabled={formDisabled}
+                                onClick={handleResetClick}
+                                className="w-full"
+                            >
+                                {translate("Reset")}
+                            </Button>
+                        </div>
+                        <div className="w-full">
+                            <Button
+                                id="cancel-button"
+                                variant="default"
+                                name="password2"
+                                onClick={handleCancelClick}
+                                className="w-full"
+                            >
+                                {translate("Cancel")}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </MinimalLayout>
     );
 };

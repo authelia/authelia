@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -50,8 +54,7 @@ func (s *DefaultRedirectionURLScenario) TearDownSuite() {
 }
 
 func (s *DefaultRedirectionURLScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *DefaultRedirectionURLScenario) TearDownTest() {

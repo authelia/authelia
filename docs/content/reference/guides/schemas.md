@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Schemas"
 description: "A reference guide on the JSON Schema documents published by Authelia for configuration validation, user database validation, and access control policy checking."
 summary: "This section contains reference documentation for Authelia's schemas."
@@ -41,7 +45,6 @@ Where:
 3. The following special meta versions exist:
    1. The `latest` version refers to the latest released version of Authelia.
    2. The `next` version refers to the latest commit to the master branch.
-
 
 ### Configuration
 

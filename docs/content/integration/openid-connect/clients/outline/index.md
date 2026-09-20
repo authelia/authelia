@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Outline"
 description: "A guide on integrating Outline with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://outline.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `outline`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://outline.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `outline`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -51,7 +55,7 @@ include this scope will result in an error as [Outline](https://www.getoutline.c
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Outline] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Outline] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

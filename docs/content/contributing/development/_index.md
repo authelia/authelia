@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Development"
 description: "Information on contributing to Authelia via development including environment setup, building and testing the application, and running integration test suites."
 summary: ""

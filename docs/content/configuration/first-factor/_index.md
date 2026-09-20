@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "First Factor"
 description: "Reference documentation for configuring the Authelia first factor authentication backend including LDAP directory servers and file-based user providers."
 summary: ""

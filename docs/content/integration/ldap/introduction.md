@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "LDAP"
 description: "An introduction into integrating Authelia with LDAP covering binding methods, search considerations, implementation-specific configuration, and security notes."
 summary: "An introduction into integrating Authelia with LDAP."
@@ -16,7 +20,6 @@ seo:
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
-
 
 ## Binding
 
@@ -94,10 +97,10 @@ attribute to determine if they are members.
 This means:
 
 1. The groups still must be in the search base that you have configured.
-2. The `memberOf` attribute *__MUST__* include the distinguished name of the group.
+2. The `memberOf` attribute _**MUST**_ include the distinguished name of the group.
 3. If the `{memberof:dn}` replacement is used:
-    1. The distinguished name *__MUST__* be searchable by your directory server.
-4. The first relative distinguished name of the distinguished name *__MUST__* be search
+   1. The distinguished name _**MUST**_ be searchable by your directory server.
+4. The first relative distinguished name of the distinguished name _**MUST**_ be search
 
 ### Filter replacements
 
@@ -112,7 +115,7 @@ every possible replacement on every search regardless of if it's needed or not.
 #### General filter replacements
 
 |          Placeholder           |  Phase  |                 Replacement                 |
-|:------------------------------:|:-------:|:-------------------------------------------:|
+| :----------------------------: | :-----: | :-----------------------------------------: |
 | {distinguished_name_attribute} | startup | The configured distinguished name attribute |
 |      {username_attribute}      | startup |      The configured username attribute      |
 |        {mail_attribute}        | startup |        The configured mail attribute        |
@@ -122,16 +125,16 @@ every possible replacement on every search regardless of if it's needed or not.
 
 #### Users filter replacements
 
-|          Placeholder           |  Phase  |                                                   Replacement                                                    |
-|:------------------------------:|:-------:|:----------------------------------------------------------------------------------------------------------------:|
-|    {date-time:generalized}     | search  |          The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`          |
-|        {date-time:unix}        | search  |                                    The current time formatted as a Unix epoch                                    |
-|    {date-time:microsoft-nt}    | search  | The current time formatted as a Microsoft NT epoch which is used by some Microsoft [Active Directory] attributes |
+|       Placeholder        | Phase  |                                                   Replacement                                                    |
+| :----------------------: | :----: | :--------------------------------------------------------------------------------------------------------------: |
+| {date-time:generalized}  | search |          The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`          |
+|     {date-time:unix}     | search |                                    The current time formatted as a Unix epoch                                    |
+| {date-time:microsoft-nt} | search | The current time formatted as a Microsoft NT epoch which is used by some Microsoft [Active Directory] attributes |
 
 #### Groups filter replacements
 
 |  Placeholder   | Phase  |                                                                     Replacement                                                                      |
-|:--------------:|:------:|:----------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :------------: | :----: | :--------------------------------------------------------------------------------------------------------------------------------------------------: |
 |   {username}   | search |                                      The username from the profile lookup obtained from the username attribute                                       |
 |      {dn}      | search |                                                    The distinguished name from the profile lookup                                                    |
 | {memberof:dn}  | search |                                                            See the detailed section below                                                            |
@@ -143,7 +146,7 @@ Requirements:
 
 1. Must be using the `memberof` search mode.
 2. Must have the distinguished name attribute configured in Authelia.
-3. Directory server must support searching by the distinguished name attribute (many directory services *__DO NOT__*
+3. Directory server must support searching by the distinguished name attribute (many directory services _**DO NOT**_
    have a distinguished name attribute).
 
 ##### memberof:rdn

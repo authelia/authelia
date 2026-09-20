@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package server
 
 import (
@@ -12,9 +16,18 @@ const (
 	fileLogo = "logo.png"
 
 	extHTML = ".html"
-	extJS   = ".js"
 	extJSON = ".json"
 	extYML  = ".yml"
+)
+
+const (
+	// Compression levels used to pre-compress the embedded assets during startup. Neither is the maximum level as the
+	// returns diminish sharply: brotli level 11 takes roughly 32 times as long as level 6 while only producing output
+	// approximately 7% smaller.
+	compressionLevelBrotli = 6
+	compressionLevelGzip   = fasthttp.CompressDefaultCompression
+
+	compressionMinSize = 1024
 )
 
 const (
@@ -24,6 +37,10 @@ const (
 )
 
 var (
+	// Formats which are already compressed such as images and fonts are deliberately excluded as compressing them
+	// again costs CPU and generally increases their size.
+	extsCompressible = []string{".css", ".html", ".js", ".json", ".mjs", ".svg", ".txt", ".xml"}
+
 	filesRoot    = []string{"manifest.json", "robots.txt"}
 	filesSwagger = []string{
 		"favicon-16x16.png",
@@ -47,29 +64,28 @@ var (
 )
 
 const (
-	strFalse    = "false"
-	strTrue     = "true"
-	localhost   = "localhost"
-	schemeHTTP  = "http"
-	schemeHTTPS = "https"
-	prefixAPI   = "/api/"
+	strFalse  = "false"
+	strTrue   = "true"
+	prefixAPI = "/api/"
 )
 
 var (
-	headerETag         = []byte(fasthttp.HeaderETag)
-	headerIfNoneMatch  = []byte(fasthttp.HeaderIfNoneMatch)
-	headerCacheControl = []byte(fasthttp.HeaderCacheControl)
+	headerETag            = []byte(fasthttp.HeaderETag)
+	headerIfNoneMatch     = []byte(fasthttp.HeaderIfNoneMatch)
+	headerCacheControl    = []byte(fasthttp.HeaderCacheControl)
+	headerAcceptEncoding  = []byte(fasthttp.HeaderAcceptEncoding)
+	headerContentEncoding = []byte(fasthttp.HeaderContentEncoding)
+	headerVary            = []byte(fasthttp.HeaderVary)
 
 	headerValueCacheControlETaggedAssets = []byte("public, max-age=0, must-revalidate")
-)
+	headerValueVaryAcceptEncoding        = []byte(fasthttp.HeaderAcceptEncoding)
 
-const healthCheckEnv = `# Written by Authelia Process
-X_AUTHELIA_HEALTHCHECK=1
-X_AUTHELIA_HEALTHCHECK_SCHEME=%s
-X_AUTHELIA_HEALTHCHECK_HOST=%s
-X_AUTHELIA_HEALTHCHECK_PORT=%d
-X_AUTHELIA_HEALTHCHECK_PATH=%s
-`
+	encodingBrotli   = []byte("br")
+	encodingGzip     = []byte("gzip")
+	encodingWildcard = []byte("*")
+
+	paramQuality = []byte("q")
+)
 
 const (
 	errFmtMessageServerReadBuffer  = "Request from client exceeded the server read buffer. The read buffer can be adjusted by modifying the '%s.buffers.read' configuration value."

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 import (
@@ -10,6 +14,7 @@ import (
 type AuthenticationBackend struct {
 	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behavior."`
 	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Change" jsonschema_description:"Allows configuration of the password change behavior."`
+	Registration   AuthenticationBackendRegistration   `koanf:"registration" yaml:"registration,omitempty" toml:"registration,omitempty" json:"registration,omitempty" jsonschema:"title=Registration" jsonschema_description:"Allows configuration of the registration behavior."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" yaml:"refresh_interval,omitempty" toml:"refresh_interval,omitempty" json:"refresh_interval,omitempty" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
@@ -29,6 +34,11 @@ type AuthenticationBackendPasswordReset struct {
 	CustomURL url.URL `koanf:"custom_url" yaml:"custom_url,omitempty" toml:"custom_url,omitempty" json:"custom_url,omitempty" jsonschema:"title=Custom URL" jsonschema_description:"Disables the internal Password Reset option and instead redirects users to this specified URL."`
 }
 
+// AuthenticationBackendRegistration represents the configuration related to registration functionality.
+type AuthenticationBackendRegistration struct {
+	CustomURL url.URL `koanf:"custom_url" yaml:"custom_url,omitempty" toml:"custom_url,omitempty" json:"custom_url,omitempty" jsonschema:"title=Custom URL" jsonschema_description:"Displays a registration link on the login page which directs users to this specified URL."`
+}
+
 // AuthenticationBackendFile represents the configuration related to file-based backend.
 type AuthenticationBackendFile struct {
 	Path  string `koanf:"path" yaml:"path,omitempty" toml:"path,omitempty" json:"path,omitempty" jsonschema:"title=Path" jsonschema_description:"The file path to the user database."`
@@ -41,15 +51,18 @@ type AuthenticationBackendFile struct {
 	ExtraAttributes map[string]AuthenticationBackendExtraAttribute `koanf:"extra_attributes" yaml:"extra_attributes,omitempty" toml:"extra_attributes,omitempty" json:"extra_attributes,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
+// AuthenticationBackendExtraAttribute represents the configuration of an extra user attribute.
 type AuthenticationBackendExtraAttribute struct {
 	MultiValued bool   `koanf:"multi_valued" yaml:"multi_valued" toml:"multi_valued" json:"multi_valued" jsonschema:"title=Multi-Valued" jsonschema_description:"Defines the attribute as multi-valued."`
 	ValueType   string `koanf:"value_type" yaml:"value_type,omitempty" toml:"value_type,omitempty" json:"value_type,omitempty" jsonschema:"enum=boolean,enum=integer,enum=string,title=Value Type" jsonschema_description:"Defines the value type for the attribute."`
 }
 
+// IsMultiValued returns true if this attribute is multi-valued.
 func (a AuthenticationBackendExtraAttribute) IsMultiValued() (multi bool) {
 	return a.MultiValued
 }
 
+// GetValueType returns the value type of this attribute.
 func (a AuthenticationBackendExtraAttribute) GetValueType() (vtype string) {
 	return a.ValueType
 }
@@ -154,6 +167,7 @@ type AuthenticationBackendLDAP struct {
 	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
 }
 
+// AuthenticationBackendLDAPPooling represents the LDAP connection pooling configuration.
 type AuthenticationBackendLDAPPooling struct {
 	Enable  bool          `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"title=Enable,default=false" jsonschema_description:"Enable LDAP connection pooling."`
 	Count   int           `koanf:"count" yaml:"count" toml:"count" json:"count" jsonschema:"title=Count,default=5" jsonschema_description:"The number of connections to keep open for LDAP connection pooling."`
@@ -191,10 +205,11 @@ type AuthenticationBackendLDAPAttributes struct {
 	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
+// AuthenticationBackendLDAPAttributesAttribute represents the configuration of an extra LDAP attribute.
 type AuthenticationBackendLDAPAttributesAttribute struct {
 	Name string `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"title=Name" jsonschema_description:"The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."`
 
-	AuthenticationBackendExtraAttribute `koanf:",squash"`
+	AuthenticationBackendExtraAttribute `koanf:",squash" yaml:",inline"`
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
@@ -289,7 +304,6 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 		FamilyName:        ldapAttrSurname,
 		GivenName:         ldapAttrGivenName,
 		MiddleName:        ldapAttrMiddleName,
-		Website:           "wWWHomePage",
 		Mail:              ldapAttrMail,
 		PhoneNumber:       "telephoneNumber",
 		StreetAddress:     "streetAddress",
@@ -332,6 +346,8 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = Authent
 	Attributes: AuthenticationBackendLDAPAttributes{
 		Username:    ldapAttrUserID,
 		DisplayName: ldapAttrDisplayName,
+		FamilyName:  ldapAttrSurname,
+		GivenName:   ldapAttrGivenName,
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
@@ -9,11 +13,12 @@ import (
 	"testing"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -1593,6 +1598,7 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 		expected         bool
 		expectedScope    oauthelia2.Arguments
 		expectedAudience oauthelia2.Arguments
+		expectedResource oauthelia2.Arguments
 	}{
 		{
 			"ShouldGrant",
@@ -1600,10 +1606,12 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 			&model.OAuth2ConsentSession{
 				GrantedScopes:   []string{"abc"},
 				GrantedAudience: []string{"ad"},
+				GrantedResource: []string{"https://api.example.com"},
 			},
 			true,
 			[]string{"abc"},
 			[]string{"ad"},
+			[]string{"https://api.example.com"},
 		},
 		{
 			"ShouldNotGrant",
@@ -1611,8 +1619,10 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 			&model.OAuth2ConsentSession{
 				GrantedScopes:   []string{},
 				GrantedAudience: []string{},
+				GrantedResource: []string{},
 			},
 			true,
+			nil,
 			nil,
 			nil,
 		},
@@ -1623,6 +1633,7 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 			true,
 			nil,
 			nil,
+			nil,
 		},
 		{
 			"ShouldNotGrantNilRequest",
@@ -1630,8 +1641,10 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 			&model.OAuth2ConsentSession{
 				GrantedScopes:   []string{},
 				GrantedAudience: []string{},
+				GrantedResource: []string{},
 			},
 			false,
+			nil,
 			nil,
 			nil,
 		},
@@ -1645,6 +1658,7 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 				require.NotNil(t, tc.ar)
 				assert.Equal(t, tc.expectedScope, tc.ar.GetGrantedScopes())
 				assert.Equal(t, tc.expectedAudience, tc.ar.GetGrantedAudience())
+				assert.Equal(t, tc.expectedResource, tc.ar.GetGrantedResource())
 			} else {
 				assert.Nil(t, tc.ar)
 			}

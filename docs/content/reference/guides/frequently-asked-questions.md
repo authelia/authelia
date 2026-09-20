@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Frequently Asked Questions"
 description: "A reference index of frequently asked question documents for Authelia covering topics such as Docker, proxies, Kubernetes, identity providers, and more."
 summary: "This guide shows a list of other frequently asked question documents as well as some general ones."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Second Factor"
 description: "An introduction to configuring Authelia second factor authentication with available methods including Time-based One-Time Passwords, WebAuthn, and Duo Push."
 summary: "Authelia provides a number of 2FA methods. This section describes these methods."

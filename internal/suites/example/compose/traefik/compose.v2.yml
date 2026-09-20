@@ -1,5 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 services:
   traefik:
-    image: 'traefik:v2.11.42'
+    image: 'traefik:v2.11.57'
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
 ...

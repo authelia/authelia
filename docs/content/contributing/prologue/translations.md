@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Translations"
 description: "Information on contributing translations to the Authelia project via the Crowdin platform including adding new languages, local overrides, and community help."
 summary: "Authelia has translations for many using facing areas of the web portal. Contributing to these translations is a very easy process."
@@ -26,7 +30,7 @@ If the language you wish to translate is not on [Crowdin] then you have a few op
 1. Ask for the language to be added via the [Crowdin] interface.
 2. Ask a maintainer to add it via one of the [contact options](../../information/contact.md).
 3. Make a pull request directly on GitHub modifying the translation files within
-[this directory](https://github.com/authelia/authelia/tree/master/internal/server/locales).
+   [this directory](https://github.com/authelia/authelia/tree/master/internal/server/locales).
 
 ## Overrides
 

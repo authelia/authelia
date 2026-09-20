@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Notification Templates"
 description: "A reference guide on customizing and overriding Authelia notification email templates including template names, placeholder variables, and formatting."
 summary: "This section contains reference documentation for Authelia's notification templates."
@@ -28,12 +32,12 @@ This guide effectively documents the usage of the
    1. It is your responsibility to ensure your templates are up to date. We make no efforts in facilitating this.
 2. We may not be able to offer any direct support in debugging these templates. We only offer support and fixes to
    the official templates.
-3. All templates __*MUST*__ be encoded in UTF-8 with CRLF line endings. The line endings __*MUST NOT*__ be a simple LF.
+3. All templates **_MUST_** be encoded in UTF-8 with CRLF line endings. The line endings **_MUST NOT_** be a simple LF.
 
 ## Template Names
 
 |        Template         |                                             Description                                             |
-|:-----------------------:|:---------------------------------------------------------------------------------------------------:|
+| :---------------------: | :-------------------------------------------------------------------------------------------------: |
 |          Event          |                           Used to render notifications sent about events                            |
 | IdentityVerificationOTC | Used to render notifications sent when stateful validation is required such as managing credentials |
 | IdentityVerificationJWT | Used to render notifications sent when stateless validation is required such as resetting passwords |
@@ -47,18 +51,21 @@ HTML `IdentityVerificationJWT` template.
 
 In template files, you can use the following placeholders which are automatically injected into the templates:
 
-|         Placeholder         |                    Templates                     |                                                                  Description                                                                   |
-|:---------------------------:|:------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
-|      `{{ .LinkURL }}`       | IdentityVerificationJWT, IdentityVerificationOTC |                                            The URL associated with the notification if applicable.                                             |
-|      `{{ .LinkText }}`      | IdentityVerificationJWT, IdentityVerificationOTC |                                 The display value for the URL associated with the notification if applicable.                                  |
-| `{{ .RevocationLinkURL }}`  | IdentityVerificationJWT, IdentityVerificationOTC |                                       The Revocation URL associated with the notification if applicable.                                       |
-| `{{ .RevocationLinkText }}` | IdentityVerificationJWT, IdentityVerificationOTC |                            The display value for the Revocation URL associated with the notification if applicable.                            |
-|     `{{ .BodyPrefix }}`     |                      Event                       |                                                           Prefix for the body event.                                                           |
-|     `{{ .BodyEvent }}`      |                      Event                       |                                                             The event description.                                                             |
-|       `{{ .Title }}`        |                       All                        | A predefined title for the email. <br> It will be `"Reset your password"` or `"Password changed successfully"`, depending on the current step. |
-|    `{{ .DisplayName }}`     |                       All                        |                                                     The name of the user, i.e. `John Doe`                                                      |
-|      `{{ .RemoteIP }}`      |                       All                        |                                      The remote IP address (client) that initiated the request or event.                                       |
-|       `{{ .Domain }}`       |                       All                        |                                                       The relevant domain for Authelia.                                                        |
+|         Placeholder         |                    Templates                     |                                                                           Description                                                                           |
+| :-------------------------: | :----------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|       `{{ .Title }}`        |                       All                        | A predefined title for the email, matching the subject line. See [Events](../../configuration/notifications/events.md) for the value sent by each notification. |
+|    `{{ .DisplayName }}`     |                       All                        |                                                              The name of the user, i.e. `John Doe`                                                              |
+|      `{{ .RemoteIP }}`      |                       All                        |                                               The remote IP address (client) that initiated the request or event.                                               |
+|       `{{ .Domain }}`       | IdentityVerificationJWT, IdentityVerificationOTC |                                                                The relevant domain for Authelia.                                                                |
+|      `{{ .LinkURL }}`       |             IdentityVerificationJWT              |                                                            The URL associated with the notification.                                                            |
+|      `{{ .LinkText }}`      |             IdentityVerificationJWT              |                                                 The display value for the URL associated with the notification.                                                 |
+| `{{ .RevocationLinkURL }}`  | IdentityVerificationJWT, IdentityVerificationOTC |                                                      The Revocation URL associated with the notification.                                                       |
+| `{{ .RevocationLinkText }}` | IdentityVerificationJWT, IdentityVerificationOTC |                                           The display value for the Revocation URL associated with the notification.                                            |
+|    `{{ .OneTimeCode }}`     |             IdentityVerificationOTC              |                                                The One-Time Code the user must supply to confirm their identity.                                                |
+|     `{{ .BodyPrefix }}`     |                      Event                       |                                                                   Prefix for the body event.                                                                    |
+|     `{{ .BodyEvent }}`      |                      Event                       |                                                                     The event description.                                                                      |
+|     `{{ .BodySuffix }}`     |                      Event                       |                                                                   Suffix for the body event.                                                                    |
+|      `{{ .Details }}`       |                      Event                       |                                          A map of additional details about the event, such as the action and category.                                          |
 
 ## Examples
 

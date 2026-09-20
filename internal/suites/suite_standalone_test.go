@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -47,8 +52,7 @@ func (s *StandaloneWebDriverSuite) TearDownSuite() {
 }
 
 func (s *StandaloneWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *StandaloneWebDriverSuite) TearDownTest() {
@@ -70,7 +74,6 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
 }
@@ -87,16 +90,16 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 		page2.MustClose()
 	}()
 
-	// Open second tab with secret page.
-	page2.MustWaitStable()
+	// The second tab has to have arrived at the portal before the first one logs in, since what this test
+	// asserts is that the login on the first tab redirects it. Waiting for the page it is expected to be
+	// showing says that; waiting for it to stop changing does not distinguish it from one still in flight.
+	s.verifyIsFirstFactorPage(s.T(), page2.Context(ctx))
 
-	// Switch to first, visit the login page and wait for redirection to secret page with secret displayed.
 	s.MustActivate()
 	s.verifyIsHome(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
-	// Switch to second tab and wait for redirection to secret page with secret displayed.
 	page2.MustActivate()
 	s.verifySecretAuthorized(s.T(), page2.Context(ctx))
 }
@@ -115,7 +118,6 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.com:8080", GetLoginBaseURL(BaseDomain)))
 
 	_, err := s.ElementR("h1", "Public resource")
@@ -137,7 +139,6 @@ func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUser
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL(BaseDomain)))
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct")
 }
@@ -154,25 +155,20 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	password := "password"
 
 	// Clean up any TOTP secret already in DB.
-	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	provider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	require.NoError(s.T(), err)
 
 	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
 
-	// Login one factor.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
-	// Check the user is asked to register a new device.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 
-	// Then register the TOTP factor.
 	s.doOpenSettingsAndRegisterTOTP(s.T(), s.Context(ctx), username)
-	// And logout.
 	s.doLogout(s.T(), s.Context(ctx))
 
-	// Login one factor again.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
-	// now the user should be asked to perform 2FA.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
 }
 
@@ -298,6 +294,47 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
 	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+}
+
+func (s *StandaloneSuite) TestShouldServeVerboseHealthCheck() {
+	client := NewHTTPClient()
+
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/health/verbose", LoginBaseURL), nil)
+	s.Require().NoError(err)
+
+	res, err := client.Do(req)
+	s.Require().NoError(err)
+
+	defer res.Body.Close()
+
+	s.Assert().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	body, err := io.ReadAll(res.Body)
+	s.Require().NoError(err)
+
+	health := struct {
+		Status    string `json:"status"`
+		Cached    bool   `json:"cached"`
+		Providers map[string]struct {
+			Status string `json:"status"`
+			Took   string `json:"took"`
+			Error  string `json:"error"`
+		} `json:"providers"`
+	}{}
+
+	s.Require().NoError(json.Unmarshal(body, &health))
+
+	s.Assert().Equal("ok", health.Status)
+
+	// the suite configures these three, and each must have genuinely been probed.
+	for _, name := range []string{"storage", "session", "user"} {
+		s.Require().Contains(health.Providers, name)
+		s.Assert().Equal("ok", health.Providers[name].Status)
+		s.Assert().NotEmpty(health.Providers[name].Took)
+
+		// detailed is not enabled, so no provider message may be disclosed.
+		s.Assert().Empty(health.Providers[name].Error)
+	}
 }
 
 func (s *StandaloneSuite) TestShouldRecordMetrics() {

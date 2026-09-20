@@ -1,7 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 services:
   httpbin:
-    image: mccutchen/go-httpbin
+    image: mccutchen/go-httpbin:2.25.0
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
     networks:
       authelianet: {}
     labels:

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Server Endpoint Rate Limits"
 description: "Configuring Authelia server endpoint rate limits including bucket-based rate limiting for password resets, second factor attempts, and session elevation."
 summary: "Authelia supports several authorization endpoints on the internal web server. This section describes how to configure and tune them."
@@ -19,7 +23,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__  imposes default rate limits on specific endpoints which can prevent faulty clients or bad actors from
+**Authelia** imposes default rate limits on specific endpoints which can prevent faulty clients or bad actors from
 consuming too many resources or using brute-force to potentially compromise security. This should not be confused with
 [Regulation](../security/regulation.md) which is used to silently ban users from using the username / password form.
 
@@ -93,6 +97,39 @@ server:
           - period: '1 hour'
             requests: 100
       openid_connect_pushed_authorization_request:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 30
+          - period: '2 minutes'
+            requests: 40
+          - period: '10 minutes'
+            requests: 50
+          - period: '1 hour'
+            requests: 100
+      openid_connect_userinfo:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 30
+          - period: '2 minutes'
+            requests: 40
+          - period: '10 minutes'
+            requests: 50
+          - period: '1 hour'
+            requests: 100
+      openid_connect_introspection:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 30
+          - period: '2 minutes'
+            requests: 40
+          - period: '10 minutes'
+            requests: 50
+          - period: '1 hour'
+            requests: 100
+      openid_connect_revocation:
         enable: true
         buckets:
           - period: '1 minute'
@@ -188,5 +225,26 @@ See [Common Options](#common-options) for the individual options for this sectio
 
 Configures the rate limiter which applies to the
 [OpenID Connect 1.0 Pushed Authorization Request Endpoint](../../integration/openid-connect/introduction.md#well-known-discovery-endpoints).
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### openid_connect_userinfo
+
+Configures the rate limiter which applies to the
+[OpenID Connect 1.0 UserInfo Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### openid_connect_introspection
+
+Configures the rate limiter which applies to the
+[OpenID Connect 1.0 Introspection Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### openid_connect_revocation
+
+Configures the rate limiter which applies to the
+[OpenID Connect 1.0 Revocation Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
 
 See [Common Options](#common-options) for the individual options for this section.

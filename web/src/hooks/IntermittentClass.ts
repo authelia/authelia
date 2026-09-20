@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useEffect, useState } from "react";
 
 export function useIntermittentClass(
@@ -10,7 +14,7 @@ export function useIntermittentClass(
     const [firstTime, setFirstTime] = useState(true);
 
     useEffect(() => {
-        let timeout: NodeJS.Timeout;
+        let timeout: ReturnType<typeof setTimeout>;
 
         if (firstTime) {
             if (startMillisecond && startMillisecond > 0) {

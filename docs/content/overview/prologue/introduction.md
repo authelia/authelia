@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Prologue"
 description: "An introduction to Authelia as a 2FA and SSO authentication server providing two-factor authentication, identity verification, and password reset capabilities."
 summary: "An introduction into the Authelia overview."
@@ -14,11 +18,11 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ is a 2FA & SSO authentication server which is dedicated to the security of applications and users. It can
+**Authelia** is a 2FA & SSO authentication server which is dedicated to the security of applications and users. It can
 be considered an extension of reverse proxies by providing features specific to authentication. You will find among
 other features:
 
-* Several two-factor authentication methods.
-* Identity verification when registering second factor devices.
-* Self-service reset of user passwords.
-* Banning accounts after too many attempts (known as regulation).
+- Several two-factor authentication methods.
+- Identity verification when registering second factor devices.
+- Self-service reset of user passwords.
+- Banning accounts after too many attempts (known as regulation).

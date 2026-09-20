@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "ownCloud Infinite Scale"
 description: "A guide on integrating ownCloud Infinite Scale with the Authelia OpenID Connect 1.0 Provider for SSO with configuration examples and available options."
 summary: ""
@@ -33,12 +37,12 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-- __Client ID:__
+- **Application Root URL:** `https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- **Client ID:**
   - Web Application: `ocis`
   - Other Clients: the values of the other clients are static for compatibility with the native app
-- __Client Secret:__
+- **Client Secret:**
   - Web Application: `insecure_secret`
   - Other Clients: the values of the other clients are static for compatibility with the native app
 
@@ -50,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with
+The following YAML configuration is an example **Authelia** [client configuration] for use with
 [ownCloud Infinite Scale] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}

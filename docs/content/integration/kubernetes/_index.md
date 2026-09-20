@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kubernetes"
 description: "An overview of integrating Authelia with Kubernetes including ingress controllers, Helm chart deployment, secrets management, and proxy configuration options."
 summary: ""

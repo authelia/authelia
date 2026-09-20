@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package session
 
 import (
@@ -34,13 +38,10 @@ func NewProviderConfig(config schema.SessionCookie, providerName string, seriali
 		return bytes
 	}
 
-	// Override the cookie name.
 	c.CookieName = config.Name
 
-	// Set the cookie to the given domain.
 	c.Domain = config.Domain
 
-	// Set the cookie SameSite option.
 	switch config.SameSite {
 	case "strict":
 		c.CookieSameSite = fasthttp.CookieSameSiteStrictMode
@@ -52,7 +53,6 @@ func NewProviderConfig(config schema.SessionCookie, providerName string, seriali
 		c.CookieSameSite = fasthttp.CookieSameSiteLaxMode
 	}
 
-	// Only serve the header over HTTPS.
 	c.Secure = true
 
 	// Ignore the error as it will be handled by validator.
@@ -73,6 +73,7 @@ func NewProviderConfig(config schema.SessionCookie, providerName string, seriali
 	}
 }
 
+// NewProviderSession returns a new *session.Session given the provided configuration and provider.
 func NewProviderSession(pconfig ProviderConfig, provider session.Provider) (p *session.Session, err error) {
 	p = session.New(pconfig.config)
 
@@ -83,6 +84,7 @@ func NewProviderSession(pconfig ProviderConfig, provider session.Provider) (p *s
 	return p, nil
 }
 
+// NewProviderConfigAndSession returns the ProviderConfig and *session.Session for the given cookie configuration.
 func NewProviderConfigAndSession(config schema.SessionCookie, providerName string, serializer Serializer, provider session.Provider) (c ProviderConfig, p *session.Session, err error) {
 	c = NewProviderConfig(config, providerName, serializer)
 
@@ -93,8 +95,8 @@ func NewProviderConfigAndSession(config schema.SessionCookie, providerName strin
 	return c, p, nil
 }
 
+// NewSessionProvider returns the name, provider, and serializer for the given session configuration.
 func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name string, provider session.Provider, serializer Serializer, err error) {
-	// If redis configuration is provided, then use the redis provider.
 	switch {
 	case config.Redis != nil:
 		serializer = NewEncryptingSerializer(config.Secret)

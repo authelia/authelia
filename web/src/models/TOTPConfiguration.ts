@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 export interface UserInfoTOTPConfiguration {
     created_at: Date;
     last_used_at?: Date;

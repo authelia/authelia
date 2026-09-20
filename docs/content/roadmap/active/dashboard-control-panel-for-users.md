@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Dashboard / Control Panel for Users"
 description: "The Authelia roadmap item for a user dashboard and control panel allowing users to self-manage their credentials, devices, sessions, and security preferences."
 summary: "A dashboard or control panel for users to adjust their settings is easily one of the most impactful features we can implement."
@@ -19,6 +23,7 @@ seo:
 This feature will pave the way to adding lots of useful user facing features.
 
 It will be important when we implement:
+
 - WebAuthn features like passwordless authentication allowing users to intentionally register a passwordless credential.
 - Session management features.
 - Many other user self-service related features.

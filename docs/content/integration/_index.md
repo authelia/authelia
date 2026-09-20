@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Integration"
 description: "An overview of the Authelia integration documentation including guides for proxies, Kubernetes, LDAP, OpenID Connect 1.0, deployment, and trusted header SSO."
 summary: ""

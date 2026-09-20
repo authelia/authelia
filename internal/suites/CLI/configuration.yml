@@ -1,8 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 certificates_directory: '/certs/'
 
 server:
   address: 'tcp://:9091'
+  timeouts:
+    read: '30s'
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
@@ -17,7 +23,7 @@ storage:
 
 notifier:
   filesystem:
-    filename: '/tmp/notification.txt'
+    filename: '/tmp/authelia/CLISuite/notification.fifo'
 
 identity_validation:
   reset_password:

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -9,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
+
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
@@ -17,7 +23,6 @@ import (
 	"authelia.com/provider/oauth2/handler/rfc8628"
 	"authelia.com/provider/oauth2/i18n"
 	"authelia.com/provider/oauth2/token/jwt"
-	"github.com/hashicorp/go-retryablehttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -26,6 +31,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// NewConfig returns a new *Config given the identity providers configuration, issuer, and templates provider.
 func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, templates *templates.Provider) (c *Config) {
 	c = &Config{
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
@@ -53,6 +59,7 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
 		RevokeRefreshTokensExplicit:     true,
 		EnforceRevokeFlowRevokeRefreshTokensExplicitClient: true,
+		EnforceClientAssertionIssuerAudience:               false,
 		ClientCredentialsFlowImplicitGrantRequested:        true,
 		Templates: templates,
 	}
@@ -88,10 +95,30 @@ type Config struct {
 
 	SendDebugMessagesToClients    bool
 	DisableRefreshTokenValidation bool
+	DisableRefreshTokenRotation   bool
 	OmitRedirectScopeParameter    bool
+
+	DPoPEnabled       bool
+	DPoPEnforce       bool
+	DPoPNonceRequired bool
+
+	DPoPAllowedJWSAlgorithms []string
+	DPoPClockSkew            time.Duration
+	DPoPNonceLifespan        time.Duration
+	DPoPProofLifespan        time.Duration
+	DPoPStrategy             oauthelia2.DPoPStrategy
+
+	EnforceClientAssertionIssuerAudience bool
+
+	RequireRequestObjectAudienceAndLifetime bool
+	RequestObjectMaximumLifetime            time.Duration
+
+	BackChannelLogoutLifespan    time.Duration
+	BackChannelLogoutConcurrency int
 
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
+	JWTClockSkew   time.Duration
 
 	JWTSecuredAuthorizationLifespan time.Duration
 
@@ -129,15 +156,18 @@ type Config struct {
 	Templates *templates.Provider
 }
 
+// GetJWTStrategy returns the JWT strategy.
 func (c *Config) GetJWTStrategy(ctx context.Context) jwt.Strategy {
 	return c.Strategy.JWT
 }
 
+// RFC8693Config holds specific oauthelia2.Configurator information for RFC8693 Token Exchange.
 type RFC8693Config struct {
 	TokenTypes                map[string]oauthelia2.RFC8693TokenType
 	DefaultRequestedTokenType string
 }
 
+// LifespansConfig holds specific oauthelia2.Configurator information for token lifespans.
 type LifespansConfig struct {
 	schema.IdentityProvidersOpenIDConnectLifespanToken
 
@@ -154,14 +184,19 @@ type HashConfig struct {
 
 // StrategyConfig holds specific oauthelia2.Configurator information for various strategies.
 type StrategyConfig struct {
-	Core                        oauth2.CoreStrategy
-	OpenID                      openid.OpenIDConnectTokenStrategy
-	Audience                    oauthelia2.AudienceMatchingStrategy
-	Scope                       oauthelia2.ScopeStrategy
-	JWT                         jwt.Strategy
-	JWKSFetcher                 jwt.JWKSFetcherStrategy
-	ClientAuthentication        oauthelia2.ClientAuthenticationStrategy
-	AuthorizeErrorFieldResponse oauthelia2.AuthorizeErrorFieldResponseStrategy
+	Core                            oauth2.CoreStrategy
+	OpenID                          openid.OpenIDConnectTokenStrategy
+	Audience                        oauthelia2.AudienceStrategy
+	Resource                        oauthelia2.ResourceStrategy
+	Scope                           oauthelia2.ScopeStrategy
+	JWT                             jwt.Strategy
+	JWKSFetcher                     jwt.JWKSFetcherStrategy
+	ClientAuthentication            oauthelia2.ClientAuthenticationStrategy
+	AuthorizeErrorFieldResponse     oauthelia2.AuthorizeErrorFieldResponseStrategy
+	TokenEndpointClientAuth         oauthelia2.EndpointClientAuthStrategy
+	RevocationEndpointClientAuth    oauthelia2.EndpointClientAuthStrategy
+	IntrospectionEndpointClientAuth oauthelia2.EndpointClientAuthStrategy
+	IDTokenValidation               oauthelia2.TokenValidationStrategy
 }
 
 // JWTAccessTokenConfig represents the JWT Access Token config.
@@ -172,9 +207,10 @@ type JWTAccessTokenConfig struct {
 
 // PARConfig holds specific oauthelia2.Configurator information for Pushed Authorization Requests.
 type PARConfig struct {
-	Require         bool
-	URIPrefix       string
-	ContextLifespan time.Duration
+	Require            bool
+	RequireRedirectURI bool
+	URIPrefix          string
+	ContextLifespan    time.Duration
 }
 
 // IssuersConfig holds specific oauthelia2.Configurator information for the issuer.
@@ -214,6 +250,26 @@ type HandlersConfig struct {
 	RFC8628DeviceAuthorizeEndpoint oauthelia2.RFC8628DeviceAuthorizeEndpointHandlers
 
 	RFC8628UserAuthorizeEndpoint oauthelia2.RFC8628UserAuthorizeEndpointHandlers
+
+	// AuthorizeEndpointBinding is a list of handlers which bind a sender-constrained credential to an authorization
+	// response.
+	AuthorizeEndpointBinding oauthelia2.AuthorizeEndpointBindingHandlers
+
+	// TokenEndpointBinding is a list of handlers which bind a sender-constrained credential to a token response.
+	TokenEndpointBinding oauthelia2.TokenEndpointBindingHandlers
+
+	// RFC8628DeviceAuthorizeEndpointBinding is a list of handlers which bind a sender-constrained credential to a
+	// device authorization request.
+	RFC8628DeviceAuthorizeEndpointBinding oauthelia2.RFC8628DeviceAuthorizeEndpointBindingHandlers
+
+	// RFC7591ClientRegistrationEndpoint is a list of handlers that are called before the RFC 7591 Dynamic Client
+	// Registration endpoint is served. It is empty as this Authorization Server does not serve that endpoint.
+	RFC7591ClientRegistrationEndpoint oauthelia2.RFC7591ClientRegistrationEndpointHandlers
+
+	// RFC7592ClientConfigurationEndpoint is a list of handlers that are called before the RFC 7592 Dynamic Client
+	// Registration Management endpoint is served. It is empty as this Authorization Server does not serve that
+	// endpoint.
+	RFC7592ClientConfigurationEndpoint oauthelia2.RFC7592ClientConfigurationEndpointHandlers
 }
 
 // GrantTypeJWTBearerConfig holds specific oauthelia2.Configurator information for the JWT Bearer Grant Type.
@@ -230,6 +286,7 @@ type ProofKeyCodeExchangeConfig struct {
 	AllowPlainChallengeMethod bool
 }
 
+// StatelessJWTStrategy is a strategy which handles stateless JWT profile access tokens.
 type StatelessJWTStrategy struct {
 	jwt.Strategy
 	oauth2.CoreStrategy
@@ -495,6 +552,19 @@ func (c *Config) GetJWTMaxDuration(ctx context.Context) (duration time.Duration)
 	return c.JWTMaxDuration
 }
 
+// GetJWTClockSkew returns how far into the future an 'iat' or 'nbf' claim may be in a JWT received from a client.
+// Defaults to 10 seconds when zero, is disabled when negative, and is capped at 60 seconds.
+func (c *Config) GetJWTClockSkew(ctx context.Context) (skew time.Duration) {
+	switch {
+	case c.JWTClockSkew == 0:
+		return jwtClockSkewDefault
+	case c.JWTClockSkew < 0:
+		return 0
+	default:
+		return min(c.JWTClockSkew, jwtClockSkewMaximum)
+	}
+}
+
 // GetRedirectSecureChecker returns the redirect URL security validator.
 func (c *Config) GetRedirectSecureChecker(ctx context.Context) func(context.Context, *url.URL) (secure bool) {
 	return oauthelia2.IsRedirectURISecure
@@ -562,6 +632,11 @@ func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable 
 	return c.DisableRefreshTokenValidation
 }
 
+// GetDisableRefreshTokenRotation returns the disable refresh token rotation flag.
+func (c *Config) GetDisableRefreshTokenRotation(ctx context.Context) (disable bool) {
+	return c.DisableRefreshTokenRotation
+}
+
 // GetJWTSecuredAuthorizeResponseModeLifespan returns the configured JWT Secured Authorization lifespan.
 func (c *Config) GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration) {
 	if c.JWTSecuredAuthorizationLifespan.Seconds() <= 0 {
@@ -617,6 +692,7 @@ func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Du
 	return c.Lifespans.AuthorizeCode
 }
 
+// GetRFC8628CodeLifespan returns the RFC8628 device code lifespan.
 func (c *Config) GetRFC8628CodeLifespan(ctx context.Context) time.Duration {
 	if c.Lifespans.RFC8628Code.Seconds() <= 0 {
 		c.Lifespans.RFC8628Code = lifespanRFC8628CodeDefault
@@ -690,14 +766,24 @@ func (c *Config) GetScopeStrategy(ctx context.Context) (strategy oauthelia2.Scop
 }
 
 // GetAudienceStrategy returns the audience strategy.
-func (c *Config) GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceMatchingStrategy) {
+func (c *Config) GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceStrategy) {
 	if c.Strategy.Audience == nil {
-		c.Strategy.Audience = oauthelia2.DefaultAudienceMatchingStrategy
+		c.Strategy.Audience = oauthelia2.DefaultAudienceStrategy
 	}
 
 	return c.Strategy.Audience
 }
 
+// GetResourceStrategy returns the audience strategy.
+func (c *Config) GetResourceStrategy(ctx context.Context) (strategy oauthelia2.ResourceStrategy) {
+	if c.Strategy.Resource == nil {
+		c.Strategy.Resource = oauthelia2.DefaultResourceStrategy
+	}
+
+	return c.Strategy.Resource
+}
+
+// GetClientCredentialsFlowImplicitGrantRequested returns the client credentials flow implicit grant requested flag.
 func (c *Config) GetClientCredentialsFlowImplicitGrantRequested(ctx context.Context) (implicit bool) {
 	return c.ClientCredentialsFlowImplicitGrantRequested
 }
@@ -725,6 +811,7 @@ func (c *Config) GetSendDebugMessagesToClients(ctx context.Context) (send bool) 
 	return c.SendDebugMessagesToClients
 }
 
+// GetJWKSFetcherStrategy returns the JWKS fetcher strategy.
 func (c *Config) GetJWKSFetcherStrategy(ctx context.Context) (strategy jwt.JWKSFetcherStrategy) {
 	if c.Strategy.JWKSFetcher == nil {
 		c.Strategy.JWKSFetcher = oauthelia2.NewDefaultJWKSFetcherStrategy()
@@ -822,22 +909,33 @@ func (c *Config) GetRequirePushedAuthorizationRequests(ctx context.Context) (enf
 	return c.PAR.Require
 }
 
+// GetRequireRedirectURIPushedAuthorizationRequests returns true if the 'redirect_uri' parameter is required in Pushed
+// Authorization Requests even when the client has a single registered redirect URI.
+func (c *Config) GetRequireRedirectURIPushedAuthorizationRequests(ctx context.Context) (require bool) {
+	return c.PAR.RequireRedirectURI
+}
+
+// GetResponseModeHandlers returns the response mode handlers.
 func (c *Config) GetResponseModeHandlers(ctx context.Context) oauthelia2.ResponseModeHandlers {
 	return c.Handlers.ResponseMode
 }
 
+// GetResponseModeParameterHandlers returns the response mode parameter handlers.
 func (c *Config) GetResponseModeParameterHandlers(ctx context.Context) oauthelia2.ResponseModeParameterHandlers {
 	return c.Handlers.ResponseModeParameter
 }
 
+// GetRevokeRefreshTokensExplicit returns the revoke refresh tokens explicit flag.
 func (c *Config) GetRevokeRefreshTokensExplicit(ctx context.Context) (explicit bool) {
 	return c.RevokeRefreshTokensExplicit
 }
 
+// GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient returns the enforce revoke flow revoke refresh tokens explicit client flag.
 func (c *Config) GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient(ctx context.Context) (enforce bool) {
 	return c.EnforceRevokeFlowRevokeRefreshTokensExplicitClient
 }
 
+// GetAllowedJWTAssertionAudiences returns the audiences which are allowed for JWT assertions.
 func (c *Config) GetAllowedJWTAssertionAudiences(ctx context.Context) (audiences []string) {
 	var octx Context
 
@@ -861,10 +959,12 @@ func (c *Config) GetAllowedJWTAssertionAudiences(ctx context.Context) (audiences
 	}
 }
 
+// GetRFC8628UserVerificationURL returns the RFC8628 user verification URL.
 func (c *Config) GetRFC8628UserVerificationURL(ctx context.Context) string {
 	return c.getEndpointURL(ctx, FrontendEndpointPathConsentDeviceAuthorization, c.RFC8628UserVerificationURL)
 }
 
+// GetRFC8628TokenPollingInterval returns the RFC8628 token polling interval.
 func (c *Config) GetRFC8628TokenPollingInterval(ctx context.Context) (interval time.Duration) {
 	if c.Lifespans.RFC8628Polling.Seconds() == 0 {
 		c.Lifespans.RFC8628Polling = lifespanRFC8628PollingIntervalDefault
@@ -873,26 +973,32 @@ func (c *Config) GetRFC8628TokenPollingInterval(ctx context.Context) (interval t
 	return c.Lifespans.RFC8628Polling
 }
 
+// GetRFC8628DeviceAuthorizeEndpointHandlers returns the RFC8628 Device Authorize Endpoint handlers.
 func (c *Config) GetRFC8628DeviceAuthorizeEndpointHandlers(ctx context.Context) oauthelia2.RFC8628DeviceAuthorizeEndpointHandlers {
 	return c.Handlers.RFC8628DeviceAuthorizeEndpoint
 }
 
+// GetRFC8628UserAuthorizeEndpointHandlers returns the RFC8628 User Authorize Endpoint handlers.
 func (c *Config) GetRFC8628UserAuthorizeEndpointHandlers(ctx context.Context) oauthelia2.RFC8628UserAuthorizeEndpointHandlers {
 	return c.Handlers.RFC8628UserAuthorizeEndpoint
 }
 
+// GetRFC8693TokenTypes returns the RFC8693 token types.
 func (c *Config) GetRFC8693TokenTypes(ctx context.Context) map[string]oauthelia2.RFC8693TokenType {
 	return c.RFC8693.TokenTypes
 }
 
+// GetDefaultRFC8693RequestedTokenType returns the default RFC8693 requested token type.
 func (c *Config) GetDefaultRFC8693RequestedTokenType(ctx context.Context) string {
 	return c.RFC8693.DefaultRequestedTokenType
 }
 
+// GetEnforceJWTProfileAccessTokens returns the enforce JWT profile access tokens flag.
 func (c *Config) GetEnforceJWTProfileAccessTokens(ctx context.Context) (enforce bool) {
 	return c.EnforceJWTProfileAccessTokens
 }
 
+// GetAuthorizeErrorFieldResponseStrategy returns the authorize error field response strategy.
 func (c *Config) GetAuthorizeErrorFieldResponseStrategy(ctx context.Context) (strategy oauthelia2.AuthorizeErrorFieldResponseStrategy) {
 	if c.Strategy.AuthorizeErrorFieldResponse == nil {
 		c.Strategy.AuthorizeErrorFieldResponse = &RedirectAuthorizeErrorFieldResponseStrategy{Config: c}
@@ -901,6 +1007,285 @@ func (c *Config) GetAuthorizeErrorFieldResponseStrategy(ctx context.Context) (st
 	return c.Strategy.AuthorizeErrorFieldResponse
 }
 
+// GetTokenEndpointClientAuthStrategy returns the Token Endpoint client authentication strategy.
+func (c *Config) GetTokenEndpointClientAuthStrategy(ctx context.Context) (strategy oauthelia2.EndpointClientAuthStrategy) {
+	if c.Strategy.TokenEndpointClientAuth == nil {
+		c.Strategy.TokenEndpointClientAuth = &oauthelia2.TokenEndpointClientAuthStrategy{}
+	}
+
+	return c.Strategy.TokenEndpointClientAuth
+}
+
+// GetRevocationEndpointClientAuthStrategy returns the Revocation Endpoint client authentication strategy.
+func (c *Config) GetRevocationEndpointClientAuthStrategy(ctx context.Context) (strategy oauthelia2.EndpointClientAuthStrategy) {
+	if c.Strategy.RevocationEndpointClientAuth == nil {
+		c.Strategy.RevocationEndpointClientAuth = &oauthelia2.RevocationEndpointClientAuthStrategy{}
+	}
+
+	return c.Strategy.RevocationEndpointClientAuth
+}
+
+// GetIntrospectionEndpointClientAuthStrategy returns the Introspection Endpoint client authentication strategy.
+func (c *Config) GetIntrospectionEndpointClientAuthStrategy(ctx context.Context) (strategy oauthelia2.EndpointClientAuthStrategy) {
+	if c.Strategy.IntrospectionEndpointClientAuth == nil {
+		c.Strategy.IntrospectionEndpointClientAuth = &oauthelia2.IntrospectionEndpointClientAuthStrategy{}
+	}
+
+	return c.Strategy.IntrospectionEndpointClientAuth
+}
+
+// GetDPoPEnabled returns the DPoP enabled flag.
+func (c *Config) GetDPoPEnabled(ctx context.Context) (enabled bool) {
+	return c.DPoPEnabled
+}
+
+// GetDPoPEnforce returns the DPoP enforcement flag.
+func (c *Config) GetDPoPEnforce(ctx context.Context) (enforce bool) {
+	return c.DPoPEnforce
+}
+
+// GetDPoPAllowedJWSAlgorithms returns the allowed DPoP JWS algorithms.
+func (c *Config) GetDPoPAllowedJWSAlgorithms(ctx context.Context) (algs []string) {
+	return c.DPoPAllowedJWSAlgorithms
+}
+
+// GetDPoPClockSkew returns the DPoP clock skew.
+func (c *Config) GetDPoPClockSkew(ctx context.Context) (skew time.Duration) {
+	return c.DPoPClockSkew
+}
+
+// GetDPoPNonceRequired returns the DPoP nonce required flag.
+func (c *Config) GetDPoPNonceRequired(ctx context.Context) (required bool) {
+	return c.DPoPNonceRequired
+}
+
+// GetDPoPNonceLifespan returns the DPoP nonce lifespan.
+func (c *Config) GetDPoPNonceLifespan(ctx context.Context) (lifespan time.Duration) {
+	return c.DPoPNonceLifespan
+}
+
+// GetDPoPStrategy returns the DPoP strategy.
+func (c *Config) GetDPoPStrategy(ctx context.Context) (strategy oauthelia2.DPoPStrategy) {
+	return c.DPoPStrategy
+}
+
+// GetMTLSEnabled returns false as RFC 8705 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens is
+// not implemented by this Authorization Server. Returning true here would have the provider offer confirmation
+// methods and client authentication paths which nothing in this implementation can satisfy.
+func (c *Config) GetMTLSEnabled(ctx context.Context) (enabled bool) {
+	return false
+}
+
+// GetOIDCKeyBindingEnabled returns false as OpenID Connect Key Binding 1.0 is not implemented by this Authorization
+// Server. Returning true here would have the provider assert the 'cnf' confirmation in ID Tokens and enforce the
+// profile's rules, neither of which the handlers this implementation registers can satisfy.
+func (c *Config) GetOIDCKeyBindingEnabled(ctx context.Context) (enabled bool) {
+	return false
+}
+
+// GetAllowedIntrospectionAudiences returns the audiences an Access Token used to authenticate a request to the
+// introspection endpoint may carry. An empty list is not a disabled check: it makes the provider expect the URL the
+// request was made to instead, which is the behavior this implementation has always had as it exposes no
+// configuration for this value.
+func (c *Config) GetAllowedIntrospectionAudiences(ctx context.Context) (audiences []string) {
+	return nil
+}
+
+// GetDPoPProofLifespan returns the DPoP proof lifespan, which together with the clock skew fixes the window a proof
+// is accepted in.
+func (c *Config) GetDPoPProofLifespan(ctx context.Context) (lifespan time.Duration) {
+	if c.DPoPProofLifespan <= 0 {
+		return lifespanDPoPProofDefault
+	}
+
+	return c.DPoPProofLifespan
+}
+
+// GetMTLSEnforce returns false as RFC 8705 is not implemented by this Authorization Server.
+func (c *Config) GetMTLSEnforce(ctx context.Context) (enforce bool) {
+	return false
+}
+
+// GetMTLSClientCertificateHeader returns an empty string as RFC 8705 is not implemented by this Authorization Server,
+// which per the provider contract means a forwarded client certificate is never read.
+func (c *Config) GetMTLSClientCertificateHeader(ctx context.Context) (header string) {
+	return ""
+}
+
+// GetAllowedIntrospectionScopes returns the scopes an Access Token used to authenticate a request to the
+// introspection endpoint may carry. No configuration exposes this value so the provider default of no additional
+// scope requirement applies.
+func (c *Config) GetAllowedIntrospectionScopes(ctx context.Context) (scopes []string) {
+	return nil
+}
+
+// GetIntrospectionEndpointClientAuthDisabled returns false as the introspection endpoint always requires client
+// authentication in this implementation.
+func (c *Config) GetIntrospectionEndpointClientAuthDisabled(ctx context.Context) (disabled bool) {
+	return false
+}
+
+// GetEnforceClientAssertionIssuerAudience returns whether a JWT client authentication assertion must carry this
+// server's issuer identifier as the sole value of its 'aud' claim. This is off by default as the tightening lives in
+// draft-ietf-oauth-rfc7523bis while the published RFC 7523 permits the token endpoint URL.
+func (c *Config) GetEnforceClientAssertionIssuerAudience(ctx context.Context) (enforce bool) {
+	return c.EnforceClientAssertionIssuerAudience
+}
+
+// GetRequireSignedRequestObject returns false as this Authorization Server does not globally require an
+// authorization request to be provided as a Request Object.
+func (c *Config) GetRequireSignedRequestObject(ctx context.Context) (require bool) {
+	return false
+}
+
+// GetRequireSignedRequestObjectSkipPushedAuthorizationRequests returns false as no global Request Object requirement
+// is configured for it to exempt.
+func (c *Config) GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ctx context.Context) (skip bool) {
+	return false
+}
+
+// GetRequireRequestObjectAudienceAndLifetime returns true if a Request Object must contain the 'aud', 'nbf' and 'exp'
+// claims with a lifetime bounded by GetRequestObjectMaximumLifetime.
+func (c *Config) GetRequireRequestObjectAudienceAndLifetime(ctx context.Context) (require bool) {
+	return c.RequireRequestObjectAudienceAndLifetime
+}
+
+// GetRequestObjectMaximumLifetime returns the bound applied to a Request Object's 'nbf' and 'exp' claims. Defaults to
+// 60 minutes when zero, and is disabled when negative.
+func (c *Config) GetRequestObjectMaximumLifetime(ctx context.Context) (lifetime time.Duration) {
+	switch {
+	case c.RequestObjectMaximumLifetime == 0:
+		return lifespanRequestObjectMaximumDefault
+	case c.RequestObjectMaximumLifetime < 0:
+		return 0
+	default:
+		return c.RequestObjectMaximumLifetime
+	}
+}
+
+// GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout. It has no
+// default and may be nil.
+func (c *Config) GetIDTokenValidationStrategy(ctx context.Context) (strategy oauthelia2.TokenValidationStrategy) {
+	return c.Strategy.IDTokenValidation
+}
+
+// GetBackChannelLogoutTokenStrategy returns the Back-Channel Logout token strategy. It is nil as this Authorization
+// Server does not implement OpenID Connect Back-Channel Logout 1.0.
+func (c *Config) GetBackChannelLogoutTokenStrategy(ctx context.Context) (strategy oauthelia2.BackChannelLogoutTokenStrategy) {
+	return nil
+}
+
+// GetBackChannelLogoutLifespan returns the lifespan of a Back-Channel Logout Token.
+func (c *Config) GetBackChannelLogoutLifespan(ctx context.Context) (lifespan time.Duration) {
+	if c.BackChannelLogoutLifespan <= 0 {
+		return lifespanBackChannelLogoutDefault
+	}
+
+	return c.BackChannelLogoutLifespan
+}
+
+// GetBackChannelLogoutConcurrency returns the number of Back-Channel Logout requests performed concurrently.
+func (c *Config) GetBackChannelLogoutConcurrency(ctx context.Context) (n int) {
+	if c.BackChannelLogoutConcurrency <= 0 {
+		return backChannelLogoutConcurrencyDefault
+	}
+
+	return c.BackChannelLogoutConcurrency
+}
+
+// GetAuthorizeEndpointBindingHandlers returns the authorization endpoint binding handlers. None are registered as
+// this Authorization Server implements no sender-constraining binding at that endpoint.
+func (c *Config) GetAuthorizeEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.AuthorizeEndpointBindingHandlers) {
+	return c.Handlers.AuthorizeEndpointBinding
+}
+
+// GetTokenEndpointBindingHandlers returns the token endpoint binding handlers. None are registered as this
+// Authorization Server implements no sender-constraining binding at that endpoint beyond DPoP, which the provider
+// wires itself.
+func (c *Config) GetTokenEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.TokenEndpointBindingHandlers) {
+	return c.Handlers.TokenEndpointBinding
+}
+
+// GetRFC8628DeviceAuthorizeEndpointBindingHandlers returns the device authorization endpoint binding handlers. None
+// are registered as this Authorization Server implements no sender-constraining binding at that endpoint.
+func (c *Config) GetRFC8628DeviceAuthorizeEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.RFC8628DeviceAuthorizeEndpointBindingHandlers) {
+	return c.Handlers.RFC8628DeviceAuthorizeEndpointBinding
+}
+
+// The RFC 7591 Dynamic Client Registration and RFC 7592 Dynamic Client Registration Management surfaces below are
+// deliberately inert. This Authorization Server registers clients from its configuration, so no registration endpoint
+// is served: the handler lists are empty, which is what stops the provider routing to them, and the remaining values
+// describe an endpoint which does not exist. The Store reports the same by refusing to create, update, or delete a
+// client.
+
+// GetRFC7591ClientRegistrationEndpointURL returns an empty string as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationEndpointURL(ctx context.Context) (endpoint string) {
+	return ""
+}
+
+// GetRFC7591ClientRegistrationGlobalSecret returns no secret as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationGlobalSecret(ctx context.Context) (secret []byte, err error) {
+	return nil, nil
+}
+
+// GetRFC7591ClientRegistrationRotatedGlobalSecrets returns no secrets as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte, err error) {
+	return nil, nil
+}
+
+// GetRFC7591ClientSecretLifespan returns zero as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientSecretLifespan(ctx context.Context) (lifespan time.Duration) {
+	return 0
+}
+
+// GetRFC7591ClientRegistrationStrategy returns nil as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationStrategy(ctx context.Context) (strategy oauthelia2.ClientRegistrationStrategy) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationMetadataStrategy returns nil as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationMetadataStrategy(ctx context.Context) (strategy oauthelia2.ClientRegistrationMetadataStrategy) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationEndpointAuthStrategy returns nil as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationEndpointAuthStrategy(ctx context.Context) (strategy oauthelia2.ClientRegistrationEndpointAuthStrategy) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationValidators returns no validators as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationValidators(ctx context.Context) (validators []oauthelia2.ClientRegistrationValidator) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationEndpointAudiences returns no audiences as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationEndpointAudiences(ctx context.Context) (audiences []string) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationScopes returns no scopes as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationScopes(ctx context.Context) (scopes []string) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationGrantTypes returns no grant types as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationGrantTypes(ctx context.Context) (grantTypes []string) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationEndpointHandlers returns no handlers, which is what prevents the provider serving an
+// RFC 7591 registration endpoint.
+func (c *Config) GetRFC7591ClientRegistrationEndpointHandlers(ctx context.Context) (handlers oauthelia2.RFC7591ClientRegistrationEndpointHandlers) {
+	return c.Handlers.RFC7591ClientRegistrationEndpoint
+}
+
+// GetRFC7592ClientConfigurationEndpointHandlers returns no handlers, which is what prevents the provider serving an
+// RFC 7592 client configuration endpoint.
+func (c *Config) GetRFC7592ClientConfigurationEndpointHandlers(ctx context.Context) (handlers oauthelia2.RFC7592ClientConfigurationEndpointHandlers) {
+	return c.Handlers.RFC7592ClientConfigurationEndpoint
+}
+
+// GetContext returns the OpenID Connect 1.0 Context from the given context.
 func (c *Config) GetContext(ctx context.Context) (octx Context) {
 	var ok bool
 
@@ -914,3 +1299,7 @@ func (c *Config) GetContext(ctx context.Context) (octx Context) {
 
 	return nil
 }
+
+var (
+	_ oauthelia2.Configurator = (*Config)(nil)
+)

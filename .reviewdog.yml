@@ -1,7 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 runner:
+  docs:
+    cmd: pnpm -C docs exec eslint --format rdjson .
+    format: rdjson
+    level: error
+
   eslint:
-    cmd: cd web && pnpm eslint --format rdjson --ext '*/**/*.{js,jsx,ts,tsx}' .
+    cmd: pnpm -C web exec eslint --format rdjson .
     format: rdjson
     level: error
 
@@ -13,14 +22,37 @@ runner:
       - '%C%.%#'
     level: error
 
-  typos:
-    cmd: typos --format brief .
+  shellcheck:
+    cmd: .buildkite/steps/lint.sh shellcheck --format=gcc
     errorformat:
-      - '%f:%l:%c: %m'
+      - '%f:%l:%c: %trror: %m'
+      - '%f:%l:%c: %tarning: %m'
+      - '%f:%l:%c: %tote: %m'
+    level: error
+
+  typos:
+    cmd: .buildkite/steps/lint.sh typos .
+    errorformat:
+      - '%E%f:%l:%c: %m'
+      - '%C%.%#'
     level: error
 
   yamllint:
     cmd: yamllint -f parsable .
+    errorformat:
+      - '%f:%l:%c: %m'
+    level: error
+
+  scorecard:
+    cmd: .buildkite/steps/lint.sh scorecard
+    errorformat:
+      - '%E%f:%l:%c: %m'
+      - '%C%.%#'
+    level: error
+
+  reuse:
+    # reuse reports 'path: message' with no position, so a 1:1 position is added for reviewdog.
+    cmd: reuse lint --lines | sed -e 's|^\([^:]*\):|\1:1:1:|'
     errorformat:
       - '%f:%l:%c: %m'
     level: error

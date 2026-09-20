@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -10,7 +14,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -34,22 +37,22 @@ type Authz struct {
 }
 
 // HandlerAuthzUnauthorized is a Authz handler func that handles unauthorized responses.
-type HandlerAuthzUnauthorized func(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL)
+type HandlerAuthzUnauthorized func(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
 
 // HandlerAuthzAuthorized is a Authz handler func that handles authorized responses.
-type HandlerAuthzAuthorized func(ctx *middlewares.AutheliaCtx, authn *Authn)
+type HandlerAuthzAuthorized func(ctx AuthzContext, authn *Authn)
 
 // HandlerAuthzGetAutheliaURL is a Authz handler func that handles retrieval of the Portal URL.
-type HandlerAuthzGetAutheliaURL func(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error)
+type HandlerAuthzGetAutheliaURL func(ctx AuthzContext) (portalURL *url.URL, err error)
 
 // HandlerAuthzGetRedirectionURL is a Authz handler func that handles retrieval of the Redirection URL.
-type HandlerAuthzGetRedirectionURL func(ctx *middlewares.AutheliaCtx, object *authorization.Object) (redirectionURL *url.URL, err error)
+type HandlerAuthzGetRedirectionURL func(ctx AuthzContext, object *authorization.Object) (redirectionURL *url.URL, err error)
 
 // HandlerAuthzGetObject is a Authz handler func that handles retrieval of the authorization.Object to authorize.
-type HandlerAuthzGetObject func(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error)
+type HandlerAuthzGetObject func(ctx AuthzContext) (object authorization.Object, err error)
 
 // HandlerAuthzVerifyObject is a Authz handler func that handles authorization of the authorization.Object.
-type HandlerAuthzVerifyObject func(ctx *middlewares.AutheliaCtx, object authorization.Object) (err error)
+type HandlerAuthzVerifyObject func(ctx AuthzContext, object authorization.Object) (err error)
 
 // AuthnType is an auth type.
 type AuthnType int
@@ -82,6 +85,7 @@ type Authn struct {
 	Header HeaderAuthorization
 }
 
+// HeaderAuthorization represents the parsed Authorization header of an authorization request.
 type HeaderAuthorization struct {
 	Authorization *model.Authorization
 	Realm         string
@@ -107,17 +111,17 @@ type AuthzBuilder struct {
 
 // AuthnStrategy is a strategy used for Authz authentication.
 type AuthnStrategy interface {
-	Get(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn *Authn, err error)
+	Get(ctx AuthzContext, manager session.Manager, object *authorization.Object) (authn *Authn, err error)
 	CanHandleUnauthorized() (handle bool)
 	HeaderStrategy() (is bool)
-	HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL)
+	HandleUnauthorized(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
 }
 
 // AuthzResult is a result for Authz response handling determination.
 type AuthzResult int
 
 const (
-	// AuthzResultForbidden means the user is forbidden the access to a resource.
+	// AuthzResultForbidden means the user is forbidden access to a resource.
 	AuthzResultForbidden AuthzResult = iota
 
 	// AuthzResultUnauthorized means the user can access the resource with more permissions.
@@ -170,9 +174,11 @@ func (i AuthzImplementation) String() string {
 	}
 }
 
+// AuthzBearerIntrospectionProvider is the provider used to introspect bearer tokens during authorization.
 type AuthzBearerIntrospectionProvider interface {
 	GetRegisteredClient(ctx context.Context, id string) (client oidc.Client, err error)
-	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceMatchingStrategy)
+	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceStrategy)
+	GetResourceStrategy(ctx context.Context) (strategy oauthelia2.ResourceStrategy)
 	IntrospectToken(ctx context.Context, token string, tokenUse oauthelia2.TokenUse, session oauthelia2.Session, scope ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error)
 }
 

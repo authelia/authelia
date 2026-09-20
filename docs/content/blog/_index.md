@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Blog"
 description: "The Authelia blog featuring release notes, technical articles, setup guides, and announcements for the open-source authentication and authorization server."
 summary: ""

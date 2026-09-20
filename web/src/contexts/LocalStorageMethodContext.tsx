@@ -1,4 +1,8 @@
-import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { ReactNode, createContext, use, useCallback, useEffect, useMemo, useState } from "react";
 
 import { LocalStorageSecondFactorMethod } from "@constants/LocalStorage";
 import { SecondFactorMethod } from "@models/Methods";
@@ -73,11 +77,11 @@ export default function LocalStorageMethodContextProvider(props: Props) {
         [localStorageMethod, callback, localStorageMethodAvailable],
     );
 
-    return <LocalStorageMethodContext.Provider value={value}>{props.children}</LocalStorageMethodContext.Provider>;
+    return <LocalStorageMethodContext value={value}>{props.children}</LocalStorageMethodContext>;
 }
 
 export function useLocalStorageMethodContext() {
-    const context = useContext(LocalStorageMethodContext);
+    const context = use(LocalStorageMethodContext);
     if (!context) {
         throw new Error("useLocalStorageMethodContext must be used within a LocalStorageMethodContextProvider");
     }

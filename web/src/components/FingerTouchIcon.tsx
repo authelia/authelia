@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import clsx from "clsx";
 
 import style from "@components/FingerTouchIcon.module.css";

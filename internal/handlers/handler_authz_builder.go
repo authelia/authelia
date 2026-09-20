@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -133,7 +137,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy
 	case AuthzImplForwardAuth:
 		authz.handleGetObject = handleAuthzGetObjectForwardAuth
-		authz.handleUnauthorized = handleAuthzUnauthorizedForwardAuth
+		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplAuthRequest:
 		authz.handleGetObject = handleAuthzGetObjectAuthRequest
@@ -141,7 +145,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplExtAuthz:
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
-		authz.handleUnauthorized = handleAuthzUnauthorizedExtAuthz
+		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
 	}
 

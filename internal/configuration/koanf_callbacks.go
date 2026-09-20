@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package configuration
 
 import (
@@ -11,7 +15,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// koanfEnvironmentCallback returns a koanf callback to map the environment vars to Configuration keys.
 func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string, prefix, delimiter string) func(key, value string) (finalKey string, finalValue any) {
 	return func(key, value string) (finalKey string, finalValue any) {
 		if k, ok := keyMap[key]; ok {
@@ -33,7 +36,6 @@ func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string, pr
 	}
 }
 
-// koanfEnvironmentSecretsCallback returns a koanf callback to map the environment vars to Configuration keys.
 func koanfEnvironmentSecretsCallback(keyMap map[string]string, validator *schema.StructValidator) func(key, value string) (finalKey string, finalValue any) {
 	return func(key, value string) (finalKey string, finalValue any) {
 		k, ok := keyMap[key]

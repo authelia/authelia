@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Miscellaneous"
 description: "Configuring miscellaneous Authelia settings including the certificates directory, default redirection URL, theme selection, and privacy policy consent option."
 summary: "Authelia has a few config items that don't fit into their own area. This describes these options."
@@ -72,9 +76,9 @@ method, and the `totp` method was disabled in the configuration, the users' meth
 
 Options are:
 
-* totp
-* webauthn
-* mobile_push
+- totp
+- webauthn
+- mobile_push
 
 ```yaml {title="configuration.yml"}
 default_2fa_method: totp
@@ -86,10 +90,10 @@ default_2fa_method: totp
 
 There are currently 4 available themes for Authelia:
 
-* light (default)
-* dark
-* grey
-* oled
+- light (default)
+- dark
+- grey
+- oled
 
 To enable automatic switching between themes, you can set `theme` to `auto`. The theme will be set to either `dark` or
 `light` depending on the user's system preference which is determined using media queries. To read more technical

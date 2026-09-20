@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Identity Providers"
 description: "An introduction to configuring Authelia as an identity provider with information about the supported OpenID Connect 1.0 Provider role and implementation."
 summary: "Authelia is evolving to become an identity provider. This section describes how to configure this."

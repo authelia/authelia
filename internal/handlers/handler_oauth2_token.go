@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
 	"net/http"
+	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
@@ -14,12 +19,23 @@ import (
 // https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
+		issuer    *url.URL
 		requester oauthelia2.AccessRequester
 		responder oauthelia2.AccessResponder
 		err       error
 	)
 
-	session := oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("Access Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, rfc)
+
+		return
+	}
+
+	session := oidc.NewSessionWithIssuerAndRequestedAt(ctx, issuer, ctx.GetClock().Now())
 
 	if requester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(ctx, req, session); err != nil {
 		ctx.GetLogger().Errorf("Access Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
@@ -29,13 +45,17 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		return
 	}
 
-	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
+	if !session.ValidIssuer(issuer) {
+		err = oauthelia2.ErrInvalidRequest.WithDebug("The original request and the access request occurred at endpoints where the effective issuer did not match.")
 
-		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Error occurred determining issuer"))
+		ctx.GetLogger().WithError(err).Errorf("Access Request with id '%s' could not be processed: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
+
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 		return
 	}
+
+	ctx.GetLogger().Debugf("Access Request with id '%s' is being processed", requester.GetID())
 
 	client, ok := requester.GetClient().(oidc.Client)
 	if !ok {

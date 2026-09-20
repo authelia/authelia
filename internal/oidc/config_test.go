@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
@@ -7,10 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"authelia.com/provider/oauth2/handler/oauth2"
-	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"authelia.com/provider/oauth2/handler/oauth2"
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -109,6 +114,25 @@ func TestConfig_Durations(t *testing.T) {
 	assert.Equal(t, time.Duration(0), config.Lifespans.AuthorizeCode)
 	assert.Equal(t, time.Minute*15, config.GetAuthorizeCodeLifespan(ctx))
 	assert.Equal(t, time.Minute*15, config.Lifespans.AuthorizeCode)
+
+	assert.Equal(t, time.Second*10, config.GetJWTClockSkew(ctx))
+
+	config.JWTClockSkew = time.Second * 30
+	assert.Equal(t, time.Second*30, config.GetJWTClockSkew(ctx))
+
+	config.JWTClockSkew = time.Hour
+	assert.Equal(t, time.Minute, config.GetJWTClockSkew(ctx))
+
+	config.JWTClockSkew = -1
+	assert.Equal(t, time.Duration(0), config.GetJWTClockSkew(ctx))
+
+	assert.Equal(t, time.Hour, config.GetRequestObjectMaximumLifetime(ctx))
+
+	config.RequestObjectMaximumLifetime = time.Minute * 30
+	assert.Equal(t, time.Minute*30, config.GetRequestObjectMaximumLifetime(ctx))
+
+	config.RequestObjectMaximumLifetime = -1
+	assert.Equal(t, time.Duration(0), config.GetRequestObjectMaximumLifetime(ctx))
 }
 
 func TestConfig_GetTokenEntropy(t *testing.T) {
@@ -128,6 +152,16 @@ func TestConfig_Misc(t *testing.T) {
 
 	assert.False(t, config.DisableRefreshTokenValidation)
 	assert.False(t, config.GetDisableRefreshTokenValidation(ctx))
+
+	assert.False(t, config.GetDisableRefreshTokenRotation(ctx))
+
+	config.DisableRefreshTokenRotation = true
+	assert.True(t, config.GetDisableRefreshTokenRotation(ctx))
+
+	assert.False(t, config.GetRequireRequestObjectAudienceAndLifetime(ctx))
+
+	config.RequireRequestObjectAudienceAndLifetime = true
+	assert.True(t, config.GetRequireRequestObjectAudienceAndLifetime(ctx))
 
 	assert.Equal(t, "", config.Issuers.AccessToken)
 	assert.Equal(t, "", config.GetAccessTokenIssuer(ctx))
@@ -233,6 +267,12 @@ func TestConfig_PAR(t *testing.T) {
 	config.PAR.Require = true
 
 	assert.True(t, config.GetRequirePushedAuthorizationRequests(ctx))
+
+	assert.False(t, config.GetRequireRedirectURIPushedAuthorizationRequests(ctx))
+
+	config.PAR.RequireRedirectURI = true
+
+	assert.True(t, config.GetRequireRedirectURIPushedAuthorizationRequests(ctx))
 
 	assert.Equal(t, time.Duration(0), config.PAR.ContextLifespan)
 	assert.Equal(t, time.Minute*5, config.GetPushedAuthorizeContextLifespan(ctx))
@@ -486,12 +526,18 @@ type testConfigContext struct {
 	context.Context
 }
 
-func (t *testConfigContext) IssuerURL() (issuerURL *url.URL, err error)   { return nil, nil }
-func (t *testConfigContext) GetClock() clock.Provider                     { return nil }
-func (t *testConfigContext) GetRandom() random.Provider                   { return nil }
-func (t *testConfigContext) GetConfiguration() *schema.Configuration      { return nil }
-func (t *testConfigContext) GetProviderStorage() storage.Provider         { return nil }
+func (t *testConfigContext) IssuerURL() (issuerURL *url.URL, err error) { return nil, nil }
+
+func (t *testConfigContext) GetClock() clock.Provider { return nil }
+
+func (t *testConfigContext) GetRandom() random.Provider { return nil }
+
+func (t *testConfigContext) GetConfiguration() *schema.Configuration { return nil }
+
+func (t *testConfigContext) GetProviderStorage() storage.Provider { return nil }
+
 func (t *testConfigContext) GetUserProvider() authentication.UserProvider { return nil }
+
 func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
 }

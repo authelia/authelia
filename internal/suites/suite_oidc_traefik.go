@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -50,7 +54,11 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		if err = waitUntilProxyRoutesPortal(BaseDomain); err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, dockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {
@@ -64,11 +72,13 @@ func init() {
 
 	GlobalRegistry.Register(oidcTraefikSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
+		Description: `This suite has been created to test Authelia as an OpenID Connect 1.0 Provider behind the
+Traefik reverse proxy, with Redis backed sessions.`,
 	})
 }

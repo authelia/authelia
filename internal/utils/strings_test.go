@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -423,6 +427,56 @@ func TestStringJoinBuild(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			result := StringJoinBuild(test.sep, test.sepFinal, test.quote, test.items)
 			assert.Equal(t, test.expected, result)
+		})
+	}
+}
+
+func TestStringHasPrefixFold(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		S        string
+		Prefix   string
+		Expected bool
+	}{
+		{"ShouldMatchExactCase", "Hello, World", "Hello", true},
+		{"ShouldMatchDifferentCase", "Hello, World", "hElLo", true},
+		{"ShouldMatchUpperCasePrefix", "hello, world", "HELLO", true},
+		{"ShouldMatchEntireString", "Hello", "HELLO", true},
+		{"ShouldMatchEmptyPrefix", "Hello", "", true},
+		{"ShouldMatchEmptyStringAndEmptyPrefix", "", "", true},
+		{"ShouldNotMatchWhenPrefixLonger", "Hi", "Hello", false},
+		{"ShouldNotMatchDifferentContent", "Hello, World", "World", false},
+		{"ShouldNotMatchEmptyStringWithPrefix", "", "Hello", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, StringHasPrefixFold(tc.S, tc.Prefix))
+		})
+	}
+}
+
+func TestStringHasSuffixFold(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		S        string
+		Suffix   string
+		Expected bool
+	}{
+		{"ShouldMatchExactCase", "Hello, World", "World", true},
+		{"ShouldMatchDifferentCase", "Hello, World", "wOrLd", true},
+		{"ShouldMatchUpperCaseSuffix", "hello, world", "WORLD", true},
+		{"ShouldMatchEntireString", "Hello", "HELLO", true},
+		{"ShouldMatchEmptySuffix", "Hello", "", true},
+		{"ShouldMatchEmptyStringAndEmptySuffix", "", "", true},
+		{"ShouldNotMatchWhenSuffixLonger", "Hi", "Hello", false},
+		{"ShouldNotMatchDifferentContent", "Hello, World", "Hello", false},
+		{"ShouldNotMatchEmptyStringWithSuffix", "", "World", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, StringHasSuffixFold(tc.S, tc.Suffix))
 		})
 	}
 }

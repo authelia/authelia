@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import axios from "axios";
 
 import { TOTPAlgorithm } from "@models/TOTPConfiguration";
@@ -126,11 +130,9 @@ it("gets TOTP options", async () => {
 });
 
 it("deletes user TOTP configuration", async () => {
-    (axios as any).mockResolvedValue({ data: { status: "OK" }, status: 200 });
+    (axios.delete as any).mockResolvedValue({ data: { status: "OK" }, status: 200 });
     await deleteUserTOTPConfiguration();
-    expect(axios).toHaveBeenCalledWith({
-        method: "DELETE",
-        url: "/totp/signin",
+    expect(axios.delete).toHaveBeenCalledWith("/totp/config", {
         validateStatus: validateStatusAuthentication,
     });
 });

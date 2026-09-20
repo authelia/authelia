@@ -1,13 +1,26 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
+	"fmt"
+	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -21,6 +34,178 @@ func TestFriendlyMethod(t *testing.T) {
 	assert.Equal(t, "GET", friendlyMethod(fasthttp.MethodGet))
 }
 
+func TestCookieSessionAuthnStrategyFlags(t *testing.T) {
+	strategy := NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways())
+
+	assert.False(t, strategy.CanHandleUnauthorized())
+	assert.False(t, strategy.HeaderStrategy())
+
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	strategy.HandleUnauthorized(mock.Ctx, &Authn{}, nil)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+}
+
+func TestHandleGetBasicShouldRejectEmptyCredentialsWithDelay(t *testing.T) {
+	testCases := []struct {
+		Name        string
+		Setup       func(authz *model.Authorization)
+		ExpectError string
+	}{
+		{
+			Name:        "ShouldRejectUnparsedAuthorization",
+			Setup:       nil,
+			ExpectError: "failed to validate parsed credentials of Proxy-Authorization header: the username or password was empty",
+		},
+		{
+			Name: "ShouldRejectNonBasicScheme",
+			Setup: func(authz *model.Authorization) {
+				require.NoError(t, authz.ParseBearer("abc123"))
+			},
+			ExpectError: "failed to validate parsed credentials of Proxy-Authorization header: the username or password was empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.UserProviderMock.EXPECT().GetDetails(gomock.Any()).Times(0)
+			mock.UserProviderMock.EXPECT().CheckUserPassword(gomock.Any(), gomock.Any()).Times(0)
+
+			authz := model.NewAuthorization()
+
+			if tc.Setup != nil {
+				tc.Setup(authz)
+			}
+
+			authn := &Authn{Level: authentication.NotAuthenticated, Username: anonymous}
+			authn.Header.Authorization = authz
+
+			delayer := &testDelayer{}
+
+			targetURL, err := url.Parse("https://app.example.com/")
+			require.NoError(t, err)
+
+			object := authorization.NewObject(targetURL, fasthttp.MethodGet)
+
+			details, level, err := handleGetBasic(mock.Ctx, delayer, authn, &object, headerProxyAuthorization, DefaultBasicAuthHandler)
+
+			require.EqualError(t, err, tc.ExpectError)
+			assert.Nil(t, details)
+			assert.Equal(t, authentication.NotAuthenticated, level)
+			assert.True(t, delayer.cached)
+		})
+	}
+}
+
+type testDelayer struct {
+	cached bool
+}
+
+func (d *testDelayer) Delay(_ middlewares.TimingContext, _ time.Time, _ *bool) {}
+
+func (d *testDelayer) CachedDelay(_ middlewares.TimingContext, _ time.Time, _, _ *bool) {
+	d.cached = true
+}
+
+func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
+	testCases := []struct {
+		Name          string
+		Username      string
+		ClientID      string
+		CCS           bool
+		Level         authentication.Level
+		Setup         func(mock *mocks.MockAutheliaCtx)
+		ExpectDetails *authentication.UserDetails
+		ExpectError   string
+	}{
+		{
+			Name:     "ShouldReturnClientIDForClientCredentialsWithoutCallingGetDetails",
+			Username: "",
+			ClientID: "client-abc",
+			CCS:      true,
+			Level:    authentication.OneFactor,
+			Setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().GetDetails(gomock.Any()).Times(0)
+			},
+			ExpectDetails: nil,
+		},
+		{
+			Name:     "ShouldResolveDetailsForUserBoundToken",
+			Username: "john",
+			ClientID: "",
+			CCS:      false,
+			Level:    authentication.OneFactor,
+			Setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().
+					GetDetails(gomock.Eq("john")).
+					Return(&authentication.UserDetails{Username: "john"}, nil)
+			},
+			ExpectDetails: &authentication.UserDetails{Username: "john"},
+		},
+		{
+			Name:     "ShouldReturnErrorWhenGetDetailsFails",
+			Username: "ghost",
+			ClientID: "",
+			CCS:      false,
+			Level:    authentication.OneFactor,
+			Setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().
+					GetDetails(gomock.Eq("ghost")).
+					Return(nil, fmt.Errorf("boom"))
+			},
+			ExpectError: "failed to retrieve user details for user ghost: boom",
+		},
+		{
+			Name:     "ShouldReturnErrorWhenUserNotFound",
+			Username: "missing",
+			ClientID: "",
+			CCS:      false,
+			Level:    authentication.OneFactor,
+			Setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().
+					GetDetails(gomock.Eq("missing")).
+					Return(nil, authentication.ErrUserNotFound)
+			},
+			ExpectError: "failed to retrieve user details for user missing: user not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			if tc.Setup != nil {
+				tc.Setup(mock)
+			}
+
+			details, clientID, ccs, level, err := handleVerifyGETAuthorizationBearerResolveUser(mock.Ctx, tc.Username, tc.ClientID, tc.CCS, tc.Level)
+
+			if tc.ExpectError != "" {
+				require.EqualError(t, err, tc.ExpectError)
+				assert.Nil(t, details)
+				assert.Empty(t, clientID)
+				assert.False(t, ccs)
+				assert.Equal(t, authentication.NotAuthenticated, level)
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.ExpectDetails, details)
+			assert.Equal(t, tc.ClientID, clientID)
+			assert.Equal(t, tc.CCS, ccs)
+			assert.Equal(t, tc.Level, level)
+		})
+	}
+}
+
 func TestGenerateVerifySessionHasUpToDateProfileTraceLogs(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
@@ -28,4 +213,51 @@ func TestGenerateVerifySessionHasUpToDateProfileTraceLogs(t *testing.T) {
 	generateVerifySessionHasUpToDateProfileTraceLogs(mock.Ctx, &session.UserSession{Username: "john", DisplayName: "example"}, &authentication.UserDetails{Username: "john", DisplayName: "example"})
 	generateVerifySessionHasUpToDateProfileTraceLogs(mock.Ctx, &session.UserSession{Username: "john", DisplayName: "example", Emails: []string{"abc@example.com"}}, &authentication.UserDetails{Username: "john", DisplayName: "example"})
 	generateVerifySessionHasUpToDateProfileTraceLogs(mock.Ctx, &session.UserSession{Username: "john", DisplayName: "example"}, &authentication.UserDetails{Username: "john", DisplayName: "example", Emails: []string{"abc@example.com"}})
+}
+
+func TestCookieSessionAuthnStrategyGetShouldDestroyCookieWithMismatchedDomain(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	provider, err := mock.Ctx.GetSessionProvider()
+	require.NoError(t, err)
+
+	userSession, err := provider.GetSession(mock.Ctx.RequestCtx)
+	require.NoError(t, err)
+
+	userSession.Username = testUsername
+	userSession.CookieDomain = "notexample.com"
+
+	require.NoError(t, provider.SaveSession(mock.Ctx.RequestCtx, userSession))
+
+	strategy := NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways())
+
+	authn, err := strategy.Get(mock.Ctx, session.NewEncapsulatedSession(provider, mock.Ctx.RequestCtx), &authorization.Object{})
+
+	require.NoError(t, err)
+	assert.Equal(t, anonymous, authn.Username)
+	assert.Equal(t, authentication.NotAuthenticated, authn.Level)
+
+	assert.Equal(t, "Destroying session cookie as the cookie domain 'notexample.com' does not match the requests detected cookie domain 'example.com' which may be a sign a user tried to move this cookie from one domain to another", mock.Hook.AllEntries()[0].Message)
+}
+
+func TestHandleAuthzUnauthorizedLegacy(t *testing.T) {
+	t.Run("ShouldRequestBasicSchemeForAuthorizationAuthn", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		targetURI, err := url.ParseRequestURI("https://one-factor.example.com/")
+		require.NoError(t, err)
+
+		authn := &Authn{
+			Username: anonymous,
+			Type:     AuthnTypeAuthorization,
+			Object:   authorization.NewObject(targetURI, fasthttp.MethodGet),
+		}
+
+		handleAuthzUnauthorizedLegacy(mock.Ctx, authn, nil)
+
+		assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		assert.Regexp(t, `^Basic realm=`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+	})
 }

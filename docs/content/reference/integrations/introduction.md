@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Integrations"
 description: "An introduction to the Authelia integration reference guides detailing support requirements, general notes on supported third-party services, and compatibility."
 summary: "This section contains integration reference guides for Authelia."

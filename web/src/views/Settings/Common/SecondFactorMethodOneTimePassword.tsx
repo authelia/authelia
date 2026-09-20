@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Fragment, useCallback, useEffect, useReducer, useRef } from "react";
 
 import { useTranslation } from "react-i18next";
@@ -45,13 +49,13 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
     const [config, fetchConfig, , fetchConfigError] = useUserInfoTOTPConfiguration();
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     useEffect(() => {
         return () => {
-            if (timeoutRateLimit.current !== null) {
-                clearTimeout(timeoutRateLimit.current);
-                timeoutRateLimit.current = null;
+            if (timeoutRateLimitRef.current !== null) {
+                clearTimeout(timeoutRateLimitRef.current);
+                timeoutRateLimitRef.current = null;
             }
         };
     }, []);
@@ -69,17 +73,17 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
+            if (timeoutRateLimitRef.current) {
+                clearTimeout(timeoutRateLimitRef.current);
             }
 
             dispatch({ status: State.RateLimited, type: "setStatus" });
 
             createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
 
-            timeoutRateLimit.current = setTimeout(() => {
+            timeoutRateLimitRef.current = setTimeout(() => {
                 dispatch({ status: State.Idle, type: "setStatus" });
-                timeoutRateLimit.current = null;
+                timeoutRateLimitRef.current = null;
             }, retryAfter * 1000);
         },
         [createErrorNotification, translate],

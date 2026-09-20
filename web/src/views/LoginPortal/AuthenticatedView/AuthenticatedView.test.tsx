@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { render, screen } from "@testing-library/react";
 
 import AuthenticatedView from "@views/LoginPortal/AuthenticatedView/AuthenticatedView";
@@ -12,7 +16,7 @@ vi.mock("@components/LogoutButton", () => ({
 
 vi.mock("@layouts/MinimalLayout", () => ({
     default: (props: any) => (
-        <div data-testid="minimal-layout" data-title={props.title}>
+        <div data-testid="minimal-layout" data-title={props.title} data-id={props.id}>
             {props.children}
         </div>
     ),
@@ -31,4 +35,9 @@ it("renders logout button and authenticated component", () => {
     render(<AuthenticatedView userInfo={{ display_name: "Jane", emails: [], groups: [], method: "totp" } as any} />);
     expect(screen.getByTestId("logout-button")).toBeInTheDocument();
     expect(screen.getByTestId("authenticated")).toBeInTheDocument();
+});
+
+it("gives the layout an identifier of its own rather than the one Authenticated carries", () => {
+    render(<AuthenticatedView userInfo={{ display_name: "John", emails: [], groups: [], method: "totp" } as any} />);
+    expect(screen.getByTestId("minimal-layout")).toHaveAttribute("data-id", "authenticated-view");
 });

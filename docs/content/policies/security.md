@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Security Policy"
 description: "The Authelia security policy describing coordinated vulnerability disclosure practices and how to privately report security vulnerabilities to the project team."
 summary: ""
@@ -18,25 +22,30 @@ seo:
   noindex: false # false (default) or true
 ---
 
-The __Authelia__ team takes security very seriously. Because __Authelia__ is intended as a security product a lot of
+The **Authelia** team takes security very seriously. Because **Authelia** is intended as a security product a lot of
 decisions are made with security being the priority and we always aim to implement security by design.
 
-## General Guidelines
+## Policy
 
 1. Reports that include a severity rating must use the CVSSv4 rating system.
-2. Reporters that used Generative AI in any part of discovery of a vulnerability, providing information about a
-   a vulnerability, providing a proof-of-concept for a vulnerability, or providing a suggested fix to a vulnerability
-   must fully disclose the use of Generative AI as well as how it was used for which parts of the process.
+2. Reporters that use Generative Artificial Intelligence in any part of discovery of a vulnerability, providing
+   information about a vulnerability, providing a proof-of-concept for a vulnerability, or providing a suggested fix
+   to a vulnerability must fully disclose the use of Generative Artificial Intelligence as well as how it was used for
+   which parts of the process. Please read the full [Artificial Intelligence Policy] for more information.
 3. Reporters that are aware of specific requirements to trigger a vulnerability such as configurations or architectures
    should include this information in their report.
+4. The report and interactions in the report are subject to the [Code of Conduct].
+
+**\_Translation:**_ You may use artificial intelligence to perform translation but it must be strictly follow the
+policy around translations which is located in the [Translation Section of the Artificial Intelligence Policy].
 
 ## Coordinated vulnerability disclosure
 
-__Authelia__ follows the [coordinated vulnerability disclosure] model when dealing with security vulnerabilities. This
-was previously known as responsible disclosure. We strongly urge anyone reporting vulnerabilities to __Authelia__ or any
+**Authelia** follows the [coordinated vulnerability disclosure] model when dealing with security vulnerabilities. This
+was previously known as responsible disclosure. We strongly urge anyone reporting vulnerabilities to **Authelia** or any
 other project to follow this model as it is considered as a best practice by many in the security industry.
 
-If you believe you have identified a security vulnerability or security related bug with __Authelia__ please make every
+If you believe you have identified a security vulnerability or security related bug with **Authelia** please make every
 effort to contact us privately using one of the [contact options](#contact-options) below. Please do not open an issue,
 do not notify us in public, and do not disclose this issue to third parties.
 
@@ -60,7 +69,7 @@ Users can utilize the [security@authelia.com](mailto:security@authelia.com) emai
 vulnerability. This is an easy method of users who do not have a GitHub account.
 
 This email address is only accessible by members of the [core team] for the purpose of disclosing security
-vulnerabilities and issues within the __Authelia__ code base.
+vulnerabilities and issues within the **Authelia** code base.
 
 ### Chat
 
@@ -71,28 +80,34 @@ Please avoid this method unless absolutely necessary. We generally prefer that u
 [GitHub Security](#github-security) or [Email](#email) option rather than this option as it both allows multiple team
 members to deal with the report and prevents mistakes when contacting a [core team] member.
 
-The [core team] members are identified in [Matrix](../information/contact.md#matrix) as room admins, and in
-[Discord](../information/contact.md#discord) with the `Core Team` role.
+The [core team] members are identified in [Matrix] as room admins, and in [Discord] with the `Core Team` role.
 
 ## Process
 
 1. The user privately reports a potential vulnerability.
 2. The report is acknowledged as received.
 3. The report is reviewed to ascertain if additional information is required. If it is required:
-   1. The user is informed that the additional information is required.
-   2. The user privately adds the additional information.
-   3. The process begins at step 3 again, proceeding to step 4 if the additional information provided is sufficient.
-4. The vulnerability is reproduced.
-5. The vulnerability is patched, and if possible the user reporting the bug is given access to a fixed binary, docker
+4. The user is informed that the additional information is required.
+5. The user privately adds the additional information.
+6. The process begins at step 3 again, proceeding to step 4 if the additional information provided is sufficient.
+7. The vulnerability is reproduced.
+8. The vulnerability is patched, and if possible the user reporting the bug is given access to a fixed binary, docker
    image, and git patch.
-6. The patch is confirmed to resolve the vulnerability.
-7. The fix is released and users are notified that they should update urgently.
-8. The [security advisory] is published when (whichever happens sooner):
-  - The CVE details are published by [MITRE], [NIST], etc.
-  - Roughly 7 days after users have been notified the update is available.
+9. The patch is confirmed to resolve the vulnerability.
+10. The CVE identifier is requested and assigned.
+11. The following steps are completed at the same time:
 
-[MITRE]: https://www.mitre.org/
-[NIST]: https://www.nist.gov/
+- The [security advisory] is published as an initial public disclosure which includes the impact and brief details of
+  the vulnerability, mitigation instructions, severity, and a brief summary. This disclosure is also published by
+  [MITRE] and [NIST] etc. This initial public disclosure may
+  not include all information:
+  1. That was disclosed during the private disclosure process.
+  2. That is necessary to reproduce the vulnerability.
+- The patch is swiftly merged into the codebase and a release is cut. The commit includes a clear reference to the
+  CVE identifier.
+
+9. The [security advisory] is updated with any additional information that was otherwise not disclosed in the
+   initial public disclosure roughly 7 days after the release.
 
 ## Credit
 
@@ -107,15 +122,23 @@ As security is really important to us we see this as one of the main financial p
 
 We believe that we should obtain the following categories of security audits:
 
-* Code Security Audit / Analysis
-* Penetration Testing
+- Code Security Audit / Analysis
+- Penetration Testing
 
 If you know of a company which either performs these kinds of audits and would be willing to sponsor the audit in some
 way such as doing it pro bono or at a discounted rate, or wants to help improve _Authelia_ in a meaningful way and is
 willing to make a financial contribution towards this then please feel free to contact us.
 
+[MITRE]: https://www.mitre.org/
+[NIST]: https://www.nist.gov/
 [coordinated vulnerability disclosure]: https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure
 [security advisory]: https://github.com/authelia/authelia/security/advisories
 [report a vulnerability]: https://github.com/authelia/authelia/security/advisories/new
 [core team]: ../information/about.md#core-team
 [all contributors]: https://github.com/authelia/authelia/blob/master/README.md#contribute
+[Artificial Intelligence Policy]: ./artificial-intelligence.md
+[Translation Section of the Artificial Intelligence Policy]: ./artificial-intelligence.md#translation
+[Code of Conduct]: ./code-of-conduct
+[Matrix]: ../information/contact.md#matrix
+[Discord]: ../information/contact.md#discord
+[chat options]: ../information/contact.md#chat

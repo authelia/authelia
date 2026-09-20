@@ -1,10 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Suspense, lazy } from "react";
 
-import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
-import { CssBaseline } from "@mui/material";
+import { CSPProvider } from "@base-ui/react/csp-provider";
 import { useTranslation } from "react-i18next";
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router";
 
+import { TooltipProvider } from "@components/UI/Tooltip";
 import {
     ConsentRoute,
     IndexRoute,
@@ -21,16 +25,16 @@ import NotificationsContextProvider from "@contexts/NotificationsContext";
 import ThemeContextProvider from "@contexts/ThemeContext";
 import { getBasePath } from "@utils/BasePath";
 import {
+    getCSPNonce,
     getDuoSelfEnrollment,
     getPasskeyLogin,
+    getRegistrationURL,
     getRememberMe,
     getResetPassword,
     getResetPasswordCustomURL,
 } from "@utils/Configuration";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
-
-import "@fortawesome/fontawesome-svg-core/styles.css";
 
 const ConsentPortal = lazy(() => import("@views/ConsentPortal/ConsentPortal"));
 const SignOut = lazy(() => import("@views/LoginPortal/SignOut/SignOut"));
@@ -40,46 +44,51 @@ const SettingsRouter = lazy(() => import("@views/Settings/SettingsRouter"));
 const RevokeOneTimeCodeView = lazy(() => import("@views/Revoke/RevokeOneTimeCodeView"));
 const RevokeResetPasswordTokenView = lazy(() => import("@views/Revoke/RevokeResetPasswordTokenView"));
 
-faConfig.autoAddCss = false;
-
 function App() {
     const { i18n } = useTranslation();
 
     return (
-        <LanguageContextProvider i18n={i18n}>
-            <ThemeContextProvider>
-                <Suspense fallback={<LoadingPage />}>
-                    <CssBaseline />
-                    <NotificationsContextProvider>
-                        <LocalStorageMethodContextProvider>
-                            <Router basename={getBasePath()}>
-                                <Routes>
-                                    <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
-                                    <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                    <Route path={LogoutRoute} element={<SignOut />} />
-                                    <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
-                                    <Route path={RevokeResetPasswordRoute} element={<RevokeResetPasswordTokenView />} />
-                                    <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
-                                    <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
-                                    <Route
-                                        path={`${IndexRoute}*`}
-                                        element={
-                                            <LoginPortal
-                                                duoSelfEnrollment={getDuoSelfEnrollment()}
-                                                passkeyLogin={getPasskeyLogin()}
-                                                rememberMe={getRememberMe()}
-                                                resetPassword={getResetPassword()}
-                                                resetPasswordCustomURL={getResetPasswordCustomURL()}
+        <CSPProvider nonce={getCSPNonce()}>
+            <LanguageContextProvider i18n={i18n}>
+                <ThemeContextProvider>
+                    <Suspense fallback={<LoadingPage />}>
+                        <TooltipProvider>
+                            <NotificationsContextProvider>
+                                <LocalStorageMethodContextProvider>
+                                    <Router basename={getBasePath()}>
+                                        <Routes>
+                                            <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
+                                            <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
+                                            <Route path={LogoutRoute} element={<SignOut />} />
+                                            <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
+                                            <Route
+                                                path={RevokeResetPasswordRoute}
+                                                element={<RevokeResetPasswordTokenView />}
                                             />
-                                        }
-                                    />
-                                </Routes>
-                            </Router>
-                        </LocalStorageMethodContextProvider>
-                    </NotificationsContextProvider>
-                </Suspense>
-            </ThemeContextProvider>
-        </LanguageContextProvider>
+                                            <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
+                                            <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
+                                            <Route
+                                                path={`${IndexRoute}*`}
+                                                element={
+                                                    <LoginPortal
+                                                        duoSelfEnrollment={getDuoSelfEnrollment()}
+                                                        passkeyLogin={getPasskeyLogin()}
+                                                        rememberMe={getRememberMe()}
+                                                        resetPassword={getResetPassword()}
+                                                        resetPasswordCustomURL={getResetPasswordCustomURL()}
+                                                        registrationURL={getRegistrationURL()}
+                                                    />
+                                                }
+                                            />
+                                        </Routes>
+                                    </Router>
+                                </LocalStorageMethodContextProvider>
+                            </NotificationsContextProvider>
+                        </TooltipProvider>
+                    </Suspense>
+                </ThemeContextProvider>
+            </LanguageContextProvider>
+        </CSPProvider>
     );
 }
 

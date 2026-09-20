@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Deployment"
 description: "An overview of Authelia deployment options including Docker containers, Kubernetes clusters, bare-metal daemon installations, and deployment automation methods."
 summary: ""

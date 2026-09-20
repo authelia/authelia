@@ -1,13 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useCallback, useEffect, useState } from "react";
 
-import { Typography } from "@mui/material";
+import axios from "axios";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { IndexRoute } from "@constants/Routes";
 import { RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
-import { useIsMountedRef } from "@hooks/Mounted";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useRedirector } from "@hooks/Redirector";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
@@ -17,7 +20,6 @@ import { signOut } from "@services/SignOut";
 const SignOut = function () {
     const { t: translate } = useTranslation();
 
-    const mounted = useIsMountedRef();
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useQueryParam(RedirectionURL);
     const redirector = useRedirector();
@@ -52,29 +54,32 @@ const SignOut = function () {
     }, [redirectionURL, safeRedirect, query, redirector, navigate]);
 
     useEffect(() => {
-        const performSignOut = async () => {
+        const controller = new AbortController();
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+        (async () => {
             try {
-                const res = await signOut(redirectionURL);
-                if (!mounted.current) {
-                    return;
-                }
+                const res = await signOut(redirectionURL, controller.signal);
                 if (res?.safeTargetURL) {
                     setSafeRedirect(true);
                 }
-                setTimeout(() => {
-                    if (!mounted.current) {
-                        return;
-                    }
+                timeoutId = setTimeout(() => {
                     setTimedOut(true);
                 }, 2000);
             } catch (err) {
+                if (axios.isCancel(err)) return;
                 console.error(err);
                 createErrorNotification(translate("There was an issue signing out"));
             }
-        };
+        })();
 
-        performSignOut();
-    }, [redirectionURL, mounted, createErrorNotification, translate]);
+        return () => {
+            controller.abort();
+            if (timeoutId !== undefined) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [redirectionURL, createErrorNotification, translate]);
 
     useEffect(() => {
         if (timedOut) {
@@ -84,9 +89,7 @@ const SignOut = function () {
 
     return (
         <MinimalLayout title={translate("Sign out")}>
-            <Typography sx={{ padding: (theme) => theme.spacing() }}>
-                {translate("You're being signed out and redirected")}...
-            </Typography>
+            <p className="p-2">{translate("You're being signed out and redirected")}...</p>
         </MinimalLayout>
     );
 };

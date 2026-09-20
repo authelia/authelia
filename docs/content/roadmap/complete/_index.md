@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Complete"
 description: "The completed Authelia roadmap items which have been fully implemented and are available for use in production deployments including recent feature additions."
 summary: ""

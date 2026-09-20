@@ -1,13 +1,13 @@
-import { ReactNode, createContext, useCallback, useContext, useMemo, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import type { AlertColor } from "@mui/material";
+import { ReactNode, createContext, use, useCallback, useMemo, useState } from "react";
 
-import NotificationBar from "@components/NotificationBar.tsx";
-import type { Notification } from "@models/Notifications";
+import NotificationBar from "@components/NotificationBar";
+import type { Notification, NotificationLevel } from "@models/Notifications";
 
 const DEFAULT_TIMEOUT_SECONDS = 5;
-
-type NotificationLevel = Extract<AlertColor, "error" | "info" | "success" | "warning">;
 
 export interface NotificationsContextValue {
     createErrorNotification: (message: string, timeout?: number) => void;
@@ -95,15 +95,15 @@ export default function NotificationsContextProvider(props: Props) {
     );
 
     return (
-        <NotificationsContext.Provider value={value}>
+        <NotificationsContext value={value}>
             <NotificationBar />
             {props.children}
-        </NotificationsContext.Provider>
+        </NotificationsContext>
     );
 }
 
 export function useNotifications(): NotificationsContextValue {
-    const context = useContext(NotificationsContext);
+    const context = use(NotificationsContext);
 
     if (context === null) {
         throw new Error("useNotifications must be used within a NotificationsProvider");

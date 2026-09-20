@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Definitions"
 description: "Reference documentation for configuring reusable definitions in Authelia including network and user attribute definitions used across the configuration."
 summary: ""

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -8,20 +12,26 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	th "html/template"
 	"io"
+	"net/mail"
 	"strings"
+	tt "text/template"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	goyaml "go.yaml.in/yaml/v4"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -40,9 +50,93 @@ func newDebugCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newDebugTLSCmd(ctx),
 		newDebugExpressionCmd(ctx),
 		newDebugOIDCCmd(ctx),
+		newDebugNotificationCmd(ctx),
 	)
 
 	return cmd
+}
+
+func newDebugNotificationCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "notification",
+		Short:   cmdAutheliaDebugNotificationShort,
+		Long:    cmdAutheliaDebugNotificationLong,
+		Example: cmdAutheliaDebugNotificationExample,
+		Args:    cobra.NoArgs,
+		RunE:    ctx.DebugNotificationRunE,
+		PreRunE: ctx.ChainRunE(
+			ctx.HelperConfigLoadRunE,
+			ctx.HelperConfigValidateKeysRunE,
+			ctx.HelperConfigValidateRunE,
+			ctx.LoadTrustedCertificatesRunE,
+		),
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String("recipient", "test@example.com", "recipient email address used for the test notification")
+	cmd.Flags().String("subject", "Authelia notifier debug", "subject line for the test notification")
+
+	return cmd
+}
+
+// DebugNotificationRunE is the RunE for the authelia debug notification command.
+func (ctx *CmdCtx) DebugNotificationRunE(cmd *cobra.Command, _ []string) (err error) {
+	return runDebugNotification(cmd.OutOrStdout(), cmd.Flags(), ctx.config, ctx.trusted)
+}
+
+func runDebugNotification(w io.Writer, flags *pflag.FlagSet, config *schema.Configuration, caCertPool *x509.CertPool) (err error) {
+	var (
+		recipientRaw, subject string
+	)
+
+	if recipientRaw, err = flags.GetString("recipient"); err != nil {
+		return err
+	}
+
+	if subject, err = flags.GetString("subject"); err != nil {
+		return err
+	}
+
+	rcpt, err := mail.ParseAddress(recipientRaw)
+	if err != nil {
+		return fmt.Errorf("invalid recipient: %w", err)
+	}
+
+	var n notification.Notifier
+
+	switch {
+	case config.Notifier.SMTP != nil:
+		n = notification.NewSMTPNotifier(config.Notifier.SMTP, caCertPool)
+	case config.Notifier.FileSystem != nil:
+		n = notification.NewFileNotifier(*config.Notifier.FileSystem)
+	default:
+		return errors.New("no notifier is configured")
+	}
+
+	_, _ = fmt.Fprintf(w, "Running notifier startup check...\n")
+
+	if err = n.StartupCheck(); err != nil {
+		return fmt.Errorf("notifier startup check failed: %w", err)
+	}
+
+	_, _ = fmt.Fprintf(w, "Startup check OK.\n")
+
+	const body = "This is a test notification from `authelia debug notification`.\n"
+
+	et := &templates.EmailTemplate{
+		Text: tt.Must(tt.New("text").Parse(body)),
+		HTML: th.Must(th.New("html").Parse(body)),
+	}
+
+	_, _ = fmt.Fprintf(w, "Sending test notification to %s...\n", rcpt.Address)
+
+	if err = n.Send(context.Background(), *rcpt, subject, et, nil); err != nil {
+		return fmt.Errorf("notifier send failed: %w", err)
+	}
+
+	_, _ = fmt.Fprintf(w, "Notification sent successfully.\n")
+
+	return nil
 }
 
 func newDebugTLSCmd(ctx *CmdCtx) (cmd *cobra.Command) {
@@ -130,6 +224,7 @@ func newDebugOIDCClaimsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+// DebugOIDCClaimsRunE is the RunE for the authelia debug oidc claims command.
 func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err error) {
 	return runDebugOIDCClaims(ctx, cmd.OutOrStdout(), cmd.Flags(), ctx.config, ctx.trusted, args[0])
 }
@@ -237,6 +332,7 @@ func runDebugOIDCClaims(ctx context.Context, w io.Writer, flags *pflag.FlagSet, 
 	return nil
 }
 
+// DebugExpressionRunE is the RunE for the authelia debug expression command.
 func (ctx *CmdCtx) DebugExpressionRunE(cmd *cobra.Command, args []string) (err error) {
 	return runDebugExpression(cmd.OutOrStdout(), ctx.config, ctx.trusted, args[0], strings.Join(args[1:], " "))
 }
@@ -284,6 +380,7 @@ func runDebugExpression(w io.Writer, config *schema.Configuration, caCertPool *x
 	return nil
 }
 
+// DebugTLSRunE is the RunE for the authelia debug tls command.
 func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 	return runDebugTLS(cmd.OutOrStdout(), cmd.Flags(), ctx.trusted, args[0])
 }

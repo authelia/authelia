@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # yamllint disable rule:document-start rule:document-end
 default_redirection_url: 'https://home.example.com:8080/'
 

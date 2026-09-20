@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package server
 
 import (
@@ -366,6 +370,8 @@ func TestHandlerMainWithOptionalFeatures(t *testing.T) {
 
 type timeoutError struct{}
 
-func (e *timeoutError) Error() string   { return "i/o timeout" }
-func (e *timeoutError) Timeout() bool   { return true }
+func (e *timeoutError) Error() string { return "i/o timeout" }
+
+func (e *timeoutError) Timeout() bool { return true }
+
 func (e *timeoutError) Temporary() bool { return true }

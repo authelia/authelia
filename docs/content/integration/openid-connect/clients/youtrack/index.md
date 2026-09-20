@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "YouTrack"
 description: "A guide on integrating YouTrack with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [YouTrack]
   - 2025.1
 
@@ -33,11 +37,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/`
   - Also assumes that the [YouTrack] server is utilizing the inbuilt hub.
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `youtrack`
-- __Client Secret:__ `insecure_secret`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `youtrack`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,7 +51,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [YouTrack] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [YouTrack] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

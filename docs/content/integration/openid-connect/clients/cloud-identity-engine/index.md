@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Cloud Identity Engine"
 description: "A guide on integrating Cloud Identity Engine with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and options."
 summary: ""
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Cloud Identity Engine]
 
 {{% oidc-common %}}
@@ -31,9 +35,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `cloudidentityengine`
-- __Client Secret:__ `insecure_secret`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `cloudidentityengine`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -43,7 +47,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Cloud Identity Engine] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Cloud Identity Engine] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

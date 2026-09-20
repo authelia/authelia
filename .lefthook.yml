@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 pre-commit:
   piped: true
@@ -5,24 +9,23 @@ pre-commit:
     - name: check tools
       # yamllint disable rule:indentation
       run: |
-        MISSING=""
         COUNT=0
 
-        for TOOL in golangci-lint pnpm trufflehog typos yamllint; do
+        for TOOL in golangci-lint jq pnpm reuse scorecard shellcheck trufflehog typos yamllint zizmor; do
           if ! command -v ${TOOL} >/dev/null 2>&1; then
-            if [ "$COUNT" -eq 0 ]; then
+            if [ ${COUNT} -eq 0 ]; then
               MISSING=${TOOL}
-            elif [ "$COUNT" -eq 1 ]; then
-              MISSING="${MISSING} and ${TOOL}"
+            elif [ ${COUNT} -eq 1 ]; then
+              MISSING=${MISSING}' and '${TOOL}
             else
-              MISSING="$(echo "${MISSING}" | sed 's/ and /, /') and ${TOOL}"
+              MISSING=$(echo ${MISSING} | sed 's/ and /, /')' and '${TOOL}
             fi
             COUNT=$((COUNT + 1))
           fi
         done
 
         if [ ${COUNT} -gt 0 ]; then
-          echo "❌ You must install ${MISSING}"
+          echo '❌ You must install '${MISSING}
           exit 1
         fi
       # yamllint enable rule:indentation
@@ -31,8 +34,13 @@ pre-commit:
       group:
         parallel: true
         jobs:
+          - name: docs
+            run: pnpm --reporter=silent lint {staged_files} && echo "0 issues."
+            root: "docs/"
+            stage_fixed: true
+
           - name: eslint
-            run: pnpm lint && echo "0 issues."
+            run: pnpm --reporter=silent lint {staged_files} && echo "0 issues."
             root: "web/"
             glob: "*.{js,jsx,ts,tsx}"
             stage_fixed: true
@@ -42,16 +50,44 @@ pre-commit:
             glob: "*.go"
             stage_fixed: true
 
+          - name: reuse
+            run: reuse lint-file {staged_files} && echo "0 issues."
+
+          - name: reuse-project
+            # reuse lint-file only sees the staged files, so a REUSE.toml or LICENSES/
+            # change that strips coverage from unstaged files needs a full project lint.
+            run: reuse lint --lines && echo "0 issues."
+            glob: "{REUSE.toml,LICENSES/*}"
+
+          - name: scorecard
+            run: .buildkite/steps/lint.sh scorecard && echo "0 issues."
+            glob:
+              - "*Dockerfile*"
+              - ".github/workflows/*"
+              - ".buildkite/hooks/*"
+              - ".renovaterc*"
+              - "*.sh"
+
+          - name: shellcheck
+            run: shellcheck --format=gcc {staged_files} && echo "0 issues."
+            file_types:
+              - text/x-shellscript
+              - text/x-sh
+
           - name: trufflehog
             run: trufflehog --fail --log-level=-1 filesystem -x .trufflehog . && echo "0 issues."
 
           - name: typos
-            run: typos -w --format brief && echo "0 issues."
+            run: typos -w --threads 4 --format brief && echo "0 issues."
             stage_fixed: true
 
           - name: yamllint
             run: yamllint -f parsable . && echo "0 issues."
             glob: "*.{yml,yaml}"
+
+          - name: zizmor
+            run: zizmor {staged_files} && echo "0 issues."
+            glob: ".github/workflows/*.{yml,yaml}"
 
 commit-msg:
   jobs:

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package logging
 
 import (
@@ -13,6 +17,7 @@ const (
 	FormatJSON = "json"
 )
 
+// LogLevel represents a log level in the configuration.
 type LogLevel string
 
 // Log Level values.
@@ -24,6 +29,7 @@ const (
 	LevelError = "error"
 )
 
+// Level returns the logrus.Level for this LogLevel.
 func (l LogLevel) Level() logrus.Level {
 	switch l {
 	case LevelError:
@@ -66,10 +72,21 @@ const (
 	FieldGranted             = "granted"
 	FieldStatus              = "status"
 	FieldProvider            = "provider"
+	FieldCaller              = "caller"
+	FieldStack               = "stack"
+)
+
+// Stack trace hook values.
+const (
+	stackSkipFrames       = 8
+	stackSkipFramesFields = 6
+	stackMaxDepth         = 32
+
+	pathPackageLogrus = "github.com/sirupsen/logrus"
 )
 
 var (
 	stacktrace       sync.Once
 	reFormatFilePath = regexp.MustCompile(`(%d|\{datetime(:([^}]+))?})`)
-	lf               *File
+	logFile          *File
 )

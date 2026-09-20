@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -124,7 +128,6 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 
 // RunCommandWithTimeout run a command with timeout.
 func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
-	// Start a process.
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}

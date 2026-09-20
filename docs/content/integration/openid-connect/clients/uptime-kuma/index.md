@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Uptime Kuma"
 description: "A guide on integrating Uptime Kuma with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -33,11 +37,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://uptime-kuma.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `uptime-kuma`
-- __Client Secret:__ `insecure_secret`
-- __Secured Resource URL:__ `https://application.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://uptime-kuma.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `uptime-kuma`
+- **Client Secret:** `insecure_secret`
+- **Secured Resource URL:** `https://application.{{< sitevar name="domain" nojs="example.com" >}}/`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 ### Important Notes
 
 This implementation has several facets which must be configured as a security precaution. It's advised people read the
-[OAuth 2.0 Bearer Token Usage](../oauth-2.0-bearer-token-usage.md) integration guide in addition to this guide to
+[OAuth 2.0 Bearer Token Usage](../../oauth-2.0-bearer-token-usage.md) integration guide in addition to this guide to
 properly understand this process.
 
 For example this guide has a requirement to adapt a fairly new and special section of Authelia. It's important to take
@@ -71,7 +75,7 @@ See more information about the server authz endpoints section in the
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Uptime Kuma] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Uptime Kuma] which will
 operate with the above example:
 
 ```yaml {title="configuration.yml"}
@@ -144,7 +148,6 @@ To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
 See the following screenshot for an authentication example of the above:
 
 {{< figure src="uptime-kuma-authentication.png" alt="Uptime Kuma Authentication example" width="300" >}}
-
 
 [Authelia]: https://www.authelia.com
 [Uptime Kuma]: https://github.com/louislam/uptime-kuma

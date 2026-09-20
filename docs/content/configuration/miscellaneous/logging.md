@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Log"
 description: "Configuring the Authelia logging settings including log level, output format, file path destination, and the keep stdout option for log file management."
 summary: "Authelia performs logging to various locations. This section describes how to configure and tune this."
@@ -92,21 +96,21 @@ continue to append to the old log file.
 
 #### File Path Examples
 
-__Standard Example:__
+**Standard Example:**
 
 ```yaml {title="configuration.yml"}
 log:
   file_path: '/config/authelia.log'
 ```
 
-__Date Time Example:__
+**Date Time Example:**
 
 ```yaml {title="configuration.yml"}
 log:
   file_path: '/config/authelia.%d.log'
 ```
 
-__Date Time Example (with custom layout):__
+**Date Time Example (with custom layout):**
 
 ```yaml {title="configuration.yml"}
 log:

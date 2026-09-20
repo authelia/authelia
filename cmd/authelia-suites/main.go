@@ -1,7 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+// Command authelia-suites manages the environment of an integration suite.
 package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,9 +20,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var tmpDirectory = "/tmp/authelia/suites/"
-
-// runningSuiteFile name of the file containing the currently running suite.
 var runningSuiteFile = ".suite"
 
 func init() {
@@ -80,6 +83,48 @@ func removeRunningSuiteFile() error {
 	return os.Remove(runningSuiteFile)
 }
 
+func loadSuiteEnvironment(path string) (err error) {
+	if _, err = os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+
+		return fmt.Errorf("error checking environment file '%s': %w", path, err)
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("error opening environment file '%s': %w", path, err)
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		v := strings.SplitN(line, "=", 2)
+		if len(v) != 2 {
+			return fmt.Errorf("error parsing environment file '%s': line '%s' is not a comment and does not contain a '=' character", path, line)
+		}
+
+		if err = os.Setenv(v[0], v[1]); err != nil {
+			return fmt.Errorf("error setting environment variable '%s' from environment file '%s': %w", v[0], path, err)
+		}
+	}
+
+	if err = scanner.Err(); err != nil {
+		return fmt.Errorf("error reading environment file '%s': %w", path, err)
+	}
+
+	return nil
+}
+
 func setupSuite(cmd *cobra.Command, args []string) {
 	suiteName := args[0]
 	s := suites.GlobalRegistry.Get(suiteName)
@@ -96,28 +141,11 @@ func setupSuite(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	suiteEnv := suiteResourcePath + "/.env"
-
-	_, err = os.Stat(suiteEnv)
-	if err == nil {
-		file, err := os.Open(suiteEnv)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		env := bufio.NewScanner(file)
-
-		for env.Scan() {
-			v := strings.Split(env.Text(), "=")
-
-			err := os.Setenv(v[0], v[1])
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+	if err = loadSuiteEnvironment(suiteResourcePath + "/.env"); err != nil {
+		log.Fatal(err)
 	}
 
-	suiteTmpDirectory := tmpDirectory + suiteName
+	suiteTmpDirectory := suites.SuiteTmpPath("authelia", "suites", suiteName)
 
 	if exist {
 		err := copy.Copy(suiteResourcePath, suiteTmpDirectory)
@@ -131,13 +159,19 @@ func setupSuite(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// Create the .suite file.
 	if err := createRunningSuiteFile(suiteName); err != nil {
 		log.Fatal(err)
 	}
 
 	if err = s.SetUp(suiteTmpDirectory); err != nil {
 		log.Error("Failure during environment deployment.")
+
+		if s.OnError != nil {
+			if errLogs := s.OnError(); errLogs != nil {
+				log.Errorf("Error collecting suite logs: %v", errLogs)
+			}
+		}
+
 		teardownSuite(nil, args)
 		log.Fatal(err)
 	}
@@ -178,7 +212,7 @@ func teardownSuite(cmd *cobra.Command, args []string) {
 
 	s := suites.GlobalRegistry.Get(args[0])
 
-	suiteTmpDirectory := tmpDirectory + args[0]
+	suiteTmpDirectory := suites.SuiteTmpPath("authelia", "suites", args[0])
 	if err := s.TearDown(suiteTmpDirectory); err != nil {
 		log.Fatal(err)
 	}

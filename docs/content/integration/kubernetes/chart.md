@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Chart"
 description: "A guide to using the Authelia Helm chart to integrate Authelia with Kubernetes including repository setup, values configuration, and important deployment notes."
 summary: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes."
@@ -19,9 +23,9 @@ status, and as such is subject to breaking changes.
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Repository
 

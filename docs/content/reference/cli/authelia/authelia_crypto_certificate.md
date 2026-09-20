@@ -2,7 +2,7 @@
 title: "authelia crypto certificate"
 description: "Reference for the authelia crypto certificate command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 905
@@ -48,5 +48,6 @@ authelia crypto certificate --help
 * [authelia crypto](authelia_crypto.md)	 - Perform cryptographic operations
 * [authelia crypto certificate ecdsa](authelia_crypto_certificate_ecdsa.md)	 - Perform ECDSA certificate cryptographic operations
 * [authelia crypto certificate ed25519](authelia_crypto_certificate_ed25519.md)	 - Perform Ed25519 certificate cryptographic operations
+* [authelia crypto certificate mldsa](authelia_crypto_certificate_mldsa.md)	 - Perform ML-DSA certificate cryptographic operations
 * [authelia crypto certificate rsa](authelia_crypto_certificate_rsa.md)	 - Perform RSA certificate cryptographic operations
 

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100" role="img" aria-label="Antoine Favre">
+  <style>
+    svg { color-scheme: light dark }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,/9j/2wCEAAoHCAkIBgoJCAkMCwoMDxoRDw4ODx8WGBMaJSEnJiQhJCMpLjsyKSw4LCMkM0Y0OD0/QkNCKDFITUhATTtBQj8BCwwMDw0PHhERHj8qJCo/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/P//AABEIAHAAcAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APWqKKKACiiigAooooAKKKKACiiigAooooAKKKKACiisy41Xybh4vI3bTjO/Gf0qoxctiJTjBXkadFY/9tf9O/8A4/8A/Wo/tr/p3/8AH/8A61X7GfYj29PubFFY/wDbX/Tv/wCP/wD1qP7a/wCnf/x//wCtR7GfYPb0+5sUVj/21/07/wDj/wD9aj+2v+nf/wAf/wDrUexn2D29PubFFY/9tf8ATv8A+P8A/wBaj+2v+nf/AMf/APrUexn2D29PubFFY/8AbX/Tv/4//wDWo/tr/p3/APH/AP61HsZ9g9vT7mxRWVDq/mzJH5GN7Bc7+mfwrVqJRcdy4TjP4QrmdQ/4/wCb/erpq56+t52vZWWGRlLcEKTWtB2kzDEpuKsUaKm+y3H/AD7y/wDfBo+y3H/PvL/3wa6+Zdzh5ZdiGipvstx/z7y/98Gj7Lcf8+8v/fBo5l3Dll2IaKm+y3H/AD7y/wDfBo+y3H/PvL/3waOZdw5ZdiGipvstx/z7y/8AfBo+y3H/AD7y/wDfBo5l3Dll2IaKm+y3H/PvL/3waPstx/z7y/8AfBo5l3Dll2Cz/wCP2D/rov8AOuprm7W2nW7hLQSAB1JJQ8c10lctd3aO7CppO4UUUVznUFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABWZrE8sPk+U5Xduzjv0rTrH17/AJYf8C/pWlJXmjGu2qbaKP266/57tR9uuv8Anu1VqK7eWPY87nl3LP266/57tR9uuv8Anu1VqKOWPYOeXcs/brr/AJ7tR9uuv+e7VWoo5Y9g55dza0e4mmeUSyFsAYzWrWNoX+sm+grZrjqq03Y9Gg26auFFFFZGwUUUUAFUtQsjeeXhwuzPUZ64/wAKu0U4txd0TKKkrMxv7Ff/AJ7r/wB81HNpLRQvIZgdozjbW7Ve+/48Zv8AcNaqrNvcxlQppN2OYooortPONG20tp7dJRKFDdsVL/Yr/wDPdf8Avmr2mf8AIOh+h/nVuuOVWabR6EKFNxTaKOn2LWjOTIG3AdBir1FFYyk5O7N4xUVZBRRRSKCiiigAooooAKgvFLWcyqCSUOAKnopp2dxNXVjlvstx/wA+8v8A3waPstx/z7y/98Guporf6w+xy/VY9ytpyslhErqVYA5BGD1qzRRWDd3c6oqySCiiikMKKKKAP//Z" x="32.0" y="0" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="60.0" cy="28.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+  <text x="60.0" y="73" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">Antoine Favre</text>
+  <text x="60.0" y="91" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">🐛🤔</text>
+</svg>

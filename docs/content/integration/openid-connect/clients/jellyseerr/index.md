@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Jellyseerr"
 description: "A guide on integrating Jellyseerr with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Jellyseerr]
   - [development version tag:preview-OIDC](https://github.com/fallenbagel/jellyseerr/releases/tag/preview-OIDC)
 
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://jellyseerr.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `jellyseerr`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://jellyseerr.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `jellyseerr`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -44,7 +48,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Jellyseerr] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Jellyseerr] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -92,7 +96,7 @@ The following instructions will guide you through the UI-based configuration of 
    - Client Secret: `insecure_secret`
    - Scopes: `openid profile email groups`
    - Allow New Users: Checked
-   ![Example of provider settings](./provider.png)
+     ![Example of provider settings](./provider.png)
 5. All other options may remain unchecked or unconfigured.
 6. Click `Save Changes`.
 7. Click `Close` to return to the Settings page.

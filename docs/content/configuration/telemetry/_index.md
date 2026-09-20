@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Telemetry"
 description: "Reference documentation for configuring Authelia telemetry settings including the Prometheus metrics exporter for monitoring and observability purposes."
 summary: ""

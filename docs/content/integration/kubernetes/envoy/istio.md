@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Istio"
 description: "A guide to integrating Authelia with the Istio Kubernetes Ingress which uses Envoy and the external authorization filter for authentication and authorization."
 summary: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
@@ -30,9 +34,9 @@ specific to Kubernetes.
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Variables
 
@@ -84,7 +88,7 @@ spec:
 
 The following [Authorization Policy] applies the above filter extension provider to the `app.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
-```yaml {title="authoriztion-policy.yml"}
+```yaml {title="authorization-policy.yml"}
 apiVersion: 'security.istio.io/v1beta1'
 kind: 'AuthorizationPolicy'
 metadata:

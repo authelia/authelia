@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 services:
   authelia-backend:
@@ -9,7 +13,7 @@ services:
       - './Standalone/users.yml:/config/users.yml'
       - './common/pki:/pki'
       - './common/pki/public.crt:/certs/public.crt'
-      - '/tmp:/tmp'
+      - '${SUITE_TMP:-/tmp}:/tmp'
       - './Standalone/locales:/config/locales'
     user: '${USER_ID}:${GROUP_ID}'
 ...

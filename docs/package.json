@@ -7,14 +7,15 @@
   "scripts": {
     "create": "hugo new",
     "dev": "hugo server --disableFastRender --noHTTPCache",
-    "format": "prettier **/** -w -c",
+    "ci": "hugo server --disableFastRender --noHTTPCache --disableLiveReload",
+    "lint": "eslint --format visualstudio --no-warn-ignored --fix",
     "build": "hugo --minify --gc",
     "preview": "vite preview --outDir public"
   },
   "dependencies": {
-    "@docsearch/css": "3.9.0",
-    "@docsearch/js": "3.9.0",
-    "@tabler/icons": "3.41.1",
+    "@docsearch/css": "5.1.1",
+    "@docsearch/js": "5.1.1",
+    "@tabler/icons": "3.47.0",
     "@thulite/core": "1.5.9",
     "@thulite/doks-core": "1.9.3",
     "@thulite/images": "3.3.4",
@@ -24,42 +25,36 @@
     "thulite": "2.6.5"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "0.6.0",
-    "@changesets/cli": "2.30.0",
+    "@changesets/changelog-github": "1.0.1",
+    "@changesets/cli": "3.0.3",
+    "@eslint/css": "2.0.0",
+    "@eslint/json": "2.1.0",
+    "@eslint/markdown": "8.0.3",
     "@fullhuman/postcss-purgecss": "8.0.0",
-    "autoprefixer": "10.4.27",
+    "autoprefixer": "10.6.1",
     "basiclightbox": "5.0.4",
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
+    "eslint": "10.11.0",
+    "eslint-formatter-rdjson": "1.0.6",
+    "eslint-formatter-visualstudio": "9.0.1",
+    "eslint-plugin-prettier": "5.5.6",
     "flexsearch": "0.8.212",
-    "postcss": "8.5.9",
-    "postcss-cli": "11.0.1",
-    "prettier": "3.8.2",
-    "vite": "8.0.8"
+    "postcss": "8.5.28",
+    "postcss-cli": "12.0.0",
+    "prettier": "3.9.8",
+    "vite": "8.3.0"
   },
   "optionalDependencies": {
-    "hugo-extended": "0.160.1"
+    "hugo-extended": "0.166.0"
   },
   "engines": {
     "node": ">=24.13.0",
-    "pnpm": "10"
+    "pnpm": "12"
   },
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@12.5.1",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  },
-  "pnpm": {
-    "overrides": {
-      "brace-expansion": "1.1.13",
-      "picomatch": "4.0.4",
-      "semver": "7.7.4",
-      "yaml": "2.8.3",
-      "yauzl": "3.3.0",
-      "vite": "8.0.8"
-    },
-    "onlyBuiltDependencies": [
-      "hugo-extended"
-    ]
   }
 }

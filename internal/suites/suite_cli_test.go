@@ -1,15 +1,22 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 	"go.yaml.in/yaml/v4"
@@ -505,17 +512,16 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Contains(output, "\tPrivate Key: private.pem")
 	s.Contains(output, "\tCertificate: public.crt")
 
-	// Check the certificates look fine.
-	privateKeyData, err := os.ReadFile("/tmp/private.pem")
+	privateKeyData, err := os.ReadFile(SuiteTmpPath("private.pem"))
 	s.NoError(err)
 
-	certificateData, err := os.ReadFile("/tmp/public.crt")
+	certificateData, err := os.ReadFile(SuiteTmpPath("public.crt"))
 	s.NoError(err)
 
-	privateKeyCAData, err := os.ReadFile("/tmp/ca.private.pem")
+	privateKeyCAData, err := os.ReadFile(SuiteTmpPath("ca.private.pem"))
 	s.NoError(err)
 
-	certificateCAData, err := os.ReadFile("/tmp/ca.public.crt")
+	certificateCAData, err := os.ReadFile(SuiteTmpPath("ca.public.crt"))
 	s.NoError(err)
 
 	s.False(bytes.Equal(privateKeyData, privateKeyCAData))
@@ -796,8 +802,8 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 	_, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
 	s.NoError(err)
 
-	s.Require().NoError(os.WriteFile("/tmp/ca.private.bad.pem", []byte("INVALID"), 0600)) //nolint:gosec
-	s.Require().NoError(os.WriteFile("/tmp/ca.public.bad.crt", []byte("INVALID"), 0600))  //nolint:gosec
+	s.Require().NoError(os.WriteFile(SuiteTmpPath("ca.private.bad.pem"), []byte("INVALID"), 0600))
+	s.Require().NoError(os.WriteFile(SuiteTmpPath("ca.public.bad.crt"), []byte("INVALID"), 0600))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-private-key=ca.private.bad.pem", "--directory=/tmp/"})
 	s.NotNil(err)
@@ -809,7 +815,7 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
-	_ = os.Remove("/tmp/db.sqlite3")
+	_ = os.Remove(SuiteTmpPath("db.sqlite3"))
 
 	output, err := s.Exec("authelia-backend", []string{"authelia", "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
@@ -936,13 +942,10 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
-	storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	storageProvider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	s.Require().NoError(err)
 
 	ctx := context.Background()
-
-	var (
-		err error
-	)
 
 	var (
 		expectedLines    = make([]string, 0, 3)
@@ -996,15 +999,16 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		fileInfo os.FileInfo
 	)
 
-	dir := s.T().TempDir()
+	dir := SuiteTempDir(s.T(), "totp")
 
 	qr := filepath.Join(dir, "qr.png")
+	qrContainer := SuiteTmpContainerPath(qr)
 
 	for _, testCase := range testCases {
 		if testCase.png {
-			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.FormatUint(uint64(testCase.config.Period), 10), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path", qr, "--config=/config/configuration.storage.yml"})
+			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.FormatUint(uint64(testCase.config.Period), 10), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path", qrContainer, "--config=/config/configuration.storage.yml"})
 			s.NoError(err)
-			s.Contains(output, fmt.Sprintf(" and saved it as a PNG image at the path '%s'", qr))
+			s.Contains(output, fmt.Sprintf(" and saved it as a PNG image at the path '%s'", qrContainer))
 
 			fileInfo, err = os.Stat(qr)
 			s.NoError(err)
@@ -1025,7 +1029,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		expectedLines = append(expectedLines, config.URI())
 	}
 
-	yml := filepath.Join(dir, "authelia.export.totp.yml")
+	yml := SuiteTmpContainerPath(filepath.Join(dir, "authelia.export.totp.yml"))
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "--file", yml, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
 	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as YAML to the '%s' file\n", len(expectedLines), yml))
@@ -1038,9 +1042,10 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 
 	csv := filepath.Join(dir, "authelia.export.totp.csv")
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "csv", "--file", csv, "--config=/config/configuration.storage.yml"})
+	csvContainer := SuiteTmpContainerPath(csv)
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "csv", "--file", csvContainer, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
-	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as CSV to the '%s' file\n", len(expectedLines), csv))
+	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as CSV to the '%s' file\n", len(expectedLines), csvContainer))
 
 	var data []byte
 
@@ -1053,10 +1058,11 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 
 	pngs := filepath.Join(dir, "png-qr-codes")
+	pngsContainer := SuiteTmpContainerPath(pngs)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "png", "--directory", pngs, "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "png", "--directory", pngsContainer, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
-	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configuration as QR codes in PNG format to the '%s' directory\n", len(expectedLines), pngs))
+	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configuration as QR codes in PNG format to the '%s' directory\n", len(expectedLines), pngsContainer))
 
 	for _, testCase := range testCases {
 		fileInfo, err = os.Stat(filepath.Join(pngs, fmt.Sprintf("%s.png", testCase.config.Username)))
@@ -1068,13 +1074,13 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		s.Greater(fileInfo.Size(), int64(1000))
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", "test", "--period=30", "--algorithm=SHA1", "--digits=6", "--path", qr, "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", "test", "--period=30", "--algorithm=SHA1", "--digits=6", "--path", qrContainer, "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
 	s.Contains(output, "Error: image output filepath already exists")
 }
 
 func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
-	dir := s.T().TempDir()
+	dir := SuiteTempDir(s.T(), "identifiers")
 
 	output, err := s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file=out.yml", "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
@@ -1097,13 +1103,14 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Contains(output, "Error: error occurred writing to file 'out.yml': open out.yml: permission denied")
 
 	out1 := filepath.Join(dir, "1.yml")
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out1, "--config=/config/configuration.storage.yml"})
+	out1Container := SuiteTmpContainerPath(out1)
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out1Container, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
-	s.Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 1, out1))
+	s.Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 1, out1Container))
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out1, "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out1Container, "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
-	s.Contains(output, fmt.Sprintf("Error: must specify a file that doesn't exist but '%s' exists", out1))
+	s.Contains(output, fmt.Sprintf("Error: must specify a file that doesn't exist but '%s' exists", out1Container))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector=''", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
@@ -1144,9 +1151,10 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Equal("openid", export.Identifiers[0].Service)
 
 	out2 := filepath.Join(dir, "2.yml")
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out2, "--config=/config/configuration.storage.yml"})
+	out2Container := SuiteTmpContainerPath(out2)
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out2Container, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
-	s.Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 2, out2))
+	s.Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 2, out2Container))
 
 	export = model.UserOpaqueIdentifiersExport{}
 
@@ -1253,7 +1261,7 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 		err    error
 	)
 
-	dir := s.T().TempDir()
+	dir := SuiteTmpContainerPath(SuiteTempDir(s.T(), "mds3"))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "--help"})
 	s.NoError(err)
@@ -1305,9 +1313,13 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 		updateArgs = append(updateArgs, "--path="+strings.Replace(mds3, "/buildkite/.cache/fido/", "/tmp/", 1))
 	}
 
-	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
-	s.NoError(err)
-	s.Regexp(reUpdated, output)
+	output, err = s.ExecWithEnv("authelia-backend", append([]string{"authelia", "storage", "cache", "mds3", "update"}, updateArgs...), env)
+
+	// Fatal because the version and date are read out of this output below. An update that did not happen,
+	// which is what an expired or rotated signing chain upstream looks like from here, otherwise reaches
+	// that read with nothing captured and panics, taking the rest of the suite with it.
+	s.Require().NoError(err)
+	s.Require().Regexp(reUpdated, output)
 
 	matches := reUpdated.FindStringSubmatch(output)
 
@@ -1451,10 +1463,12 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 }
 
 func (s *CLISuite) TestDebugTLS() {
+	portal := fmt.Sprintf("%s:8080", SuiteAddress(100))
+
 	output, err := s.Exec("authelia-backend", []string{"authelia", "debug", "tls", "tcp://secure.example.com:8080"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: secure.example.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: secure.example.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: true\n\t\tValid (System): false\n\t\tHostname Verification: pass")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: true\n\t\tValid (System): false")
 	s.Contains(output, "\tCertificate Trusted: true\n\tCertificate Matches Hostname: true")
@@ -1462,7 +1476,7 @@ func (s *CLISuite) TestDebugTLS() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", "debug", "tls", "tcp://secure.example.com:8080", "--hostname", "notsecure.notexample.com"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: notsecure.notexample.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: notsecure.notexample.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: true\n\t\tValid (System): false\n\t\tHostname Verification: fail\n\t\tHostname Verification Error: x509: certificate is valid for *.example.com, example.com, *.example1.com, example1.com, *.example2.com, example2.com, *.example3.com, example3.com, not notsecure.notexample.com")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: true\n\t\tValid (System): false")
 	s.Contains(output, "\tCertificate Trusted: true\n\tCertificate Matches Hostname: false")
@@ -1470,7 +1484,7 @@ func (s *CLISuite) TestDebugTLS() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", "--config", "/config/configuration.nocerts.yml", "debug", "tls", "tcp://secure.example.com:8080"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: secure.example.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: secure.example.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: false\n\t\tValid (System): false\n\t\tValidation Hint: Certificate signed by unknown authority\n\t\tValidation Error: x509: certificate signed by unknown authority\n\t\tHostname Verification: pass")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: false\n\t\tValid (System): false\n\t\tValidation Hint: Certificate signed by unknown authority\n\t\tValidation Error: x509: certificate signed by unknown authority")
 	s.Contains(output, "\tCertificate Trusted: false\n\tCertificate Matches Hostname: true")
@@ -1482,6 +1496,128 @@ func (s *CLISuite) TestDebugTLS() {
 	s.NoError(err)
 
 	s.Contains(output, "General Information:\n\tFailure: Did not receive a TLS handshake from secure.example.com:8081")
+}
+
+func (s *CLISuite) TestShouldDeliverSequentialNotificationsToFIFO() {
+	type readResult struct {
+		data []byte
+		err  error
+	}
+
+	for _, subject := range []string{"fifo-sequential-one", "fifo-sequential-two", "fifo-sequential-three"} {
+		s.Run(subject, func() {
+			got := make(chan readResult, 1)
+
+			go func() {
+				f, err := os.OpenFile(cliSuiteFIFOPath, os.O_RDONLY, 0)
+				if err != nil {
+					got <- readResult{nil, err}
+
+					return
+				}
+
+				defer f.Close()
+
+				b, err := io.ReadAll(f)
+				got <- readResult{b, err}
+			}()
+
+			output, err := s.Exec("authelia-backend", []string{
+				"authelia", "debug", "notification",
+				"--config", "/config/configuration.yml",
+				"--recipient", "john.doe@authelia.com",
+				"--subject", subject,
+			})
+			s.Require().NoError(err, output)
+			s.Contains(output, "Notification sent successfully")
+
+			select {
+			case r := <-got:
+				s.Require().NoError(r.err)
+
+				content := string(r.data)
+				s.Contains(content, fmt.Sprintf("Subject: %s", subject))
+				s.Contains(content, "john.doe@authelia.com")
+				s.Contains(content, "test notification from")
+			case <-time.After(15 * time.Second):
+				s.Fail("FIFO reader timed out; notifier did not write to the pipe")
+			}
+		})
+	}
+}
+
+func (s *CLISuite) TestShouldDeliverConcurrentNotificationsToFIFO() {
+	f, err := os.OpenFile(cliSuiteFIFOPath, os.O_RDWR, 0)
+	s.Require().NoError(err)
+
+	defer f.Close()
+
+	subjects := []string{"fifo-concurrent-one", "fifo-concurrent-two"}
+
+	type readResult struct {
+		data []byte
+		err  error
+	}
+
+	got := make(chan readResult, 1)
+
+	go func() {
+		var buf bytes.Buffer
+
+		chunk := make([]byte, 4096)
+
+		for {
+			n, err := f.Read(chunk)
+			if n > 0 {
+				buf.Write(chunk[:n])
+			}
+
+			if err != nil && err != io.EOF {
+				got <- readResult{buf.Bytes(), err}
+
+				return
+			}
+
+			data := buf.Bytes()
+			if bytes.Contains(data, []byte(subjects[0])) && bytes.Contains(data, []byte(subjects[1])) {
+				got <- readResult{data, nil}
+
+				return
+			}
+		}
+	}()
+
+	var wg sync.WaitGroup
+
+	for _, subject := range subjects {
+		wg.Add(1)
+
+		go func(subject string) {
+			defer wg.Done()
+
+			output, err := s.Exec("authelia-backend", []string{
+				"authelia", "debug", "notification",
+				"--config", "/config/configuration.yml",
+				"--recipient", "john.doe@authelia.com",
+				"--subject", subject,
+			})
+			s.NoError(err, output)
+			s.Contains(output, "Notification sent successfully")
+		}(subject)
+	}
+
+	wg.Wait()
+
+	select {
+	case r := <-got:
+		s.Require().NoError(r.err)
+
+		content := string(r.data)
+		s.Contains(content, fmt.Sprintf("Subject: %s", subjects[0]))
+		s.Contains(content, fmt.Sprintf("Subject: %s", subjects[1]))
+	case <-time.After(15 * time.Second):
+		s.Fail("FIFO reader timed out for concurrent notifications")
+	}
 }
 
 func TestCLISuite(t *testing.T) {

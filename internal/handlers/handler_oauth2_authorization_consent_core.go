@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -7,8 +11,9 @@ import (
 	"strings"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -135,7 +140,7 @@ func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaC
 
 	handleOAuth2PushedAuthorizeConsent(ctx, requester, r.Form)
 
-	http.Redirect(rw, r, redirectionURL.String(), http.StatusFound)
+	http.Redirect(rw, r, redirectionURL.String(), http.StatusSeeOther)
 
 	return nil, true
 }
@@ -215,7 +220,7 @@ func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issu
 
 	ctx.GetLogger().Debugf(logFmtDbgConsentRedirect, requester.GetID(), client.GetID(), client.GetConsentPolicy(), location)
 
-	http.Redirect(rw, r, location.String(), http.StatusFound)
+	http.Redirect(rw, r, location.String(), http.StatusSeeOther)
 }
 
 func handleOAuth2PushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester oauthelia2.Requester, form url.Values) {
@@ -223,7 +228,7 @@ func handleOAuth2PushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester 
 		return
 	}
 
-	par, err := ctx.Providers.StorageProvider.LoadOAuth2PARContext(ctx, form.Get(oidc.FormParameterRequestURI))
+	par, err := ctx.Providers.StorageProvider.LoadOAuth2PushedAuthorizationSession(ctx, form.Get(oidc.FormParameterRequestURI))
 	if err != nil {
 		ctx.GetLogger().WithError(err).Warnf("Authorization Request with id '%s' on client with id '%s' encountered a storage error while trying to make the Pushed Authorize Request session available for consent", requester.GetID(), requester.GetClient().GetID())
 
@@ -232,7 +237,7 @@ func handleOAuth2PushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester 
 
 	par.Revoked = false
 
-	if err = ctx.Providers.StorageProvider.UpdateOAuth2PARContext(ctx, *par); err != nil {
+	if err = ctx.Providers.StorageProvider.UpdateOAuth2PushedAuthorizationSession(ctx, *par); err != nil {
 		ctx.GetLogger().WithError(err).Warnf("Authorization Request with id '%s' on client with id '%s' encountered a storage error while trying to make the Pushed Authorize Request session available for consent", requester.GetID(), requester.GetClient().GetID())
 
 		return
@@ -252,7 +257,7 @@ func handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx *middlewares.Authel
 
 	redirectionURL.RawQuery = query.Encode()
 
-	http.Redirect(rw, r, redirectionURL.String(), http.StatusFound)
+	http.Redirect(rw, r, redirectionURL.String(), http.StatusSeeOther)
 }
 
 func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession) (redirectURL *url.URL) {

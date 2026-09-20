@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package model_test
 
 import (
@@ -169,12 +173,12 @@ func TestWebAuthnUser(t *testing.T) {
 
 func TestWebAuthnCredential(t *testing.T) {
 	testCases := []struct {
-		name          string
-		have          *model.WebAuthnCredential
-		config        *webauthn.Config
-		now           time.Time
-		authenticator webauthn.Authenticator
-		expected      *model.WebAuthnCredential
+		name       string
+		have       *model.WebAuthnCredential
+		config     *webauthn.Config
+		now        time.Time
+		credential *webauthn.Credential
+		expected   *model.WebAuthnCredential
 	}{
 		{
 			name: "ShouldUpdate",
@@ -185,9 +189,9 @@ func TestWebAuthnCredential(t *testing.T) {
 				RPID:       "",
 				LastUsedAt: sql.NullTime{Time: time.Unix(0, 0), Valid: true},
 			},
-			config:        &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
-			now:           time.Unix(10, 0),
-			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
+			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			now:        time.Unix(10, 0),
+			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
 				KID:        model.NewBase64([]byte{}),
 				PublicKey:  []byte{},
@@ -206,9 +210,9 @@ func TestWebAuthnCredential(t *testing.T) {
 				LastUsedAt:      sql.NullTime{Time: time.Unix(0, 0), Valid: true},
 				AttestationType: "fido-u2f",
 			},
-			config:        &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
-			now:           time.Unix(10, 0),
-			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
+			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			now:        time.Unix(10, 0),
+			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
 				KID:             model.NewBase64([]byte{}),
 				PublicKey:       []byte{},
@@ -228,9 +232,9 @@ func TestWebAuthnCredential(t *testing.T) {
 				AttestationType: "fido-u2f",
 				RPID:            "another.example.com",
 			},
-			config:        &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
-			now:           time.Unix(10, 0),
-			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
+			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			now:        time.Unix(10, 0),
+			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
 				KID:             model.NewBase64([]byte{}),
 				PublicKey:       []byte{},
@@ -250,9 +254,9 @@ func TestWebAuthnCredential(t *testing.T) {
 				AttestationType: "fido-u2f",
 				RPID:            "another.example.com",
 			},
-			config:        &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
-			now:           time.Unix(10, 0),
-			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: true},
+			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			now:        time.Unix(10, 0),
+			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: true}},
 			expected: &model.WebAuthnCredential{
 				KID:             model.NewBase64([]byte{}),
 				PublicKey:       []byte{},
@@ -267,7 +271,7 @@ func TestWebAuthnCredential(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			tc.have.UpdateSignInInfo(tc.config, tc.now, tc.authenticator)
+			tc.have.UpdateSignInInfo(tc.config, tc.now, tc.credential)
 
 			assert.Equal(t, tc.expected, tc.have)
 
@@ -509,7 +513,7 @@ func TestNewWebAuthnCredential(t *testing.T) {
 				Transport:   "nfc,usb",
 				CreatedAt:   mock.Clock.Now(),
 				AAGUID:      uuid.NullUUID{UUID: uuid.Must(uuid.Parse("b4e159da-a52b-4690-81dd-08972950db5f")), Valid: true},
-				Attestation: []byte(`{"clientDataJSON":null,"clientDataHash":null,"authenticatorData":null,"publicKeyAlgorithm":0,"object":null}`),
+				Attestation: []byte(`{}`),
 			},
 		},
 	}
@@ -624,27 +628,27 @@ func TestWebAuthnCredential_UnmarshalYAML_Errors(t *testing.T) {
 		{
 			"ShouldErrOnInvalidYAML",
 			"rpid: [[[",
-			"yaml: while parsing a flow node at line 1: did not find expected node content",
+			"go-yaml load error in parser (while parsing a flow node) at L2.C1: did not find expected node content",
 		},
 		{
 			"ShouldErrOnInvalidPublicKeyBase64",
 			"rpid: example.com\npublic_key: '!!!bad!!!'\nkid: dGVzdA==\n",
-			"illegal base64 data at input byte 0",
+			"yaml: construct errors: line 1: illegal base64 data at input byte 0",
 		},
 		{
 			"ShouldErrOnInvalidKIDBase64",
 			"rpid: example.com\npublic_key: dGVzdA==\nkid: '!!!bad!!!'\n",
-			"illegal base64 data at input byte 0",
+			"yaml: construct errors: line 1: illegal base64 data at input byte 0",
 		},
 		{
 			"ShouldErrOnInvalidAAGUID",
 			"rpid: example.com\npublic_key: dGVzdA==\nkid: dGVzdA==\naaguid: 'not-a-uuid'\n",
-			"invalid UUID length: 10",
+			"yaml: construct errors: line 1: invalid UUID length: 10",
 		},
 		{
 			"ShouldErrOnInvalidAttestationBase64",
 			"rpid: example.com\npublic_key: dGVzdA==\nkid: dGVzdA==\nattestation: '!!!bad!!!'\n",
-			"illegal base64 data at input byte 0",
+			"yaml: construct errors: line 1: illegal base64 data at input byte 0",
 		},
 	}
 
@@ -659,6 +663,68 @@ func TestWebAuthnCredential_UnmarshalYAML_Errors(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 			}
+		})
+	}
+}
+
+func TestWebAuthnCredential_YAMLRoundTrip(t *testing.T) {
+	created := time.Date(2024, time.March, 5, 10, 30, 0, 0, time.UTC)
+	used := time.Date(2024, time.April, 6, 11, 45, 0, 0, time.UTC)
+
+	testCases := []struct {
+		name       string
+		credential model.WebAuthnCredential
+	}{
+		{
+			"ShouldRoundTripAllFlagsSet",
+			model.WebAuthnCredential{
+				CreatedAt:         created,
+				LastUsedAt:        sql.NullTime{Time: used, Valid: true},
+				RPID:              "example.com",
+				Username:          "john",
+				Description:       "Primary Key",
+				KID:               model.NewBase64([]byte("kid")),
+				AAGUID:            uuid.NullUUID{UUID: uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8")), Valid: true},
+				AttestationType:   "packed",
+				AttestationFormat: "packed",
+				Attachment:        "platform",
+				Transport:         "usb,nfc",
+				SignCount:         42,
+				CloneWarning:      true,
+				Legacy:            true,
+				Discoverable:      true,
+				Present:           true,
+				Verified:          true,
+				BackupEligible:    true,
+				BackupState:       true,
+				PublicKey:         []byte("public"),
+				Attestation:       []byte("attestation"),
+			},
+		},
+		{
+			"ShouldRoundTripNoFlagsSet",
+			model.WebAuthnCredential{
+				CreatedAt: created,
+				RPID:      "example.com",
+				Username:  "john",
+				KID:       model.NewBase64([]byte("kid")),
+				PublicKey: []byte("public"),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := yaml.Marshal(&tc.credential)
+			require.NoError(t, err)
+
+			actual := model.WebAuthnCredential{}
+
+			require.NoError(t, yaml.Unmarshal(data, &actual))
+
+			actual.LastUsedAt.Time = actual.LastUsedAt.Time.UTC()
+
+			assert.Equal(t, tc.credential, actual)
 		})
 	}
 }

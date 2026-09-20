@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package clock
 
 import (
@@ -29,6 +33,7 @@ func (Real) After(d time.Duration) <-chan time.Time {
 	return time.After(d)
 }
 
+// AfterFunc waits for the defined duration then calls the given function in its own goroutine.
 func (Real) AfterFunc(d time.Duration, f func()) *time.Timer {
 	return time.AfterFunc(d, f)
 }

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "User Attributes"
 description: "Configuring the Authelia user attribute definitions which allow defining custom user attributes using CEL expressions for use in OpenID Connect 1.0 claims."
 summary: "Authelia allows configuring reusable user attribute definitions."
@@ -15,9 +19,20 @@ seo:
 ---
 
 The user attributes section allows you to define custom attributes for your users using Common Expression Language (CEL).
+
 These attributes can be used at the current time to:
 
 - Enhance [OpenID Connect 1.0 claims](../../integration/openid-connect/openid-connect-1.0-claims.md) with dynamic values
+
+The following extensions are enabled by default:
+
+- `strings`
+- `lists`
+- `sets`
+- `math`
+- `encoders`
+- `bindings`
+- `regex`
 
 ## Configuration
 
@@ -72,7 +87,7 @@ compromised clients).
 
 The following attributes are available for use in expressions depending on the context:
 
-|           Attribute           |                     Description                      |                  Context                  |
-|:-----------------------------:|:----------------------------------------------------:|:-----------------------------------------:|
-| `openid_authreq_claim_value`  | The `value` property of the relevant claims request  | OpenID Connect 1.0 Authorization Request  |
-| `openid_authreq_claim_values` | The `values` property of the relevant claims request | OpenID Connect 1.0 Authorization Request  |
+|           Attribute           |                     Description                      |                 Context                  |
+| :---------------------------: | :--------------------------------------------------: | :--------------------------------------: |
+| `openid_authreq_claim_value`  | The `value` property of the relevant claims request  | OpenID Connect 1.0 Authorization Request |
+| `openid_authreq_claim_values` | The `values` property of the relevant claims request | OpenID Connect 1.0 Authorization Request |

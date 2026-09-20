@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Reset Password"
 description: "Configuring the Authelia reset password identity validation including the JWT secret, token lifespan, signing algorithm, and custom URL redirect settings."
 summary: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes Reset Password method."
@@ -42,7 +46,7 @@ This section describes the individual configuration options.
 
 The secret used with the HMAC algorithm to sign the JWT. This value should be an arbitrary random string with printable ASCII characters.
 
-It is __strongly recommended__ this is a
+It is **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
 
@@ -57,4 +61,3 @@ The lifespan of the JSON Web Token after it's initially generated after which it
 {{< confkey type="string" default="HS256" required="no" >}}
 
 The JSON Web Token Algorithm used to sign the JWT. Must be HS256, HS384, or HS512.
-

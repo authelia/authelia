@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Paperless"
 description: "A guide on integrating Authelia with Paperless-ngx via the Trusted Header SSO authentication method including proxy and application configuration with examples."
 summary: ""
@@ -20,24 +24,24 @@ seo:
 
 ## Introduction
 
-This is a guide on integration of __Authelia__ and [Paperless] (specifically Paperless-ngx) via the trusted header SSO
+This is a guide on integration of **Authelia** and [Paperless] (specifically Paperless-ngx) via the trusted header SSO
 authentication.
 
 As with all guides in this section it's important you read the [introduction](../introduction.md) first.
 
 ## Tested Versions
 
-* Authelia:
-  * v4.38.7
-* Paperless:
-  * v2.7.2
+- Authelia:
+  - v4.38.7
+- Paperless:
+  - v2.7.2
 
 ## Before You Begin
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 

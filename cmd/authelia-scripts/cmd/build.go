@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package cmd
 
 import (
@@ -75,11 +79,11 @@ func buildAutheliaBinaryCI(xflags []string) {
 
 	args := []string{
 		"run", "--rm",
-		"--name", "authelia-crossbuild",
 		"--user", "1000:1000",
 		"-e", "BUILDKITE_TAG=" + os.Getenv("BUILDKITE_TAG"),
 		"-e", "GOPATH=/tmp/go",
 		"-e", "GOCACHE=/tmp/go-build",
+		"-e", "GOTOOLCHAIN=auto",
 		"-e", "GPG_PASSWORD=" + os.Getenv("GPG_PASSWORD"),
 		"-e", "GPG_KEY_PATH=" + os.Getenv("GPG_KEY_PATH"),
 		"-e", "HOME=/tmp",
@@ -89,11 +93,13 @@ func buildAutheliaBinaryCI(xflags []string) {
 		"-v", "/buildkite/.gnupg:/tmp/.gnupg",
 		"-v", "/buildkite/.go:/tmp/go",
 		"-v", "/buildkite/.sign:/tmp/sign",
-		"-v", "/usr/lib/go:/usr/local/go",
-		"-v", "/usr/local/include:/usr/local/include",
-		"-v", "/usr/bin/goreleaser:/usr/local/bin/goreleaser",
-		"-v", "/usr/local/bin/grype:/usr/local/bin/grype",
-		"-v", "/usr/local/bin/syft:/usr/local/bin/syft",
+		// The toolchain comes from the agent tree rather than from /usr, because on a shared daemon these sources are
+		// resolved against the host rather than inside the agent, and the agent image's own /usr is not visible there.
+		"-v", "/buildkite/.tools/go:/usr/local/go",
+		"-v", "/buildkite/.tools/include:/usr/local/include",
+		"-v", "/buildkite/.tools/bin/goreleaser:/usr/local/bin/goreleaser",
+		"-v", "/buildkite/.tools/bin/grype:/usr/local/bin/grype",
+		"-v", "/buildkite/.tools/bin/syft:/usr/local/bin/syft",
 		"authelia/crossbuild",
 		"goreleaser", "release", "--skip=publish,validate",
 	}

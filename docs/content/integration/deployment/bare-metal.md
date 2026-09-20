@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Bare-Metal"
 description: "A guide on deploying Authelia on bare-metal as a daemon including systemd unit file examples, instructions for running behind a reverse proxy, and setup steps."
 summary: "Authelia can be deployed on Bare-Metal as long as it sits behind a proxy."
@@ -14,21 +18,21 @@ seo:
   noindex: false # false (default) or true
 ---
 
-There are several ways to achieve this, as *Authelia* runs as a daemon. We do not provide specific examples for running
-*Authelia* as a service excluding the [systemd unit](#systemd) files.
+There are several ways to achieve this, as _Authelia_ runs as a daemon. We do not provide specific examples for running
+_Authelia_ as a service excluding the [systemd unit](#systemd) files.
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## systemd
 
 We publish two example [systemd] unit files:
 
-* {{< github-link path="authelia.service" >}}
-* {{< github-link path="authelia@.service" >}}
+- {{< github-link path="authelia.service" >}}
+- {{< github-link path="authelia@.service" >}}
 
 ## Arch Linux
 
@@ -112,7 +116,7 @@ third-party package.
 
 We publish an [rc.d](https://docs.freebsd.org/en/articles/rc-scripting/) service script file:
 
-* {{< github-link path="authelia-fb-rc.d" >}}
+- {{< github-link path="authelia-fb-rc.d" >}}
 
 ## Binaries
 

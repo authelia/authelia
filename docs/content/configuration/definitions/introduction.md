@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Definitions"
 description: "An introduction to configuring the Authelia reusable definitions section which allows defining values that can be referenced elsewhere in the configuration."
 summary: "Authelia allows configuring reusable definitions."

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -22,6 +26,7 @@ func TestNewMySQLProvider(t *testing.T) {
 			"ShouldHandleBasic",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					MySQL: &schema.StorageMySQL{
 						StorageSQL: schema.StorageSQL{
 							Address:  &schema.AddressTCP{Address: *standardAddress},
@@ -35,6 +40,7 @@ func TestNewMySQLProvider(t *testing.T) {
 			"ShouldHandleTLS",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					MySQL: &schema.StorageMySQL{
 						StorageSQL: schema.StorageSQL{
 							Address:  &schema.AddressTCP{Address: *standardAddress},
@@ -54,7 +60,10 @@ func TestNewMySQLProvider(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.NotNil(t, NewMySQLProvider(tc.have, nil))
+			provider, err := NewMySQLProvider(tc.have, nil)
+
+			require.NoError(t, err)
+			assert.NotNil(t, provider)
 		})
 	}
 }

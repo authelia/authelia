@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Trusted Header SSO"
 description: "An introduction into integrating Authelia with applications using Trusted Header SSO authentication including available response headers and key terminology."
 summary: "An introduction into integrating Authelia with an application which implements authentication via trusted headers."
@@ -44,7 +48,7 @@ the [Server Authz Endpoints](../../configuration/miscellaneous/server-endpoints-
 and linked reference articles for more information on these endpoints.
 
 |    Header     |      Description / Notes       |                         Example                         |
-|:-------------:|:------------------------------:|:-------------------------------------------------------:|
+| :-----------: | :----------------------------: | :-----------------------------------------------------: |
 |  Remote-User  |       The users username       |                          john                           |
 | Remote-Groups | The groups the user belongs to |                        admin,dev                        |
 |  Remote-Name  |     The users display name     |                       John Smith                        |
@@ -62,9 +66,9 @@ Several applications which implement this authentication method allow or require
 which are trusted to deliver these headers. It is our recommendation that you configure this even if it is optional.
 
 The application itself will have a way to detect this IP address and most implementations utilize the TCP source address
-as this is the most appropriate. This is the TCP source address of your *proxy*, it is __not__ the TCP source address of
-Authelia. This is because headers may be returned by Authelia to the proxy, however the backend application is *not
-able* to determine this reliably, instead the TCP source address of the request to the application is used, which is
+as this is the most appropriate. This is the TCP source address of your _proxy_, it is **not** the TCP source address of
+Authelia. This is because headers may be returned by Authelia to the proxy, however the backend application is _not
+able_ to determine this reliably, instead the TCP source address of the request to the application is used, which is
 made by the reverse proxy. This also means your proxy must ensure only Authelia is setting these headers, and any other
 headers are never forwarded to the backend and are instead replaced by the Authelia headers.
 

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Wanderer"
 description: "A guide on integrating Wanderer with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Wanderer]
   - [v0.18.4](https://github.com/open-wanderer/wanderer/releases/tag/v0.18.4)
 
@@ -32,11 +36,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://wanderer.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://wanderer.{{< sitevar name="domain" nojs="example.com" >}}/`
   - Wanderer uses the `ORIGIN` environment variable as the public URL. The redirect URL is `${ORIGIN}/login/redirect`.
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `wanderer`
-- __Client Secret:__ `insecure_secret`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `wanderer`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Wanderer] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Wanderer] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -89,16 +93,16 @@ Wanderer uses PocketBase for authentication configuration. To configure [Wandere
 5. In the `OAuth2` tab, add a new provider with type `OpenID Connect (oidc)`.
 6. Configure the provider with these options:
 
-    - Client ID: `wanderer`
-    - Client secret: `insecure_secret`
-    - Display name: `Authelia`
-    - Auth URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
-    - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
-    - Fetch user info from: `User info URL`
-    - User info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-    - Support PKCE: enabled
+   - Client ID: `wanderer`
+   - Client secret: `insecure_secret`
+   - Display name: `Authelia`
+   - Auth URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   - Fetch user info from: `User info URL`
+   - User info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   - Support PKCE: enabled
 
-1. Save your changes.
+7. Save your changes.
 
 Ensure the redirect URL configured at the provider is exactly `${ORIGIN}/login/redirect` and that the same value is
 present in the Authelia `redirect_uris` list.

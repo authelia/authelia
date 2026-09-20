@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Jenkins"
 description: "A guide on integrating Jenkins with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://jenkins.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `jenkins`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://jenkins.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `jenkins`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -64,7 +68,7 @@ jenkins-plugin-cli --plugins oic-auth
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Jenkins] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Jenkins] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

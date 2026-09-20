@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Prologue"
 description: "The Authelia roadmap prologue providing introductory context and general information about the planned, in-progress, and completed features on the roadmap."
 summary: ""

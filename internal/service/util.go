@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -8,15 +12,19 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
 
+// RunAll runs the services from every provisioner returned by GetProvisioners.
 func RunAll(ctx Context) (err error) {
 	provisioners := GetProvisioners()
 
 	return Run(ctx, provisioners...)
 }
 
+// Run provisions and runs the services from the given provisioners until the context is cancelled, a SIGINT or
+// SIGTERM signal is received, or a service terminates.
 func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	cctx, cancel := context.WithCancel(ctx)
 
@@ -36,8 +44,12 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 
 	log := ctx.GetLogger()
 
+	rctx := &runContext{base: ctx, Context: cctx}
+
 	for _, provisioner := range provisioners {
-		if service, err := provisioner(ctx); err != nil {
+		if service, err := provisioner(rctx); err != nil {
+			shutdown(log, services)
+
 			return fmt.Errorf("error occurred provisioning services: %w", err)
 		} else if service != nil {
 			services = append(services, service)
@@ -61,25 +73,7 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 
 	log.Info("Shutdown initiated")
 
-	wgShutdown := &sync.WaitGroup{}
-
-	log.Tracef("Shutdown of %d services is required", len(services))
-
-	for _, service := range services {
-		wgShutdown.Add(1)
-
-		go func(service Provider) {
-			service.Log().Trace("Shutdown of service initiated")
-
-			service.Shutdown()
-
-			wgShutdown.Done()
-
-			service.Log().Trace("Shutdown of service complete")
-		}(service)
-	}
-
-	wgShutdown.Wait()
+	shutdown(log, services)
 
 	if err = ctx.GetProviders().UserProvider.Close(); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred closing authentication connections")
@@ -96,6 +90,28 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	log.Info("Shutdown complete")
 
 	return nil
+}
+
+func shutdown(log *logrus.Entry, services []Provider) {
+	wg := &sync.WaitGroup{}
+
+	log.Tracef("Shutdown of %d services is required", len(services))
+
+	for _, service := range services {
+		wg.Add(1)
+
+		go func(service Provider) {
+			defer wg.Done()
+
+			service.Log().Trace("Shutdown of service initiated")
+
+			service.Shutdown()
+
+			service.Log().Trace("Shutdown of service complete")
+		}(service)
+	}
+
+	wg.Wait()
 }
 
 func connectionType(isTLS bool) string {

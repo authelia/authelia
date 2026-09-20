@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Proxies"
 description: "An overview of integrating Authelia with supported reverse proxies including Traefik, Caddy, Envoy, NGINX, HAProxy, SWAG, and Skipper with setup examples."
 summary: ""

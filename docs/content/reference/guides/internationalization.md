@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Internationalization"
 description: "A reference guide on internationalization in Authelia including supported locales for the web portal and how users can contribute translations via the platform."
 summary: "This section contains internationalization references for Authelia."

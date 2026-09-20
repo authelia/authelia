@@ -1,4 +1,8 @@
-import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { ReactNode, createContext, use, useCallback, useEffect, useMemo, useState } from "react";
 
 import { i18n } from "i18next";
 
@@ -58,7 +62,7 @@ export default function LanguageContextProvider(props: Props) {
     }, [listener]);
 
     return (
-        <LanguageContext.Provider
+        <LanguageContext
             value={useMemo(
                 () => ({
                     locale,
@@ -68,12 +72,12 @@ export default function LanguageContextProvider(props: Props) {
             )}
         >
             {props.children}
-        </LanguageContext.Provider>
+        </LanguageContext>
     );
 }
 
 export function useLanguageContext() {
-    const context = useContext(LanguageContext);
+    const context = use(LanguageContext);
     if (!context) {
         throw new Error("useLanguageContext must be used within a LanguageContextProvider");
     }

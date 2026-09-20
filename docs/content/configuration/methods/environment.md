@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Environment"
 description: "Configuring Authelia using environment variables including the AUTHELIA_ prefix convention, mapping rules, and Kubernetes-specific deployment considerations."
 summary: "Authelia has a layered configuration model. This section describes how to implement the environment configuration."
@@ -34,7 +38,7 @@ likely result in an error or even worse misconfiguration.
 
 Please see the
 [Kubernetes Integration: Enable Service Links](../../integration/kubernetes/introduction.md#enable-service-links)
-documentation for specific requirements for using *Authelia* with Kubernetes.
+documentation for specific requirements for using _Authelia_ with Kubernetes.
 
 ## Mapping
 

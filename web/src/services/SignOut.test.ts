@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { PostWithOptionalResponse } from "@services/Client";
 import { signOut } from "@services/SignOut";
 
@@ -11,13 +15,20 @@ vi.mock("@services/Client", () => ({
 it("signs out with target URL", async () => {
     (PostWithOptionalResponse as any).mockResolvedValue({ safeTargetURL: true });
     const result = await signOut("https://example.com");
-    expect(PostWithOptionalResponse).toHaveBeenCalledWith("/logout", { targetURL: "https://example.com" });
+    expect(PostWithOptionalResponse).toHaveBeenCalledWith("/logout", { targetURL: "https://example.com" }, undefined);
     expect(result).toEqual({ safeTargetURL: true });
 });
 
 it("signs out without target URL", async () => {
     (PostWithOptionalResponse as any).mockResolvedValue(undefined);
     const result = await signOut(undefined);
-    expect(PostWithOptionalResponse).toHaveBeenCalledWith("/logout", {});
+    expect(PostWithOptionalResponse).toHaveBeenCalledWith("/logout", {}, undefined);
     expect(result).toBeUndefined();
+});
+
+it("forwards the abort signal when provided", async () => {
+    const signal = new AbortController().signal;
+    (PostWithOptionalResponse as any).mockResolvedValue(undefined);
+    await signOut("https://example.com", signal);
+    expect(PostWithOptionalResponse).toHaveBeenLastCalledWith("/logout", { targetURL: "https://example.com" }, signal);
 });

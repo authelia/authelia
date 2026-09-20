@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -6,8 +10,9 @@ import (
 	"net/url"
 	"time"
 
-	"authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+
+	"authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -362,6 +367,7 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 		ExpiresAt: sql.NullTime{Time: ctx.GetClock().Now().Add(client.GetConsentPolicy().Duration), Valid: true},
 		Scopes:    consent.GrantedScopes,
 		Audience:  consent.GrantedAudience,
+		Resource:  consent.GrantedResource,
 	}
 
 	var (
@@ -574,17 +580,6 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
-	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
-
-	if bodyJSON.Consent {
-		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
-	} else {
-		device.Active = false
-		device.Status = int(oauth2.DeviceAuthorizeStatusDenied)
-	}
-
-	consent.SetRespondedAt(ctx.GetClock().Now(), 0)
-
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
 		ctx.GetLogger().
 			WithError(err).
@@ -596,6 +591,12 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
+	if bodyJSON.Consent {
+		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
+	}
+
+	consent.SetRespondedAt(ctx.GetClock().Now(), 0)
+
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
 		ctx.GetLogger().
 			WithError(err).
@@ -605,6 +606,13 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
+	}
+
+	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
+
+	if !bodyJSON.Consent {
+		device.Active = false
+		device.Status = int(oauth2.DeviceAuthorizeStatusDenied)
 	}
 
 	if err = ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSession(ctx, device); err != nil {

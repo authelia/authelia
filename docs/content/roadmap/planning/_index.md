@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Planning"
 description: "The Authelia roadmap items in the planning stage which are intended to be implemented but are still undergoing design, research, and feasibility analysis work."
 summary: ""

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import CredentialItem from "@views/Settings/TwoFactorAuthentication/CredentialItem";
@@ -42,21 +46,24 @@ it("renders last used when provided", () => {
 
 it("calls handleDelete when delete button is clicked", () => {
     render(<CredentialItem {...baseProps} />);
-    fireEvent.click(screen.getByRole("button", { name: "Delete this" }));
+    const deleteButton = screen.getByRole("button", { name: "Delete this" });
+    fireEvent.click(deleteButton);
     expect(baseProps.handleDelete).toHaveBeenCalledOnce();
 });
 
 it("renders information button when handleInformation is provided", () => {
     const handleInfo = vi.fn();
     render(<CredentialItem {...baseProps} handleInformation={handleInfo} tooltipInformation="View info" />);
-    fireEvent.click(screen.getByRole("button", { name: "View info" }));
+    const infoButton = screen.getByRole("button", { name: "View info" });
+    fireEvent.click(infoButton);
     expect(handleInfo).toHaveBeenCalledOnce();
 });
 
 it("renders edit button when handleEdit is provided", () => {
     const handleEdit = vi.fn();
     render(<CredentialItem {...baseProps} handleEdit={handleEdit} tooltipEdit="Edit this" />);
-    fireEvent.click(screen.getByRole("button", { name: "Edit this" }));
+    const editButton = screen.getByRole("button", { name: "Edit this" });
+    fireEvent.click(editButton);
     expect(handleEdit).toHaveBeenCalledOnce();
 });
 
@@ -69,5 +76,5 @@ it("renders problem icon when problem flag is set", () => {
             tooltipInformationProblem="There is a problem"
         />,
     );
-    expect(screen.getByTestId("ReportProblemIcon")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "There is a problem" })).toBeInTheDocument();
 });

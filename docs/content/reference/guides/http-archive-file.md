@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "HTTP Archive Files"
 description: "A reference guide on creating and sanitizing HTTP Archive (HAR) files for troubleshooting Authelia issues including sensitive data removal and submission tips."
 summary: "This guide describes and helps users create HTTP Archive (HAR) files."
@@ -35,9 +39,10 @@ For generic sanitization information see the [Troubleshooting Sanitization guide
 
 ### Security Sensitive Information
 
-*__Important:__ this file may contain sensitive information which should be sanitized manually before sharing it
+_**Important:** this file may contain sensitive information which should be sanitized manually before sharing it
 anywhere with anyone. Sensitive information can vary wildly but some of the key areas that may be sensitive when
-exporting this for troubleshooting with Authelia are:*
+exporting this for troubleshooting with Authelia are:_
+
 - `Cookie` request header
 - `Set-Cookie` response header
 - Data sent to the following endpoints:

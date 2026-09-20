@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Nextcloud"
 description: "A guide on integrating Nextcloud with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -38,10 +42,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://nextcloud.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `nextcloud`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://nextcloud.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `nextcloud`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -70,12 +74,13 @@ The following example uses the [Nextcloud OpenID Connect Login app] which is ass
 #### Authelia
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-The `is_nextcloud_admin` user attribute renders the value `true` if the user is in the `nextcloud-admins` group within
-Authelia, otherwise it renders `false`. You can adjust this to your preference to assign the admin role to the
-appropriate user groups.
+The `is_nextcloud_admin` user attribute renders the string value `"yes"` if the user is in the `nextcloud-admins` group within
+Authelia, otherwise it renders `"no"`. You can adjust this to your preference to assign the admin role to the
+appropriate user groups. The expression must return a **string** (not a boolean) because Nextcloud's
+oidc_login app expects a `?string` type for the `is_admin` attribute.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__
+The following YAML configuration is an example **Authelia**
 [client configuration] for use with [Nextcloud]
 which will operate with the application example:
 
@@ -84,14 +89,15 @@ definitions:
   user_attributes:
     is_nextcloud_admin:
       ## Expression to evaluate admin privilege for Nextcloud.
-      expression: '"nextcloud-admins" in groups'
+      expression: '"nextcloud-admins" in groups ? "yes" : "no"'
 
 identity_providers:
   oidc:
     claims_policies:
       nextcloud_userinfo:
         custom_claims:
-          is_nextcloud_admin: {}
+          is_nextcloud_admin:
+            attribute: 'is_nextcloud_admin'
 
     scopes:
       nextcloud_userinfo:
@@ -185,7 +191,7 @@ The following example uses the [Nextcloud OpenID Connect user backend app] which
 
 #### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Nextcloud] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Nextcloud] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -235,9 +241,11 @@ To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to 
    - Scope: openid email profile
 
 2. Add the following to the [Nextcloud] `config.php` configuration:
-``` php
+
+```php
 'user_oidc' => [
   'default_token_endpoint_auth_method' => 'client_secret_post',
+  'enrich_login_id_token_with_userinfo' => true,
 ]
 ```
 
@@ -249,9 +257,11 @@ To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to 
 1. Run `occ user_oidc:provider Authelia --clientid="nextcloud" --clientsecret="insecure_secret" --discoveryuri="https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
 
 2. Add the following to the [Nextcloud] `config.php` configuration:
-``` php
+
+```php
 'user_oidc' => [
   'default_token_endpoint_auth_method' => 'client_secret_post',
+  'enrich_login_id_token_with_userinfo' => true,
 ]
 ```
 

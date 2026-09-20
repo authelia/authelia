@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -18,7 +22,7 @@ spec:
     spec:
       containers:
         - name: nginx-backend
-          image: nginx:alpine
+          image: nginx:1.31.6-alpine
           ports:
             - containerPort: 80
           volumeMounts:

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Miscellaneous"
 description: "Reference documentation for configuring miscellaneous Authelia settings including logging, NTP, server, privacy policy, and other general option configurations."
 summary: ""

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Dashboard / Control Panel and CLI for Administrators"
 description: "The Authelia roadmap item for an administrator dashboard, control panel, and CLI allowing dynamic management of configuration, users, and access control rules."
 summary: "A dashboard or control panel for administrators to adjust system settings is easily one of the most impactful features we can implement."
@@ -137,5 +141,3 @@ Manage Access Control rules.
 
 Manage user accounts with either the internal or LDAP authentication backends. Allow for creation, modification, and
 deletion.
-
-

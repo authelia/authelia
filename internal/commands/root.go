@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -60,6 +64,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
+// RootRunE is the RunE for the authelia root command.
 func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 	ctx.log.Infof("Authelia %s is starting", utils.Version())
 

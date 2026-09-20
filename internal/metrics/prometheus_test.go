@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package metrics
 
 import (
@@ -5,12 +9,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewPrometheus(t *testing.T) {
-	p := NewPrometheus()
-
-	assert.NotNil(t, p)
+	p, err := NewPrometheus()
+	assert.NoError(t, err)
+	require.NotNil(t, p)
 
 	p.RecordRequest("400", "GET", time.Second)
 	p.RecordAuthz("400")

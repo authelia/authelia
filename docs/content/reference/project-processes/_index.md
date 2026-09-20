@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Project Processes"
 description: "This section contains reference documentation for the Authelia project processes including testing procedures, release workflows, and development conventions."
 summary: ""

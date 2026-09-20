@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100" role="img" aria-label="bishtawi">
+  <style>
+    svg { color-scheme: light dark }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,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" x="32.0" y="0" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="60.0" cy="28.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+  <text x="60.0" y="73" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">bishtawi</text>
+  <text x="60.0" y="91" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">💻📖</text>
+</svg>

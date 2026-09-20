@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package session
 
 import (
-	"crypto/sha256"
 	"fmt"
 
 	"github.com/fasthttp/session/v2"
@@ -17,12 +20,13 @@ type Serializer interface {
 
 // EncryptingSerializer a serializer encrypting the data with AES-GCM with 256-bit keys.
 type EncryptingSerializer struct {
-	key [32]byte
+	key []byte
 }
 
 // NewEncryptingSerializer return new encrypt instance.
 func NewEncryptingSerializer(secret string) *EncryptingSerializer {
-	key := sha256.Sum256([]byte(secret))
+	key := utils.DeriveLegacyCryptographicKey([]byte(secret))
+
 	return &EncryptingSerializer{key}
 }
 
@@ -37,7 +41,7 @@ func (e *EncryptingSerializer) Encode(src session.Dict) (data []byte, err error)
 		return nil, fmt.Errorf("unable to marshal session: %v", err)
 	}
 
-	if data, err = utils.Encrypt(dst, &e.key); err != nil {
+	if data, err = utils.Encrypt(dst, nil, e.key); err != nil {
 		return nil, fmt.Errorf("unable to encrypt session: %v", err)
 	}
 
@@ -56,7 +60,7 @@ func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) (err error)
 
 	var data []byte
 
-	if data, err = utils.Decrypt(src, &e.key); err != nil {
+	if data, err = utils.Decrypt(src, nil, e.key); err != nil {
 		return fmt.Errorf("unable to decrypt session: %s", err)
 	}
 

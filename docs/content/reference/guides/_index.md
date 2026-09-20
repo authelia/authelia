@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Guides"
 description: "This section contains a collection of reference guides for Authelia covering topics such as passwords, branding, templating, metrics, attributes, and more."
 summary: ""

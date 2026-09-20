@@ -1,12 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 version: "2"
 linters:
   enable:
     - asciicheck
     - forbidigo
-    - goconst
     - gocritic
     - gocyclo
+    - godoclint
     - godot
     - gosec
     - misspell
@@ -29,15 +33,27 @@ linters:
     goconst:
       min-len: 2
       min-occurrences: 2
+      ignore-tests: true
     gocyclo:
       min-complexity: 15
+    godoclint:
+      enable:
+        - no-unused-link
+        - require-doc
+        - require-pkg-doc
+        - require-stdlib-doclink
     godot:
       scope: all
+      exclude:
+        - '^\s*SPDX-'
     revive:
       confidence: 0.8
   exclusions:
     generated: lax
     rules:
+      - linters:
+          - godoclint
+        path: _test\.go$
       - linters:
           - forbidigo
         path: internal/commands/
@@ -66,14 +82,23 @@ linters:
       - third_party$
       - builtin$
       - examples$
+      - internal/mocks
+      - node_modules
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
 formatters:
   enable:
+    - gci
     - gofmt
     - goimports
   settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(authelia.com,github.com/authelia)
+        - localmodule
     goimports:
       local-prefixes:
         - github.com/authelia/authelia
@@ -83,4 +108,5 @@ formatters:
       - third_party$
       - builtin$
       - examples$
+      - node_modules
 ...

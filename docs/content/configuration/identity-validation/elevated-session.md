@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Elevated Session"
 description: "Configuring the Authelia elevated session identity validation including one-time code lifespan, elevation duration, characters, and second factor options."
 summary: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes the Elevated Session method."
@@ -45,7 +49,7 @@ This section describes the individual configuration options.
 
 {{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
 
-The lifespan of the randomly generated One Time Code after which it's considered invalid
+The lifespan of the randomly generated One-Time Code after which it's considered invalid
 
 ### elevation_lifespan
 
@@ -64,12 +68,41 @@ between 8 and 12. It's strongly discouraged to reduce it below 8.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-Requires second factor authentication for all protected actions in addition to the elevated session provided the user
-has configured a second factor authentication method.
+Makes second factor authentication a prerequisite for the elevated session process. Users who have only performed
+first factor authentication must perform second factor authentication before they can establish an elevated session.
+The One-Time Code process is still required in addition to second factor authentication unless
+[skip_second_factor](#skip_second_factor) is also enabled.
+
+This option only affects users who have at least one second factor method configured; users without any configured
+second factor method perform the One-Time Code process as normal.
+
+Enabling this option also makes the second factor methods available for registration in the user settings even when
+no [access control](../security/access-control.md) rule uses the `two_factor` policy. Without that, an instance which
+elevates sessions with a second factor would give users no way to register the method it asks them for.
 
 ### skip_second_factor
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-Skips the elevated session requirement if the user has performed second factor authentication. Can be combined with the
-[require_second_factor](#require_second_factor) option to always (and only) require second factor authentication.
+Treats sessions which have performed second factor authentication as elevated, skipping the One-Time Code process
+entirely. In addition, users who have only performed first factor authentication but have a second factor method
+configured are offered the choice to either perform the One-Time Code process or perform second factor authentication
+instead.
+
+As with [require_second_factor](#require_second_factor), enabling this option makes the second factor methods
+available for registration in the user settings even when no access control rule uses the `two_factor` policy.
+
+This option can be combined with the [require_second_factor](#require_second_factor) option to make second factor
+authentication both necessary and sufficient for elevation: users with a configured second factor method must perform
+second factor authentication and are then never asked for a One-Time Code, while users without one perform the
+One-Time Code process as normal.
+
+The following table summarizes which process users must complete to perform a protected action depending on these two
+options:
+
+|          Configuration          |         User With a Second Factor Method         | User Without a Second Factor Method |
+| :-----------------------------: | :----------------------------------------------: | :---------------------------------: |
+|      both options disabled      |                  One-Time Code                   |            One-Time Code            |
+|  `skip_second_factor` enabled   | One-Time Code _or_ Second Factor Authentication  |            One-Time Code            |
+| `require_second_factor` enabled | Second Factor Authentication _and_ One-Time Code |            One-Time Code            |
+|      both options enabled       |           Second Factor Authentication           |            One-Time Code            |

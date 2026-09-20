@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Migration"
 description: "Information regarding Authelia configuration key migrations between versions including automatic migration behavior, deprecation notices, and change history."
 summary: "An introduction into configuring Authelia."
@@ -49,7 +53,7 @@ Automatic mapping was introduced in this version.
 The following changes occurred in 4.30.0:
 
 |                 Previous Key                  |                    New Key                    |
-|:---------------------------------------------:|:---------------------------------------------:|
+| :-------------------------------------------: | :-------------------------------------------: |
 | authentication_backend.disable_reset_password | authentication_backend.password_reset.disable |
 
 ### 4.33.0
@@ -62,7 +66,7 @@ logged for users.
 The following changes occurred in 4.30.0:
 
 | Previous Key  |        New Key         |
-|:-------------:|:----------------------:|
+| :-----------: | :--------------------: |
 |     host      |      server.host       |
 |     port      |      server.port       |
 |    tls_key    |     server.tls.key     |
@@ -91,7 +95,7 @@ If you're using Authelia with Kubernetes and are not using the provided
 The following changes occurred in 4.25.0:
 
 |                  Previous Key                   |                     New Key                     |
-|:-----------------------------------------------:|:-----------------------------------------------:|
+| :---------------------------------------------: | :---------------------------------------------: |
 |   authentication_backend.ldap.tls.skip_verify   |   authentication_backend.ldap.tls.skip_verify   |
 | authentication_backend.ldap.minimum_tls_version | authentication_backend.ldap.tls.minimum_version |
 |        notifier.smtp.disable_verify_cert        |          notifier.smtp.tls.skip_verify          |
@@ -108,7 +112,7 @@ affects other services like LDAP as well.
 The following changes occurred in 4.7.0:
 
 | Previous Key |  New Key  |
-|:------------:|:---------:|
+| :----------: | :-------: |
 |  logs_level  | log_level |
 |  logs_file   | log_file  |
 

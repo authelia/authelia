@@ -1,15 +1,30 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// StartupChecks performs the startup checks for each of the providers.
 func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
+	config := ctx.GetConfiguration()
+
+	if !config.Server.DisableHealthcheck {
+		if err = writeHealthCheckEnvConfig(config); err != nil {
+			return err
+		}
+	}
+
 	e := &ErrProviderStartupCheck{errors: map[string]error{}}
 
 	var (
@@ -19,6 +34,9 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 
 	provider, disable = ctx.GetProviders().StorageProvider, false
 	doStartupCheck(ctx, ProviderNameStorage, provider, nil, disable, log, e.errors)
+
+	provider, disable = ctx.GetProviders().SessionProvider, false
+	doStartupCheck(ctx, ProviderNameSession, provider, nil, disable, log, e.errors)
 
 	provider, disable = ctx.GetProviders().UserProvider, false
 	doStartupCheck(ctx, ProviderNameUser, provider, nil, disable, log, e.errors)
@@ -96,10 +114,62 @@ func doStartupCheck(ctx ServiceContext, name string, provider model.StartupCheck
 	}
 }
 
+func writeHealthCheckEnvConfig(config *schema.Configuration) (err error) {
+	scheme := strProtoHTTP
+
+	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
+		scheme = strProtoHTTPS
+	}
+
+	host := config.Server.Address.Hostname()
+
+	path := config.Server.Address.RouterPath()
+
+	port := config.Server.Address.Port()
+
+	return writeHealthCheckEnv(scheme, host, path, port)
+}
+
+func writeHealthCheckEnv(scheme, host, path string, port uint16) (err error) {
+	if _, err = os.Stat("/app/healthcheck.sh"); err != nil {
+		return nil
+	}
+
+	if _, err = os.Stat("/app/.healthcheck.env"); err != nil {
+		return nil
+	}
+
+	var file *os.File
+
+	if file, err = os.OpenFile("/app/.healthcheck.env", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755); err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = file.Close()
+	}()
+
+	if host == "0.0.0.0" {
+		host = localhost
+	} else if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+
+	if path == "/" {
+		path = ""
+	}
+
+	_, err = fmt.Fprintf(file, healthCheckEnv, scheme, host, port, path)
+
+	return err
+}
+
+// ErrProviderStartupCheck is an error which contains the startup check error for each provider which failed.
 type ErrProviderStartupCheck struct {
 	errors map[string]error
 }
 
+// Error returns the string representation of this error.
 func (e *ErrProviderStartupCheck) Error() string {
 	keys := make([]string, 0, len(e.errors))
 	for k := range e.errors {
@@ -109,6 +179,7 @@ func (e *ErrProviderStartupCheck) Error() string {
 	return fmt.Sprintf("errors occurred performing checks on the '%s' providers", strings.Join(keys, ", "))
 }
 
+// Failed returns the names of the providers which failed their startup check.
 func (e *ErrProviderStartupCheck) Failed() (failed []string) {
 	for key := range e.errors {
 		failed = append(failed, key)
@@ -117,6 +188,7 @@ func (e *ErrProviderStartupCheck) Failed() (failed []string) {
 	return failed
 }
 
+// FilterError returns an error containing only the failures for the given providers, or nil if none of them failed.
 func (e *ErrProviderStartupCheck) FilterError(providers ...string) error {
 	filtered := map[string]error{}
 
@@ -135,6 +207,7 @@ func (e *ErrProviderStartupCheck) FilterError(providers ...string) error {
 	return &ErrProviderStartupCheck{errors: filtered}
 }
 
+// ErrorMap returns the error for each provider which failed its startup check.
 func (e *ErrProviderStartupCheck) ErrorMap() map[string]error {
 	return e.errors
 }

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Metrics"
 description: "Configuring the Authelia Prometheus metrics exporter including the listen address, buffer sizes, read and write timeouts, and enabling the metrics endpoint."
 summary: "Configuring the Metrics Telemetry settings."
@@ -9,7 +13,7 @@ weight: 109200
 toc: true
 ---
 
-*Authelia* allows administrators to configure a [Prometheus] Metrics Exporter.
+_Authelia_ allows administrators to configure a [Prometheus] Metrics Exporter.
 
 ## Configuration
 

@@ -37,7 +37,8 @@ authelia storage user webauthn verify
 ### Options
 
 ```
-  -h, --help   help for verify
+  -h, --help      help for verify
+      --verbose   enables verbose output
 ```
 
 ### Options inherited from parent commands

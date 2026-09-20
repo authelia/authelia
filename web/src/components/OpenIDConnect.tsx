@@ -1,18 +1,13 @@
-import {
-    AccountBox,
-    Autorenew,
-    Contacts,
-    Drafts,
-    Group,
-    Home,
-    LockOpen,
-    PhoneAndroid,
-    Policy,
-} from "@mui/icons-material";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { CircleUserRound, Home, Lock, Mail, Phone, RefreshCw, Shield, Terminal, UserRound, Users } from "lucide-react";
 
 import {
     ScopeAddress,
     ScopeAutheliaBearerAuthz,
+    ScopeAutheliaPAM,
     ScopeEmail,
     ScopeGroups,
     ScopeOfflineAccess,
@@ -24,23 +19,25 @@ import {
 export function ScopeAvatar(scope: string) {
     switch (scope) {
         case ScopeOpenID:
-            return <AccountBox />;
+            return <CircleUserRound className="size-5" />;
         case ScopeOfflineAccess:
-            return <Autorenew />;
+            return <RefreshCw className="size-5" />;
         case ScopeProfile:
-            return <Contacts />;
+            return <UserRound className="size-5" />;
         case ScopeGroups:
-            return <Group />;
+            return <Users className="size-5" />;
         case ScopeEmail:
-            return <Drafts />;
+            return <Mail className="size-5" />;
         case ScopePhone:
-            return <PhoneAndroid />;
+            return <Phone className="size-5" />;
         case ScopeAddress:
-            return <Home />;
+            return <Home className="size-5" />;
         case ScopeAutheliaBearerAuthz:
-            return <LockOpen />;
+            return <Lock className="size-5" />;
+        case ScopeAutheliaPAM:
+            return <Terminal className="size-5" />;
         default:
-            return <Policy />;
+            return <Shield className="size-5" />;
     }
 }
 
@@ -62,6 +59,8 @@ export function ScopeDescription(scope: string): string {
             return "Access your address";
         case ScopeAutheliaBearerAuthz:
             return "Access protected resources logged in as you";
+        case ScopeAutheliaPAM:
+            return "Authenticate to a Linux system as you";
         default:
             return scope;
     }

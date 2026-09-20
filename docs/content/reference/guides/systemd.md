@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Systemd"
 description: "A reference guide on Authelia systemd unit configuration including instructions for overriding the default unit settings, file path definitions, and options."
 summary: "This section contains reference documentation for Authelia's systemd units."

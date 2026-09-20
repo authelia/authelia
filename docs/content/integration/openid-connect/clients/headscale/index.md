@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Headscale"
 description: "A guide on integrating Headscale with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -23,20 +27,18 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Headscale]
-  - [v0.26.1](https://github.com/juanfont/headscale/releases/tag/v0.26.1)
-
-{{% oidc-common bugs="claims-hydration" %}}
+  - [v0.29.1](https://github.com/juanfont/headscale/releases/tag/v0.29.1)
 
 ### Assumptions
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://headscale.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `headscale`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://headscale.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `headscale`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +48,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Headscale] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Headscale] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -77,14 +79,6 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
-
-#### Configuration Escape Hatch
-
-{{% oidc-escape-hatch-claims-hydration client_id="headscale" claims="email,groups" %}}
-
-Note this additional configuration of a `claims_policy` is only necessary if you are authorizing users based on domain,
-groups or email (`oidc.allowed_domains`, `oidc.allowed_groups` and `oidc.allowed_users` in the [Headscale] configuration
-file). See [Headscale#2655](https://github.com/juanfont/headscale/issues/2655) for details.
 
 ### Application
 

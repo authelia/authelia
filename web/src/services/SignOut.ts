@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { LogoutPath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 
@@ -7,11 +11,11 @@ export type SignOutBody = {
     targetURL?: string;
 };
 
-export async function signOut(targetURL: string | undefined): Promise<SignOutResponse> {
+export async function signOut(targetURL: string | undefined, signal?: AbortSignal): Promise<SignOutResponse> {
     const body: SignOutBody = {};
     if (targetURL) {
         body.targetURL = targetURL;
     }
 
-    return PostWithOptionalResponse<SignOutResponse>(LogoutPath, body);
+    return PostWithOptionalResponse<SignOutResponse>(LogoutPath, body, signal);
 }

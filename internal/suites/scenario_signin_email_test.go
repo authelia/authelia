@@ -1,6 +1,8 @@
-package suites
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-// This scenario is used to test sign in using the user email address.
+package suites
 
 import (
 	"context"
@@ -39,8 +41,7 @@ func (s *SigninEmailScenario) TearDownSuite() {
 }
 
 func (s *SigninEmailScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *SigninEmailScenario) TearDownTest() {

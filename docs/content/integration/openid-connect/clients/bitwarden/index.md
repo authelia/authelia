@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Bitwarden"
 description: "A guide on integrating Bitwarden with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Bitwarden]
   - [v2025.7.3](https://github.com/bitwarden/server/releases/tag/v2025.7.3)
 
@@ -32,10 +36,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://bitwarden.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `bitwarden`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://bitwarden.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `bitwarden`
+- **Client Secret:** `insecure_secret`
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 This setup assumes you're using the self-hosted version of Bitwarden. If you're using the SaaS version the `redirect_uris` are either
@@ -50,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Bitwarden] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Bitwarden] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -98,17 +102,19 @@ To configure [Bitwarden] to utilize Authelia as an [OpenID Connect 1.0] Provider
 6. If you're using [Bitwarden] SaaS configure the SSO Identifier per their instructions.
 7. Select `OpenID Connect` for the type.
 8. Enter the following values:
-  - Authority: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Client ID: `bitwarden`
-  - Client Secret: `insecure_secret`
-  - Metadata Address: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-  - OIDC redirect behavior: `Form POST`
-  - Get claims from user info endpoint: Enabled
+
+- Authority: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- Client ID: `bitwarden`
+- Client Secret: `insecure_secret`
+- Metadata Address: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+- OIDC redirect behavior: `Form POST`
+- Get claims from user info endpoint: Enabled
+
 9. Click Save.
 
 ## See Also
 
-- [Bitwarden Configure Unlock Bitwarden with SSO using OpenID Connect Documentation](https://support.bitwarden.com/sso-configure-generic/)
+- [Bitwarden - Generic OIDC](https://bitwarden.com/help/configure-sso-oidc)
 
 [Authelia]: https://www.authelia.com
 [Bitwarden]: https://bitwarden.com/

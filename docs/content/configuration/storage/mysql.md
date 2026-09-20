@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "MySQL"
 description: "Configuring the Authelia MySQL and MariaDB storage provider including the server address, database name, credentials, TLS settings, and connection timeout."
 summary: "The MySQL storage provider which supports both MySQL and MariaDB."
@@ -74,7 +78,7 @@ See the [encryption_key docs](introduction.md#encryption_key).
 Configures the address for the MySQL/MariaDB Server. The address itself is a connector and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes.
 
-__Examples:__
+**Examples:**
 
 ```yaml {title="configuration.yml"}
 storage:
@@ -99,7 +103,7 @@ storage:
 {{< confkey type="string" required="yes" >}}
 
 The database name on the database server that the assigned [user](#username) has access to for the purpose of
-__Authelia__.
+**Authelia**.
 
 ### username
 
@@ -113,7 +117,7 @@ The username paired with the password used to connect to the database.
 
 The password paired with the [username](#username) used to connect to the database.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 

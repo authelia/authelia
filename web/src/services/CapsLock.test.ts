@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { IsCapsLockModified } from "@services/CapsLock";
 
 it("returns null for key length not 1", () => {

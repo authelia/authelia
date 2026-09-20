@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -95,6 +99,19 @@ func TestShouldFailOnInvalidBody(t *testing.T) {
 
 	CheckSafeRedirectionPOST(mock.Ctx)
 	mock.Assert200KO(t, "Operation failed.")
+	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the safe redirection request body", "unable to parse body: json: cannot unmarshal string into Go value of type handlers.checkURIWithinDomainRequestBody")
+}
+
+func TestShouldFailOnGetSessionError(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+	CheckSafeRedirectionPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 }
 
 func TestShouldFailOnInvalidURL(t *testing.T) {
@@ -115,4 +132,5 @@ func TestShouldFailOnInvalidURL(t *testing.T) {
 
 	CheckSafeRedirectionPOST(mock.Ctx)
 	mock.Assert200KO(t, "Operation failed.")
+	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred determining if the URI 'https//invalid-url' is safe to redirect to as it could not be parsed", "parse \"https//invalid-url\": invalid URI for request")
 }

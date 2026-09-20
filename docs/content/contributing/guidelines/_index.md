@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Guidelines"
 description: "Guidelines for contributing to the Authelia project covering code style, commit messages, pull requests, testing, documentation standards, and accessibility."
 summary: ""

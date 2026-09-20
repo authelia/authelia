@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Reference"
 description: "This section contains reference documentation for Authelia including guides, integration support tables, architecture decision records, and project processes."
 summary: ""

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Notifications"
 description: "Reference documentation for configuring Authelia notification settings including the SMTP email provider and filesystem notification provider for testing use."
 summary: ""

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Server Asset Overrides"
 description: "A reference guide on overriding Authelia server assets including the favicon, logo, and internationalization locale files using the asset_path option."
 summary: "This section contains reference documentation for Authelia's server asset override capabilities."
@@ -29,7 +33,7 @@ This guide effectively documents the usage of the
 ## Assets
 
 |        Asset        |  File Name  | Directory |          Notes          |
-|:-------------------:|:-----------:|:---------:|:-----------------------:|
+| :-----------------: | :---------: | :-------: | :---------------------: |
 |       Favicon       | favicon.ico |    No     |           N/A           |
 |        Logo         |  logo.png   |    No     |           N/A           |
 | Translation Locales |   locales   |    Yes    | see [locales](#locales) |
@@ -71,7 +75,7 @@ translations for the `en` language only applying when a translation from `en-AU`
 Each file in a locale directory represents a translation namespace. The list of current namespaces are below:
 
 | Namespace |       Purpose       |
-|:---------:|:-------------------:|
+| :-------: | :-----------------: |
 |  portal   | Portal Translations |
 
 ### Supported Languages

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OpenID Connect 1.0"
 description: "Reference documentation for configuring the Authelia OpenID Connect 1.0 identity provider including provider settings, client registrations, and options."
 summary: ""

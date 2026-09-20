@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -92,13 +96,11 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
-	// Search for the 'login' link.
 	err := s.Page.MustSearch("Log in").Click("left", 1)
 	assert.NoError(s.T(), err)
 
 	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept").Click("left", 1)
-	assert.NoError(s.T(), err)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept")
 
 	// Verify that the app is showing the info related to the user stored in the JWT token.
 
@@ -170,14 +172,12 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
-	// Search for the 'login' link.
 	err := s.Page.MustSearch("Log in").Click("left", 1)
 	assert.NoError(s.T(), err)
 
 	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
 
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-deny").Click("left", 1)
-	assert.NoError(s.T(), err)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-deny")
 
 	s.verifyIsOIDC(s.T(), s.Context(ctx), "access_denied", "https://oidc.example.com:8080/error?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&iss=https%3A%2F%2Flogin.example.com%3A8080&state=random-string-here")
 
@@ -226,6 +226,7 @@ func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
 
 	data := url.Values{}
 	data.Set("client_id", clientID)
+	data.Set("client_secret", clientSecret)
 	data.Set("scope", scope)
 
 	deviceResp, err := c.PostForm(deviceAuthEndpoint, data)
@@ -263,8 +264,7 @@ func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
 	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
 
 	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept").Click("left", 1)
-	assert.NoError(s.T(), err)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept")
 
 	s.verifyBodyContains(s.T(), s.Context(ctx), "Consent has been accepted and processed")
 

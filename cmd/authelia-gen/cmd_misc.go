@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -14,6 +18,7 @@ import (
 	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/oidc/conformance"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -26,8 +31,10 @@ func newMiscCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		newMiscContributorsCmd(),
 		newMiscOIDCCmd(),
 		newMiscLocaleMoveCmd(),
+		newMiscReleaseCmd(),
 	)
 
 	return cmd
@@ -184,19 +191,11 @@ func miscOIDCConformance(version, token, consent, policy, brand string, authelia
 	return nil
 }
 
-func miscOIDCConformanceBuildSuites(version, consent, policy, brand string, suiteURL, autheliaURL *url.URL, suiteNames ...string) (suites []OpenIDConnectConformanceSuite) {
-	builders := []*OpenIDConnectConformanceSuiteBuilder{
-		{brand, "config", "Config", true, version, consent, policy, nil, autheliaURL},
-		{brand, "basic", "Basic", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, suiteNameBasicFormPost, "Basic (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, "hybrid", "Hybrid", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, "implicit", "Implicit", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
-	}
+func miscOIDCConformanceBuildSuites(version, consent, policy, brand string, suiteURL, autheliaURL *url.URL, suiteNames ...string) (suites []conformance.Suite) {
+	builders := conformance.Builders(version, consent, policy, brand, suiteURL, autheliaURL)
 
 	for _, builder := range builders {
-		if len(suiteNames) != 0 && !utils.IsStringInSlice(builder.name, suiteNames) {
+		if len(suiteNames) != 0 && !utils.IsStringInSlice(builder.Name, suiteNames) {
 			continue
 		}
 
@@ -206,7 +205,7 @@ func miscOIDCConformanceBuildSuites(version, consent, policy, brand string, suit
 	return suites
 }
 
-func doOIDCConformanceSuitePostPlan(client *http.Client, base *url.URL, plan string, variant *OpenIDConnectConformanceSuitePlanVariant, body *bytes.Buffer) (err error) {
+func doOIDCConformanceSuitePostPlan(client *http.Client, base *url.URL, plan string, variant *conformance.PlanVariant, body *bytes.Buffer) (err error) {
 	if client == nil {
 		return nil
 	}
@@ -247,12 +246,14 @@ func doOIDCConformanceSuitePostPlan(client *http.Client, base *url.URL, plan str
 	return nil
 }
 
+// RequestHeaderTransport is a [http.RoundTripper] which sets additional headers on every request.
 type RequestHeaderTransport struct {
 	http.RoundTripper
 
 	headers map[string]string
 }
 
+// RoundTrip implements the [http.RoundTripper] interface.
 func (t *RequestHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	for k, v := range t.headers {
 		req.Header.Set(k, v)
@@ -261,6 +262,7 @@ func (t *RequestHeaderTransport) RoundTrip(req *http.Request) (*http.Response, e
 	return t.RoundTripper.RoundTrip(req)
 }
 
+// OpenIDConnectClients represents the OpenID Connect 1.0 clients portion of a configuration file.
 type OpenIDConnectClients struct {
 	IdentityProviders struct {
 		OIDC struct {

@@ -1,13 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 certificates_directory: '/certs/'
 theme: 'auto'
 
 server:
   address: 'tcp://:9091'
+  timeouts:
+    read: '30s'
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
   endpoints:
+    health:
+      verbose: true
+      providers:
+        - 'storage'
+        - 'session'
+        - 'user'
+      cache: '0'
     rate_limits:
       reset_password_start:
         buckets:

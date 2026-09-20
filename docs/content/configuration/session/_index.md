@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Session"
 description: "Reference documentation for configuring Authelia session management including cookie settings, domain configuration, the Redis session provider, and timeouts."
 summary: ""

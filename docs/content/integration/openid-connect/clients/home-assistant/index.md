@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Home Assistant"
 description: "A guide on integrating Home Assistant with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Home Assistant]
   - Application:
     - [v2025.4.2](https://github.com/home-assistant/core/releases/tag/2025.4.2)
@@ -36,10 +40,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://home-assistant.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `home-assistant`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://home-assistant.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `home-assistant`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -52,7 +56,7 @@ The following example uses the [OpenID Connect for Home Assistant HACS Plugin] w
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Home Assistant] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Home Assistant] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

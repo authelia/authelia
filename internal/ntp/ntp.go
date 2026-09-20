@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package ntp
 
 import (
@@ -41,7 +45,7 @@ func (p *Provider) StartupCheck() (err error) {
 func (p *Provider) offset() (offset time.Duration, err error) {
 	var conn net.Conn
 
-	if conn, err = net.Dial(p.config.Address.Network(), p.config.Address.NetworkAddress()); err != nil {
+	if conn, err = net.DialTimeout(p.config.Address.Network(), p.config.Address.NetworkAddress(), 5*time.Second); err != nil {
 		return offset, fmt.Errorf("error occurred during dial: %w", err)
 	}
 
@@ -78,6 +82,10 @@ func (p *Provider) offset() (offset time.Duration, err error) {
 
 	if err = binary.Read(conn, binary.BigEndian, r); err != nil {
 		return offset, fmt.Errorf("error occurred reading ntp packet response to the connection: %w", err)
+	}
+
+	if err = validateResponse(req, r); err != nil {
+		return offset, fmt.Errorf("error occurred validating the ntp packet response: %w", err)
 	}
 
 	t2 := secondsAndFractionToTime(r.RxTimeSeconds, r.RxTimeFraction)

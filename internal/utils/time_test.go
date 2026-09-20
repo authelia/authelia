@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -366,6 +370,7 @@ func TestParseDurationString_NumericEdgeCases(t *testing.T) {
 		})
 	}
 }
+
 func TestStandardizeDurationString_AtoiErrors(t *testing.T) {
 	testCases := []struct {
 		name        string

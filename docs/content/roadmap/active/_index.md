@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Active"
 description: "The actively developed Authelia roadmap items which are currently being designed or implemented by the development team with target milestone information."
 summary: ""

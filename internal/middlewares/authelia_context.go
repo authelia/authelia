@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -7,8 +11,9 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	"time"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/asaskevich/govalidator/v12"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
@@ -70,13 +75,6 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 	}
 
 	return methods
-}
-
-// Error reply with an error and display the stack trace in the logs.
-func (ctx *AutheliaCtx) Error(err error, message string) {
-	ctx.SetJSONError(message)
-
-	ctx.Logger.Error(err)
 }
 
 // SetJSONError sets the body of the response to an JSON error KO message.
@@ -158,7 +156,7 @@ func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
 func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 	host = ctx.XForwardedHost()
 
-	if host == nil {
+	if len(host) == 0 {
 		return ctx.Host()
 	}
 
@@ -166,7 +164,7 @@ func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 }
 
 // XForwardedURI returns the content of the X-Forwarded-URI header.
-func (ctx *AutheliaCtx) XForwardedURI() (host []byte) {
+func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return ctx.Request.Header.PeekBytes(headerXForwardedURI)
 }
 
@@ -182,12 +180,12 @@ func (ctx *AutheliaCtx) GetXForwardedURI() (uri []byte) {
 }
 
 // XOriginalMethod returns the content of the X-Original-Method header.
-func (ctx *AutheliaCtx) XOriginalMethod() []byte {
+func (ctx *AutheliaCtx) XOriginalMethod() (method []byte) {
 	return ctx.Request.Header.PeekBytes(headerXOriginalMethod)
 }
 
 // XOriginalURL returns the content of the X-Original-URL header.
-func (ctx *AutheliaCtx) XOriginalURL() []byte {
+func (ctx *AutheliaCtx) XOriginalURL() (uri []byte) {
 	return ctx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
@@ -207,13 +205,18 @@ func (ctx *AutheliaCtx) QueryArgAutheliaURL() []byte {
 	return ctx.QueryArgs().PeekBytes(qryArgAutheliaURL)
 }
 
-// AuthzPath returns the 'authz_path' value.
+// AuthzPath returns the 'authz_path' value including the query string if one is present.
 func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
-	if uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath); uv != nil {
-		return []byte(uv.(string))
+	uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath)
+	if uv == nil {
+		return nil
 	}
 
-	return nil
+	if query := ctx.URI().QueryString(); len(query) != 0 {
+		return utils.BytesJoin([]byte(uv.(string)), []byte("?"), query)
+	}
+
+	return []byte(uv.(string))
 }
 
 // BasePath returns the base_url as per the path visited by the client.
@@ -264,6 +267,7 @@ func (ctx *AutheliaCtx) GetCookieDomainFromTargetURI(targetURI *url.URL) string 
 	return ""
 }
 
+// GetCookieConfigFromAutheliaURL returns the session cookie configuration which matches the given Authelia URL.
 func (ctx *AutheliaCtx) GetCookieConfigFromAutheliaURL(autheliaURL *url.URL) (cookie schema.SessionCookie) {
 	if len(ctx.Configuration.Session.Cookies) == 1 && ctx.Configuration.Session.Cookies[0].AutheliaURL == nil {
 		return ctx.Configuration.Session.Cookies[0]
@@ -317,6 +321,16 @@ func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provi
 	return ctx.Providers.SessionProvider.Get(domain)
 }
 
+// GetSessionManagerByTargetURI returns the session manager for the request's domain.
+func (ctx *AutheliaCtx) GetSessionManagerByTargetURI(targetURL *url.URL) (provider session.Manager, err error) {
+	base, err := ctx.GetSessionProviderByTargetURI(targetURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return session.NewEncapsulatedSession(base, ctx.RequestCtx), nil
+}
+
 // GetSessionProvider returns the session provider for the Request's domain.
 func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
 	if ctx.session == nil {
@@ -332,6 +346,24 @@ func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err err
 	}
 
 	return ctx.session, nil
+}
+
+// NewSession returns a new user session.
+func (ctx *AutheliaCtx) NewSession() (userSession session.UserSession) {
+	if provider, err := ctx.GetSessionProvider(); err != nil {
+		return session.NewDefaultUserSession()
+	} else {
+		return provider.NewDefaultUserSession()
+	}
+}
+
+// GetSessionConfig returns the session configuration.
+func (ctx *AutheliaCtx) GetSessionConfig() (config schema.SessionCookie) {
+	if provider, err := ctx.GetSessionProvider(); err != nil {
+		return config
+	} else {
+		return provider.Config
+	}
 }
 
 // GetCookieDomainSessionProvider returns the session provider for the provided domain.
@@ -357,7 +389,7 @@ func (ctx *AutheliaCtx) GetSession() (userSession session.UserSession, err error
 	}
 
 	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
-		ctx.Logger.Error("Unable to retrieve user session")
+		ctx.Logger.WithError(err).Error("Unable to retrieve user session")
 		return provider.NewDefaultUserSession(), nil
 	}
 
@@ -389,7 +421,7 @@ func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 }
 
 // RegenerateSession regenerates a user session.
-func (ctx *AutheliaCtx) RegenerateSession() error {
+func (ctx *AutheliaCtx) RegenerateSession() (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to regenerate user session: %s", err)
@@ -399,7 +431,7 @@ func (ctx *AutheliaCtx) RegenerateSession() error {
 }
 
 // DestroySession destroys a user session.
-func (ctx *AutheliaCtx) DestroySession() error {
+func (ctx *AutheliaCtx) DestroySession() (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to destroy user session: %s", err)
@@ -461,13 +493,38 @@ func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 	return ctx.ReplyJSON(OKResponse{Status: "OK", Data: value}, 0)
 }
 
+// GetRequestQueryArgValue returns the value of the query argument with the given key.
+func (ctx *AutheliaCtx) GetRequestQueryArgValue(key []byte) (value []byte) {
+	return ctx.QueryArgs().PeekBytes(key)
+}
+
+// GetRequestQueryArgValues returns the values of the query argument with the given key.
+func (ctx *AutheliaCtx) GetRequestQueryArgValues(key []byte) (values [][]byte) {
+	return ctx.QueryArgs().PeekMultiBytes(key)
+}
+
+// GetRequestHeaderValue returns the value of the header with the given key.
+func (ctx *AutheliaCtx) GetRequestHeaderValue(key []byte) (value []byte) {
+	return ctx.Request.Header.PeekBytes(key)
+}
+
+// SetResponseHeaderValue sets a response header with the specified key and value.
+func (ctx *AutheliaCtx) SetResponseHeaderValue(key []byte, value string) {
+	ctx.Response.Header.SetBytesK(key, value)
+}
+
+// SetResponseHeaderValueBytes sets a response header with the specified key and value as byte slices.
+func (ctx *AutheliaCtx) SetResponseHeaderValueBytes(key, value []byte) {
+	ctx.Response.Header.SetBytesKV(key, value)
+}
+
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (ctx *AutheliaCtx) RemoteIP() net.IP {
 	return RequestCtxRemoteIP(ctx.RequestCtx)
 }
 
 // GetXForwardedURL returns the parsed X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-URI request header as a
-// *url.URL.
+// *[url.URL].
 func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
 	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.GetXForwardedURI()
 
@@ -484,7 +541,7 @@ func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
 	return requestURI, nil
 }
 
-// GetXOriginalURL returns the parsed X-OriginalURL request header as a *url.URL.
+// GetXOriginalURL returns the parsed X-OriginalURL request header as a *[url.URL].
 func (ctx *AutheliaCtx) GetXOriginalURL() (requestURI *url.URL, err error) {
 	value := ctx.XOriginalURL()
 
@@ -526,8 +583,8 @@ func (ctx *AutheliaCtx) GetOrigin() (origin *url.URL, err error) {
 // IssuerURL returns the expected Issuer.
 func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	issuerURL = &url.URL{
-		Scheme: string(ctx.XForwardedProto()),
-		Host:   string(ctx.GetXForwardedHost()),
+		Scheme: strings.ToLower(string(ctx.XForwardedProto())),
+		Host:   strings.ToLower(string(ctx.GetXForwardedHost())),
 		Path:   ctx.BasePath(),
 	}
 
@@ -535,8 +592,13 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 		return nil, ErrMissingXForwardedHost
 	}
 
-	if issuerURL.Scheme != strProtoHTTPS {
+	switch issuerURL.Scheme {
+	case "":
 		return nil, ErrMissingXForwardedProto
+	case strProtoHTTPS:
+		break
+	default:
+		return nil, fmt.Errorf("invalid X-Forwarded-Proto header value '%s'", issuerURL.Scheme)
 	}
 
 	cookie := ctx.GetCookieConfigFromAutheliaURL(issuerURL)
@@ -547,7 +609,7 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 
 	if cookie.AutheliaURL != nil {
 		return issuerURL, nil
-	} else if utils.HasURIDomainSuffix(issuerURL, cookie.Domain) {
+	} else if !utils.HasURIDomainSuffix(issuerURL, cookie.Domain) {
 		return nil, fmt.Errorf("error occurred discovering the issuer: the hostname '%s' does not match the configured domain '%s'", issuerURL.Hostname(), cookie.Domain)
 	}
 
@@ -633,6 +695,7 @@ func (ctx *AutheliaCtx) GetClock() (provider clock.Provider) {
 	return ctx.Providers.Clock
 }
 
+// GetJWTWithTimeFuncOption returns a jwt.ParserOption that sets the time function to the current clock's Now function.
 func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
 	return jwt.WithTimeFunc(ctx.GetClock().Now)
 }
@@ -663,18 +726,23 @@ func (ctx *AutheliaCtx) GetProviders() (providers Providers) {
 	return ctx.Providers
 }
 
+// GetUserProvider returns the UserProvider instance used for authentication and user management within the context.
 func (ctx *AutheliaCtx) GetUserProvider() authentication.UserProvider {
 	return ctx.Providers.UserProvider
 }
 
+// GetProviderStorage returns the storage provider associated with the current Authelia context.
 func (ctx *AutheliaCtx) GetProviderStorage() storage.Provider {
 	return ctx.Providers.StorageProvider
 }
 
+// GetProviderUserAttributeResolver returns the UserAttributeResolver provider instance from the Authelia context.
 func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return ctx.Providers.UserAttributeResolver
 }
 
+// GetWebAuthnProvider initializes and returns a WebAuthn provider instance with the configured Relying Party (RP)
+// settings.
 func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) {
 	var (
 		origin *url.URL
@@ -728,7 +796,14 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 	return webauthn.New(config)
 }
 
-// Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key
+// RecordAuthenticationDuration records the duration of an authentication attempt with the metrics provider.
+func (ctx *AutheliaCtx) RecordAuthenticationDuration(success bool, elapsed time.Duration) {
+	if ctx.Providers.Metrics != nil {
+		ctx.Providers.Metrics.RecordAuthenticationDuration(success, elapsed)
+	}
+}
+
+// Value is a shaded method of [context.Context] which returns the AutheliaCtx struct if the key is the internal key
 // otherwise it returns the shaded value.
 func (ctx *AutheliaCtx) Value(key any) any {
 	if key == model.CtxKeyAutheliaCtx {

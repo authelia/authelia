@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package cmd
 
 // OutputDir the output directory where the built version of Authelia is located.
@@ -19,9 +23,12 @@ const (
 
 const (
 	masterTag    = "master"
+	stringTrue   = "true"
 	stringFalse  = "false"
 	webDirectory = "web"
 )
+
+const testResultsFileFmt = "test-results-%s.json"
 
 const (
 	pathPNPMModule = "/web/node_modules/.modules.yaml"
@@ -33,6 +40,10 @@ const (
 const (
 	txtDirectoryTidle = "` directory"
 	txtRunningSuite   = "Running suite ("
+)
+
+var (
+	buildkitePrivatePipelines = []string{"authelia-cve"}
 )
 
 const fmtLDFLAGSX = "-X 'github.com/authelia/authelia/v4/internal/utils.%s=%s'"
@@ -117,7 +128,7 @@ authelia-scripts suites setup Standalone - sets up the Standalone suite (there a
 
 	cmdSuitesListLong = `List available suites.
 
-Suites can be ran with the authelia-scripts suites test [suite] command.`
+Suites can be run with the authelia-scripts suites test [suite] command.`
 
 	cmdSuitesListExample = `authelia-scripts suites list`
 
@@ -144,6 +155,41 @@ Suites can be listed with the authelia-scripts suites list command.`
 Suites can be listed with the authelia-scripts suites list command.`
 
 	cmdSuitesTeardownExample = `authelia-scripts suites setup Standalone`
+
+	cmdSuitesSlotShort = "Show the suite slot allocated to this working tree"
+
+	cmdSuitesSlotLong = `Show the suite slot allocated to this working tree, allocating one if it does not have it yet.
+
+The slot is the number bootstrap.sh derives the compose project, the network subnet, the debug ports and the temporary
+directory from, so that several working trees on one machine can run suites at the same time without colliding.`
+
+	cmdSuitesSlotExample = `authelia-scripts suites slot
+authelia-scripts suites slot --list
+authelia-scripts suites slot --release`
+
+	cmdSuitesExternalShort = "Commands related to external suites management"
+
+	cmdSuitesExternalLong = `Commands related to external suites management.
+
+External suites drive a project-local dev server and use the go-rod browser harness to assert the rendered output is correct.`
+
+	cmdSuitesExternalExample = `authelia-scripts suites external`
+
+	cmdSuitesExternalListShort = "List available external suites"
+
+	cmdSuitesExternalListLong = `List available external suites.
+
+External suites can be run with the authelia-scripts suites external test [suite] command.`
+
+	cmdSuitesExternalListExample = `authelia-scripts suites external list`
+
+	cmdSuitesExternalTestShort = "Run an external test suite"
+
+	cmdSuitesExternalTestLong = `Run an external test suite.
+
+External suites can be listed with the authelia-scripts suites external list command.`
+
+	cmdSuitesExternalTestExample = `authelia-scripts suites external test docs`
 
 	cmdUnitTestShort = "Run unit tests"
 

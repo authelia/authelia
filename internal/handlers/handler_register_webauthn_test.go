@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -9,7 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -23,6 +30,13 @@ import (
 )
 
 func TestWebAuthnRegistrationPUT(t *testing.T) {
+	decode := func(in string) []byte {
+		value, err := base64.StdEncoding.DecodeString(in)
+		require.NoError(t, err)
+
+		return value
+	}
+
 	testCases := []struct {
 		name           string
 		config         *schema.WebAuthn
@@ -50,14 +64,14 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: "ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: string(decode("ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
 						Return(nil, nil),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"rp":\{"name":"Authelia","id":"example.com"},"user":\{"name":"john","displayName":"john","id":"Wnl0bEpsVnVXemRnTjJCeFR5SThVeTl1UzJ4cEpTZHNUMlpzSlVBNVVFQnZlMWMyTkVOQ0tETlNXV3BoYUdWQ0pFaGxRM3dwWVQ5SFFHQndJaTh6UUE9PQ"},"challenge":"[a-zA-Z0-9/_-]+","pubKeyCredParams":\[\{"type":"public-key","alg":-?\d+}(,{"type":"public-key","alg":-?\d+})*],"timeout":\d+,"authenticatorSelection":\{},"attestation":"indirect","extensions":{"credProps":true}}}}$`),
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"rp":\{"name":"Authelia","id":"example.com"},"user":\{"name":"john","displayName":"john","id":"ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA"},"challenge":"[a-zA-Z0-9/_-]+","pubKeyCredParams":\[\{"type":"public-key","alg":-48},\{"type":"public-key","alg":-49},\{"type":"public-key","alg":-50},\{"type":"public-key","alg":-8},\{"type":"public-key","alg":-7},\{"type":"public-key","alg":-257},\{"type":"public-key","alg":-35},\{"type":"public-key","alg":-36},\{"type":"public-key","alg":-258},\{"type":"public-key","alg":-259},\{"type":"public-key","alg":-37},\{"type":"public-key","alg":-38},\{"type":"public-key","alg":-39}],"timeout":\d+,"attestation":"indirect","extensions":{"credProps":true}}}}$`),
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -166,7 +180,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: "ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: string(decode("ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
@@ -224,7 +238,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: "ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: string(decode("ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
@@ -355,11 +369,25 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 }
 
 func TestWebAuthnRegistrationPOST(t *testing.T) {
+	parameters := []protocol.CredentialParameter{
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgMLDSA44},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgMLDSA65},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgMLDSA87},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgEdDSA},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgES256},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgRS256},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgES384},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgES512},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgRS384},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgRS512},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgPS256},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgPS384},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgPS512},
+	}
+
 	decode := func(in string) []byte {
 		value, err := base64.StdEncoding.DecodeString(in)
-		if err != nil {
-			t.Fatal("Failed to decode base64 string:", err)
-		}
+		require.NoError(t, err)
 
 		return value
 	}
@@ -400,7 +428,8 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
-						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
@@ -457,7 +486,8 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
-						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
@@ -516,7 +546,8 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
-						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
@@ -571,7 +602,8 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
-						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
@@ -866,7 +898,51 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response (verification_error): RP Hash mismatch. Expected 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc and Received a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response (verification_error): RP Hash mismatch. Expected a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947 and Received 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc")
+			},
+		},
+		{
+			"ShouldHandleCredentialFilteringError",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.WebAuthn.Filtering.ProhibitedAAGUIDs = []uuid.UUID{uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708"))}
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.WebAuthn = &session.WebAuthn{
+					Description: "test",
+					SessionData: &webauthn.SessionData{
+						Challenge:        "aq_AXdvsDMsKW_1aY31XQhU17ZMg1i0TK013DwukB2U",
+						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
+						Return(nil, nil),
+				)
+			},
+			dataPOSTGood,
+			`{"status":"KO","message":"Unable to register your security key."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred processing the credential filtering", "error checking webauthn credential: filters have been configured which prohibit the AAGUID '01020304-0506-0708-0102-030405060708' from registration")
 			},
 		},
 	}

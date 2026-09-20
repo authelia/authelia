@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Regulation"
 description: "Configuring the Authelia regulation system for brute-force protection including the maximum retries, find time window, ban duration, and regulation modes."
 summary: "Configuring the Regulation system."
@@ -16,7 +20,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ can temporarily ban accounts when there are too many authentication attempts on the username / password
+**Authelia** can temporarily ban accounts when there are too many authentication attempts on the username / password
 endpoint. This helps prevent brute-force attacks.
 
 ## Configuration
@@ -46,10 +50,10 @@ regardless of the currently configured ban modes, if bans exist in the database,
 See the [authelia storage bans](../../reference/cli/authelia/authelia_storage_bans.md) command for information on
 managing ban entries.
 
-| Mode |                             Description                             |
-|:----:|:-------------------------------------------------------------------:|
-| user |        The user account is the subject of any automatic bans        |
-|  ip  |         The remote ip is the subject of any automatic bans          |
+| Mode |                      Description                      |
+| :--: | :---------------------------------------------------: |
+| user | The user account is the subject of any automatic bans |
+|  ip  |  The remote ip is the subject of any automatic bans   |
 
 ### max_retries
 

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Pull Request"
 description: "Authelia development pull request guidelines covering the squash merge policy, force push restrictions, maintainer review process, and acceptance requirements."
 summary: "This section covers the pull request guidelines."
@@ -21,8 +25,8 @@ processing merges into the [master] branch.
 
 ## Overview
 
-* Ensure the `Allow edits by maintainers` checkbox is checked due to our [Squash Merge](#squash-merge) policy
-* Ensure you avoid a [force push](#force-push) excluding the specific exceptions listed in the
+- Ensure the `Allow edits by maintainers` checkbox is checked due to our [Squash Merge](#squash-merge) policy
+- Ensure you avoid a [force push](#force-push) excluding the specific exceptions listed in the
   [force push section](#force-push)
 
 ## Squash Merge
@@ -49,6 +53,11 @@ Every [Pull Request] will undergo a formal review process. This process is heavi
 and/or perform a force push, especially after a maintainer has started a review. As such we request that any action that
 you merge `origin/master` into your branch to synchronize your commit after the initial review and any other action that
 rewrites history.
+
+This review process is designed to ensure that the code is in a state that is ready to be merged into [master]. At
+minimum two maintainers must approve the pull request before it can be merged, and all checks must pass. No single
+member of the organization can merge a pull request that does not meet these requirements as well as additional
+requirements outlined in the [GitHub repository ruleset](https://github.com/authelia/authelia/rules).
 
 ### Requirements
 

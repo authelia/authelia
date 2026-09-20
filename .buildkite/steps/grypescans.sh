@@ -1,31 +1,43 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set -e
 
-ciBranch="${BUILDKITE_BRANCH}"
-ciPullRequest="${BUILDKITE_PULL_REQUEST}"
+# shellcheck source=/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/../libs/common.sh"
+
 ciTag="${BUILDKITE_TAG}"
 dockerImageName="authelia/authelia"
 masterBranch="master"
-publicRepoRegex='.*:.*'
-grypeCmd="grype -f low"
+grypeCmd=(grype -f low --only-fixed)
 
+if [[ "${CI_PRIVATE}" == "true" ]]; then
+  dockerImageName="${dockerImageName}-cve"
+fi
+
+IMAGE=""
 if [[ "${CI_MERGE_QUEUE}" != "true" ]]; then
   if [[ -n "${ciTag}" ]]; then
-    echo "--- :grype: Scanning ${dockerImageName}:${ciTag/v}"
-    ${grypeCmd} ${dockerImageName}:${ciTag/v}
-  elif [[ "${ciBranch}" != "${masterBranch}" && ! "${ciBranch}" =~ ${publicRepoRegex} ]]; then
-    echo "--- :grype: Scanning ${dockerImageName}:${ciBranch}"
-    ${grypeCmd} ${dockerImageName}:${ciBranch}
-  elif [[ "${ciBranch}" != "${masterBranch}" && "${ciBranch}" =~ ${publicRepoRegex} ]]; then
-    echo "--- :grype: Scanning ${dockerImageName}:PR${ciPullRequest}"
-    ${grypeCmd} ${dockerImageName}:PR${ciPullRequest}
-  elif [[ "${ciBranch}" == "${masterBranch}" && "${ciPullRequest}" == "false" ]]; then
-    echo "--- :grype: Scanning ${dockerImageName}:${masterBranch}"
-    ${grypeCmd} ${dockerImageName}:${masterBranch}
+    IMAGE="${dockerImageName}:${ciTag/v}"
+  else
+    resolve_tag_suffix "${masterBranch}" "false"
+    [[ -n "${TAG_SUFFIX}" ]] && IMAGE="${dockerImageName}:${TAG_SUFFIX}"
   fi
 fi
 
-for file in *.spdx.json; do
-  echo "--- :grype: Scanning ${file/.spdx.json}"
-  ${grypeCmd} ${file}
+STATUS=0
+
+if [[ -n "${IMAGE}" ]]; then
+  echo "--- :grype: Scanning ${IMAGE}"
+  "${grypeCmd[@]}" "registry:${IMAGE}" || STATUS=1
+fi
+
+for file in *.cdx.json; do
+  echo "--- :grype: Scanning ${file/.cdx.json}"
+  "${grypeCmd[@]}" "${file}" || STATUS=1
 done
+
+exit "${STATUS}"

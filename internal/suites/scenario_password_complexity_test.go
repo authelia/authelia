@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -34,8 +38,7 @@ func (s *PasswordComplexityScenario) TearDownSuite() {
 }
 
 func (s *PasswordComplexityScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *PasswordComplexityScenario) TearDownTest() {
@@ -54,7 +57,6 @@ func (s *PasswordComplexityScenario) TestShouldRejectPasswordReset() {
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	// Attempt to reset the password to a.
 	s.doResetPassword(s.T(), s.Context(ctx), "john", "a", "a", true)
 }
 

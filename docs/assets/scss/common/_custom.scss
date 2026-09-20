@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Authelia
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 @import "bootstrap-icons/font/bootstrap-icons.scss";
 
 figure.figure-blog {
@@ -12,6 +18,10 @@ img[data-sizes="auto"] {
 img.oidc-certification {
   height: 10dvh;
   width: auto;
+}
+
+.content {
+  overflow-wrap: break-word;
 }
 
 .text-orange {
@@ -37,19 +47,19 @@ body code span.line.hl {
     color: $link-color;
   }
   .icon-support-full {
-    @include icon-support('.bi-check-circle-fill', '.text-success');
+    @include icon-support(".bi-check-circle-fill", ".text-success");
   }
   .icon-support-unknown {
-    @include icon-support('.bi-question-circle-fill', '.text-warning');
+    @include icon-support(".bi-question-circle-fill", ".text-warning");
   }
   .icon-support-partial {
-    @include icon-support('.bi-exclamation-circle-fill', '.text-orange');
+    @include icon-support(".bi-exclamation-circle-fill", ".text-orange");
   }
   .icon-support-legacy {
-    @include icon-support('.bi-archive-fill', '.text-orange');
+    @include icon-support(".bi-archive-fill", ".text-orange");
   }
   .icon-support-none {
-    @include icon-support('.bi-x-circle-fill', '.text-danger');
+    @include icon-support(".bi-x-circle-fill", ".text-danger");
   }
 }
 
@@ -58,19 +68,19 @@ body code span.line.hl {
     color: $body-color-dark;
   }
   .icon-support-full {
-    @include icon-support('.bi-check-circle', '.text-success');
+    @include icon-support(".bi-check-circle", ".text-success");
   }
   .icon-support-unknown {
-    @include icon-support('.bi-question-circle', '.text-warning');
+    @include icon-support(".bi-question-circle", ".text-warning");
   }
   .icon-support-partial {
-    @include icon-support('.bi-exclamation-circle', '.text-orange');
+    @include icon-support(".bi-exclamation-circle", ".text-orange");
   }
   .icon-support-legacy {
-    @include icon-support('.bi-archive', '.text-orange');
+    @include icon-support(".bi-archive", ".text-orange");
   }
   .icon-support-none {
-    @include icon-support('.bi-x-circle', '.text-danger');
+    @include icon-support(".bi-x-circle", ".text-danger");
   }
 }
 
@@ -158,12 +168,12 @@ img.center {
 }
 
 img.floatleft {
-  float:left;
+  float: left;
   margin: 0.7rem;
 }
 
 img.floatright {
-  float:right;
+  float: right;
   margin: 0.7rem;
 }
 

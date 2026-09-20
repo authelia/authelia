@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Amir Zarrinkafsh"
 description: "The contributor profile for Amir Zarrinkafsh who is a core team member and maintainer of the Authelia open-source authentication and authorization project."
 summary: "Maintainer of Authelia."

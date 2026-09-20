@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Artifact Signing and Provenance"
 description: "An overview of Authelia's artifact signing with GPG keys and SLSA Build Level 3 provenance for verifying the integrity and authenticity of official releases."
 summary: "An overview of Authelia's Artifact Signing and Provenance."

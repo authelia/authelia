@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -60,9 +64,41 @@ func TestIsRedirectionSafe_ShouldReturnFalseOnBadDomain(t *testing.T) {
 	assert.False(t, isURLSafe("https://secure.example.co", "example.com"))
 }
 
+func TestHasURIDomainSuffix(t *testing.T) {
+	assert.True(t, HasURIDomainSuffix(&url.URL{Scheme: "https", Host: "example.com"}, "example.com"))
+	assert.True(t, HasURIDomainSuffix(&url.URL{Scheme: "https", Host: "auth.example.com"}, "example.com"))
+	assert.False(t, HasURIDomainSuffix(&url.URL{Scheme: "https", Host: "auth.xexample.com"}, "example.com"))
+}
+
 func TestHasDomainSuffix(t *testing.T) {
-	assert.False(t, HasDomainSuffix("abc", ""))
-	assert.False(t, HasDomainSuffix("", ""))
+	testCases := []struct {
+		Name         string
+		Domain       string
+		DomainSuffix string
+		Expected     bool
+	}{
+		{"ShouldNotMatchEmptySuffix", "abc", "", false},
+		{"ShouldNotMatchEmptyDomainAndEmptySuffix", "", "", false},
+		{"ShouldNotMatchEmptyDomain", "", "example.com", false},
+		{"ShouldMatchExactEqual", "example.com", "example.com", true},
+		{"ShouldMatchExactEqualDifferentCase", "Example.COM", "example.com", true},
+		{"ShouldMatchSubdomain", "auth.example.com", "example.com", true},
+		{"ShouldMatchSubdomainDifferentCase", "Auth.Example.COM", "example.com", true},
+		{"ShouldMatchSubdomainSuffixDifferentCase", "auth.example.com", "Example.COM", true},
+		{"ShouldMatchPeriodPrefixedSuffix", "auth.example.com", ".example.com", true},
+		{"ShouldMatchPeriodPrefixedSuffixDifferentCase", "Auth.Example.COM", ".example.com", true},
+		{"ShouldMatchPeriodPrefixedSuffixEqualToDomain", ".example.com", ".example.com", true},
+		{"ShouldNotMatchUnrelatedDomain", "example.org", "example.com", false},
+		{"ShouldNotMatchPartialLabel", "xexample.com", "example.com", false},
+		{"ShouldNotMatchPartialLabelWithPeriodPrefix", "xexample.com", ".example.com", false},
+		{"ShouldNotMatchSuffixLongerThanDomain", "com", "example.com", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, HasDomainSuffix(tc.Domain, tc.DomainSuffix))
+		})
+	}
 }
 
 func TestEqualURLs(t *testing.T) {

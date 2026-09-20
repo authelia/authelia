@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Arcane"
 description: "A guide on integrating Arcane with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Arcane]
   - [v1.16.3](https://github.com/ofkm/arcane/releases/tag/v1.16.3)
 
@@ -32,13 +36,13 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-        `https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/login`.
-        This means if you change this value, you need to update the redirect URI.
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `arcane`
-- __Client Secret:__ `insecure_secret`
+    `https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    This means if you change this value, you need to update the redirect URI.
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `arcane`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -48,7 +52,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Arcane] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Arcane] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -37,6 +41,7 @@ func (s *PathPrefixSuite) TestCustomHeaders() {
 func (s *PathPrefixSuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
+
 func (s *PathPrefixSuite) TestChangePasswordScenario() {
 	suite.Run(s.T(), NewChangePasswordScenario())
 }
@@ -57,8 +62,7 @@ func (s *PathPrefixSuite) TestShouldRenderFrontendWithTrailingSlash() {
 	s.Require().NoError(err)
 	s.RodSession = browser
 
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain)+"/")
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
@@ -80,8 +84,7 @@ func (s *PathPrefixSuite) TestShouldRenderFrontendWithoutTrailingSlash() {
 	s.Require().NoError(err)
 	s.RodSession = browser
 
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))

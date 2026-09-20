@@ -1,11 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useCallback, useEffect, useReducer, useRef } from "react";
 
+import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { RedirectionURL } from "@constants/SearchParams";
+import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
-import { useIsMountedRef } from "@hooks/Mounted";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
@@ -29,14 +34,13 @@ const WebAuthnMethod = function (props: Props) {
     const redirectionURL = useQueryParam(RedirectionURL);
     const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
-    const mounted = useIsMountedRef();
+    const getSignal = useAbortSignal();
 
     const stateReducer = (_state: WebAuthnTouchState, action: { type: WebAuthnTouchState }) => action.type;
 
     const [state, dispatch] = useReducer(stateReducer, WebAuthnTouchState.WaitTouch);
 
     const { onSignInError, onSignInSuccess } = props;
-    const signInInitiatedRef = useRef(false);
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
@@ -44,9 +48,11 @@ const WebAuthnMethod = function (props: Props) {
             return;
         }
 
+        const signal = getSignal();
+
         try {
             dispatch({ type: WebAuthnTouchState.WaitTouch });
-            const optionsStatus = await getWebAuthnOptions();
+            const optionsStatus = await getWebAuthnOptions(signal);
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 dispatch({ type: WebAuthnTouchState.Failure });
@@ -57,9 +63,9 @@ const WebAuthnMethod = function (props: Props) {
 
             const result = await getWebAuthnResult(optionsStatus.options);
 
-            if (result.result !== AssertionResult.Success) {
-                if (!mounted.current) return;
+            if (signal.aborted) return;
 
+            if (result.result !== AssertionResult.Success) {
                 dispatch({ type: WebAuthnTouchState.Failure });
 
                 onSignInError(new Error(translate(AssertionResultFailureString(result.result))));
@@ -74,8 +80,6 @@ const WebAuthnMethod = function (props: Props) {
                 return;
             }
 
-            if (!mounted.current) return;
-
             dispatch({ type: WebAuthnTouchState.InProgress });
 
             const response = await postWebAuthnResponse(
@@ -85,6 +89,7 @@ const WebAuthnMethod = function (props: Props) {
                 flow,
                 subflow,
                 userCode,
+                signal,
             );
 
             if (response.data.status === "OK" && response.status === 200) {
@@ -92,14 +97,10 @@ const WebAuthnMethod = function (props: Props) {
                 return;
             }
 
-            if (!mounted.current) return;
-
             onSignInError(new Error(translate("The server rejected the security key")));
             dispatch({ type: WebAuthnTouchState.Failure });
         } catch (err) {
-            // If the request was initiated and the user changed 2FA method in the meantime,
-            // the process is interrupted to avoid updating state of unmounted component.
-            if (!mounted.current) return;
+            if (axios.isCancel(err)) return;
             console.error(err);
             onSignInError(new Error(translate("Failed to initiate security key sign in process")));
             dispatch({ type: WebAuthnTouchState.Failure });
@@ -107,7 +108,7 @@ const WebAuthnMethod = function (props: Props) {
     }, [
         props.registered,
         props.authenticationLevel,
-        mounted,
+        getSignal,
         redirectionURL,
         flowID,
         flow,
@@ -118,12 +119,15 @@ const WebAuthnMethod = function (props: Props) {
         onSignInSuccess,
     ]);
 
+    const doInitiateSignInRef = useRef(doInitiateSignIn);
+
     useEffect(() => {
-        if (!signInInitiatedRef.current) {
-            signInInitiatedRef.current = true;
-            doInitiateSignIn().catch(console.error);
-        }
+        doInitiateSignInRef.current = doInitiateSignIn;
     }, [doInitiateSignIn]);
+
+    useEffect(() => {
+        doInitiateSignInRef.current().catch(console.error);
+    }, []);
 
     let methodState = MethodContainerState.METHOD;
     if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {

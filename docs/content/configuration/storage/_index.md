@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Storage"
 description: "Reference documentation for configuring Authelia storage backends including SQLite, MySQL, MariaDB, and PostgreSQL database providers for persistent data."
 summary: ""

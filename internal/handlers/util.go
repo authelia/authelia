@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -46,7 +50,6 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, bod
 
 	ctx.Logger.Debugf("Getting user details for notification")
 
-	// Send Notification.
 	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred looking up user details for user '%s' while attempting to alert them of an important event", username)
 		return

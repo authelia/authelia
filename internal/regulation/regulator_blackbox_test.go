@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package regulation_test
 
 import (
@@ -137,7 +141,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckIPBanned() {
 	s.Equal(regulation.BanTypeIP, b.Type())
 	s.Equal("127.0.0.1", b.Value())
 
-	regulator.HandleAttempt(s.mock.Ctx, false, true, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeUser, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldHandleBanCheckIPBannedPermanent() {
@@ -189,7 +193,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckIPBannedPermanent() {
 	s.Equal(regulation.BanTypeIP, b.Type())
 	s.Equal("127.0.0.1", b.Value())
 
-	regulator.HandleAttempt(s.mock.Ctx, false, true, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeUser, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldHandleBanCheckIPBannedFailToAppend() {
@@ -235,7 +239,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckIPBannedFailToAppend() {
 	s.Equal(&result[0].Expires.Time, expires)
 	s.EqualError(err, "user is banned")
 
-	regulator.HandleAttempt(s.mock.Ctx, false, true, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeUser, "john", nil), "", "", regulation.AuthType1FA)
 
 	s.AssertLogEntryMessageAndError("Failed to record 1FA authentication attempt", "failed to log")
 }
@@ -292,7 +296,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckIPNotBanned() {
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldHandleBanCheckIPNotBannedButFailedAttempt() {
@@ -361,7 +365,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckIPNotBannedButFailedAttempt() {
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldHandleBanCheckUserError() {
@@ -436,7 +440,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckUserBanned() {
 	s.Equal(regulation.BanTypeUser, b.Type())
 	s.Equal("john", b.Value())
 
-	regulator.HandleAttempt(s.mock.Ctx, false, true, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeUser, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldHandleBanCheckUserBannedPermanent() {
@@ -491,7 +495,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckUserBannedPermanent() {
 	s.Equal(regulation.BanTypeUser, b.Type())
 	s.Equal("john", b.Value())
 
-	regulator.HandleAttempt(s.mock.Ctx, false, true, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeUser, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldHandleBanCheckUserBannedFailToAppend() {
@@ -540,7 +544,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckUserBannedFailToAppend() {
 	s.Equal(&result[0].Expires.Time, expires)
 	s.EqualError(err, "user is banned")
 
-	regulator.HandleAttempt(s.mock.Ctx, false, true, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeUser, "john", nil), "", "", regulation.AuthType1FA)
 
 	s.AssertLogEntryMessageAndError("Failed to record 1FA authentication attempt", "failed to log")
 }
@@ -597,7 +601,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckUserNotBanned() {
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldHandleBanCheckUserNotBannedButFailedAttempt() {
@@ -666,7 +670,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckUserNotBannedButFailedAttempt()
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldNotBanWhenFailedAuthenticationNotInFindTime() {
@@ -723,7 +727,7 @@ func (s *RegulatorSuite) TestShouldNotBanWhenFailedAuthenticationNotInFindTime()
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFindTime() {
@@ -796,7 +800,7 @@ func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFindTime() {
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldCheckUserWasAboutToBeBanned() {
@@ -857,7 +861,7 @@ func (s *RegulatorSuite) TestShouldCheckUserWasAboutToBeBanned() {
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttempt() {
@@ -922,7 +926,7 @@ func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttemp
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 }
 
 func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
@@ -1000,7 +1004,7 @@ func (s *RegulatorSuite) TestShouldHandleLoadRegulationRecordsByIPError() {
 			Return(nil, nil),
 	)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 
 	s.AssertLogEntryMessageAndError("Failed to load regulation records", "load ip records failed")
 }
@@ -1050,7 +1054,7 @@ func (s *RegulatorSuite) TestShouldHandleSaveBannedIPError() {
 			Return(nil, nil),
 	)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 
 	s.AssertLogEntryMessageAndError("Failed to save ban", "save ip ban failed")
 }
@@ -1084,7 +1088,7 @@ func (s *RegulatorSuite) TestShouldHandleLoadRegulationRecordsByUserError() {
 			Return(nil, fmt.Errorf("load user records failed")),
 	)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 
 	s.AssertLogEntryMessageAndError("Failed to load regulation records", "load user records failed")
 }
@@ -1134,7 +1138,7 @@ func (s *RegulatorSuite) TestShouldHandleSaveBannedUserError() {
 			Return(fmt.Errorf("save user ban failed")),
 	)
 
-	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+	regulator.HandleAttempt(s.mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, "john", nil), "", "", regulation.AuthType1FA)
 
 	s.AssertLogEntryMessageAndError("Failed to save ban", "save user ban failed")
 }
@@ -1157,8 +1161,7 @@ func TestHandleAttemptShortCircuits(t *testing.T) {
 		name            string
 		config          schema.Regulation
 		successful      bool
-		banned          bool
-		username        string
+		ban             *regulation.Ban
 		authType        string
 		expectAppendErr string
 	}{
@@ -1166,16 +1169,14 @@ func TestHandleAttemptShortCircuits(t *testing.T) {
 			name:       "ShouldSkipBanChecksOnSuccessfulAttempt",
 			config:     defaultCfg,
 			successful: true,
-			banned:     false,
-			username:   "john",
+			ban:        regulation.NewBan(regulation.BanTypeNone, "john", nil),
 			authType:   regulation.AuthType1FA,
 		},
 		{
 			name:       "ShouldSkipBanChecksWhenAlreadyBanned",
 			config:     defaultCfg,
 			successful: false,
-			banned:     true,
-			username:   "john",
+			ban:        regulation.NewBan(regulation.BanTypeUser, "john", nil),
 			authType:   regulation.AuthType1FA,
 		},
 		{
@@ -1187,16 +1188,14 @@ func TestHandleAttemptShortCircuits(t *testing.T) {
 				FindTime:   30 * time.Second,
 			},
 			successful: false,
-			banned:     false,
-			username:   "john",
+			ban:        regulation.NewBan(regulation.BanTypeNone, "john", nil),
 			authType:   regulation.AuthType1FA,
 		},
 		{
 			name:       "ShouldSkipBanChecksForNon1FAType",
 			config:     defaultCfg,
 			successful: false,
-			banned:     false,
-			username:   "john",
+			ban:        regulation.NewBan(regulation.BanTypeNone, "john", nil),
 			authType:   "2FA",
 		},
 		{
@@ -1208,8 +1207,7 @@ func TestHandleAttemptShortCircuits(t *testing.T) {
 				FindTime:   30 * time.Second,
 			},
 			successful: false,
-			banned:     false,
-			username:   "",
+			ban:        regulation.NewBan(regulation.BanTypeNone, "", nil),
 			authType:   regulation.AuthType1FA,
 		},
 		{
@@ -1221,8 +1219,7 @@ func TestHandleAttemptShortCircuits(t *testing.T) {
 				FindTime:   30 * time.Second,
 			},
 			successful:      false,
-			banned:          false,
-			username:        "john",
+			ban:             regulation.NewBan(regulation.BanTypeNone, "john", nil),
 			authType:        regulation.AuthType1FA,
 			expectAppendErr: "failed to append",
 		},
@@ -1240,8 +1237,8 @@ func TestHandleAttemptShortCircuits(t *testing.T) {
 			attempt := model.AuthenticationAttempt{
 				Time:          m.Clock.Now(),
 				Successful:    tc.successful,
-				Banned:        tc.banned,
-				Username:      tc.username,
+				Banned:        tc.ban.IsBanned(),
+				Username:      tc.ban.Value(),
 				Type:          tc.authType,
 				RemoteIP:      model.NewNullIP(ip),
 				RequestURI:    "",
@@ -1260,7 +1257,7 @@ func TestHandleAttemptShortCircuits(t *testing.T) {
 					Return(nil)
 			}
 
-			reg.HandleAttempt(m.Ctx, tc.successful, tc.banned, tc.username, "", "", tc.authType)
+			reg.HandleAttempt(m.Ctx, tc.successful, tc.ban, "", "", tc.authType)
 
 			if tc.expectAppendErr != "" {
 				entry := m.Hook.LastEntry()

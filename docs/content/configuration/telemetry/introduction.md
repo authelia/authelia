@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Telemetry"
 description: "An introduction to configuring Authelia telemetry settings explaining the available Prometheus metrics collection capabilities which are disabled by default."
 summary: "Configuring the Telemetry settings."
@@ -9,9 +13,9 @@ weight: 109100
 toc: true
 ---
 
-*Authelia* allows collecting telemetry for the purpose of monitoring it. At the present time we only allow collecting
+_Authelia_ allows collecting telemetry for the purpose of monitoring it. At the present time we only allow collecting
 [metrics](metrics.md). These [metrics](metrics.md) are stored in memory and must be scraped manually by the
 administrator.
 
-No metrics or telemetry are reported from an *Authelia* binary to any location the administrator doesn't explicitly
+No metrics or telemetry are reported from an _Authelia_ binary to any location the administrator doesn't explicitly
 configure. This means by default all metrics are disabled.

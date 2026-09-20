@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Synapse"
 description: "A guide on integrating Synapse with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Synapse]
   - [v1.145.0](https://github.com/element-hq/synapse/releases/tag/v1.145.0)
 
@@ -33,11 +37,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://synapse.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `synapse`
-- __Client Secret:__ `insecure_secret`
-- __Groups:__ the `synapse-users` group exists and only members of this group are expected to be able to use Synapse.
+- **Application Root URL:** `https://synapse.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `synapse`
+- **Client Secret:** `insecure_secret`
+- **Groups:** the `synapse-users` group exists and only members of this group are expected to be able to use Synapse.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,7 +51,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Synapse] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Synapse] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

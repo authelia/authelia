@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -6,10 +10,10 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/google/uuid"
+
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/x/errorsx"
-	"github.com/google/uuid"
-	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -28,10 +32,13 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 		err error
 	)
-	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
 
-		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+	if _, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("Device Authorization Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		errorsx.WriteJSONError(rw, r, rfc)
 
 		return
 	}
@@ -68,6 +75,7 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 //nolint:gocyclo
 func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
+		issuer    *url.URL
 		requester oauthelia2.DeviceAuthorizeRequester
 		responder oauthelia2.DeviceUserAuthorizeResponder
 		flowID    uuid.UUID
@@ -76,6 +84,17 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 		err error
 	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("Device Authorization Request during the User Authorization Flow could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, rfc)
+
+		return
+	}
+
 	if requester, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeRequest(ctx, r); err != nil {
 		ctx.GetLogger().
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
@@ -179,17 +198,6 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	var issuer *url.URL
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		log.
-			WithError(err).
-			Error("Device Authorization Request failed to obtain the issuer during the User Authorization Flow")
-
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the issuer details."))
-
-		return
-	}
-
 	var details *authentication.UserDetailsExtended
 
 	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(userSession.Username); err != nil {
@@ -213,7 +221,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
-		session.Claims.Audience = append([]string{client.GetID()}, requester.GetGrantedAudience()...)
+		session.Claims.Audience = append([]string{client.GetID()}, oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource())...)
 	}
 
 	requester.SetStatus(oauthelia2.DeviceAuthorizeStatusApproved)

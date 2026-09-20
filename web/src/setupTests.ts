@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import "@testing-library/jest-dom";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
@@ -43,6 +47,10 @@ document.body.dataset.duoselfenrollment = "true";
 document.body.dataset.rememberme = "true";
 document.body.dataset.resetpassword = "true";
 document.body.dataset.resetpasswordcustomurl = "";
+document.body.dataset.totpappapplestore = "https://apps.apple.com/us/app/google-authenticator/id388497605";
+document.body.dataset.totpappgoogleplay =
+    "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2";
+document.body.dataset.registrationurl = "";
 document.body.dataset.privacypolicyurl = "";
 document.body.dataset.privacypolicyaccept = "false";
 document.body.dataset.passkeylogin = "true";

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Database Schema"
 description: "Authelia development database schema guidelines covering naming conventions for tables, columns, foreign keys, unique keys, primary keys, and index creation."
 summary: "This section covers the database schema guidelines we use for development."

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package server
 
 import (
@@ -28,7 +32,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// Replacement for the default error handler in fasthttp.
 func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 	headerXForwardedFor := []byte(fasthttp.HeaderXForwardedFor)
 
@@ -118,6 +121,7 @@ func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 	ctx.SetBodyString(fmt.Sprintf("%d %s", fasthttp.StatusMethodNotAllowed, fasthttp.StatusMessage(fasthttp.StatusMethodNotAllowed)))
 }
 
+// RegisterRoutesBridgedFunc is a function which registers routes that require the middleware bridge.
 type RegisterRoutesBridgedFunc = func(r *router.Router, config *schema.Configuration, providers middlewares.Providers, bridge middlewares.Bridge)
 
 //nolint:gocyclo
@@ -155,7 +159,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	r := router.New()
 
-	// Static Assets.
 	r.HEAD("/", bridge(serveIndexHandler))
 	r.GET("/", bridge(serveIndexHandler))
 
@@ -173,7 +176,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/static/{filepath:*}", handlerPublicHTML)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
-	// Locales.
 	r.GET("/locales", bridge(handlerLocalesList))
 
 	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
@@ -182,7 +184,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
 
-	// Swagger.
 	r.HEAD(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
 	r.GET(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
 	r.OPTIONS(prefixAPI, policyCORSPublicGET.HandleOPTIONS)
@@ -217,6 +218,15 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
+	if config.Server.Endpoints.Health.Verbose {
+		rateLimitHealth := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.Health), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
+
+		handlerHealthVerbose := handlers.HealthVerboseGET(config.Server.Endpoints.Health)
+
+		r.HEAD("/api/health/verbose", middlewareAPI(rateLimitHealth(handlerHealthVerbose)))
+		r.GET("/api/health/verbose", middlewareAPI(rateLimitHealth(handlerHealthVerbose)))
+	}
+
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
 
 	r.GET("/api/configuration", middleware1FA(handlers.ConfigurationGET))
@@ -230,7 +240,9 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		authz := handlers.NewAuthzBuilder().WithConfig(config).WithEndpointConfig(endpoint).Build()
 
-		handlerAuthz := middlewares.Wrap(metricsVRMW, bridge(authz.Handler))
+		handlerAuthz := middlewares.Wrap(metricsVRMW, bridge(func(ctx *middlewares.AutheliaCtx) {
+			authz.Handler(ctx)
+		}))
 
 		switch name {
 		case "legacy":
@@ -250,43 +262,39 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
-	funcDelayPassword := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
+	delayerPassword := middlewares.NewTimingAttackDelay(10, time.Second).SetRecord(true)
 
-	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPasswordPOST(funcDelayPassword)))
-	r.POST("/api/firstfactor/reauthenticate", middleware1FA(handlers.FirstFactorReauthenticatePOST(funcDelayPassword)))
+	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPasswordPOST(delayerPassword)))
+	r.POST("/api/firstfactor/reauthenticate", middleware1FA(handlers.FirstFactorReauthenticatePOST(delayerPassword)))
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
 
-	// Only register endpoints if forgot password is not disabled.
-	if !config.AuthenticationBackend.PasswordReset.Disable &&
-		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
-		resetPasswordTokenRL := middlewares.NewIPRateLimit(middlewares.NewRateLimitBucketsConfig(config.Server.Endpoints.RateLimits.ResetPasswordFinish)...)
+	if !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
+		rateLimitResetPasswordStart := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ResetPasswordStart), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
+		rateLimitResetPasswordFinish := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ResetPasswordFinish), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
 
-		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", middlewareAPI(middlewares.NewRateLimitHandler(config.Server.Endpoints.RateLimits.ResetPasswordStart, handlers.ResetPasswordIdentityStart)))
-		r.POST("/api/reset-password/identity/finish", middlewareAPI(resetPasswordTokenRL(handlers.ResetPasswordIdentityFinish)))
+		r.POST("/api/reset-password/identity/start", middlewareAPI(rateLimitResetPasswordStart(handlers.ResetPasswordIdentityStart)))
+		r.POST("/api/reset-password/identity/finish", middlewareAPI(rateLimitResetPasswordFinish(handlers.ResetPasswordIdentityFinish)))
 
 		r.POST("/api/reset-password", middlewareAPI(handlers.ResetPasswordPOST))
-		r.DELETE("/api/reset-password", middlewareAPI(resetPasswordTokenRL(handlers.ResetPasswordDELETE)))
+		r.DELETE("/api/reset-password", middlewareAPI(rateLimitResetPasswordFinish(handlers.ResetPasswordDELETE)))
 	}
 
 	if !config.AuthenticationBackend.PasswordChange.Disable {
 		r.POST("/api/change-password", middlewareElevated1FA(handlers.ChangePasswordPOST))
 	}
 
-	// Information about the user.
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
 
-	// User Session Elevation.
 	middlewareElevatePOST := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-		WithPostMiddlewares(middlewares.NewRateLimit(config.Server.Endpoints.RateLimits.SessionElevationStart), middlewares.Require1FA).
+		WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SessionElevationStart), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
 		Build()
 
 	middlewareElevatePUT := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone, middlewares.ArbitraryDelay(time.Second)).
-		WithPostMiddlewares(middlewares.NewRateLimit(config.Server.Endpoints.RateLimits.SessionElevationFinish), middlewares.Require1FA).
+		WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SessionElevationFinish), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
 		Build()
 
 	r.GET("/api/user/session/elevation", middleware1FA(handlers.UserSessionElevationGET))
@@ -298,13 +306,12 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	if !config.TOTP.Disable {
 		middlewareRateLimitTOTP := middlewares.NewBridgeBuilder(*config, providers).
 			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-			WithPostMiddlewares(middlewares.NewRateLimit(config.Server.Endpoints.RateLimits.SecondFactorTOTP), middlewares.Require1FA).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorTOTP), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
 			Build()
 
-		// TOTP related endpoints.
 		r.GET("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordGET))
 		r.POST("/api/secondfactor/totp", middlewareRateLimitTOTP(handlers.TimeBasedOneTimePasswordPOST))
-		r.DELETE("/api/secondfactor/totp", middleware1FA(handlers.TOTPConfigurationDELETE))
+		r.DELETE("/api/secondfactor/totp", middlewareElevated1FA(handlers.TOTPConfigurationDELETE))
 
 		r.GET("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterGET))
 		r.PUT("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterPUT))
@@ -319,10 +326,15 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		if config.WebAuthn.EnablePasskeyLogin {
 			r.GET("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyGET))
 			r.POST("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyPOST))
-			r.POST("/api/secondfactor/password", middleware1FA(handlers.SecondFactorPasswordPOST(funcDelayPassword)))
+
+			middlewareRateLimitPassword := middlewares.NewBridgeBuilder(*config, providers).
+				WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+				WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorPassword), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
+				Build()
+
+			r.POST("/api/secondfactor/password", middlewareRateLimitPassword(handlers.SecondFactorPasswordPOST(delayerPassword)))
 		}
 
-		// Management of the WebAuthn credentials.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
 
 		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
@@ -333,7 +345,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
 
-	// Configure DUO api endpoint only if configuration exists.
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
 
@@ -351,7 +362,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		middlewareRateLimitDuo := middlewares.NewBridgeBuilder(*config, providers).
 			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-			WithPostMiddlewares(middlewares.NewRateLimit(config.Server.Endpoints.RateLimits.SecondFactorDuo), middlewares.Require1FA).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorDuo), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
 			Build()
 
 		r.GET("/api/secondfactor/duo", middleware1FA(handlers.DuoGET))
@@ -444,7 +455,12 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSliceFold(oidc.EndpointPushedAuthorizationRequest, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
-	rateLimitPAR := middlewares.NewIPRateLimit(middlewares.NewRateLimitBucketsConfig(config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest)...)
+	rateLimitPAR := middlewares.NewRateLimiter(
+		middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest),
+		middlewares.WithRateLimitExemptStatusCodes(fasthttp.StatusCreated),
+		middlewares.WithRateLimitErrorHandler(middlewares.HandlerRateLimitOpenIDConnect),
+		middlewares.WithRateLimitCollector(providers.GarbageCollector),
+	).Middleware()
 
 	r.OPTIONS(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.HandleOnlyOPTIONS)
 	r.POST(oidc.EndpointPathPushedAuthorizationRequest, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointPushedAuthorizationRequest), policyCORSPAR.Middleware(bridge(rateLimitPAR(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2PushedAuthorizationRequest))))))
@@ -456,7 +472,12 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointToken, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
-	rateLimitToken := middlewares.NewIPRateLimit(middlewares.NewRateLimitBucketsConfig(config.Server.Endpoints.RateLimits.OpenIDConnectToken)...)
+	rateLimitToken := middlewares.NewRateLimiter(
+		middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.OpenIDConnectToken),
+		middlewares.WithRateLimitExemptStatusCodes(fasthttp.StatusOK),
+		middlewares.WithRateLimitErrorHandler(middlewares.HandlerRateLimitOpenIDConnect),
+		middlewares.WithRateLimitCollector(providers.GarbageCollector),
+	).Middleware()
 
 	r.OPTIONS(oidc.EndpointPathToken, policyCORSToken.HandleOPTIONS)
 	r.POST(oidc.EndpointPathToken, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointToken), policyCORSToken.Middleware(bridge(rateLimitToken(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2TokenPOST))))))
@@ -468,9 +489,16 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointUserinfo, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
+	rateLimitUserInfo := middlewares.NewRateLimiter(
+		middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.OpenIDConnectUserInfo),
+		middlewares.WithRateLimitExemptStatusCodes(fasthttp.StatusOK),
+		middlewares.WithRateLimitErrorHandler(middlewares.HandlerRateLimitOpenIDConnect),
+		middlewares.WithRateLimitCollector(providers.GarbageCollector),
+	).Middleware()
+
 	r.OPTIONS(oidc.EndpointPathUserinfo, policyCORSUserinfo.HandleOPTIONS)
-	r.GET(oidc.EndpointPathUserinfo, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointUserinfo), policyCORSUserinfo.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo)))))
-	r.POST(oidc.EndpointPathUserinfo, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointUserinfo), policyCORSUserinfo.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo)))))
+	r.GET(oidc.EndpointPathUserinfo, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointUserinfo), policyCORSUserinfo.Middleware(bridge(rateLimitUserInfo(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))))
+	r.POST(oidc.EndpointPathUserinfo, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointUserinfo), policyCORSUserinfo.Middleware(bridge(rateLimitUserInfo(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))))
 
 	policyCORSIntrospection := middlewares.NewCORSPolicyBuilder().
 		WithAllowCredentials(true).
@@ -479,8 +507,14 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointIntrospection, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
+	rateLimitIntrospection := middlewares.NewRateLimiter(
+		middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.OpenIDConnectIntrospection),
+		middlewares.WithRateLimitErrorHandler(middlewares.HandlerRateLimitOpenIDConnect),
+		middlewares.WithRateLimitCollector(providers.GarbageCollector),
+	).Middleware()
+
 	r.OPTIONS(oidc.EndpointPathIntrospection, policyCORSIntrospection.HandleOPTIONS)
-	r.POST(oidc.EndpointPathIntrospection, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointIntrospection), policyCORSIntrospection.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2IntrospectionPOST)))))
+	r.POST(oidc.EndpointPathIntrospection, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointIntrospection), policyCORSIntrospection.Middleware(bridge(rateLimitIntrospection(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2IntrospectionPOST))))))
 
 	policyCORSRevocation := middlewares.NewCORSPolicyBuilder().
 		WithAllowCredentials(true).
@@ -489,14 +523,22 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointRevocation, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
+	rateLimitRevocation := middlewares.NewRateLimiter(
+		middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.OpenIDConnectRevocation),
+		middlewares.WithRateLimitExemptStatusCodes(fasthttp.StatusOK),
+		middlewares.WithRateLimitErrorHandler(middlewares.HandlerRateLimitOpenIDConnect),
+		middlewares.WithRateLimitCollector(providers.GarbageCollector),
+	).Middleware()
+
 	r.OPTIONS(oidc.EndpointPathRevocation, policyCORSRevocation.HandleOPTIONS)
-	r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2RevocationPOST)))))
+	r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridge(rateLimitRevocation(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2RevocationPOST))))))
 }
 
 func handlerMetrics(provider metrics.Provider, path string) fasthttp.RequestHandler {
 	r := router.New()
 
 	registerer := provider.GetRegisterer()
+
 	gatherer := provider.GetGatherer()
 
 	handler := promhttp.HandlerFor(gatherer, promhttp.HandlerOpts{})

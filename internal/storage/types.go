@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -5,8 +9,27 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/rpadovani/sqlx-v2"
 )
+
+// SQLXDB represents a *sqlx.DB allowing for mocks.
+type SQLXDB interface {
+	SQLXConnection
+
+	Beginx() (tx SQLXTx, err error)
+	BeginTxx(ctx context.Context, opts *sql.TxOptions) (tx SQLXTx, err error)
+
+	Ping() (err error)
+	Close() (err error)
+}
+
+// SQLXTx is a SQLXConnection which represents a transaction.
+type SQLXTx interface {
+	SQLXConnection
+
+	Commit() (err error)
+	Rollback() (err error)
+}
 
 // SQLXConnection is a *sqlx.DB or *sqlx.Tx.
 type SQLXConnection interface {
@@ -21,42 +44,87 @@ type SQLXConnection interface {
 
 	sqlx.Ext
 	sqlx.ExtContext
+
+	Rebind(query string) (rebound string)
+
+	NamedQuery(query string, arg any) (*sqlx.Rows, error)
+	NamedQueryContext(ctx context.Context, query string, arg any) (rows *sqlx.Rows, err error)
+
+	NamedExec(query string, arg any) (result sql.Result, err error)
+	NamedExecContext(ctx context.Context, query string, arg any) (result sql.Result, err error)
+
+	Select(dest any, query string, args ...any) (err error)
+	SelectContext(ctx context.Context, dest any, query string, args ...any) (err error)
+
+	Get(dest any, query string, args ...any) (err error)
+	GetContext(ctx context.Context, dest any, query string, args ...any) (err error)
+
+	MustExec(query string, args ...any) (result sql.Result)
+	MustExecContext(ctx context.Context, query string, args ...any) (result sql.Result)
+
+	Preparex(query string) (statement *sqlx.Stmt, err error)
+	PreparexContext(ctx context.Context, query string) (statement *sqlx.Stmt, err error)
+
+	PrepareNamed(query string) (statement *sqlx.NamedStmt, err error)
+	PrepareNamedContext(ctx context.Context, query string) (statement *sqlx.NamedStmt, err error)
+}
+
+// SQLXWrapDB wraps a sqlx.DB so it satisfies the SQLXConnection interface.
+type SQLXWrapDB struct {
+	*sqlx.DB
+}
+
+// Beginx begins a transaction.
+func (db *SQLXWrapDB) Beginx() (tx SQLXTx, err error) {
+	return db.DB.Beginx()
+}
+
+// BeginTxx begins a transaction with the given context and options.
+func (db *SQLXWrapDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (tx SQLXTx, err error) {
+	return db.DB.BeginTxx(ctx, opts)
 }
 
 // EncryptionChangeKeyFunc handles encryption key changes for a specific table or tables.
-type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error)
+type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init bool, decrypt, encrypt EncryptionAAD, key []byte) (err error)
 
 // EncryptionCheckKeyFunc handles encryption key checking for a specific table or tables.
-type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult)
+type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider, aad EncryptionAAD) (table string, result EncryptionValidationTableResult)
 
 type encOAuth2Session struct {
-	ID      int    `db:"id"`
-	Session []byte `db:"session_data"`
+	ID        int    `db:"id"`
+	Signature string `db:"signature"`
+	Session   []byte `db:"session_data"`
 }
 
 type encWebAuthnCredential struct {
 	ID          int    `db:"id"`
+	RPID        string `db:"rpid"`
+	KID         string `db:"kid"`
 	PublicKey   []byte `db:"public_key"`
 	Attestation []byte `db:"attestation"`
 }
 
 type encCachedData struct {
 	ID    int    `db:"id"`
+	Name  string `db:"name"`
 	Value []byte `db:"value"`
 }
 
 type encTOTPConfiguration struct {
-	ID     int    `db:"id"`
-	Secret []byte `db:"secret"`
+	ID       int    `db:"id"`
+	Username string `db:"username"`
+	Secret   []byte `db:"secret"`
 }
 
 type encOneTimeCode struct {
-	ID   int    `db:"id"`
-	Code []byte `db:"code"`
+	ID        int    `db:"id"`
+	Signature string `db:"signature"`
+	Code      []byte `db:"code"`
 }
 
 type encEncryption struct {
 	ID    int    `db:"id"`
+	Name  string `db:"name"`
 	Value []byte `db:"value"`
 }
 
@@ -163,6 +231,16 @@ func (s OAuth2SessionType) String() string {
 		return "refresh token"
 	default:
 		return "invalid"
+	}
+}
+
+// AAD returns the additional authenticated data for this session type.
+func (s OAuth2SessionType) AAD() string {
+	switch s {
+	case OAuth2SessionTypePAR:
+		return tableAADPushedAuthorizationRequestSession
+	default:
+		return s.Table()
 	}
 }
 

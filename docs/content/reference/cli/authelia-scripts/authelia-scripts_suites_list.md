@@ -2,7 +2,7 @@
 title: "authelia-scripts suites list"
 description: "Reference for the authelia-scripts suites list command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 925
@@ -22,7 +22,7 @@ List available suites
 
 List available suites.
 
-Suites can be ran with the authelia-scripts suites test [suite] command.
+Suites can be run with the authelia-scripts suites test [suite] command.
 
 ```
 authelia-scripts suites list [flags]

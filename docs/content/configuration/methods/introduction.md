@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Methods"
 description: "An introduction to the Authelia configuration methods explaining the layered model with files, environment variables, and secrets and their precedence."
 summary: "Authelia has a layered configuration model. This section describes how to implement configuration."

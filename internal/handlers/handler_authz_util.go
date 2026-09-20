@@ -1,9 +1,17 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
+	"fmt"
+	"net/url"
+
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -43,9 +51,39 @@ func isAuthzResult(level authentication.Level, required authorization.Level, rul
 	}
 }
 
-// generateVerifySessionHasUpToDateProfileTraceLogs is used to generate trace logs only when trace logging is enabled.
-// The information calculated in this function is completely useless other than trace for now.
-func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
+func parseAuthzPortalURL(rawURL []byte) (portalURL *url.URL, err error) {
+	if rawURL == nil {
+		return nil, nil
+	}
+
+	return url.ParseRequestURI(string(rawURL))
+}
+
+func getAuthzRedirectStatusCode(ctx AuthzContext, method string) (statusCode int) {
+	if ctx.IsXHR() || !ctx.AcceptsMIME("text/html") {
+		return fasthttp.StatusUnauthorized
+	}
+
+	switch method {
+	case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead, "":
+		return fasthttp.StatusFound
+	default:
+		return fasthttp.StatusSeeOther
+	}
+}
+
+func doAuthzRedirect(ctx AuthzContext, authn *Authn, redirectionURL *url.URL, statusCode int) {
+	ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+
+	switch authn.Object.Method {
+	case fasthttp.MethodHead:
+		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
+	default:
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+	}
+}
+
+func generateVerifySessionHasUpToDateProfileTraceLogs(ctx AuthzContext, userSession *session.UserSession,
 	details *authentication.UserDetails) {
 	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)
 	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
@@ -66,7 +104,7 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 		msg = "User session groups were updated"
 	}
 
-	ctx.Logger.WithFields(fields).Trace(msg)
+	ctx.GetLogger().WithFields(fields).Trace(msg)
 
 	if len(emailsAdded) != 0 || len(emailsRemoved) != 0 {
 		if len(emailsAdded) != 0 {
@@ -89,10 +127,10 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 		delete(fields, "removed")
 	}
 
-	ctx.Logger.WithFields(fields).Trace(msg)
+	ctx.GetLogger().WithFields(fields).Trace(msg)
 
 	if nameDelta {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{
 				"username": userSession.Username,
 				"before":   userSession.DisplayName,
@@ -100,6 +138,15 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 			}).
 			Trace("User session display name updated")
 	} else {
-		ctx.Logger.Trace("User session display name is current")
+		ctx.GetLogger().Trace("User session display name is current")
+	}
+}
+
+func getSafeAutheliaURL(autheliaURL *url.URL, domain string) (*url.URL, error) {
+	switch {
+	case utils.HasURIDomainSuffix(autheliaURL, domain):
+		return autheliaURL, nil
+	default:
+		return nil, fmt.Errorf("authelia url '%s' is not valid for detected domain '%s' as the url does not have the domain as a suffix", autheliaURL.String(), domain)
 	}
 }

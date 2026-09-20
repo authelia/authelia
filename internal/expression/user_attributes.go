@@ -1,16 +1,21 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package expression
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/google/cel-go/cel"
-	"github.com/google/cel-go/common/types/ref"
-	"github.com/google/cel-go/interpreter"
+	"cel.dev/cel-go/cel"
+	"cel.dev/cel-go/common/types/ref"
+	"cel.dev/cel-go/interpreter"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// NewUserAttributes returns a UserAttributeResolver for the given configuration.
 func NewUserAttributes(config *schema.Configuration) (ua UserAttributeResolver) {
 	if config == nil || len(config.Definitions.UserAttributes) == 0 {
 		return &UserAttributes{}
@@ -24,6 +29,7 @@ func NewUserAttributes(config *schema.Configuration) (ua UserAttributeResolver) 
 	}
 }
 
+// UserAttributesExpressions is a UserAttributeResolver which resolves the user attribute expressions.
 type UserAttributesExpressions struct {
 	startup  bool
 	config   *schema.Configuration
@@ -31,6 +37,7 @@ type UserAttributesExpressions struct {
 	programs map[string]cel.Program
 }
 
+// StartupCheck implements the model.StartupCheck interface.
 func (e *UserAttributesExpressions) StartupCheck() (err error) {
 	if e.startup {
 		return nil
@@ -58,7 +65,7 @@ func (e *UserAttributesExpressions) StartupCheck() (err error) {
 
 //nolint:gocyclo
 func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
-	opts := []cel.EnvOption{
+	opts := withBaseCELEnvOpts(
 		newAttributeUserUsername(),
 		newAttributeUserGroups(),
 		newAttributeUserDisplayName(),
@@ -67,7 +74,7 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 		newAttributeUserEmails(),
 		newAttributeUserEmailsExtra(),
 		newAttributeUpdatedAt(),
-	}
+	)
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.GivenName != "" {
 		opts = append(opts, newAttributeUserGivenName())
@@ -197,10 +204,12 @@ func (e *UserAttributesExpressions) setup(opts ...cel.EnvOption) (err error) {
 	return nil
 }
 
+// Resolve returns the value of the named attribute for the given user.
 func (e *UserAttributesExpressions) Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool) {
 	return e.ResolveWithExtra(name, detailer, updated, nil)
 }
 
+// ResolveWithExtra returns the value of the named attribute for the given user with the extra values also in scope.
 func (e *UserAttributesExpressions) ResolveWithExtra(name string, detailer UserDetailer, updated time.Time, extra map[string]any) (object any, found bool) {
 	var parent interpreter.Activation
 
@@ -225,18 +234,22 @@ func (e *UserAttributesExpressions) ResolveWithExtra(name string, detailer UserD
 	return activation.ResolveName(name)
 }
 
+// UserAttributes is a UserAttributeResolver which resolves the standard user attributes and any extra attributes.
 type UserAttributes struct{}
 
+// StartupCheck implements the model.StartupCheck interface.
 func (e *UserAttributes) StartupCheck() (err error) {
 	return nil
 }
 
+// Resolve returns the value of the named attribute for the given user.
 func (e *UserAttributes) Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool) {
 	activation := &UserDetailerActivation{detailer: &UserAttributeResolverDetailer{UserDetailer: detailer, updated: updated}}
 
 	return activation.ResolveName(name)
 }
 
+// ResolveWithExtra returns the value of the named attribute for the given user with the extra values also in scope.
 func (e *UserAttributes) ResolveWithExtra(name string, detailer UserDetailer, updated time.Time, extra map[string]any) (object any, found bool) {
 	var parent interpreter.Activation
 

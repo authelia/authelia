@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "About"
 description: "About the Authelia project and its team of open-source developers who voluntarily contribute to the authentication and authorization server in their spare time."
 summary: ""
@@ -6,6 +10,7 @@ date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 toc: true
+type: legal
 aliases:
   - /about
   - /about.html
@@ -26,15 +31,9 @@ are free to contribute [financially](../contributing/prologue/financial.md) or w
 
 ## Teams
 
-The following section describes the various teams within the Authelia project.
-
-### Core Team
-
-{{% profile-team name="core" %}}
-
-### Maintainers Team
-
-{{% profile-team name="maintainers" %}}
+The Authelia project has two teams: the [Core Team](../policies/governance.md#core-team) and the
+[Maintainers Team](../policies/governance.md#maintainers). For detailed descriptions of each team's roles,
+responsibilities, and access to sensitive resources see the [governance policy](../policies/governance.md).
 
 ## Sponsors
 
@@ -87,14 +86,6 @@ Our [website and documentation](https://www.authelia.com) are built and hosted b
 
 [Open Collective]: https://opencollective.com/authelia-sponsors
 
-## Governance and Affiliations
-
-Authelia is free from any outside governance and is entirely governed as outlined on this page, in addition we do not
-have any affiliations which have ever asked this of us.
-
-Our affiliations with external companies will be transparently communicated in this section and the
-[sponsors](#sponsors) section.
-
 ## Compliance
 
 The following section contains various compliance related information.
@@ -103,7 +94,7 @@ The following section contains various compliance related information.
 
 There is no key individual who if they were incapacitated or unavailable would prevent future operations of the project.
 
-All of the following areas can be reset or are otherwise accessible to all of the members of the [Core Team](#core-team):
+All of the following areas can be reset or are otherwise accessible to all of the members of the [Core Team](../policies/governance.md#core-team):
 
 - Private Keys
 - Access Rights

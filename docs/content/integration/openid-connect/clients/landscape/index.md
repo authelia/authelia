@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Landscape"
 description: "A guide on integrating Landscape with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Landscape]
   - [24.04 LTS](https://documentation.ubuntu.com/landscape/reference/release-notes/24-04-lts-release-notes/)
 
@@ -32,10 +36,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://landscape.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `landscape`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://landscape.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `landscape`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Landscape] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Landscape] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -78,7 +82,7 @@ identity_providers:
 
 ### Application
 
-To configure [Landscape]  there is one method, using the [Configuration File](#configuration-file).
+To configure [Landscape] there is one method, using the [Configuration File](#configuration-file).
 
 #### Configuration File
 

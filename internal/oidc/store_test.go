@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
@@ -5,15 +9,18 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+	"github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -140,6 +147,127 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 
 	assert.True(t, validClient)
 	assert.False(t, invalidClient)
+}
+
+func TestOAuth2SessionGrantedResourceRoundTripsThroughStore(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	requester := &oauthelia2.Request{
+		ID:                "req-resource-e2e",
+		Client:            &oidc.RegisteredClient{ID: myclient},
+		RequestedScope:    oauthelia2.Arguments{oidc.ScopeOpenID},
+		RequestedAudience: oauthelia2.Arguments{"aud-a"},
+		Session:           &oidc.Session{},
+	}
+
+	consent := &model.OAuth2ConsentSession{
+		GrantedScopes:   model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+		GrantedAudience: model.StringSlicePipeDelimited{"aud-a"},
+		GrantedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+	}
+
+	oidc.GrantScopeAudienceConsent(requester, consent)
+
+	require.NoError(t, s.CreateAccessTokenSession(ctx, "sig-resource-e2e", requester))
+
+	loaded, err := s.GetAccessTokenSession(ctx, "sig-resource-e2e", &oidc.Session{})
+
+	require.NoError(t, err)
+	assert.Equal(t, oauthelia2.Arguments{oidc.ScopeOpenID}, loaded.GetGrantedScopes())
+	assert.Equal(t, oauthelia2.Arguments{"aud-a"}, loaded.GetGrantedAudience())
+	assert.Equal(t, oauthelia2.Arguments{"https://api.example.com"}, loaded.GetGrantedResource())
+}
+
+func TestOAuth2DeviceCodeSessionGrantedResourceRoundTripsThroughStore(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	requester := &oauthelia2.DeviceAuthorizeRequest{
+		Request: oauthelia2.Request{
+			ID:                "req-resource-e2e-device",
+			Client:            &oidc.RegisteredClient{ID: myclient},
+			RequestedScope:    oauthelia2.Arguments{oidc.ScopeOpenID},
+			RequestedAudience: oauthelia2.Arguments{"aud-a"},
+			Session:           &oidc.Session{},
+		},
+		DeviceCodeSignature: "sig-resource-e2e-device",
+	}
+
+	consent := &model.OAuth2ConsentSession{
+		GrantedScopes:   model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+		GrantedAudience: model.StringSlicePipeDelimited{"aud-a"},
+		GrantedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+	}
+
+	oidc.GrantScopeAudienceConsent(requester, consent)
+
+	require.NoError(t, s.CreateDeviceCodeSession(ctx, requester.DeviceCodeSignature, requester))
+
+	loaded, err := s.GetDeviceCodeSession(ctx, requester.DeviceCodeSignature, &oidc.Session{})
+
+	require.NoError(t, err)
+	assert.Equal(t, oauthelia2.Arguments{oidc.ScopeOpenID}, loaded.GetGrantedScopes())
+	assert.Equal(t, oauthelia2.Arguments{"aud-a"}, loaded.GetGrantedAudience())
+	assert.Equal(t, oauthelia2.Arguments{"https://api.example.com"}, loaded.GetGrantedResource())
 }
 
 func TestStoreSuite(t *testing.T) {
@@ -313,7 +441,7 @@ func (s *StoreSuite) TestCreateSessions() {
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2PARContext(s.ctx, model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "example", Session: sessionData}).
+			SaveOAuth2PushedAuthorizationSession(s.ctx, model.OAuth2PushedAuthorizationSession{Signature: abc, RequestID: abc, ClientID: "example", Session: sessionData}).
 			Return(nil),
 	)
 
@@ -349,7 +477,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &oauthelia2.Request{
+	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, "", &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -444,16 +572,28 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(sql.ErrNoRows),
 		s.mock.
 			EXPECT().
+			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "1").
+			Return("at_paired_1", nil),
+		s.mock.
+			EXPECT().
+			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, "at_paired_1").
+			Return(nil),
+		s.mock.
+			EXPECT().
 			DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, "65471ccb-d650-4006-a95f-cb4f4e3d7200").
 			Return(nil),
 		s.mock.
 			EXPECT().
-			DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, "65471ccb-d650-4006-a95f-cb4f4e3d7201").
+			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "2").
+			Return("", nil),
+		s.mock.
+			EXPECT().
+			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7201").
 			Return(fmt.Errorf("not found")),
 		s.mock.
 			EXPECT().
-			DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, "65471ccb-d650-4006-a95f-cb4f4e3d7202").
-			Return(sql.ErrNoRows),
+			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "3").
+			Return("", fmt.Errorf("no refresh token session")),
 		s.mock.
 			EXPECT().
 			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, "pkce1").
@@ -472,11 +612,11 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(fmt.Errorf("not found")),
 		s.mock.
 			EXPECT().
-			RevokeOAuth2PARContext(s.ctx, "urn:par1").
+			RevokeOAuth2PushedAuthorizationSession(s.ctx, "urn:par1").
 			Return(nil),
 		s.mock.
 			EXPECT().
-			RevokeOAuth2PARContext(s.ctx, "urn:par2").
+			RevokeOAuth2PushedAuthorizationSession(s.ctx, "urn:par2").
 			Return(fmt.Errorf("not found")),
 	)
 
@@ -497,9 +637,9 @@ func (s *StoreSuite) TestRevokeSessions() {
 	s.EqualError(s.store.RevokeRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201"), "not found")
 	s.EqualError(s.store.RevokeRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202"), "sql: no rows in result set")
 
-	s.NoError(s.store.RevokeRefreshTokenMaybeGracePeriod(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200", "1"))
-	s.EqualError(s.store.RevokeRefreshTokenMaybeGracePeriod(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", "2"), "not found")
-	s.EqualError(s.store.RevokeRefreshTokenMaybeGracePeriod(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", "3"), "sql: no rows in result set")
+	s.NoError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200", "1"))
+	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", "2"), "not found")
+	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", "3"), "no refresh token session")
 
 	s.NoError(s.store.DeletePKCERequestSession(s.ctx, "pkce1"))
 	s.EqualError(s.store.DeletePKCERequestSession(s.ctx, "pkce2"), "not found")
@@ -546,12 +686,20 @@ func (s *StoreSuite) TestGetSessions() {
 			Return(&model.OAuth2Session{ClientID: "hs256", Session: sessionData, Active: true}, nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2PARContext(s.ctx, "urn:par").
-			Return(&model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData}, nil),
+			LoadOAuth2PushedAuthorizationSession(s.ctx, "urn:par").
+			Return(&model.OAuth2PushedAuthorizationSession{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData}, nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2PARContext(s.ctx, "urn:par").
+			LoadOAuth2PushedAuthorizationSession(s.ctx, "urn:par").
 			Return(nil, sql.ErrNoRows),
+		s.mock.
+			EXPECT().
+			LoadOAuth2PushedAuthorizationSession(s.ctx, "urn:par").
+			Return(nil, fmt.Errorf("connection refused")),
+		s.mock.
+			EXPECT().
+			LoadOAuth2PushedAuthorizationSession(s.ctx, "urn:par").
+			Return(&model.OAuth2PushedAuthorizationSession{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData, Revoked: true}, nil),
 	)
 
 	var (
@@ -607,7 +755,15 @@ func (s *StoreSuite) TestGetSessions() {
 
 	r, err = s.store.GetPARSession(s.ctx, "urn:par")
 	s.Nil(r)
-	s.EqualError(err, "sql: no rows in result set")
+	s.EqualError(oauthelia2.ErrorToDebugRFC6749Error(err), "Could not find the requested resource(s). The requested PAR session was not found, was expired, or was otherwise invalid.")
+
+	r, err = s.store.GetPARSession(s.ctx, "urn:par")
+	s.Nil(r)
+	s.EqualError(oauthelia2.ErrorToDebugRFC6749Error(err), "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Error occurred retrieving the PAR session from storage: connection refused")
+
+	r, err = s.store.GetPARSession(s.ctx, "urn:par")
+	s.Nil(r)
+	s.EqualError(oauthelia2.ErrorToDebugRFC6749Error(err), "Could not find the requested resource(s). The requested PAR session was not found, was expired, or was otherwise invalid.")
 }
 
 func (s *StoreSuite) TestIsJWTUsed() {
@@ -797,7 +953,7 @@ func (s *StoreSuite) TestGetDeviceCodeSession() {
 
 func (s *StoreSuite) TestInvalidateDeviceCodeSession() {
 	s.T().Run("ShouldSucceed", func(t *testing.T) {
-		s.mock.EXPECT().DeactivateOAuth2DeviceCodeSession(s.ctx, abc).Return(nil)
+		s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, abc).Return(nil)
 
 		err := s.store.InvalidateDeviceCodeSession(s.ctx, abc)
 
@@ -805,7 +961,7 @@ func (s *StoreSuite) TestInvalidateDeviceCodeSession() {
 	})
 
 	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
-		s.mock.EXPECT().DeactivateOAuth2DeviceCodeSession(s.ctx, abc).Return(fmt.Errorf("deactivate error"))
+		s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, abc).Return(fmt.Errorf("deactivate error"))
 
 		err := s.store.InvalidateDeviceCodeSession(s.ctx, abc)
 
@@ -868,4 +1024,84 @@ func (s *StoreSuite) TestGetDeviceCodeSessionByUserCode() {
 		assert.NoError(t, err)
 		assert.NotNil(t, request)
 	})
+}
+
+func (s *StoreSuite) TestSerializationFailureMapping() {
+	errBusy := fmt.Errorf("error accessing storage: %w", sqlite3.Error{Code: sqlite3.ErrBusy})
+
+	testCases := []struct {
+		name  string
+		setup func()
+		do    func() (err error)
+	}{
+		{
+			name: "ShouldMapCommit",
+			setup: func() {
+				s.mock.EXPECT().Commit(s.ctx).Return(errBusy)
+			},
+			do: func() (err error) {
+				return s.store.Commit(s.ctx)
+			},
+		},
+		{
+			name: "ShouldMapGetRefreshTokenSession",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(nil, errBusy)
+			},
+			do: func() (err error) {
+				_, err = s.store.GetRefreshTokenSession(s.ctx, abc, nil)
+
+				return err
+			},
+		},
+		{
+			name: "ShouldMapRotateRefreshToken",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, abc).Return("", errBusy)
+			},
+			do: func() (err error) {
+				return s.store.RotateRefreshToken(s.ctx, abc, abc)
+			},
+		},
+		{
+			name: "ShouldMapRevokeRefreshToken",
+			setup: func() {
+				s.mock.EXPECT().DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(errBusy)
+			},
+			do: func() (err error) {
+				return s.store.RevokeRefreshToken(s.ctx, abc)
+			},
+		},
+		{
+			name: "ShouldMapDeleteAccessTokenSession",
+			setup: func() {
+				s.mock.EXPECT().RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, abc).Return(errBusy)
+			},
+			do: func() (err error) {
+				return s.store.DeleteAccessTokenSession(s.ctx, abc)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+
+			err := tc.do()
+
+			assert.EqualError(t, err, "The request could not be completed due to concurrent access: error accessing storage: database is locked")
+			assert.ErrorIs(t, err, oauthelia2.ErrSerializationFailure)
+		})
+	}
+}
+
+func (s *StoreSuite) TestSerializationFailureMappingShouldNotAffectOtherErrors() {
+	s.mock.EXPECT().DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(fmt.Errorf("deactivate error"))
+
+	err := s.store.RevokeRefreshToken(s.ctx, abc)
+
+	assert.EqualError(s.T(), err, "deactivate error")
+	assert.NotErrorIs(s.T(), err, oauthelia2.ErrSerializationFailure)
 }

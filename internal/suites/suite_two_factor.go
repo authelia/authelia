@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -8,9 +12,9 @@ import (
 var twoFactorSuiteName = "TwoFactor"
 
 func init() {
-	_ = os.MkdirAll("/tmp/authelia/TwoFactorSuite/", 0700)
-	_ = os.WriteFile("/tmp/authelia/TwoFactorSuite/jwt", []byte("very_important_secret"), 0600)       //nolint:gosec
-	_ = os.WriteFile("/tmp/authelia/TwoFactorSuite/session", []byte("unsecure_session_secret"), 0600) //nolint:gosec
+	_ = os.MkdirAll(SuiteTmpPath("authelia/TwoFactorSuite"), 0700)
+	_ = os.WriteFile(SuiteTmpPath("authelia/TwoFactorSuite/jwt"), []byte("very_important_secret"), 0600)
+	_ = os.WriteFile(SuiteTmpPath("authelia/TwoFactorSuite/session"), []byte("unsecure_session_secret"), 0600)
 
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/compose.yml",
@@ -32,7 +36,7 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		return updateDevEnvFileForDomain(BaseDomain, dockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {
@@ -41,19 +45,19 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.sqlite3")
+		_ = os.Remove(SuiteTmpPath("db.sqlite3"))
 
 		return err
 	}
 
 	GlobalRegistry.Register(twoFactorSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
-		OnError:         displayAutheliaLogs,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
-		TearDown:        teardown,
+		OnError:         displayAutheliaLogs,
 		TestTimeout:     4 * time.Minute,
-		TearDownTimeout: 2 * time.Minute,
+		TearDown:        teardown,
+		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite is used to test Authelia in a two factor
 configuration with in-memory sessions and a local sqlite db stored on disk`,
 	})

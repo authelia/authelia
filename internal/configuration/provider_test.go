@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package configuration
 
 import (
@@ -357,6 +361,43 @@ func TestShouldValidateConfigurationWithFiltersWalk(t *testing.T) {
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
+}
+
+func TestShouldValidateConfigurationWithRegexACL(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_regex.yml"}, []BytesFilter{NewTemplateFileFilter()}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	assert.NoError(t, err)
+	assert.NotNil(t, config)
+	assert.NotNil(t, keys)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.Len(t, config.AccessControl.Rules, 6)
+
+	assert.True(t, config.AccessControl.Rules[0].Resources[0].MatchString("/example/com/"))
+	assert.False(t, config.AccessControl.Rules[0].Resources[0].MatchString("/Example/com/"))
+	assert.Equal(t, "^/example/.*$", config.AccessControl.Rules[0].Resources[0].String())
+
+	assert.True(t, config.AccessControl.Rules[1].Resources[0].MatchString("/example/com/"))
+	assert.True(t, config.AccessControl.Rules[1].Resources[0].MatchString("/Example/com/"))
+	assert.Equal(t, "(?i)^/example/.*$", config.AccessControl.Rules[1].Resources[0].String())
+
+	assert.True(t, config.AccessControl.Rules[2].Resources[0].MatchString("/example/com/"))
+	assert.False(t, config.AccessControl.Rules[2].Resources[0].MatchString("/Example/com/"))
+	assert.Equal(t, "(?-i)^/example/.*$", config.AccessControl.Rules[2].Resources[0].String())
+
+	assert.True(t, config.AccessControl.Rules[3].DomainsRegex[0].MatchString("regex.example.com"))
+	assert.True(t, config.AccessControl.Rules[3].DomainsRegex[0].MatchString("rEgex.example.com"))
+	assert.Equal(t, "(?i)^regex\\.example\\.com$", config.AccessControl.Rules[3].DomainsRegex[0].String())
+
+	assert.True(t, config.AccessControl.Rules[4].DomainsRegex[0].MatchString("regex.example.com"))
+	assert.True(t, config.AccessControl.Rules[4].DomainsRegex[0].MatchString("rEgex.example.com"))
+	assert.Equal(t, "(?i)^regex\\.example\\.com$", config.AccessControl.Rules[4].DomainsRegex[0].String())
+
+	assert.True(t, config.AccessControl.Rules[5].DomainsRegex[0].MatchString("regex.example.com"))
+	assert.False(t, config.AccessControl.Rules[5].DomainsRegex[0].MatchString("rEgex.example.com"))
+	assert.Equal(t, "(?-i)^regex\\.example\\.com$", config.AccessControl.Rules[5].DomainsRegex[0].String())
 }
 
 func TestShouldValidateConfigurationWithFiltersGlob(t *testing.T) {
@@ -913,7 +954,7 @@ func TestShouldHandleOIDCClaims(t *testing.T) {
 	require.IsType(t, &ecdsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[1].Key)
 	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[1].Use)
 	assert.Equal(t, "ES512", config.IdentityProviders.OIDC.JSONWebKeys[1].Algorithm)
-	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D) //nolint:staticcheck
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Y)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).X)
 	assert.Equal(t, elliptic.P521(), config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Curve)
@@ -967,7 +1008,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 	require.IsType(t, &ecdsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[1].Key)
 	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[1].Use)
 	assert.Equal(t, "ES512", config.IdentityProviders.OIDC.JSONWebKeys[1].Algorithm)
-	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D) //nolint:staticcheck
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Y)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).X)
 	assert.Equal(t, elliptic.P521(), config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Curve)
@@ -1236,7 +1277,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'access_control.rules[0].domain_regex[0]' could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'access_control.rules[0].domain_regex[0]' could not decode '^\\K(public|public2).example.com$' to a schema.RegexpCI: error parsing regexp: invalid escape sequence: `\\K`")
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
@@ -1416,7 +1457,7 @@ func TestConfigurationTemplate(t *testing.T) {
 
 		defer f.Close()
 
-		lints := regexp.MustCompile(`^(\s+)?# yamllint`)
+		lints := regexp.MustCompile(`^(\s+)?# (yamllint|SPDX-FileCopyrightText|SPDX-License-Identifier)`)
 		doc := regexp.MustCompile(`^\s+?## `)
 		commented := regexp.MustCompile(`^(\s+)?# (.*)$`)
 		uncommented := regexp.MustCompile(`^(\s+)?\w+`)

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -6,8 +10,9 @@ import (
 	"net/url"
 	"strings"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -88,6 +93,14 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 		return nil, true
 	}
 
+	if err = consent.MatchesRequester(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
+		ctx.GetLogger().WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Errorf(logFmtErrConsentMatchError, requester.GetID(), client.GetID(), client.GetConsentPolicy())
+
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, err)
+
+		return nil, true
+	}
+
 	if config, err = handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx, client, subject, requester); err != nil {
 		ctx.GetLogger().Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), err)
 
@@ -96,22 +109,10 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 		return nil, true
 	}
 
-	if config != nil {
+	if config != nil && !consent.Responded() {
 		consent.Subject = uuid.NullUUID{UUID: subject, Valid: true}
 
-		oidc.ConsentGrant(consent, true, config.GrantedClaims)
-
-		consent.SetRespondedAt(ctx.GetClock().Now(), config.ID)
-
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
-			ctx.GetLogger().Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
-
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
-
-			return nil, true
-		}
-
-		return consent, false
+		return handleOAuth2AuthorizationConsentModePreConfiguredGrant(ctx, client, config, consent, rw, requester)
 	}
 
 	if !consent.IsAuthorized() {
@@ -182,8 +183,10 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 		return nil, true
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consent.ChallengeID); err != nil {
-		ctx.GetLogger().Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
+	challenge := consent.ChallengeID
+
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challenge); err != nil {
+		ctx.GetLogger().Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), challenge, err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
@@ -198,11 +201,16 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 		ctx.GetLogger().WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
+	return handleOAuth2AuthorizationConsentModePreConfiguredGrant(ctx, client, config, consent, rw, requester)
+}
+
+func handleOAuth2AuthorizationConsentModePreConfiguredGrant(ctx *middlewares.AutheliaCtx, client oidc.Client, config *model.OAuth2ConsentPreConfig,
+	consent *model.OAuth2ConsentSession, rw http.ResponseWriter, requester oauthelia2.Requester) (*model.OAuth2ConsentSession, bool) {
 	oidc.ConsentGrant(consent, true, config.GrantedClaims)
 
 	consent.SetRespondedAt(ctx.GetClock().Now(), config.ID)
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
+	if err := ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.GetLogger().Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
@@ -244,9 +252,9 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 		}
 	}
 
-	scopes, audience := requester.GetRequestedScopes(), requester.GetRequestedAudience()
+	scopes, audience, resource := requester.GetRequestedScopes(), requester.GetRequestedAudience(), requester.GetRequestedResource()
 
-	log := ctx.GetLogger().WithFields(map[string]any{"scopes": scopes, "claims": serialized, "audience": audience, "client_id": client.GetID()})
+	log := ctx.GetLogger().WithFields(map[string]any{"scopes": scopes, "claims": serialized, "audience": audience, "resource": resource, "client_id": client.GetID()})
 
 	for rows.Next() {
 		if config, err = rows.Get(); err != nil {
@@ -259,8 +267,8 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 			continue
 		}
 
-		if !config.HasExactGrants(scopes, audience) {
-			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s' and audience '%s' which does not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
+		if !config.HasExactGrants(scopes, audience, resource) {
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s', audience '%s', and resource '%s' which does not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "), strings.Join(config.Resource, " "))
 
 			continue
 		}
@@ -276,7 +284,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 		return config, nil
 	}
 
-	ctx.GetLogger().Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(scopes, " "), strings.Join(audience, " "))
+	ctx.GetLogger().Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(scopes, " "), strings.Join(audience, " "), strings.Join(resource, " "))
 
 	return nil, nil
 }

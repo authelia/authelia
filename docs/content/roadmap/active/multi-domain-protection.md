@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Multi-Domain Protection"
 description: "The Authelia roadmap item for multi-domain protection allowing administrators to protect multiple root domains with a single Authelia instance and session."
 summary: "Multi-Domain Protection is one of the most requested Authelia features."
@@ -33,7 +37,7 @@ due to how important or difficult to implement they are.
 We need to decide on a method to implement this feature initially and how it will finally look to provide SSO between
 root domains.
 
-*__UPDATE:__* The [initial implementation](#initial-implementation) has been decided as well as the
+_**UPDATE:**_ The [initial implementation](#initial-implementation) has been decided as well as the
 [SSO implementation](#sso-implementation).
 
 ### Decide on a Session Library

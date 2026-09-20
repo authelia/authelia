@@ -1,6 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
-import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { RedirectionURL } from "@constants/SearchParams";
@@ -30,7 +33,7 @@ const OneTimePasswordMethod = function (props: Props) {
     const redirectionURL = useQueryParam(RedirectionURL);
     const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
-    const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
+    const [resp, fetchConfig, , err] = useUserInfoTOTPConfiguration();
 
     const [passcode, setPasscode] = useState("");
 
@@ -42,23 +45,23 @@ const OneTimePasswordMethod = function (props: Props) {
     );
 
     const { onSignInError, onSignInSuccess } = props;
-    const onSignInErrorCallback = useRef(onSignInError);
-    const onSignInSuccessCallback = useRef(onSignInSuccess);
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+    const onSignInErrorCallbackRef = useRef(onSignInError);
+    const onSignInSuccessCallbackRef = useRef(onSignInSuccess);
+    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     useEffect(() => {
-        onSignInErrorCallback.current = onSignInError;
+        onSignInErrorCallbackRef.current = onSignInError;
     }, [onSignInError]);
 
     useEffect(() => {
-        onSignInSuccessCallback.current = onSignInSuccess;
+        onSignInSuccessCallbackRef.current = onSignInSuccess;
     }, [onSignInSuccess]);
 
     useEffect(() => {
         return () => {
-            if (timeoutRateLimit.current !== null) {
-                clearTimeout(timeoutRateLimit.current);
-                timeoutRateLimit.current = null;
+            if (timeoutRateLimitRef.current !== null) {
+                clearTimeout(timeoutRateLimitRef.current);
+                timeoutRateLimitRef.current = null;
             }
         };
     }, []);
@@ -66,33 +69,33 @@ const OneTimePasswordMethod = function (props: Props) {
     useEffect(() => {
         if (err) {
             console.error(err);
-            onSignInErrorCallback.current(new Error(translate("Could not obtain user settings")));
+            onSignInErrorCallbackRef.current(new Error(translate("Could not obtain user settings")));
             dispatch({ type: State.Failure });
         }
-    }, [onSignInErrorCallback, err, translate]);
+    }, [onSignInErrorCallbackRef, err, translate]);
 
     useEffect(() => {
         if (props.registered && props.authenticationLevel === AuthenticationLevel.OneFactor) {
-            fetch();
+            fetchConfig();
         }
-    }, [fetch, props.authenticationLevel, props.registered]);
+    }, [fetchConfig, props.authenticationLevel, props.registered]);
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
+            if (timeoutRateLimitRef.current) {
+                clearTimeout(timeoutRateLimitRef.current);
             }
 
             dispatch({ type: State.RateLimited });
 
-            onSignInErrorCallback.current(new Error(translate("You have made too many requests")));
+            onSignInErrorCallbackRef.current(new Error(translate("You have made too many requests")));
 
-            timeoutRateLimit.current = setTimeout(() => {
+            timeoutRateLimitRef.current = setTimeout(() => {
                 dispatch({ type: State.Idle });
-                timeoutRateLimit.current = null;
+                timeoutRateLimitRef.current = null;
             }, retryAfter * 1000);
         },
-        [onSignInErrorCallback, translate],
+        [onSignInErrorCallbackRef, translate],
     );
 
     useEffect(() => {
@@ -118,17 +121,17 @@ const OneTimePasswordMethod = function (props: Props) {
                 const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow, userCode);
 
                 if (!res) {
-                    onSignInErrorCallback.current(new Error(translate("The One-Time Password might be wrong")));
+                    onSignInErrorCallbackRef.current(new Error(translate("The One-Time Password might be wrong")));
                     dispatch({ type: State.Failure });
                 } else if (res.limited) {
                     handleRateLimited(res.retryAfter);
                 } else {
                     dispatch({ type: State.Success });
-                    onSignInSuccessCallback.current(res?.data?.redirect);
+                    onSignInSuccessCallbackRef.current(res?.data?.redirect);
                 }
             } catch (err) {
                 console.error(err);
-                onSignInErrorCallback.current(new Error(translate("The One-Time Password might be wrong")));
+                onSignInErrorCallbackRef.current(new Error(translate("The One-Time Password might be wrong")));
                 dispatch({ type: State.Failure });
             }
             setPasscode("");
@@ -145,9 +148,9 @@ const OneTimePasswordMethod = function (props: Props) {
         flow,
         subflow,
         userCode,
-        onSignInErrorCallback,
+        onSignInErrorCallbackRef,
         translate,
-        onSignInSuccessCallback,
+        onSignInSuccessCallbackRef,
         handleRateLimited,
     ]);
 
@@ -168,7 +171,7 @@ const OneTimePasswordMethod = function (props: Props) {
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <Box>
+            <div>
                 {resp !== undefined || err !== undefined ? (
                     <OTPDial
                         passcode={passcode}
@@ -180,7 +183,7 @@ const OneTimePasswordMethod = function (props: Props) {
                 ) : (
                     <LoadingPage />
                 )}
-            </Box>
+            </div>
         </MethodContainer>
     );
 };

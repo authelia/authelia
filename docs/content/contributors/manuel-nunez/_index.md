@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Manuel Nuñez"
 description: "The contributor profile for Manuel Nunez who is a core team member and maintainer of the Authelia open-source authentication and authorization server project."
 summary: "Maintainer of Authelia."

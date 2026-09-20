@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Log Messages"
 description: "A reference guide explaining common Authelia log messages including request header too large errors, storage encryption warnings, and session domain settings."
 summary: "This section contains log message references for Authelia."
@@ -16,7 +20,7 @@ seo:
 
 ## Request Header Too Large
 
-The `request header too large` error with a status code of `431` indicates the HTTP request made to *Authelia* had
+The `request header too large` error with a status code of `431` indicates the HTTP request made to _Authelia_ had
 headers exceeding the server [read buffer](../../configuration/miscellaneous/server.md#buffers) parameter.
 
 Usually the defaults are sufficient however some applications cause fairly large headers to be added to requests.

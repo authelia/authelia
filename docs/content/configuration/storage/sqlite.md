@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "SQLite3"
 description: "Configuring the Authelia SQLite3 local storage provider including the database file path, primarily suited for testing and single-instance deployments."
 summary: "The SQLite3 storage provider."

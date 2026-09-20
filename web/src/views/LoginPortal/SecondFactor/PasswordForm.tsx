@@ -1,15 +1,21 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { Alert, AlertTitle, Button, CircularProgress, FormControl, IconButton, InputAdornment } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
+import { Alert, AlertTitle } from "@components/UI/Alert";
+import { Button } from "@components/UI/Button";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
+import { Spinner } from "@components/UI/Spinner";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postSecondFactor } from "@services/Password";
@@ -24,13 +30,13 @@ const PasswordForm = function (props: Props) {
 
     const redirectionURL = useQueryParam(RedirectionURL);
     const { flow, id: flowID, subflow } = useFlow();
+    const { showPassword, toggleProps } = usePasswordVisibility();
 
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
     const passwordRef = useRef<HTMLInputElement | null>(null);
 
@@ -67,7 +73,7 @@ const PasswordForm = function (props: Props) {
     }, [createErrorNotification, focusPassword, password, props, redirectionURL, translate, flowID, flow, subflow]);
 
     const handlePasswordKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLInputElement>) => {
             if (event.key === "Enter") {
                 if (!password.length) {
                     focusPassword();
@@ -80,7 +86,7 @@ const PasswordForm = function (props: Props) {
     );
 
     const handlePasswordKeyUp = useCallback(
-        (event: KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLInputElement>) => {
             if (password.length <= 1) {
                 setPasswordCapsLock(false);
                 setPasswordCapsLockPartial(false);
@@ -104,85 +110,57 @@ const PasswordForm = function (props: Props) {
     );
 
     return (
-        <FormControl id={"form-password"}>
-            <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
-                    <TextField
-                        inputRef={passwordRef}
-                        id="password-textfield"
-                        label={translate("Password")}
-                        variant="outlined"
-                        required
-                        fullWidth
-                        disabled={loading}
-                        value={password}
-                        error={passwordError}
-                        onChange={(v) => setPassword(v.target.value)}
-                        onFocus={() => setPasswordError(false)}
-                        type={showPassword ? "text" : "password"}
-                        autoComplete="current-password"
-                        onKeyDown={handlePasswordKeyDown}
-                        onKeyUp={handlePasswordKeyUp}
-                        slotProps={{
-                            input: {
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label={translate("Toggle password visibility")}
-                                            edge="end"
-                                            size="large"
-                                            onMouseDown={() => setShowPassword(true)}
-                                            onMouseUp={() => setShowPassword(false)}
-                                            onMouseLeave={() => setShowPassword(false)}
-                                            onTouchStart={() => setShowPassword(true)}
-                                            onTouchEnd={() => setShowPassword(false)}
-                                            onTouchCancel={() => setShowPassword(false)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === " ") {
-                                                    setShowPassword(true);
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                            onKeyUp={(e) => {
-                                                if (e.key === " ") {
-                                                    setShowPassword(false);
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                        >
-                                            {showPassword ? <Visibility /> : <VisibilityOff />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            },
-                        }}
-                    />
-                </Grid>
+        <form id={"form-password"} onSubmit={(e) => e.preventDefault()}>
+            <div className="grid grid-cols-1 gap-4">
+                <div className="w-full">
+                    <Label htmlFor="password-textfield">{translate("Password")} *</Label>
+                    <div className="relative">
+                        <Input
+                            ref={passwordRef}
+                            id="password-textfield"
+                            required
+                            disabled={loading}
+                            value={password}
+                            className="pr-10"
+                            error={passwordError}
+                            onChange={(v) => setPassword(v.target.value)}
+                            onFocus={() => setPasswordError(false)}
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            onKeyDown={handlePasswordKeyDown}
+                            onKeyUp={handlePasswordKeyUp}
+                        />
+                        <PasswordVisibilityToggle
+                            label={translate("Toggle password visibility")}
+                            showPassword={showPassword}
+                            {...toggleProps}
+                        />
+                    </div>
+                </div>
                 {passwordCapsLock ? (
-                    <Grid size={{ xs: 12 }} marginX={2}>
-                        <Alert severity={"warning"}>
+                    <div className="w-full px-4">
+                        <Alert variant="warning">
                             <AlertTitle>{translate("Warning")}</AlertTitle>
                             {passwordCapsLockPartial
                                 ? translate("The password was partially entered with Caps Lock")
                                 : translate("The password was entered with Caps Lock")}
                         </Alert>
-                    </Grid>
+                    </div>
                 ) : null}
-                <Grid size={{ xs: 12 }}>
+                <div className="w-full">
                     <Button
                         id="sign-in-button"
-                        variant="contained"
-                        color="primary"
-                        fullWidth={true}
-                        endIcon={loading ? <CircularProgress size={20} /> : null}
+                        variant="default"
+                        className="w-full"
                         disabled={loading}
                         onClick={handleSignIn}
                     >
                         {translate("Authenticate", { ns: "settings" })}
+                        {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
                     </Button>
-                </Grid>
-            </Grid>
-        </FormControl>
+                </div>
+            </div>
+        </form>
     );
 };
 

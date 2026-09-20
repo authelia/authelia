@@ -1,9 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 certificates_directory: '/certs/'
 theme: 'auto'
 
 server:
   address: 'tcp://:9091'
+  timeouts:
+    read: '30s'
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
@@ -116,7 +122,7 @@ webauthn:
     discoverability: 'required'
     user_verification: 'preferred'
   metadata:
-    enabled: true
+    enabled: false
     validate_trust_anchor: true
     validate_entry: false
     validate_entry_permit_zero_aaguid: true

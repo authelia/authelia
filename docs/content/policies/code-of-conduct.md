@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Code of Conduct"
 description: "The Authelia Code of Conduct that all community members, contributors, and leaders must agree to abide by to ensure an inclusive and harassment-free experience."
 summary: "The Code of Conduct that all community members must agree to abide by."
@@ -40,23 +44,23 @@ diverse, inclusive, and healthy community.
 Examples of behavior that contributes to a positive environment for our
 community include:
 
-* Demonstrating empathy and kindness toward other people
-* Being respectful of differing opinions, viewpoints, and experiences
-* Giving and gracefully accepting constructive feedback
-* Accepting responsibility and apologizing to those affected by our mistakes,
+- Demonstrating empathy and kindness toward other people
+- Being respectful of differing opinions, viewpoints, and experiences
+- Giving and gracefully accepting constructive feedback
+- Accepting responsibility and apologizing to those affected by our mistakes,
   and learning from the experience
-* Focusing on what is best not just for us as individuals, but for the
+- Focusing on what is best not just for us as individuals, but for the
   overall community
 
 Examples of unacceptable behavior include:
 
-* The use of sexualized language or imagery, and sexual attention or
+- The use of sexualized language or imagery, and sexual attention or
   advances of any kind
-* Trolling, insulting or derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or email
+- Trolling, insulting or derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information, such as a physical or email
   address, without their explicit permission
-* Other conduct which could reasonably be considered to be inappropriate in a
+- Other conduct which could reasonably be considered to be inappropriate in a
   professional setting
 
 ### Focused on Technology
@@ -91,24 +95,10 @@ likelihood action will be taken against all parties still involved as to avoid
 taking any particular stance on any non-technical disagreement. The actions
 taken will be as described in this code of conduct.
 
-### Generative AI
+### Artificial Intelligence Policy
 
-There is an emerging convenience of Generative AI that's becoming very
-popular. It's quite apparent that Generative AI is an amazing tool that is
-very useful in saving precious time. While we're welcoming of the
-technology we have the expectation of ourselves that we clearly communicate
-where and how we're using it.
-
-The rational behind this is that it's quite clear Generative AI can make some
-serious and critical mistakes which may or may not be clear when considered
-rationally. The issue is that it's very good at getting most things to appear
-correct, and it's very easy to miss a serious and critical mistake when you're
-not considering the fact something was produced via Generative AI.
-
-This is based on professionalism that we also expect from every user in the
-community. This does not solely apply to the obvious elements such as pull requests;
-but also applies to the creation of feature requests, bug reports, discussions,
-and general communication within the community.
+We publish an [Artificial Intelligence Policy] which augments this Code of Conduct. These guidelines should be
+considered enforced under this Code of Conduct.
 
 ## Enforcement Responsibilities
 
@@ -180,7 +170,7 @@ Violating these terms may lead to a permanent ban.
 ### 4. Permanent Ban
 
 **Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior,  harassment of an
+standards, including sustained inappropriate behavior, harassment of an
 individual, or aggression toward or disparagement of classes of individuals.
 
 **Consequence**: A permanent ban from any sort of public interaction within
@@ -195,8 +185,9 @@ https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
 Community Impact Guidelines were inspired by [Mozilla's code of conduct
 enforcement ladder](https://github.com/mozilla/diversity).
 
-[homepage]: https://www.contributor-covenant.org
-
 For answers to common questions about this code of conduct, see the FAQ at
 https://www.contributor-covenant.org/faq. Translations are available at
 https://www.contributor-covenant.org/translations.
+
+[homepage]: https://www.contributor-covenant.org
+[Artificial Intelligence Policy]: ./artificial-intelligence.md

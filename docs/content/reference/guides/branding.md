@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Branding"
 description: "A reference guide on the Authelia branding assets including usage guidelines, licensing information, downloadable assets, and restrictions on logo and name use."
 summary: "This guide highlights information about Authelia's branding assets."

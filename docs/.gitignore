@@ -1,7 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 .env
 .netlify
 .hugo_build.lock
+hugo_stats.json
 node_modules
 public
 resources
-hugo_stats.json

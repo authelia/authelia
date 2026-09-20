@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kiali"
 description: "A guide on integrating Kiali with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
@@ -21,7 +25,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Kiali]
   - [v2.12.0](https://kiali.io/news/release-notes/#v2120)
 
@@ -31,10 +35,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://kiali.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `kiali`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://kiali.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `kiali`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +54,7 @@ configuration will likely require configuration of an escape hatch to work aroun
 [Configuration Escape Hatch](#configuration-escape-hatch) for details.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Kiali] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Kiali] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

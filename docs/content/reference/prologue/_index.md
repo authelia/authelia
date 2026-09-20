@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Reference"
 description: "The prologue section of the Authelia reference documentation providing an introduction and overview of the available reference guides and integration support."
 summary: ""

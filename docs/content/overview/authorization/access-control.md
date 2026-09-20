@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Access Control"
 description: "An overview of Authelia's access control rule-based authorization system allowing fine-grained policies based on domain, path, user, group, network, and method."
 summary: "Access Control is the main authorization system in Authelia."
@@ -16,7 +20,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ allows defining fine-grained rules-based access control policies. This list of rules is tested against
+**Authelia** allows defining fine-grained rules-based access control policies. This list of rules is tested against
 any requests protected by Authelia and defines the level of authentication the user must pass to get authorization to
 the resource.
 

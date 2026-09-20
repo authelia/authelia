@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Firezone"
 description: "A guide on integrating Firezone with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
@@ -33,14 +37,14 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `firezone`
-- __Client Secret:__ `insecure_secret`
-- __Config ID (Firezone):__ `authelia`:
-    - This option determines the redirect URI in the format of
-      `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/<Config ID>/callback`.
-      This means if you change this value you need to update the redirect URI.
+- **Application Root URL:** `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `firezone`
+- **Client Secret:** `insecure_secret`
+- **Config ID (Firezone):** `authelia`:
+  - This option determines the redirect URI in the format of
+    `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/<Config ID>/callback`.
+    This means if you change this value you need to update the redirect URI.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Firezone] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Firezone] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -93,8 +97,8 @@ instructions:
 1. Visit your [Firezone] site
 2. Sign in as an admin
 3. Visit:
-    1. Settings
-    2. Security
+   1. Settings
+   2. Security
 4. In the `Single Sign-On` section, click on the `Add OpenID Connect Provider` button
 5. Configure the following options:
    - Config ID: `authelia`

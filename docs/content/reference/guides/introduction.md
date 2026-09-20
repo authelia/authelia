@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Guides"
 description: "An introduction to the Authelia reference guides section which contains guides on specific topics that do not warrant their own documentation section."
 summary: "This section contains reference guides for Authelia."

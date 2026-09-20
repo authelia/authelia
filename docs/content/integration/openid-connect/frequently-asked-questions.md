@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Frequently Asked Questions"
 description: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party or client application."
 summary: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
@@ -25,10 +29,10 @@ We strongly recommend the following guidelines for generating a client identifie
 1. Each client should have a unique identifier and secret pair.
 2. Each identifier and secret should be randomly generated.
 3. Each identifier and secret should have a length above 40 characters.
-4. The secret should be stored in the configuration in a supported hash format. *__Note:__ This does not
+4. The secret should be stored in the configuration in a supported hash format. _**Note:** This does not
    mean you configure the relying party / client application with a hashed secret, the hashed secret should just be used
    for the `client_secret` value in the Authelia client configuration and the relying party / client application should
-   have the plain text secret.*
+   have the plain text secret._
 5. Identifiers and Secrets should only have [RFC3986 Unreserved Characters] as some implementations do not appropriately
    encode the identifier or secret when using it to access the token endpoint. See
    [Why does Authelia return an error about the client identifier or client secret being incorrect when they are correct]
@@ -50,14 +54,18 @@ separately.
 
 {{< envTabs "Generate a Random Client ID" >}}
 {{< envTab "Docker" >}}
+
 ```shell
 docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```shell
 authelia crypto rand --length 72 --charset rfc3986
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -76,14 +84,18 @@ separately.
 
 {{< envTabs "Generate a Random Client Secret" >}}
 {{< envTab "Docker" >}}
+
 ```shell
 docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```shell
 authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -92,7 +104,7 @@ authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 7
 ##### Tuning work factors
 
 When hashing the client secrets, Authelia performs the hashing operation to authenticate the client when receiving requests.
-This hashing operation takes time by design (the *work* part of the work factor) to hinder an attacker trying to obtain the client secret.
+This hashing operation takes time by design (the _work_ part of the work factor) to hinder an attacker trying to obtain the client secret.
 The amount of time taken depends on your hardware and the work factor.
 
 If your client operations time out, you might need to reduce the work factor to a level appropriate for your client and
@@ -111,10 +123,10 @@ You can read more about password hashing tuning in the
 
 ##### Plaintext
 
-Authelia *technically* supports storing the plaintext secret in the configuration. This will likely be completely
+Authelia _technically_ supports storing the plaintext secret in the configuration. This will likely be completely
 unavailable in the future as it was a mistake to implement it like this in the first place. While some other OpenID
 Connect 1.0 providers operate in this way, it's more often than not that they operating in this way in error. The
-current *technical support* for this is only to prevent massive upheaval to users and give them time to migrate.
+current _technical support_ for this is only to prevent massive upheaval to users and give them time to migrate.
 
 As per [RFC6819 Section 5.1.4.1.3](https://datatracker.ietf.org/doc/html/rfc6819#section-5.1.4.1.3) the secret should
 only be stored by the authorization server as hashes / digests unless there is a very specific specification or protocol
@@ -124,7 +136,7 @@ client configurations will be stored in the database with the secret both salted
 
 Authelia currently does not implement any of the specifications or protocols which require secrets being accessible in
 the clear such as most notably the `client_secret_jwt` grant, we will however likely soon implement `client_secret_jwt`.
-We are however *__strongly discouraging__* and formally deprecating the use of plaintext client secrets for purposes
+We are however _**strongly discouraging**_ and formally deprecating the use of plaintext client secrets for purposes
 outside those required by specifications. We instead recommended that users remove this from their configuration
 entirely and use the [How Do I Generate a Client Identifier or Client Secret](#how-do-i-generate-a-client-identifier-or-client-secret) FAQ.
 
@@ -205,8 +217,8 @@ allows them to decide not to do that.
 
 The double-edged sword of a JSON Web Token is it's easy to perform a stateless check to see if a JSON Web Token is
 "valid" but also very hard to revoke it. A Resource Server may just check the JWT claims and signature to see if it
-looks like it *should* still be valid, without performing a stateful check with the Authorization Server frequently
-enough. This is why we *__strongly recommend__* that Access Tokens and ID Tokens have a short lifespan.
+looks like it _should_ still be valid, without performing a stateful check with the Authorization Server frequently
+enough. This is why we _**strongly recommend**_ that Access Tokens and ID Tokens have a short lifespan.
 
 There also exists standardized mechanisms for Resource Servers and those possessing an opaque Access Token to check the
 validity and metadata associated with them. These mechanisms are the Introspection Request and UserInfo Request.
@@ -336,29 +348,35 @@ Examples (assuming your Authelia Root URL is `https://{{< sitevar name="subdomai
 
 ```yaml {title="compose.yml"}
 services:
-  application:
+  application-service:
     ## Mandatory that the application is on the same network as the proxy.
     networks:
-      proxy: {}
+      proxy-network: {}
   proxy:
     networks:
       ## Mandatory that the proxy is on the same network as the application, and that it has this alias.
-      proxy:
+      proxy-network:
         aliases:
           - '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
-  authelia:
+  authelia-service:
     networks:
-      proxy: {}
+      proxy-network: {}
 networks:
-  proxy:
+  proxy-network:
     ## An external network can be created manually and shared between multiple compose files. This is NOT mandatory.
     external: true
-    name: 'proxy-net'
+    name: 'proxy-network'
 ```
 
 ```console
-docker run -d --name proxy --network proxy --network-alias {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} <other proxy arguments>
-docker run -d --name application --network proxy <other application arguments>
+docker run -d --name proxy-service --network proxy-network --network-alias {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} <other proxy arguments>
+docker run -d --name application-service --network proxy-network <other application arguments>
+```
+
+###### Create a network for this example
+
+```console
+docker network create proxy-network
 ```
 
 [Endpoint]: ./introduction.md#discoverable-endpoints

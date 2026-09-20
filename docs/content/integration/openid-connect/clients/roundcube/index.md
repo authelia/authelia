@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Roundcube"
 description: "A guide on integrating Roundcube and Dovecot with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
@@ -25,9 +29,9 @@ seo:
 - [Authelia]
   - [4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Roundcube]
-  - [v1.6.5](https://github.com/roundcube/roundcubemail/releases/tag/1.6.4)
+  - [v1.7.1](https://github.com/roundcube/roundcubemail/releases/tag/1.7.1)
 - [Dovecot]
-  - [v2.3.20](https://dovecot.org/doc/NEWS)
+  - [v2.4.4](https://github.com/dovecot/core/releases/tag/2.4.4)
 - [Postfix]
   - [v3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
 
@@ -37,10 +41,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `roundcube`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `roundcube`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Roundcube] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Roundcube] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -67,7 +71,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/'
+          - 'https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/index.php/login/oauth'
         scopes:
           - 'openid'
           - 'profile'
@@ -121,12 +125,12 @@ resulting redirect URI would be something like `https://<fqdn>:<port>/...`. Thus
 {{< /callout >}}
 
 IMAP and SMTP backend configuration:
+
 - For an IMAP instance on localhost, the default conf should be enough. Otherwise, set the corresponding SSL/TLS options
   via 'imap_host' and 'imap_conn_options';
 - For a SMTP instance on localhost, no auth would be required. However
   [Roundcube OAuth enforces](https://github.com/roundcube/roundcubemail/issues/9183) 'smtp_auth_type' = 'XOAUTH2' plus
-  credentials, thus you *must* use TLS or SSL via `smtp_host` and `smtp_conn_options`!
-
+  credentials, thus you _must_ use TLS or SSL via `smtp_host` and `smtp_conn_options`!
 
 ##### Dovecot Common
 
@@ -135,13 +139,32 @@ Generally the configuration file is named `/etc/dovecot/dovecot.conf` or is one 
 `/etc/dovecot/conf.d/`.
 {{< /callout >}}
 
-```ext {title="/etc/dovecot/dovecot.conf"}
-auth_mechanisms = $auth_mechanisms oauthbearer xoauth2
+```ext {title="/etc/dovecot/conf.d/auth.conf"}
 
-passdb {
-  args = /etc/dovecot/dovecot-oauth2.conf.ext
-  driver = oauth2
-  mechanisms = xoauth2 oauthbearer
+auth_mechanisms {
+  oauthbearer = yes
+  xoauth2 = yes
+}
+
+oauth2 {
+  introspection_mode = post
+  introspection_url = https://roundcube:insecure_secret@auth.example.com/api/oidc/introspection
+  username_attribute = username
+
+  active_attribute = active
+  active_value = true
+
+  ssl_client_ca_file = /etc/ssl/certs/ca-certificates.crt
+}
+
+passdb local_users {
+  driver = passwd-file
+  passwd_file_path = /etc/dovecot/users/users.passwd
+}
+
+userdb local_users {
+  driver = passwd-file
+  passwd_file_path = /etc/dovecot/users/users.passwd
 }
 
 # Optional for Postfix SASL on smtpd/submission

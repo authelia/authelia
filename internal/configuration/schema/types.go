@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 import (
@@ -15,12 +19,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authelia/jsonschema"
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/valyala/fasthttp"
 	"go.yaml.in/yaml/v4"
+
+	"github.com/authelia/jsonschema"
 )
 
 var cdecoder algorithm.DecoderRegister
@@ -114,6 +119,7 @@ func (d *PasswordDigest) GetPlainTextValue() (value []byte, err error) {
 	}
 }
 
+// UnmarshalYAML decodes the YAML value into this PasswordDigest.
 func (d *PasswordDigest) UnmarshalYAML(value *yaml.Node) (err error) {
 	digestRaw := ""
 
@@ -128,6 +134,7 @@ func (d *PasswordDigest) UnmarshalYAML(value *yaml.Node) (err error) {
 	return nil
 }
 
+// MarshalYAML encodes this PasswordDigest as a YAML value.
 func (d *PasswordDigest) MarshalYAML() (value any, err error) {
 	if !d.Valid() {
 		return nil, nil
@@ -201,7 +208,7 @@ func NewTLSVersion(input string) (version *TLSVersion, err error) {
 	return nil, ErrTLSVersionNotSupported
 }
 
-// TLSVersion is a struct which handles tls.Config versions.
+// TLSVersion is a struct which handles [tls.Config] versions.
 type TLSVersion struct {
 	Value uint16
 }
@@ -250,11 +257,12 @@ func (v *TLSVersion) String() string {
 	return ""
 }
 
+// MarshalYAML encodes this TLSVersion as a YAML value.
 func (v TLSVersion) MarshalYAML() (any, error) {
 	return v.String(), nil
 }
 
-// CryptographicPrivateKey represents the actual crypto.PrivateKey interface.
+// CryptographicPrivateKey represents the actual [crypto.PrivateKey] interface.
 type CryptographicPrivateKey interface {
 	Public() crypto.PublicKey
 	Equal(x crypto.PrivateKey) bool
@@ -263,7 +271,7 @@ type CryptographicPrivateKey interface {
 // CryptographicKey represents an artificial cryptographic public or private key.
 type CryptographicKey any
 
-// X509CertificateChain is a helper struct that holds a list of *x509.Certificate's.
+// X509CertificateChain is a helper struct that holds a list of *[x509.Certificate] values.
 type X509CertificateChain struct {
 	certs []*x509.Certificate
 }
@@ -294,7 +302,7 @@ func (c *X509CertificateChain) HasCertificates() (has bool) {
 	return len(c.certs) != 0
 }
 
-// Equal checks if the provided *x509.Certificate is equal to the first *x509.Certificate in the chain.
+// Equal checks if the provided *[x509.Certificate] is equal to the first *[x509.Certificate] in the chain.
 func (c *X509CertificateChain) Equal(other *x509.Certificate) (equal bool) {
 	if len(c.certs) == 0 {
 		return false
@@ -373,7 +381,7 @@ func (c *X509CertificateChain) CertificatesRaw() (certificates [][]byte) {
 	return certificates
 }
 
-// Leaf returns the first certificate if available for use with tls.Certificate.
+// Leaf returns the first certificate if available for use with [tls.Certificate].
 func (c *X509CertificateChain) Leaf() (leaf *x509.Certificate) {
 	if !c.HasCertificates() {
 		return nil
@@ -431,7 +439,7 @@ func (c *X509CertificateChain) Validate() (err error) {
 	return nil
 }
 
-// NewRefreshIntervalDuration returns a RefreshIntervalDuration given a time.Duration.
+// NewRefreshIntervalDuration returns a RefreshIntervalDuration given a [time.Duration].
 func NewRefreshIntervalDuration(value time.Duration) RefreshIntervalDuration {
 	return RefreshIntervalDuration{value: value, valid: true}
 }
@@ -446,7 +454,7 @@ func NewRefreshIntervalDurationNever() RefreshIntervalDuration {
 	return RefreshIntervalDuration{valid: true, never: true}
 }
 
-// RefreshIntervalDuration is a special time.Duration for the refresh interval.
+// RefreshIntervalDuration is a special [time.Duration] for the refresh interval.
 type RefreshIntervalDuration struct {
 	value  time.Duration
 	valid  bool
@@ -474,7 +482,7 @@ func (d RefreshIntervalDuration) Never() bool {
 	return d.never
 }
 
-// Value returns the time.Duration.
+// Value returns the [time.Duration].
 func (d RefreshIntervalDuration) Value() time.Duration {
 	return d.value
 }
@@ -500,8 +508,10 @@ func (RefreshIntervalDuration) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// IdentityProvidersOpenIDConnectClientURIs represents a list of client URIs.
 type IdentityProvidersOpenIDConnectClientURIs []string
 
+// JSONSchema returns the JSON Schema for this type.
 func (IdentityProvidersOpenIDConnectClientURIs) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		OneOf: []*jsonschema.Schema{
@@ -515,14 +525,18 @@ func (IdentityProvidersOpenIDConnectClientURIs) JSONSchema() *jsonschema.Schema 
 	}
 }
 
+// AccessControlRuleDomains represents the ACL domains criteria type.
 type AccessControlRuleDomains []string
 
+// JSONSchema returns the JSON Schema for this type.
 func (AccessControlRuleDomains) JSONSchema() *jsonschema.Schema {
 	return &jsonschemaWeakStringUniqueSlice
 }
 
+// AccessControlRuleMethods represents the ACL methods criteria type.
 type AccessControlRuleMethods []string
 
+// JSONSchema returns the JSON Schema for this type.
 func (AccessControlRuleMethods) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		OneOf: []*jsonschema.Schema{
@@ -536,9 +550,44 @@ func (AccessControlRuleMethods) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// AccessControlRuleRegexCI represents the ACL AccessControlRuleSubjects type.
+type AccessControlRuleRegexCI []RegexpCI
+
+// ToRegexp returns the [AccessControlRuleRegexCI] values as a slice of [regexp.Regexp].
+func (acl AccessControlRuleRegexCI) ToRegexp() []regexp.Regexp {
+	regexps := make([]regexp.Regexp, len(acl))
+
+	for i, r := range acl {
+		regexps[i] = r.Regexp
+	}
+
+	return regexps
+}
+
+// JSONSchema returns the [jsonschema.Schema] for the [AccessControlRuleRegexCI] type.
+func (AccessControlRuleRegexCI) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			{
+				Type:   jsonschema.TypeString,
+				Format: jsonschema.FormatStringRegex,
+			},
+			{
+				Type: jsonschema.TypeArray,
+				Items: &jsonschema.Schema{
+					Type:   jsonschema.TypeString,
+					Format: jsonschema.FormatStringRegex,
+				},
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
 // AccessControlRuleRegex represents the ACL AccessControlRuleSubjects type.
 type AccessControlRuleRegex []regexp.Regexp
 
+// JSONSchema returns the JSON Schema for this type.
 func (AccessControlRuleRegex) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		OneOf: []*jsonschema.Schema{
@@ -561,6 +610,7 @@ func (AccessControlRuleRegex) JSONSchema() *jsonschema.Schema {
 // AccessControlRuleSubjects represents the ACL AccessControlRuleSubjects type.
 type AccessControlRuleSubjects [][]string
 
+// JSONSchema returns the JSON Schema for this type.
 func (AccessControlRuleSubjects) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		OneOf: []*jsonschema.Schema{
@@ -581,6 +631,7 @@ func (AccessControlRuleSubjects) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// CSPTemplate represents a Content Security Policy template.
 type CSPTemplate string
 
 var jsonschemaURI = jsonschema.Schema{
@@ -628,4 +679,9 @@ var jsonschemaACLMethod = jsonschema.Schema{
 		"PROPPATCH",
 		"UNLOCK",
 	},
+}
+
+// RegexpCI is a [regexp.Regexp] which is compiled with the case-insensitive flag applied to the entire pattern.
+type RegexpCI struct {
+	regexp.Regexp
 }

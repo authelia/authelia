@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 name: SLSA Provenance
 on:
@@ -15,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176  # v2.17.0
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1  # v2.21.1
         with:
           egress-policy: audit
 
@@ -40,7 +44,8 @@ jobs:
 
           echo "Polling for artifact metadata..."
           while true; do
-            state=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" "${build_url}" | jq -r '.state')
+            state=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" "${build_url}?exclude_jobs=true" \
+              | jq -r '.state')
             if [ "${state}" = "passed" ]; then
               break
             elif [ "${initial}" = "true" ]; then
@@ -52,10 +57,15 @@ jobs:
           done
           echo "Artifact metadata retrieved"
 
+          passed_job_ids=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" "${build_url}" \
+            | jq -c '[.jobs[] | select(.state == "passed") | .id]')
+
           hashes=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
-            "${build_url}/artifacts?per_page=100" | jq -r '
-              .[]
+            "${build_url}/artifacts?per_page=100" | jq -r --argjson job_ids "${passed_job_ids}" '
+              ($job_ids | map({(.): true}) | add // {}) as $good
+              | .[]
               | select(.filename | test("\\.(deb|tar\\.gz)$"))
+              | select($good[.job_id] // false)
               | "\(.sha256sum) \(.filename)"
             ' | base64 -w0)
 
@@ -68,9 +78,11 @@ jobs:
       actions: read
       id-token: write
       contents: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    # yamllint disable-line rule:line-length
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a  # v2.1.0
     with:
       base64-subjects: "${{ needs.buildkite.outputs.hashes }}"
       provenance-name: authelia.intoto.jsonl
       upload-assets: true
+      compile-generator: true
 ...

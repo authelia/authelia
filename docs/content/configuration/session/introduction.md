@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Session"
 description: "Configuring the Authelia session cookies including the secret, cookie name, domain settings, expiration, inactivity timeout, and remember me duration."
 summary: "Configuring the Session / Cookie settings."
@@ -17,7 +21,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ relies on session cookies to authorize user access to various protected websites. This section configures
+**Authelia** relies on session cookies to authorize user access to various protected websites. This section configures
 the session cookie behavior and the domains which Authelia can service authorization requests for.
 
 ## Variables
@@ -53,14 +57,14 @@ session:
 
 There are currently two providers for session storage (three if you count Redis Sentinel as a separate provider):
 
-* Memory (default, stateful, no additional configuration)
-* [Redis](redis.md) (stateless).
-* [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
+- Memory (default, stateful, no additional configuration)
+- [Redis](redis.md) (stateless).
+- [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
 
 ### Kubernetes or High Availability
 
 It's important to note when picking a provider, the stateful providers are not recommended in High Availability
-scenarios like Kubernetes. Each provider has a note beside it indicating it is *stateful* or *stateless* the stateless
+scenarios like Kubernetes. Each provider has a note beside it indicating it is _stateful_ or _stateless_ the stateless
 providers are recommended.
 
 ## Options
@@ -73,7 +77,7 @@ This section describes the individual configuration options.
 
 The secret key used to encrypt session data in Redis.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
 
@@ -122,20 +126,26 @@ Browsers have rules regarding which cookie domains a website can write. In parti
 [Public Suffix List](https://publicsuffix.org/list/) usually contains domains which are not permitted.
 {{< /callout >}}
 
-The domain the session cookie is assigned to protect. This must be the same as the domain Authelia is served on or the
-root of the domain, and consequently if the [authelia_url](#authelia_url) is configured must be able to read and write
-cookies for this domain.
+The domain the session cookie is assigned to protect.
+
+This value:
+
+1. Must be standard use domain i.e. the hostname portion of a URL (exclude the port) which a globally trusted
+   Certificate Authority is willing to issue X.509 Certificates for (the use of TLS is a strict requirement).
+2. Must either be a valid suffix of or exactly match the hostname portion of the [authelia_url](#authelia_url).
+3. Must include at least one domain segment i.e. period.
+4. Must not exactly match a public suffix domain i.e. a domain on the [Public Suffix List] like `duckdns.org` and should
+   instead be something like `example.duckdns.org` as browsers will refuse to set cookies at all for these domains.
+   Consequently, if you have `example.duckdns.org` and `example-auth.duckdns.org` you cannot share cookies between these
+   domains.
+5. Must not be a special use domain like `localhost` as browsers do not allow sites to set the cookies Authelia
+   requires to operate properly for these domains.
 
 For example if Authelia is accessible via the URL
-`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` the domain should be either
-`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` or `{{< sitevar name="domain" nojs="example.com" >}}`.
-
-The value must not match a domain on the [Public Suffix List] as browsers do not allow
-websites to write cookies for these domains. This includes most Dynamic DNS services such as `duckdns.org`. You should
-use your domain instead of `duckdns.org` for this value, for example `example.duckdns.org`.
-
-Consequently, if you have `example.duckdns.org` and `example-auth.duckdns.org` you cannot share cookies between these
-domains.
+`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` the
+domain should be either
+`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` or
+`{{< sitevar name="domain" nojs="example.com" >}}`.
 
 [Public Suffix List]: https://publicsuffix.org/list/
 
@@ -172,7 +182,7 @@ If this option is absent you must use the appropriate query parameter or header 
 
 {{< confkey type="string" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [name](#name) setting above.*
+_**Default Value:** This option takes its default value from the [name](#name) setting above._
 
 The name of the session cookie. By default this is set to the `name` value in the main session configuration section.
 
@@ -180,7 +190,7 @@ The name of the session cookie. By default this is set to the `name` value in th
 
 {{< confkey type="string" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [same_site](#same_site) setting above.*
+_**Default Value:** This option takes its default value from the [same_site](#same_site) setting above._
 
 Sets the cookies SameSite value. Prior to offering the configuration choice this defaulted to None. The new default is
 Lax. This option is defined in lower-case. So for example if you want to set it to `Strict`, the value in configuration
@@ -196,7 +206,7 @@ state but it's available as an option anyway.
 
 {{< confkey type="string,integer" syntax="duration" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [inactivity](#inactivity) setting above.*
+_**Default Value:** This option takes its default value from the [inactivity](#inactivity) setting above._
 
 The period of time the user can be inactive for until the session is destroyed. Useful if you want long session timers
 but don't want unused devices to be vulnerable.
@@ -205,7 +215,7 @@ but don't want unused devices to be vulnerable.
 
 {{< confkey type="string,integer" syntax="duration" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [expiration](#expiration) setting above.*
+_**Default Value:** This option takes its default value from the [expiration](#expiration) setting above._
 
 The period of time before the cookie expires and the session is destroyed. This is overridden by
 [remember_me](#remember_me) when the remember me box is checked.
@@ -214,13 +224,19 @@ The period of time before the cookie expires and the session is destroyed. This 
 
 {{< confkey type="string,integer" syntax="duration" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [remember_me](#remember_me) setting above.*
+_**Default Value:** This option takes its default value from the [remember_me](#remember_me) setting above._
 
 The period of time before the cookie expires and the session is destroyed when the remember me box is checked. Setting
 this to `-1` disables this feature entirely for this session cookie domain.
+
+It should be noted that the Passkey Login Flow currently requires remembering sessions if enabled. This is because the
+WebAuthn dialog is disruptive to the UI control, and several future features including Conditional Mediation and
+essentially OpenID Connect 1.0 Relying Party logins feel clunky having to click the checkbox first.
+
+As such the ability to control the remembered state in these scenarios will come as a feature which changes how
+remember me operates today, where it will be a question asked of the user just after they complete any initial login.
 
 ## Security
 
 Configuration of this section has an impact on security. You should read notes in
 [security measures](../../overview/security/measures.md#session-security) for more information.
-

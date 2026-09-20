@@ -1,13 +1,19 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Fragment, useCallback, useRef, useState } from "react";
 
-import { Button, CircularProgress, Divider, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import PasskeyIcon from "@components/PasskeyIcon";
+import { Button } from "@components/UI/Button";
+import { Separator } from "@components/UI/Separator";
+import { Spinner } from "@components/UI/Spinner";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
+import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
-import { useIsMountedRef } from "@hooks/Mounted";
 import { useQueryParam } from "@hooks/QueryParam";
 import { AssertionResult, AssertionResultFailureString } from "@models/WebAuthn";
 import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
@@ -28,7 +34,7 @@ const PasskeyForm = function (props: Props) {
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
     const { flow, id: flowID, subflow } = useFlow();
-    const mounted = useIsMountedRef();
+    const getSignal = useAbortSignal();
 
     const [loading, setLoading] = useState(false);
 
@@ -45,14 +51,16 @@ const PasskeyForm = function (props: Props) {
     }, [props]);
 
     const handleSignIn = useCallback(async () => {
-        if (!mounted || loading) {
+        if (loading) {
             return;
         }
 
         handleAuthenticationStart();
 
+        const signal = getSignal();
+
         try {
-            const optionsStatus = await getWebAuthnPasskeyOptions();
+            const optionsStatus = await getWebAuthnPasskeyOptions(signal);
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 handleAuthenticationStop();
@@ -63,9 +71,9 @@ const PasskeyForm = function (props: Props) {
 
             const result = await getWebAuthnResult(optionsStatus.options);
 
-            if (result.result !== AssertionResult.Success) {
-                if (!mounted.current) return;
+            if (signal.aborted) return;
 
+            if (result.result !== AssertionResult.Success) {
                 handleAuthenticationStop();
 
                 onSignInErrorCallback(new Error(translate(AssertionResultFailureString(result.result))));
@@ -82,8 +90,6 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            if (!mounted.current) return;
-
             const response = await postWebAuthnPasskeyResponse(
                 result.response,
                 props.rememberMe,
@@ -92,6 +98,7 @@ const PasskeyForm = function (props: Props) {
                 flowID,
                 flow,
                 subflow,
+                signal,
             );
 
             handleAuthenticationStop();
@@ -101,20 +108,16 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            if (!mounted.current) return;
-
             onSignInErrorCallback(new Error(translate("The server rejected the security key")));
         } catch (err) {
             handleAuthenticationStop();
 
-            // If the request was initiated and the user changed 2FA method in the meantime,
-            // the process is interrupted to avoid updating state of unmounted component.
-            if (!mounted.current) return;
+            if (axios.isCancel(err)) return;
             console.error(err);
             onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
         }
     }, [
-        mounted,
+        getSignal,
         loading,
         handleAuthenticationStart,
         props,
@@ -130,25 +133,26 @@ const PasskeyForm = function (props: Props) {
 
     return (
         <Fragment>
-            <Grid size={{ xs: 12 }}>
-                <Divider component="div">
-                    <Typography sx={{ textTransform: "uppercase" }}>{translate("or")}</Typography>
-                </Divider>
-            </Grid>
-            <Grid size={{ xs: 12 }}>
+            <div className="w-full">
+                <div className="relative flex items-center py-2">
+                    <Separator className="flex-1" />
+                    <span className="px-3 text-sm uppercase text-muted-foreground">{translate("or")}</span>
+                    <Separator className="flex-1" />
+                </div>
+            </div>
+            <div className="w-full">
                 <Button
                     id="passkey-sign-in-button"
-                    variant="contained"
-                    color="primary"
-                    fullWidth
+                    variant="default"
+                    className="w-full"
                     onClick={handleSignIn}
-                    startIcon={<PasskeyIcon />}
                     disabled={props.disabled}
-                    endIcon={loading ? <CircularProgress size={20} /> : null}
                 >
+                    <PasskeyIcon />
                     {translate("Sign in with a passkey")}
+                    {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
                 </Button>
-            </Grid>
+            </div>
         </Fragment>
     );
 };

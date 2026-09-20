@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -13,14 +17,14 @@ import (
 // FirstFactorPasswordPOST is the handler performing the first factor authn with a password.
 //
 //nolint:gocyclo // TODO: Consider refactoring time permitting.
-func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
+func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var successful bool
 
 		requestTime := time.Now()
 
-		if delayFunc != nil {
-			defer delayFunc(ctx, requestTime, &successful)
+		if delayer != nil {
+			defer delayer.Delay(ctx, requestTime, &successful)
 		}
 
 		bodyJSON := bodyFirstFactorRequest{}
@@ -38,7 +42,7 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 		}
 
 		if details, err = ctx.Providers.UserProvider.GetDetails(bodyJSON.Username); err != nil || details == nil {
-			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthType1FA, err)
+			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, err)
 
 			ctx.Logger.WithError(err).Errorf("Error occurred getting details for user with username input '%s' which usually indicates they do not exist", bodyJSON.Username)
 
@@ -120,10 +124,8 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 			return
 		}
 
-		// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data.
 		keepMeLoggedIn := !provider.Config.DisableRememberMe && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
 
-		// Set the cookie to expire if remember me is enabled and the user has asked us to.
 		if keepMeLoggedIn {
 			err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe)
 			if err != nil {
@@ -163,14 +165,14 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 
 // FirstFactorReauthenticatePOST is a specialized handler which checks the currently logged in users current password
 // and updates their last authenticated time.
-func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
+func FirstFactorReauthenticatePOST(delayer middlewares.Delayer) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var successful bool
 
 		requestTime := time.Now()
 
-		if delayFunc != nil {
-			defer delayFunc(ctx, requestTime, &successful)
+		if delayer != nil {
+			defer delayer.Delay(ctx, requestTime, &successful)
 		}
 
 		bodyJSON := bodyFirstFactorReauthenticateRequest{}

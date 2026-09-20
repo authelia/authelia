@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -18,6 +22,10 @@ func NewOIDCSuite() *OIDCSuite {
 
 func (s *OIDCSuite) TestOIDCScenario() {
 	suite.Run(s.T(), NewOIDCScenario())
+}
+
+func (s *OIDCSuite) TestOIDCClientCredentialsScenario() {
+	suite.Run(s.T(), NewOIDCClientCredentialsScenario())
 }
 
 func TestOIDCSuite(t *testing.T) {

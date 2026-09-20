@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Homarr"
 description: "A guide on integrating Homarr with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
@@ -23,20 +27,20 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
+  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
 - [Homarr]
-  - [1.7.0](https://github.com/homarr-labs/homarr/releases/tag/v1.7.0)
+  - [1.59.0](https://github.com/homarr-labs/homarr/releases/tag/v1.59.0)
 
-{{% oidc-common %}}
+{{% oidc-common bugs="claims-hydration" %}}
 
 ### Assumptions
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://homarr.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `homarr`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://homarr.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `homarr`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Homarr] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Homarr] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -85,6 +89,14 @@ To configure [Homarr] there is one method, using the [Environment Variables](#en
 #### Environment Variables
 
 To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Configuration Escape Hatch
+
+{{% oidc-escape-hatch-claims-hydration example="disable" %}}
+
+```shell {title=".env"}
+AUTH_OIDC_FORCE_USERINFO=true
+```
 
 ##### Standard
 

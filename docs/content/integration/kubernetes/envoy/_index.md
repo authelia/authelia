@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Envoy"
 description: "An overview of integrating Authelia with the Envoy proxy in Kubernetes including the Envoy Gateway implementation and Istio service mesh ingress configuration."
 summary: ""

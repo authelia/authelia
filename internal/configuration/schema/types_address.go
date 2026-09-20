@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 import (
@@ -112,7 +116,7 @@ func NewSMTPAddress(scheme, host string, port uint16) *AddressSMTP {
 	return &AddressSMTP{Address: Address{true, false, -1, port, nil, &url.URL{Scheme: scheme, Host: fmt.Sprintf("%s:%d", host, port)}}}
 }
 
-// NewAddressFromURL returns an *Address and error depending on the ability to parse the *url.URL as an Address.
+// NewAddressFromURL returns an *Address and error depending on the ability to parse the *[url.URL] as an Address.
 func NewAddressFromURL(u *url.URL) (addr *Address, err error) {
 	addr = &Address{
 		url:   u,
@@ -325,7 +329,17 @@ func (a *Address) String() string {
 	return a.url.String()
 }
 
-// Scheme returns the *url.URL Scheme field.
+// MarshalYAML marshals the Address into its string representation.
+func (a Address) MarshalYAML() (value any, err error) {
+	return a.String(), nil
+}
+
+// MarshalText marshals the Address into its string representation.
+func (a Address) MarshalText() (text []byte, err error) {
+	return []byte(a.String()), nil
+}
+
+// Scheme returns the *[url.URL] Scheme field.
 func (a *Address) Scheme() string {
 	if !a.valid || a.url == nil {
 		return ""
@@ -334,7 +348,7 @@ func (a *Address) Scheme() string {
 	return a.url.Scheme
 }
 
-// Host returns the *url.URL Host field.
+// Host returns the *[url.URL] Host field.
 func (a *Address) Host() string {
 	if !a.valid || a.url == nil {
 		return ""
@@ -343,13 +357,25 @@ func (a *Address) Host() string {
 	return a.url.Host
 }
 
-// Hostname returns the output of the *url.URL Hostname func.
+// Hostname returns the output of the *[url.URL] Hostname func.
 func (a *Address) Hostname() string {
 	if !a.valid || a.url == nil {
 		return ""
 	}
 
 	return a.url.Hostname()
+}
+
+// HostnameLiteral returns the output of the Hostname func except IPv6 addresses are returned in the RFC3986 IP-literal
+// format i.e. surrounded by square brackets. This makes the value safe to directly join with a port.
+func (a *Address) HostnameLiteral() string {
+	hostname := a.Hostname()
+
+	if strings.Contains(hostname, ":") {
+		return "[" + hostname + "]"
+	}
+
+	return hostname
 }
 
 // SetHostname sets the hostname preserving the port.
@@ -376,7 +402,7 @@ func (a *Address) SetPort(port uint16) {
 		return
 	}
 
-	a.setport(port)
+	a.setPort(port)
 }
 
 // Path returns the path.
@@ -455,7 +481,7 @@ func (a *Address) NetworkAddress() string {
 	return a.url.Host
 }
 
-// Dial creates and returns a dialed net.Conn.
+// Dial creates and returns a dialed [net.Conn].
 func (a *Address) Dial() (net.Conn, error) {
 	if !a.valid || a.url == nil {
 		return nil, fmt.Errorf("address url is nil")
@@ -464,7 +490,7 @@ func (a *Address) Dial() (net.Conn, error) {
 	return net.Dial(a.Network(), a.NetworkAddress())
 }
 
-func (a *Address) setport(port uint16) {
+func (a *Address) setPort(port uint16) {
 	a.port = port
 	a.url.Host = net.JoinHostPort(a.url.Hostname(), strconv.Itoa(int(port)))
 }
@@ -525,15 +551,15 @@ func (a *Address) validateProtocol() (err error) {
 	case "":
 		switch a.url.Scheme {
 		case AddressSchemeLDAP:
-			a.setport(389)
+			a.setPort(389)
 		case AddressSchemeLDAPS:
-			a.setport(636)
+			a.setPort(636)
 		case AddressSchemeSMTP:
-			a.setport(25)
+			a.setPort(25)
 		case AddressSchemeSUBMISSION:
-			a.setport(587)
+			a.setPort(587)
 		case AddressSchemeSUBMISSIONS:
-			a.setport(465)
+			a.setPort(465)
 		}
 	default:
 		var actualPort uint64
@@ -542,7 +568,7 @@ func (a *Address) validateProtocol() (err error) {
 			return fmt.Errorf("failed to parse port: %w", err)
 		}
 
-		a.setport(uint16(actualPort))
+		a.setPort(uint16(actualPort))
 	}
 
 	return nil
@@ -554,7 +580,7 @@ func (a *Address) validateTCPUDP() (err error) {
 	switch port {
 	case "":
 		if a.url.User == nil {
-			a.setport(0)
+			a.setPort(0)
 		}
 	default:
 		var actualPort uint64
@@ -563,7 +589,7 @@ func (a *Address) validateTCPUDP() (err error) {
 			return fmt.Errorf("failed to parse port: %w", err)
 		}
 
-		a.setport(uint16(actualPort))
+		a.setPort(uint16(actualPort))
 	}
 
 	return nil

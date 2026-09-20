@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -88,6 +92,7 @@ func buildCSP(defaultSrc string, ruleSets ...[]CSPValue) string {
 var decodedTypes = []reflect.Type{
 	reflect.TypeOf(mail.Address{}),
 	reflect.TypeOf(regexp.Regexp{}),
+	reflect.TypeOf(schema.RegexpCI{}),
 	reflect.TypeOf(url.URL{}),
 	reflect.TypeOf(time.Duration(0)),
 	reflect.TypeOf(schema.Address{}),
@@ -104,7 +109,7 @@ var decodedTypes = []reflect.Type{
 
 func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) {
 	for _, t := range haystack {
-		if needle.Kind() == reflect.Ptr {
+		if needle.Kind() == reflect.Pointer {
 			if needle.Elem() == t {
 				return true
 			}
@@ -218,7 +223,7 @@ func iReadTags(prefix string, t reflect.Type, envSkip, deprecatedSkip, parentSli
 
 				tags = append(tags, iReadTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip, deprecatedSkip, true)...)
 			}
-		case reflect.Ptr:
+		case reflect.Pointer:
 			switch field.Type.Elem().Kind() {
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {

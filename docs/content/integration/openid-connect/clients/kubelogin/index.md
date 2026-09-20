@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kube Login"
 description: "A guide on integrating Kube Login with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Kube Login]
   - [v1.33.0](https://github.com/int128/kubelogin/releases/tag/v1.33.0)
 
@@ -33,9 +37,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `kube_login`
-- __Client Secret:__ `insecure_secret`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `kube_login`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Kube Login] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Kube Login] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -88,9 +92,11 @@ Configure your Kubernetes API server to trust Authelia as an OIDC provider by ad
 See the [Kubernetes Flags Documentation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#using-flags) for more information on these options.
 
 #### How to Apply These Arguments
+
 The method for configuring API server arguments varies by Kubernetes distribution. Consult the [Kubernetes OIDC] Authentication documentation for detailed instructions on applying these arguments to your specific setup.
 
 **Common distributions:**
+
 - K3s: Add to `/etc/rancher/k3s/config.yaml` under `kube-apiserver-arg:`
 - kubeadm: Edit `/etc/kubernetes/manifests/kube-apiserver.yaml`
 - Managed services: Use provider-specific tools (AWS CLI, gcloud, az cli)
@@ -177,7 +183,9 @@ kubectl config set-credentials authelia \
 ```
 
 #### Setup Context
+
 Create and use a context with the OIDC user:
+
 ```bash
 # Create context (replace 'your-cluster' with your actual cluster name)
 kubectl config set-context authelia \
@@ -189,11 +197,11 @@ kubectl config use-context authelia
 ```
 
 #### Testing the Configuration
+
 ```bash
 # This should start the OIDC authentication flow in your browser.
 kubectl get nodes
 ```
-
 
 ## See Also
 

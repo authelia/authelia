@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -49,6 +53,7 @@ func SetRelaxedSecurityHeaders(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueCrossOrigin)
 }
 
+// SetBaseSecurityHeaders sets the security headers applied to every response.
 func SetBaseSecurityHeaders(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetBytesKV(headerXContentTypeOptions, headerValueNoSniff)
 	ctx.Response.Header.SetBytesKV(headerReferrerPolicy, headerValueStrictOriginCrossOrigin)

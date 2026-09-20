@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kubernetes"
 description: "A redirect page for the dedicated Kubernetes deployment documentation covering integration of Authelia with Kubernetes cluster environments and ingress setup."
 summary: "An introduction into integrating Authelia with Kubernetes."

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -18,7 +22,7 @@ spec:
     spec:
       containers:
         - name: mariadb
-          image: mariadb:12.2.2
+          image: mariadb:13.0.2
           ports:
             - containerPort: 3306
           readinessProbe:

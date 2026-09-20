@@ -1,22 +1,33 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set +u
 
+# shellcheck source=/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/../libs/common.sh"
+
 INTEGRATION() {
-  if [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:renovate/" "${FILE}"
-  elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:${BUILDKITE_BRANCH}/" "${FILE}"
-  elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:PR${BUILDKITE_PULL_REQUEST}/" "${FILE}"
+  resolve_tag_suffix
+
+  if [[ -n "${TAG_SUFFIX}" ]]; then
+    sed -i "s/${CONTAINER}/${CONTAINER}:${TAG_SUFFIX}/" "${FILE}"
+    echo "Integration container tag: ${CONTAINER}:${TAG_SUFFIX}"
+  else
+    echo "Integration container tag: ${CONTAINER} (no suffix applied)"
   fi
 }
 
 if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
   pnpm -C web install
+  pnpm -C docs install --no-optional
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
+  echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+
   if [[ "${CI_MERGE_QUEUE}" == "true" ]]; then
     PR_NUMBER=$(echo "${BUILDKITE_BRANCH}" | sed -E 's|^gh-readonly-queue/.*/pr-([0-9]+)-.*|\1|')
     PR_HEAD=$(curl -fsL --retry 3 "https://api.github.com/repos/authelia/authelia/pulls/${PR_NUMBER}")
@@ -28,43 +39,68 @@ if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
     BUILD_ID=$(echo "${PR_BUILD}" | jq -r 'first | .id')
 
     if [[ -n "${BUILD_ID}" && "${BUILD_ID}" != "null" ]]; then
-      buildkite-agent artifact download "*.spdx.json" . --build "${BUILD_ID}"
+      buildkite-agent artifact download "*.cdx.json" . --build "${BUILD_ID}"
     else
       echo "--- :warning: Could not find a passed build for PR#${PR_NUMBER}"
     fi
   else
-    buildkite-agent artifact download "*.spdx.json" .
+    buildkite-agent artifact download "*.cdx.json" .
   fi
-fi
-
-if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
-  cp -R /buildkite/.local .
 fi
 
 if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
-  buildkite-agent artifact download "authelia-image-coverage.*" .
+
+  if [[ "${BUILDKITE_AGENT_NAME}" =~ ^tabris[0-9]+$ ]] && \
+     BUILDKITE_S3_DEFAULT_REGION="authelia" BUILDKITE_S3_ENDPOINT="${S3_URL}" BUILDKITE_ARTIFACT_UPLOAD_DESTINATION="${S3_BUCKET}" BUILDKITE_S3_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID}" BUILDKITE_S3_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY}" buildkite-agent artifact download "authelia-image-coverage-tabris*" . && \
+     mv authelia-image-coverage-tabris.tar.zst authelia-image-coverage.tar.zst; then
+    echo "Using localized coverage image artifact"
+  else
+    buildkite-agent artifact download "authelia-image-coverage.*" .
+  fi
 
   if [[ "${SUITE}" == "Kubernetes" ]]; then
     zstd -d authelia-image-coverage.tar.zst --stdout > ./internal/suites/example/kube/authelia-image-coverage.tar
+  elif [[ -n "${SUITE_SLOT}" ]]; then
+    # Every load writes the same authelia:dist tag, so on a shared daemon concurrent jobs race over it. The tag is
+    # taken per slot rather than per build so that its lifetime matches its ownership: an agent runs one job at a
+    # time, which makes the tag safe for that agent to remove again in pre-exit. The floating authelia:dist tag is
+    # dropped inside the lock, since leaving it behind would pin the layers no matter what the per-slot tags do.
+    # The lock lives under the cache directory because that is bind mounted from the host and therefore shared by
+    # every agent on it, unlike the agent home, which is an anonymous volume private to each container.
+    export SUITE_IMAGE="authelia:dist-${SUITE_SLOT}"
+    (
+      flock 9
+      zstdcat "authelia-image-coverage.tar.zst" | docker load
+      docker tag authelia:dist "${SUITE_IMAGE}"
+      docker rmi authelia:dist > /dev/null 2>&1 || true
+    ) 9> /buildkite/.cache/authelia-image-load.lock
   else
     zstdcat "authelia-image-coverage.tar.zst" | docker load
   fi
 
-  if [[ "${BUILD_DUO}" == "true" ]] && [[ "${SUITE}" == "DuoPush" ]]; then
-    CONTAINER="integration-duo"
-    FILE="internal/suites/example/compose/duo-api/compose.yml"
-    INTEGRATION
-  elif [[ "${BUILD_HAPROXY}" == "true" ]] && [[ "${SUITE}" == "HAProxy" ]]; then
-    CONTAINER="integration-haproxy"
-    FILE="internal/suites/example/compose/haproxy/compose.yml"
-    INTEGRATION
-  elif [[ "${BUILD_SAMBA}" == "true" ]] && [[ "${SUITE}" == "ActiveDirectory" ]]; then
-    CONTAINER="integration-samba"
-    FILE="internal/suites/example/compose/samba/compose.yml"
-    INTEGRATION
-  fi
+  BUILD_FLAG=""
+  CONTAINER=""
+  FILE=""
+  case "${SUITE}" in
+    DuoPush)
+      BUILD_FLAG="${BUILD_DUO}"
+      CONTAINER="integration-duo"
+      FILE="internal/suites/example/compose/duo-api/compose.yml"
+      ;;
+    HAProxy)
+      BUILD_FLAG="${BUILD_HAPROXY}"
+      CONTAINER="integration-haproxy"
+      FILE="internal/suites/example/compose/haproxy/compose.yml"
+      ;;
+    ActiveDirectory)
+      BUILD_FLAG="${BUILD_SAMBA}"
+      CONTAINER="integration-samba"
+      FILE="internal/suites/example/compose/samba/compose.yml"
+      ;;
+  esac
+  [[ "${BUILD_FLAG}" == "true" ]] && INTEGRATION
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build and Deploy" ]]; then

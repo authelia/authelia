@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "PostgreSQL"
 description: "Configuring the Authelia PostgreSQL storage provider including the server address, database name, schema, credentials, TLS settings, and connection options."
 summary: "The PostgreSQL storage provider."
@@ -75,7 +79,7 @@ See the [encryption_key docs](introduction.md#encryption_key).
 Configures the address for the PostgreSQL Server. The address itself is a connector and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes.
 
-__Examples:__
+**Examples:**
 
 ```yaml {title="configuration.yml"}
 storage:
@@ -129,14 +133,14 @@ storage:
 {{< confkey type="string" required="yes" >}}
 
 The database name on the database server that the assigned [user](#username) has access to for the purpose of
-__Authelia__.
+**Authelia**.
 
 ### schema
 
 {{< confkey type="string" default="public" required="no" >}}
 
 The database schema name to use on the database server that the assigned [user](#username) has access to for the purpose
-of __Authelia__. By default this is the public schema.
+of **Authelia**. By default this is the public schema.
 
 ### username
 
@@ -150,7 +154,7 @@ The username paired with the password used to connect to the database.
 
 The password paired with the [username](#username) used to connect to the database.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 

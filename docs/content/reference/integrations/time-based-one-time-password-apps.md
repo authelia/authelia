@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Time-based OTP Applications"
 description: "A reference guide on Time-based One-Time Password application compatibility with Authelia including a support matrix for various TOTP algorithm settings."
 summary: "This section contains a Time-based OTP Application integration reference guide for Authelia."
@@ -23,5 +27,3 @@ may now support some that were not previously supported, or in rare cases they m
 did.
 
 {{< table-totp-support >}}
-
-

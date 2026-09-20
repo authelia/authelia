@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Privacy Policy"
 description: "Configuring the Authelia privacy policy display settings including enabling the privacy policy link, requiring user acceptance, and setting the policy URL."
 summary: "This describes a section of the configuration for enabling a Privacy Policy link display."

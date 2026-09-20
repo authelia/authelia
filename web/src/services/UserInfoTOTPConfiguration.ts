@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import axios from "axios";
 
 import {
@@ -9,7 +13,6 @@ import {
 } from "@models/TOTPConfiguration";
 import {
     AuthenticationOKResponse,
-    CompleteTOTPSignInPath,
     ServiceResponse,
     TOTPConfigurationPath,
     TOTPRegistrationPath,
@@ -80,9 +83,7 @@ export async function getTOTPOptions(): Promise<TOTPOptions> {
 }
 
 export async function deleteUserTOTPConfiguration() {
-    return axios<AuthenticationOKResponse>({
-        method: "DELETE",
-        url: CompleteTOTPSignInPath,
+    return axios.delete<AuthenticationOKResponse>(TOTPConfigurationPath, {
         validateStatus: validateStatusAuthentication,
     });
 }

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Authentication"
 description: "An overview of Authelia's authentication capabilities including first factor credentials and second factor methods like TOTP, WebAuthn, and Duo mobile push."
 summary: ""

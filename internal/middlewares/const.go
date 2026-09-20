@@ -1,9 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
 	"errors"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 var (
@@ -41,6 +47,7 @@ var (
 	headerPragma                = []byte(fasthttp.HeaderPragma)
 	headerCacheControl          = []byte(fasthttp.HeaderCacheControl)
 	headerContentSecurityPolicy = []byte(fasthttp.HeaderContentSecurityPolicy)
+	headerContentType           = []byte(fasthttp.HeaderContentType)
 
 	headerPermissionsPolicy         = []byte("Permissions-Policy")
 	headerCrossOriginOpenerPolicy   = []byte("Cross-Origin-Opener-Policy")
@@ -49,6 +56,7 @@ var (
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
 )
 
+// Header value strings.
 const (
 	HeaderCacheControlNotStore = "no-store"
 	HeaderPragmaNoCache        = "no-cache"
@@ -81,37 +89,53 @@ var (
 )
 
 const (
+	strProtoHTTP2 = "HTTP/2"
 	strProtoHTTPS = "https"
 	strProtoHTTP  = "http"
 	strSlash      = "/"
+	localhost     = "127.0.0.1"
 
 	queryArgRedirect    = "rd"
 	queryArgAutheliaURL = "authelia_url"
 	queryArgToken       = "token"
 )
 
+const healthCheckEnv = `# Written by Authelia Process
+X_AUTHELIA_HEALTHCHECK=1
+X_AUTHELIA_HEALTHCHECK_SCHEME=%s
+X_AUTHELIA_HEALTHCHECK_HOST=%s
+X_AUTHELIA_HEALTHCHECK_PORT=%d
+X_AUTHELIA_HEALTHCHECK_PATH=%s
+`
+
+// User value keys.
 const (
 	UserValueKeyBaseURL int8 = iota
 	UserValueKeyOpenIDConnectResponseModeFormPost
 	UserValueKeyRawURI
+	UserValueRateLimitExempt
 )
 
+// Router user value keys.
 const (
 	UserValueRouterKeyExtAuthzPath = "extauthz"
 )
 
+// Startup check log messages and provider names.
 const (
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
 
-	ProviderNameNTP              = "ntp"
-	ProviderNameStorage          = "storage"
-	ProviderNameUser             = "user"
-	ProviderNameNotification     = "notification"
-	ProviderNameExpressions      = "expressions"
-	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+	ProviderNameNTP              = schema.ProviderNameNTP
+	ProviderNameStorage          = schema.ProviderNameStorage
+	ProviderNameUser             = schema.ProviderNameUser
+	ProviderNameSession          = schema.ProviderNameSession
+	ProviderNameNotification     = schema.ProviderNameNotification
+	ProviderNameExpressions      = schema.ProviderNameExpressions
+	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData
 )
 
+// Content Type strings.
 const (
 	ContentTypeApplicationJSON = "application/json; charset=utf-8"
 	ContentTypeApplicationJWT  = "application/jwt; charset=utf-8"
@@ -130,6 +154,13 @@ var (
 	contentTypeTextHTML        = []byte("text/html; charset=utf-8")
 	contentTypeApplicationJSON = []byte(ContentTypeApplicationJSON)
 	contentTypeApplicationYAML = []byte("application/yaml; charset=utf-8")
+)
+
+// bodyOpenIDConnectRateLimitExceeded is the JSON body returned by HandlerRateLimitOpenIDConnect. OAuth 2.0 has no
+// canonical rate-limit error code; temporarily_unavailable is borrowed from RFC 6749 §4.1.2.1 because its
+// "try again later" semantics align with rate limiting and clients tend to treat it as a retryable condition.
+var (
+	bodyOpenIDConnectRateLimitExceeded = []byte(`{"error":"temporarily_unavailable","error_description":"Too many requests. The endpoint is temporarily unavailable. Try again later."}`)
 )
 
 const (

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "engomo"
 description: "A guide on integrating engomo with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [engomo]
 
 {{% oidc-common %}}
@@ -31,10 +35,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://engomo.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `engomo`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://engomo.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `engomo`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -44,7 +48,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [engomo] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [engomo] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -94,9 +98,11 @@ To configure [engomo] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 6. Select the `OpenID Connect` value for `Type`
 7. Click `Create`.
 8. Set the following values:
-  - Issuer: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Client ID: `engomo`
-  - Client Secret: `insecure_secret`
+
+- Issuer: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- Client ID: `engomo`
+- Client Secret: `insecure_secret`
+
 9. Click Save.
 
 [Authelia]: https://www.authelia.com

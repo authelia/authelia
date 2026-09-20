@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -10,14 +14,14 @@ import (
 
 // SecondFactorPasswordPOST is the handler performing the knowledge based authentication factor after a user utilizes a
 // alternative to usernames and passwords like passkeys.
-func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
+func SecondFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var successful bool
 
 		requestTime := time.Now()
 
-		if delayFunc != nil {
-			defer delayFunc(ctx, requestTime, &successful)
+		if delayer != nil {
+			defer delayer.Delay(ctx, requestTime, &successful)
 		}
 
 		bodyJSON := bodySecondFactorPasswordRequest{}

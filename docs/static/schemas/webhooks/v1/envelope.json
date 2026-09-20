@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/envelope.json",
+  "properties": {
+    "specversion": {
+      "type": "string",
+      "title": "Spec Version"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "ID",
+      "description": "A UUIDv7. Unique per occurrence and stable across delivery retries."
+    },
+    "type": {
+      "type": "string",
+      "title": "Type"
+    },
+    "source": {
+      "type": "string",
+      "format": "uri",
+      "title": "Source",
+      "description": "The issuer URL of the Authelia instance."
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Time"
+    },
+    "datacontenttype": {
+      "type": "string",
+      "title": "Data Content Type"
+    },
+    "dataschema": {
+      "type": "string",
+      "format": "uri",
+      "title": "Data Schema",
+      "description": "Always an https://www.authelia.com/schemas/webhooks/ URI. Mandatory in this profile."
+    },
+    "autheliaversion": {
+      "type": "string",
+      "title": "Authelia Version"
+    },
+    "subject": {
+      "type": "string",
+      "title": "Subject"
+    },
+    "data": {
+      "title": "Data"
+    }
+  },
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "type",
+    "source",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "autheliaversion",
+    "data"
+  ],
+  "description": "Envelope is the CloudEvents 1.0 structured mode representation of an Event."
+}

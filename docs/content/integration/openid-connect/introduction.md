@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OpenID Connect 1.0"
 description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party including key implementation specifics."
 summary: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
@@ -42,6 +46,12 @@ actively perform the tests on each version of Authelia to maintain the latest co
 You can view our published conformance tests at [Certified OpenID Providers & Profiles] and
 [Certified OpenID Providers for Logout Profiles].
 
+In addition to the published conformance tests, all commits that change any part of the code run integration tests
+against every module of the conformance plans that Authelia is certified for or is planning to get certified for. These
+plans and modules are all of the tests required for an implementation to become certified. This is both done as a
+quality assurance measure to ensure confidence in Authelia's implementation and also to thoroughly test the
+implementation against normal use cases.
+
 ### OpenID Connect Protocol Suite
 
 <figure>
@@ -70,13 +80,59 @@ You can view our published conformance tests at [Certified OpenID Providers & Pr
 The elements we support are Core, Discovery, and the Form Post Response Mode; as well as all the underpinnings except
 WebFinger. This leaves Dynamic Client Registration and Session Management as obvious goals which are both planned.
 
+## Request Subset Rules
+
+There are a number of unique situations where certain flows may grant more or fewer `scopes` or `audiences` than
+intended.
+
+In particular the common issues are that during the Refresh Flow if the `scope` is widened to more scopes than
+originally granted by the user, or during the Refresh Flow if the client is no longer allowed to request the same
+scopes.
+
+To this end we implement the same strategies for the `scope`, `resource`, and `audience` parameters. i.e. the requested
+scopes and audience of the [Access Token]:
+
+1. If the grant type had a previous interaction which requested scopes or audiences, the scopes and audiences granted
+   regardless of the scopes and audiences the client is permitted to obtain are the maximum scopes and audiences
+   allowed (they may request less, not more). The [Authorization Code Flow] is a prime example of this i.e. if either of
+   these parameters were used then the request to the token endpoint cannot exceed those.
+2. If the client does not currently have the scopes or audiences requested, regardless of what they were previously
+   granted, they are not allowed to request more than their currently allowed scopes and audiences.
+
 ## Audiences
+
+This section describes the audience strategy of Authelia.
+
+### Implementation
+
+Authelia supports three key audience issuance modes.
+
+1. Using the `audience` parameter in the authorization request (at the authorization endpoint) or in the access request
+   (at the token endpoint). This allows for opaque and arbitrary audiences.
+2. Using the `resource` parameter in the authorization request (at the authorization endpoint) or in the access request
+   (at the token endpoint). This allows for audiences that are absolute URIs, which allows for special matching
+   behaviors.
+3. Implicitly granting all audiences when neither the `audience` or `resource` parameters are used (by policy only).
+
+Both the `audience` and `resource` parameters can be used together. The matching strategy for the `audience` parameter
+only allows for exact matches.
+
+The matching strategy for the `resource` parameter however allows for exact matches and also
+allows for special matching behaviors, specifically they can request a suffix of an allowed audience if the client is
+allowed to request the `https://example.com/example` they can request the `https://example.com/example` or
+`https://example.com/example/admin` audience using the resource parameter, but cannot request the
+`https://example.com/notexample/admin/users` audience.
+
+Please note that this only applies to absolute URLs and both the `audience` allowed to the client and the `resource`
+requested by the client must be absolute URLs, otherwise they are skipped and will eventually result in an error.
+
+### Access Token Audience vs ID Token Audience
 
 When it comes to [OpenID Connect 1.0] there are effectively two types of audiences. There is the audience embedded in
 the [ID Token] which should always include the requesting clients identifier and audience of the [Access Token] and
 [Refresh Token]. The intention of the audience in the [ID Token] is used to convey which Relying Party or client was the
 intended audience of the token. In contrast, the audience of the [Access Token] is used by the Authorization Server or
-Resource Server to satisfy an internal policy. You could consider the [ID Token] and it's audience to be a public facing
+Resource Server to satisfy an internal policy. You could consider the [ID Token] and its audience to be a public facing
 audience, and the audience of other tokens to be private or have private meaning even when the [Access Token] is using
 the [JWT Profile for OAuth 2.0 Access Tokens].
 
@@ -106,11 +162,11 @@ a subset of these.
 
 ### Response Object
 
-Authelia's response objects can have the following signature and content encryption  algorithms (i.e. the `alg`
+Authelia's response objects can have the following signature and content encryption algorithms (i.e. the `alg`
 parameter):
 
 |     Algorithm      |    Key Type    | Hashing Algorithm |  Use  |            JWK Default Conditions            |                       Notes                        |
-|:------------------:|:--------------:|:-----------------:|:-----:|:--------------------------------------------:|:--------------------------------------------------:|
+| :----------------: | :------------: | :---------------: | :---: | :------------------------------------------: | :------------------------------------------------: |
 |       HS256        | Symmetric [^1] |      SHA-256      | `sig` |                     N/A                      |      Not supported for all response objects.       |
 |       HS384        | Symmetric [^1] |      SHA-384      | `sig` |                     N/A                      |      Not supported for all response objects.       |
 |       HS512        | Symmetric [^1] |      SHA-512      | `sig` |                     N/A                      |      Not supported for all response objects.       |
@@ -119,13 +175,18 @@ parameter):
 |       RS512        |      RSA       |      SHA-512      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |       ES256        |  ECDSA P-256   |      SHA-256      | `sig` |    ECDSA Private Key with the P-256 curve    | Requires an ECDSA Private Key with a 256 bit curve |
 |       ES384        |  ECDSA P-384   |      SHA-384      | `sig` |    ECDSA Private Key with the P-384 curve    | Requires an ECDSA Private Key with a 384 bit curve |
-|       ES512        |  ECDSA P-521   |      SHA-512      | `sig` |    ECDSA Private Key with the P-521 curve    | Requires an ECDSA Private Key with a 512 bit curve |
-|       PS256        |   RSA (MGF1)   |      SHA-256      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|       PS384        |   RSA (MGF1)   |      SHA-384      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|       PS512        |   RSA (MGF1)   |      SHA-512      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       ES512        |  ECDSA P-521   |      SHA-512      | `sig` |    ECDSA Private Key with the P-521 curve    | Requires an ECDSA Private Key with a 521 bit curve |
+|       PS256        |      RSA       |  SHA-256 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|      Ed25519       |      OKP       |      SHA-512      | `sig` |                     N/A                      |                        N/A                         |
+|     EdDSA [^5]     |      OKP       |      SHA-512      | `sig` |                     N/A                      |               Deprecated by RFC 9864               |
+|     ML-DSA-44      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
+|     ML-DSA-65      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
+|     ML-DSA-87      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|      RSA-OAEP      |   RSA (MFG1)   |        N/A        | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|    RSA-OAEP-256    |   RSA (MFG1)   |      SHA-256      | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|      RSA-OAEP      |      RSA       |   SHA-1 (MGF1)    | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|    RSA-OAEP-256    |      RSA       |  SHA-256 (MGF1)   | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |       A128KW       | Symmetric [^1] |        N/A        | `enc` |                     N/A                      |              Uses the `client_secret`              |
 |       A192KW       | Symmetric [^1] |        N/A        | `enc` |                     N/A                      |              Uses the `client_secret`              |
 |       A256KW       | Symmetric [^1] |        N/A        | `enc` |                     N/A                      |              Uses the `client_secret`              |
@@ -150,7 +211,7 @@ Authelia accepts request objects with the following signature and content encryp
 parameter):
 
 |     Algorithm      |    Key Type    | Hashing Algorithm |  Use  | [Client Authentication Method] |
-|:------------------:|:--------------:|:-----------------:|:-----:|:------------------------------:|
+| :----------------: | :------------: | :---------------: | :---: | :----------------------------: |
 |        none        |      None      |       None        |  N/A  |              N/A               |
 |       HS256        | Symmetric [^1] |      SHA-256      | `sig` |      `client_secret_jwt`       |
 |       HS384        | Symmetric [^1] |      SHA-384      | `sig` |      `client_secret_jwt`       |
@@ -161,12 +222,17 @@ parameter):
 |       ES256        |  ECDSA P-256   |      SHA-256      | `sig` |       `private_key_jwt`        |
 |       ES384        |  ECDSA P-384   |      SHA-384      | `sig` |       `private_key_jwt`        |
 |       ES512        |  ECDSA P-521   |      SHA-512      | `sig` |       `private_key_jwt`        |
-|       PS256        |   RSA (MGF1)   |      SHA-256      | `sig` |       `private_key_jwt`        |
-|       PS384        |   RSA (MGF1)   |      SHA-384      | `sig` |       `private_key_jwt`        |
-|       PS512        |   RSA (MGF1)   |      SHA-512      | `sig` |       `private_key_jwt`        |
+|       PS256        |      RSA       |  SHA-256 (MGF1)   | `sig` |       `private_key_jwt`        |
+|       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |       `private_key_jwt`        |
+|       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |       `private_key_jwt`        |
+|      Ed25519       |      OKP       |      SHA-512      | `sig` |       `private_key_jwt`        |
+|     EdDSA [^5]     |      OKP       |      SHA-512      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-44      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-65      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-87      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |       `private_key_jwt`        |
-|      RSA-OAEP      |   RSA (MGF1)   |        N/A        | `enc` |       `private_key_jwt`        |
-|    RSA-OAEP-256    |   RSA (MGF1)   |      SHA-256      | `enc` |       `private_key_jwt`        |
+|      RSA-OAEP      |      RSA       |   SHA-1 (MGF1)    | `enc` |       `private_key_jwt`        |
+|    RSA-OAEP-256    |      RSA       |  SHA-256 (MGF1)   | `enc` |       `private_key_jwt`        |
 |       A128KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 |       A192KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 |       A256KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
@@ -182,18 +248,21 @@ parameter):
 | PBES2-HS384+A192KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS512+A256KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 
+A signed request object must have a `typ` header value of `oauth-authz-req+jwt` or `JWT`. An unsigned request object,
+which is only accepted from a client registered with a [request_object_signing_alg] of `none`, may omit the `typ`
+header.
 
 [Client Authentication Method]: #client-authentication-method
+[request_object_signing_alg]: ../../configuration/identity-providers/openid-connect/clients.md#request_object_signing_alg
 
 ## Encryption Algorithms
 
 Authelia accepts request objects and generates response objects with the following encryption algorithms (i.e. the `enc` parameter):
 
 |   Algorithm   |           Notes           |
-|:-------------:|:-------------------------:|
+| :-----------: | :-----------------------: |
 | A128CBC-HS256 | Default for all JWE types |
 | A192CBC-HS384 |                           |
-| A256CBC-HS512 |                           |
 | A256CBC-HS512 |                           |
 |    A128GCM    |                           |
 |    A192GCM    |                           |
@@ -214,7 +283,7 @@ parameter in the authorization request and the
 option.
 
 |         Flow Type         |         Value         | Default [Response Modes](#response-modes) Values |
-|:-------------------------:|:---------------------:|:------------------------------------------------:|
+| :-----------------------: | :-------------------: | :----------------------------------------------: |
 | [Authorization Code Flow] |        `code`         |               `form_post`, `query`               |
 |      [Implicit Flow]      |   `id_token token`    |             `form_post`, `fragment`              |
 |      [Implicit Flow]      |      `id_token`       |             `form_post`, `fragment`              |
@@ -226,7 +295,6 @@ option.
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Implicit Flow]: https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth
 [Hybrid Flow]: https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth
-
 [OAuth 2.0 Multiple Response Type Encoding Practices]: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
 
 ### Response Modes
@@ -238,7 +306,7 @@ and the [response_modes](../../configuration/identity-providers/openid-connect/c
 configuration option.
 
 |         Name          | Supported |      Value      |
-|:---------------------:|:---------:|:---------------:|
+| :-------------------: | :-------: | :-------------: |
 | [OAuth 2.0 Form Post] |    Yes    |   `form_post`   |
 |     Query String      |    Yes    |     `query`     |
 |       Fragment        |    Yes    |   `fragment`    |
@@ -259,14 +327,18 @@ The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant t
 field is both the required value for the `grant_type` parameter in the access / token request and the
 [grant_types](../../configuration/identity-providers/openid-connect/clients.md#grant_types) client configuration option.
 
-|                   Grant Type                    | Supported |                     Value                      |                                                         Notes                                                         |
-|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
-|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                                       |
-| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
-|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
-|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |                          This Grant Type has been deprecated and should not normally be used                          |
-|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
-|             [OAuth 2.0 Device Code]             |    Yes    | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
+|                                  Grant Type                                  | Supported |                       Value                       |                                                         Notes                                                         |
+| :--------------------------------------------------------------------------: | :-------: | :-----------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------: |
+|                        [OAuth 2.0 Authorization Code]                        |    Yes    |               `authorization_code`                |                                                                                                                       |
+|               [OAuth 2.0 Resource Owner Password Credentials]                |    No     |                    `password`                     |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
+|                        [OAuth 2.0 Client Credentials]                        |    Yes    |               `client_credentials`                | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
+|                             [OAuth 2.0 Implicit]                             |    Yes    |                    `implicit`                     |                          This Grant Type has been deprecated and should not normally be used                          |
+|                          [OAuth 2.0 Refresh Token]                           |    Yes    |                  `refresh_token`                  |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
+|                           [OAuth 2.0 Device Code]                            |    Yes    |  `urn:ietf:params:oauth:grant-type:device_code`   |                                                                                                                       |
+|                          [OAuth 2.0 Token Exchange]                          |    No     | `urn:ietf:params:oauth:grant-type:token-exchange` |                                                        Planned                                                        |
+|                 [SAML 2.0 Profile for Authorization Grants]                  |    No     |  `urn:ietf:params:oauth:grant-type:saml2-bearer`  |                                                        Planned                                                        |
+|               [OAuth 2.0 JWT Profile for Authorization Grants]               |    No     |   `urn:ietf:params:oauth:grant-type:jwt-bearer`   |                                                        Planned                                                        |
+| [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] |    No     |        `urn:openid:params:grant-type:ciba`        |                                                        Planned                                                        |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
 [OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
@@ -274,17 +346,19 @@ field is both the required value for the `grant_type` parameter in the access / 
 [OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
 [OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
 [OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+[SAML 2.0 Profile for Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7522
+[OAuth 2.0 JWT Profile for Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7523
 
 ### Client Authentication Method
 
 The following describes the supported client authentication methods. See the [OpenID Connect 1.0 Client Authentication]
-[OAuth 2.0 Client Authentication](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3) documentation for more
+and [OAuth 2.0 Client Authentication](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3) documentation for more
 information. The value field is the valid values for the
 [token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#token_endpoint_auth_method)
 client configuration option.
 
 |               Description                |             Value             | Credential Type | Supported Client Types | Default for Client Type |                      Assertion Type                      |
-|:----------------------------------------:|:-----------------------------:|:---------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
+| :--------------------------------------: | :---------------------------: | :-------------: | :--------------------: | :---------------------: | :------------------------------------------------------: |
 |    Secret via HTTP Basic Auth Scheme     |     `client_secret_basic`     |     Secret      |     `confidential`     |           N/A           |                           N/A                            |
 |        Secret via HTTP POST Body         |     `client_secret_post`      |     Secret      |     `confidential`     |           N/A           |                           N/A                            |
 |   [JSON Web Token] (signed by secret)    |      `client_secret_jwt`      |     Secret      |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
@@ -331,7 +405,7 @@ When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` head
 `token-introspection+jwt`.
 
 | Signing Algorithm |     Encoding     |                     Content Type                     |
-|:-----------------:|:----------------:|:----------------------------------------------------:|
+| :---------------: | :--------------: | :--------------------------------------------------: |
 |      `none`       |      [JSON]      |          `application/json; charset=utf-8`           |
 |      `RS256`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |      `RS384`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
@@ -342,6 +416,11 @@ When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` head
 |      `ES256`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |      `ES384`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |      `ES512`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|     `Ed25519`     | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|   `EdDSA` [^5]    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-44`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-65`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-87`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 
 ## User Information Signing Algorithm
 
@@ -349,7 +428,7 @@ The following table describes the response from the [UserInfo Endpoint] dependin
 [userinfo_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfo_signed_response_alg).
 
 | Signing Algorithm |     Encoding     |           Content Type            |
-|:-----------------:|:----------------:|:---------------------------------:|
+| :---------------: | :--------------: | :-------------------------------: |
 |      `none`       |      [JSON]      | `application/json; charset=utf-8` |
 |      `RS256`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |      `RS384`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
@@ -360,6 +439,11 @@ The following table describes the response from the [UserInfo Endpoint] dependin
 |      `ES256`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |      `ES384`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |      `ES512`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|     `Ed25519`     | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|   `EdDSA` [^5]    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-44`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-65`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-87`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 
 ## Endpoint Implementations
 
@@ -382,7 +466,7 @@ example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
 These endpoints can be utilized to discover other endpoints and metadata about the Authelia OP.
 
 |                 Endpoint                  |                                                                         Path                                                                          |
-|:-----------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :---------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------: |
 |      [OpenID Connect Discovery 1.0]       |    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration    |
 | [OAuth 2.0 Authorization Server Metadata] | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/oauth-authorization-server |
 
@@ -391,7 +475,7 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 |            Endpoint             |                                                                         Path                                                                         |          Discovery Attribute          |
-|:-------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------:|
+| :-----------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------: |
 |       [JSON Web Key Set]        |               https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json               |               jwks_uri                |
 |         [Authorization]         |        https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization         |        authorization_endpoint         |
 |     [Device Authorization]      |     https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/device-authorization     |     device_authorization_endpoint     |
@@ -413,7 +497,7 @@ The [Pushed Authorization Requests] endpoint is discussed in depth in [RFC9126] 
 [OAuth 2.0 Pushed Authorization Requests](https://oauth.net/2/pushed-authorization-requests/) documentation.
 
 Essentially it's a special endpoint that takes the same parameters as the [Authorization Endpoint] (including
-[Proof Key Code Exchange](#proof-key-code-exchange)) with a few caveats:
+[Proof Key for Code Exchange](#proof-key-for-code-exchange)) with a few caveats:
 
 1. The same [Client Authentication] mechanism required by the [Token Endpoint] **MUST** be used.
 2. The request **MUST** use the [HTTP POST method].
@@ -423,8 +507,8 @@ Essentially it's a special endpoint that takes the same parameters as the [Autho
 
 The response of this endpoint is [JSON] encoded with two key-value pairs:
 
-  - `request_uri`
-  - `expires_in`
+- `request_uri`
+- `expires_in`
 
 The `expires_in` indicates how long the `request_uri` is valid for. The `request_uri` is used as a parameter to the
 [Authorization Endpoint] instead of the standard parameters (as the `request_uri` parameter).
@@ -438,7 +522,7 @@ The advantages of this approach are as follows:
    [Token Endpoint]:
    1. Clients using the confidential [Client Type] can't have [Pushed Authorization Requests] generated by parties who do not
       have the credentials.
-   2. Clients using the public [Client Type] and utilizing [Proof Key Code Exchange](#proof-key-code-exchange) never
+   2. Clients using the public [Client Type] and utilizing [Proof Key for Code Exchange](#proof-key-for-code-exchange) never
       transmit the verifier over any front-channel making even the `plain` challenge method relatively secure.
 
 #### OAuth 2.0 Authorization Server Issuer Identification
@@ -458,24 +542,32 @@ was not tampered with or forged as it is cryptographically signed.
 
 This response mode is not supported by many clients, but we recommend it is used if it's supported.
 
-#### Proof Key Code Exchange
+#### Proof Key for Code Exchange
 
-The [Proof Key Code Exchange] mechanism is discussed in depth in [RFC7636] as well as in the
-[OAuth 2.0 Proof Key Code Exchange](https://oauth.net/2/pkce/) documentation.
+The [Proof Key for Code Exchange] mechanism is discussed in depth in [RFC7636] as well as in the
+[OAuth 2.0 Proof Key for Code Exchange](https://oauth.net/2/pkce/) documentation.
 
-Essentially a random opaque value is generated by the Relying Party and optionally (but recommended) passed through a
-SHA256 hash. The original value is saved by the Relying Party, and the hashed value is sent in the [Authorization]
-request in the `code_verifier` parameter with the `code_challenge_method` set to `S256` (or `plain` using a bad practice
-of not hashing the opaque value).
+Essentially a random opaque value (the `code_verifier`) is generated by the Relying Party and transformed into the
+`code_challenge` by computing the SHA-256 digest over the ASCII representation of the `code_verifier` and then
+Base64URL-encoding that digest (i.e. the `code_challenge` is never the raw or hexadecimal SHA-256 value). The original
+value is saved by the Relying Party, and the transformed value is sent in the [Authorization] request in the
+`code_challenge` parameter, which must be accompanied by the `code_challenge_method` parameter.
+
+Every Relying Party capable of performing the `S256` transformation must use the `S256` method. The `plain` method,
+which sends the `code_verifier` as the `code_challenge` without transforming it, should only be used by Relying Parties
+which are unable to support `S256` for technical reasons, and only where the Authorization Server explicitly supports
+the `plain` method.
 
 When the Relying Party requests the token from the [Token Endpoint], they must include the `code_verifier` parameter
-again (in the body), but this time they send the value without it being hashed.
+(in the body), but this time they send the value without it being hashed.
 
 The advantages of this approach are as follows:
 
-1. Provided the value was hashed it's certain that the Relying Party which generated the authorization request is the
-   same party as the one requesting the token or is permitted by the Relying Party to make this request.
-2. Even when using the public [Client Type] there is a form of authentication on the  [Token Endpoint].
+1. Provided the `S256` method was used, the party redeeming the authorization code must prove possession of the
+   `code_verifier` bound to that code, which mitigates authorization code interception attacks.
+2. This protection applies even when using the public [Client Type], which cannot authenticate at the
+   [Token Endpoint]. It should be noted that this is proof of possession of the `code_verifier`, not authentication of
+   the client itself.
 
 ## Support Chart
 
@@ -483,12 +575,13 @@ The following support chart is a list of various specifications in the OpenID Co
 either implemented, have our eye on, or are refusing to implement.
 
 |                                                        Name                                                        |    Support    |                                   Additional Documentation                                    |
-|:------------------------------------------------------------------------------------------------------------------:|:-------------:|:---------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------: | :-----------: | :-------------------------------------------------------------------------------------------: |
 |                                             [OpenID Connect Core 1.0]                                              |   Certified   |                                              N/A                                              |
 |                                           [OpenID Connect Discovery 1.0]                                           |   Certified   |                                              N/A                                              |
 |                                        [OAuth 2.0 Multiple Response Types]                                         |   Certified   |                                              N/A                                              |
 |                                        [OAuth 2.0 Form Post Response Mode]                                         |   Certified   |                                              N/A                                              |
 |                                  [OpenID Connect Dynamic Client Registration 1.0]                                  |     None      |                                              N/A                                              |
+|                                [OpenID Connect Relying Party Metadata Choices 1.0]                                 |     None      |                                              N/A                                              |
 |                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Session Management 1.0]                                       |     None      |                                              N/A                                              |
 |                                     [OpenID Connect Front-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
@@ -496,10 +589,10 @@ either implemented, have our eye on, or are refusing to implement.
 |                                       [OpenID Connect 1.0 User Registration]                                       |     None      |                                              N/A                                              |
 |                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |     None      |                                              N/A                                              |
 |                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |     None      |                                              N/A                                              |
+|                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
 |                           [OpenID Continuous Access Evaluation Profile 1.0] (CAEP - SSF)                           |     None      |                                              N/A                                              |
 |                                    [OpenID Connect for Identity Assurance 1.0]                                     |     None      |                                              N/A                                              |
-|                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
-|                                             [Proof Key Code Exchange]                                              | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
+|                                           [Proof Key for Code Exchange]                                            | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
 |                                                  [OAuth 2.0 Core]                                                  | Certified[^3] |                                           [RFC6749]                                           |
 |                                            [OAuth 2.0 Token Revocation]                                            |   Complete    |                                           [RFC7009]                                           |
 |                                          [OAuth 2.0 Token Introspection]                                           |   Complete    |                                           [RFC7662]                                           |
@@ -510,25 +603,24 @@ either implemented, have our eye on, or are refusing to implement.
 |                                   OAuth 2.0 Resource Owner Password Credentials                                    |   None[^4]    |     [RFC6749 Section 1.3.3](https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3)      |
 |                                     [OAuth 2.0 Authorization Server Metadata]                                      |   Complete    |                                           [RFC8414]                                           |
 |                                     [OAuth 2.0 Pushed Authorization Requests]                                      |   Complete    |                                           [RFC9126]                                           |
-|                                  [OAuth 2.0 Demonstrating of Proof of Possession]                                  |     None      |                                           [RFC9449]                                           |
+|                                [OAuth 2.0 Demonstrating Proof of Possession (DPoP)]                                |     None      |                                           [RFC9449]                                           |
 |                  [OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens]                  |     None      |                                           [RFC8705]                                           |
 |                                            [OAuth 2.0 for Native Apps]                                             |   Complete    |                                           [RFC8252]                                           |
 |                           [OAuth 2.0 Device Flow / OAuth 2.0 Device Authorization Grant]                           |   Complete    |                                           [RFC8628]                                           |
 |                                     [OAuth 2.0 JWT Profile for Access Tokens]                                      |   Complete    |                                           [RFC9068]                                           |
 |                                      [OAuth 2.0 Rich Authorization Requests]                                       |     None      |                                           [RFC9396]                                           |
-|                      OAuth 2.0 JWT Profile for Client Authentication and Authorization Grants                      |   Complete    |                                           [RFC7523]                                           |
+|                      OAuth 2.0 JWT Profile for Client Authentication and Authorization Grants                      |    Partial    |                                           [RFC7523]                                           |
 |                                OAuth 2.0 Step-up Authentication Challenge Protocol                                 |     None      |                                           [RFC9470]                                           |
 |                                          OAuth 2.0 for Browser-Based Apps                                          |   Complete    |    [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps)    |
 |                                  SD-JWT-based Verifiable Credentials (SD-JWT VC)                                   |     None      |        [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc)         |
 |                                       Selective Disclosure for JWTs (SD-JWT)                                       |     None      | [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-selective-disclosure-jwt) |
-|                                         Resource Indicators for OAuth 2.0                                          |     None      |                                           [RFC8707]                                           |
+|                                         Resource Indicators for OAuth 2.0                                          |   Complete    |                                           [RFC8707]                                           |
 |                                             [OAuth 2.0 Bearer Tokens]                                              |   Complete    |                                           [RFC6750]                                           |
 |                 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]                 |   Complete    |                                           [RFC7521]                                           |
-|                                            [OAuth 2.0 Private Key JWT]                                             |   Complete    |                                           [RFC7521]                                           |
+|                                            [OAuth 2.0 Private Key JWT]                                             |   Complete    |                                           [RFC7523]                                           |
 |                                    OAuth 2.0 JWT-Secured Authorization Request                                     |   Complete    |                                           [RFC9101]                                           |
 |                                OAuth 2.0 Authorization Server Issuer Identification                                |   Complete    |                                           [RFC9207]                                           |
 |                                       OAuth 2.0 Protected Resource Metadata                                        |     None      |                                           [RFC9728]                                           |
-|                                           OAuth 2.0 Resource Indicators                                            |     None      |                                           [RFC8707]                                           |
 |                                 OAuth 2.0 JWT Secured Authorization Response Mode                                  |   Complete    |                                       [OpenID 1.0 JARM]                                       |
 |                                            [FAPI 2.0] Security Profile                                             |    Partial    |                            [OpenID 1.0 FAPI 2.0 Security Profile]                             |
 |                                             [FAPI 2.0] Message Signing                                             |    Partial    |                             [OpenID 1.0 FAPI 2.0 Message Signing]                             |
@@ -539,77 +631,77 @@ either implemented, have our eye on, or are refusing to implement.
 
 ## Footnotes
 
-[^1]: It should be noted the key type `Symmetric` nearly always uses a symmetric shared secret derived from the client
-      secret, which means the client secret itself must be stored using a plaintext format.
-[^2]: This algorithm is strongly discouraged due to concerns about its security and it is only supported for
-      compatibility.
-[^3]: This is [OpenID Certified™] by it being used within one or more conformance suites which have been
-      [OpenID Certified™]. This specification may not have a direct certification process but reasonably should be
-      assumed to be certified by the requirements of another certification process.
-[^4]: The Resource Owner Password Grant is currently
-      [heavily discouraged and deprecated](https://oauth.net/2/grant-types/password/) by the OAuth 2.0 specifications
-      body, disallowed by
-      [OAuth 2.0 Security Best Current Practice](https://datatracker.ietf.org/doc/html/rfc9700#name-resource-owner-password-cre),
-      and being removed in [OAuth 2.1](https://oauth.net/2.1/) due to the poor security qualities it has. For these
-      reasons Authelia has very intentionally decided not to implement this Grant Type.
+[^1]:
+    It should be noted the key type `Symmetric` nearly always uses a symmetric shared secret derived from the client
+    secret, which means the client secret itself must be stored using a plaintext format.
+
+[^2]:
+    This algorithm is strongly discouraged due to concerns about its security and it is only supported for
+    compatibility.
+
+[^3]:
+    This is [OpenID Certified™] by it being used within one or more conformance suites which have been
+    [OpenID Certified™]. This specification may not have a direct certification process but reasonably should be
+    assumed to be certified by the requirements of another certification process.
+
+[^4]:
+    The Resource Owner Password Grant is currently
+    [heavily discouraged and deprecated](https://oauth.net/2/grant-types/password/) by the OAuth 2.0 specifications
+    body, disallowed by
+    [OAuth 2.0 Security Best Current Practice](https://datatracker.ietf.org/doc/html/rfc9700#name-resource-owner-password-cre),
+    and being removed in [OAuth 2.1](https://oauth.net/2.1/) due to the poor security qualities it has. For these
+    reasons Authelia has very intentionally decided not to implement this Grant Type.
+
+[^5]:
+    The `EdDSA` identifier from [RFC8037] does not identify which Edwards curve is in use and [RFC9864] Section 4.1.2
+    has consequently deprecated it in the IANA registry in favor of the fully specified `Ed25519` identifier. Authelia
+    accepts and advertises both identifiers for compatibility, and a key configured with either identifier satisfies a
+    request for the other, however we recommend configuring `Ed25519`.
 
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
 [Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
-
 [Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
-
 [OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
-
 [OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
-
 [JSON]: https://datatracker.ietf.org/doc/html/rfc8259
 [JSON Web Token]: https://datatracker.ietf.org/doc/html/rfc7519
 [JSON Web Key Set]: https://datatracker.ietf.org/doc/html/rfc7517#section-5
-
 [Offline Access]: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
-
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 [Authorization Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 [UserInfo Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
-
 [Device Authorization]: https://datatracker.ietf.org/doc/html/rfc8628
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
-[Proof Key Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
-
-[Subject Identifier Types]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
+[Proof Key for Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
 [Client Authentication]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3
 [Client Type]: https://oauth.net/2/client-types/
 [HTTP POST method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
-[Proof Key Code Exchange]: #proof-key-code-exchange
-
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
 [RFC7519]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
-
 [JWT Profile for OAuth 2.0 Access Tokens]: https://oauth.net/2/jwt-access-tokens/
 [RFC3987 Section 6.2.1: Simple String Comparison]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
 [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]: https://datatracker.ietf.org/doc/html/rfc9207
-
 [OpenID Connect 1.0 User Registration]: https://openid.net/specs/openid-connect-prompt-create-1_0.html
 [FAPI 2.0]: https://oauth.net/fapi/
 [OpenID 1.0 FAPI 2.0 Security Profile]: https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html
 [OpenID 1.0 FAPI 2.0 Message Signing]: https://openid.bitbucket.io/fapi/fapi-2_0-message-signing.html
 [OpenID 1.0 FAPI 2.0 Attacker Model]: https://openid.bitbucket.io/fapi/fapi-2_0-attacker-model.html
 [OpenID Connect Core 1.0]: https://openid.net/specs/openid-connect-core-1_0.html
-[OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OpenID Connect Dynamic Client Registration 1.0]: https://openid.net/specs/openid-connect-registration-1_0.html
+[OpenID Connect Relying Party Metadata Choices 1.0]: https://openid.net/specs/openid-connect-rp-metadata-choices-1_0-final.html
 [OpenID Connect RP-Initiated Logout 1.0]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html
 [OpenID Connect Session Management 1.0]: https://openid.net/specs/openid-connect-session-1_0.html
 [OpenID Connect Front-Channel Logout 1.0]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
@@ -628,9 +720,8 @@ either implemented, have our eye on, or are refusing to implement.
 [OAuth 2.0 Dynamic Client Registration]: https://oauth.net/2/dynamic-client-registration/
 [OAuth 2.0 Dynamic Client Registration Management]: https://oauth.net/2/dynamic-client-management/
 [OAuth 2.0 Pushed Authorization Requests]: https://oauth.net/2/pushed-authorization-requests/
-[OAuth 2.0 Demonstrating of Proof of Possession]: https://oauth.net/2/dpop/
+[OAuth 2.0 Demonstrating Proof of Possession (DPoP)]: https://oauth.net/2/dpop/
 [OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens]: https://oauth.net/2/mtls/
-[OAuth 2.0 Authorization Server Metadata]: https://oauth.net/2/authorization-server-metadata/
 [OAuth 2.0 JWT Profile for Access Tokens]: https://oauth.net/2/jwt-access-tokens/
 [OAuth 2.0 for Native Apps]: https://oauth.net/2/native-apps/
 [OAuth 2.0 Device Flow / OAuth 2.0 Device Authorization Grant]: https://oauth.net/2/device-flow/
@@ -638,21 +729,17 @@ either implemented, have our eye on, or are refusing to implement.
 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]: https://oauth.net/private-key-jwt/
 [OAuth 2.0 Private Key JWT]: https://oauth.net/private-key-jwt/
 [OAuth 2.0 Rich Authorization Requests]: https://oauth.net/2/rich-authorization-requests/
-[Proof Key Code Exchange]: https://oauth.net/2/pkce/
 [OpenID 1.0 JARM]: https://openid.net/specs/oauth-v2-jarm.html
 [RFC6749]: https://datatracker.ietf.org/doc/html/rfc6749
 [RFC7009]: https://datatracker.ietf.org/doc/html/rfc7009
 [RFC7662]: https://datatracker.ietf.org/doc/html/rfc7662
-[RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC8252]: https://datatracker.ietf.org/doc/html/rfc8252
 [RFC8628]: https://datatracker.ietf.org/doc/html/rfc8628
 [RFC8693]: https://datatracker.ietf.org/doc/html/rfc8693
 [RFC8414]: https://datatracker.ietf.org/doc/html/rfc8414
-[RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
 [RFC7591]: https://datatracker.ietf.org/doc/html/rfc7591
 [RFC7592]: https://datatracker.ietf.org/doc/html/rfc7592
 [RFC8705]: https://datatracker.ietf.org/doc/html/rfc8705
-[RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
 [RFC6750]: https://datatracker.ietf.org/doc/html/rfc6750
 [RFC7521]: https://datatracker.ietf.org/doc/html/rfc7521
 [RFC9101]: https://datatracker.ietf.org/doc/html/rfc9101
@@ -662,12 +749,11 @@ either implemented, have our eye on, or are refusing to implement.
 [RFC7523]: https://datatracker.ietf.org/doc/html/rfc7523
 [RFC9396]: https://datatracker.ietf.org/doc/html/rfc9396
 [RFC8707]: https://datatracker.ietf.org/doc/html/rfc8707
-[RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 [RFC7522]: https://datatracker.ietf.org/doc/html/rfc7522
-[RFC7519]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC9470]: https://datatracker.ietf.org/doc/html/rfc9470
 [RFC9728]: https://datatracker.ietf.org/doc/html/rfc9728
-
+[RFC8037]: https://datatracker.ietf.org/doc/html/rfc8037
+[RFC9864]: https://datatracker.ietf.org/doc/html/rfc9864
 [Certified OpenID Providers & Profiles]: https://openid.net/certification/#OPENID-OP-P
 [Certified OpenID Providers for Logout Profiles]: https://openid.net/certification/#OPENID-OP-LP
 [OpenID Certified™]: https://openid.net/certification/

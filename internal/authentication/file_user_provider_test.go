@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
@@ -13,6 +17,7 @@ import (
 
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
+	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -404,6 +409,97 @@ func TestShouldErrOnUpdatePasswordNoUser(t *testing.T) {
 	})
 }
 
+func TestFileUserProviderShouldNotDeadlockOnUpdatePassword(t *testing.T) {
+	const (
+		concurrency = 8
+		iterations  = 50
+		timeout     = 30 * time.Second
+	)
+
+	hash, err := plaintext.New()
+	require.NoError(t, err)
+
+	update := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_ = provider.UpdatePassword("john", "apple123")
+		}
+	}
+
+	reload := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_, _ = provider.Reload()
+		}
+	}
+
+	details := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_, _ = provider.GetDetails("john")
+		}
+	}
+
+	testCases := []struct {
+		name    string
+		workers []func(provider *FileUserProvider)
+	}{
+		{
+			"ShouldNotDeadlockWithConcurrentUpdates",
+			[]func(provider *FileUserProvider){update},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentUpdatesAndReloads",
+			[]func(provider *FileUserProvider){update, reload},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentUpdatesReloadsAndReads",
+			[]func(provider *FileUserProvider){update, reload, details},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				config := DefaultFileAuthenticationBackendConfiguration
+				config.Path = path
+
+				provider := NewFileUserProvider(&config)
+
+				require.NoError(t, provider.StartupCheck())
+
+				provider.hash = hash
+
+				done := make(chan struct{})
+
+				go func() {
+					defer close(done)
+
+					wg := &sync.WaitGroup{}
+
+					for _, worker := range tc.workers {
+						for i := 0; i < concurrency; i++ {
+							wg.Add(1)
+
+							go func() {
+								defer wg.Done()
+
+								worker(provider)
+							}()
+						}
+					}
+
+					wg.Wait()
+				}()
+
+				select {
+				case <-done:
+					require.NoError(t, provider.UpdatePassword("john", "apple123"))
+				case <-time.After(timeout):
+					t.Fatalf("deadlock detected: the concurrent workload did not complete within %s", timeout)
+				}
+			})
+		})
+	}
+}
+
 func TestShouldChangePassword(t *testing.T) {
 	testCases := []struct {
 		name        string
@@ -556,7 +652,7 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: yaml: line 4, column 6: mapping values are not allowed in this context")
+		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: go-yaml load error in scanner at L4.C6: mapping values are not allowed in this context")
 	})
 }
 
@@ -760,6 +856,67 @@ func TestShouldAllowLookupCI(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 	})
+}
+
+func TestShouldRegenerateAliasesOnReload(t *testing.T) {
+	testCases := []struct {
+		name            string
+		searchEmail     bool
+		searchCI        bool
+		expectedEmails  map[string]string
+		expectedAliases map[string]string
+	}{
+		{
+			"ShouldRegenerateNothing",
+			false,
+			false,
+			map[string]string{},
+			map[string]string{},
+		},
+		{
+			"ShouldRegenerateEmails",
+			true,
+			false,
+			map[string]string{"john.doe@authelia.com": "john"},
+			map[string]string{},
+		},
+		{
+			"ShouldRegenerateAliases",
+			false,
+			true,
+			map[string]string{},
+			map[string]string{"john": "john"},
+		},
+		{
+			"ShouldRegenerateEmailsAndAliases",
+			true,
+			true,
+			map[string]string{"john.doe@authelia.com": "john"},
+			map[string]string{"john": "john"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				database := NewFileUserDatabase(path, tc.searchEmail, tc.searchCI, nil)
+
+				require.NoError(t, database.Load())
+
+				require.NoError(t, os.WriteFile(path, UserDatabaseContentSingleUser, fileAuthenticationMode))
+				require.NoError(t, database.Load())
+
+				assert.Equal(t, tc.expectedEmails, database.Emails)
+				assert.Equal(t, tc.expectedAliases, database.Aliases)
+
+				_, err := database.GetUserDetails("harry")
+				assert.EqualError(t, err, "user not found")
+
+				_, err = database.GetUserDetails("harry.potter@authelia.com")
+				assert.EqualError(t, err, "user not found")
+			})
+		})
+	}
 }
 
 func TestNewFileCryptoHashFromConfig(t *testing.T) {
@@ -972,6 +1129,17 @@ users:
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     disabled: true
     email: disabled@authelia.com
+`)
+
+var UserDatabaseContentSingleUser = []byte(`
+users:
+  john:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
 `)
 
 var UserDatabaseContentExtra = []byte(`

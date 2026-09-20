@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -404,12 +408,18 @@ type issuerTestContext struct {
 	context.Context
 }
 
-func (c *issuerTestContext) IssuerURL() (*url.URL, error)                 { return nil, nil }
-func (c *issuerTestContext) GetClock() clock.Provider                     { return nil }
-func (c *issuerTestContext) GetRandom() random.Provider                   { return nil }
-func (c *issuerTestContext) GetConfiguration() *schema.Configuration      { return nil }
-func (c *issuerTestContext) GetProviderStorage() storage.Provider         { return nil }
+func (c *issuerTestContext) IssuerURL() (*url.URL, error) { return nil, nil }
+
+func (c *issuerTestContext) GetClock() clock.Provider { return nil }
+
+func (c *issuerTestContext) GetRandom() random.Provider { return nil }
+
+func (c *issuerTestContext) GetConfiguration() *schema.Configuration { return nil }
+
+func (c *issuerTestContext) GetProviderStorage() storage.Provider { return nil }
+
 func (c *issuerTestContext) GetUserProvider() authentication.UserProvider { return nil }
+
 func (c *issuerTestContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
 }

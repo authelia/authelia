@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
 	"database/sql"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/rpadovani/sqlx-v2"
 
 	"github.com/authelia/authelia/v4/internal/model"
 )
@@ -11,6 +15,12 @@ import (
 // ConsentPreConfigRows holds and helps with retrieving multiple model.OAuth2ConsentSession rows.
 type ConsentPreConfigRows struct {
 	rows *sqlx.Rows
+}
+
+// NewConsentPreConfigRows returns a *ConsentPreConfigRows for the given *sqlx.Rows. It exists so consumers outside of
+// this package, notably test doubles of the Provider, can produce a value which iterates like the real thing.
+func NewConsentPreConfigRows(rows *sqlx.Rows) *ConsentPreConfigRows {
+	return &ConsentPreConfigRows{rows: rows}
 }
 
 // Next is the row iterator.
