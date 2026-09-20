@@ -264,3 +264,52 @@ func NilHandler(ctx *middlewares.AutheliaCtx) {
 	ctx.SetContentTypeTextPlain()
 	ctx.Response.SetBodyString("Example Nil")
 }
+
+func TestRequireElevatedOrPasswordChangeRequired(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(s *session.UserSession)
+		expected bool
+	}{
+		{
+			"ShouldAdmitASessionHeldPendingAPasswordChange",
+			func(s *session.UserSession) {
+				s.SetPasswordChangeRequired(time.Unix(1700000000, 0), "john")
+			},
+			true,
+		},
+		{
+			"ShouldRefuseAnAnonymousSession",
+			func(s *session.UserSession) {},
+			false,
+		},
+		{
+			"ShouldRefuseAnUnelevatedOneFactorSession",
+			func(s *session.UserSession) {
+				s.Username = "john"
+				s.AuthenticationMethodRefs.UsernameAndPassword = true
+				s.AuthenticationMethodRefs.KnowledgeBasedAuthentication = true
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			userSession, err := mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			tc.setup(&userSession)
+			require.NoError(t, mock.Ctx.SaveSession(userSession))
+
+			var reached bool
+
+			middlewares.RequireElevatedOrPasswordChangeRequired(func(ctx *middlewares.AutheliaCtx) { reached = true })(mock.Ctx)
+
+			assert.Equal(t, tc.expected, reached)
+		})
+	}
+}

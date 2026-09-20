@@ -420,6 +420,16 @@ identity_validation:
   # password_change:
     ## Disable both the HTML element and the API for password change functionality.
     # disable: false
+
+    ## The name of a user attribute which, when it resolves to true, requires the user change their password before
+    ## they are permitted to authenticate. The attribute is usually one defined in 'definitions.user_attributes' so
+    ## that it can express what your directory server uses, for example an OpenLDAP 'pwdReset' attribute.
+    # required_attribute: ''
+
+    ## The name of an extra attribute which is cleared from the authentication backend after a required password
+    ## change, for backends which do not clear the attribute themselves. It is only cleared while the user would
+    ## still be required to change their password, so a backend which does clear it is never written to.
+    # clear_attribute: ''
   ## Password Reset Options.
   # password_reset:
     ## Disable both the HTML element and the API for reset password functionality.

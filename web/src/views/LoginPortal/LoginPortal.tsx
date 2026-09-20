@@ -29,6 +29,7 @@ import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
+import PasswordChangeRequiredForm from "@views/LoginPortal/PasswordChangeRequired/PasswordChangeRequiredForm";
 
 const AuthenticatedView = lazy(() => import("@views/LoginPortal/AuthenticatedView/AuthenticatedView"));
 const FirstFactorForm = lazy(() => import("@views/LoginPortal/FirstFactor/FirstFactorForm"));
@@ -184,8 +185,11 @@ const LoginPortal = function (props: Props) {
         }
     };
 
+    const passwordChangeRequired = state !== undefined && state.password_change_required === true;
+
     const firstFactorReady =
         state !== undefined &&
+        !passwordChangeRequired &&
         state.authentication_level === AuthenticationLevel.Unauthenticated &&
         location.pathname === IndexRoute;
 
@@ -194,19 +198,23 @@ const LoginPortal = function (props: Props) {
             <Route
                 path={IndexRoute}
                 element={
-                    <ComponentOrLoading ready={firstFactorReady}>
-                        <FirstFactorForm
-                            disabled={firstFactorDisabled}
-                            passkeyLogin={props.passkeyLogin}
-                            rememberMe={props.rememberMe}
-                            resetPassword={props.resetPassword}
-                            resetPasswordCustomURL={props.resetPasswordCustomURL}
-                            onAuthenticationStart={() => setFirstFactorDisabled(true)}
-                            onAuthenticationStop={() => setFirstFactorDisabled(false)}
-                            onAuthenticationSuccess={handleAuthSuccess}
-                            onChannelStateChange={handleChannelStateChange}
-                        />
-                    </ComponentOrLoading>
+                    passwordChangeRequired ? (
+                        <PasswordChangeRequiredForm username={state!.username} onPasswordChanged={fetchState} />
+                    ) : (
+                        <ComponentOrLoading ready={firstFactorReady}>
+                            <FirstFactorForm
+                                disabled={firstFactorDisabled}
+                                passkeyLogin={props.passkeyLogin}
+                                rememberMe={props.rememberMe}
+                                resetPassword={props.resetPassword}
+                                resetPasswordCustomURL={props.resetPasswordCustomURL}
+                                onAuthenticationStart={() => setFirstFactorDisabled(true)}
+                                onAuthenticationStop={() => setFirstFactorDisabled(false)}
+                                onAuthenticationSuccess={handleAuthSuccess}
+                                onChannelStateChange={handleChannelStateChange}
+                            />
+                        </ComponentOrLoading>
+                    )
                 }
             />
             <Route

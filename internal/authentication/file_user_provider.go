@@ -218,6 +218,39 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	return nil
 }
 
+// ClearExtraAttribute implements the UserProvider interface.
+func (p *FileUserProvider) ClearExtraAttribute(username string, attribute string) (err error) {
+	var details FileUserDatabaseUserDetails
+
+	if details, err = p.database.GetUserDetails(username); err != nil {
+		return fmt.Errorf("%w : %v", ErrUserNotFound, err)
+	}
+
+	if details.Disabled {
+		return ErrUserNotFound
+	}
+
+	if _, ok := details.Extra[attribute]; !ok {
+		return nil
+	}
+
+	delete(details.Extra, attribute)
+
+	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
+
+	if err = p.database.Save(); err != nil {
+		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+	}
+
+	return nil
+}
+
 // StartupCheck implements the startup check provider interface.
 func (p *FileUserProvider) StartupCheck() (err error) {
 	if err = checkDatabase(p.config.Path); err != nil {

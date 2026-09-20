@@ -215,6 +215,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		WithPostMiddlewares(middlewares.RequireElevated).
 		Build()
 
+	middlewarePasswordChange := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPostMiddlewares(middlewares.RequireElevatedOrPasswordChangeRequired).
+		Build()
+
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
@@ -271,7 +276,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if !config.AuthenticationBackend.PasswordChange.Disable {
-		r.POST("/api/change-password", middlewareElevated1FA(handlers.ChangePasswordPOST))
+		r.POST("/api/change-password", middlewarePasswordChange(handlers.ChangePasswordPOST))
 	}
 
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
