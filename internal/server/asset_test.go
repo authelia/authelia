@@ -11,9 +11,12 @@ import (
 	"io/fs"
 	"mime"
 	"net"
+	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -818,4 +821,251 @@ func decompressAsset(t *testing.T, encoding, data []byte) (decompressed []byte) 
 	require.NoError(t, err)
 
 	return decompressed
+}
+
+func TestNewCustomAssetsHandlerShouldNotRegister(t *testing.T) {
+	t.Run("ShouldReturnNilWithoutAssetPath", func(t *testing.T) {
+		handler, err := newCustomAssetsHandler("")
+
+		require.NoError(t, err)
+		assert.Nil(t, handler)
+	})
+
+	t.Run("ShouldReturnNilWhenDirectoryDoesNotExist", func(t *testing.T) {
+		handler, err := newCustomAssetsHandler(t.TempDir())
+
+		require.NoError(t, err)
+		assert.Nil(t, handler)
+	})
+
+	t.Run("ShouldReturnErrorWhenDirectoryIsAFile", func(t *testing.T) {
+		root := t.TempDir()
+
+		require.NoError(t, os.MkdirAll(filepath.Join(root, dirCustomAssetsParent), 0o700))
+		require.NoError(t, os.WriteFile(filepath.Join(root, dirCustomAssets), []byte("not a directory"), 0o600))
+
+		handler, err := newCustomAssetsHandler(root)
+
+		assert.EqualError(t, err, "error occurred reading the '"+filepath.Join(root, dirCustomAssets)+"' directory: path is a file")
+		assert.Nil(t, handler)
+	})
+}
+
+func TestNewCustomAssetsHandlerShouldServe(t *testing.T) {
+	root := newCustomAssetsDir(t, map[string]string{
+		"theme.css":            "body { color: red; }",
+		"nested/script.js":     "console.log('example');",
+		"../escape.css":        "body { color: blue; }",
+		"nested/../sibling.js": "console.log('sibling');",
+	})
+
+	handler, err := newCustomAssetsHandler(root)
+
+	require.NoError(t, err)
+	require.NotNil(t, handler)
+
+	testCases := []struct {
+		name               string
+		method             string
+		uri                string
+		expectedStatusCode int
+		expectedBody       string
+		expectedType       string
+	}{
+		{"ShouldServeFile", fasthttp.MethodGet, "/static/custom/theme.css", fasthttp.StatusOK, "body { color: red; }", "text/css"},
+		{"ShouldServeNestedFile", fasthttp.MethodGet, "/static/custom/nested/script.js", fasthttp.StatusOK, "console.log('example');", "javascript"},
+		{"ShouldHandleHead", fasthttp.MethodHead, "/static/custom/theme.css", fasthttp.StatusOK, "", "text/css"},
+		{"ShouldNotFoundMissingFile", fasthttp.MethodGet, "/static/custom/missing.css", fasthttp.StatusNotFound, "", ""},
+		{"ShouldNotGenerateIndexPageForRoot", fasthttp.MethodGet, "/static/custom/", fasthttp.StatusNotFound, "", ""},
+		{"ShouldNotGenerateIndexPageForNested", fasthttp.MethodGet, "/static/custom/nested/", fasthttp.StatusNotFound, "", ""},
+		{"ShouldNotRedirectToNestedIndexPage", fasthttp.MethodGet, "/static/custom/nested", fasthttp.StatusNotFound, "", ""},
+		{"ShouldNotTraverseOutsideRoot", fasthttp.MethodGet, "/static/custom/../escape.css", fasthttp.StatusNotFound, "", ""},
+		{"ShouldNotTraverseOutsideRootEncoded", fasthttp.MethodGet, "/static/custom/%2e%2e/escape.css", fasthttp.StatusNotFound, "", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := newAssetRequestCtx(tc.method, tc.uri, "")
+
+			handler(ctx)
+
+			assert.Equal(t, tc.expectedStatusCode, ctx.Response.StatusCode())
+
+			if tc.expectedStatusCode != fasthttp.StatusOK {
+				return
+			}
+
+			assert.Contains(t, string(ctx.Response.Header.ContentType()), tc.expectedType)
+
+			assert.NotEmpty(t, ctx.Response.Header.Peek(fasthttp.HeaderXContentTypeOptions))
+			assert.Equal(t, "default-src 'none'", string(ctx.Response.Header.Peek(fasthttp.HeaderContentSecurityPolicy)))
+
+			if tc.method == fasthttp.MethodHead {
+				return
+			}
+
+			assert.Equal(t, tc.expectedBody, string(ctx.Response.Body()))
+		})
+	}
+}
+
+func newCustomAssetsDir(t *testing.T, files map[string]string) (root string) {
+	t.Helper()
+
+	root = t.TempDir()
+
+	for name, content := range files {
+		p := filepath.Join(root, dirCustomAssets, name)
+
+		require.NoError(t, os.MkdirAll(filepath.Dir(p), 0o700))
+		require.NoError(t, os.WriteFile(p, []byte(content), 0o600))
+	}
+
+	return root
+}
+
+func TestGenerateEtagFileInfo(t *testing.T) {
+	root := t.TempDir()
+
+	write := func(t *testing.T, name, content string, modTime time.Time) os.FileInfo {
+		t.Helper()
+
+		p := filepath.Join(root, name)
+
+		require.NoError(t, os.WriteFile(p, []byte(content), 0o600))
+		require.NoError(t, os.Chtimes(p, modTime, modTime))
+
+		info, err := os.Stat(p)
+
+		require.NoError(t, err)
+
+		return info
+	}
+
+	modTime := time.Date(2026, 9, 20, 6, 0, 0, 0, time.UTC)
+
+	base := write(t, "base.css", "body { color: red; }", modTime)
+
+	t.Run("ShouldBeAQuotedOpaqueString", func(t *testing.T) {
+		assert.Regexp(t, `^"[0-9a-f]+-[0-9a-f]+"$`, string(generateEtagFileInfo(base)))
+	})
+
+	t.Run("ShouldBeStableForUnchangedFile", func(t *testing.T) {
+		again := write(t, "base.css", "body { color: red; }", modTime)
+
+		assert.Equal(t, generateEtagFileInfo(base), generateEtagFileInfo(again))
+	})
+
+	t.Run("ShouldDifferWhenSizeDiffers", func(t *testing.T) {
+		other := write(t, "size.css", "body { color: red; } /* longer */", modTime)
+
+		assert.NotEqual(t, generateEtagFileInfo(base), generateEtagFileInfo(other))
+	})
+
+	t.Run("ShouldDifferWhenModTimeDiffers", func(t *testing.T) {
+		other := write(t, "modtime.css", "body { color: red; }", modTime.Add(time.Second))
+
+		assert.NotEqual(t, generateEtagFileInfo(base), generateEtagFileInfo(other))
+	})
+}
+
+func TestNewCustomAssetsHandlerShouldHandleConditionalRequests(t *testing.T) {
+	root := newCustomAssetsDir(t, map[string]string{"theme.css": "body { color: red; }"})
+
+	modTime := time.Date(2026, 9, 20, 6, 0, 0, 0, time.UTC)
+
+	require.NoError(t, os.Chtimes(filepath.Join(root, dirCustomAssets, "theme.css"), modTime, modTime))
+
+	handler, err := newCustomAssetsHandler(root)
+
+	require.NoError(t, err)
+	require.NotNil(t, handler)
+
+	do := func(t *testing.T, method string, headers map[string]string) *fasthttp.RequestCtx {
+		t.Helper()
+
+		ctx := newAssetRequestCtx(method, "/static/custom/theme.css", "")
+
+		for k, v := range headers {
+			ctx.Request.Header.Set(k, v)
+		}
+
+		handler(ctx)
+
+		return ctx
+	}
+
+	ctx := do(t, fasthttp.MethodGet, nil)
+
+	require.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+
+	etag := string(ctx.Response.Header.Peek(fasthttp.HeaderETag))
+
+	require.NotEmpty(t, etag)
+
+	t.Run("ShouldSetCacheControlAlongsideETag", func(t *testing.T) {
+		assert.Equal(t, string(headerValueCacheControlETaggedAssets), string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
+	})
+
+	t.Run("ShouldSetETagOnHead", func(t *testing.T) {
+		ctx := do(t, fasthttp.MethodHead, nil)
+
+		assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+		assert.Equal(t, etag, string(ctx.Response.Header.Peek(fasthttp.HeaderETag)))
+	})
+
+	t.Run("ShouldReturnNotModifiedForMatchingIfNoneMatch", func(t *testing.T) {
+		ctx := do(t, fasthttp.MethodGet, map[string]string{fasthttp.HeaderIfNoneMatch: etag})
+
+		assert.Equal(t, fasthttp.StatusNotModified, ctx.Response.StatusCode())
+		assert.Empty(t, ctx.Response.Body())
+		assert.Equal(t, etag, string(ctx.Response.Header.Peek(fasthttp.HeaderETag)))
+	})
+
+	t.Run("ShouldReturnContentForNonMatchingIfNoneMatch", func(t *testing.T) {
+		ctx := do(t, fasthttp.MethodGet, map[string]string{fasthttp.HeaderIfNoneMatch: `"non-matching"`})
+
+		assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+		assert.Equal(t, "body { color: red; }", string(ctx.Response.Body()))
+	})
+
+	t.Run("ShouldReturnNotModifiedForIfModifiedSinceAlone", func(t *testing.T) {
+		ctx := do(t, fasthttp.MethodGet, map[string]string{fasthttp.HeaderIfModifiedSince: string(fasthttp.AppendHTTPDate(nil, modTime))})
+
+		assert.Equal(t, fasthttp.StatusNotModified, ctx.Response.StatusCode())
+		assert.Empty(t, ctx.Response.Body())
+		assert.Equal(t, etag, string(ctx.Response.Header.Peek(fasthttp.HeaderETag)))
+		assert.Equal(t, string(headerValueCacheControlETaggedAssets), string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
+	})
+
+	t.Run("ShouldIgnoreIfModifiedSinceWhenIfNoneMatchPresent", func(t *testing.T) {
+		ctx := do(t, fasthttp.MethodGet, map[string]string{
+			fasthttp.HeaderIfNoneMatch:     `"non-matching"`,
+			fasthttp.HeaderIfModifiedSince: string(fasthttp.AppendHTTPDate(nil, modTime)),
+		})
+
+		assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+		assert.Equal(t, "body { color: red; }", string(ctx.Response.Body()))
+	})
+
+	t.Run("ShouldRetainSecurityHeadersOnContentResponse", func(t *testing.T) {
+		ctx := do(t, fasthttp.MethodGet, nil)
+
+		assert.NotEmpty(t, ctx.Response.Header.Peek(fasthttp.HeaderXContentTypeOptions))
+		assert.Equal(t, "default-src 'none'", string(ctx.Response.Header.Peek(fasthttp.HeaderContentSecurityPolicy)))
+	})
+
+	t.Run("ShouldServeNewContentImmediatelyAfterChange", func(t *testing.T) {
+		p := filepath.Join(root, dirCustomAssets, "theme.css")
+
+		require.NoError(t, os.WriteFile(p, []byte("body { color: blue; }"), 0o600))
+		require.NoError(t, os.Chtimes(p, modTime.Add(time.Minute), modTime.Add(time.Minute)))
+
+		ctx := do(t, fasthttp.MethodGet, nil)
+
+		require.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+
+		assert.Equal(t, "body { color: blue; }", string(ctx.Response.Body()))
+		assert.NotEqual(t, etag, string(ctx.Response.Header.Peek(fasthttp.HeaderETag)))
+	})
 }
