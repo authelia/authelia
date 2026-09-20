@@ -96,6 +96,9 @@ const (
 	lifespanRFC8628CodeDefault                = time.Minute * 10
 	lifespanRFC8628PollingIntervalDefault     = time.Second * 10
 	lifespanVerifiableCredentialsNonceDefault = time.Hour
+	lifespanRequestObjectMaximumDefault       = time.Hour
+	jwtClockSkewDefault                       = time.Second * 10
+	jwtClockSkewMaximum                       = time.Minute
 	lifespanDPoPProofDefault                  = time.Second * 10
 	lifespanBackChannelLogoutDefault          = time.Minute * 5
 )
