@@ -130,6 +130,12 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		return nil, err
 	}
 
+	var handlerCustomAssets fasthttp.RequestHandler
+
+	if handlerCustomAssets, err = newCustomAssetsHandler(config.Server.AssetPath); err != nil {
+		return nil, err
+	}
+
 	bridge := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersBase).Build()
 
@@ -159,6 +165,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	r.HEAD("/static/{filepath:*}", handlerPublicHTML)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
+
+	if handlerCustomAssets != nil {
+		r.HEAD("/static/custom/{filepath:*}", handlerCustomAssets)
+		r.GET("/static/custom/{filepath:*}", handlerCustomAssets)
+	}
 
 	r.GET("/locales", bridge(handlerLocalesList))
 
