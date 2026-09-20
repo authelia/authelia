@@ -50,6 +50,7 @@ document.body.dataset.resetpasswordcustomurl = "";
 document.body.dataset.totpappapplestore = "https://apps.apple.com/us/app/google-authenticator/id388497605";
 document.body.dataset.totpappgoogleplay =
     "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2";
+document.body.dataset.registrationurl = "";
 document.body.dataset.privacypolicyurl = "";
 document.body.dataset.privacypolicyaccept = "false";
 document.body.dataset.passkeylogin = "true";

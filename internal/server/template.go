@@ -224,6 +224,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
 		TOTPAppAppleStore:       totpAppStoreLink(config.TOTP.Apps.AppleStore),
 		TOTPAppGooglePlay:       totpAppStoreLink(config.TOTP.Apps.GooglePlay),
+		RegistrationURL:         config.AuthenticationBackend.Registration.CustomURL.String(),
 		PasswordChange:          strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
 		PrivacyPolicyURL:        "",
 		PrivacyPolicyAccept:     strFalse,
@@ -270,6 +271,7 @@ type TemplatedFileOptions struct {
 	ResetPasswordCustomURL string
 	TOTPAppAppleStore      string
 	TOTPAppGooglePlay      string
+	RegistrationURL        string
 	PasswordChange         string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
@@ -308,6 +310,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
 		TOTPAppAppleStore:      options.TOTPAppAppleStore,
 		TOTPAppGooglePlay:      options.TOTPAppGooglePlay,
+		RegistrationURL:        options.RegistrationURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
@@ -330,6 +333,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
 		TOTPAppAppleStore:      options.TOTPAppAppleStore,
 		TOTPAppGooglePlay:      options.TOTPAppGooglePlay,
+		RegistrationURL:        options.RegistrationURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
@@ -371,6 +375,7 @@ type TemplatedFileCommonData struct {
 	ResetPasswordCustomURL string
 	TOTPAppAppleStore      string
 	TOTPAppGooglePlay      string
+	RegistrationURL        string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
 	Session                string

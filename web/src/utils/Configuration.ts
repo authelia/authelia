@@ -47,6 +47,10 @@ export function getTOTPAppGooglePlay() {
     return getEmbeddedVariable("totpappgoogleplay");
 }
 
+export function getRegistrationURL() {
+    return getEmbeddedVariable("registrationurl");
+}
+
 export function getPrivacyPolicyEnabled() {
     return getEmbeddedVariable("privacypolicyurl") !== "";
 }

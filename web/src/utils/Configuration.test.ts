@@ -10,6 +10,7 @@ import {
     getPrivacyPolicyEnabled,
     getPrivacyPolicyRequireAccept,
     getPrivacyPolicyURL,
+    getRegistrationURL,
     getRememberMe,
     getResetPassword,
     getResetPasswordCustomURL,
@@ -77,6 +78,11 @@ it("returns the reset password custom URL", () => {
 
     document.body.dataset.totpappgoogleplay = "https://play.example.com/store/apps/details?id=org.example.otp";
     expect(getTOTPAppGooglePlay()).toBe("https://play.example.com/store/apps/details?id=org.example.otp");
+});
+
+it("returns the registration URL", () => {
+    document.body.dataset.registrationurl = "https://register.example.com";
+    expect(getRegistrationURL()).toBe("https://register.example.com");
 });
 
 it("returns true when privacy policy URL is not empty", () => {
