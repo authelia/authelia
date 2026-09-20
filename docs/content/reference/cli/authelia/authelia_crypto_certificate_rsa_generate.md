@@ -38,7 +38,7 @@ authelia crypto certificate rsa generate --help
 
 ```
   -b, --bits int                        number of RSA bits for the certificate (default 2048)
-      --bundles strings                 enables generating bundles options are 'chain' and 'privkey-chain'
+      --bundles strings                 enables generating bundles options are 'chain' and 'priv-chain'
       --ca                              create the certificate as a certificate authority certificate
   -n, --common-name string              certificate common name
       --country strings                 certificate country

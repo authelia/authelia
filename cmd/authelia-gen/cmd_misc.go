@@ -31,8 +31,10 @@ func newMiscCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		newMiscContributorsCmd(),
 		newMiscOIDCCmd(),
 		newMiscLocaleMoveCmd(),
+		newMiscReleaseCmd(),
 	)
 
 	return cmd

@@ -109,22 +109,10 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 		return nil, true
 	}
 
-	if config != nil {
+	if config != nil && !consent.Responded() {
 		consent.Subject = uuid.NullUUID{UUID: subject, Valid: true}
 
-		oidc.ConsentGrant(consent, true, config.GrantedClaims)
-
-		consent.SetRespondedAt(ctx.GetClock().Now(), config.ID)
-
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
-			ctx.GetLogger().Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
-
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
-
-			return nil, true
-		}
-
-		return consent, false
+		return handleOAuth2AuthorizationConsentModePreConfiguredGrant(ctx, client, config, consent, rw, requester)
 	}
 
 	if !consent.IsAuthorized() {
@@ -213,11 +201,16 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 		ctx.GetLogger().WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
+	return handleOAuth2AuthorizationConsentModePreConfiguredGrant(ctx, client, config, consent, rw, requester)
+}
+
+func handleOAuth2AuthorizationConsentModePreConfiguredGrant(ctx *middlewares.AutheliaCtx, client oidc.Client, config *model.OAuth2ConsentPreConfig,
+	consent *model.OAuth2ConsentSession, rw http.ResponseWriter, requester oauthelia2.Requester) (*model.OAuth2ConsentSession, bool) {
 	oidc.ConsentGrant(consent, true, config.GrantedClaims)
 
 	consent.SetRespondedAt(ctx.GetClock().Now(), config.ID)
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
+	if err := ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.GetLogger().Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
