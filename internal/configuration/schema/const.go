@@ -10,6 +10,23 @@ import (
 	"time"
 )
 
+// Provider names, used by the startup checks and the verbose health check endpoint.
+const (
+	ProviderNameNTP              = "ntp"
+	ProviderNameStorage          = "storage"
+	ProviderNameUser             = "user"
+	ProviderNameSession          = "session"
+	ProviderNameNotification     = "notification"
+	ProviderNameExpressions      = "expressions"
+	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+)
+
+// ProviderNames are every provider which can be probed by name.
+var ProviderNames = []string{
+	ProviderNameStorage, ProviderNameSession, ProviderNameUser, ProviderNameNotification,
+	ProviderNameNTP, ProviderNameExpressions, ProviderNameWebAuthnMetaData,
+}
+
 const (
 	argon2   = "argon2"
 	argon2id = "argon2id"
