@@ -50,6 +50,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
+	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionPostgreSQL, tableSession)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
@@ -122,6 +123,15 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectCachedData = provider.db.Rebind(provider.sqlSelectCachedData)
 	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)
 
+	provider.sqlSelectSession = provider.db.Rebind(provider.sqlSelectSession)
+	provider.sqlSelectSessionByPublicID = provider.db.Rebind(provider.sqlSelectSessionByPublicID)
+	provider.sqlSelectSessionSignatureByPublicID = provider.db.Rebind(provider.sqlSelectSessionSignatureByPublicID)
+	provider.sqlSelectSessionSignaturesByUsername = provider.db.Rebind(provider.sqlSelectSessionSignaturesByUsername)
+	provider.sqlUpdateSessionData = provider.db.Rebind(provider.sqlUpdateSessionData)
+	provider.sqlUpdateSessionSignature = provider.db.Rebind(provider.sqlUpdateSessionSignature)
+	provider.sqlDeleteSession = provider.db.Rebind(provider.sqlDeleteSession)
+	provider.sqlDeleteSessionExpired = provider.db.Rebind(provider.sqlDeleteSessionExpired)
+
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
 	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)
 	provider.sqlSelectLatestMigration = provider.db.Rebind(provider.sqlSelectLatestMigration)
@@ -186,6 +196,19 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature)
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
+
+	provider.sqlInsertOAuth2SessionID = provider.db.Rebind(provider.sqlInsertOAuth2SessionID)
+	provider.sqlSelectOAuth2SessionIDBySector = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDBySector)
+	provider.sqlSelectOAuth2SessionIDBySessionID = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDBySessionID)
+	provider.sqlSelectOAuth2SessionIDsOldest = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDsOldest)
+	provider.sqlDeleteOAuth2SessionID = provider.db.Rebind(provider.sqlDeleteOAuth2SessionID)
+	provider.sqlDeleteOAuth2SessionIDByPublicID = provider.db.Rebind(provider.sqlDeleteOAuth2SessionIDByPublicID)
+	provider.sqlInsertOAuth2SessionIDClient = provider.db.Rebind(provider.sqlInsertOAuth2SessionIDClient)
+	provider.sqlSelectOAuth2SessionIDClientExists = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDClientExists)
+	provider.sqlSelectOAuth2SessionIDClientsByPublicID = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDClientsByPublicID)
+	provider.sqlDeleteOAuth2SessionIDClient = provider.db.Rebind(provider.sqlDeleteOAuth2SessionIDClient)
+	provider.sqlDeleteOAuth2SessionIDClientByPublicID = provider.db.Rebind(provider.sqlDeleteOAuth2SessionIDClientByPublicID)
+	provider.sqlOAuth2Logout = newSQLOAuth2LogoutQueries(provider.db.Rebind)
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 

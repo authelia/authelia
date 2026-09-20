@@ -284,6 +284,78 @@ func TestConformanceOverrideAssertions(t *testing.T) {
 			ConformanceLeg{Index: 0},
 			"expected Authelia to show an error page rather than redirect to the client but it did not",
 		},
+		{
+			"ShouldIgnoreTheAuthorizationLegWhenAPostLogoutRedirectIsExpected",
+			conformanceAssertPostLogoutRedirect,
+			ConformanceLeg{Index: 0},
+			"",
+		},
+		{
+			"ShouldPassWhenTheConfirmedLogoutReturnedToTheClient",
+			conformanceAssertPostLogoutRedirect,
+			ConformanceLeg{Index: conformanceLogoutLeg, SignOutConfirmation: true},
+			"",
+		},
+		{
+			"ShouldFailWhenTheLogoutReturnedToTheClientWithoutConfirmation",
+			conformanceAssertPostLogoutRedirect,
+			ConformanceLeg{Index: conformanceLogoutLeg},
+			"expected Authelia to ask for the logout to be confirmed but it did not",
+		},
+		{
+			"ShouldFailWhenTheLogoutShowedAnErrorInsteadOfReturningToTheClient",
+			conformanceAssertPostLogoutRedirect,
+			ConformanceLeg{Index: conformanceLogoutLeg, SignOutConfirmation: true, AutheliaError: true},
+			"expected Authelia to return to the post_logout_redirect_uri after the logout but it showed an error page",
+		},
+		{
+			"ShouldFailWhenTheLogoutStayedOnTheSignInFormInsteadOfReturningToTheClient",
+			conformanceAssertPostLogoutRedirect,
+			ConformanceLeg{Index: conformanceLogoutLeg, SignOutConfirmation: true, SignedOut: true},
+			"expected Authelia to return to the post_logout_redirect_uri after the logout but it stayed on the sign in form",
+		},
+		{
+			"ShouldIgnoreTheAuthorizationLegWhenASignOutIsExpected",
+			conformanceAssertSignedOut,
+			ConformanceLeg{Index: 0},
+			"",
+		},
+		{
+			"ShouldPassWhenTheConfirmedLogoutLeftTheUserSignedOut",
+			conformanceAssertSignedOut,
+			ConformanceLeg{Index: conformanceLogoutLeg, SignOutConfirmation: true, SignedOut: true},
+			"",
+		},
+		{
+			"ShouldFailWhenTheSignOutWasNotConfirmed",
+			conformanceAssertSignedOut,
+			ConformanceLeg{Index: conformanceLogoutLeg},
+			"expected Authelia to ask for the logout to be confirmed but it did not",
+		},
+		{
+			"ShouldFailWhenTheConfirmedLogoutReturnedToTheClient",
+			conformanceAssertSignedOut,
+			ConformanceLeg{Index: conformanceLogoutLeg, SignOutConfirmation: true},
+			"expected Authelia to leave the user signed out on its own page but it did not",
+		},
+		{
+			"ShouldIgnoreTheAuthorizationLegWhenALogoutErrorIsExpected",
+			conformanceAssertLogoutErrorPage,
+			ConformanceLeg{Index: 0},
+			"",
+		},
+		{
+			"ShouldPassWhenTheLogoutEndedOnAnErrorPage",
+			conformanceAssertLogoutErrorPage,
+			ConformanceLeg{Index: conformanceLogoutLeg, AutheliaError: true},
+			"",
+		},
+		{
+			"ShouldFailWhenTheLogoutDidNotEndOnAnErrorPage",
+			conformanceAssertLogoutErrorPage,
+			ConformanceLeg{Index: conformanceLogoutLeg, SignOutConfirmation: true},
+			"expected Authelia to show an error page rather than redirect to the client but it did not",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -306,6 +378,19 @@ func TestConformanceOverrides_AreWiredToTheirAssertions(t *testing.T) {
 		"oidcc-max-age-10000": {Index: conformanceReauthenticationLeg, FirstFactor: true},
 
 		"oidcc-ensure-registered-redirect-uri": {Index: 0},
+
+		"oidcc-rp-initiated-logout":                                         {Index: conformanceLogoutLeg},
+		"oidcc-rp-initiated-logout-no-state":                                {Index: conformanceLogoutLeg},
+		"oidcc-rp-initiated-logout-no-params":                               {Index: conformanceLogoutLeg, SignOutConfirmation: true},
+		"oidcc-rp-initiated-logout-no-post-logout-redirect-uri":             {Index: conformanceLogoutLeg, SignOutConfirmation: true},
+		"oidcc-rp-initiated-logout-only-state":                              {Index: conformanceLogoutLeg, SignOutConfirmation: true},
+		"oidcc-rp-initiated-logout-bad-post-logout-redirect-uri":            {Index: conformanceLogoutLeg},
+		"oidcc-rp-initiated-logout-query-added-to-post-logout-redirect-uri": {Index: conformanceLogoutLeg},
+		"oidcc-rp-initiated-logout-no-id-token-hint":                        {Index: conformanceLogoutLeg},
+		"oidcc-rp-initiated-logout-bad-id-token-hint":                       {Index: conformanceLogoutLeg},
+		"oidcc-rp-initiated-logout-modified-id-token-hint":                  {Index: conformanceLogoutLeg},
+
+		"oidcc-backchannel-rp-initiated-logout": {Index: conformanceLogoutLeg},
 	} {
 		override, ok := conformanceOverrides[module]
 
@@ -541,6 +626,11 @@ func TestConformanceOverride_ScreenshotOf(t *testing.T) {
 	assert.Equal(t, "error-0", errorPage.screenshotOf(leg(0)))
 	assert.Empty(t, errorPage.screenshotOf(ConformanceLeg{Index: 0, LoginScreenshot: "login-0"}))
 
+	signedOut := ConformanceOverride{Screenshot: ConformanceScreenshotSignedOut}
+
+	assert.Equal(t, "signed-out", signedOut.screenshotOf(ConformanceLeg{Index: 1, SignedOut: true, SignedOutScreenshot: "signed-out", ErrorScreenshot: "error-1"}))
+	assert.Empty(t, signedOut.screenshotOf(leg(1)), "a leg which never signed out has no signed out page to capture")
+
 	assert.Empty(t, ConformanceOverride{}.screenshotOf(leg(1)), "a module with no screenshot kind is given none")
 }
 
@@ -551,6 +641,16 @@ func TestConformanceOverrides_ScreenshotEachPlaceholderModule(t *testing.T) {
 
 		"oidcc-ensure-registered-redirect-uri":          ConformanceScreenshotErrorPage,
 		"oidcc-ensure-request-object-with-redirect-uri": ConformanceScreenshotErrorPage,
+
+		"oidcc-rp-initiated-logout-no-params":                   ConformanceScreenshotSignedOut,
+		"oidcc-rp-initiated-logout-no-post-logout-redirect-uri": ConformanceScreenshotSignedOut,
+		"oidcc-rp-initiated-logout-only-state":                  ConformanceScreenshotSignedOut,
+
+		"oidcc-rp-initiated-logout-bad-post-logout-redirect-uri":            ConformanceScreenshotErrorPage,
+		"oidcc-rp-initiated-logout-query-added-to-post-logout-redirect-uri": ConformanceScreenshotErrorPage,
+		"oidcc-rp-initiated-logout-no-id-token-hint":                        ConformanceScreenshotErrorPage,
+		"oidcc-rp-initiated-logout-bad-id-token-hint":                       ConformanceScreenshotErrorPage,
+		"oidcc-rp-initiated-logout-modified-id-token-hint":                  ConformanceScreenshotErrorPage,
 	}
 
 	actual := map[string]ConformanceScreenshot{}

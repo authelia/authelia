@@ -5,6 +5,8 @@
 package handlers
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -52,7 +54,18 @@ func TestOAuth2TokenPOSTAuthorizationCode(t *testing.T) {
 		idToken, ok := response["id_token"].(string)
 
 		require.True(t, ok)
-		assert.Len(t, strings.Split(idToken, "."), 3)
+
+		parts := strings.Split(idToken, ".")
+
+		require.Len(t, parts, 3)
+
+		payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+		require.NoError(t, err)
+
+		claims := map[string]any{}
+
+		require.NoError(t, json.Unmarshal(payload, &claims))
+		assert.NotEmpty(t, claims[oidc.ClaimSessionID])
 	})
 
 	t.Run("ShouldNotExchangeAuthorizationCodeTwice", func(t *testing.T) {
@@ -281,6 +294,7 @@ func TestOAuth2TokenPOSTErrors(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		store := setupTestOIDCSessionStore(t, mock)
@@ -315,5 +329,6 @@ func setupTestOIDCAuthorizationCodeFlow(t *testing.T, mock *mocks.MockAutheliaCt
 	setupTestOIDCSessionStore(t, mock)
 	setupTestOIDCConsentStore(t, mock)
 	setupTestOIDCSubjectStore(t, mock)
+	setupTestOIDCSessionIDStore(t, mock)
 	setupTestOIDCUserDetails(t, mock)
 }

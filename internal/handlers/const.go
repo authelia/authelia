@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"errors"
+	"time"
 
 	"github.com/valyala/fasthttp"
 
@@ -171,4 +172,14 @@ const (
 var (
 	errUserAnonymous              = errors.New("user is anonymous")
 	errUserIsAlreadyAuthenticated = errors.New("user is already authenticated")
+)
+
+const (
+	sessionActivityRefreshDivisor = 10
+)
+
+const (
+	oidcFrontendEndpointPathLogout = "/logout"
+	oidcEndSessionLifespan         = time.Minute * 5
+	oidcEndSessionMaxBodySize      = 1 << 20
 )

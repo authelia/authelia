@@ -19,11 +19,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-const (
-	// This is the latest schema version for the purpose of tests.
-	LatestVersion = 29
-)
-
 func TestShouldObtainCorrectMigrations(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -54,7 +49,6 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 				migrations []model.SchemaMigration
 			)
 
-			// UP.
 			migrations, err = loadMigrations(tc.provider, 0, ver)
 			require.NoError(t, err)
 
@@ -69,7 +63,6 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 
 			assert.Len(t, migrations, ver-1)
 
-			// DOWN.
 			migrations, err = loadMigrations(providerSQLite, ver, 0)
 			require.NoError(t, err)
 
@@ -409,3 +402,7 @@ func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
 		previousDown = append(previousDown, migration.Version)
 	}
 }
+
+const (
+	LatestVersion = 32
+)

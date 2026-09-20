@@ -257,7 +257,9 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPasswordPOST(delayerPassword)))
 	r.POST("/api/firstfactor/reauthenticate", middleware1FA(handlers.FirstFactorReauthenticatePOST(delayerPassword)))
+	r.GET("/api/logout", middlewareAPI(handlers.LogoutGET))
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
+	r.DELETE("/api/logout", middlewareAPI(handlers.LogoutDELETE))
 
 	if !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		rateLimitResetPasswordStart := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ResetPasswordStart), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
@@ -523,6 +525,17 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 
 	r.OPTIONS(oidc.EndpointPathRevocation, policyCORSRevocation.HandleOPTIONS)
 	r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridge(rateLimitRevocation(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2RevocationPOST))))))
+
+	policyCORSEndSession := middlewares.NewCORSPolicyBuilder().
+		WithAllowCredentials(true).
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSlice(oidc.EndpointEndSession, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	r.OPTIONS(oidc.EndpointPathEndSession, policyCORSEndSession.HandleOnlyOPTIONS)
+	r.GET(oidc.EndpointPathEndSession, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointEndSession), policyCORSEndSession.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectEndSession)))))
+	r.POST(oidc.EndpointPathEndSession, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointEndSession), policyCORSEndSession.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectEndSession)))))
 }
 
 func handlerMetrics(provider metrics.Provider, path string) fasthttp.RequestHandler {

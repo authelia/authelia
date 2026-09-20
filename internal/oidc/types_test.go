@@ -77,7 +77,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	ctx.Clock = clock.NewFixed(time.Unix(10000000000, 0))
 
-	session := oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, nil)
+	session := oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", "", amr, extra, authAt, consent, request, nil)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Headers)
@@ -99,6 +99,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 
 	assert.Equal(t, "primary", session.Headers.Get(oidc.JWTHeaderKeyIdentifier))
+	assert.Empty(t, session.Claims.SessionID)
 
 	claims := &oidc.ClaimsRequests{
 		IDToken: map[string]*oidc.ClaimRequest{
@@ -111,7 +112,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		},
 	}
 
-	session = oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, claims)
+	session = oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", "session-abc", amr, extra, authAt, consent, request, claims)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Headers)
@@ -133,13 +134,14 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 
 	assert.Equal(t, "primary", session.Headers.Get(oidc.JWTHeaderKeyIdentifier))
+	assert.Equal(t, "session-abc", session.Claims.SessionID)
 
 	consent = &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
 		RequestedAt: requested,
 	}
 
-	session = oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request, nil)
+	session = oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", "", nil, nil, authAt, consent, request, nil)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)

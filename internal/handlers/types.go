@@ -139,6 +139,22 @@ type bodyFirstFactorReauthenticateRequest struct {
 	UserCode      string `json:"userCode"`
 }
 
+type bodyLogout struct {
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+}
+
+type bodyLogoutResponse struct {
+	SafeTargetURL bool   `json:"safeTargetURL"`
+	RedirectURL   string `json:"redirectURL,omitempty"`
+}
+
+type bodyLogoutPendingResponse struct {
+	Pending    bool   `json:"pending"`
+	ClientID   string `json:"clientID,omitempty"`
+	ClientName string `json:"clientName,omitempty"`
+}
+
 type checkURIWithinDomainRequestBody struct {
 	URI string `json:"uri"`
 }
@@ -227,6 +243,6 @@ type PasswordPolicyBody struct {
 
 type handlerAuthorizationConsent func(
 	ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, details *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)

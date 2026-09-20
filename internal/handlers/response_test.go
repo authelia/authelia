@@ -15,6 +15,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -202,11 +203,8 @@ func TestHandle2FAResponse(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
-		config := mock.Ctx.Configuration.Session
-
-		config.Cookies[0].DefaultRedirectionURL = nil
-
-		mock.Ctx.Providers.SessionProvider = session.NewProvider(config, nil)
+		mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = nil
+		mock.ResetSessionProvider()
 
 		Handle2FAResponse(mock.Ctx, "")
 
@@ -258,7 +256,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := session.UserSession{}
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, &authentication.UserDetails{}, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -284,7 +282,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -310,7 +308,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		body := redirectResponse{}
 
@@ -341,7 +339,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		body := redirectResponse{}
 
@@ -373,10 +371,46 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred getting the original form from the consent session", regexpAnyError)
 	})
+}
+
+func TestHandle1FAResponseShouldNotRedirectToPostLogoutRedirectURI(t *testing.T) {
+	testCases := []struct {
+		name      string
+		targetURI string
+	}{
+		{"ShouldNotRedirectToInsecurePostLogoutRedirectURI", "http://legacy.example.net/logged-out"},
+		{"ShouldNotRedirectToOffDomainPostLogoutRedirectURI", "https://app.example.net/logged-out"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Configuration.IdentityProviders.OIDC = &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID: "test",
+						PostLogoutRedirectURIs: []string{
+							"http://legacy.example.net/logged-out",
+							"https://app.example.net/logged-out",
+						},
+					},
+				},
+			}
+
+			Handle1FAResponse(mock.Ctx, tc.targetURI, fasthttp.MethodGet, testUsername, nil)
+
+			assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+			assert.NotContains(t, string(mock.Ctx.Response.Body()), tc.targetURI)
+			assert.NotContains(t, string(mock.Ctx.Response.Body()), "redirect")
+		})
+	}
 }

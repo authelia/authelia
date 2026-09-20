@@ -284,6 +284,11 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				EncryptionEncA256GCM,
 			},
 		},
+		OpenIDConnectRPInitiatedLogoutDiscoveryOptions: &OpenIDConnectRPInitiatedLogoutDiscoveryOptions{},
+		OpenIDConnectBackChannelLogoutDiscoveryOptions: &OpenIDConnectBackChannelLogoutDiscoveryOptions{
+			BackChannelLogoutSupported:        true,
+			BackChannelLogoutSessionSupported: true,
+		},
 	}
 
 	if c.EnablePKCEPlainChallenge {

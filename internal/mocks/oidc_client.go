@@ -233,6 +233,34 @@ func (mr *MockOIDCClientMockRecorder) GetAuthorizationSignedResponseKeyID() *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthorizationSignedResponseKeyID", reflect.TypeOf((*MockOIDCClient)(nil).GetAuthorizationSignedResponseKeyID))
 }
 
+// GetBackChannelLogoutSessionRequired mocks base method.
+func (m *MockOIDCClient) GetBackChannelLogoutSessionRequired() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBackChannelLogoutSessionRequired")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// GetBackChannelLogoutSessionRequired indicates an expected call of GetBackChannelLogoutSessionRequired.
+func (mr *MockOIDCClientMockRecorder) GetBackChannelLogoutSessionRequired() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBackChannelLogoutSessionRequired", reflect.TypeOf((*MockOIDCClient)(nil).GetBackChannelLogoutSessionRequired))
+}
+
+// GetBackChannelLogoutURI mocks base method.
+func (m *MockOIDCClient) GetBackChannelLogoutURI() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBackChannelLogoutURI")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetBackChannelLogoutURI indicates an expected call of GetBackChannelLogoutURI.
+func (mr *MockOIDCClientMockRecorder) GetBackChannelLogoutURI() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBackChannelLogoutURI", reflect.TypeOf((*MockOIDCClient)(nil).GetBackChannelLogoutURI))
+}
+
 // GetClaimsStrategy mocks base method.
 func (m *MockOIDCClient) GetClaimsStrategy() oidc.ClaimsStrategy {
 	m.ctrl.T.Helper()
@@ -583,6 +611,20 @@ func (m *MockOIDCClient) GetPKCEChallengeMethod() string {
 func (mr *MockOIDCClientMockRecorder) GetPKCEChallengeMethod() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPKCEChallengeMethod", reflect.TypeOf((*MockOIDCClient)(nil).GetPKCEChallengeMethod))
+}
+
+// GetPostLogoutRedirectURIs mocks base method.
+func (m *MockOIDCClient) GetPostLogoutRedirectURIs() []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostLogoutRedirectURIs")
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// GetPostLogoutRedirectURIs indicates an expected call of GetPostLogoutRedirectURIs.
+func (mr *MockOIDCClientMockRecorder) GetPostLogoutRedirectURIs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostLogoutRedirectURIs", reflect.TypeOf((*MockOIDCClient)(nil).GetPostLogoutRedirectURIs))
 }
 
 // GetRedirectURIs mocks base method.

@@ -41,10 +41,7 @@ func (b *SuiteBuilder) Description(release string) string {
 
 // Build returns the Suite for this builder.
 func (b *SuiteBuilder) Build() Suite {
-	var (
-		apiname, namePrefix, clientIDPrefix string
-		variant                             *PlanVariant
-	)
+	var namePrefix, clientIDPrefix string
 
 	if b.Certification {
 		namePrefix = "conformance-"
@@ -58,30 +55,7 @@ func (b *SuiteBuilder) Build() Suite {
 	name := fmt.Sprintf("%s%s", namePrefix, b.Name)
 	description := b.Description(b.Version)
 
-	switch b.Name {
-	case NameBasic, NameBasicFormPost, NameHybrid, NameHybridFormPost, NameImplicit, NameImplicitFormPost:
-		variant = &PlanVariant{
-			ServerMetadata:     "discovery",
-			ClientRegistration: "static_client",
-		}
-	}
-
-	switch b.Name {
-	case NameConfig:
-		apiname = "oidcc-config-certification-test-plan"
-	case NameBasic:
-		apiname = "oidcc-basic-certification-test-plan"
-	case NameBasicFormPost:
-		apiname = "oidcc-formpost-basic-certification-test-plan"
-	case NameHybrid:
-		apiname = "oidcc-hybrid-certification-test-plan"
-	case NameHybridFormPost:
-		apiname = "oidcc-formpost-hybrid-certification-test-plan"
-	case NameImplicit:
-		apiname = "oidcc-implicit-certification-test-plan"
-	case NameImplicitFormPost:
-		apiname = "oidcc-formpost-implicit-certification-test-plan"
-	}
+	apiname, variant := b.plan()
 
 	suite := Suite{
 		Name: name,
@@ -123,10 +97,20 @@ func (b *SuiteBuilder) Build() Suite {
 	}
 
 	var (
-		grantTypes    []string
-		responseTypes []string
-		responseModes []string
+		grantTypes             []string
+		responseTypes          []string
+		responseModes          []string
+		postLogoutRedirectURIs []string
+		backChannelLogoutURI   string
 	)
+
+	switch b.Name {
+	case NameRPInitiatedLogout:
+		postLogoutRedirectURIs = []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "post_logout_redirect").String()}
+	case NameBackChannelLogout:
+		postLogoutRedirectURIs = []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "post_logout_redirect").String()}
+		backChannelLogoutURI = b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "backchannel_logout").String()
+	}
 
 	switch b.Name {
 	case NameImplicit, NameImplicitFormPost:
@@ -153,6 +137,8 @@ func (b *SuiteBuilder) Build() Suite {
 			Name:                    description,
 			Secret:                  MustHash(suite.Plan.Client.Secret),
 			RedirectURIs:            []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
+			PostLogoutRedirectURIs:  postLogoutRedirectURIs,
+			BackChannelLogoutURI:    backChannelLogoutURI,
 			AuthorizationPolicy:     b.Policy,
 			ConsentMode:             b.Consent,
 			Public:                  false,
@@ -168,6 +154,8 @@ func (b *SuiteBuilder) Build() Suite {
 			Name:                    fmt.Sprintf("%s (Alternate)", description),
 			Secret:                  MustHash(suite.Plan.ClientAlternate.Secret),
 			RedirectURIs:            []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
+			PostLogoutRedirectURIs:  postLogoutRedirectURIs,
+			BackChannelLogoutURI:    backChannelLogoutURI,
 			AuthorizationPolicy:     b.Policy,
 			ConsentMode:             b.Consent,
 			Public:                  false,
@@ -183,6 +171,8 @@ func (b *SuiteBuilder) Build() Suite {
 			Name:                    fmt.Sprintf("%s (Secret Post)", description),
 			Secret:                  MustHash(suite.Plan.ClientSecretPost.Secret),
 			RedirectURIs:            []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
+			PostLogoutRedirectURIs:  postLogoutRedirectURIs,
+			BackChannelLogoutURI:    backChannelLogoutURI,
 			AuthorizationPolicy:     b.Policy,
 			ConsentMode:             b.Consent,
 			Public:                  false,
@@ -196,6 +186,42 @@ func (b *SuiteBuilder) Build() Suite {
 	}
 
 	return suite
+}
+
+func (b *SuiteBuilder) plan() (name string, variant *PlanVariant) {
+	switch b.Name {
+	case NameConfig:
+		return "oidcc-config-certification-test-plan", nil
+	case NameBasic:
+		name = "oidcc-basic-certification-test-plan"
+	case NameBasicFormPost:
+		name = "oidcc-formpost-basic-certification-test-plan"
+	case NameHybrid:
+		name = "oidcc-hybrid-certification-test-plan"
+	case NameHybridFormPost:
+		name = "oidcc-formpost-hybrid-certification-test-plan"
+	case NameImplicit:
+		name = "oidcc-implicit-certification-test-plan"
+	case NameImplicitFormPost:
+		name = "oidcc-formpost-implicit-certification-test-plan"
+	case NameRPInitiatedLogout:
+		return "oidcc-rp-initiated-logout-certification-test-plan", &PlanVariant{
+			ClientRegistration: "static_client",
+			ResponseType:       oidc.ResponseTypeAuthorizationCodeFlow,
+		}
+	case NameBackChannelLogout:
+		return "oidcc-backchannel-rp-initiated-logout-certification-test-plan", &PlanVariant{
+			ClientRegistration: "static_client",
+			ResponseType:       oidc.ResponseTypeAuthorizationCodeFlow,
+		}
+	default:
+		return "", nil
+	}
+
+	return name, &PlanVariant{
+		ServerMetadata:     "discovery",
+		ClientRegistration: "static_client",
+	}
 }
 
 // MustHash returns the digest of the given value and panics if it fails.
@@ -214,7 +240,8 @@ func MustHash(value string) *schema.PasswordDigest {
 	return schema.NewPasswordDigest(digest)
 }
 
-// Builders returns the conformance suite builders for every profile Authelia is certified for, in a fixed order.
+// Builders returns the conformance suite builders for every profile Authelia is certified for or tested against, in a
+// fixed order.
 func Builders(version, consent, policy, brand string, suiteURL, autheliaURL *url.URL) []*SuiteBuilder {
 	return []*SuiteBuilder{
 		{brand, NameConfig, "Config", true, version, consent, policy, nil, autheliaURL},
@@ -224,5 +251,7 @@ func Builders(version, consent, policy, brand string, suiteURL, autheliaURL *url
 		{brand, NameHybridFormPost, "Hybrid (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
 		{brand, NameImplicit, "Implicit", true, version, consent, policy, suiteURL, autheliaURL},
 		{brand, NameImplicitFormPost, "Implicit (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, NameRPInitiatedLogout, "RP-Initiated Logout", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, NameBackChannelLogout, "Back-Channel Logout", true, version, consent, policy, suiteURL, autheliaURL},
 	}
 }
