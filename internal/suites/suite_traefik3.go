@@ -66,11 +66,12 @@ func init() {
 
 	GlobalRegistry.Register(traefik3SuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
+		Description:     "This suite has been created to test Authelia as an authorization server behind version 3 of the Traefik reverse proxy.",
 	})
 }

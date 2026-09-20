@@ -104,6 +104,7 @@ type Config struct {
 
 	SendDebugMessagesToClients    bool
 	DisableRefreshTokenValidation bool
+	DisableRefreshTokenRotation   bool
 	OmitRedirectScopeParameter    bool
 
 	DPoPEnabled       bool
@@ -118,11 +119,15 @@ type Config struct {
 
 	EnforceClientAssertionIssuerAudience bool
 
+	RequireRequestObjectAudienceAndLifetime bool
+	RequestObjectMaximumLifetime            time.Duration
+
 	BackChannelLogoutLifespan    time.Duration
 	BackChannelLogoutConcurrency int
 
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
+	JWTClockSkew   time.Duration
 
 	JWTSecuredAuthorizationLifespan time.Duration
 
@@ -211,9 +216,10 @@ type JWTAccessTokenConfig struct {
 
 // PARConfig holds specific oauthelia2.Configurator information for Pushed Authorization Requests.
 type PARConfig struct {
-	Require         bool
-	URIPrefix       string
-	ContextLifespan time.Duration
+	Require            bool
+	RequireRedirectURI bool
+	URIPrefix          string
+	ContextLifespan    time.Duration
 }
 
 // IssuersConfig holds specific oauthelia2.Configurator information for the issuer.
@@ -587,6 +593,19 @@ func (c *Config) GetJWTMaxDuration(ctx context.Context) (duration time.Duration)
 	return c.JWTMaxDuration
 }
 
+// GetJWTClockSkew returns how far into the future an 'iat' or 'nbf' claim may be in a JWT received from a client.
+// Defaults to 10 seconds when zero, is disabled when negative, and is capped at 60 seconds.
+func (c *Config) GetJWTClockSkew(ctx context.Context) (skew time.Duration) {
+	switch {
+	case c.JWTClockSkew == 0:
+		return jwtClockSkewDefault
+	case c.JWTClockSkew < 0:
+		return 0
+	default:
+		return min(c.JWTClockSkew, jwtClockSkewMaximum)
+	}
+}
+
 // GetRedirectSecureChecker returns the redirect URL security validator.
 func (c *Config) GetRedirectSecureChecker(ctx context.Context) func(context.Context, *url.URL) (secure bool) {
 	return oauthelia2.IsRedirectURISecure
@@ -652,6 +671,11 @@ func (c *Config) GetIntrospectionJWTResponseStrategy(ctx context.Context) jwt.St
 // GetDisableRefreshTokenValidation returns the disable refresh token validation flag.
 func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable bool) {
 	return c.DisableRefreshTokenValidation
+}
+
+// GetDisableRefreshTokenRotation returns the disable refresh token rotation flag.
+func (c *Config) GetDisableRefreshTokenRotation(ctx context.Context) (disable bool) {
+	return c.DisableRefreshTokenRotation
 }
 
 // GetJWTSecuredAuthorizeResponseModeLifespan returns the configured JWT Secured Authorization lifespan.
@@ -926,6 +950,12 @@ func (c *Config) GetRequirePushedAuthorizationRequests(ctx context.Context) (enf
 	return c.PAR.Require
 }
 
+// GetRequireRedirectURIPushedAuthorizationRequests returns true if the 'redirect_uri' parameter is required in Pushed
+// Authorization Requests even when the client has a single registered redirect URI.
+func (c *Config) GetRequireRedirectURIPushedAuthorizationRequests(ctx context.Context) (require bool) {
+	return c.PAR.RequireRedirectURI
+}
+
 // GetResponseModeHandlers returns the response mode handlers.
 func (c *Config) GetResponseModeHandlers(ctx context.Context) oauthelia2.ResponseModeHandlers {
 	return c.Handlers.ResponseMode
@@ -1153,6 +1183,25 @@ func (c *Config) GetRequireSignedRequestObject(ctx context.Context) (require boo
 // is configured for it to exempt.
 func (c *Config) GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ctx context.Context) (skip bool) {
 	return false
+}
+
+// GetRequireRequestObjectAudienceAndLifetime returns true if a Request Object must contain the 'aud', 'nbf' and 'exp'
+// claims with a lifetime bounded by GetRequestObjectMaximumLifetime.
+func (c *Config) GetRequireRequestObjectAudienceAndLifetime(ctx context.Context) (require bool) {
+	return c.RequireRequestObjectAudienceAndLifetime
+}
+
+// GetRequestObjectMaximumLifetime returns the bound applied to a Request Object's 'nbf' and 'exp' claims. Defaults to
+// 60 minutes when zero, and is disabled when negative.
+func (c *Config) GetRequestObjectMaximumLifetime(ctx context.Context) (lifetime time.Duration) {
+	switch {
+	case c.RequestObjectMaximumLifetime == 0:
+		return lifespanRequestObjectMaximumDefault
+	case c.RequestObjectMaximumLifetime < 0:
+		return 0
+	default:
+		return c.RequestObjectMaximumLifetime
+	}
 }
 
 // GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout. It has no

@@ -24,7 +24,7 @@ const (
 	releaseTypePatch = "patch"
 )
 
-func newReleaseCmd() *cobra.Command {
+func newMiscReleaseCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   cmdUseRelease,
 		Short: "Prepare a release by updating version references, accepts one argument of either major, minor, or patch",

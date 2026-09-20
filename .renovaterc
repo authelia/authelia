@@ -13,7 +13,22 @@
     ":semanticPrefixFixDepsChoreOthers",
     "workarounds:all"
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^docs/netlify\\.toml$/"
+      ],
+      "matchStrings": [
+        "HUGO_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "hugo-extended",
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "npm"
+    }
+  ],
   "enabledManagers": [
+    "custom.regex",
     "docker-compose",
     "dockerfile",
     "github-actions",

@@ -37,7 +37,7 @@ authelia crypto certificate ed25519 request --help
 ### Options
 
 ```
-      --bundles strings                 enables generating bundles options are 'chain' and 'privkey-chain'
+      --bundles strings                 enables generating bundles options are 'chain' and 'priv-chain'
       --ca                              create the certificate as a certificate authority certificate
   -n, --common-name string              certificate common name
       --country strings                 certificate country

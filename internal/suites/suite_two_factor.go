@@ -52,12 +52,12 @@ func init() {
 
 	GlobalRegistry.Register(twoFactorSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
-		OnError:         displayAutheliaLogs,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
-		TearDown:        teardown,
+		OnError:         displayAutheliaLogs,
 		TestTimeout:     4 * time.Minute,
-		TearDownTimeout: 2 * time.Minute,
+		TearDown:        teardown,
+		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite is used to test Authelia in a two factor
 configuration with in-memory sessions and a local sqlite db stored on disk`,
 	})

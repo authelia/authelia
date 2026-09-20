@@ -95,16 +95,17 @@ The suites run several concurrent copies of themselves when the Docker daemon is
 optional and falls back to the value used for a single local run, so leaving them all unset gives the behavior
 described above.
 
-| Variable               | Default         | Purpose                                                                                                                                                                                                                                                                    |
-| :--------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SUITE_SLOT`           | _unset_         | Slot number owned by this agent or working tree. When set, `bootstrap.sh` derives `COMPOSE_PROJECT_NAME`, `SUITE_SUBNET`, `LDAP_ADMIN_PORT`, `ENVOY_ADMIN_PORT` and, outside CI, `SUITE_TMP` and `SUITE_TMP_PATH` from it. A slotted shell also leaves `/etc/hosts` alone. |
-| `SUITE_SLOT_AUTO`      | _unset_         | Set to `false` to stop `bootstrap.sh` allocating a slot for this working tree. Has no effect in CI, where the slot is supplied by the agent.                                                                                                                               |
-| `COMPOSE_PROJECT_NAME` | `authelia`      | Compose project name. Also scopes the Traefik Docker provider so it only discovers its own containers.                                                                                                                                                                     |
-| `SUITE_SUBNET`         | `192.168.240`   | First three octets of the suite network.                                                                                                                                                                                                                                   |
-| `SUITE_TMP`            | `/tmp`          | Host directory bound into the suite containers, which always see it at `/tmp`. Give each agent or working tree its own directory, because everything at its top level apart from the agent's own working files is removed when a job finishes.                             |
-| `SUITE_TMP_PATH`       | `/tmp`          | Path the test process itself reads and writes that same content through. In CI this stays `/tmp` because `SUITE_TMP` is bound there inside the agent; locally it is set to `SUITE_TMP`, since the test process runs on the host.                                           |
-| `SUITE_IMAGE`          | `authelia:dist` | Image the backend runs.                                                                                                                                                                                                                                                    |
-| `AGENT_CONTAINER`      | _unset_         | Name of the container the tests run in. When set, that container is attached to the suite network on setup and detached on teardown, so Chrome can reach the portal.                                                                                                       |
+| Variable                              | Default         | Purpose                                                                                                                                                                                                                                                                    |
+| :------------------------------------ | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SUITE_SLOT`                          | _unset_         | Slot number owned by this agent or working tree. When set, `bootstrap.sh` derives `COMPOSE_PROJECT_NAME`, `SUITE_SUBNET`, `LDAP_ADMIN_PORT`, `ENVOY_ADMIN_PORT` and, outside CI, `SUITE_TMP` and `SUITE_TMP_PATH` from it. A slotted shell also leaves `/etc/hosts` alone. |
+| `SUITE_SLOT_AUTO`                     | _unset_         | Set to `false` to stop `bootstrap.sh` allocating a slot for this working tree. Has no effect in CI, where the slot is supplied by the agent.                                                                                                                               |
+| `COMPOSE_PROJECT_NAME`                | `authelia`      | Compose project name. Also scopes the Traefik Docker provider so it only discovers its own containers.                                                                                                                                                                     |
+| `SUITE_SUBNET`                        | `192.168.240`   | First three octets of the suite network.                                                                                                                                                                                                                                   |
+| `SUITE_TMP`                           | `/tmp`          | Host directory bound into the suite containers, which always see it at `/tmp`. Give each agent or working tree its own directory, because everything at its top level apart from the agent's own working files is removed when a job finishes.                             |
+| `SUITE_TMP_PATH`                      | `/tmp`          | Path the test process itself reads and writes that same content through. In CI this stays `/tmp` because `SUITE_TMP` is bound there inside the agent; locally it is set to `SUITE_TMP`, since the test process runs on the host.                                           |
+| `SUITE_IMAGE`                         | `authelia:dist` | Image the backend runs.                                                                                                                                                                                                                                                    |
+| `AGENT_CONTAINER`                     | _unset_         | Name of the container the tests run in. When set, that container is attached to the suite network on setup and detached on teardown, so Chrome can reach the portal.                                                                                                       |
+| `SUITE_OIDC_CONFORMANCE_MONGODB_HOST` | _unset_         | MongoDB host the OIDCConformance suite's conformance server uses. When set, the suite does not run its own MongoDB; the host has to be reachable from the suite network.                                                                                                   |
 
 ## Running Suites Concurrently
 
@@ -197,5 +198,21 @@ Creating a suite is as easy. Let's take the example of the **Standalone** suite:
 
 A suite can also be much more complex like setting up a complete Kubernetes ecosystem. You can check the Kubernetes
 suite as example.
+
+## Commit Message Toggles
+
+Our continuous integration reads the following options from the commit message. It reads the message of the commit
+being built, which for a pull request is its most recent commit, so an option has to be in that commit's message. An
+option can appear anywhere in the message; placing it in the body or the footer keeps the header within its format.
+
+- `[skip test]` or `[test skip]`: skips linting, the external tests, the coverage image build, and the integration
+  tests. Every other step, including the unit tests, still runs.
+- `[debug test]` or `[test debug]`: runs the integration suites with their opt-in debug output enabled. The OpenID
+  Connect 1.0 conformance suite groups its build log by plan, with each group holding its tests' `=== RUN` lines and
+  opening by itself when one of them fails, and logs a trace of what it did for each module, stamped with the time in
+  UTC, under that module's subtest. Without this option the build log is left as `go test` writes it. The trace is
+  available locally by setting the `SUITE_DEBUG` environment variable to `true` when running a suite.
+
+A commit whose header begins with `docs` also skips vulnerability scanning.
 
 [delve]: https://github.com/go-delve/delve

@@ -6,7 +6,6 @@ package main
 
 import (
 	"sort"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -62,19 +61,15 @@ func newRootCmd() *cobra.Command {
 	cmd.PersistentFlags().String(cmdFlagPackageScriptsGen, pkgScriptsGen, "Sets the package name of the authelia-scripts gen file")
 	cmd.PersistentFlags().String(cmdFlagFileConfigCommitLint, fileCICommitLintConfig, "The commit lint javascript configuration file in relation to the root")
 	cmd.PersistentFlags().String(cmdFlagFileDocsCommitMsgGuidelines, fileDocsCommitMessageGuidelines, "The commit message guidelines documentation file in relation to the root")
-	cmd.PersistentFlags().Bool("latest", false, "Enables latest functionality with several generators like the JSON Schema generator")
-	cmd.PersistentFlags().Bool("next", false, "Enables next functionality with several generators like the JSON Schema generator")
-	cmd.PersistentFlags().StringSlice(cmdFlagVersions, []string{}, "The versions to run the generator for, the special versions current and next are mutually exclusive")
+	cmd.PersistentFlags().StringSlice(cmdFlagVersions, []string{}, "The versions to run the generator for, the special versions major, minor, and current are mutually exclusive")
 
 	cmd.AddCommand(
 		newCodeCmd(),
-		newContributorsCmd(),
 		newDocsCmd(),
 		newGitHubCmd(),
 		newLocalesCmd(),
 		newCommitLintCmd(),
 		newMiscCmd(),
-		newReleaseCmd(),
 	)
 
 	return cmd
@@ -90,23 +85,15 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 	subCmds := sortCmds(cmd)
 
 	for _, subCmd := range subCmds {
-		if subCmd.Use == cmdUseCompletion || strings.HasPrefix(subCmd.Use, "help ") || utils.IsStringSliceContainsAny([]string{resolveCmdName(subCmd), subCmd.Use}, exclude) {
+		if subCmd.Name() == cmdUseCompletion || subCmd.Name() == cmdUseHelp || utils.IsStringSliceContainsAny([]string{resolveCmdName(subCmd), subCmd.Name()}, exclude) {
 			continue
 		}
 
-		if cmd.Use == cmdUseDocs && subCmd.Use == cmdUseManage {
+		if cmd.Name() == cmdUseDocs && subCmd.Name() == cmdUseManage {
 			continue
 		}
 
-		if cmd.Use == cmdUseRoot && subCmd.Use == cmdUseMisc {
-			continue
-		}
-
-		if cmd.Use == cmdUseRoot && subCmd.Use == cmdUseContributors {
-			continue
-		}
-
-		if cmd.Use == cmdUseRoot && subCmd.Use == cmdUseRelease {
+		if cmd.Name() == cmdUseRoot && subCmd.Name() == cmdUseMisc {
 			continue
 		}
 
@@ -123,30 +110,30 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 func sortCmds(cmd *cobra.Command) []*cobra.Command {
 	subCmds := cmd.Commands()
 
-	switch cmd.Use {
+	switch cmd.Name() {
 	case cmdUseRoot:
 		sort.Slice(subCmds, func(i, j int) bool {
-			switch subCmds[j].Use {
+			switch subCmds[j].Name() {
 			case cmdUseDocs:
 				// Ensure `docs` subCmd is last.
 				return true
 			default:
-				return subCmds[i].Use < subCmds[j].Use
+				return subCmds[i].Name() < subCmds[j].Name()
 			}
 		})
 	case cmdUseDocs:
 		sort.Slice(subCmds, func(i, j int) bool {
-			switch subCmds[j].Use {
+			switch subCmds[j].Name() {
 			case cmdUseDocsDate:
 				// Ensure `date` subCmd is last.
 				return true
 			default:
-				return subCmds[i].Use < subCmds[j].Use
+				return subCmds[i].Name() < subCmds[j].Name()
 			}
 		})
 	default:
 		sort.Slice(subCmds, func(i, j int) bool {
-			return subCmds[i].Use < subCmds[j].Use
+			return subCmds[i].Name() < subCmds[j].Name()
 		})
 	}
 
@@ -156,16 +143,16 @@ func sortCmds(cmd *cobra.Command) []*cobra.Command {
 func resolveCmdName(cmd *cobra.Command) string {
 	parent := cmd.Parent()
 
-	if parent != nil && parent.Use != cmd.Use && parent.Use != cmdUseRoot {
-		return resolveCmdName(parent) + "." + cmd.Use
+	if parent != nil && parent.Name() != cmd.Name() && parent.Name() != cmdUseRoot {
+		return resolveCmdName(parent) + "." + cmd.Name()
 	}
 
-	return cmd.Use
+	return cmd.Name()
 }
 
 func rootCmdGetArgs(cmd *cobra.Command, args []string) []string {
 	for cmd != nil && cmd != rootCmd {
-		args = append([]string{cmd.Use}, args...)
+		args = append([]string{cmd.Name()}, args...)
 
 		cmd = cmd.Parent()
 	}

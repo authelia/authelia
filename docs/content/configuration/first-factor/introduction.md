@@ -40,6 +40,8 @@ authentication_backend:
     custom_url: ''
   password_change:
     disable: false
+  registration:
+    custom_url: ''
 ```
 
 ## Options
@@ -74,8 +76,9 @@ This setting controls if users can reset their password from the web frontend or
 
 {{< confkey type="string" required="no" >}}
 
-The custom password reset URL. This replaces the inbuilt password reset functionality and disables the endpoints if
-this is configured to anything other than nothing or an empty string.
+The custom password reset URL. The scheme must be either `http` or `https`; any other scheme is rejected at startup.
+This replaces the inbuilt password reset functionality and disables the endpoints if this is configured to anything
+other than nothing or an empty string.
 
 ### password_change
 
@@ -84,6 +87,19 @@ this is configured to anything other than nothing or an empty string.
 {{< confkey type="boolean" default="false" required="no" >}}
 
 This setting controls if users can change their password from the web frontend or not.
+
+### registration
+
+#### custom_url
+
+{{< confkey type="string" required="no" >}}
+
+The URL of an external registration service. The scheme must be either `http` or `https`; any other scheme is rejected
+at startup. When this is configured to anything other than an empty string a registration link is displayed on the
+login page which opens this URL in a new tab.
+
+_Authelia_ has no internal registration functionality. This option only surfaces a link to a service you operate
+separately; accounts must still exist in the configured authentication backend before a user can sign in.
 
 ### file
 

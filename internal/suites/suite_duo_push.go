@@ -47,13 +47,12 @@ func init() {
 
 	GlobalRegistry.Register(duoPushSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     4 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
-
+		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite has been created to test Authelia against
 the Duo API for push notifications. It allows a user to validate second factor
 with a mobile phone.`,

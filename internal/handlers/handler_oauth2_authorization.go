@@ -184,7 +184,11 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 }
 
 // OAuth2AuthorizationPOST handles redirecting users to use the GET request to ensure the session cookie is
-// included if available.
+// included if available. The redirection uses the 303 status code as it's the only status code which
+// unambiguously instructs the user-agent to rewrite the request method to GET, and per the FAPI 2.0 Security
+// Profile Section 5.3.2.2 the authorization server should use 303 when redirecting the user-agent.
+//
+// https://openid.net/specs/fapi-security-profile-2_0-final.html
 func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	requester := oauthelia2.NewAuthorizeRequest()
 
@@ -220,5 +224,5 @@ func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 
 	redirectURL.RawQuery = query.Encode()
 
-	http.Redirect(rw, r, redirectURL.String(), http.StatusFound)
+	http.Redirect(rw, r, redirectURL.String(), http.StatusSeeOther)
 }

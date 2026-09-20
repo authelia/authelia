@@ -102,10 +102,10 @@ func init() {
 
 	GlobalRegistry.Register(kubernetesSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    12 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
 		Description:     "This suite has been created to test Authelia in a Kubernetes context and using Traefik as the ingress controller.",
 	})
 }

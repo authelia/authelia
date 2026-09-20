@@ -57,6 +57,9 @@ func HostEntries() []HostEntry {
 		{Domain: "oidc.example.com", IP: portal},
 		{Domain: "oidc-public.example.com", IP: portal},
 
+		// OpenID Connect 1.0 conformance suite.
+		{Domain: "conformance.example.com", IP: portal},
+
 		// For Traefik suite.
 		{Domain: "traefik.example.com", IP: portal},
 

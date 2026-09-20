@@ -47,6 +47,7 @@ document.body.dataset.duoselfenrollment = "true";
 document.body.dataset.rememberme = "true";
 document.body.dataset.resetpassword = "true";
 document.body.dataset.resetpasswordcustomurl = "";
+document.body.dataset.registrationurl = "";
 document.body.dataset.privacypolicyurl = "";
 document.body.dataset.privacypolicyaccept = "false";
 document.body.dataset.passkeylogin = "true";

@@ -43,13 +43,12 @@ func init() {
 
 	GlobalRegistry.Register(dockerSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     1 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
-
+		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite has been created to test the distributable version of Authelia
 It's often useful to test this one before the Kube one.`,
 	})
