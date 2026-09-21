@@ -93,13 +93,13 @@ Below are Terraform code snippets that describe how to configure the OIDC auth b
 Terraform Vault Provider v5.11 was used with this example.
 
 ```hcl {title="vault_jwt_auth_backend resource"}
-resource "vault_jwt_auth_backend" "YOUR RESOURCE LABEL HERE" {
+resource "vault_jwt_auth_backend" "anthelia" {
   description                   = ""
-  path                          = "" # Required - The path to mount the auth endpoint on
+  path                          = "oidc"
   type                          = "oidc"
   oidc_discovery_url            = "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
-  oidc_client_id                = "The client ID used in your Authelia client configuration for the Vault server."
-  oidc_client_secret_wo         = "The client secret used in your Authelia client configuration for the Vault server." # Note that this needs to be the actual secret value, not the digest version used in the Authelia client configuration.
+  oidc_client_id                = "vault"
+  oidc_client_secret_wo         = "insecure_secret"
   oidc_client_secret_wo_version = 1
   bound_issuer                  = "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
   default_role                  = "authelia"
@@ -108,9 +108,9 @@ resource "vault_jwt_auth_backend" "YOUR RESOURCE LABEL HERE" {
 ```
 
 ```hcl {title="vault_jwt_auth_backend_role resource"}
-resource "vault_jwt_auth_backend_role" "YOUR RESOURCE LABEL HERE" {
-  backend    = vault_jwt_auth_backend.YOUR RESOURCE LABEL HERE.path
-  role_name  = "" # REQUIRED - The name to give the Vault role
+resource "vault_jwt_auth_backend_role" "anthelia" {
+  backend    = vault_jwt_auth_backend.authelia.path
+  role_name  = "authelia"
   role_type  = "oidc"
   user_claim = "sub" # REQUIRED
   allowed_redirect_uris = [
