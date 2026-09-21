@@ -6,6 +6,7 @@ package validator
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,6 +52,7 @@ func TestValidateTOTP(t *testing.T) {
 				AllowedAlgorithms: []string{schema.TOTPAlgorithmSHA1},
 				AllowedDigits:     []int{6},
 				AllowedPeriods:    []int{30},
+				Apps:              schema.DefaultTOTPApps,
 			},
 		},
 		{
@@ -76,6 +78,7 @@ func TestValidateTOTP(t *testing.T) {
 				AllowedAlgorithms: []string{schema.TOTPAlgorithmSHA1},
 				AllowedDigits:     []int{6},
 				AllowedPeriods:    []int{30},
+				Apps:              schema.DefaultTOTPApps,
 			},
 		},
 		{
@@ -91,6 +94,100 @@ func TestValidateTOTP(t *testing.T) {
 			errs: []string{
 				"totp: option 'algorithm' must be one of 'SHA1', 'SHA256', or 'SHA512' but it's configured as 'SHA3'",
 			},
+		},
+		{
+			desc: "ShouldKeepConfiguredTOTPApps",
+			have: schema.TOTP{
+				Apps: schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "apps.apple.com", Path: "/us/app/example/id1"}},
+					GooglePlay: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=org.example.otp"}},
+				},
+			},
+			expected: func() schema.TOTP {
+				expected := schema.DefaultTOTPConfiguration
+				expected.Apps = schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "apps.apple.com", Path: "/us/app/example/id1"}},
+					GooglePlay: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=org.example.otp"}},
+				}
+
+				return expected
+			}(),
+		},
+		{
+			desc: "ShouldDefaultOnlyTheUnconfiguredTOTPApp",
+			have: schema.TOTP{
+				Apps: schema.TOTPApps{
+					GooglePlay: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=org.example.otp"}},
+				},
+			},
+			expected: func() schema.TOTP {
+				expected := schema.DefaultTOTPConfiguration
+				expected.Apps = schema.TOTPApps{
+					AppleStore: schema.DefaultTOTPApps.AppleStore,
+					GooglePlay: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=org.example.otp"}},
+				}
+
+				return expected
+			}(),
+		},
+		{
+			desc: "ShouldNotDefaultDisabledTOTPApp",
+			have: schema.TOTP{
+				Apps: schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{Disable: true},
+				},
+			},
+			expected: func() schema.TOTP {
+				expected := schema.DefaultTOTPConfiguration
+				expected.Apps = schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{Disable: true},
+					GooglePlay: schema.DefaultTOTPApps.GooglePlay,
+				}
+
+				return expected
+			}(),
+		},
+		{
+			desc: "ShouldRaiseErrorWhenTOTPAppIsNotHTTPS",
+			have: schema.TOTP{
+				Apps: schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{URL: url.URL{Scheme: "market", Host: "details"}},
+					GooglePlay: schema.TOTPAppsStore{URL: url.URL{Scheme: "http", Host: "play.google.com"}},
+				},
+			},
+			errs: []string{
+				"totp: apps: apple_store: option 'url' is configured to 'market://details' which has the scheme 'market' but the scheme must be 'https'",
+				"totp: apps: google_play: option 'url' is configured to 'http://play.google.com' which has the scheme 'http' but the scheme must be 'https'",
+			},
+		},
+		{
+			desc: "ShouldRaiseErrorWhenTOTPAppHasNoHost",
+			have: schema.TOTP{
+				Apps: schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", OmitHost: true, Path: "/app"}},
+				},
+			},
+			errs: []string{
+				"totp: apps: apple_store: option 'url' is configured to 'https:/app' which does not have a host but it must be an absolute URL with a host",
+			},
+		},
+		{
+			desc: "ShouldNotRaiseErrorWhenTOTPAppIsNotHTTPSAndDisabled",
+			have: schema.TOTP{
+				Apps: schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{Disable: true, URL: url.URL{Scheme: "market", Host: "details"}},
+					GooglePlay: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=org.example.otp"}},
+				},
+			},
+			expected: func() schema.TOTP {
+				expected := schema.DefaultTOTPConfiguration
+				expected.Apps = schema.TOTPApps{
+					AppleStore: schema.TOTPAppsStore{Disable: true, URL: url.URL{Scheme: "market", Host: "details"}},
+					GooglePlay: schema.TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=org.example.otp"}},
+				}
+
+				return expected
+			}(),
 		},
 		{
 			desc: "ShouldRaiseErrorWhenInvalidTOTPValue",
@@ -160,6 +257,7 @@ func TestValidateTOTP(t *testing.T) {
 				assert.Equal(t, tc.expected.AllowedAlgorithms, config.TOTP.AllowedAlgorithms)
 				assert.Equal(t, tc.expected.AllowedDigits, config.TOTP.AllowedDigits)
 				assert.Equal(t, tc.expected.AllowedPeriods, config.TOTP.AllowedPeriods)
+				assert.Equal(t, tc.expected.Apps, config.TOTP.Apps)
 			} else {
 				expectedErrs := len(tc.errs)
 

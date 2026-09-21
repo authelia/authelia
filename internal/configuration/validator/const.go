@@ -99,6 +99,8 @@ const (
 		"it must be either in duration common syntax or one of 'disable', or 'always': %w"
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
+	errFmtAuthBackendRegistrationCustomURLScheme = "authentication_backend: registration: option 'custom_url' is" +
+		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"
@@ -151,6 +153,8 @@ const (
 	errFmtTOTPInvalidDigits           = "totp: option 'digits' must be 6 or 8 but it's configured as '%d'"
 	errFmtTOTPInvalidAllowedDigit     = "totp: option 'allowed_digits' must only have the values 6 or 8 but one of the values is '%d'"
 	errFmtTOTPInvalidSecretSize       = "totp: option 'secret_size' must be %d or higher but it's configured as '%d'" //nolint:gosec
+	errFmtTOTPAppsInvalidScheme       = "totp: apps: %s: option 'url' is configured to '%s' which has the scheme '%s' but the scheme must be 'https'"
+	errFmtTOTPAppsMissingHost         = "totp: apps: %s: option 'url' is configured to '%s' which does not have a host but it must be an absolute URL with a host"
 )
 
 // Storage Error constants.
@@ -449,6 +453,10 @@ const (
 	errFmtServerEndpointsAuthzStrategySchemeOnlyOption  = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option '%s' can't be configured unless the '%s' scheme is configured but only the %s schemes are configured"
 	errFmtServerEndpointsAuthzStrategyDuplicate         = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
 	errFmtServerEndpointsAuthzPrefixDuplicate           = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
+	errFmtServerEndpointsHealthProviderUnknown          = "server: endpoints: health: option 'providers' must only include the values %s but it's configured as '%s'"
+	errFmtServerEndpointsHealthProviderDuplicate        = "server: endpoints: health: option 'providers' has a duplicate value '%s'"
+	errFmtServerEndpointsHealthCacheNegative            = "server: endpoints: health: option 'cache' must be greater than or equal to 0 but it's configured as '%s'"
+	errFmtServerEndpointsHealthDetailedNotVerbose       = "server: endpoints: health: option 'detailed' has no effect unless option 'verbose' is enabled"
 	errFmtServerEndpointsRateLimitsBucketPeriodZero     = "server: endpoints: rate_limits: %s: bucket %d: option 'period' must have a value"
 	errFmtServerEndpointsRateLimitsBucketPeriodTooLow   = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
 	errFmtServerEndpointsRateLimitsBucketRequestsZero   = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"

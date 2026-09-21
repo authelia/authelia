@@ -13,9 +13,9 @@
     "preview": "vite preview --outDir public"
   },
   "dependencies": {
-    "@docsearch/css": "5.1.0",
-    "@docsearch/js": "5.1.0",
-    "@tabler/icons": "3.46.0",
+    "@docsearch/css": "5.1.1",
+    "@docsearch/js": "5.1.1",
+    "@tabler/icons": "3.47.0",
     "@thulite/core": "1.5.9",
     "@thulite/doks-core": "1.9.3",
     "@thulite/images": "3.3.4",
@@ -35,14 +35,14 @@
     "basiclightbox": "5.0.4",
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
-    "eslint": "10.10.0",
+    "eslint": "10.11.0",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",
     "eslint-plugin-prettier": "5.5.6",
     "flexsearch": "0.8.212",
     "postcss": "8.5.28",
     "postcss-cli": "12.0.0",
-    "prettier": "3.9.6",
+    "prettier": "3.9.8",
     "vite": "8.3.0"
   },
   "optionalDependencies": {
@@ -52,7 +52,7 @@
     "node": ">=24.13.0",
     "pnpm": "12"
   },
-  "packageManager": "pnpm@12.4.2",
+  "packageManager": "pnpm@12.5.1",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

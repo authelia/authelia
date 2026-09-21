@@ -27,10 +27,6 @@ vi.mock("@contexts/NotificationsContext", () => ({
     }),
 }));
 
-vi.mock("@constants/constants", () => ({
-    GoogleAuthenticator: { appleStore: "https://apple.example.com", googlePlay: "https://play.example.com" },
-}));
-
 vi.mock("@services/OneTimePassword", () => ({
     completeTOTPRegister: vi.fn(),
     stopTOTPRegister: vi.fn(),
@@ -45,7 +41,13 @@ vi.mock("@services/UserInfoTOTPConfiguration", () => ({
 }));
 
 vi.mock("@components/AppStoreBadges", () => ({
-    default: () => <div data-testid="app-store-badges" />,
+    default: (props: any) => (
+        <div
+            data-testid="app-store-badges"
+            data-apple-store={props.appleStoreLink}
+            data-google-play={props.googlePlayLink}
+        />
+    ),
 }));
 
 vi.mock("@components/CopyButton", () => ({
@@ -304,6 +306,74 @@ describe("register step", () => {
         await advanceToRegisterStep();
 
         expect(screen.getByTestId("app-store-badges")).toBeInTheDocument();
+    });
+
+    it("takes the store badge links from the configuration", async () => {
+        const appleStore = document.body.dataset.totpappapplestore;
+        const googlePlay = document.body.dataset.totpappgoogleplay;
+
+        document.body.dataset.totpappapplestore = "https://apps.example.com/app/id1";
+        document.body.dataset.totpappgoogleplay = "https://play.example.com/store/apps/details?id=org.example.otp";
+
+        try {
+            renderDialog();
+            await advanceToRegisterStep();
+
+            const badges = screen.getByTestId("app-store-badges");
+
+            expect(badges).toHaveAttribute("data-apple-store", "https://apps.example.com/app/id1");
+            expect(badges).toHaveAttribute(
+                "data-google-play",
+                "https://play.example.com/store/apps/details?id=org.example.otp",
+            );
+        } finally {
+            document.body.dataset.totpappapplestore = appleStore as string;
+            document.body.dataset.totpappgoogleplay = googlePlay as string;
+        }
+    });
+
+    it("omits the prompt and the badges when both stores are disabled", async () => {
+        const appleStore = document.body.dataset.totpappapplestore;
+        const googlePlay = document.body.dataset.totpappgoogleplay;
+
+        document.body.dataset.totpappapplestore = "";
+        document.body.dataset.totpappgoogleplay = "";
+
+        try {
+            renderDialog();
+            await advanceToRegisterStep();
+
+            expect(screen.queryByTestId("app-store-badges")).not.toBeInTheDocument();
+            expect(screen.queryByText("Need an authenticator app?")).not.toBeInTheDocument();
+        } finally {
+            document.body.dataset.totpappapplestore = appleStore as string;
+            document.body.dataset.totpappgoogleplay = googlePlay as string;
+        }
+    });
+
+    it("keeps the prompt when only one store is disabled", async () => {
+        const appleStore = document.body.dataset.totpappapplestore;
+        const googlePlay = document.body.dataset.totpappgoogleplay;
+
+        document.body.dataset.totpappapplestore = "";
+        document.body.dataset.totpappgoogleplay = "https://play.example.com/store/apps/details?id=org.example.otp";
+
+        try {
+            renderDialog();
+            await advanceToRegisterStep();
+
+            const badges = screen.getByTestId("app-store-badges");
+
+            expect(badges).toHaveAttribute("data-apple-store", "");
+            expect(badges).toHaveAttribute(
+                "data-google-play",
+                "https://play.example.com/store/apps/details?id=org.example.otp",
+            );
+            expect(screen.getByText("Need an authenticator app?")).toBeInTheDocument();
+        } finally {
+            document.body.dataset.totpappapplestore = appleStore as string;
+            document.body.dataset.totpappgoogleplay = googlePlay as string;
+        }
     });
 
     it("exposes the URI and secret through copy buttons", async () => {
