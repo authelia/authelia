@@ -62,6 +62,7 @@ ignore-hidden = false
 extend-exclude = [
     ".git/",
     ".claude/",
+    "_tmp_*",
     "*.svg",
     "go.sum",
     "*-lock.yaml",
