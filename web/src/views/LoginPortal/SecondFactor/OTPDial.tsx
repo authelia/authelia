@@ -42,9 +42,11 @@ const OTPDial = function (props: Props) {
                 id="otp-input"
                 className={cn(
                     "mt-4 inline-block",
-                    "[&_input]:mx-1 [&_input]:box-border [&_input]:size-10 [&_input]:rounded-[5px] [&_input]:border [&_input]:border-black/30 [&_input]:text-center [&_input]:text-lg",
+                    "[&_input]:mx-1 [&_input]:box-border [&_input]:size-10 [&_input]:rounded-[5px] [&_input]:border [&_input]:border-input [&_input]:bg-transparent [&_input]:text-center [&_input]:text-lg [&_input]:outline-none dark:[&_input]:bg-input/30",
+                    "[&_input:focus-visible]:border-ring [&_input:focus-visible]:ring-[3px] [&_input:focus-visible]:ring-ring/50",
                     "[&_input:disabled]:cursor-not-allowed [&_input:disabled]:opacity-50",
-                    props.state === State.Failure && "[&_input]:border-[rgba(255,2,2,0.95)]",
+                    props.state === State.Failure &&
+                        "[&_input]:border-destructive [&_input]:ring-destructive/20 dark:[&_input]:ring-destructive/40",
                 )}
             >
                 <label htmlFor={fieldId} className="sr-only">
