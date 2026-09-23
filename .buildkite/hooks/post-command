@@ -6,6 +6,9 @@
 
 set +eu
 
+# shellcheck source=/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/../libs/common.sh"
+
 cleanup_tags() {
   local docker_list="${1}" github_list="${2}"
   local tag i ghcr_version
@@ -14,7 +17,7 @@ cleanup_tags() {
     echo "Removing tag ${tag} from docker.io"
     curl -fsL --retry 3 -o /dev/null -X DELETE -H "Authorization: JWT ${authtoken}" "https://hub.docker.com/v2/repositories/authelia/authelia/tags/${tag}/"
     for i in {1..5}; do
-      for ghcr_version in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq -j --arg tag "${tag}" '.[] | select(.metadata.container.tags[] | contains($tag)) | .metadata.container.tags[], ",", .id, "\n"'); do
+      for ghcr_version in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq -j --arg tag "${tag}" '.[] | select(.metadata.container.tags | index($tag)) | .metadata.container.tags[], ",", .id, "\n"'); do
         IFS=',' read -ra tagid <<< "${ghcr_version}"
         echo "Removing tag ${tagid[0]} with id ${tagid[1]} from ghcr.io"
         curl -fsL --retry 3 -o /dev/null -X DELETE -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions/${tagid[1]}"
@@ -123,7 +126,8 @@ if [[ ${BUILDKITE_LABEL} == ":docker: Deploy Manifest" ]] && [[ ${BUILDKITE_BRAN
 
   echo "--- :docker: Removing tags for deleted branches"
   dockerbranchtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR") | not)' | sed -r '/^(latest|master|develop|v.*|([[:digit:]]+)\.?([[:digit:]]+)?\.?([[:digit:]]+)?)$/d' | sort)
-  githubbranches=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/branches?per_page=100 | jq -r '.[].name' | sort)
+  githubbranches=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/branches?per_page=100 | jq -r '.[].name')
+  githubbranches=$(sanitize_tag "${githubbranches}" | sort)
   cleanup_tags "${dockerbranchtags}" "${githubbranches}"
 
   echo "--- :docker: Removing tags for merged or closed pull requests"
