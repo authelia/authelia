@@ -52,7 +52,7 @@
     "node": ">=24.13.0",
     "pnpm": "12"
   },
-  "packageManager": "pnpm@12.5.1",
+  "packageManager": "pnpm@12.6.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
