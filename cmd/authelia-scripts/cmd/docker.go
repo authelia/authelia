@@ -27,6 +27,7 @@ var (
 	dockerTags       = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 	ignoredSuffixes  = regexp.MustCompile("alpha|beta")
 	publicRepo       = regexp.MustCompile(`.*:.*`)
+	tagUnsafe        = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
 	tags             = dockerTags.FindStringSubmatch(ciTag)
 )
 
@@ -122,7 +123,7 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
 		login(docker, dockerhub)
 		login(docker, ghcr)
-		deployManifest(docker, cve, ciBranch)
+		deployManifest(docker, cve, sanitizeTag(ciBranch))
 	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
 		login(docker, dockerhub)
 		login(docker, ghcr)
@@ -136,6 +137,10 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 	default:
 		log.Info("Docker manifest will not be published")
 	}
+}
+
+func sanitizeTag(tag string) string {
+	return tagUnsafe.ReplaceAllString(tag, "-")
 }
 
 func checkContainerIsSupported(container string) {

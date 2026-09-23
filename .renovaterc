@@ -6,7 +6,7 @@
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
-  "branchPrefix": "renovate-",
+  "branchPrefixOld": "renovate-",
   "rebaseWhen": "conflicted",
   "ignorePresets": [
     ":prHourlyLimit2",
