@@ -210,6 +210,43 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	s.Assert().Equal(fasthttp.StatusOK, res.StatusCode)
 }
 
+func (s *StandaloneSuite) TestShouldRespectAccessDeniedRedirectOptOut() {
+	testCases := []struct {
+		name     string
+		endpoint string
+		expected int
+	}{
+		{"ShouldRedirectToTheAccessDeniedPage", "forward-auth", fasthttp.StatusFound},
+		{"ShouldRespondForbiddenWhenDisabled", "forward-auth-no-redirect", fasthttp.StatusForbidden},
+	}
+
+	client := NewHTTPClient()
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/authz/%s?authelia_url=%s", AutheliaBaseURL, tc.endpoint, url.QueryEscape(GetLoginBaseURL(BaseDomain))), nil)
+			s.Require().NoError(err)
+
+			req.Header.Set("X-Forwarded-Method", fasthttp.MethodGet)
+			req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+			req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("deny.%s", BaseDomain))
+			req.Header.Set("X-Forwarded-URI", "/secret.html")
+			req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
+
+			res, err := client.Do(req)
+			s.Require().NoError(err)
+
+			s.Assert().Equal(tc.expected, res.StatusCode)
+
+			if tc.expected == fasthttp.StatusFound {
+				s.Assert().Contains(res.Header.Get(fasthttp.HeaderLocation), "/error?ec=forbidden")
+			} else {
+				s.Assert().Equal("", res.Header.Get(fasthttp.HeaderLocation))
+			}
+		})
+	}
+}
+
 func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)

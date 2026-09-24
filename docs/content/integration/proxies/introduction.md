@@ -154,6 +154,10 @@ their session cookie the portal can instead show them an access denied page:
 - The `Legacy` implementation always responds with a plain
   [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
 
+The access denied page can be turned off per endpoint with the
+[disable_access_denied_redirect](../../configuration/miscellaneous/server-endpoints-authz.md#disable_access_denied_redirect)
+option, which restores the plain [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
+
 ### Response Headers
 
 With the exception of the [200 OK](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200) status response and a

@@ -50,6 +50,8 @@ type ServerEndpointsAuthz struct {
 	Implementation string `koanf:"implementation" yaml:"implementation,omitempty" toml:"implementation,omitempty" json:"implementation,omitempty" jsonschema:"enum=ForwardAuth,enum=AuthRequest,enum=ExtAuthz,enum=Legacy,title=Implementation" jsonschema_description:"The specific Authorization implementation to use for this endpoint."`
 
 	AuthnStrategies []ServerEndpointsAuthzAuthnStrategy `koanf:"authn_strategies" yaml:"authn_strategies,omitempty" toml:"authn_strategies,omitempty" json:"authn_strategies,omitempty" jsonschema:"title=Authn Strategies" jsonschema_description:"The specific Authorization strategies to use for this endpoint."`
+
+	DisableAccessDeniedRedirect bool `koanf:"disable_access_denied_redirect" yaml:"disable_access_denied_redirect" toml:"disable_access_denied_redirect" json:"disable_access_denied_redirect" jsonschema:"default=false,title=Disable Access Denied Redirect" jsonschema_description:"Disables redirecting users denied by an access control rule to the access denied page, responding with the Forbidden status instead."`
 }
 
 // ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server.

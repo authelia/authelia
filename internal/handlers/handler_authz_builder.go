@@ -76,6 +76,8 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
 func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
+	b.disableAccessDeniedRedirect = config.DisableAccessDeniedRedirect
+
 	switch config.Implementation {
 	case AuthzImplForwardAuth.String():
 		b.WithImplementationForwardAuth()
@@ -151,6 +153,10 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
 		authz.handleForbidden = handleAuthzForbiddenCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
+	}
+
+	if b.disableAccessDeniedRedirect {
+		authz.handleForbidden = handleAuthzForbiddenStandard
 	}
 
 	return authz

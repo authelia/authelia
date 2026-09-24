@@ -45,6 +45,27 @@ func TestAuthzBuilder_WithConfig(t *testing.T) {
 	assert.Equal(t, schema.NewRefreshIntervalDuration(time.Minute), builder.config.RefreshInterval)
 }
 
+func TestAuthzBuilder_WithEndpointConfigDisableAccessDeniedRedirect(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.ServerEndpointsAuthz
+		expected bool
+	}{
+		{"ShouldDefaultToTheRedirect", schema.ServerEndpointsAuthz{Implementation: "ForwardAuth"}, false},
+		{"ShouldDisableTheRedirect", schema.ServerEndpointsAuthz{Implementation: "ForwardAuth", DisableAccessDeniedRedirect: true}, true},
+		{"ShouldDisableTheRedirectExtAuthz", schema.ServerEndpointsAuthz{Implementation: "ExtAuthz", DisableAccessDeniedRedirect: true}, true},
+		{"ShouldDisableTheRedirectAuthRequest", schema.ServerEndpointsAuthz{Implementation: "AuthRequest", DisableAccessDeniedRedirect: true}, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			builder := NewAuthzBuilder().WithEndpointConfig(tc.have)
+
+			assert.Equal(t, tc.expected, builder.disableAccessDeniedRedirect)
+		})
+	}
+}
+
 func TestAuthzBuilder_WithEndpointConfig(t *testing.T) {
 	builder := NewAuthzBuilder()
 

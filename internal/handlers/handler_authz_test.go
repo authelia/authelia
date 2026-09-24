@@ -3092,6 +3092,48 @@ func (s *AuthzSuite) TestShouldHandleForbiddenCookieSession() {
 	}
 }
 
+func (s *AuthzSuite) TestShouldHandleForbiddenCookieSessionWithAccessDeniedRedirectDisabled() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	builder := s.Builder()
+
+	builder = builder.
+		WithEndpointConfig(schema.ServerEndpointsAuthz{Implementation: s.implementation.String(), DisableAccessDeniedRedirect: true}).
+		WithStrategies(NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)))
+
+	authz := builder.Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+	targetURI := s.RequireParseRequestURI("https://deny.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	userSession.Username = testUsername
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.LastActivity = mock.Clock.Now().Unix()
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+}
+
 func TestAuthzGetForbiddenRedirectionURL(t *testing.T) {
 	object := authorization.Object{
 		URL:    &url.URL{Scheme: "https", Host: "deny.example.com", Path: "/secret.html"},

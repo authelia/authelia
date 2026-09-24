@@ -112,6 +112,8 @@ type AuthzBuilder struct {
 	config         AuthzConfig
 	implementation AuthzImplementation
 	strategies     []AuthnStrategy
+
+	disableAccessDeniedRedirect bool
 }
 
 // AuthnStrategy is a strategy used for Authz authentication.

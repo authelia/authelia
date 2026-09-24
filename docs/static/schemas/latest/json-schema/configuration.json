@@ -3657,6 +3657,12 @@
           "type": "array",
           "title": "Authn Strategies",
           "description": "The specific Authorization strategies to use for this endpoint."
+        },
+        "disable_access_denied_redirect": {
+          "type": "boolean",
+          "title": "Disable Access Denied Redirect",
+          "description": "Disables redirecting users denied by an access control rule to the access denied page, responding with the Forbidden status instead.",
+          "default": false
         }
       },
       "additionalProperties": false,
