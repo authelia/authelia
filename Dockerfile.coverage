@@ -16,8 +16,7 @@ ENV \
 COPY --link web ./
 
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-	wget -qO /tmp/pnpm-install.sh https://get.pnpm.io/install.sh && \
-    echo '44dfbba11a70a9751090894a07f8d64c9f7954cb782dfe39a1f2b2753e1d5eea /tmp/pnpm-install.sh' | sha256sum -c - && \
+	wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/916ce9e8412d2ce06bb7106a53ce24690b9001dd/install.sh && \
     ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
     pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm/store && \
     pnpm coverage
