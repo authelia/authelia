@@ -22,7 +22,7 @@
     "@thulite/inline-svg": "1.2.2",
     "@thulite/seo": "2.4.3",
     "bootstrap-icons": "1.13.1",
-    "thulite": "2.6.5"
+    "thulite": "3.0.2"
   },
   "devDependencies": {
     "@changesets/changelog-github": "1.0.1",
