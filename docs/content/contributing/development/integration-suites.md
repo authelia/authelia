@@ -167,7 +167,7 @@ authelia-scripts suites test
 
 ### Run tests in headless mode
 
-As you might have noticed, the tests are run using chromedriver and selenium. It means that the tests open an instance
+As you might have noticed, the tests are run using go-rod driving Chrome. It means that the tests open an instance
 of Chrome that might interfere with your other activities. In order to run the tests in headless mode to avoid the
 interference, use the following command:
 

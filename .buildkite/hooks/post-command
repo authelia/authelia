@@ -34,7 +34,7 @@ if [[ ${BUILDKITE_PULL_REQUEST} != "false" ]] && [[ ${CI_PRIVATE} != "true" ]]; 
 fi
 
 if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} == 0 ]]; then
-  if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]] || [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
+  if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]] || [[ ${BUILDKITE_LABEL} =~ :chrome: ]]; then
     echo "--- :codecov: Upload coverage reports"
     NAME="UnitTest"
     if [[ ${SUITE} != "" ]]; then
@@ -51,7 +51,7 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
     codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z --plugin noop --disable-search -n "${NAME}" -F backend -f 'coverage*.txt'
 
     if [[ ! ${NAME} =~ ^(BypassAll|CLI|PAM)$ ]]; then
-      if [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
+      if [[ ${BUILDKITE_LABEL} =~ :chrome: ]]; then
         pnpm -C web report
       fi
 
@@ -60,7 +60,7 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
   fi
 fi
 
-if [[ ${BUILDKITE_LABEL} =~ (:selenium:|:nodejs:) ]] && [[ -n ${BUILDKITE_ANALYTICS_TOKEN} ]]; then
+if [[ ${BUILDKITE_LABEL} =~ (:chrome:|:nodejs:) ]] && [[ -n ${BUILDKITE_ANALYTICS_TOKEN} ]]; then
   echo "--- :buildkite: Upload test results to Test Engine"
   for RESULTS in test-results-*.json; do
     [[ -f ${RESULTS} ]] || continue
@@ -91,12 +91,12 @@ if [[ ${BUILDKITE_LABEL} =~ (:selenium:|:nodejs:) ]] && [[ -n ${BUILDKITE_ANALYT
   done
 fi
 
-if [[ ${BUILDKITE_LABEL} =~ (:selenium:|:nodejs:) ]] && [[ -d screenshots ]]; then
+if [[ ${BUILDKITE_LABEL} =~ (:chrome:|:nodejs:) ]] && [[ -d screenshots ]]; then
   echo "--- :camera_with_flash: Annotating failure screenshots"
   buildkite-agent annotate --style "error" --context "ctx-screenshots" --append < <(bash .buildkite/annotations/screenshots.sh)
 fi
 
-if [[ ${BUILDKITE_LABEL} =~ :selenium: ]] || [[ ${BUILDKITE_LABEL} =~ :docker:\ Build\ Image ]]; then
+if [[ ${BUILDKITE_LABEL} =~ :chrome: ]] || [[ ${BUILDKITE_LABEL} =~ :docker:\ Build\ Image ]]; then
   mapfile -t CONTAINERS < <(docker ps -a -q --filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME:-authelia}")
   if [[ ${#CONTAINERS[@]} -gt 0 ]]; then
     echo "--- :docker: Remove lingering containers"
