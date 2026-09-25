@@ -835,7 +835,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantParseUUID(
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	assertConsentCompletionRedirect(s.T(), s.mock, "", "")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred parsing the consent session flow id", map[string]any{"error": "invalid UUID length: 55", "flow": "openid_connect", "flow_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaa-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
@@ -877,7 +877,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetConsent
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	assertConsentCompletionRedirect(s.T(), s.mock, "", "")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred loading the consent session", map[string]any{"error": "failed to obtain", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
@@ -919,7 +919,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSession
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	assertConsentCompletionRedirect(s.T(), s.mock, "", "")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to process consent session as it has already been responded to", map[string]any{"flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
@@ -964,7 +964,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	assertConsentCompletionRedirect(s.T(), s.mock, "", "")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred loading the client for the consent session", map[string]any{"error": "invalid_client", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
@@ -1081,7 +1081,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	assertConsentCompletionRedirect(s.T(), s.mock, "", "")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred getting the original form from the consent session", map[string]any{"error": "invalid URL escape \"%1\"", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": "", "username": "test"})
 }
 
