@@ -181,7 +181,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes),
 			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
 			ctx.GetLogger().WithError(err).Error("Error occurred updating the user password as it does not meet the complexity requirements of the backend")
-			ctx.SetJSONError(ldapPasswordComplexityCode)
+			ctx.SetJSONError(messagePasswordBackendComplexity)
 		default:
 			ctx.GetLogger().WithError(err).Error("Error occurred updating the user password")
 			ctx.SetJSONError(messageUnableToResetPassword)

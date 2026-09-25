@@ -13,6 +13,7 @@ import {
     toData,
     validateStatusOneTimeCode,
 } from "@services/Api";
+import { ServiceError } from "@services/ServiceError";
 
 export interface UserSessionElevation {
     require_second_factor: boolean;
@@ -34,8 +35,12 @@ export async function getUserSessionElevation() {
     });
 
     if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(
-            `Failed POST to ${UserSessionElevationPath}. Code: ${res.status}. Message: ${hasServiceError(res).message}`,
+        const { code, message } = hasServiceError(res);
+
+        throw new ServiceError(
+            `Failed POST to ${UserSessionElevationPath}. Code: ${res.status}. Message: ${message}`,
+            res.status,
+            code,
         );
     }
 
@@ -49,8 +54,12 @@ export async function generateUserSessionElevation() {
     });
 
     if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(
-            `Failed POST to ${UserSessionElevationPath}. Code: ${res.status}. Message: ${hasServiceError(res).message}`,
+        const { code, message } = hasServiceError(res);
+
+        throw new ServiceError(
+            `Failed POST to ${UserSessionElevationPath}. Code: ${res.status}. Message: ${message}`,
+            res.status,
+            code,
         );
     }
 
