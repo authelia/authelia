@@ -290,7 +290,7 @@ func (p *DefaultStrategy) getCookieID(ctx Context) (id []byte) {
 
 	var err error
 
-	if id, err = base64.RawURLEncoding.DecodeString(value); err != nil {
+	if id, err = base64.RawURLEncoding.DecodeString(value); err != nil || len(id) != sessionIDLength {
 		return nil
 	}
 

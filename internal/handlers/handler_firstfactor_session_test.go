@@ -29,7 +29,7 @@ func TestFirstFactorPasswordPOSTSessionErrors(t *testing.T) {
 		{
 			"ShouldContinueWhenDestroyFails",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx, repository *failingSessionRepository) {
-				mock.Ctx.Request.Header.SetCookie("authelia_session", "an-identifier-which-was-never-saved")
+				mock.Ctx.Request.Header.SetCookie("authelia_session", newTestSessionCookie("an-identifier-which-was-never-saved"))
 
 				repository.errDelete = errTestSessionBackend
 			},
@@ -175,7 +175,7 @@ func TestFirstFactorPasskeyPOSTSessionErrors(t *testing.T) {
 		repository := setupTestFailingSessionRepository(t, mock)
 		repository.errGet = errTestSessionBackend
 
-		mock.Ctx.Request.Header.SetCookie("authelia_session", "an-identifier-which-cannot-be-retrieved")
+		mock.Ctx.Request.Header.SetCookie("authelia_session", newTestSessionCookie("an-identifier-which-cannot-be-retrieved"))
 
 		FirstFactorPasskeyPOST(mock.Ctx)
 

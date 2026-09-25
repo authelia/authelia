@@ -6,6 +6,8 @@ package middlewares_test
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"net/http"
 	"net/url"
 	"testing"
@@ -32,7 +34,7 @@ func TestAutheliaCtxShouldFallBackToADefaultSessionWhenTheSessionCannotBeOpened(
 
 	mock.Ctx.Providers.Session = provider
 
-	mock.Ctx.Request.Header.SetCookie("authelia_session", "aaaaaaaaaaaaaaaaaaaa")
+	mock.Ctx.Request.Header.SetCookie("authelia_session", newTestSessionCookie("a-session-which-cannot-be-opened"))
 
 	userSession, err := mock.Ctx.GetSession()
 
@@ -140,6 +142,12 @@ func TestAutheliaCtxClearCookieShouldExpireTheCookie(t *testing.T) {
 	assert.True(t, cookie.HTTPOnly())
 	assert.True(t, cookie.Expire().Before(time.Now()))
 	assert.Empty(t, mock.Ctx.Request.Header.Cookie("test"))
+}
+
+func newTestSessionCookie(label string) string {
+	id := sha256.Sum256([]byte(label))
+
+	return base64.RawURLEncoding.EncodeToString(id[:])
 }
 
 type mismatchedSessionRepository struct {

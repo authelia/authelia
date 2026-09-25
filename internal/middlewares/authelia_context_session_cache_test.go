@@ -26,7 +26,7 @@ func TestAutheliaCtxShouldReturnTheErrorWhenTheSessionBackendFails(t *testing.T)
 
 	mock.Ctx.Providers.Session = provider
 
-	mock.Ctx.Request.Header.SetCookie("authelia_session", "aaaaaaaaaaaaaaaaaaaa")
+	mock.Ctx.Request.Header.SetCookie("authelia_session", newTestSessionCookie("a-session-which-cannot-be-retrieved"))
 
 	_, err = mock.Ctx.GetSession()
 

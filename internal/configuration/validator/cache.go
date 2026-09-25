@@ -51,7 +51,7 @@ func validateCacheRedis(config *schema.RedisCache, validator *schema.StructValid
 		validateCacheRedisAddress("redis", "address", config.Address, validator)
 	}
 
-	if config.Database < 0 || config.Database > 15 {
+	if config.Database < 0 {
 		validator.Push(fmt.Errorf(errFmtCacheRedisDatabase, "redis", config.Database))
 	}
 
@@ -116,7 +116,6 @@ func validateCacheRedisSentinelRouting(config *schema.RedisSentinelCache, valida
 	}
 }
 
-//nolint:gocyclo
 func validateCacheRedisSentinel(config *schema.RedisSentinelCache, validator *schema.StructValidator) {
 	if config.MasterName == "" {
 		validator.Push(fmt.Errorf(errFmtCacheOptionRequired, "redis_sentinel", "master_name"))
@@ -147,7 +146,7 @@ func validateCacheRedisSentinel(config *schema.RedisSentinelCache, validator *sc
 
 	validateCacheRedisSentinelRouting(config, validator)
 
-	if config.Database < 0 || config.Database > 15 {
+	if config.Database < 0 {
 		validator.Push(fmt.Errorf(errFmtCacheRedisDatabase, "redis_sentinel", config.Database))
 	}
 

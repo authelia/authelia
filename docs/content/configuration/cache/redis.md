@@ -115,8 +115,8 @@ cache:
 
 {{< confkey type="integer" default="0" required="no" >}}
 
-The index number of the [redis] database, the same value as specified with the redis SELECT command. Must be a value
-between 0 and 15.
+The index number of the [redis] database, the same value as specified with the redis SELECT command. Must be 0 or
+greater, and less than the number of databases the [redis] server is configured with.
 
 ### username
 

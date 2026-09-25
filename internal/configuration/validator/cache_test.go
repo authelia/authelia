@@ -221,10 +221,18 @@ func TestValidateCache(t *testing.T) {
 			[]string{"cache: redis: option 'address' must have a port but it's configured as 'tcp://redis.example.com:0'"},
 		},
 		{
-			"ShouldRaiseErrorOnRedisDatabaseOutOfRange",
-			schema.Cache{Redis: &schema.RedisCache{Address: mustAddressTCP("tcp://redis.example.com:6379"), Database: 16}},
+			"ShouldRaiseErrorOnRedisDatabaseNegative",
+			schema.Cache{Redis: &schema.RedisCache{Address: mustAddressTCP("tcp://redis.example.com:6379"), Database: -1}},
 			nil,
-			[]string{"cache: redis: option 'database' must be between 0 and 15 but it's configured as '16'"},
+			[]string{"cache: redis: option 'database' must be 0 or greater but it's configured as '-1'"},
+		},
+		{
+			"ShouldAllowRedisDatabaseAboveTheDefaultServerLimit",
+			schema.Cache{Redis: &schema.RedisCache{Address: mustAddressTCP("tcp://redis.example.com:6379"), Database: 20}},
+			func(t *testing.T, have schema.Cache) {
+				assert.Equal(t, 20, have.Redis.Database)
+			},
+			nil,
 		},
 		{
 			"ShouldRaiseErrorOnRedisBadTLSVersions",
@@ -299,14 +307,26 @@ func TestValidateCache(t *testing.T) {
 			[]string{"cache: redis_sentinel: option 'addresses' index 2 is invalid: the address is empty"},
 		},
 		{
-			"ShouldRaiseErrorOnRedisSentinelDatabaseOutOfRange",
+			"ShouldRaiseErrorOnRedisSentinelDatabaseNegative",
 			schema.Cache{RedisSentinel: &schema.RedisSentinelCache{
 				MasterName: "mysentinel",
 				Addresses:  []*schema.AddressTCP{mustAddressTCP("tcp://sentinel1:26379")},
-				Database:   16,
+				Database:   -1,
 			}},
 			nil,
-			[]string{"cache: redis_sentinel: option 'database' must be between 0 and 15 but it's configured as '16'"},
+			[]string{"cache: redis_sentinel: option 'database' must be 0 or greater but it's configured as '-1'"},
+		},
+		{
+			"ShouldAllowRedisSentinelDatabaseAboveTheDefaultServerLimit",
+			schema.Cache{RedisSentinel: &schema.RedisSentinelCache{
+				MasterName: "mysentinel",
+				Addresses:  []*schema.AddressTCP{mustAddressTCP("tcp://sentinel1:26379")},
+				Database:   20,
+			}},
+			func(t *testing.T, have schema.Cache) {
+				assert.Equal(t, 20, have.RedisSentinel.Database)
+			},
+			nil,
 		},
 		{
 			"ShouldRaiseErrorOnRedisClusterEmptyAddress",

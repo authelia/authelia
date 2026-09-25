@@ -6,6 +6,8 @@ package handlers
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"testing"
 	"time"
@@ -18,6 +20,12 @@ import (
 )
 
 var errTestSessionBackend = errors.New("backend unavailable")
+
+func newTestSessionCookie(label string) string {
+	id := sha256.Sum256([]byte(label))
+
+	return base64.RawURLEncoding.EncodeToString(id[:])
+}
 
 type failingSessionRepository struct {
 	session.Repository

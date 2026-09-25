@@ -411,7 +411,7 @@ const (
 	errFmtCacheOptionRequired            = "cache: %s: option '%s' is required"
 	errFmtCacheRedisAddressNoHost        = "cache: %s: option '%s' must have a hostname but it's configured as '%s'"
 	errFmtCacheRedisAddressNoPort        = "cache: %s: option '%s' must have a port but it's configured as '%s'"
-	errFmtCacheRedisDatabase             = "cache: %s: option 'database' must be between 0 and 15 but it's configured as '%d'"
+	errFmtCacheRedisDatabase             = "cache: %s: option 'database' must be 0 or greater but it's configured as '%d'"
 	errFmtCacheRedisSentinelMode         = "cache: redis_sentinel: option 'sentinel_mode' must be one of %s but it's configured as '%s'"
 	errFmtCacheRedisSentinelModeRouting  = "cache: redis_sentinel: option '%s' requires option 'sentinel_mode' to be configured as 'cluster' but it's configured as '%s'"
 	errFmtCacheRedisSentinelAddressEmpty = "cache: redis_sentinel: option 'addresses' index %d is invalid: the address is empty"

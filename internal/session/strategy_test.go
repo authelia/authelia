@@ -6,6 +6,7 @@ package session
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"net/http"
 	"net/url"
@@ -72,7 +73,7 @@ func TestDefaultStrategy_GetShouldReturnDefaultSessionForUnknownCookie(t *testin
 	strategy := newTestStrategy(t, nil)
 	ctx := newTestContext()
 
-	ctx.cookies[testName] = "an-identifier-which-was-never-saved"
+	ctx.cookies[testName] = newTestCookie("an-identifier-which-was-never-saved")
 
 	userSession, err := strategy.Get(ctx)
 
@@ -165,6 +166,45 @@ func TestDefaultStrategy_SaveShouldReplaceMalformedCookie(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Len(t, id, 32)
+}
+
+func TestDefaultStrategy_ShouldIgnoreCookieWhichIsNotAFullLengthIdentifier(t *testing.T) {
+	testCases := []struct {
+		name   string
+		cookie string
+	}{
+		{"ShouldIgnoreShortIdentifier", encodeCookieID([]byte("a"))},
+		{"ShouldIgnoreIdentifierOneByteShort", encodeCookieID(make([]byte, 31))},
+		{"ShouldIgnoreIdentifierOneByteLong", encodeCookieID(make([]byte, 33))},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			repository := newCountingRepository()
+			strategy := newTestStrategyWithRepository(t, repository, nil)
+			ctx := newTestContext()
+
+			ctx.cookies[testName] = tc.cookie
+
+			actual, err := strategy.Get(ctx)
+
+			require.NoError(t, err)
+			require.NotNil(t, actual)
+			assert.True(t, actual.IsAnonymous())
+			assert.Equal(t, 0, repository.reads)
+
+			userSession := strategy.New(testUsername)
+
+			require.NoError(t, strategy.Save(ctx, &userSession))
+
+			assert.NotEqual(t, tc.cookie, ctx.cookies[testName])
+
+			id, err := base64.RawURLEncoding.DecodeString(ctx.cookies[testName])
+
+			require.NoError(t, err)
+			assert.Len(t, id, 32)
+		})
+	}
 }
 
 func TestDefaultStrategy_SaveShouldRejectMismatchedDomain(t *testing.T) {
@@ -465,7 +505,7 @@ func TestDefaultStrategy_GetShouldRejectSessionMovedToAnotherRecord(t *testing.T
 	}
 
 	codec := newTestCodec(t)
-	id := []byte("a-cookie-value-which-was-never-issued")
+	id := newTestCookieID("a-cookie-value-which-was-never-issued")
 
 	require.NoError(t, repository.Save(ctx, codec.Sign([]byte(testDomain)), codec.Sign(id), "a-public-id", testUsername, testExpiration, data))
 
@@ -495,7 +535,7 @@ func TestDefaultStrategy_GetShouldReturnRepositoryErrorWhenTheBackendFails(t *te
 	strategy := newTestStrategyWithRepository(t, &failingRepository{testRepository: newTestRepository()}, nil)
 	ctx := newTestContext()
 
-	ctx.cookies[testName] = "an-identifier-which-cannot-be-retrieved"
+	ctx.cookies[testName] = newTestCookie("an-identifier-which-cannot-be-retrieved")
 
 	_, err := strategy.Get(ctx)
 
@@ -744,6 +784,16 @@ func newTestCodec(t *testing.T) Codec {
 	require.NoError(t, err)
 
 	return codec
+}
+
+func newTestCookieID(label string) []byte {
+	id := sha256.Sum256([]byte(label))
+
+	return id[:]
+}
+
+func newTestCookie(label string) string {
+	return encodeCookieID(newTestCookieID(label))
 }
 
 func newTestContext() *testContext {

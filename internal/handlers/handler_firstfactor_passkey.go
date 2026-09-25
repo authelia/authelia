@@ -302,12 +302,17 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// The anonymous session is destroyed and a session for the authenticating user constructed in its place, as the
-	// username may only be set at construction. Destroying it first also retires the public identifier it was issued,
-	// which would otherwise continue to resolve to the session which now belongs to the authenticated user.
 	if err = provider.Destroy(ctx); err != nil {
-		// This failure is not likely to be critical as the session below is saved with a newly generated identifier.
 		ctx.GetLogger().WithError(err).Trace("Failed to destroy session during passkey 1FA attempt")
+	}
+
+	if err = provider.Regenerate(ctx); err != nil {
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		ctx.GetLogger().WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypePasskey, details.Username)
+
+		return
 	}
 
 	userSession = provider.New(details.Username)

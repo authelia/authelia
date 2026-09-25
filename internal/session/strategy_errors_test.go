@@ -96,12 +96,14 @@ func TestDefaultStrategy_RegenerateShouldReturnErrorWhenTheSessionCannotBeRetrie
 	strategy := newTestStrategyWithRepository(t, &failingRepository{testRepository: newTestRepository()}, nil)
 	ctx := newTestContext()
 
-	ctx.cookies[testName] = "an-identifier-which-cannot-be-retrieved"
+	cookie := newTestCookie("an-identifier-which-cannot-be-retrieved")
+
+	ctx.cookies[testName] = cookie
 
 	err := strategy.Regenerate(ctx)
 
 	assert.ErrorIs(t, err, ErrRepositoryGet)
-	assert.Equal(t, "an-identifier-which-cannot-be-retrieved", ctx.cookies[testName])
+	assert.Equal(t, cookie, ctx.cookies[testName])
 }
 
 func TestDefaultStrategy_RegenerateShouldReturnErrors(t *testing.T) {
@@ -228,7 +230,7 @@ func TestDefaultStrategy_GetShouldRejectSessionRecordingAnotherCookieDomain(t *t
 	strategy := newTestStrategyWithCodec(t, codec, repository)
 	ctx := newTestContext()
 
-	id := []byte("an-identifier-for-a-session-of-another-domain")
+	id := newTestCookieID("an-identifier-for-a-session-of-another-domain")
 
 	sid := codec.Sign(id)
 

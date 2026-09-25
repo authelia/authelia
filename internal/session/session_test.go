@@ -62,7 +62,7 @@ func TestEncapsulatedSession_GetSessionShouldReturnDefaultSessionAndErrorWhenThe
 	ctx := newTestContext()
 	manager := NewEncapsulatedSession(newTestStrategyWithRepository(t, &failingRepository{testRepository: newTestRepository()}, nil), ctx)
 
-	ctx.cookies[testName] = "an-identifier-which-cannot-be-retrieved"
+	ctx.cookies[testName] = newTestCookie("an-identifier-which-cannot-be-retrieved")
 
 	userSession, err := manager.GetSession()
 
