@@ -16,8 +16,10 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.yaml.in/yaml/v4"
 	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -1556,6 +1558,52 @@ func TestDatabaseModel_WriteFormats(t *testing.T) {
 
 			assert.Equal(t, model.Users["john"].Address.StreetAddress, actual.Users["john"].Address.StreetAddress)
 			assert.Equal(t, model.Users["john"].Address.Country, actual.Users["john"].Address.Country)
+		})
+	}
+}
+
+func TestDatabaseModel_WriteShouldOmitUnsetFields(t *testing.T) {
+	const validHash = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+
+	testCases := []struct {
+		name      string
+		filename  string
+		unmarshal func(data []byte, v any) error
+	}{
+		{"ShouldOmitYAML", "users.yml", yaml.Unmarshal},
+		{"ShouldOmitTOML", "users.toml", toml.Unmarshal},
+		{"ShouldOmitJSON", "users.json", json.Unmarshal},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), tc.filename)
+
+			model := &FileDatabaseModel{
+				Users: map[string]FileDatabaseUserDetailsModel{
+					"john": {
+						Password:    validHash,
+						DisplayName: "John",
+					},
+					"jane": {
+						Password:    validHash,
+						DisplayName: "Jane",
+						Address:     &FileUserDatabaseUserDetailsAddressModel{Country: "AU"},
+					},
+				},
+			}
+
+			require.NoError(t, model.Write(path))
+
+			data, err := os.ReadFile(path)
+			require.NoError(t, err)
+
+			raw := map[string]map[string]map[string]any{}
+
+			require.NoError(t, tc.unmarshal(data, &raw))
+
+			assert.Equal(t, map[string]any{"password": validHash, "displayname": "John"}, raw["users"]["john"])
+			assert.Equal(t, map[string]any{"password": validHash, "displayname": "Jane", "address": map[string]any{"country": "AU"}}, raw["users"]["jane"])
 		})
 	}
 }

@@ -922,6 +922,13 @@ const (
 	prefixFilePassword = "authentication_backend.file.password"
 )
 
+// JSON Schema names for the export files, which must match the files published by authelia-gen.
+const (
+	jsonSchemaNameExportsTOTP        = "exports.totp"
+	jsonSchemaNameExportsWebAuthn    = "exports.webauthn"
+	jsonSchemaNameExportsIdentifiers = "exports.identifiers"
+)
+
 var (
 	errStorageSchemaOutdated     = errors.New("storage schema outdated")
 	errStorageSchemaIncompatible = errors.New("storage schema incompatible")

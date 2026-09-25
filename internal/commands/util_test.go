@@ -1130,6 +1130,14 @@ func (w *failingStringWriter) WriteString(s string) (int, error) {
 	return len(s), nil
 }
 
+func TestExportJSONSchemaNamesArePublished(t *testing.T) {
+	for _, name := range []string{jsonSchemaNameExportsTOTP, jsonSchemaNameExportsWebAuthn, jsonSchemaNameExportsIdentifiers} {
+		t.Run(name, func(t *testing.T) {
+			assert.FileExists(t, filepath.Join("..", "..", "docs", "static", "schemas", "latest", "json-schema", name+utils.ExtJSON))
+		})
+	}
+}
+
 func TestExportFileImportFileRoundTrip(t *testing.T) {
 	createdAt := time.Date(2025, 4, 11, 4, 1, 31, 0, time.UTC)
 	lastUsedAt := time.Date(2025, 4, 12, 4, 1, 31, 0, time.UTC)
@@ -1154,7 +1162,7 @@ func TestExportFileImportFileRoundTrip(t *testing.T) {
 
 				export := model.TOTPConfigurationExport{TOTPConfigurations: []model.TOTPConfiguration{expected}}
 
-				require.NoError(t, exportFile(path, export.ToData(), "export.totp"))
+				require.NoError(t, exportFile(path, export.ToData(), jsonSchemaNameExportsTOTP))
 
 				data, err := os.ReadFile(path)
 				require.NoError(t, err)
@@ -1212,7 +1220,7 @@ func TestExportFileImportFileRoundTrip(t *testing.T) {
 
 				export := model.WebAuthnCredentialExport{WebAuthnCredentials: []model.WebAuthnCredential{expected}}
 
-				require.NoError(t, exportFile(path, export.ToData(), "export.webauthn"))
+				require.NoError(t, exportFile(path, export.ToData(), jsonSchemaNameExportsWebAuthn))
 
 				data, err := os.ReadFile(path)
 				require.NoError(t, err)
@@ -1267,7 +1275,7 @@ func TestExportFileImportFileRoundTrip(t *testing.T) {
 
 				export := model.UserOpaqueIdentifiersExport{Identifiers: []model.UserOpaqueIdentifier{expected}}
 
-				require.NoError(t, exportFile(path, export, "export.identifiers"))
+				require.NoError(t, exportFile(path, export, jsonSchemaNameExportsIdentifiers))
 
 				data, err := os.ReadFile(path)
 				require.NoError(t, err)

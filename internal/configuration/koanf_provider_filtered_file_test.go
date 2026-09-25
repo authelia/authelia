@@ -6,6 +6,9 @@ package configuration
 
 import (
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -178,15 +181,15 @@ func TestTemplateFilterMissingKeys(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnMissingTopLevelKey",
-			"value: {{ .Values.Example }}",
+			"value: {{ .Values.Missing }}",
 			"",
-			"template: config.template:1:17: executing \"config.template\" at <.Values.Example>: map has no entry for key \"Example\"",
+			"template: config.template:1:17: executing \"config.template\" at <.Values.Missing>: map has no entry for key \"Missing\"",
 		},
 		{
 			"ShouldErrorOnMissingNestedKey",
-			"value: {{ .Values.Example.Value }}",
+			"value: {{ .Values.Example.Missing }}",
 			"",
-			"template: config.template:1:17: executing \"config.template\" at <.Values.Example.Value>: map has no entry for key \"Value\"",
+			"template: config.template:1:17: executing \"config.template\" at <.Values.Example.Missing>: map has no entry for key \"Missing\"",
 		},
 		{
 			"ShouldErrorOnMissingAutheliaKey",
@@ -261,6 +264,12 @@ func TestLoadValuesFile(t *testing.T) {
 			"ShouldLoadJSON",
 			"./test_resources/config_values.values.json",
 			map[string]any{"Example": map[string]any{"Value": "light"}},
+			"",
+		},
+		{
+			"ShouldLoadJSONOmittingTopLevelSchema",
+			"./test_resources/config_values.schema.json",
+			map[string]any{"Example": map[string]any{"$schema": "nested", "Value": "light"}},
 			"",
 		},
 		{
@@ -368,6 +377,17 @@ func TestLoadValuesFile(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrorOnUpperCaseExtension", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "values.YML")
+
+		require.NoError(t, os.WriteFile(path, []byte("Example: value\n"), 0600))
+
+		actual, err := loadValuesFile(path)
+
+		assert.EqualError(t, err, fmt.Sprintf("error parsing values file '%s': unsupported extension '.YML': must be one of '.yml', '.yaml', '.json', or '.toml'", path))
+		assert.Nil(t, actual)
+	})
 }
 
 func TestLoadValuesFiles(t *testing.T) {

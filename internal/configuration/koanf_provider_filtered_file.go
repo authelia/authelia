@@ -257,7 +257,7 @@ func loadValuesFile(path string) (values map[string]any, err error) {
 
 	var raw any
 
-	ext := strings.ToLower(filepath.Ext(path))
+	ext := filepath.Ext(path)
 
 	switch ext {
 	case utils.ExtYML, utils.ExtYAML:
@@ -270,6 +270,10 @@ func loadValuesFile(path string) (values map[string]any, err error) {
 			if _, terr := decoder.Token(); !errors.Is(terr, io.EOF) {
 				err = errors.New("invalid data after top-level value")
 			}
+		}
+
+		if m, ok := raw.(map[string]any); ok {
+			delete(m, "$schema")
 		}
 	case utils.ExtTOML:
 		err = toml.Unmarshal(data, &raw)
