@@ -439,8 +439,6 @@ func (m *FileDatabaseModel) Write(fileName string) (err error) {
 		data []byte
 	)
 
-	// The format written must match the format Read decodes for the same file name, otherwise persisting a change
-	// such as a password reset would render the database unreadable.
 	switch filepath.Ext(fileName) {
 	case utils.ExtTOML:
 		if data, err = toml.Marshal(m); err != nil {

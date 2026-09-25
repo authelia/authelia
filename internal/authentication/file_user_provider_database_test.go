@@ -1540,8 +1540,6 @@ func TestDatabaseModel_WriteFormats(t *testing.T) {
 
 			assert.Contains(t, string(data), tc.contains)
 
-			// The written format must be readable by Read for the same file name, otherwise persisting a change
-			// such as a password reset renders the database unreadable.
 			actual := &FileDatabaseModel{}
 
 			require.NoError(t, actual.Read(path))
