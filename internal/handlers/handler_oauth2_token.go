@@ -134,6 +134,12 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return false
 	}
 
+	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeTokenExchange) {
+		// The RFC 8693 token type handlers overwrite this session with the subject token's stored session, so the
+		// identity of the client performing the exchange has to be re-established before the token is issued.
+		oidc.HydrateTokenExchangeSessionWithRequestingClient(client, session)
+	}
+
 	if client.GetEnableJWTProfileOAuthAccessTokens() {
 		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetRequestedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
 
