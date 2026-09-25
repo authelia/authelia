@@ -26,6 +26,7 @@ Authelia sends messages to users in order to verify their identity.
 
 ```yaml {title="configuration.yml"}
 notifier:
+  disable: false
   disable_startup_check: false
   template_path: ''
   filesystem: {}
@@ -36,9 +37,45 @@ notifier:
 
 You **must** configure exactly one notification provider: either `filesystem` or `smtp`. These providers are mutually exclusive - you cannot configure both at the same time.
 
+The sole exception is the [disable](#disable) option, which runs Authelia with no notification provider at all and
+requires at least one [webhooks](../miscellaneous/webhooks.md) destination to be configured in its place.
+
 ## Options
 
 This section describes the individual configuration options.
+
+### disable
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Warning" icon="outline/alert-octagon" >}}
+With this enabled no email is sent to users. They are not told that their password changed, that a second factor method
+was added or removed, or that a password reset was requested, and they cannot complete any flow which relies on a
+one-time code or a link delivered by email.
+
+Configured [webhooks](../miscellaneous/webhooks.md) destinations still receive the corresponding events. This option
+removes the user facing channel, not the events.
+{{< /callout >}}
+
+Disables the notifier entirely. No `filesystem` or `smtp` provider is configured and nothing is sent to users.
+
+This is only permitted when at least one [webhooks](../miscellaneous/webhooks.md) destination is configured. Enabling
+it with no webhook destination is a startup error, and enabling it while a `filesystem` or `smtp` provider is also
+configured is a startup error as well: remove the provider rather than leaving it alongside this option.
+
+That check only requires a destination to exist. It does not verify that any destination subscribes to the occurrences
+which would otherwise have been emailed, because a destination receives only the types selected by its
+[events](../miscellaneous/webhooks.md#events) option. Select each notification bearing type you need in at least one
+destination, or an occurrence will be neither emailed nor delivered anywhere.
+
+The webhook payload records this. The `notification` object carries `suppressed: true` with `sent: false` and no
+`error`, because nothing was handed to a notifier and nothing failed. The object itself, its `recipients`, and its non
+sensitive values are all present.
+
+Credential equivalent values are not. A one-time code and a link URL are omitted unless the destination sets
+[disable_redaction](../miscellaneous/webhooks.md#disable_redaction), so a deployment which disables the notifier and
+relies on a webhook to convey a reset link or a one-time code must set that option, and must then treat that receiver
+as being as sensitive as the session secret.
 
 ### disable_startup_check
 

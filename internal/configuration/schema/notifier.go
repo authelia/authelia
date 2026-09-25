@@ -13,6 +13,7 @@ import (
 
 // Notifier represents the configuration of the notifier to use when sending notifications to users.
 type Notifier struct {
+	Disable             bool                `koanf:"disable" yaml:"disable" toml:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the notifier entirely. Requires at least one webhook destination to be configured."`
 	DisableStartupCheck bool                `koanf:"disable_startup_check" yaml:"disable_startup_check" toml:"disable_startup_check" json:"disable_startup_check" jsonschema:"default=false,title=Disable Startup Check" jsonschema_description:"Disables the notifier startup checks."`
 	FileSystem          *NotifierFileSystem `koanf:"filesystem" yaml:"filesystem,omitempty" toml:"filesystem,omitempty" json:"filesystem,omitempty" jsonschema:"title=File System" jsonschema_description:"The File System notifier."`
 	SMTP                *NotifierSMTP       `koanf:"smtp" yaml:"smtp,omitempty" toml:"smtp,omitempty" json:"smtp,omitempty" jsonschema:"title=SMTP" jsonschema_description:"The SMTP notifier."`

@@ -13,6 +13,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -204,13 +205,13 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
 		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details")
-		ctx.ReplyOK()
 
-		return
-	}
+		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserPassword{
+			Type:         events.TypeUserPasswordReset,
+			Subject:      events.Subject{Username: username, RemoteIP: ctx.RemoteIP().String()},
+			Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, "Password changed successfully", nil, nil),
+		}))
 
-	if len(userInfo.Emails) == 0 {
-		ctx.GetLogger().WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details: user has no email address configured")
 		ctx.ReplyOK()
 
 		return
@@ -228,12 +229,45 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		BodySuffix: eventEmailActionPasswordModifySuffix,
 	}
 
-	addresses := userInfo.Addresses()
+	// The password was reset whether or not the user can be emailed about it, so both paths fall through to a single
+	// emission which records why no notification was sent. Returning early without emitting would hide the reset from
+	// an administrator for exactly the users who cannot be notified themselves.
+	notified := len(userInfo.Emails) != 0
 
-	ctx.GetLogger().Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
-		username, addresses[0].String())
+	if !notified {
+		err = fmt.Errorf("user has no email address configured")
 
-	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
+		ctx.GetLogger().WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details: user has no email address configured")
+	} else {
+		addresses := userInfo.Addresses()
+
+		ctx.GetLogger().Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
+			username, addresses[0].String())
+
+		err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data)
+	}
+
+	ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserPassword{
+		Type:        events.TypeUserPasswordReset,
+		Username:    username,
+		DisplayName: userInfo.DisplayName,
+		Emails:      userInfo.Emails,
+		RemoteIP:    ctx.RemoteIP().String(),
+		Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, data.Title, recipientsFromDetails(username, userInfo), &events.NotificationValues{
+			BodyPrefix: data.BodyPrefix,
+			BodyEvent:  data.BodyEvent,
+			BodySuffix: data.BodySuffix,
+			Details:    data.Details,
+		}),
+	}))
+
+	if !notified {
+		ctx.ReplyOK()
+
+		return
+	}
+
+	if err != nil {
 		ctx.GetLogger().Error(err)
 		ctx.ReplyOK()
 

@@ -147,6 +147,7 @@ type mockMetricsRecorder struct {
 	oidcCalls    []mockMetricsOIDCCall
 	authzCalls   []mockMetricsAuthzCall
 	authDurCalls []mockMetricsAuthDurCall
+	webhookCalls []mockMetricsWebhookCall
 }
 
 type mockMetricsRequestCall struct {
@@ -170,6 +171,12 @@ type mockMetricsAuthDurCall struct {
 	elapsed time.Duration
 }
 
+type mockMetricsWebhookCall struct {
+	destination string
+	event       string
+	outcome     string
+}
+
 func (m *mockMetricsRecorder) RecordRequest(statusCode, requestMethod string, elapsed time.Duration) {
 	m.requestCalls = append(m.requestCalls, mockMetricsRequestCall{statusCode, requestMethod, elapsed})
 }
@@ -184,6 +191,10 @@ func (m *mockMetricsRecorder) RecordAuthz(statusCode string) {
 
 func (m *mockMetricsRecorder) RecordAuthenticationDuration(success bool, elapsed time.Duration) {
 	m.authDurCalls = append(m.authDurCalls, mockMetricsAuthDurCall{success, elapsed})
+}
+
+func (m *mockMetricsRecorder) RecordWebhookDelivery(destination, event, outcome string) {
+	m.webhookCalls = append(m.webhookCalls, mockMetricsWebhookCall{destination, event, outcome})
 }
 
 func newRequestCtx(method string, statusCode int) *fasthttp.RequestCtx {
