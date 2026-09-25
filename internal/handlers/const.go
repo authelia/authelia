@@ -161,6 +161,23 @@ var ldapPasswordComplexityErrors = []string{
 	"LDAP Result Code 19 \"Constraint Violation\": Password is too young to change",
 }
 
+var ldapPasswordReuseErrors = []string{
+	// OpenLDAP, servers/slapd/overlays/ppolicy.c.
+	"Password is not being changed from existing value",
+	"Password is in history of old passwords",
+
+	// 389 Directory Server and therefore FreeIPA, ldap/servers/slapd/pw.c.
+	"password in history",
+}
+
+var ldapPasswordTooYoungErrors = []string{
+	// OpenLDAP, servers/slapd/overlays/ppolicy.c.
+	"Password is too young to change",
+
+	// 389 Directory Server and therefore FreeIPA, ldap/servers/slapd/pw.c.
+	"within password minimum age",
+}
+
 const (
 	errStrReqBodyParse        = "error parsing the request body"
 	errStrRespBody            = "error occurred writing the response body"
