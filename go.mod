@@ -34,7 +34,7 @@ require (
 	github.com/knadh/koanf/providers/env/v2 v2.0.1
 	github.com/knadh/koanf/providers/posflag v1.0.2
 	github.com/knadh/koanf/providers/rawbytes v1.0.1
-	github.com/knadh/koanf/v2 v2.3.6
+	github.com/knadh/koanf/v2 v2.3.7
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/otiai10/copy v1.14.1
 	github.com/prometheus/client_golang v1.24.1
