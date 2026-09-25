@@ -581,6 +581,7 @@ type testContext struct {
 	context.Context
 
 	cookies map[string]string
+	set     int
 	cleared *http.Cookie
 }
 
@@ -589,6 +590,7 @@ func (c *testContext) GetCookie(name string) string {
 }
 
 func (c *testContext) SetCookie(cookie *http.Cookie) {
+	c.set++
 	c.cookies[cookie.Name] = cookie.Value
 }
 
@@ -721,13 +723,11 @@ func newTestStrategyWithRepository(t *testing.T, repository Repository, modify f
 	t.Helper()
 
 	config := schema.SessionCookie{
-		SessionCookieCommon: schema.SessionCookieCommon{
-			Name:       testName,
-			SameSite:   "lax",
-			Expiration: testExpiration,
-			RememberMe: testRememberMe,
-		},
-		Domain: testDomain,
+		Name:       testName,
+		SameSite:   "lax",
+		Expiration: testExpiration,
+		RememberMe: testRememberMe,
+		Domain:     testDomain,
 	}
 
 	if modify != nil {

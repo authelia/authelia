@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestNewRedisStandalone(t *testing.T) {
@@ -295,6 +296,14 @@ func TestRedis_SessionSave(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestRedis_SessionSaveShouldReturnSupersededWhenTheScriptDiscardsTheSave(t *testing.T) {
+	client := &mockRedisCmdable{evalVal: int64(0)}
+	provider := NewRedis(client, "standalone")
+
+	assert.ErrorIs(t, provider.SessionSave(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
+	assert.ErrorIs(t, provider.SessionSaveData(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
 }
 
 func TestRedis_SessionSaveKeysShareAClusterSlot(t *testing.T) {

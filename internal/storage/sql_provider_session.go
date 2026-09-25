@@ -133,7 +133,7 @@ func (p *SQLProvider) SessionGetIDsByUsername(ctx context.Context, issuer, usern
 func (p *SQLProvider) SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertSession, issuer, id, pid, username, p.sessionExpires(expiration), data); err != nil {
 		if IsUniqueViolation(err) && p.sessionPublicIDMoved(ctx, issuer, id, pid) {
-			return nil
+			return session.ErrSessionSuperseded
 		}
 
 		return fmt.Errorf("error upserting session: %w", err)

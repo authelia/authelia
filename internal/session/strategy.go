@@ -6,6 +6,7 @@ package session
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -123,6 +124,12 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	cookie := p.newCookie(id, p.getExpires(expiration))
 
 	if err = p.repository.Save(ctx, p.issuer, sid, session.PublicID, session.Username, expiration, data); err != nil {
+		// A superseded session was regenerated after this request loaded it, so neither the cached session nor the
+		// cookie are updated as doing so would replace the regenerated cookie with the identifier it retired.
+		if errors.Is(err, ErrSessionSuperseded) {
+			return nil
+		}
+
 		return fmt.Errorf("error occurred saving session to registry: %w", err)
 	}
 

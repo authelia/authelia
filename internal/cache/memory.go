@@ -96,7 +96,7 @@ func (m *Memory) SessionSave(ctx context.Context, issuer, id, pid, username stri
 
 	if other, ok := m.lookupPublicID[m.key(issuer, pid)]; ok && other != id {
 		if _, exists := m.session[m.key(issuer, other)]; exists {
-			return nil
+			return session.ErrSessionSuperseded
 		}
 	}
 

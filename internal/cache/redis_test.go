@@ -352,6 +352,7 @@ type mockRedisCmdable struct {
 	pipeliner *mockRedisPipeliner
 	evalKeys  []string
 	evalArgs  []any
+	evalVal   any
 }
 
 func (m *mockRedisCmdable) EvalSha(ctx context.Context, sha1 string, keys []string, args ...any) *redis.Cmd {
@@ -360,8 +361,13 @@ func (m *mockRedisCmdable) EvalSha(ctx context.Context, sha1 string, keys []stri
 
 	cmd := redis.NewCmd(ctx, "evalsha", sha1)
 
-	if m.err != nil {
+	switch {
+	case m.err != nil:
 		cmd.SetErr(m.err)
+	case m.evalVal != nil:
+		cmd.SetVal(m.evalVal)
+	default:
+		cmd.SetVal(int64(1))
 	}
 
 	return cmd

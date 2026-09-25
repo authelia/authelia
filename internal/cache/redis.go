@@ -256,7 +256,17 @@ func (r *Redis) SessionSave(ctx context.Context, issuer, id, pid, username strin
 
 	args := []any{data, getSessionExpirationMilliseconds(expiration), id, pid, username, getSessionScore(expiration), getSessionPublicKey(issuer, ""), getSessionUserKey(issuer, "")}
 
-	return redisSessionSave.Run(ctx, r.client, keys, args...).Err()
+	var saved int64
+
+	if saved, err = redisSessionSave.Run(ctx, r.client, keys, args...).Int64(); err != nil {
+		return err
+	}
+
+	if saved == 0 {
+		return session.ErrSessionSuperseded
+	}
+
+	return nil
 }
 
 // SessionSaveData updates the session data. Every key which refers to the session has its expiry refreshed alongside it,

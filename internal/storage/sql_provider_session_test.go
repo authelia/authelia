@@ -140,7 +140,7 @@ func TestStorageSessionSaveShouldDiscardStaleSaveAfterChangeID(t *testing.T) {
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "old-signature", "a-public-id", "john", time.Hour, []byte("data")))
 	require.NoError(t, provider.SessionChangeID(ctx, "an-issuer", "old-signature", "new-signature", "a-public-id", "john", time.Hour, []byte("resealed")))
 
-	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "old-signature", "a-public-id", "john", time.Hour, []byte("stale")))
+	assert.ErrorIs(t, provider.SessionSave(ctx, "an-issuer", "old-signature", "a-public-id", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
 
 	record, err := provider.SessionGet(ctx, "an-issuer", "old-signature")
 

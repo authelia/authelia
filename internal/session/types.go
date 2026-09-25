@@ -126,7 +126,8 @@ type Repository interface {
 	GetIDsByUsername(ctx context.Context, issuer string, username string) (ids []string, err error)
 
 	// Save creates or replaces the session record for the identifier, including the public identifier and username
-	// associated with it.
+	// associated with it. It returns ErrSessionSuperseded without writing anything when the public identifier belongs
+	// to a session stored against another identifier.
 	Save(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 
 	// SaveData updates only the sealed session data and expiration of the existing session record for the identifier,

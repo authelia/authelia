@@ -192,6 +192,36 @@ func TestDefaultStrategy_DestroyShouldReturnErrorWhenTheRepositoryFailsToDelete(
 	assert.Empty(t, repository.data)
 }
 
+func TestDefaultStrategy_SaveShouldNotSetCookieOrCacheWhenTheSessionIsSuperseded(t *testing.T) {
+	repository := &erroringRepository{testRepository: newTestRepository()}
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	previous := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	require.NoError(t, strategy.Save(previous, &userSession))
+
+	ctx := newTestCachingContext()
+	ctx.cookies[testName] = previous.cookies[testName]
+
+	loaded, err := strategy.Get(ctx)
+	require.NoError(t, err)
+
+	repository.errSave = ErrSessionSuperseded
+
+	loaded.LastActivity = 1234
+
+	require.NoError(t, strategy.Save(ctx, loaded))
+
+	assert.Equal(t, 0, ctx.set)
+	assert.Equal(t, previous.cookies[testName], ctx.cookies[testName])
+
+	cached, ok := ctx.CachedSession(testDomain)
+	require.True(t, ok)
+	assert.Zero(t, cached.LastActivity)
+}
+
 func TestDefaultStrategy_GetShouldRejectSessionRecordingAnotherCookieDomain(t *testing.T) {
 	codec := newTestCodec(t)
 	repository := newTestRepository()
