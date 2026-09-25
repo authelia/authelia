@@ -35,6 +35,7 @@ type failingSessionRepository struct {
 	errChangeID error
 
 	errSave []error
+	saved   []string
 }
 
 func (r *failingSessionRepository) Get(ctx context.Context, issuer, id string) (record session.Record, err error) {
@@ -53,7 +54,13 @@ func (r *failingSessionRepository) Save(ctx context.Context, issuer, id, pid, us
 		}
 	}
 
-	return r.Repository.Save(ctx, issuer, id, pid, username, expiration, data)
+	if err = r.Repository.Save(ctx, issuer, id, pid, username, expiration, data); err != nil {
+		return err
+	}
+
+	r.saved = append(r.saved, username)
+
+	return nil
 }
 
 func (r *failingSessionRepository) Delete(ctx context.Context, issuer, id, pid, username string) (err error) {

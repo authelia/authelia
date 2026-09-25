@@ -50,7 +50,7 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, bod
 
 	ctx.Logger.Debugf("Getting user details for notification")
 
-	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
+	if details, err = ctx.Providers.UserProvider.GetDetailsCached(username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred looking up user details for user '%s' while attempting to alert them of an important event", username)
 		return
 	}

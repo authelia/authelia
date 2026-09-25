@@ -23,6 +23,7 @@ import (
 
 	"authelia.com/provider/oauth2/token/jose"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -277,6 +278,81 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "server_error", location.Query().Get("error"))
+	})
+
+	t.Run("ShouldDestroySessionAndRedirectToFlowWhenUserNotFound", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		client := newTestOIDCAuthorizationCodeClient(t)
+		client.ConsentMode = "implicit"
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCConsentStore(t, mock)
+
+		mock.UserProviderMock.EXPECT().
+			GetDetailsExtended(testUsername).
+			Return(nil, authentication.ErrUserNotFound)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
+
+		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusSeeOther, rw.Code)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Empty(t, location.Query().Get("error"))
+		assert.Equal(t, "login.example.com:8080", location.Host)
+		assert.Equal(t, "openid_connect", location.Query().Get("flow"))
+		assert.NotEmpty(t, location.Query().Get("flow_id"))
+
+		userSession, err := mock.Ctx.GetSession()
+
+		require.NoError(t, err)
+
+		assert.True(t, userSession.IsAnonymous())
+		assert.Equal(t, authentication.NotAuthenticated, userSession.AuthenticationLevel(false))
+	})
+
+	t.Run("ShouldDestroySessionAndReturnLoginRequiredWhenUserNotFoundWithPromptNone", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		mock.UserProviderMock.EXPECT().
+			GetDetailsExtended(testUsername).
+			Return(nil, authentication.ErrUserNotFound)
+
+		values := newTestOIDCAuthorizationValues()
+		values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
+
+		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusSeeOther, rw.Code)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "login_required", location.Query().Get("error"))
+
+		userSession, err := mock.Ctx.GetSession()
+
+		require.NoError(t, err)
+
+		assert.True(t, userSession.IsAnonymous())
 	})
 
 	t.Run("ShouldRedirectUserWithInsufficientAuthenticationLevelToFlow", func(t *testing.T) {

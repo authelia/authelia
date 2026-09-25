@@ -144,6 +144,53 @@ func TestAutheliaCtxClearCookieShouldExpireTheCookie(t *testing.T) {
 	assert.Empty(t, mock.Ctx.Request.Header.Cookie("test"))
 }
 
+func TestAutheliaCtxShouldTreatAnInvalidSessionCookieAsANewAnonymousSession(t *testing.T) {
+	testCases := []struct {
+		name   string
+		cookie string
+	}{
+		{"ShouldHandleNonBase64", "not!valid"},
+		{"ShouldHandlePaddedBase64URL", base64.URLEncoding.EncodeToString(make([]byte, 32))},
+		{"ShouldHandleStandardBase64", "++++++++++++++++++++++++++++++++++++++++++8"},
+		{"ShouldHandleShortIdentifier", base64.RawURLEncoding.EncodeToString([]byte("a"))},
+		{"ShouldHandleLongIdentifier", base64.RawURLEncoding.EncodeToString(make([]byte, 33))},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.SetCookie("authelia_session", tc.cookie)
+
+			userSession, err := mock.Ctx.GetSession()
+
+			require.NoError(t, err)
+			assert.True(t, userSession.IsAnonymous())
+			assert.Empty(t, userSession.PublicID)
+
+			require.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+			cookie := fasthttp.AcquireCookie()
+			defer fasthttp.ReleaseCookie(cookie)
+
+			cookie.SetKey("authelia_session")
+
+			require.True(t, mock.Ctx.Response.Header.Cookie(cookie))
+
+			value := string(cookie.Value())
+
+			assert.NotEqual(t, tc.cookie, value)
+
+			id, err := base64.RawURLEncoding.DecodeString(value)
+
+			require.NoError(t, err)
+			assert.Len(t, id, 32)
+		})
+	}
+}
+
 func newTestSessionCookie(label string) string {
 	id := sha256.Sum256([]byte(label))
 

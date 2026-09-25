@@ -50,7 +50,7 @@ server:
       detailed: false
       providers:
         - 'storage'
-        - 'session'
+        - 'cache'
         - 'user'
       cache: '10 seconds'
     authz: {} ## See the dedicated "Server Authz Endpoints" configuration guide.
@@ -238,7 +238,7 @@ passes, `degraded` when some of them fail, and `error` when all of them fail:
   "cached": false,
   "providers": {
     "storage": {"status": "ok", "took": "1.802ms"},
-    "session": {"status": "ok", "took": "412µs"},
+    "cache": {"status": "ok", "took": "412µs"},
     "user": {"status": "error", "took": "5.002s"}
   }
 }
@@ -259,7 +259,7 @@ reported only as `"status": "error"`, and the message is written to the log inst
 
 ##### providers
 
-{{< confkey type="list(string)" default="storage, session, user" required="no" >}}
+{{< confkey type="list(string)" default="storage, cache, user" required="no" >}}
 
 The providers probed by the verbose endpoint, in the order given. The default is the three providers on the
 authentication request path: if any of them is unavailable the instance genuinely cannot serve a login.

@@ -54,7 +54,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var details *authentication.UserDetails
-	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
 
 		ctx.SetJSONError(messageOperationFailed)
@@ -119,7 +119,7 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var details *authentication.UserDetails
-	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
 
 		ctx.SetJSONError(messageOperationFailed)

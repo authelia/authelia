@@ -20,6 +20,11 @@ import (
 )
 
 func TestFirstFactorPasswordPOSTSessionErrors(t *testing.T) {
+	var (
+		fixated string
+		failing *failingSessionRepository
+	)
+
 	testCases := []struct {
 		name           string
 		setup          func(t *testing.T, mock *mocks.MockAutheliaCtx, repository *failingSessionRepository)
@@ -29,39 +34,47 @@ func TestFirstFactorPasswordPOSTSessionErrors(t *testing.T) {
 		{
 			"ShouldContinueWhenDestroyFails",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx, repository *failingSessionRepository) {
-				mock.Ctx.Request.Header.SetCookie("authelia_session", newTestSessionCookie("an-identifier-which-was-never-saved"))
+				fixated = newTestSessionCookie("an-identifier-which-was-never-saved")
+
+				mock.Ctx.Request.Header.SetCookie("authelia_session", fixated)
 
 				repository.errDelete = errTestSessionBackend
 			},
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				assert.Equal(t, `{"status":"OK"}`, string(mock.Ctx.Response.Body()))
+
+				cookie := string(mock.Ctx.Request.Header.Cookie("authelia_session"))
+
+				assert.NotEmpty(t, cookie)
+				assert.NotEqual(t, fixated, cookie)
 			},
 		},
 		{
-			"ShouldHandleResetSaveError",
+			"ShouldNotSaveAuthenticatedSessionWhenDestroyAndRegenerateFail",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx, repository *failingSessionRepository) {
-				repository.errSave = []error{errTestSessionBackend}
-			},
-			fasthttp.StatusUnauthorized,
-			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), fmt.Sprintf(logFmtErrSessionReset, regulation.AuthType1FA, testValue), "error occurred saving session to registry: backend unavailable")
-			},
-		},
-		{
-			"ShouldHandleRegenerateError",
-			func(t *testing.T, mock *mocks.MockAutheliaCtx, repository *failingSessionRepository) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				repository.saved = nil
+				repository.errDelete = errTestSessionBackend
 				repository.errChangeID = errTestSessionBackend
+
+				failing = repository
 			},
 			fasthttp.StatusUnauthorized,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), fmt.Sprintf(logFmtErrSessionRegenerate, regulation.AuthType1FA, testValue), "error occurred changing session ID: backend unavailable")
+
+				assert.NotContains(t, failing.saved, testValue)
 			},
 		},
 		{
 			"ShouldHandleProfileSaveError",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx, repository *failingSessionRepository) {
-				repository.errSave = []error{nil, errTestSessionBackend}
+				repository.errSave = []error{errTestSessionBackend}
 			},
 			fasthttp.StatusUnauthorized,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {

@@ -63,7 +63,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -95,7 +95,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 
 				mock.UserProviderMock.
 					EXPECT().
-					GetDetails(testUsername).
+					GetDetailsCached(testUsername).
 					Return(nil, fmt.Errorf("failed to lookup user"))
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
@@ -208,7 +208,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -243,7 +243,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -274,7 +274,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -479,7 +479,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -495,7 +495,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.
 						EXPECT().
@@ -541,7 +541,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -557,7 +557,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.
 						EXPECT().
@@ -605,7 +605,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -621,7 +621,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(nil, fmt.Errorf("failed conn")),
 				)
 			},
@@ -665,7 +665,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -719,7 +719,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -769,7 +769,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -814,7 +814,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				mock.UserProviderMock.
 					EXPECT().
-					GetDetails(testUsername).
+					GetDetailsCached(testUsername).
 					Return(nil, fmt.Errorf("failed to lookup user"))
 			},
 			dataPOSTGood,
@@ -977,7 +977,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -1033,7 +1033,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().

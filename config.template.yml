@@ -118,10 +118,10 @@
 
       ## The providers probed by the verbose endpoint. Probing 'notification' opens a connection to the SMTP
       ## server and probing 'ntp' contacts an external server, so neither is included by default.
-      ## Options are 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', and 'webauthn-metadata'.
+      ## Options are 'storage', 'cache', 'user', 'notification', 'ntp', 'expressions', and 'webauthn-metadata'.
       # providers:
       #   - 'storage'
-      #   - 'session'
+      #   - 'cache'
       #   - 'user'
 
       ## How long a result is reused before the providers are probed again. Set to '0' to probe on every request.

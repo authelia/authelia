@@ -77,7 +77,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var details *authentication.UserDetails
-	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred loading user details", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -274,7 +274,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var details *authentication.UserDetails
-	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred loading user details", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)

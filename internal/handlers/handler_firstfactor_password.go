@@ -101,21 +101,7 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 		}
 
 		if err = provider.Destroy(ctx); err != nil {
-			// This failure is not likely to be critical as we ensure to regenerate the session below.
 			ctx.GetLogger().WithError(err).Trace("Failed to destroy session during 1FA attempt")
-		}
-
-		// The session is constructed for the authenticating user rather than having the username applied to it later,
-		// as the username may only be set at construction.
-		userSession := provider.New(details.Username)
-
-		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
-		if err = provider.Save(ctx, &userSession); err != nil {
-			ctx.GetLogger().WithError(err).Errorf(logFmtErrSessionReset, regulation.AuthType1FA, details.Username)
-
-			respondUnauthorized(ctx, messageAuthenticationFailed)
-
-			return
 		}
 
 		if err = provider.Regenerate(ctx); err != nil {
@@ -125,6 +111,8 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 
 			return
 		}
+
+		userSession := provider.New(details.Username)
 
 		// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data.
 		keepMeLoggedIn := !provider.GetConfig().DisableRememberMe && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn

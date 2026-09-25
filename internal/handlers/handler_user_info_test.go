@@ -87,7 +87,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		if resp.err == nil {
 			mock.UserProviderMock.
 				EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsCached(gomock.Eq("john")).
 				Return(&authentication.UserDetails{Username: "john", DisplayName: "John Smith", Emails: []string{"john@example.com"}}, nil)
 		}
 
@@ -272,7 +272,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 
 			mock.UserProviderMock.
 				EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsCached(gomock.Eq("john")).
 				Return(&authentication.UserDetails{Username: "john", DisplayName: "John Smith", Emails: []string{"john@example.com"}}, nil)
 
 			UserInfoPOST(mock.Ctx)
@@ -438,7 +438,7 @@ func (s *FetchSuite) TestShouldReturnErrorWhenUserDetailsFailToLoadGET() {
 			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
 			Return(model.UserInfo{Method: "totp"}, nil),
 		s.mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
+			GetDetailsCached(gomock.Eq("john")).
 			Return(nil, fmt.Errorf("failed to lookup user")),
 	)
 
@@ -457,7 +457,7 @@ func (s *FetchSuite) TestShouldReturnErrorWhenUserDetailsFailToLoadPOST() {
 			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
 			Return(model.UserInfo{Method: "totp"}, nil),
 		s.mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
+			GetDetailsCached(gomock.Eq("john")).
 			Return(nil, fmt.Errorf("failed to lookup user")),
 	)
 

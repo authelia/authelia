@@ -603,7 +603,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.
 						EXPECT().
@@ -659,7 +659,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.
 						EXPECT().
@@ -708,7 +708,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.
 						EXPECT().
@@ -759,7 +759,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName}, nil),
 				)
 			},
@@ -806,7 +806,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(nil, fmt.Errorf("lookup failure")),
 				)
 			},
@@ -960,7 +960,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().LoadTOTPConfiguration(mock.Ctx, testUsername).Return(&model.TOTPConfiguration{}, nil),
 					mock.StorageMock.EXPECT().DeleteTOTPConfiguration(mock.Ctx, testUsername).Return(nil),
-					mock.UserProviderMock.EXPECT().GetDetails(testUsername).Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
+					mock.UserProviderMock.EXPECT().GetDetailsCached(testUsername).Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.EXPECT().Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Removed", gomock.Any(), gomock.Any()).Return(nil),
 				)
 			},
@@ -986,7 +986,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().LoadTOTPConfiguration(mock.Ctx, testUsername).Return(&model.TOTPConfiguration{}, nil),
 					mock.StorageMock.EXPECT().DeleteTOTPConfiguration(mock.Ctx, testUsername).Return(nil),
-					mock.UserProviderMock.EXPECT().GetDetails(testUsername).Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
+					mock.UserProviderMock.EXPECT().GetDetailsCached(testUsername).Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.EXPECT().Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Removed", gomock.Any(), gomock.Any()).Return(fmt.Errorf("bad conn")),
 				)
 			},
@@ -1014,7 +1014,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().LoadTOTPConfiguration(mock.Ctx, testUsername).Return(&model.TOTPConfiguration{}, nil),
 					mock.StorageMock.EXPECT().DeleteTOTPConfiguration(mock.Ctx, testUsername).Return(nil),
-					mock.UserProviderMock.EXPECT().GetDetails(testUsername).Return(nil, fmt.Errorf("lookup err")),
+					mock.UserProviderMock.EXPECT().GetDetailsCached(testUsername).Return(nil, fmt.Errorf("lookup err")),
 				)
 			},
 			`{"status":"OK"}`,

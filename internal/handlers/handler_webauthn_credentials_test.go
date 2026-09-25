@@ -582,7 +582,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 						DeleteWebAuthnCredential(mock.Ctx, model.NewBase64([]byte("abc")).String()).
 						Return(nil),
 					mock.UserProviderMock.EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Removed", gomock.Any(), gomock.Any()).
@@ -613,7 +613,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 						DeleteWebAuthnCredential(mock.Ctx, model.NewBase64([]byte("abc")).String()).
 						Return(nil),
 					mock.UserProviderMock.EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Removed", gomock.Any(), gomock.Any()).
@@ -646,7 +646,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 						DeleteWebAuthnCredential(mock.Ctx, model.NewBase64([]byte("abc")).String()).
 						Return(nil),
 					mock.UserProviderMock.EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(nil, fmt.Errorf("bad user")),
 				)
 			},

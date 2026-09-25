@@ -12,9 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/notification"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -34,6 +36,20 @@ type fakeUser struct {
 
 func (f *fakeUser) StartupCheck() (err error) { return f.err }
 
+type fakeCache struct {
+	cache.Provider
+
+	err error
+}
+
+func (f *fakeCache) StartupCheck() (err error) { return f.err }
+
+type fakeSessionRepository struct {
+	session.Repository
+}
+
+func (f *fakeSessionRepository) StartupCheck() (err error) { return nil }
+
 type fakeNotifier struct {
 	notification.Notifier
 
@@ -41,6 +57,23 @@ type fakeNotifier struct {
 }
 
 func (f *fakeNotifier) StartupCheck() (err error) { return f.err }
+
+// The session repository is backed by the storage provider unless session.storage is 'cache', so the cache provider
+// must be probed directly for an outage of the cache backend to be reported.
+func TestProvidersHealthChecksShouldProbeTheCacheRatherThanTheSessionRepository(t *testing.T) {
+	errBroken := errors.New("could not reach the redis server")
+
+	providers := Providers{
+		Cache:             &fakeCache{err: errBroken},
+		SessionRepository: &fakeSessionRepository{},
+	}
+
+	checks := providers.HealthChecks(&clock.Real{}, []string{schema.ProviderNameCache})
+
+	require.Len(t, checks, 1)
+	assert.Equal(t, schema.ProviderNameCache, checks[0].Name)
+	assert.EqualError(t, checks[0].Err, errBroken.Error())
+}
 
 func TestProvidersHealthChecks(t *testing.T) {
 	errBroken := errors.New("could not reach the server")

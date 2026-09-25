@@ -168,41 +168,96 @@ func TestDefaultStrategy_SaveShouldReplaceMalformedCookie(t *testing.T) {
 	assert.Len(t, id, 32)
 }
 
-func TestDefaultStrategy_ShouldIgnoreCookieWhichIsNotAFullLengthIdentifier(t *testing.T) {
+func TestDefaultStrategy_ShouldTreatInvalidCookieAsNewAnonymousSession(t *testing.T) {
+	existing := newTestCookieID("an-existing-authenticated-session")
+
 	testCases := []struct {
 		name   string
 		cookie string
 	}{
+		{"ShouldIgnoreNonBase64", "not!valid"},
+		{"ShouldIgnoreWhitespace", "a b"},
+		{"ShouldIgnorePaddedBase64URL", base64.URLEncoding.EncodeToString(existing)},
+		{"ShouldIgnoreStandardBase64", base64.StdEncoding.EncodeToString(existing)},
+		{"ShouldIgnoreStandardBase64WithoutPadding", base64.RawStdEncoding.EncodeToString(append([]byte{0xfb, 0xff}, existing[2:]...))},
+		{"ShouldIgnoreTrailingGarbage", encodeCookieID(existing) + "!"},
+		{"ShouldIgnoreTruncatedEncoding", encodeCookieID(existing)[:len(encodeCookieID(existing))-1]},
 		{"ShouldIgnoreShortIdentifier", encodeCookieID([]byte("a"))},
-		{"ShouldIgnoreIdentifierOneByteShort", encodeCookieID(make([]byte, 31))},
-		{"ShouldIgnoreIdentifierOneByteLong", encodeCookieID(make([]byte, 33))},
+		{"ShouldIgnoreIdentifierOneByteShort", encodeCookieID(existing[:31])},
+		{"ShouldIgnoreIdentifierOneByteLong", encodeCookieID(append(existing[:32:32], 0))},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repository := newCountingRepository()
-			strategy := newTestStrategyWithRepository(t, repository, nil)
-			ctx := newTestContext()
+			repository := &observingRepository{testRepository: newTestRepository()}
+			codec := newTestCodec(t)
+			strategy := newTestStrategyWithCodec(t, codec, repository)
 
-			ctx.cookies[testName] = tc.cookie
+			authenticated := strategy.New(testUsername)
 
-			actual, err := strategy.Get(ctx)
+			seed := newTestContext()
+			seed.cookies[testName] = encodeCookieID(existing)
 
-			require.NoError(t, err)
-			require.NotNil(t, actual)
-			assert.True(t, actual.IsAnonymous())
+			require.NoError(t, strategy.Save(seed, &authenticated))
+			require.Equal(t, encodeCookieID(existing), seed.cookies[testName])
+
+			repository.reads, repository.changes, repository.deletes = 0, 0, 0
+
+			t.Run("Get", func(t *testing.T) {
+				ctx := newTestContext()
+				ctx.cookies[testName] = tc.cookie
+
+				actual, err := strategy.Get(ctx)
+
+				require.NoError(t, err)
+				require.NotNil(t, actual)
+				assert.True(t, actual.IsAnonymous())
+				assert.Empty(t, actual.PublicID)
+			})
+
+			t.Run("Save", func(t *testing.T) {
+				ctx := newTestContext()
+				ctx.cookies[testName] = tc.cookie
+
+				userSession := strategy.NewDefault()
+
+				require.NoError(t, strategy.Save(ctx, &userSession))
+
+				assertNewSessionCookie(t, ctx, tc.cookie, existing)
+			})
+
+			t.Run("Regenerate", func(t *testing.T) {
+				ctx := newTestContext()
+				ctx.cookies[testName] = tc.cookie
+
+				require.NoError(t, strategy.Regenerate(ctx))
+
+				assertNewSessionCookie(t, ctx, tc.cookie, existing)
+			})
+
+			t.Run("Destroy", func(t *testing.T) {
+				ctx := newTestContext()
+				ctx.cookies[testName] = tc.cookie
+
+				require.NoError(t, strategy.Destroy(ctx))
+
+				assert.NotContains(t, ctx.cookies, testName)
+				assert.NotNil(t, ctx.cleared)
+			})
+
 			assert.Equal(t, 0, repository.reads)
+			assert.Equal(t, 0, repository.changes)
+			assert.Equal(t, 0, repository.deletes)
 
-			userSession := strategy.New(testUsername)
-
-			require.NoError(t, strategy.Save(ctx, &userSession))
-
-			assert.NotEqual(t, tc.cookie, ctx.cookies[testName])
-
-			id, err := base64.RawURLEncoding.DecodeString(ctx.cookies[testName])
+			record, err := repository.testRepository.Get(context.Background(), codec.Sign([]byte(testDomain)), codec.Sign(existing))
 
 			require.NoError(t, err)
-			assert.Len(t, id, 32)
+			require.NotNil(t, record, "the existing session was modified or removed by a malformed cookie")
+
+			actual := &UserSession{}
+
+			require.NoError(t, codec.Open(testDomain, record, actual))
+			assert.Equal(t, testUsername, actual.Username)
 		})
 	}
 }
@@ -807,4 +862,42 @@ func newTestRepository() *testRepository {
 		usernames:   map[string][]string{},
 		expirations: map[string]time.Duration{},
 	}
+}
+
+type observingRepository struct {
+	*testRepository
+
+	reads, changes, deletes int
+}
+
+func (r *observingRepository) Get(ctx context.Context, issuer, id string) (record Record, err error) {
+	r.reads++
+
+	return r.testRepository.Get(ctx, issuer, id)
+}
+
+func (r *observingRepository) ChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	r.changes++
+
+	return r.testRepository.ChangeID(ctx, issuer, oldID, id, pid, username, expiration, data)
+}
+
+func (r *observingRepository) Delete(ctx context.Context, issuer, id, pid, username string) (err error) {
+	r.deletes++
+
+	return r.testRepository.Delete(ctx, issuer, id, pid, username)
+}
+
+func assertNewSessionCookie(t *testing.T, ctx *testContext, presented string, existing []byte) {
+	t.Helper()
+
+	cookie := ctx.cookies[testName]
+
+	assert.NotEqual(t, presented, cookie)
+	assert.NotEqual(t, encodeCookieID(existing), cookie)
+
+	id, err := base64.RawURLEncoding.DecodeString(cookie)
+
+	require.NoError(t, err)
+	assert.Len(t, id, sessionIDLength)
 }
