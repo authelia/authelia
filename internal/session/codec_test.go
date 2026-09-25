@@ -5,7 +5,6 @@
 package session
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -52,9 +51,10 @@ func TestSecureCodec_GenerateSessionID(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, id, 32)
 
-	for _, char := range id {
-		assert.True(t, strings.ContainsRune(randomSessionChars, char), "character '%c' is not in the session charset", char)
-	}
+	other, err := codec.GenerateSessionID()
+
+	require.NoError(t, err)
+	assert.NotEqual(t, id, other)
 }
 
 func TestSecureCodec_GenerateSessionIDShouldReturnRandomError(t *testing.T) {
@@ -79,7 +79,7 @@ func TestSecureCodec_GeneratePublicID(t *testing.T) {
 }
 
 func TestSecureCodec_SealShouldReturnErrorWhenEncryptionFails(t *testing.T) {
-	codec := &SecureCodec{encKey: []byte("short"), hmacKey: []byte(testHMACKey), random: random.NewMathematical(), charsetSessionID: randomSessionChars}
+	codec := &SecureCodec{encKey: []byte("short"), hmacKey: []byte(testHMACKey), random: random.NewMathematical()}
 
 	data, err := codec.Seal(testDomain, "id", NewUserSession(testUsername))
 
@@ -130,6 +130,6 @@ type failingRandom struct {
 	random.Provider
 }
 
-func (r *failingRandom) StringCustomErr(_ int, _ string) (data string, err error) {
-	return "", errTestFailure
+func (r *failingRandom) Read(_ []byte) (n int, err error) {
+	return 0, errTestFailure
 }

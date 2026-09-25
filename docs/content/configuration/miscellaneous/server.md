@@ -264,7 +264,7 @@ reported only as `"status": "error"`, and the message is written to the log inst
 The providers probed by the verbose endpoint, in the order given. The default is the three providers on the
 authentication request path: if any of them is unavailable the instance genuinely cannot serve a login.
 
-Possible values are `storage`, `session`, `user`, `notification`, `ntp`, `expressions`, and `webauthn-metadata`.
+Possible values are `storage`, `cache`, `user`, `notification`, `ntp`, `expressions`, and `webauthn-metadata`.
 
 Probing `notification` opens a connection to the SMTP server and probing `ntp` contacts an external NTP server, so
 neither is included by default. Consider the [cache](#cache) before adding them.

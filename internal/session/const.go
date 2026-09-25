@@ -14,7 +14,7 @@ import (
 var ErrRepositoryGet = errors.New("error occurred getting session from backend")
 
 const (
-	randomSessionChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_!#$%^*"
+	sessionIDLength = 32
 
 	hkdfKeyInfoCodec = "authelia:kdf:session:codec:encryption_key:v1"
 

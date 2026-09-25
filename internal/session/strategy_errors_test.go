@@ -198,9 +198,9 @@ func TestDefaultStrategy_GetShouldRejectSessionRecordingAnotherCookieDomain(t *t
 	strategy := newTestStrategyWithCodec(t, codec, repository)
 	ctx := newTestContext()
 
-	const cookie = "an-identifier-for-a-session-of-another-domain"
+	id := []byte("an-identifier-for-a-session-of-another-domain")
 
-	sid := codec.Sign([]byte(cookie))
+	sid := codec.Sign(id)
 
 	userSession := NewUserSession(testUsername)
 	userSession.CookieDomain = "another.example.com"
@@ -210,7 +210,7 @@ func TestDefaultStrategy_GetShouldRejectSessionRecordingAnotherCookieDomain(t *t
 
 	require.NoError(t, repository.Save(ctx, codec.Sign([]byte(testDomain)), sid, "a-public-id", testUsername, testExpiration, data))
 
-	ctx.cookies[testName] = cookie
+	ctx.cookies[testName] = encodeCookieID(id)
 
 	actual, err := strategy.Get(ctx)
 
@@ -264,9 +264,9 @@ type failingCodec struct {
 	errSeal      error
 }
 
-func (c *failingCodec) GenerateSessionID() (id string, err error) {
+func (c *failingCodec) GenerateSessionID() (id []byte, err error) {
 	if c.errSessionID != nil {
-		return "", c.errSessionID
+		return nil, c.errSessionID
 	}
 
 	return c.Codec.GenerateSessionID()

@@ -20,6 +20,8 @@ func TestSessionRepositoryShouldDelegateToProvider(t *testing.T) {
 
 	repository := NewSessionRepository(NewMemory())
 
+	require.NoError(t, repository.StartupCheck())
+
 	assert.Equal(t, sessionGarbageCollectionFrequency, repository.GarbageCollectionFrequency(ctx))
 
 	require.NoError(t, repository.Save(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("first")))

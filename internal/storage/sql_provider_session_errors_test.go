@@ -25,6 +25,8 @@ func TestStorageSessionRepositoryShouldDelegateToTheProvider(t *testing.T) {
 		username  = "john"
 	)
 
+	require.NoError(t, repository.StartupCheck())
+
 	require.NoError(t, repository.Save(ctx, issuer, signature, publicID, username, time.Hour, []byte("first")))
 
 	record, err := repository.Get(ctx, issuer, signature)

@@ -1003,7 +1003,7 @@ func TestValidateServerEndpointsHealth(t *testing.T) {
 			"ShouldSetDefaults",
 			schema.ServerEndpointHealth{},
 			schema.ServerEndpointHealth{
-				Providers: []string{schema.ProviderNameStorage, schema.ProviderNameSession, schema.ProviderNameUser},
+				Providers: []string{schema.ProviderNameStorage, schema.ProviderNameCache, schema.ProviderNameUser},
 				Cache:     duration(time.Second * 10),
 			},
 			nil,

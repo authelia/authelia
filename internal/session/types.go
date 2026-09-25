@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // Identity of the user who is being verified.
@@ -146,6 +147,8 @@ type Repository interface {
 	// GarbageCollectionFrequency returns how often GarbageCollection should be run. A zero value indicates the backend
 	// expires sessions itself and no collection is required.
 	GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration)
+
+	model.StartupCheck
 }
 
 // The Codec handles obfuscation and privacy functionality such as generating private and public session identifiers,
@@ -155,9 +158,9 @@ type Codec interface {
 	// a session without being able to derive the identifier it's stored against.
 	GeneratePublicID() (id string, err error)
 
-	// GenerateSessionID returns a new random session identifier, which is the value stored in the session cookie and is
-	// never stored by the Repository itself.
-	GenerateSessionID() (id string, err error)
+	// GenerateSessionID returns a new random session identifier, which is the raw value encoded into the session cookie
+	// and is never stored by the Repository itself.
+	GenerateSessionID() (id []byte, err error)
 
 	// Verify returns true when the signature is the signature of the given data, comparing them in constant time. A
 	// signature which isn't valid hexadecimal is never verified.

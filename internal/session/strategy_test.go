@@ -6,6 +6,7 @@ package session
 
 import (
 	"context"
+	"encoding/base64"
 	"net/http"
 	"net/url"
 	"testing"
@@ -102,6 +103,68 @@ func TestDefaultStrategy_SaveAndGetShouldRoundTrip(t *testing.T) {
 	assert.Equal(t, testUsername, actual.Username)
 	assert.Equal(t, testDomain, actual.CookieDomain)
 	assert.NotEmpty(t, actual.PublicID)
+}
+
+func TestDefaultStrategy_SaveShouldEncodeCookieAsUnpaddedBase64URL(t *testing.T) {
+	codec := newTestCodec(t)
+	repository := newTestRepository()
+	strategy := newTestStrategyWithCodec(t, codec, repository)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	cookie := ctx.cookies[testName]
+
+	assert.Len(t, cookie, base64.RawURLEncoding.EncodedLen(32))
+	assert.NotContains(t, cookie, "=")
+
+	id, err := base64.RawURLEncoding.DecodeString(cookie)
+
+	require.NoError(t, err)
+	assert.Len(t, id, 32)
+
+	record, err := repository.Get(ctx, codec.Sign([]byte(testDomain)), codec.Sign(id))
+
+	require.NoError(t, err)
+	require.NotNil(t, record)
+	assert.Equal(t, codec.Sign(id), record.GetSessionSignature())
+}
+
+func TestDefaultStrategy_GetShouldReturnDefaultSessionForMalformedCookie(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	ctx.cookies[testName] += "="
+
+	actual, err := strategy.Get(ctx)
+
+	require.NoError(t, err)
+	require.NotNil(t, actual)
+	assert.True(t, actual.IsAnonymous())
+}
+
+func TestDefaultStrategy_SaveShouldReplaceMalformedCookie(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	ctx.cookies[testName] = "not!valid"
+
+	userSession := strategy.NewDefault()
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	id, err := base64.RawURLEncoding.DecodeString(ctx.cookies[testName])
+
+	require.NoError(t, err)
+	assert.Len(t, id, 32)
 }
 
 func TestDefaultStrategy_SaveShouldRejectMismatchedDomain(t *testing.T) {
@@ -402,11 +465,11 @@ func TestDefaultStrategy_GetShouldRejectSessionMovedToAnotherRecord(t *testing.T
 	}
 
 	codec := newTestCodec(t)
-	cookie := "a-cookie-value-which-was-never-issued"
+	id := []byte("a-cookie-value-which-was-never-issued")
 
-	require.NoError(t, repository.Save(ctx, codec.Sign([]byte(testDomain)), codec.Sign([]byte(cookie)), "a-public-id", testUsername, testExpiration, data))
+	require.NoError(t, repository.Save(ctx, codec.Sign([]byte(testDomain)), codec.Sign(id), "a-public-id", testUsername, testExpiration, data))
 
-	ctx.cookies[testName] = cookie
+	ctx.cookies[testName] = encodeCookieID(id)
 
 	_, err := strategy.Get(ctx)
 
@@ -625,6 +688,10 @@ func (r *testRepository) ChangeID(_ context.Context, issuer, oldID, id, pid, use
 }
 
 func (r *testRepository) GarbageCollection(_ context.Context) (err error) {
+	return nil
+}
+
+func (r *testRepository) StartupCheck() (err error) {
 	return nil
 }
 

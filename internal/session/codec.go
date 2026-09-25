@@ -32,8 +32,6 @@ func NewCodec(rawKey string, hmacKey []byte, random random.Provider) (codec Code
 		encKey:  key,
 		hmacKey: hmacKey,
 		random:  random,
-
-		charsetSessionID: randomSessionChars,
 	}, nil
 }
 
@@ -44,8 +42,6 @@ type SecureCodec struct {
 	hmacKey []byte
 
 	random random.Provider
-
-	charsetSessionID string
 }
 
 // GeneratePublicID returns a new random public identifier for a session. The public identifier is the value shared
@@ -60,9 +56,15 @@ func (c *SecureCodec) GeneratePublicID() (id string, err error) {
 	}
 }
 
-// GenerateSessionID returns a new random session identifier which is the value stored in the session cookie.
-func (c *SecureCodec) GenerateSessionID() (id string, err error) {
-	return c.random.StringCustomErr(32, c.charsetSessionID)
+// GenerateSessionID returns a new random session identifier which is the raw value encoded into the session cookie.
+func (c *SecureCodec) GenerateSessionID() (id []byte, err error) {
+	id = make([]byte, sessionIDLength)
+
+	if _, err = c.random.Read(id); err != nil {
+		return nil, err
+	}
+
+	return id, nil
 }
 
 // Verify returns true if the given signature is the signature of the given data, comparing them in constant time.

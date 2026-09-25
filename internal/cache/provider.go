@@ -62,6 +62,11 @@ type SessionRepository struct {
 	provider Provider
 }
 
+// StartupCheck implements the session.Repository interface.
+func (s SessionRepository) StartupCheck() (err error) {
+	return s.provider.StartupCheck()
+}
+
 // Get implements the session.Repository interface.
 func (s SessionRepository) Get(ctx context.Context, issuer string, id string) (record session.Record, err error) {
 	return s.provider.SessionGet(ctx, issuer, id)

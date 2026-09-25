@@ -5,6 +5,7 @@
 package session
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -97,10 +98,7 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		return fmt.Errorf("error occurred saving session: domain does not match cookie domain")
 	}
 
-	var (
-		id   string
-		data []byte
-	)
+	var id, data []byte
 
 	if id = p.getCookieID(ctx); len(id) == 0 {
 		if id, err = p.codec.GenerateSessionID(); err != nil {
@@ -114,7 +112,7 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		}
 	}
 
-	sid := p.codec.Sign([]byte(id))
+	sid := p.codec.Sign(id)
 
 	if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
 		return fmt.Errorf("error occurred encoding session: %w", err)
@@ -139,8 +137,9 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 // identifier, which mitigates session fixation across an authentication level change.
 func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 	var (
-		oldSID, id string
-		session    *UserSession
+		oldSID  string
+		id      []byte
+		session *UserSession
 	)
 
 	if oldSID, session, err = p.get(ctx); err != nil {
@@ -151,7 +150,7 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 		return fmt.Errorf("error occurred generating session ID: %w", err)
 	}
 
-	sid := p.codec.Sign([]byte(id))
+	sid := p.codec.Sign(id)
 	expiration := p.getExpiration(*session)
 
 	// An anonymous request has no persisted session to rename, so issuing the new identifier is sufficient.
@@ -205,7 +204,7 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 		return "", &userSession, nil
 	}
 
-	id = p.codec.Sign([]byte(cookie))
+	id = p.codec.Sign(cookie)
 
 	if cached, ok := p.getCached(ctx); ok {
 		return id, cached, nil
@@ -275,15 +274,27 @@ func (p *DefaultStrategy) setCached(ctx Context, session *UserSession) {
 	caching.CacheSession(p.config.Domain, &value)
 }
 
-func (p *DefaultStrategy) getCookieID(ctx Context) (id string) {
-	return ctx.GetCookie(p.config.Name)
+func (p *DefaultStrategy) getCookieID(ctx Context) (id []byte) {
+	value := ctx.GetCookie(p.config.Name)
+
+	if len(value) == 0 {
+		return nil
+	}
+
+	var err error
+
+	if id, err = base64.RawURLEncoding.DecodeString(value); err != nil {
+		return nil
+	}
+
+	return id
 }
 
-func (p *DefaultStrategy) newCookie(id string, expires time.Time) (cookie *http.Cookie) {
+func (p *DefaultStrategy) newCookie(id []byte, expires time.Time) (cookie *http.Cookie) {
 	//nolint:gosec // The SameSite attribute is determined by the validated configuration which restricts it to 'none', 'lax', or 'strict'.
 	return &http.Cookie{
 		Name:     p.config.Name,
-		Value:    id,
+		Value:    encodeCookieID(id),
 		Path:     "/",
 		Domain:   p.domain,
 		Expires:  expires,
@@ -294,7 +305,7 @@ func (p *DefaultStrategy) newCookie(id string, expires time.Time) (cookie *http.
 }
 
 func (p *DefaultStrategy) newDeletionCookie() (cookie *http.Cookie) {
-	return p.newCookie("", p.clock.Now().Add(-cookieDeletionOffset))
+	return p.newCookie(nil, p.clock.Now().Add(-cookieDeletionOffset))
 }
 
 func (p *DefaultStrategy) getExpiration(userSession UserSession) (expiration time.Duration) {
@@ -311,6 +322,10 @@ func (p *DefaultStrategy) getExpires(expiration time.Duration) (exp time.Time) {
 	}
 
 	return p.clock.Now().Add(expiration)
+}
+
+func encodeCookieID(id []byte) string {
+	return base64.RawURLEncoding.EncodeToString(id)
 }
 
 func newDomain(value string, samSite http.SameSite) string {

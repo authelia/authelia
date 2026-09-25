@@ -84,10 +84,10 @@ func TestProvidersHealthChecks(t *testing.T) {
 		},
 		{
 			"ShouldReportAProviderWhichIsNotConfigured",
-			[]string{schema.ProviderNameSession},
+			[]string{schema.ProviderNameCache},
 			false,
 			[]HealthCheck{
-				{Name: schema.ProviderNameSession, Err: ErrHealthCheckProviderNotConfigured},
+				{Name: schema.ProviderNameCache, Err: ErrHealthCheckProviderNotConfigured},
 			},
 		},
 		{
