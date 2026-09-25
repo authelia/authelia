@@ -22,8 +22,8 @@ importers:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
       react-email:
-        specifier: 6.9.5
-        version: 6.9.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 6.11.0
+        version: 6.11.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
       '@eslint-react/eslint-plugin':
         specifier: 5.20.8
@@ -32,8 +32,8 @@ importers:
         specifier: 10.0.1
         version: 10.0.1(eslint@10.11.0(jiti@2.6.1))
       '@react-email/ui':
-        specifier: 6.9.5
-        version: 6.9.5(@types/node@26.6.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 6.11.0
+        version: 6.11.0(@types/node@26.6.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@types/node':
         specifier: 26.6.2
         version: 26.6.2
@@ -809,8 +809,8 @@ packages:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
       react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/ui@6.9.5':
-    resolution: {integrity: sha512-UvE0yeSQCvdBm9BoEgvZ5vBi8abk02GbRE+4RQjjtxozy66D/O1GbUgK9RdB26+7EqQdOxdwkGLq5CMCiRO96A==}
+  '@react-email/ui@6.11.0':
+    resolution: {integrity: sha512-6bS3hnXHv4Uq5pLEdcg3c1ntr/0yrWVuTMdi9OJGZecK2LCHF5a+J4eNQ4PuMgpP2FJDYhXIuF22aRe3L1nW3Q==}
 
   '@rolldown/binding-android-arm-eabi@1.2.7':
     resolution: {integrity: sha512-EypzgnYCwyVY4NDHKzGmNJT5b+XaQEBniHxsMdeIQLB/tcCzZnhqrzHpZFbX9iaxx+5RiB8caATBtfvZP7zVxQ==}
@@ -1209,9 +1209,9 @@ packages:
     resolution: {integrity: sha512-NUPRluOfOiTKBKvWPtSD4PhFvWCqOi0BGStNWs57X9js7XGTprSmFoz5F0tWhR4WPjNeR9jXqdC7/UpSJTnlRg==}
     engines: {node: '>=18'}
 
-  chokidar@4.0.3:
-    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
-    engines: {node: '>= 14.16.0'}
+  chokidar@5.0.0:
+    resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
+    engines: {node: '>= 20.19.0'}
 
   citty@0.2.2:
     resolution: {integrity: sha512-+6vJA3L98yv+IdfKGZHBNiGW5KHn22e/JwID0Strsz8h4S/csAu/OuICwxrg44k5MRiZHWIo8XXuJgQTriRP4w==}
@@ -1841,9 +1841,9 @@ packages:
     peerDependencies:
       react: ^19.3.0
 
-  react-email@6.9.5:
-    resolution: {integrity: sha512-XkUFa4S3XGbVQegdGSvkShsEOn/j9t3yL5MXRf5A2l4K+RzXNPK2TZLOgI/bXfWu2WRyKWb9aVDtfLLuyBMi2A==}
-    engines: {node: '>=20.0.0'}
+  react-email@6.11.0:
+    resolution: {integrity: sha512-u0NBK+ypniH+snmYa1BQTCvqPTounU9OczXH+j2BLUoMrNkk5/d5qq5Droral87f2B7eClsDp0pF0Y4taWERbg==}
+    engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
@@ -1853,9 +1853,9 @@ packages:
     resolution: {integrity: sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog==}
     engines: {node: '>=0.10.0'}
 
-  readdirp@4.1.2:
-    resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
-    engines: {node: '>= 14.18.0'}
+  readdirp@5.1.1:
+    resolution: {integrity: sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA==}
+    engines: {node: '>= 20.19.0'}
 
   require-from-string@2.0.2:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
@@ -2683,9 +2683,10 @@ snapshots:
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
 
-  '@react-email/ui@6.9.5(@types/node@26.6.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@react-email/ui@6.11.0(@types/node@26.6.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
       esbuild: 0.28.1
+      jiti: 2.6.1
       next: 16.3.6(@types/node@26.6.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     transitivePeerDependencies:
       - '@babel/core'
@@ -3011,9 +3012,9 @@ snapshots:
 
   chai@6.2.2: {}
 
-  chokidar@4.0.3:
+  chokidar@5.0.0:
     dependencies:
-      readdirp: 4.1.2
+      readdirp: 5.1.1
 
   citty@0.2.2: {}
 
@@ -3680,12 +3681,12 @@ snapshots:
       react: 19.3.0
       scheduler: 0.28.0
 
-  react-email@6.9.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+  react-email@6.11.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:
       '@babel/parser': 7.29.2
       '@babel/traverse': 8.0.6
       '@react-email/render': 2.1.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      chokidar: 4.0.3
+      chokidar: 5.0.0
       commander: 13.1.0
       conf: 15.1.0
       css-tree: 3.2.1
@@ -3713,7 +3714,7 @@ snapshots:
 
   react@19.3.0: {}
 
-  readdirp@4.1.2: {}
+  readdirp@5.1.1: {}
 
   require-from-string@2.0.2: {}
 
