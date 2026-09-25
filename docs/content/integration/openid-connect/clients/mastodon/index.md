@@ -6,7 +6,7 @@
 title: "Mastodon"
 description: "Integrating Mastodon with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-04-13T13:46:05+10:00
+date: 2026-09-22T19:22:00+03:00
 draft: false
 images: []
 weight: 620
@@ -27,9 +27,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
 - [Mastodon]
-  - [v4.2.8](https://github.com/mastodon/mastodon/releases/tag/v4.2.8)
+  - [v4.6.8](https://github.com/mastodon/mastodon/releases/tag/v4.6.8)
 
 {{% oidc-common %}}
 
@@ -64,8 +64,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: false
-        pkce_challenge_method: ''
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/auth/auth/openid_connect/callback'
         scopes:
@@ -95,12 +95,14 @@ To configure [Mastodon] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 OIDC_ENABLED=true
 OIDC_DISPLAY_NAME=Authelia
 OIDC_DISCOVERY=true
+OIDC_USE_PKCE=true
 OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 OIDC_SCOPE=openid,profile,email
 OIDC_UID_FIELD=preferred_username
 OIDC_CLIENT_ID=mastodon
 OIDC_CLIENT_SECRET=insecure_secret
 OIDC_REDIRECT_URI=https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/auth/auth/openid_connect/callback
+OIDC_IDP_LOGOUT_REDIRECT_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout
 OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED=true
 ```
 
@@ -113,12 +115,14 @@ services:
       OIDC_ENABLED: 'true'
       OIDC_DISPLAY_NAME: 'Authelia'
       OIDC_DISCOVERY: 'true'
+      OIDC_USE_PKCE: 'true'
       OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       OIDC_SCOPE: 'openid,profile,email'
       OIDC_UID_FIELD: 'preferred_username'
       OIDC_CLIENT_ID: 'mastodon'
       OIDC_CLIENT_SECRET: 'insecure_secret'
       OIDC_REDIRECT_URI: 'https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/auth/auth/openid_connect/callback'
+      OIDC_IDP_LOGOUT_REDIRECT_URI: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout'
       OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED: 'true'
 ```
 
