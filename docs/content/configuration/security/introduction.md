@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Security"
-description: "Security Related Configuration"
+description: "An introduction to configuring the Authelia security settings covering access control, regulation, password policy, and other security-related configuration."
 summary: "An introduction into configuring the security settings."
 date: 2024-03-14T06:00:14+11:00
 draft: false
