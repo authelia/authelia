@@ -134,8 +134,8 @@ github.com/knadh/koanf/providers/posflag v1.0.2 h1:ky9Yqmoz0EHGfby6/gB6SUXmLs5kj
 github.com/knadh/koanf/providers/posflag v1.0.2/go.mod h1:3Wn3+YG3f4ljzRyCUgIwH7G0sZ1pMjCOsNBovrbKmAk=
 github.com/knadh/koanf/providers/rawbytes v1.0.1 h1:JCQoly+djX23Okr8kqtS19R7UXKleTAp62Vib2VrVYs=
 github.com/knadh/koanf/providers/rawbytes v1.0.1/go.mod h1:KxwYJf1uezTKy6PBtfE+m725NGp4GPVA7XoNTJ/PtLo=
-github.com/knadh/koanf/v2 v2.3.6 h1:JoQPSJmvS4aP0xNc8xMDr5tcrkSEInL23/Il7pITAKo=
-github.com/knadh/koanf/v2 v2.3.6/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQpZwo28=
+github.com/knadh/koanf/v2 v2.3.7 h1:amceufOeoQcq6VFKjm7/ggJ3t0Dkqaxy5fza4j3YgTA=
+github.com/knadh/koanf/v2 v2.3.7/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQpZwo28=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
