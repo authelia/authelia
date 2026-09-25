@@ -147,6 +147,8 @@ const (
 	codeCSPDevelopmentDefaultSrc = "'self' 'unsafe-eval'"
 	codeCSPNone                  = "'none'"
 	codeCSPNonce                 = "${NONCE}"
+
+	codeCSPImgSrc = "'self' data:"
 )
 
 const (
@@ -161,6 +163,7 @@ var (
 	codeCSPValuesCommon = []CSPValue{
 		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPSelf},
 		{Name: "frame-src", Value: codeCSPNone},
+		{Name: "img-src", Value: codeCSPImgSrc},
 		{Name: "object-src", Value: codeCSPNone},
 		{Name: "style-src", Value: "'self' 'nonce-%s'"},
 		{Name: "frame-ancestors", Value: codeCSPNone},

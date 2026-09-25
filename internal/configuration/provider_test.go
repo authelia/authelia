@@ -216,6 +216,36 @@ func TestShouldHaveEndpointSubPath(t *testing.T) {
 	assert.Contains(t, config.Server.Endpoints.Authz, "auth-request/basic")
 }
 
+func TestShouldEnableOpenIDConnectRelyingPartyRateLimitsByDefault(t *testing.T) {
+	testCases := []struct {
+		Name string
+	}{
+		{Name: "ShouldApplyEnableAndBucketDefaultsWhenOmitted"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			val := schema.NewStructValidator()
+
+			_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+			require.NoError(t, err)
+
+			validator.ValidateServer(config, val)
+
+			assert.Len(t, val.Errors(), 0)
+			assert.Len(t, val.Warnings(), 0)
+
+			assert.True(t, config.Server.Endpoints.RateLimits.ExternalIdentityStart.Enable)
+			assert.NotEmpty(t, config.Server.Endpoints.RateLimits.ExternalIdentityStart.Buckets)
+			assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.RateLimits.ExternalIdentityStart.Buckets, config.Server.Endpoints.RateLimits.ExternalIdentityStart.Buckets)
+
+			assert.True(t, config.Server.Endpoints.RateLimits.ExternalIdentityCallback.Enable)
+			assert.NotEmpty(t, config.Server.Endpoints.RateLimits.ExternalIdentityCallback.Buckets)
+			assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.RateLimits.ExternalIdentityCallback.Buckets, config.Server.Endpoints.RateLimits.ExternalIdentityCallback.Buckets)
+		})
+	}
+}
+
 func TestShouldConfigureRefreshIntervalDisable(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")

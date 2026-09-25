@@ -128,7 +128,26 @@ SPDX-License-Identifier = "LicenseRef-Trademark"
 path = [
   "docs/static/images/oid-certification.jpg",
   "docs/static/images/oid-map.png",
+  "web/src/assets/images/identity/openid.svg",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "OpenID Foundation"
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "web/src/assets/images/identity/discord.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "Discord Inc."
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "web/src/assets/images/identity/github.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "GitHub, Inc."
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "web/src/assets/images/identity/plex.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "Plex, Inc."
 SPDX-License-Identifier = "LicenseRef-Trademark"

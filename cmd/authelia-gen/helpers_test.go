@@ -90,7 +90,7 @@ func TestBuildCSP(t *testing.T) {
 				codeCSPValuesCommon,
 				codeCSPValuesProduction,
 			},
-			"default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s'",
+			"default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s'",
 		},
 	}
 
