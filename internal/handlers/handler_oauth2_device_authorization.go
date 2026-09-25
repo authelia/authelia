@@ -166,9 +166,21 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
-	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	var details authentication.UserDetailsExtended
+	if details, err = authentication.MustGetUserDetailsExtendedSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
 		log.
-			WithFields(map[string]any{logging.FieldAuthenticationLevel: level.String(), logging.FieldGroups: userSession.Groups, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
+			WithError(err).
+			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: client.GetID()}).
+			Error("Device Authorization Request failed as an error occurred fetching the user details")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the users details."))
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
+		log.
+			WithFields(map[string]any{logging.FieldAuthenticationLevel: level.String(), logging.FieldGroups: details.Groups, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
 			Error("Device Authorization Request failed as the user did not satisfy the client authorization policy during the User Authorization Flow")
 
 		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not authorize the user."))
@@ -198,27 +210,31 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	var details *authentication.UserDetailsExtended
-
-	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(userSession.Username); err != nil {
-		log.
-			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
-			Error("Device Authorization Request failed to obtain the user details during the User Authorization Flow")
-
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the users details."))
-
-		return
-	}
-
 	var requests *oidc.ClaimsRequests
 
 	extra := map[string]any{}
 
-	if requests, handled = handleOAuth2AuthorizationClaims(ctx, rw, r, "Device Authorization", userSession, details, client, requester, issuer, consent, extra); handled {
+	if requests, handled = handleOAuth2AuthorizationClaims(ctx, rw, r, "Device Authorization", userSession, &details, client, requester, issuer, consent, extra); handled {
+		return
+	}
+
+	var sid string
+
+	if sid, err = oidcSessionID(ctx, client, requester, &userSession); err != nil {
+		log.
+			WithError(err).
+			Error("Device Authorization Request failed to obtain the session identifier during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the session identifier."))
+
 		return
 	}
 
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
+
+	if sid != "" {
+		session.SetID(sid)
+	}
 
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
 		session.Claims.Audience = append([]string{client.GetID()}, oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource())...)

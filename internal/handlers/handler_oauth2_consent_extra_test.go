@@ -36,12 +36,14 @@ func TestHandleOAuth2ConsentFlowIDGETExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred fetching user session", regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred fetching user session during the Consent Flow stage of the Authorization Flow", regexpAnyError)
 	})
 
 	t.Run("ShouldHandleMalformedFormOnConsentSession", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
 		consent.Form = "%zz"
@@ -65,6 +67,8 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
 		consent.Form = "%zz"
 
@@ -82,6 +86,8 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 	t.Run("ShouldHandleSubjectLookupError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		consent := newTestOIDCConsentSession(t, mock, uuid.Nil)
 
@@ -103,6 +109,8 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 	t.Run("ShouldHandlePushedAuthorizationRequestLookupError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
 
@@ -132,6 +140,8 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
 
 		form := url.Values{
@@ -157,6 +167,8 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 	t.Run("ShouldIgnorePreConfigureWhenFormRequiresExplicitConsent", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		client := newTestOIDCPreConfiguredClient(t)
 
@@ -199,6 +211,8 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
 
 		setupTestOIDCConsent(t, mock, consent)
@@ -219,6 +233,8 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 	t.Run("ShouldHandleIssuerError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
 
@@ -247,6 +263,8 @@ func TestHandleSavePreConfiguredConsentExtra(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		client := newTestOIDCPreConfiguredClient(t)
 
 		config := newTestOIDCConfig(t)
@@ -274,6 +292,8 @@ func TestHandleSavePreConfiguredConsentExtra(t *testing.T) {
 	t.Run("ShouldSerializeClaimsRequests", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		client := newTestOIDCPreConfiguredClient(t)
 
@@ -314,6 +334,8 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		t.Helper()
 
 		mock = mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
@@ -380,6 +402,8 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		client := newTestOIDCDeviceCodeClient(t)
 
 		config := newTestOIDCConfig(t)
@@ -431,6 +455,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		defer mock.Close()
 
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		mock.Ctx.Request.SetBodyString(body(userCode))
 
@@ -446,6 +471,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		defer mock.Close()
 
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSession(gomock.Any(), gomock.Any()).
@@ -465,6 +491,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		defer mock.Close()
 
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSession(gomock.Any(), gomock.Any()).
@@ -487,11 +514,14 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		var device *model.OAuth2DeviceCodeSession
 
@@ -554,7 +584,7 @@ func TestHandleOAuth2ConsentSessionProviderErrors(t *testing.T) {
 		mock := newMockWithoutSessionProvider(t)
 		defer mock.Close()
 
-		_, consent, client, handled := handleOAuth2ConsentGetSessionsAndClient(mock.Ctx, uuid.Must(uuid.NewRandom()))
+		_, _, consent, client, handled := handleOAuth2ConsentGetSessionsAndClient(mock.Ctx, uuid.Must(uuid.NewRandom()))
 
 		assert.True(t, handled)
 		assert.Nil(t, consent)
@@ -599,6 +629,8 @@ func TestHandleOAuth2ConsentDeviceUnregisteredClient(t *testing.T) {
 		t.Helper()
 
 		mock = mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
@@ -650,6 +682,8 @@ func TestHandleOAuth2ConsentUseCodeGETExtra(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
@@ -686,6 +720,8 @@ func TestOAuth2ConsentPOSTSubflowDispatch(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
 
 		setupTestOIDCConsent(t, mock, consent)
@@ -709,6 +745,8 @@ func TestOAuth2ConsentPOSTSubflowDispatch(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		setupTestOIDCConsent(t, mock, nil)
 
 		flowID := uuid.Must(uuid.NewRandom())
@@ -730,10 +768,13 @@ func TestOAuth2ConsentPOSTSubflowDispatch(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		consent := newTestOIDCConsentSession(t, mock, uuid.Nil)
 
 		setupTestOIDCConsent(t, mock, consent)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), true).
@@ -757,6 +798,8 @@ func TestOAuth2ConsentPOSTSubflowDispatch(t *testing.T) {
 func TestHandleSavePreConfiguredConsentWithoutClaims(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 	defer mock.Close()
+
+	setupTestOIDCUserDetails(t, mock)
 
 	config := newTestOIDCConfig(t)
 	config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCPreConfiguredClient(t)}
@@ -852,12 +895,15 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTCorruptSession(t *testing.T) 
 	mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 	defer mock.Close()
 
+	setupTestOIDCUserDetails(t, mock)
+
 	config := newTestOIDCConfig(t)
 	config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
 	setupTestOIDCProvider(t, mock, config)
 	setupTestOIDCDeviceCodeStore(t, mock)
 	setupTestOIDCSubjectStore(t, mock)
+	setupTestOIDCSessionIDStore(t, mock)
 
 	userCode := mustGetTestOIDCUserCode(t, mock)
 

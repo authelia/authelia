@@ -88,6 +88,16 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectCachedData: fmt.Sprintf(queryFmtSelectCachedData, tableCachedData),
 		sqlDeleteCachedData: fmt.Sprintf(queryFmtDeleteCachedData, tableCachedData),
 
+		sqlUpsertSession:                     fmt.Sprintf(queryFmtUpsertSession, tableSession),
+		sqlSelectSession:                     fmt.Sprintf(queryFmtSelectSession, tableSession),
+		sqlSelectSessionByPublicID:           fmt.Sprintf(queryFmtSelectSessionByPublicID, tableSession),
+		sqlSelectSessionSignatureByPublicID:  fmt.Sprintf(queryFmtSelectSessionSignatureByPublicID, tableSession),
+		sqlSelectSessionSignaturesByUsername: fmt.Sprintf(queryFmtSelectSessionSignaturesByUsername, tableSession),
+		sqlUpdateSessionData:                 fmt.Sprintf(queryFmtUpdateSessionData, tableSession),
+		sqlUpdateSessionSignature:            fmt.Sprintf(queryFmtUpdateSessionSignature, tableSession),
+		sqlDeleteSession:                     fmt.Sprintf(queryFmtDeleteSession, tableSession),
+		sqlDeleteSessionExpired:              fmt.Sprintf(queryFmtDeleteSessionExpired, tableSession),
+
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
 		sqlRevokeIdentityVerification:  fmt.Sprintf(queryFmtRevokeIdentityVerification, tableIdentityVerification),
@@ -142,6 +152,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
+
+		sqlInsertOAuth2SessionID:            fmt.Sprintf(queryFmtInsertOAuth2SessionID, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDBySector:    fmt.Sprintf(queryFmtSelectOAuth2SessionIDBySector, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDBySessionID: fmt.Sprintf(queryFmtSelectOAuth2SessionIDBySessionID, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDsOldest:     fmt.Sprintf(queryFmtSelectOAuth2SessionIDsOldest, tableOAuth2SessionID),
+		sqlDeleteOAuth2SessionID:            fmt.Sprintf(queryFmtDeleteOAuth2SessionID, tableOAuth2SessionID),
+		sqlDeleteOAuth2SessionIDByPublicID:  fmt.Sprintf(queryFmtDeleteOAuth2SessionIDByPublicID, tableOAuth2SessionID),
 
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
 		sqlUpdateOAuth2PARContext: fmt.Sprintf(queryFmtUpdateOAuth2PARContext, tableOAuth2PARContext),
@@ -253,6 +270,17 @@ type SQLProvider struct {
 	sqlUpsertCachedData string
 	sqlSelectCachedData string
 	sqlDeleteCachedData string
+
+	// Table: session.
+	sqlUpsertSession                     string
+	sqlSelectSession                     string
+	sqlSelectSessionByPublicID           string
+	sqlSelectSessionSignatureByPublicID  string
+	sqlSelectSessionSignaturesByUsername string
+	sqlUpdateSessionData                 string
+	sqlUpdateSessionSignature            string
+	sqlDeleteSession                     string
+	sqlDeleteSessionExpired              string
 
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
@@ -395,6 +423,14 @@ type SQLProvider struct {
 
 	sqlUpsertOAuth2BlacklistedJTI string
 	sqlSelectOAuth2BlacklistedJTI string
+
+	// Table: oauth2_session_id.
+	sqlInsertOAuth2SessionID            string
+	sqlSelectOAuth2SessionIDBySector    string
+	sqlSelectOAuth2SessionIDBySessionID string
+	sqlSelectOAuth2SessionIDsOldest     string
+	sqlDeleteOAuth2SessionID            string
+	sqlDeleteOAuth2SessionIDByPublicID  string
 
 	// Utility.
 	sqlSelectExistingTables string

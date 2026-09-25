@@ -33,6 +33,9 @@ const (
 	// ConformancePageAutheliaError is Authelia reporting an error rather than presenting a stage.
 	ConformancePageAutheliaError
 
+	// ConformancePageSignOutConfirmation is Authelia asking the user to confirm an RP-Initiated Logout.
+	ConformancePageSignOutConfirmation
+
 	// ConformancePageCallback is the conformance suite's own callback, which ends a leg of the flow.
 	ConformancePageCallback
 )
@@ -47,6 +50,7 @@ const (
 	conformanceSelectorUsername                = "#username-textfield"
 	conformanceSelectorPassword                = "#password-textfield"
 	conformanceSelectorSignIn                  = "#sign-in-button"
+	conformanceSelectorSignOutConfirm          = "#sign-out-confirm"
 	conformanceCallbackPathPrefix              = "/test/a/"
 	conformanceSelectorAutheliaError           = `.notification[data-type="error"]`
 	conformanceSelectorCompletionError         = `[data-testid="openid-completion-outcome"][data-outcome="error"]`
@@ -57,6 +61,7 @@ const (
 	conformancePageTimeout                     = time.Second * 30
 	conformanceSignInAttempts                  = 3
 	conformanceConsentAttempts                 = 3
+	conformanceSignOutAttempts                 = 3
 	conformanceScreenshotLimit                 = 500 * 1024
 	conformanceCoverageBinding                 = "__autheliaConformanceCoverage"
 	conformanceCoverageScript                  = `addEventListener('beforeunload', () => { if (window.__coverage__) window.` + conformanceCoverageBinding + `(JSON.stringify(window.__coverage__)); });`
@@ -65,7 +70,7 @@ const (
 // ConformanceClassifyPage decides what the browser is looking at. It takes the observations rather than the page so
 // that the decision is testable without a browser. The callback wins over every stage selector, because a stage left
 // in the DOM of the document being navigated away from would otherwise be read as the current page.
-func ConformanceClassifyPage(uri string, hasFirstFactor, hasConsent, hasError bool) ConformancePageState {
+func ConformanceClassifyPage(uri string, hasFirstFactor, hasConsent, hasSignOutConfirmation, hasError bool) ConformancePageState {
 	switch {
 	case conformanceIsCallback(uri):
 		return ConformancePageCallback
@@ -73,6 +78,8 @@ func ConformanceClassifyPage(uri string, hasFirstFactor, hasConsent, hasError bo
 		return ConformancePageConsent
 	case hasFirstFactor:
 		return ConformancePageFirstFactor
+	case hasSignOutConfirmation:
+		return ConformancePageSignOutConfirmation
 	case hasError:
 		return ConformancePageAutheliaError
 	default:
@@ -124,6 +131,18 @@ type ConformanceLeg struct {
 
 	// ErrorScreenshot is the Authelia error page the leg ended on.
 	ErrorScreenshot string
+
+	// SignOutConfirmation is whether Authelia asked the user to confirm an RP-Initiated Logout during the leg, which
+	// the driver always accepts.
+	SignOutConfirmation bool
+
+	// SignedOut is whether the leg ended on the sign in form after the sign out was confirmed, which is where Authelia
+	// leaves the user when the logout request carried no post_logout_redirect_uri. Had it carried one the leg would
+	// have ended on the conformance suite's callback instead.
+	SignedOut bool
+
+	// SignedOutScreenshot is the sign in form the leg ended on when SignedOut is set.
+	SignedOutScreenshot string
 }
 
 // ConformanceBrowser is one conformance plan's isolated browser context. Every method returns an error rather than
@@ -279,6 +298,8 @@ func (b *ConformanceBrowser) settle(ctx context.Context, selector, startURL stri
 // Drive navigates to uri and works the flow through to the conformance suite's callback. It is deliberately reactive:
 // it acts on whatever page appears rather than on a script per module, so that a module added by a future conformance
 // suite release runs instead of failing.
+//
+//nolint:gocyclo
 func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (leg ConformanceLeg, err error) {
 	leg = ConformanceLeg{Index: index}
 
@@ -290,7 +311,7 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 
 	loaded()
 
-	attempts, consents := 0, 0
+	attempts, consents, signOuts := 0, 0, 0
 
 	progress := newConformanceProgress(conformanceLegPatience, time.Now())
 
@@ -301,10 +322,16 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 
 		pageURL := b.url()
 
-		switch ConformanceClassifyPage(pageURL, b.has(conformanceSelectorFirstFactor), b.has(conformanceSelectorConsent), b.hasAutheliaError()) {
+		switch ConformanceClassifyPage(pageURL, b.has(conformanceSelectorFirstFactor), b.has(conformanceSelectorConsent), b.has(conformanceSelectorSignOutConfirm), b.hasAutheliaError()) {
 		case ConformancePageCallback:
 			return leg, nil
 		case ConformancePageFirstFactor:
+			if leg.SignOutConfirmation {
+				leg.SignedOut, leg.SignedOutScreenshot = true, b.screenshot()
+
+				return leg, nil
+			}
+
 			leg.FirstFactor = true
 
 			if attempts++; attempts > conformanceSignInAttempts {
@@ -338,6 +365,18 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 
 			leg.Reauthentication = leg.Reauthentication || reauthentication
 			leg.LoginScreenshot = conformanceLatest(leg.LoginScreenshot, screenshot)
+
+			progress.observe(time.Now(), pageURL, true)
+		case ConformancePageSignOutConfirmation:
+			leg.SignOutConfirmation = true
+
+			if signOuts++; signOuts > conformanceSignOutAttempts {
+				return leg, fmt.Errorf("the sign out confirmation at '%s' was still present after %d attempts", pageURL, conformanceSignOutAttempts)
+			}
+
+			if err = b.submitSignOut(ctx, pageURL, signOuts); err != nil {
+				return leg, err
+			}
 
 			progress.observe(time.Now(), pageURL, true)
 		case ConformancePageAutheliaError:
@@ -488,6 +527,20 @@ func (b *ConformanceBrowser) submitSignIn(ctx context.Context, pageURL string, a
 	}
 
 	return screenshot, nil
+}
+
+func (b *ConformanceBrowser) submitSignOut(ctx context.Context, pageURL string, attempt int) (err error) {
+	b.trace.Logf("Confirming the sign out at '%s' (attempt %d)", pageURL, attempt)
+
+	if err = b.click(conformanceSelectorSignOutConfirm); err != nil {
+		return fmt.Errorf("error confirming the sign out at '%s': %w", pageURL, err)
+	}
+
+	if err = b.settle(ctx, conformanceSelectorSignOutConfirm, pageURL); err != nil {
+		return fmt.Errorf("error confirming the sign out at '%s': %w", pageURL, err)
+	}
+
+	return nil
 }
 
 func (b *ConformanceBrowser) submitConsent(ctx context.Context, pageURL string, attempt int) (reauthentication bool, screenshot string, err error) {

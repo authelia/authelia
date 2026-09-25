@@ -10,6 +10,7 @@
 	"An unexpected error occurred": "An unexpected error occurred",
 	"An unknown error occurred": "An unknown error occurred",
 	"An unknown security error occurred": "An unknown security error occurred",
+	"Are you sure you want to sign out?": "Are you sure you want to sign out?",
 	"Authenticated": "Authenticated",
 	"Automatically refresh these permissions without user interaction": "Automatically refresh these permissions without user interaction",
 	"Cancel": "Cancel",
@@ -88,6 +89,7 @@
 	"The resource you're attempting to access requires two-factor authentication": "The resource you're attempting to access requires two-factor authentication",
 	"The server rejected the security key": "The server rejected the security key",
 	"The server responded with an invalid Facet ID for the URL": "The server responded with an invalid Facet ID for the URL",
+	"There was an issue cancelling the sign out": "There was an issue cancelling the sign out",
 	"There was an issue completing sign in process": "There was an issue completing sign in process",
 	"There was an issue completing the process the verification token might have expired": "There was an issue completing the process the verification token might have expired",
 	"There was an issue fetching Duo device(s)": "There was an issue fetching Duo device(s)",
@@ -113,5 +115,6 @@
 	"You're being signed out and redirected": "You're being signed out and redirected",
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements",
-	"or": "or"
+	"or": "or",
+	"{{client}} has requested that you sign out": "{{client}} has requested that you sign out"
 }
