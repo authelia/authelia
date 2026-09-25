@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Integration Suites"
-description: "A guide to Authelia's integration suites which provide Docker-based virtual environments for manual testing and automated integration tests with Selenium."
+description: "A guide to Authelia's integration suites which provide Docker-based virtual environments for manual testing and automated integration tests with go-rod and Chrome CDP."
 summary: "This section covers the build process and how to perform tests in development."
 date: 2024-03-14T06:00:14+11:00
 draft: false
