@@ -59,6 +59,7 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 			},
 			expected: schema.ServerEndpointRateLimits{
 				ResetPasswordStart: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 10 * time.Minute, Requests: 5},
 						{Period: 15 * time.Minute, Requests: 10},
@@ -66,12 +67,14 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 					},
 				},
 				ResetPasswordFinish: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 1 * time.Minute, Requests: 10},
 						{Period: 2 * time.Minute, Requests: 15},
 					},
 				},
 				SecondFactorTOTP: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 1 * time.Minute, Requests: 30},
 						{Period: 2 * time.Minute, Requests: 40},
@@ -79,12 +82,14 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 					},
 				},
 				SecondFactorDuo: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 1 * time.Minute, Requests: 10},
 						{Period: 2 * time.Minute, Requests: 15},
 					},
 				},
 				SessionElevationStart: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan * 1, Requests: 3},
 						{Period: schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan * 2, Requests: 5},
@@ -92,6 +97,7 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 					},
 				},
 				SessionElevationFinish: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 1, Requests: 3},
 						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 2, Requests: 5},
@@ -99,6 +105,7 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 					},
 				},
 				OpenIDConnectToken: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 1 * time.Minute, Requests: 30},
 						{Period: 2 * time.Minute, Requests: 40},
@@ -107,6 +114,34 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 					},
 				},
 				OpenIDConnectPushedAuthorizationRequest: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+						{Period: time.Hour, Requests: 100},
+					},
+				},
+				OpenIDConnectUserInfo: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+						{Period: time.Hour, Requests: 100},
+					},
+				},
+				OpenIDConnectIntrospection: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+						{Period: time.Hour, Requests: 100},
+					},
+				},
+				OpenIDConnectRevocation: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 1 * time.Minute, Requests: 30},
 						{Period: 2 * time.Minute, Requests: 40},
@@ -130,6 +165,9 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 
 			assert.Equal(t, tc.expected.OpenIDConnectPushedAuthorizationRequest, tc.config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest)
 			assert.Equal(t, tc.expected.OpenIDConnectToken, tc.config.Server.Endpoints.RateLimits.OpenIDConnectToken)
+			assert.Equal(t, tc.expected.OpenIDConnectUserInfo, tc.config.Server.Endpoints.RateLimits.OpenIDConnectUserInfo)
+			assert.Equal(t, tc.expected.OpenIDConnectIntrospection, tc.config.Server.Endpoints.RateLimits.OpenIDConnectIntrospection)
+			assert.Equal(t, tc.expected.OpenIDConnectRevocation, tc.config.Server.Endpoints.RateLimits.OpenIDConnectRevocation)
 			assert.Equal(t, tc.expected.ResetPasswordStart, tc.config.Server.Endpoints.RateLimits.ResetPasswordStart)
 			assert.Equal(t, tc.expected.ResetPasswordFinish, tc.config.Server.Endpoints.RateLimits.ResetPasswordFinish)
 			assert.Equal(t, tc.expected.SecondFactorTOTP, tc.config.Server.Endpoints.RateLimits.SecondFactorTOTP)
@@ -192,6 +230,96 @@ func TestValidateRateLimitErrors(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[4], "server: endpoints: rate_limits: session_elevation_start: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
 	assert.EqualError(t, validator.Errors()[5], "server: endpoints: rate_limits: session_elevation_finish: bucket 1: option 'period' must have a value")
 	assert.EqualError(t, validator.Errors()[6], "server: endpoints: rate_limits: session_elevation_finish: bucket 1: option 'requests' has a value of '0' but it must be greater than 1")
+}
+
+func TestValidateRateLimitIPv6Mask(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     int
+		expected int
+		err      string
+	}{
+		{"ShouldSetDefault", 0, 64, ""},
+		{"ShouldAllowMinimum", 48, 48, ""},
+		{"ShouldAllowCustom", 56, 56, ""},
+		{"ShouldAllowMaximum", 128, 128, ""},
+		{"ShouldErrorBelowMinimum", 47, 47, "server: endpoints: rate_limits: %s: option 'ipv6_mask' has a value of '47' but it must be between 48 and 128"},
+		{"ShouldErrorAboveMaximum", 129, 129, "server: endpoints: rate_limits: %s: option 'ipv6_mask' has a value of '129' but it must be between 48 and 128"},
+		{"ShouldErrorNegative", -1, -1, "server: endpoints: rate_limits: %s: option 'ipv6_mask' has a value of '-1' but it must be between 48 and 128"},
+	}
+
+	endpoints := []struct {
+		name     string
+		endpoint func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit
+	}{
+		{"reset_password_start", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.ResetPasswordStart
+		}},
+		{"reset_password_finish", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.ResetPasswordFinish
+		}},
+		{"second_factor_totp", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.SecondFactorTOTP
+		}},
+		{"second_factor_duo", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.SecondFactorDuo
+		}},
+		{"second_factor_password", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.SecondFactorPassword
+		}},
+		{"session_elevation_start", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.SessionElevationStart
+		}},
+		{"session_elevation_finish", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.SessionElevationFinish
+		}},
+		{"openid_connect_token", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.OpenIDConnectToken
+		}},
+		{"openid_connect_pushed_authorization_request", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.OpenIDConnectPushedAuthorizationRequest
+		}},
+		{"openid_connect_userinfo", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.OpenIDConnectUserInfo
+		}},
+		{"openid_connect_introspection", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.OpenIDConnectIntrospection
+		}},
+		{"openid_connect_revocation", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.OpenIDConnectRevocation
+		}},
+	}
+
+	for _, e := range endpoints {
+		t.Run(e.name, func(t *testing.T) {
+			for _, tc := range testCases {
+				t.Run(tc.name, func(t *testing.T) {
+					config := &schema.Configuration{}
+
+					e.endpoint(&config.Server.Endpoints.RateLimits).IPv6Mask = tc.have
+
+					validator := schema.NewStructValidator()
+
+					ValidateServer(config, validator)
+
+					assert.Equal(t, tc.expected, e.endpoint(&config.Server.Endpoints.RateLimits).IPv6Mask)
+
+					for _, other := range endpoints {
+						if other.name != e.name {
+							assert.Equal(t, 64, other.endpoint(&config.Server.Endpoints.RateLimits).IPv6Mask, other.name)
+						}
+					}
+
+					if tc.err == "" {
+						assert.Len(t, validator.Errors(), 0)
+					} else {
+						require.Len(t, validator.Errors(), 1)
+						assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(tc.err, e.name))
+					}
+				})
+			}
+		})
+	}
 }
 
 func TestValidateSeverAddress(t *testing.T) {

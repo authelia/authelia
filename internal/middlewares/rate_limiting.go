@@ -7,6 +7,7 @@ package middlewares
 import (
 	"context"
 	"math"
+	"net"
 	"net/http"
 	"slices"
 	"strconv"
@@ -115,10 +116,12 @@ type RateLimitBucket interface {
 }
 
 // The RateLimitBucketConfig describes a limit (number of seconds), and a burst (number of events) that can occur for a
-// given rate limiter.
+// given rate limiter. The IPv6Mask is the prefix length used to group IPv6 addresses into a single bucket, a value of 0
+// uses the schema.DefaultServerEndpointRateLimitIPv6Mask.
 type RateLimitBucketConfig struct {
 	Period   time.Duration
 	Requests int
+	IPv6Mask int
 }
 
 // NewRateLimiterFunc is a function type that constructs a RateLimitBucket from a RateLimitBucketConfig.
@@ -287,8 +290,15 @@ func newIsRateLimitExempt(exemptStatusCodes []int) func(ctx *AutheliaCtx) bool {
 
 // NewIPRateLimitBucket returns a IPRateLimitBucket given a RateLimitBucketConfig.
 func NewIPRateLimitBucket(bucket RateLimitBucketConfig) (limiter RateLimitBucket) {
+	bits := bucket.IPv6Mask
+
+	if bits <= 0 {
+		bits = schema.DefaultServerEndpointRateLimitIPv6Mask
+	}
+
 	return &IPRateLimitBucket{
 		bucket: make(map[string]*BucketLimiter),
+		mask:   net.CIDRMask(bits, net.IPv6len*8),
 		p:      bucket.Period,
 		r:      rate.Every(bucket.Period),
 		b:      bucket.Requests,
@@ -304,9 +314,11 @@ type BucketLimiter struct {
 	updated atomic.Int64
 }
 
-// IPRateLimitBucket is a RateLimitBucket which limits requests based on each of the buckets delimited by IP.
+// IPRateLimitBucket is a RateLimitBucket which limits requests based on each of the buckets delimited by IP. IPv4
+// addresses are delimited by the full address, and IPv6 addresses are delimited by the configured prefix length.
 type IPRateLimitBucket struct {
 	bucket map[string]*BucketLimiter
+	mask   net.IPMask
 	mu     sync.RWMutex
 	p      time.Duration
 	r      rate.Limit
@@ -363,7 +375,17 @@ func (l *IPRateLimitBucket) GarbageCollection() {
 
 // FetchCtx fetches the *BucketLimiter given the *AutheliaCtx.
 func (l *IPRateLimitBucket) FetchCtx(ctx *AutheliaCtx) (limiter *BucketLimiter) {
-	return l.Fetch(ctx.RemoteIP().String())
+	return l.Fetch(l.key(ctx.RemoteIP()))
+}
+
+// key returns the bucket key for an IP. IPv4 and IPv4-mapped IPv6 addresses use the full address, whereas all other
+// IPv6 addresses are masked to the configured prefix length.
+func (l *IPRateLimitBucket) key(ip net.IP) string {
+	if ip.To4() != nil || len(ip) != net.IPv6len || l.mask == nil {
+		return ip.String()
+	}
+
+	return ip.Mask(l.mask).String()
 }
 
 func (l *IPRateLimitBucket) new(ip string) (limiter *BucketLimiter) {
@@ -379,7 +401,7 @@ func NewRateLimitBucketsConfig(config schema.ServerEndpointRateLimit) []RateLimi
 	buckets := make([]RateLimitBucketConfig, len(config.Buckets))
 
 	for i, bucket := range config.Buckets {
-		buckets[i] = RateLimitBucketConfig{Period: bucket.Period, Requests: bucket.Requests}
+		buckets[i] = RateLimitBucketConfig{Period: bucket.Period, Requests: bucket.Requests, IPv6Mask: config.IPv6Mask}
 	}
 
 	return buckets
