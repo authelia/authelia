@@ -264,9 +264,6 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 	return
 }
 
-// loadXNormalizedValuesPaths returns the given filter values file paths as absolute paths. Unlike the configuration
-// file paths these are always files, so no directory handling or stat occurs. Empty entries, such as those produced by
-// a trailing comma, are skipped as [filepath.Abs] would otherwise resolve them to the working directory.
 func loadXNormalizedValuesPaths(paths []string) ([]string, error) {
 	if len(paths) == 0 {
 		return paths, nil

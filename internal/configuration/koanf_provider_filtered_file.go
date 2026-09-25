@@ -224,8 +224,6 @@ func (e *FilterValuesError) Unwrap() error {
 	return e.err
 }
 
-// loadValuesFiles loads each file in order and deep-merges them onto a single values map. Later files override earlier
-// ones at every level. An empty or nil slice returns nil values.
 func loadValuesFiles(paths []string) (values map[string]any, err error) {
 	if len(paths) == 0 {
 		return nil, nil
@@ -246,9 +244,6 @@ func loadValuesFiles(paths []string) (values map[string]any, err error) {
 	return values, nil
 }
 
-// loadValuesFile reads and parses a values file. The format is selected from the file extension: .yml/.yaml for YAML,
-// .json for JSON, .toml for TOML. The parsed values are normalized by normalizeValues. An empty path returns nil
-// values; an unsupported extension returns an error.
 func loadValuesFile(path string) (values map[string]any, err error) {
 	if path == "" {
 		return nil, nil
@@ -260,8 +255,6 @@ func loadValuesFile(path string) (values map[string]any, err error) {
 		return nil, fmt.Errorf("error reading values file: %w", err)
 	}
 
-	// Decoding into any rather than map[string]any ensures top-level keys are decoded the same way as nested keys, so
-	// that normalizeValues converts keys consistently at every level.
 	var raw any
 
 	ext := strings.ToLower(filepath.Ext(path))
@@ -281,15 +274,15 @@ func loadValuesFile(path string) (values map[string]any, err error) {
 	case utils.ExtTOML:
 		err = toml.Unmarshal(data, &raw)
 	default:
-		return nil, fmt.Errorf("error parsing values file: unsupported extension '%s': must be one of '.yml', '.yaml', '.json', or '.toml'", ext)
+		return nil, fmt.Errorf("error parsing values file '%s': unsupported extension '%s': must be one of '.yml', '.yaml', '.json', or '.toml'", path, ext)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error parsing values file: %w", err)
+		return nil, fmt.Errorf("error parsing values file '%s': %w", path, err)
 	}
 
 	if raw, err = normalizeValues(raw); err != nil {
-		return nil, fmt.Errorf("error parsing values file: %w", err)
+		return nil, fmt.Errorf("error parsing values file '%s': %w", path, err)
 	}
 
 	switch v := raw.(type) {
@@ -298,7 +291,7 @@ func loadValuesFile(path string) (values map[string]any, err error) {
 	case map[string]any:
 		return v, nil
 	default:
-		return nil, fmt.Errorf("error parsing values file: the top-level value must be a mapping but it's a %T", raw)
+		return nil, fmt.Errorf("error parsing values file '%s': the top-level value must be a mapping but it's a %T", path, raw)
 	}
 }
 
@@ -416,7 +409,7 @@ func NewTemplateFileFilter(values map[string]any) BytesFilter {
 
 	return &TemplateBytesFilter{
 		log:  logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
-		t:    template.New("config.template").Funcs(templates.FuncMap()),
+		t:    template.New("config.template").Option("missingkey=error").Funcs(templates.FuncMap()),
 		data: data,
 	}
 }

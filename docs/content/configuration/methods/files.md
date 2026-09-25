@@ -364,6 +364,10 @@ information.
 
 Multiple values files can be specified, see [Values](#values) for information on how they're merged.
 
+Referencing a key which does not exist, for example `{{ .Values.Missing }}`, is an error rather than rendering an empty
+or placeholder value. To optionally reference a key use the `index` function, for example
+`{{ index .Values "Missing" | default "fallback" }}`.
+
 |         Field          |            Description             |
 | :--------------------: | :--------------------------------: |
 |        .Values         | The Values from the provided files |

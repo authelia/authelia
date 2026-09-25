@@ -163,6 +163,64 @@ func TestNewFileFiltersValuesFiles(t *testing.T) {
 	}
 }
 
+func TestTemplateFilterMissingKeys(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+		err      string
+	}{
+		{
+			"ShouldRenderExistingKey",
+			"value: {{ .Values.Example.Value }}",
+			"value: light",
+			"",
+		},
+		{
+			"ShouldErrorOnMissingTopLevelKey",
+			"value: {{ .Values.Example }}",
+			"",
+			"template: config.template:1:17: executing \"config.template\" at <.Values.Example>: map has no entry for key \"Example\"",
+		},
+		{
+			"ShouldErrorOnMissingNestedKey",
+			"value: {{ .Values.Example.Value }}",
+			"",
+			"template: config.template:1:17: executing \"config.template\" at <.Values.Example.Value>: map has no entry for key \"Value\"",
+		},
+		{
+			"ShouldErrorOnMissingAutheliaKey",
+			"value: {{ .Authelia.Build.Tga }}",
+			"",
+			"template: config.template:1:19: executing \"config.template\" at <.Authelia.Build.Tga>: map has no entry for key \"Tga\"",
+		},
+		{
+			"ShouldAllowDefaultForMissingKeyViaIndex",
+			"value: {{ index .Values \"Missing\" | default \"fallback\" }}",
+			"value: fallback",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			filters, err := NewFileFilters([]string{"./test_resources/config_values.values.yml"}, "template")
+			require.NoError(t, err)
+			require.Len(t, filters, 1)
+
+			out, err := filters[0].Filter([]byte(tc.have))
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, out)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tc.expected, string(out))
+			}
+		})
+	}
+}
+
 func TestTemplateFilterShouldRenderLargeJSONIntegersExactly(t *testing.T) {
 	filters, err := NewFileFilters([]string{"./test_resources/config_values.numbers.large.json"}, "template")
 	require.NoError(t, err)
@@ -248,13 +306,13 @@ func TestLoadValuesFile(t *testing.T) {
 			"ShouldErrorOnTopLevelKeysCollidingAfterNormalization",
 			"./test_resources/config_values.keys.toplevel.collision.yml",
 			nil,
-			"error parsing values file: duplicate key '1' after normalizing keys to strings",
+			"error parsing values file './test_resources/config_values.keys.toplevel.collision.yml': duplicate key '1' after normalizing keys to strings",
 		},
 		{
 			"ShouldErrorOnTopLevelNonMapping",
 			"./test_resources/config_values.list.yml",
 			nil,
-			"error parsing values file: the top-level value must be a mapping but it's a []interface {}",
+			"error parsing values file './test_resources/config_values.list.yml': the top-level value must be a mapping but it's a []interface {}",
 		},
 		{
 			"ShouldLoadJSONIntegersAboveMaxInt64WithoutRounding",
@@ -269,13 +327,13 @@ func TestLoadValuesFile(t *testing.T) {
 			"ShouldErrorOnJSONIntegersAboveMaxUint64",
 			"./test_resources/config_values.numbers.overflow.json",
 			nil,
-			"error parsing values file: integer '18446744073709551616' is out of range",
+			"error parsing values file './test_resources/config_values.numbers.overflow.json': integer '18446744073709551616' is out of range",
 		},
 		{
 			"ShouldErrorOnKeysCollidingAfterNormalization",
 			"./test_resources/config_values.keys.collision.yml",
 			nil,
-			"error parsing values file: duplicate key '1' after normalizing keys to strings",
+			"error parsing values file './test_resources/config_values.keys.collision.yml': duplicate key '1' after normalizing keys to strings",
 		},
 		{
 			"ShouldErrorOnMissingFile",
@@ -287,13 +345,13 @@ func TestLoadValuesFile(t *testing.T) {
 			"ShouldErrorOnUnsupportedExtension",
 			"./test_resources/config_values.values.ini",
 			nil,
-			"error parsing values file: unsupported extension '.ini': must be one of '.yml', '.yaml', '.json', or '.toml'",
+			"error parsing values file './test_resources/config_values.values.ini': unsupported extension '.ini': must be one of '.yml', '.yaml', '.json', or '.toml'",
 		},
 		{
 			"ShouldErrorOnUnrecognizedExtensionWithDotInName",
 			"./test_resources/config_values.values",
 			nil,
-			"error parsing values file: unsupported extension '.values': must be one of '.yml', '.yaml', '.json', or '.toml'",
+			"error parsing values file './test_resources/config_values.values': unsupported extension '.values': must be one of '.yml', '.yaml', '.json', or '.toml'",
 		},
 	}
 
