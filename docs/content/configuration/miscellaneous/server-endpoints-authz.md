@@ -80,6 +80,16 @@ The underlying implementation for the endpoint. Valid case-sensitive values are 
 `AuthRequest`, and `Legacy`. Read more about the implementations in the
 [reference guide](../../reference/guides/proxy-authorization.md#implementations).
 
+### disable_access_denied_redirect
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Disables redirecting users who are denied by an access control rule to the access denied page, responding with the
+[403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status instead. This restores the
+behavior from before the access denied page existed, and is useful for an endpoint which predominantly serves API
+clients. It has no effect on the `Legacy` implementation which always responds with the
+[403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
+
 ### authn_strategies
 
 {{< confkey type="list" required="no" >}}

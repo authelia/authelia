@@ -639,8 +639,8 @@ func (ctx *AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
 	return false
 }
 
-// SpecialRedirect performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes body
-// content in the form of a link to the location if the request method was not head.
+// SpecialRedirect performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and 403 and
+// includes body content in the form of a link to the location if the request method was not head.
 func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	var u []byte
 
@@ -650,14 +650,14 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
 }
 
-// SpecialRedirectNoBody performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes
-// no body.
+// SpecialRedirectNoBody performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and 403 and
+// includes no body.
 func (ctx *AutheliaCtx) SpecialRedirectNoBody(uri string, statusCode int) {
 	_, _ = ctx.setSpecialRedirect(uri, statusCode)
 }
 
 func (ctx *AutheliaCtx) setSpecialRedirect(uri string, statusCode int) ([]byte, int) {
-	if statusCode < fasthttp.StatusMovedPermanently || (statusCode > fasthttp.StatusSeeOther && statusCode != fasthttp.StatusTemporaryRedirect && statusCode != fasthttp.StatusPermanentRedirect && statusCode != fasthttp.StatusUnauthorized) {
+	if statusCode < fasthttp.StatusMovedPermanently || (statusCode > fasthttp.StatusSeeOther && statusCode != fasthttp.StatusTemporaryRedirect && statusCode != fasthttp.StatusPermanentRedirect && statusCode != fasthttp.StatusUnauthorized && statusCode != fasthttp.StatusForbidden) {
 		statusCode = fasthttp.StatusFound
 	}
 

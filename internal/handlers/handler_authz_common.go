@@ -15,6 +15,20 @@ func handleAuthzUnauthorizedCommon(ctx AuthzContext, authn *Authn, redirectionUR
 	doAuthzRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
 }
 
+func handleAuthzForbiddenCommon(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
+	if redirectionURL == nil || authn.Type != AuthnTypeCookie || ctx.IsXHR() || !ctx.AcceptsMIME("text/html") {
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	doAuthzForbiddenRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
+}
+
+func handleAuthzForbiddenStandard(ctx AuthzContext, _ *Authn, _ *url.URL) {
+	ctx.ReplyForbidden()
+}
+
 func handleAuthzPortalURLLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
 	if portalURL, err = handleAuthzPortalURLFromQueryLegacy(ctx); err != nil || portalURL != nil {
 		return portalURL, err
