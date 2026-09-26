@@ -4,9 +4,10 @@
 
 import { ReactNode } from "react";
 
+import { cn } from "cn";
+
 import { FieldDescription } from "@components/UI/Field";
 import { Item, ItemActions, ItemContent, ItemGroup, ItemMedia } from "@components/UI/Item";
-import { cn } from "@utils/Styles";
 
 export interface Props {
     children: ReactNode;
