@@ -30,6 +30,7 @@
 	"Completed": "Completed",
 	"Copied": "Copied",
 	"Credential Creation Options Request succeeded but Credential Creation Options is empty": "Credential Creation Options Request succeeded but Credential Creation Options is empty",
+	"Credential Creation Request succeeded but Registration Response is empty": "Credential Creation Request succeeded but Registration Response is empty",
 	"Cross-Platform": "Cross-Platform",
 	"Default Method": "Default Method",
 	"Default Method (Browser)": "Default Method (Browser)",

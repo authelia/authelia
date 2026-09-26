@@ -118,7 +118,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred parsing the consent session flow id", map[string]any{"error": "invalid UUID length: 3", "flow": "openid_connect", "flow_id": "abc", "subflow": ""})
 }
 
@@ -218,7 +218,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPassword() {
 
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 	s.AssertLastLogMessage("Unsuccessful Password authentication attempt by user 'john'", "")
 }
 
@@ -251,7 +251,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPasswordMarkAttemptError()
 
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 	s.AssertLastLogMessage("Unsuccessful Password authentication attempt by user 'john'", "")
 }
 
@@ -284,7 +284,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPasswordWithError() {
 
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 	s.AssertLastLogMessage("Unsuccessful Password authentication attempt by user 'john'", "bad user pass")
 }
 
@@ -295,7 +295,7 @@ func (s *HandlerSignPasswordSuite) TestShouldErrorBadRequestBody() {
 
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 	s.AssertLastLogMessage("Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
 }
 
@@ -308,7 +308,7 @@ func TestSecondFactorPasswordPOSTShouldErrorSessionProviderUnavailable(t *testin
 
 	SecondFactorPasswordPOST(nil)(mock.Ctx)
 
-	mock.Assert401KO(t, "Authentication failed. Check your credentials.")
+	mock.Assert401KO(t, messageAuthenticationFailed)
 
 	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to get session provider during 2FA attempt", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 }

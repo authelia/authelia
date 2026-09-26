@@ -19,7 +19,14 @@ import {
     updateUserWebAuthnCredential,
 } from "@services/WebAuthn";
 
-vi.mock("axios");
+vi.mock("axios", async () => {
+    const actual = await vi.importActual<typeof import("axios")>("axios");
+    const mocked = vi.fn() as any;
+    mocked.get = vi.fn();
+    mocked.post = vi.fn();
+    mocked.put = vi.fn();
+    return { ...actual, default: mocked };
+});
 vi.mock("@simplewebauthn/browser", () => ({
     startAuthentication: vi.fn(),
     startRegistration: vi.fn(),
@@ -249,7 +256,7 @@ it("handles successful webauthn registration finish", async () => {
     (axios.post as any).mockResolvedValue(mockRes);
 
     const result = await finishWebAuthnRegistration({} as any);
-    expect(result).toEqual({ message: "", status: AttestationResult.Success });
+    expect(result).toEqual({ status: AttestationResult.Success });
 });
 
 it("handles webauthn registration finish with error", async () => {
@@ -257,17 +264,25 @@ it("handles webauthn registration finish with error", async () => {
     (axios.post as any).mockRejectedValue(mockError);
 
     const result = await finishWebAuthnRegistration({} as any);
-    expect(result).toEqual({ message: "Device registration failed.", status: AttestationResult.Failure });
+    expect(result).toEqual({ status: AttestationResult.Failure });
 });
 
-it("handles webauthn registration finish with axios error message", async () => {
+it("handles webauthn registration finish with axios error code", async () => {
     const { AxiosError } = await import("axios");
-    const message = "Device registration failed.";
-    const axiosError = new AxiosError("fail", undefined, undefined, undefined, { data: { message } } as any);
+    const axiosError = new AxiosError("fail", undefined, undefined, undefined, {
+        data: { code: "webauthn_register_failed", message: "Unable to register your security key.", status: "KO" },
+    } as any);
     (axios.post as any).mockRejectedValue(axiosError);
 
     const result = await finishWebAuthnRegistration({} as any);
-    expect(result).toEqual({ message, status: AttestationResult.Failure });
+    expect(result).toEqual({ code: "webauthn_register_failed", status: AttestationResult.Failure });
+});
+
+it("handles webauthn registration finish with a ko body", async () => {
+    (axios.post as any).mockResolvedValue({ data: { code: "operation_failed", status: "KO" }, status: 200 });
+
+    const result = await finishWebAuthnRegistration({} as any);
+    expect(result).toEqual({ code: "operation_failed", status: AttestationResult.Failure });
 });
 
 it("forwards the abort signal through GET, assertion POST and passkey POST", async () => {

@@ -505,7 +505,7 @@ func doMarkAuthenticationAttemptWithRequest(ctx markContext, successful bool, ba
 	}
 }
 
-func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
+func respondUnauthorized(ctx *middlewares.AutheliaCtx, message middlewares.ErrorMessage) {
 	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	ctx.SetJSONError(message)
 }

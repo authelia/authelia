@@ -21,6 +21,7 @@ import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+import { ServiceError } from "@services/ServiceError";
 
 const uninitiated = Symbol("uninitiated");
 
@@ -129,7 +130,10 @@ const ResetPasswordStep2 = function () {
             setTimeout(() => navigate(IndexRoute), 1500);
         } catch (err) {
             console.error(err);
-            if ((err as Error).message.includes("0000052D.") || (err as Error).message.includes("policy")) {
+            if (
+                err instanceof ServiceError &&
+                (err.code === "password_policy" || err.code === "password_backend_complexity")
+            ) {
                 createErrorNotification(
                     translate("Your supplied password does not meet the password policy requirements"),
                 );

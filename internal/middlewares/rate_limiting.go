@@ -209,7 +209,7 @@ func HandlerRateLimitAPI(ctx *AutheliaCtx, retryAfter time.Duration) {
 	ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueNoStore)
 	ctx.Response.Header.SetBytesKV(headerPragma, headerValueNoCache)
 
-	ctx.SetJSONError(fasthttp.StatusMessage(fasthttp.StatusTooManyRequests))
+	ctx.SetJSONError(ErrorMessageRateLimited)
 }
 
 // HandlerRateLimitOpenIDConnect handles responses for the OpenID Connect 1.0 endpoints.

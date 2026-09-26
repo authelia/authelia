@@ -175,7 +175,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 		{
 			"ShouldHandleAnonymous",
 			nil,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred retrieving user session elevation state", "user is anonymous")
@@ -186,7 +186,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred retrieving user session elevation state: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -426,7 +426,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						Return(fmt.Errorf("rejected")),
 				)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred sending the user the notification", "rejected")
@@ -468,7 +468,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						Return("", fmt.Errorf("failed to insert")),
 				)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred saving the challenge to the storage backend", "failed to insert")
@@ -499,7 +499,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						Return(nil, fmt.Errorf("deadlock")),
 				)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred generating the challenge", "failed to generate random bytes: deadlock")
@@ -526,7 +526,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						Return(0, fmt.Errorf("random unavailable")),
 				)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred generating the challenge", "failed to generate public id: random unavailable")
@@ -535,7 +535,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 		{
 			"ShouldHandleAnonymous",
 			nil,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge", "user is anonymous")
@@ -546,7 +546,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -566,7 +566,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 
 				mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred determining issuer", "missing required X-Forwarded-Host header")
@@ -700,7 +700,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 			"ShouldHandleAnonymous",
 			nil,
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge", "user is anonymous")
@@ -712,7 +712,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -752,7 +752,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				)
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john'", "the code does not match the code stored in the challenge")
@@ -774,7 +774,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
 			`{"otc":ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error parsing the request body", "unable to parse body: invalid character 'A' looking for beginning of value")
@@ -796,7 +796,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
 			`{"otc":"ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': expected maximum code length is 20 but the user provided code was 360 characters in length", "")
@@ -840,7 +840,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				)
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error occurred saving the consumption of the code to storage", "failed to consume")
@@ -881,7 +881,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				)
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john'", "the code challenge has already been consumed")
@@ -922,7 +922,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				)
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john'", "the code challenge has been revoked")
@@ -962,7 +962,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				)
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john'", "the code challenge has expired")
@@ -1002,7 +1002,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				)
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john'", "the code challenge has the 'abc' intent but the 'use' intent is required")
@@ -1031,7 +1031,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				)
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error occurred retrieving the code challenge from the storage backend", "the code didn't match any recorded code challenges")
@@ -1060,7 +1060,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				)
 			},
 			`{"otc":"ABC123ABC1"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error occurred retrieving the code challenge from the storage backend", "not found")
@@ -1194,7 +1194,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				)
 			},
 			eid,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred saving the revocation to the storage backend", "failed to update")
@@ -1223,7 +1223,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				)
 			},
 			eid,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred retrieving the code challenge from the storage backend", "the provided one-time code public id '01020304-0506-4722-8910-111213141500' does not appear to exist")
@@ -1263,7 +1263,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				)
 			},
 			eid,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge", "the code challenge has the 'abc' intent but the 'use' intent is required")
@@ -1304,7 +1304,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				)
 			},
 			eid,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge", "the code challenge has already been consumed")
@@ -1345,7 +1345,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				)
 			},
 			eid,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge", "the code challenge has already been revoked")
@@ -1374,7 +1374,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				)
 			},
 			eid,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred retrieving the code challenge from the storage backend", "invalid user")
@@ -1396,7 +1396,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
 			base64.RawURLEncoding.EncodeToString([]byte("abc")),
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred parsing the identifier", "invalid UUID (got 3 bytes)")
@@ -1418,7 +1418,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
 			"=====123123",
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred decoding the identifier", "illegal base64 data at input byte 0")

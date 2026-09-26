@@ -169,12 +169,12 @@ const (
 
 var okMessageBytes = []byte("{\"status\":\"OK\"}")
 
-const (
-	messageOperationFailed                      = "Operation failed"
-	messageIdentityVerificationTokenAlreadyUsed = "The identity verification token has already been used"
-	messageIdentityVerificationTokenHasExpired  = "The identity verification token has expired"
-	messageIdentityVerificationTokenNotValidYet = "The identity verification token is only valid in the future"
-	messageIdentityVerificationTokenSig         = "The identity verification token has an invalid signature"
+var (
+	messageOperationFailed                      = ErrorMessageOperationFailed
+	messageIdentityVerificationTokenAlreadyUsed = ErrorMessageIdentityTokenUsed
+	messageIdentityVerificationTokenHasExpired  = ErrorMessageIdentityTokenExpired
+	messageIdentityVerificationTokenNotValidYet = ErrorMessageIdentityTokenNotYetValid
+	messageIdentityVerificationTokenSig         = ErrorMessageIdentityTokenInvalidSignature
 )
 
 var protoHostSeparator = []byte("://")

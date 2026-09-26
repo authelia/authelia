@@ -98,7 +98,7 @@ func TestShouldFailOnInvalidBody(t *testing.T) {
 	mock.SetRequestBody(t, "not a valid json")
 
 	CheckSafeRedirectionPOST(mock.Ctx)
-	mock.Assert200KO(t, "Operation failed.")
+	mock.Assert200KO(t, messageOperationFailed)
 	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the safe redirection request body", "unable to parse body: json: cannot unmarshal string into Go value of type handlers.checkURIWithinDomainRequestBody")
 }
 
@@ -131,6 +131,6 @@ func TestShouldFailOnInvalidURL(t *testing.T) {
 	})
 
 	CheckSafeRedirectionPOST(mock.Ctx)
-	mock.Assert200KO(t, "Operation failed.")
+	mock.Assert200KO(t, messageOperationFailed)
 	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred determining if the URI 'https//invalid-url' is safe to redirect to as it could not be parsed", "parse \"https//invalid-url\": invalid URI for request")
 }
