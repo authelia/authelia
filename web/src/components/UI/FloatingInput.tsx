@@ -1,6 +1,6 @@
 import { type ComponentProps, useId, useState } from "react";
 
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 interface FloatingInputProps extends ComponentProps<"input"> {
     label: string;

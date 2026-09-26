@@ -4,6 +4,7 @@
 
 import { ReactNode, useState } from "react";
 
+import { cn } from "cn";
 import { ChevronDown, CircleCheck, CircleSlash, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
@@ -23,7 +24,6 @@ import {
     ErrorURI,
 } from "@constants/SearchParams";
 import LoginLayout from "@layouts/LoginLayout";
-import { cn } from "@utils/Styles";
 
 type Outcome = "accepted" | "error" | "rejected";
 

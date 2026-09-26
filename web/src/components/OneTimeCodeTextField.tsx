@@ -4,9 +4,10 @@
 
 import { type ComponentProps, type Ref, useId } from "react";
 
+import { cn } from "cn";
+
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
-import { cn } from "@utils/Styles";
 
 interface OneTimeCodeInputProps extends ComponentProps<"input"> {
     label?: string;

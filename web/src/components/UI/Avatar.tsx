@@ -3,8 +3,7 @@
 import { type ComponentProps } from "react";
 
 import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar";
-
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 function Avatar({
     className,

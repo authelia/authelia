@@ -1,6 +1,6 @@
 import { type ComponentProps } from "react";
 
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 function Input({ className, error, type, ...props }: ComponentProps<"input"> & { error?: boolean }) {
     return (

@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+import { cn } from "cn";
+
 import AppleStore from "@assets/images/applestore-badge.svg";
 import GooglePlay from "@assets/images/googleplay-badge.svg";
-import { cn } from "@utils/Styles";
 
 export interface Props {
     iconSize: number;

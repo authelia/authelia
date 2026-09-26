@@ -5,6 +5,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import axios from "axios";
+import { cn } from "cn";
 import { XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
@@ -31,7 +32,6 @@ import { completeTOTPRegister, stopTOTPRegister } from "@services/OneTimePasswor
 import { getTOTPSecret } from "@services/RegisterDevice";
 import { getTOTPOptions } from "@services/UserInfoTOTPConfiguration";
 import { getTOTPAppAppleStore, getTOTPAppGooglePlay } from "@utils/Configuration";
-import { cn } from "@utils/Styles";
 import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
 const steps = ["Start", "Register", "Confirm"];

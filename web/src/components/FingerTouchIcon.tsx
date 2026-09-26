@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import clsx from "clsx";
+import { cn } from "cn";
 
 import style from "@components/FingerTouchIcon.module.css";
 
@@ -24,7 +24,7 @@ const FingerTouchIcon = function (props: Props) {
             viewBox="0 0 500 500"
             width={props.size}
             height={props.size}
-            className={clsx(style.hand, strong)}
+            className={cn(style.hand, strong)}
         >
             <path
                 className={shakingClass}

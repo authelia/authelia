@@ -5,6 +5,7 @@
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import axios from "axios";
+import { cn } from "cn";
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter";
@@ -20,7 +21,6 @@ import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
-import { cn } from "@utils/Styles";
 
 interface Props {
     username: string;

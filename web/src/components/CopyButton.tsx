@@ -4,12 +4,12 @@
 
 import { ReactNode, useEffect, useRef, useState } from "react";
 
+import { cn } from "cn";
 import { Check, Copy } from "lucide-react";
 
 import { Button } from "@components/UI/Button";
 import { Spinner } from "@components/UI/Spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
-import { cn } from "@utils/Styles";
 
 export interface Props {
     variant?: "contained" | "default" | "ghost" | "outline";
