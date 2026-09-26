@@ -100,8 +100,6 @@ func validateCacheRedis(config *schema.RedisCache, validator *schema.StructValid
 	validateCacheRedisConnectionLifetimeJitter("redis", config.ConnectionLifetime, config.ConnectionLifetimeJitter, validator)
 }
 
-// validateCacheRedisSentinelRouting ensures the routing options are only enabled with the cluster mode, as the failover
-// client panics when either of them is enabled.
 func validateCacheRedisSentinelRouting(config *schema.RedisSentinelCache, validator *schema.StructValidator) {
 	if config.SentinelMode != "failover" {
 		return
@@ -286,8 +284,6 @@ func validateCacheRedisTLS(provider string, config *schema.TLS, serverName strin
 	}
 }
 
-// validateCacheRedisConnectionLifetimeJitter ensures the jitter does not exceed the connection lifetime, which is the
-// maximum the client honors, and therefore can't be configured without a connection lifetime.
 func validateCacheRedisConnectionLifetimeJitter(provider string, lifetime, jitter time.Duration, validator *schema.StructValidator) {
 	if jitter > lifetime {
 		validator.Push(fmt.Errorf(errFmtCacheRedisConnectionLifetimeJitter, provider, jitter, lifetime))

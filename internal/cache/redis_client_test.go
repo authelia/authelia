@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"math"
-	"strings"
 	"testing"
 	"time"
 
@@ -194,31 +193,34 @@ func TestRedis_SessionSave(t *testing.T) {
 	keySession, keyPublic, keyUser := getSessionKey("example.com", "id"), getSessionPublicKey("example.com", "pid"), getSessionUserKey("example.com", "john")
 
 	testCases := []struct {
-		Name         string
-		Username     string
-		Expiration   time.Duration
-		Err          error
-		Error        string
-		ExpectedKeys []string
-		Assert       func(t *testing.T, args []any)
+		Name        string
+		Username    string
+		Expiration  time.Duration
+		Results     []any
+		PipelineErr error
+		RemoveErr   error
+		Error       string
+		Assert      func(t *testing.T, client *mockRedisCmdable)
 	}{
 		{
-			"ShouldSaveSessionAndLookupsInASingleScript",
+			"ShouldSaveTheSessionThenIndexIt",
 			"john",
 			time.Hour,
 			nil,
+			nil,
+			nil,
 			"",
-			[]string{keySession, keyPublic, keyUser},
-			func(t *testing.T, args []any) {
-				require.Len(t, args, 8)
-				assert.Equal(t, []byte("data"), args[0])
-				assert.Equal(t, int64(3600000), args[1])
-				assert.Equal(t, "id", args[2])
-				assert.Equal(t, "pid", args[3])
-				assert.Equal(t, "john", args[4])
-				assert.InDelta(t, float64(time.Now().Add(time.Hour).Unix()), args[5], 2)
-				assert.Equal(t, getSessionPublicKey("example.com", ""), args[6])
-				assert.Equal(t, getSessionUserKey("example.com", ""), args[7])
+			func(t *testing.T, client *mockRedisCmdable) {
+				require.Len(t, client.evals, 1)
+
+				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keySession}, args: []any{[]byte("data"), int64(3600000), "pid", "john"}}, client.evals[0])
+				assert.Equal(t, []mockRedisSet{{key: keyPublic, value: "id", expiration: time.Hour}}, client.sets)
+
+				require.Len(t, client.added[keyUser], 1)
+				assert.Equal(t, "id", client.added[keyUser][0].Member)
+				assert.InDelta(t, float64(time.Now().Add(time.Hour).Unix()), client.added[keyUser][0].Score, 2)
+
+				assert.Empty(t, client.removed)
 			},
 		},
 		{
@@ -226,15 +228,13 @@ func TestRedis_SessionSave(t *testing.T) {
 			"",
 			time.Hour,
 			nil,
+			nil,
+			nil,
 			"",
-			[]string{keySession, keyPublic},
-			func(t *testing.T, args []any) {
-				require.Len(t, args, 8)
-				assert.Equal(t, []byte("data"), args[0])
-				assert.Equal(t, int64(3600000), args[1])
-				assert.Equal(t, "id", args[2])
-				assert.Equal(t, "pid", args[3])
-				assert.Equal(t, "", args[4])
+			func(t *testing.T, client *mockRedisCmdable) {
+				assert.Equal(t, []any{[]byte("data"), int64(3600000), "pid", ""}, client.evals[0].args)
+				assert.Len(t, client.sets, 1)
+				assert.Empty(t, client.added)
 			},
 		},
 		{
@@ -242,21 +242,97 @@ func TestRedis_SessionSave(t *testing.T) {
 			"john",
 			0,
 			nil,
+			nil,
+			nil,
 			"",
-			[]string{keySession, keyPublic, keyUser},
-			func(t *testing.T, args []any) {
-				require.Len(t, args, 8)
-				assert.Equal(t, int64(0), args[1])
-				assert.True(t, math.IsInf(args[5].(float64), 1))
+			func(t *testing.T, client *mockRedisCmdable) {
+				assert.Equal(t, int64(0), client.evals[0].args[1])
+				assert.Equal(t, time.Duration(0), client.sets[0].expiration)
+				assert.True(t, math.IsInf(client.added[keyUser][0].Score, 1))
+			},
+		},
+		{
+			"ShouldRetireThePreviousPublicIDAndUsername",
+			"john",
+			time.Hour,
+			[]any{[]any{int64(1), "oldpid", "jane"}},
+			nil,
+			nil,
+			"",
+			func(t *testing.T, client *mockRedisCmdable) {
+				require.Len(t, client.evals, 2)
+
+				assert.Equal(t, mockRedisEval{script: redisDeleteIfEqual, keys: []string{getSessionPublicKey("example.com", "oldpid")}, args: []any{"id"}}, client.evals[1])
+				assert.Equal(t, map[string][]any{getSessionUserKey("example.com", "jane"): {"id"}}, client.removed)
+			},
+		},
+		{
+			"ShouldNotRetireAnUnchangedPublicIDOrUsername",
+			"john",
+			time.Hour,
+			[]any{[]any{int64(1), "pid", "john"}},
+			nil,
+			nil,
+			"",
+			func(t *testing.T, client *mockRedisCmdable) {
+				assert.Len(t, client.evals, 1)
+				assert.Empty(t, client.removed)
+			},
+		},
+		{
+			"ShouldReturnSupersededWithoutIndexingWhenTheSessionWasMoved",
+			"john",
+			time.Hour,
+			[]any{[]any{int64(0)}},
+			nil,
+			nil,
+			session.ErrSessionSuperseded.Error(),
+			func(t *testing.T, client *mockRedisCmdable) {
+				assert.Len(t, client.evals, 1)
+				assert.Empty(t, client.sets)
+				assert.Empty(t, client.added)
 			},
 		},
 		{
 			"ShouldReturnErrorOnFailure",
 			"john",
 			time.Hour,
-			errors.New("connection refused"),
-			"connection refused",
+			[]any{errors.New("connection refused")},
 			nil,
+			nil,
+			"connection refused",
+			func(t *testing.T, client *mockRedisCmdable) {
+				assert.Empty(t, client.sets)
+			},
+		},
+		{
+			"ShouldReturnErrorWhenIndexingFails",
+			"john",
+			time.Hour,
+			nil,
+			errors.New("connection refused"),
+			nil,
+			"error updating the session indexes: connection refused",
+			nil,
+		},
+		{
+			"ShouldReturnErrorWhenRetiringThePreviousPublicIDFails",
+			"john",
+			time.Hour,
+			[]any{[]any{int64(1), "oldpid", "john"}, errors.New("connection refused")},
+			nil,
+			nil,
+			"error removing the session public id index: connection refused",
+			nil,
+		},
+		{
+			"ShouldReturnErrorWhenRetiringThePreviousUsernameFails",
+			"john",
+			time.Hour,
+			[]any{[]any{int64(1), "pid", "jane"}},
+			nil,
+			errors.New("connection refused"),
+			"error removing the session from the username index: connection refused",
 			nil,
 		},
 	}
@@ -269,7 +345,7 @@ func TestRedis_SessionSave(t *testing.T) {
 			}
 
 			t.Run(name, func(t *testing.T) {
-				client := &mockRedisCmdable{err: tc.Err}
+				client := &mockRedisCmdable{evalResults: append([]any(nil), tc.Results...), pipelineErr: tc.PipelineErr, removeErr: tc.RemoveErr}
 				provider := NewRedis(client, "standalone")
 
 				var err error
@@ -286,12 +362,8 @@ func TestRedis_SessionSave(t *testing.T) {
 					assert.EqualError(t, err, tc.Error)
 				}
 
-				if tc.ExpectedKeys != nil {
-					assert.Equal(t, tc.ExpectedKeys, client.evalKeys)
-				}
-
 				if tc.Assert != nil {
-					tc.Assert(t, client.evalArgs)
+					tc.Assert(t, client)
 				}
 			})
 		}
@@ -299,42 +371,37 @@ func TestRedis_SessionSave(t *testing.T) {
 }
 
 func TestRedis_SessionSaveShouldReturnSupersededWhenTheScriptDiscardsTheSave(t *testing.T) {
-	client := &mockRedisCmdable{evalVal: int64(0)}
+	client := &mockRedisCmdable{evalResults: []any{[]any{int64(0)}, []any{int64(0)}}}
 	provider := NewRedis(client, "standalone")
 
 	assert.ErrorIs(t, provider.SessionSave(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
 	assert.ErrorIs(t, provider.SessionSaveData(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
 }
 
-func TestRedis_SessionSaveKeysShareAClusterSlot(t *testing.T) {
-	client := &mockRedisCmdable{}
-
-	require.NoError(t, NewRedis(client, "standalone").SessionSave(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("data")))
-	require.Len(t, client.evalKeys, 3)
-
-	for _, key := range client.evalKeys {
-		assert.Equal(t, "example.com", key[strings.Index(key, "{")+1:strings.Index(key, "}")])
-	}
-}
-
 func TestRedis_SessionDelete(t *testing.T) {
 	testCases := []struct {
-		Name     string
-		PublicID string
-		Username string
-		Err      error
-		Error    string
+		Name             string
+		PublicID         string
+		Username         string
+		Results          []any
+		Error            string
+		ExpectedPublicID string
+		ExpectedUsername string
 	}{
-		{"ShouldDeleteSessionAndProvidedLookups", "pid", "john", nil, ""},
-		{"ShouldRecoverTheLookupsWhenTheyAreNotProvided", "", "", nil, ""},
-		{"ShouldReturnErrorOnFailure", "pid", "john", errors.New("connection refused"), "connection refused"},
+		{"ShouldDeleteSessionAndProvidedLookups", "pid", "john", []any{[]any{"recorded", "jane"}}, "", "pid", "john"},
+		{"ShouldRecoverTheLookupsWhenTheyAreNotProvided", "", "", []any{[]any{"recorded", "jane"}}, "", "recorded", "jane"},
+		{"ShouldNotRetireLookupsWhichAreNeitherProvidedNorRecorded", "", "", []any{[]any{"", ""}}, "", "", ""},
+		{"ShouldReturnErrorOnFailure", "pid", "john", []any{errors.New("connection refused")}, "connection refused", "", ""},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			client := &mockRedisCmdable{err: tc.Err}
+			client := &mockRedisCmdable{evalResults: tc.Results}
 
 			err := NewRedis(client, "standalone").SessionDelete(context.Background(), "example.com", "id", tc.PublicID, tc.Username)
+
+			require.NotEmpty(t, client.evals)
+			assert.Equal(t, mockRedisEval{script: redisSessionDelete, keys: []string{getSessionKey("example.com", "id")}}, client.evals[0])
 
 			if tc.Error != "" {
 				assert.EqualError(t, err, tc.Error)
@@ -344,8 +411,18 @@ func TestRedis_SessionDelete(t *testing.T) {
 
 			require.NoError(t, err)
 
-			assert.Equal(t, []string{getSessionKey("example.com", "id")}, client.evalKeys)
-			assert.Equal(t, []any{"id", tc.PublicID, tc.Username, getSessionPublicKey("example.com", ""), getSessionUserKey("example.com", "")}, client.evalArgs)
+			if tc.ExpectedPublicID == "" {
+				assert.Len(t, client.evals, 1)
+			} else {
+				require.Len(t, client.evals, 2)
+				assert.Equal(t, mockRedisEval{script: redisDeleteIfEqual, keys: []string{getSessionPublicKey("example.com", tc.ExpectedPublicID)}, args: []any{"id"}}, client.evals[1])
+			}
+
+			if tc.ExpectedUsername == "" {
+				assert.Empty(t, client.removed)
+			} else {
+				assert.Equal(t, map[string][]any{getSessionUserKey("example.com", tc.ExpectedUsername): {"id"}}, client.removed)
+			}
 		})
 	}
 }

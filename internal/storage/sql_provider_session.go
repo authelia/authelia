@@ -74,16 +74,6 @@ func (r SessionRepository) GarbageCollectionFrequency(ctx context.Context) (freq
 	return r.provider.SessionGarbageCollectionFrequency(ctx)
 }
 
-var (
-	_ session.Repository = (*SessionRepository)(nil)
-)
-
-// sessionRow is the shape a session is selected into, which is converted into a session.Record for the caller.
-type sessionRow struct {
-	Signature string `db:"signature"`
-	Data      []byte `db:"data"`
-}
-
 // SessionGet returns the session for the given signature and issuer. A session which does not exist or which has
 // expired returns an empty record and no error, matching the semantics the session provider expects for anonymous
 // requests.
@@ -199,3 +189,12 @@ func (p *SQLProvider) SessionGarbageCollectionFrequency(ctx context.Context) (fr
 func (p *SQLProvider) sessionExpires(expiration time.Duration) (expires time.Time) {
 	return time.Now().Add(expiration)
 }
+
+type sessionRow struct {
+	Signature string `db:"signature"`
+	Data      []byte `db:"data"`
+}
+
+var (
+	_ session.Repository = (*SessionRepository)(nil)
+)

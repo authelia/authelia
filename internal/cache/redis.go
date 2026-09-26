@@ -207,7 +207,8 @@ func (r *Redis) SessionGet(ctx context.Context, issuer, id string) (record sessi
 	return session.NewRecord(id, data), nil
 }
 
-// SessionGetByPublicID implements the Provider interface.
+// SessionGetByPublicID implements the Provider interface. The public id index is maintained separately from the session
+// it refers to, so it's only trusted when that session still records the public id.
 func (r *Redis) SessionGetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
 	var id string
 
@@ -219,7 +220,19 @@ func (r *Redis) SessionGetByPublicID(ctx context.Context, issuer, pid string) (r
 		return nil, err
 	}
 
-	return r.SessionGet(ctx, issuer, id)
+	var values []any
+
+	if values, err = r.client.HMGet(ctx, getSessionKey(issuer, id), redisSessionFieldData, redisSessionFieldPID).Result(); err != nil {
+		return nil, err
+	}
+
+	data, recorded := getRedisString(values, 0), getRedisString(values, 1)
+
+	if len(data) == 0 || recorded != pid {
+		return nil, nil
+	}
+
+	return session.NewRecord(id, []byte(data)), nil
 }
 
 // SessionGetIDsByUsername returns the signatures of every unexpired session belonging to the given username and issuer.
@@ -244,26 +257,30 @@ func (r *Redis) SessionGetIDsByUsername(ctx context.Context, issuer, username st
 	return zrange.Result()
 }
 
-// SessionSave implements the Provider interface. The save is performed by a script so that it's discarded atomically
-// when the public id belongs to another session, which means this session was moved to a new id after the caller
-// retrieved it and saving it would restore the session under the id it was moved from.
+// SessionSave implements the Provider interface. The session is saved by a script so that the save is discarded
+// atomically when the session was moved to a new id after the caller retrieved it, as saving it would restore the
+// session under the id it was moved from. The indexes which refer to the session are updated once it's saved.
 func (r *Redis) SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	keys := []string{getSessionKey(issuer, id), getSessionPublicKey(issuer, pid)}
+	var previousPID, previousUsername string
 
-	if username != "" {
-		keys = append(keys, getSessionUserKey(issuer, username))
-	}
-
-	args := []any{data, getSessionExpirationMilliseconds(expiration), id, pid, username, getSessionScore(expiration), getSessionPublicKey(issuer, ""), getSessionUserKey(issuer, "")}
-
-	var saved int64
-
-	if saved, err = redisSessionSave.Run(ctx, r.client, keys, args...).Int64(); err != nil {
+	if previousPID, previousUsername, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, data); err != nil {
 		return err
 	}
 
-	if saved == 0 {
-		return session.ErrSessionSuperseded
+	if err = r.sessionIndex(ctx, issuer, id, pid, username, expiration); err != nil {
+		return err
+	}
+
+	if previousPID != "" && previousPID != pid {
+		if err = r.sessionRetirePublicID(ctx, issuer, id, previousPID); err != nil {
+			return err
+		}
+	}
+
+	if previousUsername != "" && previousUsername != username {
+		if err = r.sessionRetireUsername(ctx, issuer, id, previousUsername); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -275,28 +292,134 @@ func (r *Redis) SessionSaveData(ctx context.Context, issuer, id, pid, username s
 	return r.SessionSave(ctx, issuer, id, pid, username, expiration, data)
 }
 
-// SessionDelete implements the Provider interface.
+// SessionDelete implements the Provider interface. The indexes named by the caller are retired, falling back to those the
+// session recorded when the caller doesn't name them.
 func (r *Redis) SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error) {
-	keys := []string{getSessionKey(issuer, id)}
-	args := []any{id, pid, username, getSessionPublicKey(issuer, ""), getSessionUserKey(issuer, "")}
+	var (
+		result                        []any
+		previousPID, previousUsername string
+	)
 
-	return redisSessionDelete.Run(ctx, r.client, keys, args...).Err()
-}
-
-// SessionChangeID moves a session to a new id. The data is written rather than the old key being renamed, as the caller
-// reseals the session against the id it is stored under and the two must be updated together. A session which no longer
-// exists is not recreated.
-func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	keys := []string{getSessionKey(issuer, oldID), getSessionKey(issuer, id), getSessionPublicKey(issuer, pid)}
-
-	if username != "" {
-		keys = append(keys, getSessionUserKey(issuer, username))
+	if result, err = redisSessionDelete.Run(ctx, r.client, []string{getSessionKey(issuer, id)}).Slice(); err != nil {
+		return err
 	}
 
-	args := []any{data, getSessionExpirationMilliseconds(expiration), id, pid, username, getSessionScore(expiration), oldID, getSessionPublicKey(issuer, ""), getSessionUserKey(issuer, "")}
+	previousPID, previousUsername = getRedisString(result, 0), getRedisString(result, 1)
 
-	if err = redisSessionChangeID.Run(ctx, r.client, keys, args...).Err(); err != nil {
+	if pid == "" {
+		pid = previousPID
+	}
+
+	if username == "" {
+		username = previousUsername
+	}
+
+	if pid != "" {
+		if err = r.sessionRetirePublicID(ctx, issuer, id, pid); err != nil {
+			return err
+		}
+	}
+
+	if username != "" {
+		if err = r.sessionRetireUsername(ctx, issuer, id, username); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// SessionChangeID moves a session to a new id. The session at the old id is atomically replaced with a marker recording
+// the new id, which discards any later save of the old id, before the session is written to the new id. The data is
+// written rather than the old key being renamed, as the caller reseals the session against the id it is stored under,
+// and the old and new keys are in different slots of a cluster. A session which no longer exists is not recreated.
+func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	var (
+		result                        []any
+		previousPID, previousUsername string
+	)
+
+	if result, err = redisSessionMove.Run(ctx, r.client, []string{getSessionKey(issuer, oldID)}, id, getSessionExpirationMilliseconds(expiration)).Slice(); err != nil {
 		return err
+	}
+
+	if getRedisInt(result, 0) == 0 {
+		return nil
+	}
+
+	previousPID, previousUsername = getRedisString(result, 1), getRedisString(result, 2)
+
+	if _, _, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, data); err != nil {
+		return err
+	}
+
+	if err = r.sessionIndex(ctx, issuer, id, pid, username, expiration); err != nil {
+		return err
+	}
+
+	// The public id index of the session now refers to the new id, so it's only retired when the session had another.
+	if previousPID != "" && previousPID != pid {
+		if err = r.sessionRetirePublicID(ctx, issuer, oldID, previousPID); err != nil {
+			return err
+		}
+	}
+
+	if previousUsername != "" {
+		if err = r.sessionRetireUsername(ctx, issuer, oldID, previousUsername); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *Redis) sessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (previousPID, previousUsername string, err error) {
+	var result []any
+
+	if result, err = redisSessionSave.Run(ctx, r.client, []string{getSessionKey(issuer, id)}, data, getSessionExpirationMilliseconds(expiration), pid, username).Slice(); err != nil {
+		return "", "", err
+	}
+
+	if getRedisInt(result, 0) == 0 {
+		return "", "", session.ErrSessionSuperseded
+	}
+
+	return getRedisString(result, 1), getRedisString(result, 2), nil
+}
+
+func (r *Redis) sessionIndex(ctx context.Context, issuer, id, pid, username string, expiration time.Duration) (err error) {
+	if pid == "" && username == "" {
+		return nil
+	}
+
+	if _, err = r.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		if pid != "" {
+			pipe.Set(ctx, getSessionPublicKey(issuer, pid), id, getSessionIndexExpiration(expiration))
+		}
+
+		if username != "" {
+			pipe.ZAdd(ctx, getSessionUserKey(issuer, username), redis.Z{Score: getSessionScore(expiration), Member: id})
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error updating the session indexes: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Redis) sessionRetirePublicID(ctx context.Context, issuer, id, pid string) (err error) {
+	if err = redisDeleteIfEqual.Run(ctx, r.client, []string{getSessionPublicKey(issuer, pid)}, id).Err(); err != nil {
+		return fmt.Errorf("error removing the session public id index: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Redis) sessionRetireUsername(ctx context.Context, issuer, id, username string) (err error) {
+	if err = r.client.ZRem(ctx, getSessionUserKey(issuer, username), id).Err(); err != nil {
+		return fmt.Errorf("error removing the session from the username index: %w", err)
 	}
 
 	return nil
@@ -358,37 +481,56 @@ func getSessionScoreNow() (score string) {
 	return strconv.FormatInt(time.Now().Unix(), 10)
 }
 
+func getSessionIndexExpiration(expiration time.Duration) time.Duration {
+	if expiration <= 0 {
+		return 0
+	}
+
+	return time.Duration(getSessionExpirationMilliseconds(expiration)) * time.Millisecond
+}
+
 func getSessionUserKey(issuer, username string) (key string) {
-	buf := bytes.NewBuffer(nil)
-
-	buf.WriteString(redisPrefixSessionUser)
-	buf.WriteString(issuer)
-	buf.WriteString(redisKeySeparatorSlot)
-	buf.WriteString(username)
-
-	return buf.String()
+	return getSessionSlotKey(redisPrefixSessionUser, issuer, username)
 }
 
 func getSessionPublicKey(issuer, pid string) (key string) {
+	return getSessionSlotKey(redisPrefixSessionPublic, issuer, pid)
+}
+
+func getSessionKey(issuer, id string) (key string) {
+	return getSessionSlotKey(redisPrefixSession, issuer, id)
+}
+
+func getSessionSlotKey(prefix, issuer, value string) (key string) {
 	buf := bytes.NewBuffer(nil)
 
-	buf.WriteString(redisPrefixSessionPublic)
+	buf.WriteString(prefix)
 	buf.WriteString(issuer)
+	buf.WriteString(redisKeySeparator)
+	buf.WriteString(value)
 	buf.WriteString(redisKeySeparatorSlot)
-	buf.WriteString(pid)
 
 	return buf.String()
 }
 
-func getSessionKey(issuer, id string) (key string) {
-	buf := bytes.NewBuffer(nil)
+func getRedisString(values []any, i int) string {
+	if i >= len(values) {
+		return ""
+	}
 
-	buf.WriteString(redisPrefixSession)
-	buf.WriteString(issuer)
-	buf.WriteString(redisKeySeparatorSlot)
-	buf.WriteString(id)
+	value, _ := values[i].(string)
 
-	return buf.String()
+	return value
+}
+
+func getRedisInt(values []any, i int) int64 {
+	if i >= len(values) {
+		return 0
+	}
+
+	value, _ := values[i].(int64)
+
+	return value
 }
 
 func getClientName() (name string) {

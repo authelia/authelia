@@ -20,46 +20,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-type fakeStorage struct {
-	storage.Provider
-
-	err error
-}
-
-func (f *fakeStorage) StartupCheck() (err error) { return f.err }
-
-type fakeUser struct {
-	authentication.UserProvider
-
-	err error
-}
-
-func (f *fakeUser) StartupCheck() (err error) { return f.err }
-
-type fakeCache struct {
-	cache.Provider
-
-	err error
-}
-
-func (f *fakeCache) StartupCheck() (err error) { return f.err }
-
-type fakeSessionRepository struct {
-	session.Repository
-}
-
-func (f *fakeSessionRepository) StartupCheck() (err error) { return nil }
-
-type fakeNotifier struct {
-	notification.Notifier
-
-	err error
-}
-
-func (f *fakeNotifier) StartupCheck() (err error) { return f.err }
-
-// The session repository is backed by the storage provider unless session.storage is 'cache', so the cache provider
-// must be probed directly for an outage of the cache backend to be reported.
 func TestProvidersHealthChecksShouldProbeTheCacheRatherThanTheSessionRepository(t *testing.T) {
 	errBroken := errors.New("could not reach the redis server")
 
@@ -164,3 +124,41 @@ func TestProvidersHealthChecks(t *testing.T) {
 		})
 	}
 }
+
+type fakeStorage struct {
+	storage.Provider
+
+	err error
+}
+
+func (f *fakeStorage) StartupCheck() (err error) { return f.err }
+
+type fakeUser struct {
+	authentication.UserProvider
+
+	err error
+}
+
+func (f *fakeUser) StartupCheck() (err error) { return f.err }
+
+type fakeCache struct {
+	cache.Provider
+
+	err error
+}
+
+func (f *fakeCache) StartupCheck() (err error) { return f.err }
+
+type fakeSessionRepository struct {
+	session.Repository
+}
+
+func (f *fakeSessionRepository) StartupCheck() (err error) { return nil }
+
+type fakeNotifier struct {
+	notification.Notifier
+
+	err error
+}
+
+func (f *fakeNotifier) StartupCheck() (err error) { return f.err }
