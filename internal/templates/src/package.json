@@ -30,6 +30,6 @@
     "prettier": "3.9.9",
     "tailwindcss": "4.3.3",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vitest": "5.0.1"
+    "vitest": "5.0.2"
   }
 }
