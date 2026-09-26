@@ -128,8 +128,8 @@ const (
 
 	ProviderNameNTP              = schema.ProviderNameNTP
 	ProviderNameStorage          = schema.ProviderNameStorage
+	ProviderNameCache            = schema.ProviderNameCache
 	ProviderNameUser             = schema.ProviderNameUser
-	ProviderNameSession          = schema.ProviderNameSession
 	ProviderNameNotification     = schema.ProviderNameNotification
 	ProviderNameExpressions      = schema.ProviderNameExpressions
 	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData

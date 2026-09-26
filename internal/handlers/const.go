@@ -95,7 +95,6 @@ const (
 	logFmtErrParseRequestBody     = "Failed to parse %s request body"
 	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s'"
 	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s'"
-	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s'"
 	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
@@ -171,4 +170,8 @@ const (
 var (
 	errUserAnonymous              = errors.New("user is anonymous")
 	errUserIsAlreadyAuthenticated = errors.New("user is already authenticated")
+)
+
+const (
+	sessionActivityRefreshDivisor = 10
 )

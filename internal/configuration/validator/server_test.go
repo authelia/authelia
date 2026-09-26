@@ -1003,7 +1003,7 @@ func TestValidateServerEndpointsHealth(t *testing.T) {
 			"ShouldSetDefaults",
 			schema.ServerEndpointHealth{},
 			schema.ServerEndpointHealth{
-				Providers: []string{schema.ProviderNameStorage, schema.ProviderNameSession, schema.ProviderNameUser},
+				Providers: []string{schema.ProviderNameStorage, schema.ProviderNameCache, schema.ProviderNameUser},
 				Cache:     duration(time.Second * 10),
 			},
 			nil,
@@ -1027,7 +1027,7 @@ func TestValidateServerEndpointsHealth(t *testing.T) {
 			"ShouldRaiseErrorOnUnknownProvider",
 			schema.ServerEndpointHealth{Providers: []string{"nonexistent"}},
 			schema.ServerEndpointHealth{Providers: []string{"nonexistent"}, Cache: duration(time.Second * 10)},
-			[]string{"server: endpoints: health: option 'providers' must only include the values 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', or 'webauthn-metadata' but it's configured as 'nonexistent'"},
+			[]string{"server: endpoints: health: option 'providers' must only include the values 'storage', 'cache', 'user', 'notification', 'ntp', 'expressions', or 'webauthn-metadata' but it's configured as 'nonexistent'"},
 			nil,
 		},
 		{

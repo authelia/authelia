@@ -46,7 +46,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 
 				require.NoError(t, err)
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com"}}}$`),
 			fasthttp.StatusOK,
@@ -74,7 +74,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.AuthenticationMethodRefs.KnowledgeBasedAuthentication = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}$`),
 			fasthttp.StatusForbidden,
@@ -107,7 +107,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "____")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "____")
@@ -169,6 +169,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 		dataReqGoodFlow     = strings.Replace(dataReqGood, `"targetURL":null}`, `"targetURL":null,"flow":"not-a-flow"}`, 1)
 	)
 
+	var fixated string
+
 	testCases := []struct {
 		name           string
 		config         *schema.WebAuthn
@@ -212,7 +214,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			dataReqGood,
 			"",
@@ -259,7 +261,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 				mock.Ctx.Request.Header.Set("X-Original-URL", "123")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "123")
 			},
@@ -304,7 +306,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				}
 
 				require.NoError(t, err)
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "123")
 			},
@@ -336,7 +338,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -424,6 +426,186 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			},
 		},
 		{
+			name:   "ShouldSuccessWhenDestroyFails",
+			config: &schema.DefaultWebAuthnConfiguration,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				repository := setupTestFailingSessionRepository(t, mock)
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.WebAuthn = &session.WebAuthn{
+					SessionData: &webauthn.SessionData{
+						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				fixated = string(mock.Ctx.Request.Header.Cookie("authelia_session"))
+
+				require.NotEmpty(t, fixated)
+
+				repository.errDelete = errTestSessionBackend
+
+				credential := model.WebAuthnCredential{
+					ID:              1,
+					CreatedAt:       time.Now(),
+					LastUsedAt:      sql.NullTime{Time: mock.Clock.Now().UTC().Add(time.Second * -10), Valid: true},
+					RPID:            "login.example.com",
+					Username:        testUsername,
+					Description:     "test",
+					KID:             model.NewBase64(tDecodeBase64StringStdEncoding(t, "rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
+					AttestationType: "packed",
+					Attachment:      "cross-platform",
+					Transport:       "usb",
+					SignCount:       2,
+					CloneWarning:    false,
+					Discoverable:    true,
+					Present:         true,
+					Verified:        true,
+					BackupEligible:  false,
+					BackupState:     false,
+					PublicKey:       []byte{165, 1, 2, 3, 38, 32, 1, 33, 88, 32, 184, 17, 198, 170, 14, 81, 23, 237, 100, 218, 123, 122, 48, 76, 56, 148, 23, 111, 173, 245, 67, 239, 176, 229, 199, 205, 213, 46, 239, 91, 222, 183, 34, 88, 32, 171, 141, 116, 74, 68, 180, 81, 66, 81, 127, 81, 41, 236, 173, 38, 7, 9, 34, 128, 167, 101, 51, 25, 84, 239, 100, 10, 124, 117, 165, 178, 179},
+				}
+
+				updated := credential
+				updated.LastUsedAt = sql.NullTime{Time: mock.Clock.Now().UTC(), Valid: true}
+				updated.SignCount = 3
+
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, gomock.Eq("login.example.com"), gomock.Eq("example")).
+						Return(&model.WebAuthnUser{UserID: "example", Username: testUsername}, nil),
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnPasskeyCredentialsByUsername(mock.Ctx, gomock.Eq("login.example.com"), gomock.Eq(testUsername)).
+						Return([]model.WebAuthnCredential{credential}, nil),
+					mock.StorageMock.EXPECT().
+						UpdateWebAuthnCredentialSignIn(mock.Ctx, updated).
+						Return(nil),
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq(testUsername)).
+						Return(&authentication.UserDetails{Username: testUsername}, nil),
+					mock.StorageMock.EXPECT().
+						LoadBannedIP(mock.Ctx, gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).
+						Return(nil, nil),
+					mock.StorageMock.EXPECT().
+						LoadBannedUser(mock.Ctx, gomock.Eq(testUsername)).
+						Return(nil, nil),
+					mock.StorageMock.EXPECT().
+						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
+							Time:       mock.Ctx.Providers.Clock.Now(),
+							Successful: true,
+							Banned:     false,
+							Username:   testUsername,
+							Type:       regulation.AuthTypePasskey,
+							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
+						})).
+						Return(nil),
+				)
+			},
+			have:           dataReqGood,
+			expectedStatus: fasthttp.StatusOK,
+			expectedf: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				assert.Nil(t, us.WebAuthn)
+				assert.Equal(t, testUsername, us.Username)
+
+				cookie := string(mock.Ctx.Request.Header.Cookie("authelia_session"))
+
+				assert.NotEmpty(t, cookie)
+				assert.NotEqual(t, fixated, cookie)
+			},
+		},
+		{
+			name:   "ShouldFailWhenDestroyAndRegenerateFail",
+			config: &schema.DefaultWebAuthnConfiguration,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				repository := setupTestFailingSessionRepository(t, mock)
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.WebAuthn = &session.WebAuthn{
+					SessionData: &webauthn.SessionData{
+						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				repository.errDelete = errTestSessionBackend
+				repository.errChangeID = errTestSessionBackend
+
+				credential := model.WebAuthnCredential{
+					ID:              1,
+					CreatedAt:       time.Now(),
+					LastUsedAt:      sql.NullTime{Time: mock.Clock.Now().UTC().Add(time.Second * -10), Valid: true},
+					RPID:            "login.example.com",
+					Username:        testUsername,
+					Description:     "test",
+					KID:             model.NewBase64(tDecodeBase64StringStdEncoding(t, "rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
+					AttestationType: "packed",
+					Attachment:      "cross-platform",
+					Transport:       "usb",
+					SignCount:       2,
+					CloneWarning:    false,
+					Discoverable:    true,
+					Present:         true,
+					Verified:        true,
+					BackupEligible:  false,
+					BackupState:     false,
+					PublicKey:       []byte{165, 1, 2, 3, 38, 32, 1, 33, 88, 32, 184, 17, 198, 170, 14, 81, 23, 237, 100, 218, 123, 122, 48, 76, 56, 148, 23, 111, 173, 245, 67, 239, 176, 229, 199, 205, 213, 46, 239, 91, 222, 183, 34, 88, 32, 171, 141, 116, 74, 68, 180, 81, 66, 81, 127, 81, 41, 236, 173, 38, 7, 9, 34, 128, 167, 101, 51, 25, 84, 239, 100, 10, 124, 117, 165, 178, 179},
+				}
+
+				updated := credential
+				updated.LastUsedAt = sql.NullTime{Time: mock.Clock.Now().UTC(), Valid: true}
+				updated.SignCount = 3
+
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, gomock.Eq("login.example.com"), gomock.Eq("example")).
+						Return(&model.WebAuthnUser{UserID: "example", Username: testUsername}, nil),
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnPasskeyCredentialsByUsername(mock.Ctx, gomock.Eq("login.example.com"), gomock.Eq(testUsername)).
+						Return([]model.WebAuthnCredential{credential}, nil),
+					mock.StorageMock.EXPECT().
+						UpdateWebAuthnCredentialSignIn(mock.Ctx, updated).
+						Return(nil),
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq(testUsername)).
+						Return(&authentication.UserDetails{Username: testUsername}, nil),
+					mock.StorageMock.EXPECT().
+						LoadBannedIP(mock.Ctx, gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).
+						Return(nil, nil),
+					mock.StorageMock.EXPECT().
+						LoadBannedUser(mock.Ctx, gomock.Eq(testUsername)).
+						Return(nil, nil),
+				)
+			},
+			have:           dataReqGood,
+			expectedStatus: fasthttp.StatusForbidden,
+			expected:       `{"status":"KO","message":"Authentication failed, please retry later."}`,
+			expectedf: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				assert.True(t, us.IsAnonymous())
+			},
+		},
+		{
 			name:   "ShouldSuccessUpgrade",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -441,7 +623,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -546,7 +728,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -651,7 +833,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -751,7 +933,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -856,7 +1038,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -958,7 +1140,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1052,7 +1234,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1156,7 +1338,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1261,7 +1443,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1360,7 +1542,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1456,7 +1638,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1527,7 +1709,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1623,7 +1805,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
@@ -1672,7 +1854,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
@@ -1731,7 +1913,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			have:           dataReqNoHandleGood,
 			expectedStatus: fasthttp.StatusForbidden,
@@ -1775,7 +1957,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				}
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "123")
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			have:           dataReqGood,
 			expectedStatus: fasthttp.StatusForbidden,
@@ -1805,7 +1987,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -1891,7 +2073,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			have:           "not json",
 			expectedStatus: fasthttp.StatusBadRequest,
@@ -1934,7 +2116,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			have:           `{"response":true}`,
 			expectedStatus: fasthttp.StatusBadRequest,

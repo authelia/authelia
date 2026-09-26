@@ -40,7 +40,7 @@ type ServerEndpointHealth struct {
 	Verbose  bool `koanf:"verbose" yaml:"verbose" toml:"verbose" json:"verbose" jsonschema:"default=false,title=Verbose" jsonschema_description:"Enables the verbose health check endpoint which probes the configured providers."`
 	Detailed bool `koanf:"detailed" yaml:"detailed" toml:"detailed" json:"detailed" jsonschema:"default=false,title=Detailed" jsonschema_description:"Includes the provider error message in the verbose health check response which may disclose infrastructure information to unauthenticated clients."`
 
-	Providers []string `koanf:"providers" yaml:"providers,omitempty" toml:"providers,omitempty" json:"providers,omitempty" jsonschema:"title=Providers,enum=storage,enum=session,enum=user,enum=notification,enum=ntp,enum=expressions,enum=webauthn-metadata" jsonschema_description:"The providers probed by the verbose health check endpoint."`
+	Providers []string `koanf:"providers" yaml:"providers,omitempty" toml:"providers,omitempty" json:"providers,omitempty" jsonschema:"title=Providers,enum=storage,enum=cache,enum=user,enum=notification,enum=ntp,enum=expressions,enum=webauthn-metadata" jsonschema_description:"The providers probed by the verbose health check endpoint."`
 
 	Cache *time.Duration `koanf:"cache" yaml:"cache,omitempty" toml:"cache,omitempty" json:"cache,omitempty" jsonschema:"title=Cache,default=10 seconds" jsonschema_description:"The duration a verbose health check result is reused for before the providers are probed again."`
 }
@@ -165,7 +165,7 @@ var DefaultServerConfiguration = Server{
 			},
 		},
 		Health: ServerEndpointHealth{
-			Providers: []string{ProviderNameStorage, ProviderNameSession, ProviderNameUser},
+			Providers: []string{ProviderNameStorage, ProviderNameCache, ProviderNameUser},
 			Cache:     &defaultServerEndpointHealthCache,
 		},
 		RateLimits: ServerEndpointRateLimits{
