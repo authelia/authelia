@@ -850,9 +850,19 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_INTROSPECTION_ENABLE"
   },
   {
+    "path": "server.endpoints.rate_limits.openid_connect_introspection.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_INTROSPECTION_IPV6_MASK"
+  },
+  {
     "path": "server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_PUSHED_AUTHORIZATION_REQUEST_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.openid_connect_pushed_authorization_request.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_PUSHED_AUTHORIZATION_REQUEST_IPV6_MASK"
   },
   {
     "path": "server.endpoints.rate_limits.openid_connect_revocation.enable",
@@ -860,9 +870,19 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_REVOCATION_ENABLE"
   },
   {
+    "path": "server.endpoints.rate_limits.openid_connect_revocation.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_REVOCATION_IPV6_MASK"
+  },
+  {
     "path": "server.endpoints.rate_limits.openid_connect_token.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_TOKEN_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.openid_connect_token.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_TOKEN_IPV6_MASK"
   },
   {
     "path": "server.endpoints.rate_limits.openid_connect_userinfo.enable",
@@ -870,9 +890,19 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_USERINFO_ENABLE"
   },
   {
+    "path": "server.endpoints.rate_limits.openid_connect_userinfo.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_USERINFO_IPV6_MASK"
+  },
+  {
     "path": "server.endpoints.rate_limits.reset_password_finish.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_RESET_PASSWORD_FINISH_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.reset_password_finish.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_RESET_PASSWORD_FINISH_IPV6_MASK"
   },
   {
     "path": "server.endpoints.rate_limits.reset_password_start.enable",
@@ -880,9 +910,19 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_RESET_PASSWORD_START_ENABLE"
   },
   {
+    "path": "server.endpoints.rate_limits.reset_password_start.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_RESET_PASSWORD_START_IPV6_MASK"
+  },
+  {
     "path": "server.endpoints.rate_limits.second_factor_duo.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_DUO_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.second_factor_duo.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_DUO_IPV6_MASK"
   },
   {
     "path": "server.endpoints.rate_limits.second_factor_password.enable",
@@ -890,9 +930,19 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_PASSWORD_ENABLE"
   },
   {
+    "path": "server.endpoints.rate_limits.second_factor_password.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_PASSWORD_IPV6_MASK"
+  },
+  {
     "path": "server.endpoints.rate_limits.second_factor_totp.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_TOTP_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.second_factor_totp.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_TOTP_IPV6_MASK"
   },
   {
     "path": "server.endpoints.rate_limits.session_elevation_finish.enable",
@@ -900,9 +950,19 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_FINISH_ENABLE"
   },
   {
+    "path": "server.endpoints.rate_limits.session_elevation_finish.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_FINISH_IPV6_MASK"
+  },
+  {
     "path": "server.endpoints.rate_limits.session_elevation_start.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_START_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.session_elevation_start.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_START_IPV6_MASK"
   },
   {
     "path": "server.headers.csp_template",

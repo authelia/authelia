@@ -460,6 +460,7 @@ const (
 	errFmtServerEndpointsRateLimitsBucketPeriodZero     = "server: endpoints: rate_limits: %s: bucket %d: option 'period' must have a value"
 	errFmtServerEndpointsRateLimitsBucketPeriodTooLow   = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
 	errFmtServerEndpointsRateLimitsBucketRequestsZero   = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
+	errFmtServerEndpointsRateLimitsIPv6Mask             = "server: endpoints: rate_limits: %s: option 'ipv6_mask' has a value of '%d' but it must be between %d and %d"
 	errFmtServerEndpointsAuthzInvalidName               = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"

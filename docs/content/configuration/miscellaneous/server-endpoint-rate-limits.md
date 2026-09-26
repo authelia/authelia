@@ -37,6 +37,7 @@ server:
     rate_limits:
       reset_password_start:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '10 minutes'
             requests: 5
@@ -46,6 +47,7 @@ server:
             requests: 15
       reset_password_finish:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '1 minute'
             requests: 10
@@ -53,6 +55,7 @@ server:
             requests: 15
       second_factor_totp:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '1 minute'
             requests: 30
@@ -62,6 +65,7 @@ server:
             requests: 50
       second_factor_duo:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '1 minute'
             requests: 10
@@ -69,6 +73,7 @@ server:
             requests: 15
       session_elevation_start:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '5 minutes'
             requests: 3
@@ -78,6 +83,7 @@ server:
             requests: 15
       session_elevation_finish:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '10 minutes'
             requests: 3
@@ -87,6 +93,7 @@ server:
             requests: 15
       openid_connect_token:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '1 minute'
             requests: 30
@@ -98,6 +105,7 @@ server:
             requests: 100
       openid_connect_pushed_authorization_request:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '1 minute'
             requests: 30
@@ -109,6 +117,7 @@ server:
             requests: 100
       openid_connect_userinfo:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '1 minute'
             requests: 30
@@ -120,6 +129,7 @@ server:
             requests: 100
       openid_connect_introspection:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '1 minute'
             requests: 30
@@ -131,6 +141,7 @@ server:
             requests: 100
       openid_connect_revocation:
         enable: true
+        ipv6_mask: 64
         buckets:
           - period: '1 minute'
             requests: 30
@@ -149,6 +160,18 @@ server:
 {{< confkey type="boolean" default="true" required="no" >}}
 
 Enables the given rate limit configuration. These are enabled by default.
+
+### ipv6_mask
+
+{{< confkey type="integer" default="64" required="no" >}}
+
+The prefix length used to group IPv6 addresses when applying the rate limit. All IPv6 addresses which share the same
+prefix of this length are counted against the same rate limit. This value must be between `48` and `128`. IPv4
+addresses are always rate limited individually.
+
+As a single IPv6 subscriber is typically allocated at least a `/64` it's trivial for a client to rotate the address it
+uses within that allocation, which is why the default is `64`. Lowering this value to `56` or `48` can prevent clients
+from rotating addresses within larger allocations at the cost of potentially grouping more unrelated clients together.
 
 ### buckets
 
