@@ -1176,7 +1176,7 @@ func runStorageUserWebAuthnExport(ctx context.Context, w io.Writer, store storag
 		return fmt.Errorf("no data to export")
 	}
 
-	if err = exportFile(filename, export.ToData(), "export.webauthn"); err != nil {
+	if err = exportFile(filename, export.ToData(), jsonSchemaNameExportsWebAuthn); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -1670,7 +1670,7 @@ func runStorageUserTOTPExport(ctx context.Context, w io.Writer, store storage.Pr
 		return fmt.Errorf("no data to export")
 	}
 
-	if err = exportFile(filename, export.ToData(), "export.totp"); err != nil {
+	if err = exportFile(filename, export.ToData(), jsonSchemaNameExportsTOTP); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -1978,7 +1978,7 @@ func runStorageUserIdentifiersExport(ctx context.Context, w io.Writer, store sto
 		return fmt.Errorf("no data to export")
 	}
 
-	if err = exportFile(filename, export, "export.identifiers"); err != nil {
+	if err = exportFile(filename, export, jsonSchemaNameExportsIdentifiers); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 

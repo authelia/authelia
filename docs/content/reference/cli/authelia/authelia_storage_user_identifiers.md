@@ -41,6 +41,7 @@ authelia storage user identifiers --help
 ```
   -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
       --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.values strings         file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
       --encryption-key string                 the storage encryption key to use
       --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
       --mysql.database string                 the MySQL database name (default "authelia")
@@ -58,7 +59,7 @@ authelia storage user identifiers --help
 
 * [authelia storage user](authelia_storage_user.md)	 - Manages user settings
 * [authelia storage user identifiers add](authelia_storage_user_identifiers_add.md)	 - Add an opaque identifier for a user to the database
-* [authelia storage user identifiers export](authelia_storage_user_identifiers_export.md)	 - Export the identifiers to a YAML file
+* [authelia storage user identifiers export](authelia_storage_user_identifiers_export.md)	 - Export the identifiers to a file
 * [authelia storage user identifiers generate](authelia_storage_user_identifiers_generate.md)	 - Generate opaque identifiers in bulk
-* [authelia storage user identifiers import](authelia_storage_user_identifiers_import.md)	 - Import the identifiers from a YAML file
+* [authelia storage user identifiers import](authelia_storage_user_identifiers_import.md)	 - Import the identifiers from a file
 

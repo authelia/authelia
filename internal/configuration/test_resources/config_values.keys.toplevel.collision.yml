@@ -1,0 +1,5 @@
+# yamllint disable-file
+---
+1.0: 'one'
+'1': 'uno'
+...

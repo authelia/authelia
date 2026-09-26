@@ -264,11 +264,11 @@ type FileUserDatabaseUserDetails struct {
 
 // FileUserDatabaseUserDetailsAddressModel represents the address of a user in the file user database.
 type FileUserDatabaseUserDetailsAddressModel struct {
-	StreetAddress string `yaml:"street_address" toml:"street_address" json:"street_address,omitempty" jsonschema:"title=Street Address" jsonschema_description:"The street address for the user."`
-	Locality      string `yaml:"locality" toml:"locality" json:"locality,omitempty" jsonschema:"title=Locality" jsonschema_description:"The locality for the user."`
-	Region        string `yaml:"region" toml:"region" json:"region,omitempty" jsonschema:"title=Region" jsonschema_description:"The region for the user."`
-	PostalCode    string `yaml:"postal_code" toml:"postal_code" json:"postal_code,omitempty" jsonschema:"title=Postal Code" jsonschema_description:"The postal code or postcode for the user."`
-	Country       string `yaml:"country" toml:"country" json:"country,omitempty" jsonschema:"title=Country" jsonschema_description:"The country for the user."`
+	StreetAddress string `yaml:"street_address,omitempty" toml:"street_address,omitempty" json:"street_address,omitempty" jsonschema:"title=Street Address" jsonschema_description:"The street address for the user."`
+	Locality      string `yaml:"locality,omitempty" toml:"locality,omitempty" json:"locality,omitempty" jsonschema:"title=Locality" jsonschema_description:"The locality for the user."`
+	Region        string `yaml:"region,omitempty" toml:"region,omitempty" json:"region,omitempty" jsonschema:"title=Region" jsonschema_description:"The region for the user."`
+	PostalCode    string `yaml:"postal_code,omitempty" toml:"postal_code,omitempty" json:"postal_code,omitempty" jsonschema:"title=Postal Code" jsonschema_description:"The postal code or postcode for the user."`
+	Country       string `yaml:"country,omitempty" toml:"country,omitempty" json:"country,omitempty" jsonschema:"title=Country" jsonschema_description:"The country for the user."`
 }
 
 // ToUserDetails converts FileUserDatabaseUserDetails into a *UserDetails.
@@ -461,26 +461,26 @@ func (m *FileDatabaseModel) Write(fileName string) (err error) {
 type FileDatabaseUserDetailsModel struct {
 	Password       string   `yaml:"password" toml:"password" json:"password" valid:"required"`
 	DisplayName    string   `yaml:"displayname" toml:"displayname" json:"displayname" valid:"required"`
-	Email          string   `yaml:"email" toml:"email" json:"email"`
-	Groups         []string `yaml:"groups" toml:"groups" json:"groups"`
-	GivenName      string   `yaml:"given_name" toml:"given_name" json:"given_name"`
-	MiddleName     string   `yaml:"middle_name" toml:"middle_name" json:"middle_name"`
-	FamilyName     string   `yaml:"family_name" toml:"family_name" json:"family_name"`
-	Nickname       string   `yaml:"nickname" toml:"nickname" json:"nickname"`
-	Gender         string   `yaml:"gender" toml:"gender" json:"gender"`
-	Birthdate      string   `yaml:"birthdate" toml:"birthdate" json:"birthdate"`
-	Website        string   `yaml:"website" toml:"website" json:"website"`
-	Profile        string   `yaml:"profile" toml:"profile" json:"profile"`
-	Picture        string   `yaml:"picture" toml:"picture" json:"picture"`
-	ZoneInfo       string   `yaml:"zoneinfo" toml:"zoneinfo" json:"zoneinfo"`
-	Locale         string   `yaml:"locale" toml:"locale" json:"locale"`
-	PhoneNumber    string   `yaml:"phone_number" toml:"phone_number" json:"phone_number"`
-	PhoneExtension string   `yaml:"phone_extension" toml:"phone_extension" json:"phone_extension"`
-	Disabled       bool     `yaml:"disabled" toml:"disabled" json:"disabled"`
+	Email          string   `yaml:"email,omitempty" toml:"email,omitempty" json:"email,omitempty"`
+	Groups         []string `yaml:"groups,omitempty" toml:"groups,omitempty" json:"groups,omitempty"`
+	GivenName      string   `yaml:"given_name,omitempty" toml:"given_name,omitempty" json:"given_name,omitempty"`
+	MiddleName     string   `yaml:"middle_name,omitempty" toml:"middle_name,omitempty" json:"middle_name,omitempty"`
+	FamilyName     string   `yaml:"family_name,omitempty" toml:"family_name,omitempty" json:"family_name,omitempty"`
+	Nickname       string   `yaml:"nickname,omitempty" toml:"nickname,omitempty" json:"nickname,omitempty"`
+	Gender         string   `yaml:"gender,omitempty" toml:"gender,omitempty" json:"gender,omitempty"`
+	Birthdate      string   `yaml:"birthdate,omitempty" toml:"birthdate,omitempty" json:"birthdate,omitempty"`
+	Website        string   `yaml:"website,omitempty" toml:"website,omitempty" json:"website,omitempty"`
+	Profile        string   `yaml:"profile,omitempty" toml:"profile,omitempty" json:"profile,omitempty"`
+	Picture        string   `yaml:"picture,omitempty" toml:"picture,omitempty" json:"picture,omitempty"`
+	ZoneInfo       string   `yaml:"zoneinfo,omitempty" toml:"zoneinfo,omitempty" json:"zoneinfo,omitempty"`
+	Locale         string   `yaml:"locale,omitempty" toml:"locale,omitempty" json:"locale,omitempty"`
+	PhoneNumber    string   `yaml:"phone_number,omitempty" toml:"phone_number,omitempty" json:"phone_number,omitempty"`
+	PhoneExtension string   `yaml:"phone_extension,omitempty" toml:"phone_extension,omitempty" json:"phone_extension,omitempty"`
+	Disabled       bool     `yaml:"disabled,omitempty" toml:"disabled,omitempty" json:"disabled,omitempty"`
 
-	Address *FileUserDatabaseUserDetailsAddressModel `yaml:"address" toml:"address" json:"address"`
+	Address *FileUserDatabaseUserDetailsAddressModel `yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty"`
 
-	Extra map[string]any `yaml:"extra" toml:"extra" json:"extra"`
+	Extra map[string]any `yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty"`
 }
 
 // ValidateExtra returns an error if any extra attribute of this user does not match its definition.

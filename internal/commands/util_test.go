@@ -986,6 +986,46 @@ func TestCmdHelpTopic(t *testing.T) {
 	assert.Contains(t, output, "This is help body text.")
 }
 
+func TestLoadXNormalizedValuesPaths(t *testing.T) {
+	t.Run("ShouldHandleNoPaths", func(t *testing.T) {
+		paths, err := loadXNormalizedValuesPaths(nil)
+
+		assert.NoError(t, err)
+		assert.Nil(t, paths)
+	})
+
+	t.Run("ShouldNormalizeRelativePaths", func(t *testing.T) {
+		paths, err := loadXNormalizedValuesPaths([]string{"./values.yml", filepath.Join("sub", "values.json")})
+
+		require.NoError(t, err)
+		require.Len(t, paths, 2)
+
+		for _, path := range paths {
+			assert.True(t, filepath.IsAbs(path), "expected '%s' to be an absolute path", path)
+		}
+
+		assert.Equal(t, "values.yml", filepath.Base(paths[0]))
+		assert.Equal(t, filepath.Join("sub", "values.json"), filepath.Join(filepath.Base(filepath.Dir(paths[1])), filepath.Base(paths[1])))
+	})
+
+	t.Run("ShouldSkipEmptyPaths", func(t *testing.T) {
+		paths, err := loadXNormalizedValuesPaths([]string{"./values.yml", "", " "})
+
+		require.NoError(t, err)
+		require.Len(t, paths, 1)
+		assert.Equal(t, "values.yml", filepath.Base(paths[0]))
+	})
+
+	t.Run("ShouldNotModifyAbsolutePaths", func(t *testing.T) {
+		expected := filepath.Join(t.TempDir(), "values.yml")
+
+		paths, err := loadXNormalizedValuesPaths([]string{expected})
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{expected}, paths)
+	})
+}
+
 func TestLoadXEnvCLIConfigValues(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -1002,6 +1042,21 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 			map[string]string{cmdFlagEnvNameConfigFilters: "invalidfilter"},
 			"error occurred loading configuration: flag '--config.experimental.filters' is invalid:",
 		},
+		{
+			"ShouldErrInvalidValuesFile",
+			map[string]string{cmdFlagEnvNameConfigFilters: "template", cmdFlagEnvNameConfigFiltersValues: "./this-file-does-not-exist.yml"},
+			"error occurred loading configuration: flag '--config.filters.values' is invalid: error reading values file:",
+		},
+		{
+			"ShouldNotErrEmptyValuesFileEntries",
+			map[string]string{cmdFlagEnvNameConfigFilters: "template", cmdFlagEnvNameConfigFiltersValues: ","},
+			"",
+		},
+		{
+			"ShouldNotErrInvalidValuesFileWithoutFilterWhichUtilizesValues",
+			map[string]string{cmdFlagEnvNameConfigFilters: "expand-env", cmdFlagEnvNameConfigFiltersValues: "./this-file-does-not-exist.yml"},
+			"",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1009,6 +1064,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 			cmd := &cobra.Command{}
 			cmd.Flags().StringSlice(cmdFlagNameConfig, []string{}, "")
 			cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+			cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "")
 
 			for k, v := range tc.env {
 				t.Setenv(k, v)
@@ -1037,6 +1093,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		cmd := &cobra.Command{}
 		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
 		cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "")
 
 		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, configFile))
 
@@ -1073,6 +1130,14 @@ func (w *failingStringWriter) WriteString(s string) (int, error) {
 	return len(s), nil
 }
 
+func TestExportJSONSchemaNamesArePublished(t *testing.T) {
+	for _, name := range []string{jsonSchemaNameExportsTOTP, jsonSchemaNameExportsWebAuthn, jsonSchemaNameExportsIdentifiers} {
+		t.Run(name, func(t *testing.T) {
+			assert.FileExists(t, filepath.Join("..", "..", "docs", "static", "schemas", "latest", "json-schema", name+utils.ExtJSON))
+		})
+	}
+}
+
 func TestExportFileImportFileRoundTrip(t *testing.T) {
 	createdAt := time.Date(2025, 4, 11, 4, 1, 31, 0, time.UTC)
 	lastUsedAt := time.Date(2025, 4, 12, 4, 1, 31, 0, time.UTC)
@@ -1097,7 +1162,7 @@ func TestExportFileImportFileRoundTrip(t *testing.T) {
 
 				export := model.TOTPConfigurationExport{TOTPConfigurations: []model.TOTPConfiguration{expected}}
 
-				require.NoError(t, exportFile(path, export.ToData(), "export.totp"))
+				require.NoError(t, exportFile(path, export.ToData(), jsonSchemaNameExportsTOTP))
 
 				data, err := os.ReadFile(path)
 				require.NoError(t, err)
@@ -1155,7 +1220,7 @@ func TestExportFileImportFileRoundTrip(t *testing.T) {
 
 				export := model.WebAuthnCredentialExport{WebAuthnCredentials: []model.WebAuthnCredential{expected}}
 
-				require.NoError(t, exportFile(path, export.ToData(), "export.webauthn"))
+				require.NoError(t, exportFile(path, export.ToData(), jsonSchemaNameExportsWebAuthn))
 
 				data, err := os.ReadFile(path)
 				require.NoError(t, err)
@@ -1210,7 +1275,7 @@ func TestExportFileImportFileRoundTrip(t *testing.T) {
 
 				export := model.UserOpaqueIdentifiersExport{Identifiers: []model.UserOpaqueIdentifier{expected}}
 
-				require.NoError(t, exportFile(path, export, "export.identifiers"))
+				require.NoError(t, exportFile(path, export, jsonSchemaNameExportsIdentifiers))
 
 				data, err := os.ReadFile(path)
 				require.NoError(t, err)
