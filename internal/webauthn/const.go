@@ -15,3 +15,9 @@ const (
 	CachePolicyStrict  = "strict"
 	CachePolicyRelaxed = "relaxed"
 )
+
+// Extensions unsolicited output policy strings.
+const (
+	ExtensionsUnsolicitedOutputPolicyReject = "reject"
+	ExtensionsUnsolicitedOutputPolicyIgnore = "ignore"
+)
