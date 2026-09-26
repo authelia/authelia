@@ -40,6 +40,19 @@ vi.mock("@views/Settings/Common/SecondFactorDialog", () => ({
     ),
 }));
 
+vi.mock("@views/Settings/Common/ReauthenticationDialog", () => ({
+    default: (props: any) => (
+        <div
+            data-testid="reauthentication-dialog"
+            data-opening={String(props.opening)}
+            data-elevation={JSON.stringify(props.elevation ?? null)}
+        >
+            <button data-testid="ra-closed-ok-unchanged" onClick={() => props.handleClosed(true, false)} />
+            <button data-testid="ra-closed-cancel" onClick={() => props.handleClosed(false, false)} />
+        </div>
+    ),
+}));
+
 vi.mock("@views/Settings/TwoFactorAuthentication/WebAuthnCredentialDeleteDialog", () => ({
     default: (props: any) => (
         <div
@@ -115,6 +128,11 @@ const elevated = { elevated: true, skip_second_factor: false } as any;
 const notElevated = { elevated: false, skip_second_factor: false } as any;
 const skipSecondFactor = { elevated: false, skip_second_factor: true } as any;
 
+async function passReauthentication() {
+    await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByTestId("ra-closed-ok-unchanged"));
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -169,7 +187,7 @@ describe("elevation", () => {
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
 
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
-        expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute("data-opening", "true");
+        expect(screen.getByTestId("reauthentication-dialog")).toHaveAttribute("data-opening", "true");
     });
 
     it("disables the add button while the register flow is opening", async () => {
@@ -184,6 +202,7 @@ describe("elevation", () => {
         renderPanel();
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
+        await passReauthentication();
 
         await waitFor(() =>
             expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute(
@@ -207,6 +226,7 @@ describe("elevation", () => {
         renderPanel();
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
+        await passReauthentication();
         await waitFor(() => expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute("data-opening", "true"));
 
         fireEvent.click(screen.getByTestId("sf-opened"));
@@ -223,6 +243,7 @@ describe("elevation", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "true"));
@@ -230,6 +251,18 @@ describe("elevation", () => {
         fireEvent.click(screen.getByTestId("iv-opened"));
 
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "false"));
+    });
+
+    it("resets the state when reauthentication is cancelled", async () => {
+        renderPanel();
+
+        fireEvent.click(screen.getByTestId("grid-delete"));
+        await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+
+        fireEvent.click(screen.getByTestId("ra-closed-cancel"));
+
+        expect(screen.getByTestId("delete-dialog")).toHaveAttribute("data-open", "false");
+        expect(screen.getByTestId("delete-dialog")).toHaveAttribute("data-credential", "null");
     });
 });
 
@@ -239,6 +272,7 @@ describe("second factor dialog result", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-cancel"));
 
@@ -251,6 +285,7 @@ describe("second factor dialog result", () => {
         renderPanel();
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
+        await passReauthentication();
         await waitFor(() =>
             expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute(
                 "data-elevation",
@@ -269,6 +304,7 @@ describe("second factor dialog result", () => {
         renderPanel();
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
+        await passReauthentication();
         await waitFor(() =>
             expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute(
                 "data-elevation",
@@ -288,6 +324,7 @@ describe("second factor dialog result", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
 
@@ -302,6 +339,7 @@ describe("second factor dialog result", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalledTimes(1));
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-changed"));
 
@@ -316,6 +354,7 @@ describe("second factor dialog result", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalledTimes(1));
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-changed"));
 
@@ -329,6 +368,7 @@ describe("second factor dialog result", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalledTimes(1));
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-changed"));
 
@@ -340,6 +380,7 @@ describe("second factor dialog result", () => {
         renderPanel();
 
         fireEvent.click(screen.getByTestId("grid-edit"));
+        await passReauthentication();
         await waitFor(() =>
             expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute(
                 "data-elevation",
@@ -357,6 +398,7 @@ describe("second factor dialog result", () => {
         renderPanel();
 
         fireEvent.click(screen.getByTestId("grid-delete"));
+        await passReauthentication();
         await waitFor(() =>
             expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute(
                 "data-elevation",
@@ -379,6 +421,7 @@ describe("identity verification dialog result", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "true"));
 
@@ -395,6 +438,7 @@ describe("identity verification dialog result", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /Add/ }));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "true"));
 
@@ -410,6 +454,7 @@ describe("identity verification dialog result", () => {
 
         fireEvent.click(screen.getByTestId("grid-edit"));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "true"));
 
@@ -425,6 +470,7 @@ describe("identity verification dialog result", () => {
 
         fireEvent.click(screen.getByTestId("grid-delete"));
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "true"));
 

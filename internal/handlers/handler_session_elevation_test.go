@@ -19,6 +19,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -54,7 +55,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					HasDuo:      true,
 				}, nil)
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -80,7 +81,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					HasDuo:      true,
 				}, nil)
 			},
-			`{"status":"OK","data":{"require_second_factor":true,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":true,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -106,7 +107,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					HasDuo:      false,
 				}, nil)
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -132,7 +133,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					HasDuo:      true,
 				}, nil)
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":true,"factor_knowledge":true,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":true,"factor_knowledge":true,"elevated":false,"expires":0,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -149,7 +150,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -168,7 +169,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -212,7 +213,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -234,7 +235,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -256,7 +257,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -286,7 +287,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":-60}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":-60,"require_reauthentication":false,"reauthentication_methods":[]}}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -295,6 +296,74 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				assert.Nil(t, us.Elevations.User)
 			},
+		},
+		{
+			"ShouldReportReauthenticationRequiredPassword",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Clock.Set(time.Unix(1700000000, 0))
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.RequireReauthentication = schema.ElevatedSessionReauthenticationPassword
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ReauthenticationLifespan = time.Minute * 5
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.FirstFactorAuthnTimestamp = mock.Clock.Now().Add(-time.Hour).Unix()
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{}, nil)
+			},
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0,"require_reauthentication":true,"reauthentication_methods":["password"]}}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+		{
+			"ShouldReportReauthenticationSatisfiedPassword",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Clock.Set(time.Unix(1700000000, 0))
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.RequireReauthentication = schema.ElevatedSessionReauthenticationPassword
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ReauthenticationLifespan = time.Minute * 5
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.FirstFactorAuthnTimestamp = mock.Clock.Now().Add(-time.Minute).Unix()
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{}, nil)
+			},
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0,"require_reauthentication":false,"reauthentication_methods":[]}}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+		{
+			"ShouldReportReauthenticationRequiredAny",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Clock.Set(time.Unix(1700000000, 0))
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.RequireReauthentication = schema.ElevatedSessionReauthenticationAny
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ReauthenticationLifespan = time.Minute * 5
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{HasTOTP: true}, nil).Times(2)
+			},
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0,"require_reauthentication":true,"reauthentication_methods":["password","second_factor"]}}`,
+			fasthttp.StatusOK,
+			nil,
 		},
 	}
 

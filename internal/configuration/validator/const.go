@@ -497,9 +497,10 @@ const (
 )
 
 const (
-	errFmtIdentityValidationResetPasswordJWTAlgorithm      = "identity_validation: reset_password: option 'jwt_algorithm' must be one of %s but it's configured as '%s'"
-	errFmtIdentityValidationResetPasswordJWTSecret         = "identity_validation: reset_password: option 'jwt_secret' is required when the reset password functionality isn't disabled"
-	errFmtIdentityValidationElevatedSessionCharacterLength = "identity_validation: elevated_session: option 'characters' must be 20 or less but it's configured as %d"
+	errFmtIdentityValidationResetPasswordJWTAlgorithm              = "identity_validation: reset_password: option 'jwt_algorithm' must be one of %s but it's configured as '%s'"
+	errFmtIdentityValidationResetPasswordJWTSecret                 = "identity_validation: reset_password: option 'jwt_secret' is required when the reset password functionality isn't disabled"
+	errFmtIdentityValidationElevatedSessionCharacterLength         = "identity_validation: elevated_session: option 'characters' must be 20 or less but it's configured as %d"
+	errFmtIdentityValidationElevatedSessionRequireReauthentication = "identity_validation: elevated_session: option 'require_reauthentication' must be one of %s but it's configured as '%s'"
 )
 
 const (
@@ -608,7 +609,8 @@ const (
 )
 
 var (
-	validIdentityValidationJWTAlgorithms = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
+	validIdentityValidationJWTAlgorithms                   = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
+	validIdentityValidationElevatedSessionReauthentication = []string{schema.ElevatedSessionReauthenticationDisabled, schema.ElevatedSessionReauthenticationPassword, schema.ElevatedSessionReauthenticationSecondFactor, schema.ElevatedSessionReauthenticationAny}
 )
 
 var (
