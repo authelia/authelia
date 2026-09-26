@@ -1246,7 +1246,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.GrantTypeAuthorizationCode},
 			},
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'address', 'phone', 'groups', 'offline_access', 'offline', or 'authelia.bearer.authz' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
+				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'address', 'phone', 'groups', 'offline_access', 'offline', 'authelia.bearer.authz', or 'bound_key' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
 			},
 			nil,
 		},
@@ -5338,7 +5338,8 @@ func TestShouldValidateOpenIDConnectScopes(t *testing.T) {
 							"authelia.scopes-ex": {
 								Claims: []string{"example"},
 							},
-							"profile": {},
+							"profile":   {},
+							"bound_key": {},
 						},
 						Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 							Claims: []string{"example"},
@@ -5348,6 +5349,7 @@ func TestShouldValidateOpenIDConnectScopes(t *testing.T) {
 			},
 			errors: []string{
 				"identity_providers: oidc: scopes: scope with name 'authelia.scopes-ex' can't be used as a custom scope because all scopes prefixed with 'authelia.' are reserved",
+				"identity_providers: oidc: scopes: scope with name 'bound_key' can't be used as a custom scope because it's a standard scope",
 				"identity_providers: oidc: scopes: scope with name 'profile' can't be used as a custom scope because it's a standard scope",
 			},
 		},
@@ -5549,6 +5551,259 @@ func TestValidateOIDCClientSectorIdentifierURI(t *testing.T) {
 				for _, s := range tc.errContains {
 					assert.Contains(t, val.Errors()[0].Error(), s)
 				}
+			}
+		})
+	}
+}
+
+func TestValidateIdentityProvidersShouldValidateClientDPoPBoundAccessTokens(t *testing.T) {
+	testCases := []struct {
+		Name    string
+		Have    schema.IdentityProvidersOpenIDConnectDPoP
+		Clients []schema.IdentityProvidersOpenIDConnectClient
+		Errors  []string
+	}{
+		{
+			"ShouldNotRaiseErrorWhenDisabledAndNotBound",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}},
+			},
+			nil,
+		},
+		{
+			"ShouldNotRaiseErrorWhenEnabledAndBound",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}, DPoPBoundAccessTokens: true},
+			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorWhenDisabledAndBound",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}, DPoPBoundAccessTokens: true},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'dpop_bound_access_tokens' can't be enabled when the 'identity_providers: oidc: dpop: enabled' option is disabled"},
+		},
+		{
+			"ShouldRaiseErrorPerClientWhenDisabledAndBound",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}, DPoPBoundAccessTokens: true},
+				{ID: "other", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}},
+				{ID: "another", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}, DPoPBoundAccessTokens: true},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'dpop_bound_access_tokens' can't be enabled when the 'identity_providers: oidc: dpop: enabled' option is disabled",
+				"identity_providers: oidc: clients: client 'another': option 'dpop_bound_access_tokens' can't be enabled when the 'identity_providers: oidc: dpop: enabled' option is disabled",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:  "abcdefghijklmnopqrstuvwxyz123456",
+						JSONWebKeys: []schema.JWK{{Key: keyRSA2048, CertificateChain: certRSA2048}},
+						DPoP:        tc.Have,
+						Clients:     tc.Clients,
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			errs := validator.Errors()
+
+			require.Len(t, errs, len(tc.Errors))
+
+			for i, expected := range tc.Errors {
+				assert.EqualError(t, errs[i], expected)
+			}
+		})
+	}
+}
+
+func TestValidateIdentityProvidersShouldValidateClientKeyBindingScope(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     schema.IdentityProvidersOpenIDConnectDPoP
+		Clients  []schema.IdentityProvidersOpenIDConnectClient
+		Warnings []string
+	}{
+		{
+			"ShouldNotWarnWhenEnabledAndRequested",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, KeyBinding: true},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPBKDF2ClientSecret, RedirectURIs: []string{"https://app.example.com"}, Scopes: []string{oidc.ScopeOpenID, oidc.ScopeBoundKey}},
+			},
+			nil,
+		},
+		{
+			"ShouldNotWarnWhenDisabledAndNotRequested",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPBKDF2ClientSecret, RedirectURIs: []string{"https://app.example.com"}, Scopes: []string{oidc.ScopeOpenID}},
+			},
+			nil,
+		},
+		{
+			"ShouldWarnWhenKeyBindingDisabledAndRequested",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPBKDF2ClientSecret, RedirectURIs: []string{"https://app.example.com"}, Scopes: []string{oidc.ScopeOpenID, oidc.ScopeBoundKey}},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'scopes' has the value 'bound_key' which is ineffective when the 'identity_providers: oidc: dpop: key_binding' option is disabled"},
+		},
+		{
+			"ShouldWarnWhenDPoPDisabledAndRequested",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPBKDF2ClientSecret, RedirectURIs: []string{"https://app.example.com"}, Scopes: []string{oidc.ScopeOpenID, oidc.ScopeBoundKey}},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'scopes' has the value 'bound_key' which is ineffective when the 'identity_providers: oidc: dpop: key_binding' option is disabled"},
+		},
+		{
+			"ShouldWarnPerClientWhenDisabledAndRequested",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPBKDF2ClientSecret, RedirectURIs: []string{"https://app.example.com"}, Scopes: []string{oidc.ScopeOpenID, oidc.ScopeBoundKey}},
+				{ID: "other", Secret: tOpenIDConnectPBKDF2ClientSecret, RedirectURIs: []string{"https://app.example.com"}, Scopes: []string{oidc.ScopeOpenID}},
+				{ID: "another", Secret: tOpenIDConnectPBKDF2ClientSecret, RedirectURIs: []string{"https://app.example.com"}, Scopes: []string{oidc.ScopeOpenID, oidc.ScopeBoundKey}},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'scopes' has the value 'bound_key' which is ineffective when the 'identity_providers: oidc: dpop: key_binding' option is disabled",
+				"identity_providers: oidc: clients: client 'another': option 'scopes' has the value 'bound_key' which is ineffective when the 'identity_providers: oidc: dpop: key_binding' option is disabled",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:  "abcdefghijklmnopqrstuvwxyz123456",
+						JSONWebKeys: []schema.JWK{{Key: keyRSA2048, CertificateChain: certRSA2048}},
+						DPoP:        tc.Have,
+						Clients:     tc.Clients,
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			assert.Len(t, validator.Errors(), 0)
+
+			warnings := validator.Warnings()
+
+			require.Len(t, warnings, len(tc.Warnings))
+
+			for i, expected := range tc.Warnings {
+				assert.EqualError(t, warnings[i], expected)
+			}
+		})
+	}
+}
+
+func TestValidateIdentityProvidersShouldSetDefaultDPoPValues(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     schema.IdentityProvidersOpenIDConnectDPoP
+		Expected schema.IdentityProvidersOpenIDConnectDPoP
+		Errors   []string
+	}{
+		{
+			"ShouldSetDefaults",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			schema.IdentityProvidersOpenIDConnectDPoP{NonceLifespan: time.Minute * 5, ProofLifespan: time.Second * 10, ClockSkew: time.Second * 30},
+			nil,
+		},
+		{
+			"ShouldNotOverrideConfigured",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: time.Minute, ProofLifespan: time.Second * 30, ClockSkew: time.Second * 10},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: time.Minute, ProofLifespan: time.Second * 30, ClockSkew: time.Second * 10},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnNegativeNonceLifespan",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: -time.Minute},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: -time.Minute, ProofLifespan: time.Second * 10, ClockSkew: time.Second * 30},
+			[]string{"identity_providers: oidc: dpop: option 'nonce_lifespan' must be a positive duration but it's configured as '-1m0s'"},
+		},
+		{
+			"ShouldRaiseErrorOnNegativeProofLifespan",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, ProofLifespan: -time.Second},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: time.Minute * 5, ProofLifespan: -time.Second, ClockSkew: time.Second * 30},
+			[]string{"identity_providers: oidc: dpop: option 'proof_lifespan' must be a positive duration but it's configured as '-1s'"},
+		},
+		{
+			"ShouldRaiseErrorOnNegativeClockSkew",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, ClockSkew: -time.Second},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: time.Minute * 5, ProofLifespan: time.Second * 10, ClockSkew: -time.Second},
+			[]string{"identity_providers: oidc: dpop: option 'clock_skew' must be a positive duration but it's configured as '-1s'"},
+		},
+		{
+			"ShouldRaiseErrorOnEnforcedWithoutEnabled",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enforced: true},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enforced: true, NonceLifespan: time.Minute * 5, ProofLifespan: time.Second * 10, ClockSkew: time.Second * 30},
+			[]string{"identity_providers: oidc: dpop: option 'enforced' can't be enabled when option 'enabled' is disabled"},
+		},
+		{
+			"ShouldRaiseErrorOnNonceEnforcedWithoutEnabled",
+			schema.IdentityProvidersOpenIDConnectDPoP{NonceEnforced: true},
+			schema.IdentityProvidersOpenIDConnectDPoP{NonceEnforced: true, NonceLifespan: time.Minute * 5, ProofLifespan: time.Second * 10, ClockSkew: time.Second * 30},
+			[]string{"identity_providers: oidc: dpop: option 'nonce_enforced' can't be enabled when option 'enabled' is disabled"},
+		},
+		{
+			"ShouldRaiseErrorOnKeyBindingWithoutEnabled",
+			schema.IdentityProvidersOpenIDConnectDPoP{KeyBinding: true},
+			schema.IdentityProvidersOpenIDConnectDPoP{KeyBinding: true, NonceLifespan: time.Minute * 5, ProofLifespan: time.Second * 10, ClockSkew: time.Second * 30},
+			[]string{"identity_providers: oidc: dpop: option 'key_binding' can't be enabled when option 'enabled' is disabled"},
+		},
+		{
+			"ShouldNotRaiseErrorOnKeyBindingWithEnabled",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, KeyBinding: true},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, KeyBinding: true, NonceLifespan: time.Minute * 5, ProofLifespan: time.Second * 10, ClockSkew: time.Second * 30},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:  "abcdefghijklmnopqrstuvwxyz123456",
+						JSONWebKeys: []schema.JWK{{Key: keyRSA2048, CertificateChain: certRSA2048}},
+						DPoP:        tc.Have,
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}},
+						},
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			assert.Equal(t, tc.Expected, config.IdentityProviders.OIDC.DPoP)
+
+			errs := validator.Errors()
+
+			require.Len(t, errs, len(tc.Errors))
+
+			for i, expected := range tc.Errors {
+				assert.EqualError(t, errs[i], expected)
 			}
 		})
 	}
