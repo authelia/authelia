@@ -13,10 +13,10 @@ import (
 // absent or which can't be opened.
 var ErrRepositoryGet = errors.New("error occurred getting session from backend")
 
-// ErrSessionSuperseded is returned by a Repository which discarded a save because the public identifier of the session
-// now belongs to a session stored against another identifier, such as when a request which loaded the session before it
-// was regenerated completes after the regeneration.
-var ErrSessionSuperseded = errors.New("session has been superseded by another session identifier")
+// ErrSessionSuperseded is returned by a Repository which discarded a save because the session was moved to another
+// identifier or destroyed after it was retrieved, such as when a request which loaded the session before it was
+// regenerated or logged out completes afterwards.
+var ErrSessionSuperseded = errors.New("session has been superseded by another session identifier or destroyed")
 
 const (
 	sessionIDLength = 32

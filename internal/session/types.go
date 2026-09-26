@@ -126,16 +126,16 @@ type Repository interface {
 	GetIDsByUsername(ctx context.Context, issuer string, username string) (ids []string, err error)
 
 	// Save creates or replaces the session record for the identifier, including the public identifier and username
-	// associated with it. It returns ErrSessionSuperseded without writing anything when the public identifier belongs
-	// to a session stored against another identifier.
+	// associated with it. It returns ErrSessionSuperseded without writing anything when the session was moved to another
+	// identifier or destroyed.
 	Save(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 
 	// SaveData updates only the sealed session data and expiration of the existing session record for the identifier,
 	// and isn't guaranteed to create the record or update the public identifier or username associated with it.
 	SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 
-	// Delete removes the session record for the identifier along with the public identifier and username lookups which
-	// refer to it.
+	// Delete destroys the session record for the identifier and removes the public identifier and username lookups which
+	// refer to it. The destroyed session is retained until it would have expired so that a later Save of it is refused.
 	Delete(ctx context.Context, issuer string, id string, pid string, username string) (err error)
 
 	// ChangeID moves the session record stored against oldID to id, writing the sealed data as part of the move as the

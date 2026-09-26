@@ -119,7 +119,8 @@ func (p *SQLProvider) SessionGetIDsByUsername(ctx context.Context, issuer, usern
 	return ids, nil
 }
 
-// SessionSave persists a session, replacing any existing session with the same signature and issuer.
+// SessionSave persists a session, replacing any existing session with the same signature and issuer. A session which
+// was destroyed, or which was moved to another signature, is not replaced and the save is reported as superseded.
 func (p *SQLProvider) SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertSession, issuer, id, pid, username, p.sessionExpires(expiration), data); err != nil {
 		if IsUniqueViolation(err) && p.sessionPublicIDMoved(ctx, issuer, id, pid) {
@@ -127,6 +128,16 @@ func (p *SQLProvider) SessionSave(ctx context.Context, issuer, id, pid, username
 		}
 
 		return fmt.Errorf("error upserting session: %w", err)
+	}
+
+	var count int
+
+	if err = p.db.GetContext(ctx, &count, p.sqlSelectSessionExists, issuer, id); err != nil {
+		return fmt.Errorf("error selecting saved session: %w", err)
+	}
+
+	if count == 0 {
+		return session.ErrSessionSuperseded
 	}
 
 	return nil
@@ -152,9 +163,10 @@ func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ stri
 	return nil
 }
 
-// SessionDelete removes a session.
+// SessionDelete destroys a session. The session is retained without its data until it would have expired, so a save by
+// a request which retrieved it before it was destroyed is discarded rather than restoring it.
 func (p *SQLProvider) SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlDeleteSession, issuer, id); err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionDestroyed, []byte{}, issuer, id); err != nil {
 		return fmt.Errorf("error deleting session: %w", err)
 	}
 

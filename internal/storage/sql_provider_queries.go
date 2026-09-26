@@ -377,32 +377,39 @@ const (
 		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
 		VALUES (?, ?, ?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE
-			public_id = IF(signature = VALUES(signature), VALUES(public_id), public_id),
-			username = IF(signature = VALUES(signature), VALUES(username), username),
-			expiration = IF(signature = VALUES(signature), VALUES(expiration), expiration),
-			data = IF(signature = VALUES(signature), VALUES(data), data);`
+			public_id = IF(signature = VALUES(signature) AND LENGTH(data) > 0, VALUES(public_id), public_id),
+			username = IF(signature = VALUES(signature) AND LENGTH(data) > 0, VALUES(username), username),
+			expiration = IF(signature = VALUES(signature) AND LENGTH(data) > 0, VALUES(expiration), expiration),
+			data = IF(signature = VALUES(signature) AND LENGTH(data) > 0, VALUES(data), data);`
 
 	queryFmtUpsertSessionSQLite = `
-		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		INSERT INTO %[1]s (issuer, signature, public_id, username, expiration, data)
 		VALUES (?, ?, ?, ?, ?, ?)
 			ON CONFLICT (issuer, signature)
-			DO UPDATE SET public_id = excluded.public_id, username = excluded.username, expiration = excluded.expiration, data = excluded.data;`
+			DO UPDATE SET public_id = excluded.public_id, username = excluded.username, expiration = excluded.expiration, data = excluded.data
+			WHERE LENGTH(%[1]s.data) > 0;`
 
 	queryFmtUpsertSessionPostgreSQL = `
-		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		INSERT INTO %[1]s (issuer, signature, public_id, username, expiration, data)
 		VALUES ($1, $2, $3, $4, $5, $6)
 			ON CONFLICT (issuer, signature)
-			DO UPDATE SET public_id = $3, username = $4, expiration = $5, data = $6;`
+			DO UPDATE SET public_id = $3, username = $4, expiration = $5, data = $6
+			WHERE LENGTH(%[1]s.data) > 0;`
 
 	queryFmtSelectSession = `
 		SELECT signature, data
 		FROM %s
-		WHERE issuer = ? AND signature = ? AND expiration > ?;`
+		WHERE issuer = ? AND signature = ? AND expiration > ? AND LENGTH(data) > 0;`
+
+	queryFmtSelectSessionExists = `
+		SELECT COUNT(id)
+		FROM %s
+		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
 
 	queryFmtSelectSessionByPublicID = `
 		SELECT signature, data
 		FROM %s
-		WHERE issuer = ? AND public_id = ? AND expiration > ?;`
+		WHERE issuer = ? AND public_id = ? AND expiration > ? AND LENGTH(data) > 0;`
 
 	queryFmtSelectSessionSignatureByPublicID = `
 		SELECT signature
@@ -412,20 +419,21 @@ const (
 	queryFmtSelectSessionSignaturesByUsername = `
 		SELECT signature
 		FROM %s
-		WHERE issuer = ? AND username = ? AND expiration > ?;`
+		WHERE issuer = ? AND username = ? AND expiration > ? AND LENGTH(data) > 0;`
 
 	queryFmtUpdateSessionData = `
 		UPDATE %s
 		SET expiration = ?, data = ?
-		WHERE issuer = ? AND signature = ?;`
+		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
 
 	queryFmtUpdateSessionSignature = `
 		UPDATE %s
 		SET signature = ?, expiration = ?, data = ?
-		WHERE issuer = ? AND signature = ?;`
+		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
 
-	queryFmtDeleteSession = `
-		DELETE FROM %s
+	queryFmtUpdateSessionDestroyed = `
+		UPDATE %s
+		SET username = '', data = ?
 		WHERE issuer = ? AND signature = ?;`
 
 	queryFmtDeleteSessionExpired = `

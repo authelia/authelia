@@ -170,7 +170,8 @@ func TestMemory_SessionSaveDoesNotLeakPublicIDLookups(t *testing.T) {
 	require.NoError(t, provider.SessionDelete(ctx, "example.com", "id", "pid99", "john"))
 
 	assert.Empty(t, provider.lookupPublicID)
-	assert.Empty(t, provider.session)
+	require.Len(t, provider.session, 1)
+	assert.True(t, provider.session[provider.key("example.com", "id")].destroyed)
 }
 
 func TestMemory_SessionChangeID(t *testing.T) {
@@ -234,6 +235,53 @@ func TestMemory_SessionSaveShouldDiscardStaleSaveAfterChangeID(t *testing.T) {
 	assert.Equal(t, []string{"id2"}, provider.lookupUsername[provider.key("example.com", "john")])
 }
 
+func TestMemory_SessionSaveShouldDiscardStaleSaveAfterDelete(t *testing.T) {
+	ctx := context.Background()
+	provider := NewMemory()
+
+	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
+	require.NoError(t, provider.SessionDelete(ctx, "example.com", "id", "pid", "john"))
+
+	assert.ErrorIs(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
+	assert.ErrorIs(t, provider.SessionSaveData(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
+
+	record, err := provider.SessionGet(ctx, "example.com", "id")
+	assert.NoError(t, err)
+	assert.Nil(t, record)
+
+	record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
+	assert.NoError(t, err)
+	assert.Nil(t, record)
+
+	ids, err := provider.SessionGetIDsByUsername(ctx, "example.com", "john")
+	assert.NoError(t, err)
+	assert.Empty(t, ids)
+
+	require.NoError(t, provider.SessionChangeID(ctx, "example.com", "id", "id2", "pid", "john", time.Hour, []byte("moved")))
+
+	record, err = provider.SessionGet(ctx, "example.com", "id2")
+	assert.NoError(t, err)
+	assert.Nil(t, record)
+
+	require.NoError(t, provider.SessionDelete(ctx, "example.com", "id", "pid", "john"))
+	assert.True(t, provider.session[provider.key("example.com", "id")].destroyed)
+}
+
+func TestMemory_SessionGarbageCollectionShouldRemoveExpiredDestroyedSessions(t *testing.T) {
+	ctx := context.Background()
+	provider := NewMemory()
+
+	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
+	require.NoError(t, provider.SessionDelete(ctx, "example.com", "id", "pid", "john"))
+
+	provider.session[provider.key("example.com", "id")].expires = time.Now().Add(-time.Second)
+
+	require.NoError(t, provider.SessionGarbageCollection(ctx))
+	assert.Empty(t, provider.session)
+
+	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
+}
+
 func TestMemory_SessionSaveShouldRetireTheUsernameLookupOfTheReplacedSession(t *testing.T) {
 	ctx := context.Background()
 	provider := NewMemory()
@@ -291,7 +339,14 @@ func TestMemory_SessionDelete(t *testing.T) {
 
 	require.NoError(t, provider.SessionDelete(ctx, "example.com", "id2", "pid2", "john"))
 
-	assert.Empty(t, provider.session)
+	require.Len(t, provider.session, 2)
+
+	for _, item := range provider.session {
+		assert.True(t, item.destroyed)
+		assert.Nil(t, item.data)
+		assert.Empty(t, item.username)
+	}
+
 	assert.Empty(t, provider.lookupPublicID)
 	assert.Empty(t, provider.lookupUsername)
 }

@@ -46,7 +46,7 @@ func (m *Memory) SessionGet(ctx context.Context, issuer, id string) (record sess
 	defer m.mu.RUnlock()
 
 	item, ok := m.session[m.key(issuer, id)]
-	if !ok || item.expired(time.Now()) {
+	if !ok || item.destroyed || item.expired(time.Now()) {
 		return nil, nil
 	}
 
@@ -64,7 +64,7 @@ func (m *Memory) SessionGetByPublicID(ctx context.Context, issuer, pid string) (
 	}
 
 	item, ok := m.session[m.key(issuer, id)]
-	if !ok || item.expired(time.Now()) {
+	if !ok || item.destroyed || item.expired(time.Now()) {
 		return nil, nil
 	}
 
@@ -81,7 +81,7 @@ func (m *Memory) SessionGetIDsByUsername(ctx context.Context, issuer, username s
 	now, ids := time.Now(), make([]string, 0, len(lookup))
 
 	for _, id := range lookup {
-		if item, ok := m.session[m.key(issuer, id)]; ok && !item.expired(now) {
+		if item, ok := m.session[m.key(issuer, id)]; ok && !item.destroyed && !item.expired(now) {
 			ids = append(ids, id)
 		}
 	}
@@ -103,6 +103,10 @@ func (m *Memory) SessionSave(ctx context.Context, issuer, id, pid, username stri
 	key := m.key(issuer, id)
 
 	if item, ok := m.session[key]; ok {
+		if item.destroyed && !item.expired(time.Now()) {
+			return session.ErrSessionSuperseded
+		}
+
 		if item.pid != pid {
 			delete(m.lookupPublicID, m.key(issuer, item.pid))
 		}
@@ -142,6 +146,10 @@ func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, e
 		return fmt.Errorf("session not found: %s", key)
 	}
 
+	if item.destroyed {
+		return session.ErrSessionSuperseded
+	}
+
 	item.data = data
 	item.expires = sessionExpires(expiration)
 
@@ -156,7 +164,7 @@ func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, us
 	key := m.key(issuer, oldID)
 
 	item, ok := m.session[key]
-	if !ok {
+	if !ok || item.destroyed {
 		return nil
 	}
 
@@ -190,11 +198,22 @@ func (m *Memory) SessionDelete(ctx context.Context, issuer, id, pid, username st
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if item, ok := m.session[m.key(issuer, id)]; ok {
-		pid, username = item.pid, item.username
+	item, ok := m.session[m.key(issuer, id)]
+	if !ok {
+		m.delete(id, pid, username, issuer)
+
+		return nil
 	}
 
-	m.delete(id, pid, username, issuer)
+	if item.destroyed {
+		return nil
+	}
+
+	m.delete(id, item.pid, item.username, issuer)
+
+	item.data, item.username, item.destroyed = nil, "", true
+
+	m.session[m.key(issuer, id)] = item
 
 	return nil
 }
@@ -269,12 +288,13 @@ func (m *Memory) key(values ...string) string {
 }
 
 type itemSession struct {
-	data     []byte
-	id       string
-	pid      string
-	issuer   string
-	username string
-	expires  time.Time
+	data      []byte
+	id        string
+	pid       string
+	issuer    string
+	username  string
+	expires   time.Time
+	destroyed bool
 }
 
 func (i *itemSession) expired(now time.Time) bool {

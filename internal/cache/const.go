@@ -42,7 +42,7 @@ const (
 
 const (
 	redisScriptSessionSave = `
-if redis.call('hexists', KEYS[1], 'moved') == 1 then
+if redis.call('hexists', KEYS[1], 'moved') == 1 or redis.call('hexists', KEYS[1], 'deleted') == 1 then
 	return {0}
 end
 
@@ -61,7 +61,7 @@ return {1, previous[1] or '', previous[2] or ''}
 `
 
 	redisScriptSessionMove = `
-if redis.call('exists', KEYS[1]) == 0 or redis.call('hexists', KEYS[1], 'moved') == 1 then
+if redis.call('exists', KEYS[1]) == 0 or redis.call('hexists', KEYS[1], 'moved') == 1 or redis.call('hexists', KEYS[1], 'deleted') == 1 then
 	return {0}
 end
 
@@ -79,9 +79,19 @@ return {1, previous[1] or '', previous[2] or ''}
 `
 
 	redisScriptSessionDelete = `
+if redis.call('exists', KEYS[1]) == 0 or redis.call('hexists', KEYS[1], 'moved') == 1 or redis.call('hexists', KEYS[1], 'deleted') == 1 then
+	return {'', ''}
+end
+
+local ttl = redis.call('pttl', KEYS[1])
 local previous = redis.call('hmget', KEYS[1], 'pid', 'username')
 
 redis.call('del', KEYS[1])
+redis.call('hset', KEYS[1], 'deleted', 1)
+
+if ttl > 0 then
+	redis.call('pexpire', KEYS[1], ttl)
+end
 
 return {previous[1] or '', previous[2] or ''}
 `

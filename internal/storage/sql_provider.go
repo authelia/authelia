@@ -90,12 +90,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpsertSession:                     fmt.Sprintf(queryFmtUpsertSession, tableSession),
 		sqlSelectSession:                     fmt.Sprintf(queryFmtSelectSession, tableSession),
+		sqlSelectSessionExists:               fmt.Sprintf(queryFmtSelectSessionExists, tableSession),
 		sqlSelectSessionByPublicID:           fmt.Sprintf(queryFmtSelectSessionByPublicID, tableSession),
 		sqlSelectSessionSignatureByPublicID:  fmt.Sprintf(queryFmtSelectSessionSignatureByPublicID, tableSession),
 		sqlSelectSessionSignaturesByUsername: fmt.Sprintf(queryFmtSelectSessionSignaturesByUsername, tableSession),
 		sqlUpdateSessionData:                 fmt.Sprintf(queryFmtUpdateSessionData, tableSession),
 		sqlUpdateSessionSignature:            fmt.Sprintf(queryFmtUpdateSessionSignature, tableSession),
-		sqlDeleteSession:                     fmt.Sprintf(queryFmtDeleteSession, tableSession),
+		sqlUpdateSessionDestroyed:            fmt.Sprintf(queryFmtUpdateSessionDestroyed, tableSession),
 		sqlDeleteSessionExpired:              fmt.Sprintf(queryFmtDeleteSessionExpired, tableSession),
 
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
@@ -267,12 +268,13 @@ type SQLProvider struct {
 	// Table: session.
 	sqlUpsertSession                     string
 	sqlSelectSession                     string
+	sqlSelectSessionExists               string
 	sqlSelectSessionByPublicID           string
 	sqlSelectSessionSignatureByPublicID  string
 	sqlSelectSessionSignaturesByUsername string
 	sqlUpdateSessionData                 string
 	sqlUpdateSessionSignature            string
-	sqlDeleteSession                     string
+	sqlUpdateSessionDestroyed            string
 	sqlDeleteSessionExpired              string
 
 	// Table: identity_verification.

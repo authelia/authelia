@@ -124,12 +124,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)
 
 	provider.sqlSelectSession = provider.db.Rebind(provider.sqlSelectSession)
+	provider.sqlSelectSessionExists = provider.db.Rebind(provider.sqlSelectSessionExists)
 	provider.sqlSelectSessionByPublicID = provider.db.Rebind(provider.sqlSelectSessionByPublicID)
 	provider.sqlSelectSessionSignatureByPublicID = provider.db.Rebind(provider.sqlSelectSessionSignatureByPublicID)
 	provider.sqlSelectSessionSignaturesByUsername = provider.db.Rebind(provider.sqlSelectSessionSignaturesByUsername)
 	provider.sqlUpdateSessionData = provider.db.Rebind(provider.sqlUpdateSessionData)
 	provider.sqlUpdateSessionSignature = provider.db.Rebind(provider.sqlUpdateSessionSignature)
-	provider.sqlDeleteSession = provider.db.Rebind(provider.sqlDeleteSession)
+	provider.sqlUpdateSessionDestroyed = provider.db.Rebind(provider.sqlUpdateSessionDestroyed)
 	provider.sqlDeleteSessionExpired = provider.db.Rebind(provider.sqlDeleteSessionExpired)
 
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
