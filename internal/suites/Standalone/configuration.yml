@@ -18,7 +18,7 @@ server:
       verbose: true
       providers:
         - 'storage'
-        - 'session'
+        - 'cache'
         - 'user'
       cache: '0'
     rate_limits:

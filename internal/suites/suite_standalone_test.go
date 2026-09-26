@@ -327,7 +327,7 @@ func (s *StandaloneSuite) TestShouldServeVerboseHealthCheck() {
 	s.Assert().Equal("ok", health.Status)
 
 	// the suite configures these three, and each must have genuinely been probed.
-	for _, name := range []string{"storage", "session", "user"} {
+	for _, name := range []string{"storage", "cache", "user"} {
 		s.Require().Contains(health.Providers, name)
 		s.Assert().Equal("ok", health.Providers[name].Status)
 		s.Assert().NotEmpty(health.Providers[name].Took)
