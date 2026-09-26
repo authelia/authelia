@@ -46,7 +46,7 @@ const OTPDial = function (props: Props) {
                     "[&_input:focus-visible]:border-ring [&_input:focus-visible]:ring-[3px] [&_input:focus-visible]:ring-ring/50",
                     "[&_input:disabled]:cursor-not-allowed [&_input:disabled]:opacity-50",
                     props.state === State.Failure &&
-                        "[&_input]:border-destructive [&_input]:ring-destructive/20 dark:[&_input]:ring-destructive/40",
+                        "[&_input]:border-destructive [&_input]:ring-destructive/20 [&_input:focus-visible]:border-destructive [&_input:focus-visible]:ring-destructive/20 dark:[&_input]:ring-destructive/40 dark:[&_input:focus-visible]:ring-destructive/40",
                 )}
             >
                 <label htmlFor={fieldId} className="sr-only">
