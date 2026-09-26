@@ -194,8 +194,8 @@ importers:
         specifier: 1.2.2
         version: 1.2.2
       '@thulite/seo':
-        specifier: 2.4.3
-        version: 2.4.3
+        specifier: 2.4.4
+        version: 2.4.4
       bootstrap-icons:
         specifier: 1.13.1
         version: 1.13.1
@@ -1127,8 +1127,8 @@ packages:
     resolution: {integrity: sha512-jbxeXQjJT5HFuRufckEbEAoZjHJZCHwLY/rjJS6Lhc9ZZuMMp6QaOVk4pJa0Ey1UBsTJLcACyfm/K47oGJBluQ==}
     engines: {node: '>=20.11.0'}
 
-  '@thulite/seo@2.4.3':
-    resolution: {integrity: sha512-1Y8PJXjGQBoB+VgcC3+RiPxGyI0VshBgufloOtPGlolB+K+qSMY9SPla1mL2HzkLbteb2W9+9CktS7CA/f90Rg==}
+  '@thulite/seo@2.4.4':
+    resolution: {integrity: sha512-Vt7L+n82di/hcna25jfGmH1lGMjlMM42bIKsBJwUqfJmxt7HOJLJOjNGL9I6qaZyG7GX+IWumbJoZiDnT+E5gw==}
     engines: {node: '>=20.11.0'}
 
   '@types/debug@4.1.13':
@@ -3476,7 +3476,7 @@ snapshots:
 
   '@thulite/inline-svg@1.2.2': {}
 
-  '@thulite/seo@2.4.3': {}
+  '@thulite/seo@2.4.4': {}
 
   '@types/debug@4.1.13':
     dependencies:

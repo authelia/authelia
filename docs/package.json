@@ -20,7 +20,7 @@
     "@thulite/doks-core": "1.9.3",
     "@thulite/images": "3.3.4",
     "@thulite/inline-svg": "1.2.2",
-    "@thulite/seo": "2.4.3",
+    "@thulite/seo": "2.4.4",
     "bootstrap-icons": "1.13.1",
     "thulite": "2.6.5"
   },
