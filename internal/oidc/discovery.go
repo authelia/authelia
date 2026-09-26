@@ -286,11 +286,41 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 		},
 	}
 
+	if c.DPoP.Enabled && c.DPoP.KeyBinding {
+		config.ScopesSupported = append(config.ScopesSupported, ScopeBoundKey)
+	}
+
+	if c.DPoP.Enabled {
+		config.OAuth2DemonstratingProofOfPossessionDiscoveryOptions = &OAuth2DemonstratingProofOfPossessionDiscoveryOptions{
+			DPoPSigningAlgValuesSupported: DPoPSigningAlgValuesSupported(),
+		}
+	}
+
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)
 	}
 
 	return config
+}
+
+// DPoPSigningAlgValuesSupported returns the JWS algorithms an RFC9449 proof may be signed with. The symmetric
+// algorithms SigningAlgValuesSupported lists are deliberately absent: a proof is signed by a key the client holds and
+// proves possession of, which a shared secret cannot demonstrate.
+//
+// This is the single source for both the value advertised in the discovery document and the value the proof strategy
+// validates against, so the two can never disagree about what this Authorization Server accepts.
+func DPoPSigningAlgValuesSupported() (algs []string) {
+	return []string{
+		SigningAlgRSAUsingSHA256,
+		SigningAlgRSAUsingSHA384,
+		SigningAlgRSAUsingSHA512,
+		SigningAlgECDSAUsingP256AndSHA256,
+		SigningAlgECDSAUsingP384AndSHA384,
+		SigningAlgECDSAUsingP521AndSHA512,
+		SigningAlgRSAPSSUsingSHA256,
+		SigningAlgRSAPSSUsingSHA384,
+		SigningAlgRSAPSSUsingSHA512,
+	}
 }
 
 // SigningAlgValuesSupported returns the JWS algorithms this Authorization Server can produce or verify a signature
@@ -340,6 +370,11 @@ func (opts OAuth2WellKnownConfiguration) Copy() (optsCopy OAuth2WellKnownConfigu
 	if opts.OAuth2IssuerIdentificationDiscoveryOptions != nil {
 		optsCopy.OAuth2IssuerIdentificationDiscoveryOptions = &OAuth2IssuerIdentificationDiscoveryOptions{}
 		*optsCopy.OAuth2IssuerIdentificationDiscoveryOptions = *opts.OAuth2IssuerIdentificationDiscoveryOptions
+	}
+
+	if opts.OAuth2DemonstratingProofOfPossessionDiscoveryOptions != nil {
+		optsCopy.OAuth2DemonstratingProofOfPossessionDiscoveryOptions = &OAuth2DemonstratingProofOfPossessionDiscoveryOptions{}
+		*optsCopy.OAuth2DemonstratingProofOfPossessionDiscoveryOptions = *opts.OAuth2DemonstratingProofOfPossessionDiscoveryOptions
 	}
 
 	if opts.OAuth2JWTIntrospectionResponseDiscoveryOptions != nil {

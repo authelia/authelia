@@ -2,12 +2,25 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { CircleUserRound, Home, Lock, Mail, Phone, RefreshCw, Shield, Terminal, UserRound, Users } from "lucide-react";
+import {
+    CircleUserRound,
+    Home,
+    KeyRound,
+    Lock,
+    Mail,
+    Phone,
+    RefreshCw,
+    Shield,
+    Terminal,
+    UserRound,
+    Users,
+} from "lucide-react";
 
 import {
     ScopeAddress,
     ScopeAutheliaBearerAuthz,
     ScopeAutheliaPAM,
+    ScopeBoundKey,
     ScopeEmail,
     ScopeGroups,
     ScopeOfflineAccess,
@@ -36,6 +49,8 @@ export function ScopeAvatar(scope: string) {
             return <Lock className="size-5" />;
         case ScopeAutheliaPAM:
             return <Terminal className="size-5" />;
+        case ScopeBoundKey:
+            return <KeyRound className="size-5" />;
         default:
             return <Shield className="size-5" />;
     }
@@ -61,6 +76,8 @@ export function ScopeDescription(scope: string): string {
             return "Access protected resources logged in as you";
         case ScopeAutheliaPAM:
             return "Authenticate to a Linux system as you";
+        case ScopeBoundKey:
+            return "Bind your identity to a key held by this application";
         default:
             return scope;
     }

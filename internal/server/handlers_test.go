@@ -375,3 +375,61 @@ func (e *timeoutError) Error() string { return "i/o timeout" }
 func (e *timeoutError) Timeout() bool { return true }
 
 func (e *timeoutError) Temporary() bool { return true }
+
+func TestHandlerMainShouldExposeDPoPNonceHeaderWhenDPoPIsEnabled(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	testCases := []struct {
+		name     string
+		enabled  bool
+		path     string
+		method   string
+		expected string
+	}{
+		{"ShouldExposeOnTokenEndpointWhenEnabled", true, oidc.EndpointPathToken, fasthttp.MethodPost, "Dpop-Nonce"},
+		{"ShouldExposeOnUserinfoEndpointWhenEnabled", true, oidc.EndpointPathUserinfo, fasthttp.MethodGet, "Dpop-Nonce"},
+		{"ShouldNotExposeOnTokenEndpointWhenDisabled", false, oidc.EndpointPathToken, fasthttp.MethodPost, ""},
+		{"ShouldNotExposeOnUserinfoEndpointWhenDisabled", false, oidc.EndpointPathUserinfo, fasthttp.MethodGet, ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{
+				Server: schema.Server{
+					Address:   schema.DefaultServerConfiguration.Address,
+					Endpoints: schema.DefaultServerConfiguration.Endpoints,
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: tc.enabled},
+						CORS: schema.IdentityProvidersOpenIDConnectCORS{
+							Endpoints: []string{oidc.EndpointToken, oidc.EndpointUserinfo},
+						},
+					},
+				},
+			}
+
+			providers := middlewares.NewProvidersBasic()
+			providers.Random = random.NewMathematical()
+			providers.Templates = provider
+			providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+
+			handler, err := handlerMain(config, providers)
+			require.NoError(t, err)
+
+			ctx := &fasthttp.RequestCtx{}
+
+			ctx.Request.Header.SetMethod(fasthttp.MethodOptions)
+			ctx.Request.SetRequestURI(tc.path)
+			ctx.Request.Header.Set(fasthttp.HeaderOrigin, "https://client.example.com")
+			ctx.Request.Header.Set(fasthttp.HeaderAccessControlRequestMethod, tc.method)
+
+			handler(ctx)
+
+			assert.Equal(t, tc.expected, string(ctx.Response.Header.Peek(fasthttp.HeaderAccessControlExposeHeaders)))
+		})
+	}
+}

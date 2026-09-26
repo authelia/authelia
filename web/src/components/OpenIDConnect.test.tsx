@@ -55,6 +55,11 @@ it("returns correct avatar for authelia.pam", () => {
     expectLucideIcon(container, "terminal");
 });
 
+it("returns correct avatar for bound_key", () => {
+    const { container } = render(ScopeAvatar("bound_key"));
+    expectLucideIcon(container, "key-round");
+});
+
 it("returns policy avatar for unknown scope", () => {
     const { container } = render(ScopeAvatar("unknown"));
     expectLucideIcon(container, "shield");
@@ -94,6 +99,10 @@ it("returns correct description for authelia.bearer.authz", () => {
 
 it("returns correct description for authelia.pam", () => {
     expect(ScopeDescription("authelia.pam")).toBe("Authenticate to a Linux system as you");
+});
+
+it("returns correct description for bound_key", () => {
+    expect(ScopeDescription("bound_key")).toBe("Bind your identity to a key held by this application");
 });
 
 it("returns scope for unknown description", () => {

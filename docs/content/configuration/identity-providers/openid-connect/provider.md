@@ -109,6 +109,14 @@ identity_providers:
     scopes:
       scope_name:
         claims: []
+    dpop:
+      enabled: false
+      enforced: false
+      key_binding: false
+      nonce_enforced: false
+      nonce_lifespan: '5 minutes'
+      proof_lifespan: '10 seconds'
+      clock_skew: '30 seconds'
     cors:
       endpoints:
         - 'authorization'
@@ -688,6 +696,65 @@ If the scope is configured in a [OpenID Connect 1.0 Client](clients.md#scopes) i
 every claim available in this list must either be a Standard Claim or must be fulfilled by the
 [claims_policy](clients.md#claims_policy).
 
+### dpop
+
+Configures the Demonstrating Proof of Possession characteristics of this issuer.
+
+#### enabled
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables Demonstrating Proof of Possession functionality.
+
+#### enforced
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces Demonstrating Proof of Possession usage by all clients.
+
+#### key_binding
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables [OpenID Connect Key Binding 1.0] functionality, which allows a client to request an ID Token bound to the same
+proof-of-possession key its Access Token is bound to, by requesting the `bound_key` scope alongside `openid` and
+supplying the `dpop_jkt` parameter.
+
+This requires [enabled](#enabled) to also be true as the key binding is established from the Demonstrating Proof of
+Possession proof. Key binding is available to the Authorization Code Flow and the Device Authorization Flow only.
+
+When enabled the `bound_key` scope is advertised in the discovery document, and clients which should be able to request
+it must include it in their [scopes](clients.md#scopes).
+
+#### nonce_enforced
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces the Demonstrating Proof of Possession nonce mechanism.
+
+#### nonce_lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
+
+Configures how long the Demonstrating Proof of Possession nonce values are valid for.
+
+#### proof_lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="10 seconds" required="no" >}}
+
+Configures how long after the issued at `iat` claim a Demonstrating Proof of Possession proof remains valid. Together
+with [clock_skew](#clock_skew) this fixes the window a proof is accepted in: a proof is accepted from one clock skew
+before its `iat` until one lifespan plus one clock skew after it.
+
+#### clock_skew
+
+{{< confkey type="string,integer" syntax="duration" default="30 seconds" required="no" >}}
+
+Configures the tolerance allowed for disagreement between this server's clock and the client's when judging the issued
+at `iat` claim of a Demonstrating Proof of Possession proof. It widens the acceptance window fixed by
+[proof_lifespan](#proof_lifespan) at both ends, i.e. the default allows the `iat` to be up to 30 seconds ahead of this
+server's clock.
+
 ### cors
 
 Some [OpenID Connect 1.0] Endpoints need to allow cross-origin resource sharing; however, some are optional. This section allows
@@ -706,6 +773,11 @@ option is at least in this list. The potential endpoints which this can be enabl
 - revocation
 - introspection
 - userinfo
+
+When [dpop](#dpop) is [enabled](#enabled) the `DPoP-Nonce` response header is added to the
+`Access-Control-Expose-Headers` header on the `token` and `userinfo` endpoints, which are the endpoints that issue a
+nonce challenge. Without this a browser based client cannot read the nonce it is required to echo in the proof of its
+next request, so the challenge can never be satisfied.
 
 #### allowed_origins
 
@@ -776,3 +848,4 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [OpenID Certified™]: https://openid.net/certification/
 [OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/
+[OpenID Connect Key Binding 1.0]: https://openid.net/specs/openid-connect-key-binding-1_0.html

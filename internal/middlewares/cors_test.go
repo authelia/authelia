@@ -751,3 +751,73 @@ func newFastHTTPRequestCtx() (ctx *fasthttp.RequestCtx) {
 		Response: fasthttp.Response{},
 	}
 }
+
+func TestCORSPolicyBuilder_WithExposedHeaders(t *testing.T) {
+	cors := NewCORSPolicyBuilder()
+
+	assert.Nil(t, cors.exposed)
+	assert.Nil(t, cors.Build().exposed)
+
+	cors.WithExposedHeaders("dpop-nonce", "x-example-header")
+
+	assert.Equal(t, []string{"dpop-nonce", "x-example-header"}, cors.exposed)
+	assert.Equal(t, []byte("Dpop-Nonce, X-Example-Header"), cors.Build().exposed)
+}
+
+func TestCORSPolicyBuilder_HandleOPTIONSWithExposedHeaders(t *testing.T) {
+	origin := []byte("https://myapp.example.com")
+
+	testCases := []struct {
+		name     string
+		exposed  []string
+		expected []byte
+	}{
+		{
+			name:     "ShouldNotSetTheHeaderWhenNoneAreExposed",
+			expected: nil,
+		},
+		{
+			name:     "ShouldSetTheHeaderWhenOneIsExposed",
+			exposed:  []string{"DPoP-Nonce"},
+			expected: []byte("Dpop-Nonce"),
+		},
+		{
+			name:     "ShouldSetTheHeaderWhenSeveralAreExposed",
+			exposed:  []string{"DPoP-Nonce", "WWW-Authenticate"},
+			expected: []byte("Dpop-Nonce, Www-Authenticate"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := newFastHTTPRequestCtx()
+
+			ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, fasthttp.MethodPost)
+			ctx.Request.Header.SetBytesKV(headerOrigin, origin)
+
+			policy := NewCORSPolicyBuilder().WithExposedHeaders(tc.exposed...).Build()
+
+			policy.HandleOPTIONS(ctx)
+
+			assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+			assert.Equal(t, origin, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
+			assert.Equal(t, tc.expected, ctx.Response.Header.PeekBytes(headerAccessControlExposeHeaders))
+		})
+	}
+}
+
+func TestCORSPolicyBuilder_ShouldNotExposeHeadersWhenTheOriginIsNotAllowed(t *testing.T) {
+	ctx := newFastHTTPRequestCtx()
+
+	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, fasthttp.MethodPost)
+	ctx.Request.Header.SetBytesKV(headerOrigin, []byte("https://untrusted.example.com"))
+
+	policy := NewCORSPolicyBuilder().
+		WithAllowedOrigins("https://myapp.example.com").
+		WithExposedHeaders("DPoP-Nonce").
+		Build()
+
+	policy.HandleOPTIONS(ctx)
+
+	assert.Nil(t, ctx.Response.Header.PeekBytes(headerAccessControlExposeHeaders))
+}
