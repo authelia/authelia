@@ -5,11 +5,11 @@
 import { Fragment, useId } from "react";
 
 import { OTPField } from "@base-ui/react/otp-field";
+import { cn } from "cn";
 import { useTranslation } from "react-i18next";
 
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";
-import { cn } from "@utils/Styles";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 
 export interface Props {

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Internationalization"
-description: "Authelia Internationalization Implementation"
+description: "The completed Authelia roadmap item for internationalization enabling translation of the web interface into multiple languages using the Crowdin platform tools."
 summary: "Implementation of internationalization will make Authelia more accessible to more people."
 date: 2025-07-05T10:53:06+10:00
 draft: false

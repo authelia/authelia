@@ -2,7 +2,7 @@
 title: "authelia storage user webauthn export"
 description: "Reference for the authelia storage user webauthn export command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T16:42:01+10:00
 draft: false
 images: []
 weight: 905
@@ -22,7 +22,8 @@ Perform exports of the WebAuthn credentials
 
 Perform exports of the WebAuthn credentials.
 
-This subcommand allows exporting WebAuthn credentials to various formats.
+This subcommand allows exporting WebAuthn credentials to various formats. The format is determined by the extension of
+the file; '.toml' is written as TOML, '.json' as JSON, and anything else as YAML.
 
 ```
 authelia storage user webauthn export [flags]
@@ -40,7 +41,7 @@ authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-27
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "authelia.export.webauthn.yml")
+  -f, --file string   The file name for the export, the extension determines the format (default "authelia.export.webauthn.yml")
   -h, --help          help for export
 ```
 
@@ -49,6 +50,7 @@ authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-27
 ```
   -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
       --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.values strings         file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
       --encryption-key string                 the storage encryption key to use
       --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
       --mysql.database string                 the MySQL database name (default "authelia")

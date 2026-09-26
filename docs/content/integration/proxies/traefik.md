@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Traefik"
-description: "An integration guide for Authelia and the Traefik reverse proxy"
+description: "An integration guide for Authelia and the Traefik reverse proxy including ForwardAuth middleware configuration examples, deployment tips, and important caveats."
 summary: "A guide on integrating Authelia with the Traefik reverse proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false

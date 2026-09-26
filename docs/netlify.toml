@@ -36,11 +36,6 @@
   autoLaunch = false
 
 [[redirects]]
-	from = "/*"
-	to = "/404/"
-	status = 404
-
-[[redirects]]
   from = "/l/apt"
   to = "/integration/deployment/bare-metal/#add-the-apt-repository"
   status = 301
@@ -85,6 +80,11 @@
   to = "/configuration/security/access-control/#rule-matching-concept-2-subject-criteria-requires-authentication"
   status = 301
 
+[[redirects]]
+  from = "/*"
+  to = "/404/"
+  status = 404
+
 [[headers]]
   for = "/*"
   [headers.values]
@@ -98,3 +98,18 @@
     Permissions-Policy = "geolocation=(self), microphone=(), camera=()"
     Cache-Control = "no-cache"
     Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/client/*"
+  [headers.values]
+    Content-Type = "text/html; charset=UTF-8"
+
+[[headers]]
+  for = "/provider/*"
+  [headers.values]
+    Content-Type = "text/html; charset=UTF-8"
+
+[[headers]]
+  for = "/tools/*"
+  [headers.values]
+    Content-Type = "text/html; charset=UTF-8"

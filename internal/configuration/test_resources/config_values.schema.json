@@ -1,0 +1,7 @@
+{
+  "$schema": "https://example.com/values.json",
+  "Example": {
+    "$schema": "nested",
+    "Value": "light"
+  }
+}
