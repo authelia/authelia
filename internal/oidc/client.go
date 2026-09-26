@@ -43,6 +43,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		PKCEChallengeMethod:        config.PKCEChallengeMethod,
 
 		RequirePushedAuthorizationRequests:      config.RequirePushedAuthorizationRequests,
+		RequireSignedRequestObject:              config.RequireSignedRequestObject,
 		ClientCredentialsFlowAllowImplicitScope: false,
 		AllowMultipleAuthenticationMethods:      config.AllowMultipleAuthenticationMethods,
 
@@ -679,10 +680,11 @@ func (c *RegisteredClient) GetRequestObjectSigningKeyID() (kid string) {
 	return ""
 }
 
-// GetRequireSignedRequestObject returns false as this implementation exposes no client metadata value which requires
-// an authorization request be provided as a Request Object.
+// GetRequireSignedRequestObject indicates if all authorization requests for this client must be provided as a signed
+// Request Object via either the 'request' or 'request_uri' parameter. This is equivalent to the
+// 'require_signed_request_object' client metadata value.
 func (c *RegisteredClient) GetRequireSignedRequestObject() (require bool) {
-	return false
+	return c.RequireSignedRequestObject
 }
 
 // GetRequestObjectSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
