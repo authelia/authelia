@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func handleAuthzUnauthorizedCommon(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
@@ -35,20 +37,38 @@ func handleAuthzPortalURLFromQueryLegacy(ctx AuthzContext) (portalURL *url.URL, 
 	return parseAuthzPortalURL(ctx.GetRequestQueryArgValue(qryArgRD))
 }
 
-func handleAuthzAuthorizedStandard(ctx AuthzContext, authn *Authn) {
-	ctx.ReplyStatusCode(fasthttp.StatusOK)
-
-	if authn.Details.Username != "" {
-		ctx.SetResponseHeaderValue(headerRemoteUser, authn.Details.Username)
-		ctx.SetResponseHeaderValue(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
-		ctx.SetResponseHeaderValue(headerRemoteName, authn.Details.DisplayName)
-
-		switch len(authn.Details.Emails) {
-		case 0:
-			ctx.SetResponseHeaderValue(headerRemoteEmail, "")
-		default:
-			ctx.SetResponseHeaderValue(headerRemoteEmail, authn.Details.Emails[0])
+func handleAuthzAuthorizedChain(handlers ...HandlerAuthzAuthorized) HandlerAuthzAuthorized {
+	return func(ctx AuthzContext, manager session.Manager, authn *Authn) {
+		for _, handler := range handlers {
+			handler(ctx, manager, authn)
 		}
+	}
+}
+
+func handleAuthzAuthorizedReset(ctx AuthzContext, _ session.Manager, _ *Authn) {
+	ctx.ReplyStatusCode(fasthttp.StatusOK)
+}
+
+func handleAuthzAuthorizedResponseHeaderCookie(ctx AuthzContext, manager session.Manager, _ *Authn) {
+	if cookies := NewCookies(ctx.GetRequestHeaderValue(headerCookie)); cookies != nil {
+		ctx.SetResponseHeaderValue(headerCookie, cookies.Encode(manager.GetSessionConfig().Name))
+	}
+}
+
+func handleAuthzAuthorizedResponseHeaderRemote(ctx AuthzContext, _ session.Manager, authn *Authn) {
+	if authn.Details.Username == "" {
+		return
+	}
+
+	ctx.SetResponseHeaderValue(headerRemoteUser, authn.Details.Username)
+	ctx.SetResponseHeaderValue(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
+	ctx.SetResponseHeaderValue(headerRemoteName, authn.Details.DisplayName)
+
+	switch len(authn.Details.Emails) {
+	case 0:
+		ctx.SetResponseHeaderValue(headerRemoteEmail, "")
+	default:
+		ctx.SetResponseHeaderValue(headerRemoteEmail, authn.Details.Emails[0])
 	}
 }
 

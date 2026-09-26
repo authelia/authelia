@@ -73,6 +73,13 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 	return b
 }
 
+// WithAuthzConfig allows simple configuration of the AuthzConfig.
+func (b *AuthzBuilder) WithAuthzConfig(config AuthzConfig) *AuthzBuilder {
+	b.config = config
+
+	return b
+}
+
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
 func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
@@ -85,6 +92,10 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *A
 		b.WithImplementationExtAuthz()
 	default:
 		b.WithImplementationLegacy()
+	}
+
+	if config.Headers.CookieSession {
+		b.config.CookieHeader = true
 	}
 
 	b.WithStrategies()
@@ -110,10 +121,9 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *A
 // Build returns a new Authz from the currently configured options in this builder.
 func (b *AuthzBuilder) Build() (authz *Authz) {
 	authz = &Authz{
-		config:           b.config,
-		strategies:       b.strategies,
-		handleAuthorized: handleAuthzAuthorizedStandard,
-		implementation:   b.implementation,
+		config:         b.config,
+		strategies:     b.strategies,
+		implementation: b.implementation,
 	}
 
 	authz.config.StatusCodeBadRequest = fasthttp.StatusBadRequest
@@ -148,6 +158,18 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
 	}
+
+	handlers := []HandlerAuthzAuthorized{handleAuthzAuthorizedReset}
+
+	// The Legacy implementation never responds with the Cookie header. This is enforced by the configuration validator
+	// which rejects the option outright, but is reiterated here as the builder can be configured directly.
+	if authz.config.CookieHeader && b.implementation != AuthzImplLegacy {
+		handlers = append(handlers, handleAuthzAuthorizedResponseHeaderCookie)
+	}
+
+	handlers = append(handlers, handleAuthzAuthorizedResponseHeaderRemote)
+
+	authz.handleAuthorized = handleAuthzAuthorizedChain(handlers...)
 
 	return authz
 }
