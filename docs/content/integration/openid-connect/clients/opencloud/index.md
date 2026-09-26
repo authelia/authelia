@@ -28,7 +28,7 @@ seo:
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [openCloud]
-  - [v7.2.2](https://github.com/opencloud-eu/opencloud/releases/tag/v7.2.2)
+  - [v7.2.4](https://github.com/opencloud-eu/opencloud/releases/tag/v7.2.4)
 
 {{% oidc-common %}}
 
@@ -161,35 +161,7 @@ To configure [openCloud] there is one method, using the [Environment Variables](
 All limitations are limitations due to the development lifecycle of the application and are not related to Authelia.
 {{< /callout >}}
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The desktop client integration is currently not production ready.
-
-The current implementation is intended for one-time use cases, such as migrating files. It should not be considered a
-stable long-term desktop client setup until the WebFinger integration is completed.
-{{< /callout >}}
-
-- The desktop client WebFinger integration is currently incomplete (pull request https://github.com/opencloud-eu/desktop/pull/847).
-- Some additional customizations may be needed as noted below.
-
-The `groups` scope must be manually added to the authorization link when setting up the desktop client.
-
-Example:
-
-```
-https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization?response_type=code&client_id=<client_id>&redirect_uri=<redirect_uri>&code_challenge=<code_challenge>&code_challenge_method=S256&scope=<scope>&prompt=<prompt>&state=<state>
-```
-
-The default scope is:
-
-```
-scope=openid%20offline_access%20email%20profile
-```
-
-Add `groups%20` manually at the beginning of the scope:
-
-```
-scope=groups%20openid%20offline_access%20email%20profile
-```
+- The desktop client may need some additional customizations if using NGINX Proxy Manager, refer to [Change the NGINX Proxy Manager setting](https://docs.opencloud.eu/docs/next/admin/resources/common-issues/desktop-client-setup-loop/#change-the-nginx-proxy-manager-setting)
 
 #### Environment Variables
 
