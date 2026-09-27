@@ -330,7 +330,6 @@ func (s *StandaloneSuite) TestShouldRespondWithDefaultAuthzHeaders() {
 	s.Assert().Equal("John Doe", res.Header.Get("Remote-Name"))
 	s.Assert().Equal("john.doe@authelia.com", res.Header.Get("Remote-Email"))
 
-	// the headers configured for the other endpoint must not leak into the endpoint using the defaults.
 	s.Assert().Empty(res.Header.Values("Remote-Given-Name"))
 	s.Assert().Empty(res.Header.Values("Remote-Employee-Id"))
 	s.Assert().Empty(res.Header.Values("Remote-Is-Admin"))
@@ -347,7 +346,6 @@ func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeaders() {
 	s.Assert().Equal("1001", res.Header.Get("Remote-Employee-Id"))
 	s.Assert().Equal("true", res.Header.Get("Remote-Is-Admin"))
 
-	// configuring the headers replaces the defaults entirely.
 	s.Assert().Empty(res.Header.Values("Remote-Name"))
 	s.Assert().Empty(res.Header.Values("Remote-Email"))
 }
