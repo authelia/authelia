@@ -270,6 +270,74 @@ func TestOAuth2DeviceCodeSessionGrantedResourceRoundTripsThroughStore(t *testing
 	assert.Equal(t, oauthelia2.Arguments{"https://api.example.com"}, loaded.GetGrantedResource())
 }
 
+func TestCreateDeviceCodeSessionShouldRefuseDuplicateUserCode(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	testCases := []struct {
+		name      string
+		signature string
+		userCode  string
+		err       error
+	}{
+		{name: "ShouldCreateFirstSession", signature: "sig-device-dup-1", userCode: "sig-user-dup", err: nil},
+		{name: "ShouldRefuseDuplicateUserCode", signature: "sig-device-dup-2", userCode: "sig-user-dup", err: oauthelia2.ErrDuplicateUserCode},
+		{name: "ShouldCreateUniqueUserCode", signature: "sig-device-dup-3", userCode: "sig-user-unique", err: nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			requester := &oauthelia2.DeviceAuthorizeRequest{
+				Request: oauthelia2.Request{
+					ID:             tc.signature,
+					Client:         &oidc.RegisteredClient{ID: myclient},
+					RequestedScope: oauthelia2.Arguments{oidc.ScopeOpenID},
+					Session:        &oidc.Session{},
+				},
+				DeviceCodeSignature: tc.signature,
+				UserCodeSignature:   tc.userCode,
+			}
+
+			err := s.CreateDeviceCodeSession(ctx, tc.signature, requester)
+
+			if tc.err == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, tc.err)
+			}
+		})
+	}
+}
+
 func TestStoreSuite(t *testing.T) {
 	suite.Run(t, &StoreSuite{})
 }
@@ -549,7 +617,7 @@ func (s *StoreSuite) TestRevokeSessions() {
 		s.mock.
 			EXPECT().
 			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7202").
-			Return(sql.ErrNoRows),
+			Return(storage.ErrNoRowsAffected),
 		s.mock.
 			EXPECT().
 			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "rt_example1").
@@ -572,6 +640,10 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(sql.ErrNoRows),
 		s.mock.
 			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "1").
+			Return(nil),
+		s.mock.
+			EXPECT().
 			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "1").
 			Return("at_paired_1", nil),
 		s.mock.
@@ -584,6 +656,10 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(nil),
 		s.mock.
 			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "2").
+			Return(nil),
+		s.mock.
+			EXPECT().
 			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "2").
 			Return("", nil),
 		s.mock.
@@ -592,8 +668,36 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(fmt.Errorf("not found")),
 		s.mock.
 			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "3").
+			Return(nil),
+		s.mock.
+			EXPECT().
 			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "3").
 			Return("", fmt.Errorf("no refresh token session")),
+		s.mock.
+			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "4").
+			Return(storage.ErrNoRowsAffected),
+		s.mock.
+			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "5").
+			Return(fmt.Errorf("deactivate error")),
+		s.mock.
+			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "6").
+			Return(nil),
+		s.mock.
+			EXPECT().
+			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "6").
+			Return("at_paired_6", nil),
+		s.mock.
+			EXPECT().
+			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, "at_paired_6").
+			Return(storage.ErrNoRowsAffected),
+		s.mock.
+			EXPECT().
+			DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, "65471ccb-d650-4006-a95f-cb4f4e3d7206").
+			Return(nil),
 		s.mock.
 			EXPECT().
 			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, "pkce1").
@@ -640,6 +744,9 @@ func (s *StoreSuite) TestRevokeSessions() {
 	s.NoError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200", "1"))
 	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", "2"), "not found")
 	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", "3"), "no refresh token session")
+	s.ErrorIs(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7204", "4"), oauthelia2.ErrInactiveToken)
+	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7205", "5"), "deactivate error")
+	s.NoError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7206", "6"))
 
 	s.NoError(s.store.DeletePKCERequestSession(s.ctx, "pkce1"))
 	s.EqualError(s.store.DeletePKCERequestSession(s.ctx, "pkce2"), "not found")
@@ -914,15 +1021,29 @@ func (s *StoreSuite) TestGetDeviceCodeSession() {
 		assert.NotNil(t, request)
 	})
 
-	s.T().Run("ShouldErrWhenInactive", func(t *testing.T) {
+	s.T().Run("ShouldReturnRequestWithErrWhenInactive", func(t *testing.T) {
 		s.mock.EXPECT().LoadOAuth2DeviceCodeSession(s.ctx, abc).Return(&model.OAuth2DeviceCodeSession{
 			Active:    false,
 			Signature: abc,
+			RequestID: abc,
+			ClientID:  "hs256",
+			Session:   sessionData,
 		}, nil)
 
 		request, err := s.store.GetDeviceCodeSession(s.ctx, abc, session)
 
-		assert.Error(t, err)
+		assert.ErrorIs(t, err, oauthelia2.ErrInvalidatedDeviceCode)
+		require.NotNil(t, request)
+		assert.Equal(t, abc, request.GetID())
+		assert.Equal(t, abc, request.GetDeviceCodeSignature())
+	})
+
+	s.T().Run("ShouldErrNotFoundWhenMissing", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSession(s.ctx, abc).Return(nil, fmt.Errorf("error selecting oauth2 device code session: %w", sql.ErrNoRows))
+
+		request, err := s.store.GetDeviceCodeSession(s.ctx, abc, session)
+
+		assert.ErrorIs(t, err, oauthelia2.ErrNotFound)
 		assert.Nil(t, request)
 	})
 
@@ -960,6 +1081,14 @@ func (s *StoreSuite) TestInvalidateDeviceCodeSession() {
 		assert.NoError(t, err)
 	})
 
+	s.T().Run("ShouldErrInvalidatedWhenAlreadyInactive", func(t *testing.T) {
+		s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, abc).Return(fmt.Errorf("error deactivating: %w", storage.ErrNoRowsAffected))
+
+		err := s.store.InvalidateDeviceCodeSession(s.ctx, abc)
+
+		assert.ErrorIs(t, err, oauthelia2.ErrInvalidatedDeviceCode)
+	})
+
 	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
 		s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, abc).Return(fmt.Errorf("deactivate error"))
 
@@ -989,15 +1118,29 @@ func (s *StoreSuite) TestGetDeviceCodeSessionByUserCode() {
 		assert.NotNil(t, request)
 	})
 
-	s.T().Run("ShouldErrWhenInactive", func(t *testing.T) {
+	s.T().Run("ShouldReturnRequestWithErrWhenInactive", func(t *testing.T) {
 		s.mock.EXPECT().LoadOAuth2DeviceCodeSessionByUserCode(s.ctx, "user-code-123").Return(&model.OAuth2DeviceCodeSession{
 			Active:    false,
 			Signature: abc,
+			RequestID: abc,
+			ClientID:  "hs256",
+			Session:   sessionData,
 		}, nil)
 
 		request, err := s.store.GetDeviceCodeSessionByUserCode(s.ctx, "user-code-123", session)
 
-		assert.Error(t, err)
+		assert.ErrorIs(t, err, oauthelia2.ErrInvalidatedDeviceCode)
+		require.NotNil(t, request)
+		assert.Equal(t, abc, request.GetID())
+		assert.Equal(t, abc, request.GetDeviceCodeSignature())
+	})
+
+	s.T().Run("ShouldErrNotFoundWhenMissing", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSessionByUserCode(s.ctx, "user-code-123").Return(nil, fmt.Errorf("error selecting oauth2 device code session: %w", sql.ErrNoRows))
+
+		request, err := s.store.GetDeviceCodeSessionByUserCode(s.ctx, "user-code-123", session)
+
+		assert.ErrorIs(t, err, oauthelia2.ErrNotFound)
 		assert.Nil(t, request)
 	})
 
@@ -1057,6 +1200,16 @@ func (s *StoreSuite) TestSerializationFailureMapping() {
 		{
 			name: "ShouldMapRotateRefreshToken",
 			setup: func() {
+				s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(errBusy)
+			},
+			do: func() (err error) {
+				return s.store.RotateRefreshToken(s.ctx, abc, abc)
+			},
+		},
+		{
+			name: "ShouldMapRotateRefreshTokenAccessSignature",
+			setup: func() {
+				s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(nil)
 				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, abc).Return("", errBusy)
 			},
 			do: func() (err error) {

@@ -96,9 +96,11 @@ const (
 const (
 	codeMySQLLockWaitTimeout uint16 = 1205
 	codeMySQLLockDeadlock    uint16 = 1213
+	codeMySQLDuplicateEntry  uint16 = 1062
 
 	codePostgresSerializationFailure = "40001"
 	codePostgresDeadlockDetected     = "40P01"
+	codePostgresUniqueViolation      = "23505"
 )
 
 const (

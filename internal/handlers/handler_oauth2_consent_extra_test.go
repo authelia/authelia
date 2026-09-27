@@ -496,6 +496,10 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		var device *model.OAuth2DeviceCodeSession
 
 		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByUserCode(gomock.Any(), gomock.Any()).
+			Return(nil, sql.ErrNoRows)
+
+		mock.StorageMock.EXPECT().
 			SaveOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ any, session *model.OAuth2DeviceCodeSession) error {
 				value := *session

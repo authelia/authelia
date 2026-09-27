@@ -252,8 +252,18 @@ func (s *Store) RevokeRefreshToken(ctx context.Context, requestID string) (err e
 }
 
 // RotateRefreshToken deactivates the refresh token being exchanged and revokes the access token that was issued
-// alongside it, so a rotated pair cannot outlive the rotation.
+// alongside it, so a rotated pair cannot outlive the rotation. It returns oauthelia2.ErrInactiveToken when the refresh
+// token was already deactivated, such as by a concurrent request which rotated it first, so the refresh token grant
+// handles the request as a reused refresh token.
 func (s *Store) RotateRefreshToken(ctx context.Context, requestID string, signature string) (err error) {
+	if err = s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeRefreshToken, signature); err != nil {
+		if errors.Is(err, storage.ErrNoRowsAffected) {
+			return oauthelia2.ErrInactiveToken
+		}
+
+		return errStorage(err)
+	}
+
 	var accessSignature string
 
 	if accessSignature, err = s.provider.LoadOAuth2RefreshTokenSessionAccessSignature(ctx, signature); err != nil {
@@ -262,13 +272,13 @@ func (s *Store) RotateRefreshToken(ctx context.Context, requestID string, signat
 
 	switch accessSignature {
 	case "":
-		if err = s.RevokeAccessToken(ctx, requestID); err != nil {
-			return err
-		}
+		err = s.RevokeAccessToken(ctx, requestID)
 	default:
-		if err = s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, accessSignature); err != nil {
-			return err
-		}
+		err = s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, accessSignature)
+	}
+
+	if err != nil && !errors.Is(err, oauthelia2.ErrNotFound) {
+		return err
 	}
 
 	return s.RevokeRefreshToken(ctx, requestID)
@@ -341,14 +351,24 @@ func (s *Store) GetOpenIDConnectSession(ctx context.Context, authorizeCode strin
 	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
 }
 
-// CreateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
+// CreateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface. It returns the
+// oauthelia2.ErrDuplicateUserCode error when another device code session already holds the user code, which the
+// unique index on the user code signature enforces atomically.
 func (s *Store) CreateDeviceCodeSession(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
 	session, err := model.NewOAuth2DeviceCodeSessionFromRequest(request)
 	if err != nil {
 		return err
 	}
 
-	return errStorage(s.provider.SaveOAuth2DeviceCodeSession(ctx, session))
+	if err = s.provider.SaveOAuth2DeviceCodeSession(ctx, session); err != nil {
+		if storage.IsUniqueConstraintViolation(err) {
+			return fmt.Errorf("%w: %w", oauthelia2.ErrDuplicateUserCode, err)
+		}
+
+		return errStorage(err)
+	}
+
+	return nil
 }
 
 // UpdateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
@@ -365,51 +385,56 @@ func (s *Store) UpdateDeviceCodeSession(ctx context.Context, signature string, r
 func (s *Store) GetDeviceCodeSession(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {
 	data, err := s.provider.LoadOAuth2DeviceCodeSession(ctx, signature)
 	if err != nil {
-		return nil, errStorage(err)
+		return nil, errStorageNotFound(err)
 	}
 
-	if !data.Active {
-		return nil, oauthelia2.ErrInvalidatedDeviceCode
-	}
-
-	if session == nil {
-		session = NewSession()
-	}
-
-	r, err := data.ToRequest(ctx, session, s)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
+	return s.toDeviceAuthorizeRequest(ctx, data, session)
 }
 
-// InvalidateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
+// InvalidateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface. It returns the
+// oauthelia2.ErrInvalidatedDeviceCode error when the device code was already invalidated, such as by a concurrent
+// request which redeemed it first.
 func (s *Store) InvalidateDeviceCodeSession(ctx context.Context, signature string) (err error) {
-	return errStorage(s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, signature))
+	if err = s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, signature); err == nil {
+		return nil
+	}
+
+	if errors.Is(err, storage.ErrNoRowsAffected) {
+		return oauthelia2.ErrInvalidatedDeviceCode
+	}
+
+	return errStorage(err)
 }
 
-// GetDeviceCodeSessionByUserCode implements the oauth2.DeviceCodeStorage interface.
+// GetDeviceCodeSessionByUserCode implements the oauth2.DeviceCodeStorage interface. It returns the
+// oauthelia2.ErrNotFound error when no device code session holds the user code, which the device authorization
+// endpoint relies on to issue a user code no other session holds.
 func (s *Store) GetDeviceCodeSessionByUserCode(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {
 	data, err := s.provider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature)
 	if err != nil {
-		return nil, errStorage(err)
+		return nil, errStorageNotFound(err)
 	}
 
-	if !data.Active {
-		return nil, oauthelia2.ErrInvalidatedUserCode
-	}
+	return s.toDeviceAuthorizeRequest(ctx, data, session)
+}
 
+// toDeviceAuthorizeRequest hydrates the session and returns the request of a device code session. The request is
+// also returned with the oauthelia2.ErrInvalidatedDeviceCode error when the device code was already redeemed, so the
+// grant it issued can be revoked.
+func (s *Store) toDeviceAuthorizeRequest(ctx context.Context, data *model.OAuth2DeviceCodeSession, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {
 	if session == nil {
 		session = NewSession()
 	}
 
-	r, err := data.ToRequest(ctx, session, s)
-	if err != nil {
+	if request, err = data.ToRequest(ctx, session, s); err != nil {
 		return nil, err
 	}
 
-	return r, nil
+	if !data.Active {
+		return request, oauthelia2.ErrInvalidatedDeviceCode
+	}
+
+	return request, nil
 }
 
 // CreatePARSession stores the pushed authorization request context. The requestURI is used to derive the key.
@@ -510,20 +535,35 @@ func (s *Store) saveSession(ctx context.Context, sessionType storage.OAuth2Sessi
 }
 
 func (s *Store) revokeSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string) (err error) {
-	return errStorage(s.provider.RevokeOAuth2Session(ctx, sessionType, signature))
+	if err = s.provider.RevokeOAuth2Session(ctx, sessionType, signature); err != nil {
+		if errors.Is(err, storage.ErrNoRowsAffected) {
+			return oauthelia2.ErrNotFound
+		}
+
+		return errStorage(err)
+	}
+
+	return nil
 }
 
 func (s *Store) revokeSessionByRequestID(ctx context.Context, sessionType storage.OAuth2SessionType, requestID string) (err error) {
 	if err = s.provider.RevokeOAuth2SessionByRequestID(ctx, sessionType, requestID); err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
+		if errors.Is(err, storage.ErrNoRowsAffected) {
 			return oauthelia2.ErrNotFound
-		default:
-			return errStorage(err)
 		}
+
+		return errStorage(err)
 	}
 
 	return nil
+}
+
+func errStorageNotFound(err error) (e error) {
+	if errors.Is(err, sql.ErrNoRows) {
+		return oauthelia2.ErrNotFound
+	}
+
+	return errStorage(err)
 }
 
 func errStorage(err error) (e error) {

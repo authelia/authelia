@@ -99,6 +99,10 @@ func TestOAuth2DeviceAuthorizationPOST(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 
 		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByUserCode(gomock.Any(), gomock.Any()).
+			Return(nil, sql.ErrNoRows)
+
+		mock.StorageMock.EXPECT().
 			SaveOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
 			AnyTimes().
 			Return(nil)
@@ -424,6 +428,10 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByUserCode(gomock.Any(), gomock.Any()).
+			Return(nil, sql.ErrNoRows)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).

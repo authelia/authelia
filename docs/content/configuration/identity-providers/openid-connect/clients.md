@@ -225,6 +225,13 @@ This enables the public client type for this client. This is for clients that ar
 confidentiality of credentials, you can read more about client types in [RFC6749 Section 2.1]. This is particularly
 useful for SPA's and CLI tools. This option requires setting the [client secret](#client_secret) to a blank string.
 
+As a private-use URI scheme or a loopback redirect URI does not prove the identity of a public client, as described in
+[RFC8252 Section 8.6](https://datatracker.ietf.org/doc/html/rfc8252#section-8.6), an authorization request from a public
+client with the `prompt` value `none` is only processed without user interaction when its redirect URI uses the
+`https` scheme and a host which is not a loopback address or `localhost`. Otherwise the client receives the
+`consent_required` error. Public clients are also unable to use the hybrid flow with a redirect URI which is not
+considered secure.
+
 ### redirect_uris
 
 {{< confkey type="list(string)" required="yes" >}}
@@ -262,6 +269,12 @@ the [requested_audience_mode](#requested_audience_mode).
 This value should not generally affect the minted ID Tokens as the audience specifically applies to Access Tokens, and
 ID Tokens are always meant to be minted with the client identifier being the audience. You can tune this behavior using
 the [claims policy](#claims_policy).
+
+When a client requests a resource using an [RFC8707](https://datatracker.ietf.org/doc/html/rfc8707) resource
+indicator, the requested resource only matches an audience value with the same scheme, host, and query, and a path
+equal to or beneath the audience path on a segment boundary. A requested resource which includes userinfo, a fragment,
+a dot segment such as `..`, or an encoded slash in its path never matches, and an audience value which includes any of
+these can not be requested as a resource.
 
 ### scopes
 
@@ -307,6 +320,8 @@ error will be returned to the client. The response type indicates the types of v
 See the [Response Types](../../../integration/openid-connect/introduction.md#response-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#response-types) for more information.
 
+A hybrid flow request whose response type includes `id_token` is refused unless the `openid` scope is granted.
+
 ### response_modes
 
 {{< confkey type="list(string)" default="form_post,query" required="no" >}}
@@ -326,6 +341,11 @@ The default values are based on the [response_types](#response_types) values. Wh
 values include the `code` type then the `query` response mode will be included. When any other type is included the
 `fragment` response mode will be included. It's important to note at this time we do not support the `none` response
 type, but when it is supported it will include the `query` response mode.
+
+The `query.jwt` response mode can only be used with a response type which includes `token` or `id_token` when the
+[authorization_encrypted_response_alg](#authorization_encrypted_response_alg) is configured, as
+[JARM Section 2.3.1](https://openid.net/specs/oauth-v2-jarm.html#section-2.3.1) forbids placing these tokens in the
+query of the redirect URI unless the response is encrypted.
 
 ### authorization_policy
 

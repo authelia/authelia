@@ -30,16 +30,44 @@ func TestIsSerializationFailure(t *testing.T) {
 		{name: "ShouldMatchMySQLDeadlock", err: &mysql.MySQLError{Number: codeMySQLLockDeadlock}, expected: true},
 		{name: "ShouldMatchMySQLLockWaitTimeout", err: &mysql.MySQLError{Number: codeMySQLLockWaitTimeout}, expected: true},
 		{name: "ShouldMatchMySQLDeadlockWrapped", err: fmt.Errorf("error inserting oauth2 access token session: %w", &mysql.MySQLError{Number: codeMySQLLockDeadlock}), expected: true},
-		{name: "ShouldNotMatchMySQLDuplicateEntry", err: &mysql.MySQLError{Number: 1062}, expected: false},
+		{name: "ShouldNotMatchMySQLDuplicateEntry", err: &mysql.MySQLError{Number: codeMySQLDuplicateEntry}, expected: false},
 		{name: "ShouldMatchPostgresSerializationFailure", err: &pgconn.PgError{Code: codePostgresSerializationFailure}, expected: true},
 		{name: "ShouldMatchPostgresDeadlockDetected", err: &pgconn.PgError{Code: codePostgresDeadlockDetected}, expected: true},
 		{name: "ShouldMatchPostgresSerializationFailureWrapped", err: fmt.Errorf("error inserting oauth2 access token session: %w", &pgconn.PgError{Code: codePostgresSerializationFailure}), expected: true},
-		{name: "ShouldNotMatchPostgresUniqueViolation", err: &pgconn.PgError{Code: "23505"}, expected: false},
+		{name: "ShouldNotMatchPostgresUniqueViolation", err: &pgconn.PgError{Code: codePostgresUniqueViolation}, expected: false},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, IsSerializationFailure(tc.err))
+		})
+	}
+}
+
+func TestIsUniqueConstraintViolation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{name: "ShouldNotMatchNil", err: nil, expected: false},
+		{name: "ShouldNotMatchGeneric", err: errors.New("some error"), expected: false},
+		{name: "ShouldMatchSQLiteUnique", err: sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintUnique}, expected: true},
+		{name: "ShouldMatchSQLitePrimaryKey", err: sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintPrimaryKey}, expected: true},
+		{name: "ShouldMatchSQLiteUniqueWrapped", err: fmt.Errorf("error inserting oauth2 device code session: %w", sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintUnique}), expected: true},
+		{name: "ShouldNotMatchSQLiteForeignKey", err: sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintForeignKey}, expected: false},
+		{name: "ShouldNotMatchSQLiteBusy", err: sqlite3.Error{Code: sqlite3.ErrBusy}, expected: false},
+		{name: "ShouldMatchMySQLDuplicateEntry", err: &mysql.MySQLError{Number: codeMySQLDuplicateEntry}, expected: true},
+		{name: "ShouldMatchMySQLDuplicateEntryWrapped", err: fmt.Errorf("error inserting oauth2 device code session: %w", &mysql.MySQLError{Number: codeMySQLDuplicateEntry}), expected: true},
+		{name: "ShouldNotMatchMySQLDeadlock", err: &mysql.MySQLError{Number: codeMySQLLockDeadlock}, expected: false},
+		{name: "ShouldMatchPostgresUniqueViolation", err: &pgconn.PgError{Code: codePostgresUniqueViolation}, expected: true},
+		{name: "ShouldMatchPostgresUniqueViolationWrapped", err: fmt.Errorf("error inserting oauth2 device code session: %w", &pgconn.PgError{Code: codePostgresUniqueViolation}), expected: true},
+		{name: "ShouldNotMatchPostgresSerializationFailure", err: &pgconn.PgError{Code: codePostgresSerializationFailure}, expected: false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsUniqueConstraintViolation(tc.err))
 		})
 	}
 }

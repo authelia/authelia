@@ -889,6 +889,40 @@ func TestSQLProviderOAuth2Session(t *testing.T) {
 		require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeOpenIDConnect, s))
 		require.NoError(t, provider.RevokeOAuth2SessionByRequestID(ctx, OAuth2SessionTypeOpenIDConnect, "req-rev"))
 	})
+
+	t.Run("ShouldRevokeEverySessionByRequestID", func(t *testing.T) {
+		for _, signature := range []string{"sig-rev-multi-1", "sig-rev-multi-2"} {
+			s := session
+			s.Signature = signature
+			s.RequestID = "req-rev-multi"
+			s.ChallengeID = model.MustNullUUID(model.NewRandomNullUUID())
+
+			require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, s))
+		}
+
+		require.NoError(t, provider.RevokeOAuth2SessionByRequestID(ctx, OAuth2SessionTypeAccessToken, "req-rev-multi"))
+
+		for _, signature := range []string{"sig-rev-multi-1", "sig-rev-multi-2"} {
+			_, err := provider.LoadOAuth2Session(ctx, OAuth2SessionTypeAccessToken, signature)
+
+			assert.ErrorIs(t, err, sql.ErrNoRows)
+		}
+
+		assert.EqualError(t, provider.RevokeOAuth2SessionByRequestID(ctx, OAuth2SessionTypeAccessToken, "req-rev-multi"), "error revoking oauth2 access token session with request id 'req-rev-multi': no rows affected")
+	})
+
+	t.Run("ShouldErrDeactivateInactiveSession", func(t *testing.T) {
+		s := session
+		s.Signature = "sig-deact-twice"
+		s.RequestID = "req-deact-twice"
+		s.ChallengeID = model.MustNullUUID(model.NewRandomNullUUID())
+		s.Active = true
+
+		require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeRefreshToken, s))
+		require.NoError(t, provider.DeactivateOAuth2Session(ctx, OAuth2SessionTypeRefreshToken, "sig-deact-twice"))
+
+		assert.ErrorIs(t, provider.DeactivateOAuth2Session(ctx, OAuth2SessionTypeRefreshToken, "sig-deact-twice"), ErrNoRowsAffected)
+	})
 }
 
 func TestSQLProviderOAuth2DeviceCodeSession(t *testing.T) {

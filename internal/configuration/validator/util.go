@@ -15,7 +15,7 @@ import (
 
 	"github.com/weppos/publicsuffix-go/publicsuffix"
 
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/jose"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"

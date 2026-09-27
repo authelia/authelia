@@ -9,7 +9,7 @@ import (
 	"crypto"
 	"sort"
 
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/jose"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"

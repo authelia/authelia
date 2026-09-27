@@ -20,7 +20,7 @@ import (
 	time "time"
 
 	oauth2 "authelia.com/provider/oauth2"
-	jose "authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/jose"
 	authentication "github.com/authelia/authelia/v4/internal/authentication"
 	authorization "github.com/authelia/authelia/v4/internal/authorization"
 	oidc "github.com/authelia/authelia/v4/internal/oidc"

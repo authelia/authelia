@@ -205,6 +205,12 @@ parameter):
 _In addition to the algorithms listed above, the value `none` is often accepted to indicate no signing and/or encryption
 should take place._
 
+When the `dir` algorithm is used the content encryption key is derived from the `client_secret` using the hash the
+content encryption algorithm requires as per
+[OpenID Connect Core 1.0 Section 10.2](https://openid.net/specs/openid-connect-core-1_0.html#Encryption), i.e.
+SHA-256 for `A128CBC-HS256`, `A128GCM`, `A192GCM`, and `A256GCM`, SHA-384 for `A192CBC-HS384`, and SHA-512 for
+`A256CBC-HS512`.
+
 ### Request Object
 
 Authelia accepts request objects with the following signature and content encryption algorithms (i.e. the `alg`
@@ -247,6 +253,11 @@ parameter):
 | PBES2-HS256+A128KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS384+A192KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS512+A256KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
+
+A request object encrypted with a `PBES2` algorithm is only accepted when that algorithm is the
+[request_object_encryption_alg](../../configuration/identity-providers/openid-connect/clients.md#request_object_encryption_alg)
+registered for the client, and its `p2c` (PBKDF2 iteration count) header must be between 200,000 and 600,000
+inclusive. Requests using another `p2c` value are rejected before any key is derived.
 
 A signed request object must have a `typ` header value of `oauth-authz-req+jwt` or `JWT`. An unsigned request object,
 which is only accepted from a client registered with a [request_object_signing_alg] of `none`, may omit the `typ`

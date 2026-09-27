@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS oauth2_device_code_session_signature_key;
+DROP INDEX IF EXISTS oauth2_device_code_session_user_code_signature_key;

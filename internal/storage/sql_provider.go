@@ -1365,7 +1365,8 @@ func (p *SQLProvider) RevokeOAuth2Session(ctx context.Context, sessionType OAuth
 	return nil
 }
 
-// RevokeOAuth2SessionByRequestID marks an OAuth2.0 session as revoked in the storage provider.
+// RevokeOAuth2SessionByRequestID marks every OAuth2.0 session with the request id as revoked in the storage provider.
+// It returns ErrNoRowsAffected when no unrevoked session has the request id.
 func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error) {
 	var query string
 
@@ -1390,7 +1391,7 @@ func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
 	}
 
-	if err = checkSingleUpdateResult(result); err != nil {
+	if err = checkAnyUpdateResult(result); err != nil {
 		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
 	}
 
