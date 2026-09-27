@@ -6,7 +6,7 @@
 title: "Gitea"
 description: "A guide on integrating Gitea with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
-date: 2026-09-13T13:00:14-7:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 620
