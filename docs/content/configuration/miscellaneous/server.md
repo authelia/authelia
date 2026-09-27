@@ -34,6 +34,7 @@ server:
     certificate: ''
     client_certificates: []
   headers:
+    allowed_hosts: []
     csp_template: ''
   buffers:
     read: 4096
@@ -161,6 +162,51 @@ The list of file paths to certificates used for authenticating clients. Those ce
 or intermediate certificates. If no item is provided mutual TLS is disabled.
 
 ### headers
+
+#### allowed_hosts
+
+{{< confkey type="list(string)" required="no" >}}
+
+Configures the allowed `Host` header values. If configured and Authelia receives a request where the `Host` header is not
+in the list then it will return a HTTP 404 Not Found response. This is useful to help assure that only requests from a
+proxy or known domain are handled by Authelia.
+
+This should not be confused with the external hostname as it's not strictly relevant. It's the `Host` header at the time
+Authelia processes the request, including the port if the client included one. It allows ensuring that Authelia only
+handles requests from appropriate sources without having to configure the more secure
+[client_certificates](#client_certificates) option.
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+If using the container image and the health check is not disabled, the host used by the health check script must also be
+included. This is typically `localhost` along with the port, for example `localhost:9091`.
+{{< /callout >}}
+
+{{< details "Docker Proxy" >}}
+This example is suitable for a single host docker environment, only allowing requests from the proxy for the host
+`authelia`, i.e. `http://authelia:9091`:
+
+```yaml {title="configuration.yml"}
+server:
+  headers:
+    allowed_hosts:
+      - 'localhost:9091'
+      - 'authelia:9091'
+```
+{{< /details >}}
+
+{{< details "Docker and External Proxy" >}}
+This example is suitable for a multi-host docker environment, only allowing requests from the proxy for the host
+`authelia` or `auth.example.com`, i.e. `http://authelia:9091` or `https://auth.example.com`:
+
+```yaml {title="configuration.yml"}
+server:
+  headers:
+    allowed_hosts:
+      - 'localhost:9091'
+      - 'authelia:9091'
+      - 'auth.example.com'
+```
+{{< /details >}}
 
 #### csp_template
 
