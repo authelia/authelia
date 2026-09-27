@@ -40,6 +40,7 @@ func TestHandleOAuth2TokenHydration(t *testing.T) {
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, requester *mocks.MockAccessRequester, client *mocks.MockOIDCClient, strategy *mocks.MockClaimsStrategy) {
 				requester.EXPECT().GetGrantTypes().Return(oauthelia2.Arguments{oidc.GrantTypeClientCredentials}).AnyTimes()
 				requester.EXPECT().GetRequestedScopes().Return(oauthelia2.Arguments{testOIDCScopeBearerAuthz}).AnyTimes()
+				requester.EXPECT().GetClient().Return(client).AnyTimes()
 				client.EXPECT().GetID().Return(testValue).AnyTimes()
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, session *oidc.Session) {
@@ -72,6 +73,7 @@ func TestHandleOAuth2TokenHydration(t *testing.T) {
 				requester.EXPECT().GetID().Return(testValue).AnyTimes()
 
 				requester.EXPECT().GetRequestedScopes().Return(oauthelia2.Arguments{testOIDCScopeBearerAuthz, oidc.ScopeProfile}).AnyTimes()
+				requester.EXPECT().GetClient().Return(client).AnyTimes()
 
 				client.EXPECT().GetID().Return(testValue).AnyTimes()
 			},

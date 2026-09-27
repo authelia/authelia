@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"time"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -74,6 +74,7 @@ type RegisteredClient struct {
 	PKCEChallengeMethod        string
 
 	Audience      []string
+	Resource      []string
 	Scopes        []string
 	RedirectURIs  []string
 	GrantTypes    []string
@@ -138,6 +139,7 @@ type RegisteredClient struct {
 
 	ConsentPolicy         ClientConsentPolicy
 	RequestedAudienceMode ClientRequestedAudienceMode
+	RequestedResourceMode ClientRequestedResourceMode
 
 	RequestURIs    []string
 	JSONWebKeys    *jose.JSONWebKeySet

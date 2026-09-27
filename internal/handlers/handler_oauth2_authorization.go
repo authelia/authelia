@@ -68,6 +68,8 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		return
 	}
 
+	oidc.PopulateRequestedResourceImplicit(requester)
+
 	clientID := requester.GetClient().GetID()
 
 	ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' is being processed", requester.GetID(), clientID)

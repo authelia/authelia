@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/compose"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 
@@ -27,6 +29,19 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
+
+func TestConfig_LoadHandlersOrder(t *testing.T) {
+	config := &oidc.Config{}
+	config.LoadHandlers(&oidc.Store{})
+
+	require.NotEmpty(t, config.Handlers.TokenEndpoint)
+
+	assert.NoError(t, compose.ValidateHandlerOrder(&oauthelia2.Config{
+		TokenEndpointHandlers:                config.Handlers.TokenEndpoint,
+		TokenEndpointBindingHandlers:         config.Handlers.TokenEndpointBinding,
+		RFC8628UserAuthorizeEndpointHandlers: config.Handlers.RFC8628UserAuthorizeEndpoint,
+	}))
+}
 
 func TestConfig_GetAllowedPrompts(t *testing.T) {
 	ctx := context.Background()

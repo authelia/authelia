@@ -102,13 +102,18 @@ type Config struct {
 	DPoPEnforce       bool
 	DPoPNonceRequired bool
 
+	DPoPStrictRefreshTokenBinding bool
+
 	DPoPAllowedJWSAlgorithms []string
 	DPoPClockSkew            time.Duration
 	DPoPNonceLifespan        time.Duration
 	DPoPProofLifespan        time.Duration
 	DPoPStrategy             oauthelia2.DPoPStrategy
 
-	EnforceClientAssertionIssuerAudience bool
+	EnforceClientAssertionIssuerAudience          bool
+	ClientAssertionClientSecretEncryptionDisabled bool
+
+	ClientAuthenticationRealm string
 
 	RequireRequestObjectAudienceAndLifetime bool
 	RequestObjectMaximumLifetime            time.Duration
@@ -207,10 +212,11 @@ type JWTAccessTokenConfig struct {
 
 // PARConfig holds specific oauthelia2.Configurator information for Pushed Authorization Requests.
 type PARConfig struct {
-	Require            bool
-	RequireRedirectURI bool
-	URIPrefix          string
-	ContextLifespan    time.Duration
+	Require              bool
+	RequireRedirectURI   bool
+	DisableClientRefetch bool
+	URIPrefix            string
+	ContextLifespan      time.Duration
 }
 
 // IssuersConfig holds specific oauthelia2.Configurator information for the issuer.
@@ -915,6 +921,12 @@ func (c *Config) GetRequireRedirectURIPushedAuthorizationRequests(ctx context.Co
 	return c.PAR.RequireRedirectURI
 }
 
+// GetDisablePushedAuthorizationRequestClientRefetch returns true if a Pushed Authorization Request is redeemed using
+// the client stored with it, rather than being validated against the current registration of the client.
+func (c *Config) GetDisablePushedAuthorizationRequestClientRefetch(ctx context.Context) (disable bool) {
+	return c.PAR.DisableClientRefetch
+}
+
 // GetResponseModeHandlers returns the response mode handlers.
 func (c *Config) GetResponseModeHandlers(ctx context.Context) oauthelia2.ResponseModeHandlers {
 	return c.Handlers.ResponseMode
@@ -1064,6 +1076,13 @@ func (c *Config) GetDPoPNonceLifespan(ctx context.Context) (lifespan time.Durati
 	return c.DPoPNonceLifespan
 }
 
+// GetDPoPStrictRefreshTokenBinding returns whether the DPoP bound refresh token of a confidential client may only be
+// redeemed with a proof for the key it is bound to. When false the grant is bound to the key of the presented proof
+// instead, as RFC 9449 Section 5 only binds the refresh tokens of public clients to the proof key.
+func (c *Config) GetDPoPStrictRefreshTokenBinding(ctx context.Context) (strict bool) {
+	return c.DPoPStrictRefreshTokenBinding
+}
+
 // GetDPoPStrategy returns the DPoP strategy.
 func (c *Config) GetDPoPStrategy(ctx context.Context) (strategy oauthelia2.DPoPStrategy) {
 	return c.DPoPStrategy
@@ -1080,6 +1099,13 @@ func (c *Config) GetMTLSEnabled(ctx context.Context) (enabled bool) {
 // Server. Returning true here would have the provider assert the 'cnf' confirmation in ID Tokens and enforce the
 // profile's rules, neither of which the handlers this implementation registers can satisfy.
 func (c *Config) GetOIDCKeyBindingEnabled(ctx context.Context) (enabled bool) {
+	return false
+}
+
+// GetIntrospectionTokenTypeEnabled returns false as the introspection response does not include the optional
+// 'token_type' member described in RFC 7662 Section 2.2, which is the behavior this implementation has always had as
+// it exposes no configuration for this value.
+func (c *Config) GetIntrospectionTokenTypeEnabled(ctx context.Context) (enabled bool) {
 	return false
 }
 
@@ -1103,6 +1129,11 @@ func (c *Config) GetDPoPProofLifespan(ctx context.Context) (lifespan time.Durati
 
 // GetMTLSEnforce returns false as RFC 8705 is not implemented by this Authorization Server.
 func (c *Config) GetMTLSEnforce(ctx context.Context) (enforce bool) {
+	return false
+}
+
+// GetMTLSStrictRefreshTokenBinding returns false as RFC 8705 is not implemented by this Authorization Server.
+func (c *Config) GetMTLSStrictRefreshTokenBinding(ctx context.Context) (strict bool) {
 	return false
 }
 
@@ -1130,6 +1161,20 @@ func (c *Config) GetIntrospectionEndpointClientAuthDisabled(ctx context.Context)
 // draft-ietf-oauth-rfc7523bis while the published RFC 7523 permits the token endpoint URL.
 func (c *Config) GetEnforceClientAssertionIssuerAudience(ctx context.Context) (enforce bool) {
 	return c.EnforceClientAssertionIssuerAudience
+}
+
+// GetClientAssertionClientSecretEncryptionDisabled returns whether a JWT client authentication assertion encrypted
+// with a key derived from the client secret, as described in OpenID Connect Core 1.0 Section 10.2, is rejected. This
+// is off by default, in which case the client is resolved from the 'client_id' parameter which must accompany the
+// assertion, and the 'iss' and 'sub' claims of the assertion must identify that same client.
+func (c *Config) GetClientAssertionClientSecretEncryptionDisabled(ctx context.Context) (disabled bool) {
+	return c.ClientAssertionClientSecretEncryptionDisabled
+}
+
+// GetClientAuthenticationRealm returns the realm of the 'Basic' challenge sent in the 'WWW-Authenticate' header of a
+// 401 invalid_client response, as described in RFC 6749 Section 5.2. An empty value results in the default realm.
+func (c *Config) GetClientAuthenticationRealm(ctx context.Context) (realm string) {
+	return c.ClientAuthenticationRealm
 }
 
 // GetRequireSignedRequestObject returns false as this Authorization Server does not globally require an
@@ -1210,6 +1255,12 @@ func (c *Config) GetTokenEndpointBindingHandlers(ctx context.Context) (handlers 
 // are registered as this Authorization Server implements no sender-constraining binding at that endpoint.
 func (c *Config) GetRFC8628DeviceAuthorizeEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.RFC8628DeviceAuthorizeEndpointBindingHandlers) {
 	return c.Handlers.RFC8628DeviceAuthorizeEndpointBinding
+}
+
+// GetAuthorizationDetailsTypeHandlers returns the RFC 9396 authorization details type handlers. None are registered as
+// this Authorization Server does not implement Rich Authorization Requests, which leaves them disabled.
+func (c *Config) GetAuthorizationDetailsTypeHandlers(ctx context.Context) (handlers map[string]oauthelia2.AuthorizationDetailsTypeHandler) {
+	return nil
 }
 
 // The RFC 7591 Dynamic Client Registration and RFC 7592 Dynamic Client Registration Management surfaces below are

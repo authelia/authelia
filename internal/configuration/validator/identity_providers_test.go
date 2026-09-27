@@ -420,6 +420,90 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 		},
 		{
+			name: "ResourceValid",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-check-resource",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					Resource: []string{
+						"https://" + exampleDotCom,
+						"https://" + exampleDotCom + "/api?tenant=abc",
+						"urn:example:resource",
+					},
+				},
+			},
+		},
+		{
+			name: "ResourceNotValidURI",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-check-resource",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					Resource: []string{
+						"http://abc@%two",
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-check-resource': option 'resource' has an invalid value: resource 'http://abc@%two' could not be parsed: parse \"http://abc@%two\": invalid URL escape \"%tw\"",
+			},
+		},
+		{
+			name: "ResourceNotAbsolute",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-check-resource",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					Resource: []string{
+						exampleDotCom,
+						"/api",
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-check-resource': option 'resource' has an invalid value: resource 'example.com' must be an absolute uri with a scheme but it's absent",
+				"identity_providers: oidc: clients: client 'client-check-resource': option 'resource' has an invalid value: resource '/api' must be an absolute uri with a scheme but it's absent",
+			},
+		},
+		{
+			name: "ResourceFragment",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-check-resource",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					Resource: []string{
+						"https://" + exampleDotCom + "/api#example",
+						"https://" + exampleDotCom + "/api#",
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-check-resource': option 'resource' has an invalid value: resource 'https://example.com/api#example' must not include a fragment",
+				"identity_providers: oidc: clients: client 'client-check-resource': option 'resource' has an invalid value: resource 'https://example.com/api#' must not include a fragment",
+			},
+		},
+		{
+			name: "ResourceDuplicates",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-check-resource",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					Resource: []string{
+						"https://" + exampleDotCom,
+						"https://" + exampleDotCom,
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-check-resource': option 'resource' must have unique values but the values 'https://example.com' are duplicated",
+			},
+		},
+		{
 			name: "ValidSectorIdentifier",
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
@@ -605,6 +689,57 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 			errors: []string{
 				"identity_providers: oidc: clients: client 'client-bad-ram': option 'requested_audience_mode' must be one of 'explicit' or 'implicit' but it's configured as 'magic'",
+			},
+		},
+		{
+			name: "ValidRequestedResourceMode",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-good-rrm",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					RequestedResourceMode: "implicit",
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, "implicit", actual[0].RequestedResourceMode)
+			},
+		},
+		{
+			name: "SetDefaultResourceMode",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-no-rrm",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					RequestedResourceMode: "",
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, "explicit", actual[0].RequestedResourceMode)
+			},
+		},
+		{
+			name: "InvalidRequestedResourceMode",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-bad-rrm",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					RequestedResourceMode: "magic",
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-bad-rrm': option 'requested_resource_mode' must be one of 'explicit' or 'implicit' but it's configured as 'magic'",
 			},
 		},
 	}
@@ -3678,6 +3813,18 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			},
 		},
 		{
+			"ShouldFailOnAlgorithmCurveMismatch",
+			nil,
+			[]schema.JWK{
+				{KeyID: "test", Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Key: keyECDSAP256.Public()},
+			},
+			nil,
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'key' is not usable: the 'ES512' algorithm requires an ECDSA P-521 key but the key is a ECDSA P-256 key",
+			},
+		},
+		{
 			"ShouldFailOnMismatchedKeyCert",
 			nil,
 			[]schema.JWK{
@@ -3983,6 +4130,29 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			[]string{
 				"identity_providers: oidc: jwks: key #1 with key id '09920c-rs256': option 'key' is an RSA 1024 bit private key but it must at minimum be a RSA 2048 bit private key",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnAlgorithmCurveMismatch",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, CertificateChain: certRSA2048},
+					{Key: keyECDSAP256, CertificateChain: certECDSAP256, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "35db6c-rs256"},
+					{Key: keyECDSAP256, CertificateChain: certECDSAP256, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature, KeyID: "d0fe7d-es384"},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256", oidc.SigningAlgECDSAUsingP384AndSHA384: "d0fe7d-es384"},
+					DefaultEncKeyIDs:          map[string]string{},
+					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #2 with key id 'd0fe7d-es384': option 'key' is not usable: the 'ES384' algorithm requires an ECDSA P-384 key but the key is a ECDSA P-256 key",
 			},
 		},
 		{

@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX oauth2_device_code_session_signature_key ON oauth2_device_code_session (signature);
+CREATE UNIQUE INDEX oauth2_device_code_session_user_code_signature_key ON oauth2_device_code_session (user_code_signature);

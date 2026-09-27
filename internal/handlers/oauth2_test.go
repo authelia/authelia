@@ -59,8 +59,6 @@ var (
 	regexpIntrospectionRequestFailed      = regexp.MustCompile(`^Introspection Request with id '[^']+' failed with error$`)
 )
 
-var regexpErrorInvalidClient = regexp.MustCompile(`^The request could not be authorized\.`)
-
 var regexpIntrospectionIssuerMismatch = regexp.MustCompile(`The original request and the introspection request occurred at endpoints where the origin or effective issuer did not match\.`)
 
 var (

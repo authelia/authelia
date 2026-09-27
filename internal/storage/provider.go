@@ -232,6 +232,11 @@ type Provider interface {
 	// RevokeOAuth2Session marks an OAuth2.0 session as revoked in the storage provider.
 	RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
 
+	// UpdateOAuth2RefreshTokenSession replaces the request of the active OAuth2.0 refresh token session with the
+	// signature of the given session in the storage provider, leaving the access token signature and state of the
+	// session as they are. It returns ErrNoRowsAffected when no active session has the signature.
+	UpdateOAuth2RefreshTokenSession(ctx context.Context, session model.OAuth2Session) (err error)
+
 	// LoadOAuth2RefreshTokenSessionAccessSignature loads the signature of the access token issued alongside the
 	// refresh token with the given signature. The signature is empty when the refresh token was issued without an
 	// access token, and for a session stored before the access token signature was recorded.
@@ -293,7 +298,9 @@ type Provider interface {
 		Implementation for OAuth2.0 Blacklisted JTI's.
 	*/
 
-	// SaveOAuth2BlacklistedJTI saves an OAuth2.0 blacklisted JTI to the storage provider.
+	// SaveOAuth2BlacklistedJTI saves an OAuth2.0 blacklisted JTI to the storage provider. A blacklisted JTI with the
+	// same signature which has expired is replaced, and one which has not expired is left as it is and results in an
+	// error which satisfies IsUniqueConstraintViolation.
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error)
 
 	// LoadOAuth2BlacklistedJTI loads an OAuth2.0 blacklisted JTI from the storage provider.

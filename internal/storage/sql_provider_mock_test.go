@@ -353,9 +353,22 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 			expectErr: "error revoking oauth2 pushed authorization request session with signature 'sig': boom",
 		},
 		{
-			name: "ShouldReturnErrSaveOAuth2BlacklistedJTI",
+			name: "ShouldReturnErrSaveOAuth2BlacklistedJTIDeleteExpired",
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig", gomock.Any()).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.SaveOAuth2BlacklistedJTI(context.Background(), model.OAuth2BlacklistedJTI{Signature: "sig", ExpiresAt: time.Now()})
+			},
+			expectErr: "error deleting expired oauth2 blacklisted JTI with signature 'sig': boom",
+		},
+		{
+			name: "ShouldReturnErrSaveOAuth2BlacklistedJTI",
+			setup: func(db *mocks.MockSQLXDB) {
+				gomock.InOrder(
+					db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig", gomock.Any()).Return(nil, nil),
+					db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig", gomock.Any()).Return(nil, errors.New("boom")),
+				)
 			},
 			invoke: func(p *storage.SQLProvider) error {
 				return p.SaveOAuth2BlacklistedJTI(context.Background(), model.OAuth2BlacklistedJTI{Signature: "sig", ExpiresAt: time.Now()})

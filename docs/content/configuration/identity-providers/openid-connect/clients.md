@@ -52,6 +52,8 @@ identity_providers:
           - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oidc/request-object.jwk'
         audience:
           - 'https://app.{{< sitevar name="domain" nojs="example.com" >}}'
+        resource:
+          - 'https://api.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'groups'
@@ -70,6 +72,7 @@ identity_providers:
         lifespan: ''
         claims_policy: ''
         requested_audience_mode: 'explicit'
+        requested_resource_mode: 'explicit'
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
         require_pushed_authorization_requests: false
@@ -225,6 +228,13 @@ This enables the public client type for this client. This is for clients that ar
 confidentiality of credentials, you can read more about client types in [RFC6749 Section 2.1]. This is particularly
 useful for SPA's and CLI tools. This option requires setting the [client secret](#client_secret) to a blank string.
 
+As a private-use URI scheme or a loopback redirect URI does not prove the identity of a public client, as described in
+[RFC8252 Section 8.6](https://datatracker.ietf.org/doc/html/rfc8252#section-8.6), an authorization request from a public
+client with the `prompt` value `none` is only processed without user interaction when its redirect URI uses the
+`https` scheme and a host which is not a loopback address or `localhost`. Otherwise the client receives the
+`consent_required` error. Public clients are also unable to use the hybrid flow with a redirect URI which is not
+considered secure.
+
 ### redirect_uris
 
 {{< confkey type="list(string)" required="yes" >}}
@@ -262,6 +272,32 @@ the [requested_audience_mode](#requested_audience_mode).
 This value should not generally affect the minted ID Tokens as the audience specifically applies to Access Tokens, and
 ID Tokens are always meant to be minted with the client identifier being the audience. You can tune this behavior using
 the [claims policy](#claims_policy).
+
+The values of this option are only compared with the `audience` parameter. The values a client is allowed to request
+using the `resource` parameter are configured using the [resource](#resource) option.
+
+### resource
+
+{{< confkey type="list(string)" required="no" >}}
+
+A whitelist of [RFC8707](https://datatracker.ietf.org/doc/html/rfc8707) resource indicators this client is allowed to
+request using the `resource` parameter and be granted. Each value must be an absolute URI, i.e. it must have a scheme,
+and must not include a fragment as described in
+[RFC8707 Section 2](https://datatracker.ietf.org/doc/html/rfc8707#section-2).
+
+The requested resource only matches a value with the same scheme, host, and query, and a path equal to or beneath the
+path of the value on a segment boundary. For example the value `https://api.{{< sitevar name="domain" nojs="example.com" >}}/v1`
+allows the client to request `https://api.{{< sitevar name="domain" nojs="example.com" >}}/v1` and
+`https://api.{{< sitevar name="domain" nojs="example.com" >}}/v1/users`, but not
+`https://api.{{< sitevar name="domain" nojs="example.com" >}}/v10`. A requested resource which includes userinfo, a
+fragment, a dot segment such as `..`, or an encoded slash in its path never matches, and a value which includes any of
+these can not be requested.
+
+The values of the [audience](#audience) option are not considered when a resource is requested, a resource which is
+only configured as an audience is refused with the `invalid_target` error.
+
+The resource can be requested by the client specifically or can be implicitly requested. This behavior can be tuned
+using the [requested_resource_mode](#requested_resource_mode).
 
 ### scopes
 
@@ -307,6 +343,8 @@ error will be returned to the client. The response type indicates the types of v
 See the [Response Types](../../../integration/openid-connect/introduction.md#response-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#response-types) for more information.
 
+A hybrid flow request whose response type includes `id_token` is refused unless the `openid` scope is granted.
+
 ### response_modes
 
 {{< confkey type="list(string)" default="form_post,query" required="no" >}}
@@ -326,6 +364,11 @@ The default values are based on the [response_types](#response_types) values. Wh
 values include the `code` type then the `query` response mode will be included. When any other type is included the
 `fragment` response mode will be included. It's important to note at this time we do not support the `none` response
 type, but when it is supported it will include the `query` response mode.
+
+The `query.jwt` response mode can only be used with a response type which includes `token` or `id_token` when the
+[authorization_encrypted_response_alg](#authorization_encrypted_response_alg) is configured, as
+[JARM Section 2.3.1](https://openid.net/specs/oauth-v2-jarm.html#section-2.3.1) forbids placing these tokens in the
+query of the redirect URI unless the response is encrypted.
 
 ### authorization_policy
 
@@ -389,6 +432,22 @@ the audience.
 | :------: | :-----------------------------------------------------------------------------------------------------------------------------: |
 | explicit |            Requires the client explicitly requests an audiences for an audience to be included in the issued tokens             |
 | implicit | Assumes if the client is requesting all audiences it is permitted to request if the audience and resource parameters are absent |
+
+### requested_resource_mode
+
+{{< confkey type="string" default="explicit" required="no" >}}
+
+Controls the effective [RFC8707](https://datatracker.ietf.org/doc/html/rfc8707) resources the client has requested.
+The following table describes the possible values and their behavior. The resources the client is permitted to request
+are configured using the [resource](#resource) option.
+
+|  Value   |                                                           Description                                                           |
+| :------: | :-----------------------------------------------------------------------------------------------------------------------------: |
+| explicit |              Requires the client explicitly requests a resource for a resource to be included in the issued tokens              |
+| implicit | Assumes if the client is requesting all resources it is permitted to request if the audience and resource parameters are absent |
+
+This applies to requests made to the Authorization Endpoint, the Pushed Authorization Request Endpoint, the Device
+Authorization Endpoint, and to the Token Endpoint when using the Client Credentials Flow.
 
 ### consent_mode
 
@@ -1328,12 +1387,15 @@ The key _**MUST**_:
   - An RSA public key:
     - Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
     - Have a key size of at least 2048 bits.
+    - Have a public exponent which is odd and at least 3.
   - An ECDSA public key:
     - Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
     - Use one of the following elliptical curves:
       - P-256.
       - P-384.
       - P-512.
+- Be usable with the configured [algorithm](#algorithm), for example the `ES384` algorithm requires an ECDSA key using
+  the P-384 curve.
 
 [PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
