@@ -838,6 +838,7 @@ const (
 	cmdFlagEnvNameConfig = "X_AUTHELIA_CONFIG"
 
 	cmdFlagNameConfigFilters          = "config.filters"
+	cmdFlagNameConfigExpFilters       = "config.experimental.filters"
 	cmdFlagNameConfigFiltersValues    = "config.filters.values"
 	cmdFlagEnvNameConfigFilters       = "X_AUTHELIA_CONFIG_FILTERS"
 	cmdFlagEnvNameConfigFiltersValues = "X_AUTHELIA_CONFIG_FILTERS_VALUES"

@@ -430,7 +430,7 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 		ctx.cconfig = NewCmdCtxConfig()
 	}
 
-	if ctx.cconfig.files, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
+	if ctx.cconfig.files, filters, err = loadXEnvCLIConfigValues(cmd, ctx.cconfig.validator); err != nil {
 		return err
 	}
 

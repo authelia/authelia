@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -1138,7 +1139,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 				t.Setenv(k, v)
 			}
 
-			configs, filters, err := loadXEnvCLIConfigValues(cmd)
+			configs, filters, err := loadXEnvCLIConfigValues(cmd, schema.NewStructValidator())
 
 			if tc.err == "" {
 				assert.NoError(t, err)
@@ -1155,7 +1156,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool(cmdFlagNameConfig, false, "")
 
-		_, _, err := loadXEnvCLIConfigValues(cmd)
+		_, _, err := loadXEnvCLIConfigValues(cmd, schema.NewStructValidator())
 
 		assert.ErrorContains(t, err, "trying to get stringSlice value of flag of type bool")
 	})
@@ -1175,7 +1176,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, file))
 		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, dir))
 
-		_, _, err := loadXEnvCLIConfigValues(cmd)
+		_, _, err := loadXEnvCLIConfigValues(cmd, schema.NewStructValidator())
 
 		assert.ErrorContains(t, err, "is in that directory which is not supported")
 	})
@@ -1185,7 +1186,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
 		cmd.Flags().Bool(cmdFlagNameConfigFilters, false, "")
 
-		_, _, err := loadXEnvCLIConfigValues(cmd)
+		_, _, err := loadXEnvCLIConfigValues(cmd, schema.NewStructValidator())
 
 		assert.ErrorContains(t, err, "trying to get stringSlice value of flag of type bool")
 	})
@@ -1196,7 +1197,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "")
 		cmd.Flags().Bool(cmdFlagNameConfigFiltersTemplateDelimiterLeft, false, "")
 
-		_, _, err := loadXEnvCLIConfigValues(cmd)
+		_, _, err := loadXEnvCLIConfigValues(cmd, schema.NewStructValidator())
 
 		assert.ErrorContains(t, err, "trying to get string value of flag of type bool")
 	})
@@ -1208,9 +1209,97 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterLeft, "", "")
 		cmd.Flags().Bool(cmdFlagNameConfigFiltersTemplateDelimiterRight, false, "")
 
-		_, _, err := loadXEnvCLIConfigValues(cmd)
+		_, _, err := loadXEnvCLIConfigValues(cmd, schema.NewStructValidator())
 
 		assert.ErrorContains(t, err, "trying to get string value of flag of type bool")
+	})
+
+	newDeprecatedFiltersCmd := func() *cobra.Command {
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "")
+		cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterLeft, "", "")
+		cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterRight, "", "")
+
+		return cmd
+	}
+
+	t.Run("ShouldAcceptDeprecatedFiltersFlagWithWarning", func(t *testing.T) {
+		cmd := newDeprecatedFiltersCmd()
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfigExpFilters, "template"))
+
+		val := schema.NewStructValidator()
+
+		_, filters, err := loadXEnvCLIConfigValues(cmd, val)
+
+		require.NoError(t, err)
+		require.Len(t, filters, 1)
+		assert.Equal(t, "template", filters[0].Name())
+
+		require.Len(t, val.Warnings(), 1)
+		assert.EqualError(t, val.Warnings()[0], "the '--config.experimental.filters' flag is deprecated and will be removed in a future release, it should be replaced with the '--config.filters' flag")
+		assert.Len(t, val.Errors(), 0)
+	})
+
+	t.Run("ShouldPreferDeprecatedFiltersFlagOverEnvironment", func(t *testing.T) {
+		t.Setenv(cmdFlagEnvNameConfigFilters, "invalid")
+
+		cmd := newDeprecatedFiltersCmd()
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfigExpFilters, "template"))
+
+		val := schema.NewStructValidator()
+
+		_, filters, err := loadXEnvCLIConfigValues(cmd, val)
+
+		require.NoError(t, err)
+		require.Len(t, filters, 1)
+		assert.Len(t, val.Warnings(), 1)
+	})
+
+	t.Run("ShouldErrorWhenDeprecatedAndCurrentFiltersFlagsAreBothSet", func(t *testing.T) {
+		cmd := newDeprecatedFiltersCmd()
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfigFilters, "template"))
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfigExpFilters, "template"))
+
+		val := schema.NewStructValidator()
+
+		configs, filters, err := loadXEnvCLIConfigValues(cmd, val)
+
+		assert.EqualError(t, err, "error occurred loading configuration: flag '--config.filters' and flag '--config.experimental.filters' can't be specified at the same time, the '--config.experimental.filters' flag is deprecated and should be removed")
+		assert.Nil(t, configs)
+		assert.Nil(t, filters)
+		assert.Len(t, val.Warnings(), 0)
+	})
+
+	t.Run("ShouldNotWarnWithoutDeprecatedFiltersFlag", func(t *testing.T) {
+		cmd := newDeprecatedFiltersCmd()
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfigFilters, "template"))
+
+		val := schema.NewStructValidator()
+
+		_, filters, err := loadXEnvCLIConfigValues(cmd, val)
+
+		require.NoError(t, err)
+		require.Len(t, filters, 1)
+		assert.Len(t, val.Warnings(), 0)
+	})
+
+	t.Run("ShouldErrorOnInvalidDeprecatedFiltersFlagType", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
+		cmd.Flags().Bool(cmdFlagNameConfigExpFilters, false, "")
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfigExpFilters, "true"))
+
+		_, _, err := loadXEnvCLIConfigValues(cmd, schema.NewStructValidator())
+
+		assert.ErrorContains(t, err, "trying to get stringSlice value of flag of type bool")
 	})
 
 	t.Run("ShouldSucceedWithConfigFiles", func(t *testing.T) {
@@ -1229,7 +1318,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 
 		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, configFile))
 
-		configs, filters, err := loadXEnvCLIConfigValues(cmd)
+		configs, filters, err := loadXEnvCLIConfigValues(cmd, schema.NewStructValidator())
 
 		assert.NoError(t, err)
 		assert.Len(t, configs, 1)
@@ -1431,4 +1520,24 @@ func TestExportFileImportFileRoundTrip(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestRootCmdDeprecatedFiltersFlagIsHidden(t *testing.T) {
+	cmd := NewRootCmd()
+
+	flag := cmd.PersistentFlags().Lookup(cmdFlagNameConfigExpFilters)
+
+	require.NotNil(t, flag)
+	assert.True(t, flag.Hidden)
+
+	buf := new(bytes.Buffer)
+
+	cmd.SetOut(buf)
+	cmd.SetErr(buf)
+	cmd.SetArgs([]string{"--help"})
+
+	require.NoError(t, cmd.Execute())
+
+	assert.NotContains(t, buf.String(), cmdFlagNameConfigExpFilters)
+	assert.Contains(t, buf.String(), cmdFlagNameConfigFilters)
 }

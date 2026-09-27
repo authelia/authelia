@@ -22,6 +22,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -224,7 +225,7 @@ const (
 	XEnvCLIResultEnvironment
 )
 
-func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.BytesFilter, err error) {
+func loadXEnvCLIConfigValues(cmd *cobra.Command, val *schema.StructValidator) (configs []string, filters []configuration.BytesFilter, err error) {
 	var (
 		filterNames []string
 		valuesFiles []string
@@ -242,7 +243,7 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		return nil, nil, err
 	}
 
-	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFilters, cmdFlagNameConfigFilters); err != nil {
+	if filterNames, err = loadXEnvCLIConfigFilterNames(cmd, val); err != nil {
 		return nil, nil, err
 	}
 
@@ -273,6 +274,26 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 	}
 
 	return
+}
+
+func loadXEnvCLIConfigFilterNames(cmd *cobra.Command, val *schema.StructValidator) (names []string, err error) {
+	if !cmd.Flags().Changed(cmdFlagNameConfigExpFilters) {
+		names, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFilters, cmdFlagNameConfigFilters)
+
+		return names, err
+	}
+
+	if cmd.Flags().Changed(cmdFlagNameConfigFilters) {
+		return nil, fmt.Errorf("error occurred loading configuration: flag '--%s' and flag '--%s' can't be specified at the same time, the '--%s' flag is deprecated and should be removed", cmdFlagNameConfigFilters, cmdFlagNameConfigExpFilters, cmdFlagNameConfigExpFilters)
+	}
+
+	if names, err = cmd.Flags().GetStringSlice(cmdFlagNameConfigExpFilters); err != nil {
+		return nil, err
+	}
+
+	val.PushWarning(fmt.Errorf("the '--%s' flag is deprecated and will be removed in a future release, it should be replaced with the '--%s' flag", cmdFlagNameConfigExpFilters, cmdFlagNameConfigFilters))
+
+	return names, nil
 }
 
 func loadXNormalizedValuesPaths(paths []string) ([]string, error) {
