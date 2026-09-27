@@ -25,7 +25,7 @@ func New(paths []string, filterNames []string, valuesFiles []string) (ctx Contex
 		return nil, nil, fmt.Errorf("no paths provided")
 	}
 
-	filters, err := NewNamedConfigFileFilters(valuesFiles, filterNames...)
+	filters, err := NewNamedConfigFileFilters(valuesFiles, "", "", filterNames...)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -22,11 +22,11 @@ seo:
 
 There are several options which affect the loading of files:
 
-|               Name                |            Argument             |        Environment Variable        |                                           Description                                            |
-| :-------------------------------: | :-----------------------------: | :--------------------------------: | :----------------------------------------------------------------------------------------------: |
-|        Configuration Paths        |        `--config`, `-c`         |        `X_AUTHELIA_CONFIG`         |        A list of file or directory (non-recursive) paths to load configuration files from        |
-|     [Filters](#file-filters)      | `--config.experimental.filters` |    `X_AUTHELIA_CONFIG_FILTERS`     |          A list of filters applied to every file from the Files or Directories options           |
-| [Filters](#file-filters) (Values) |    `--config.filters.values`    | `X_AUTHELIA_CONFIG_FILTERS_VALUES` | The path or paths to YAML/TOML/JSON files which contain values to be interpreted by some filters |
+|               Name                |         Argument          |        Environment Variable        |                                           Description                                            |
+| :-------------------------------: | :-----------------------: | :--------------------------------: | :----------------------------------------------------------------------------------------------: |
+|        Configuration Paths        |     `--config`, `-c`      |        `X_AUTHELIA_CONFIG`         |        A list of file or directory (non-recursive) paths to load configuration files from        |
+|     [Filters](#file-filters)      |    `--config.filters`     |    `X_AUTHELIA_CONFIG_FILTERS`     |          A list of filters applied to every file from the Files or Directories options           |
+| [Filters](#file-filters) (Values) | `--config.filters.values` | `X_AUTHELIA_CONFIG_FILTERS_VALUES` | The path or paths to YAML/TOML/JSON files which contain values to be interpreted by some filters |
 
 ### Configuration Paths
 
@@ -263,18 +263,12 @@ information.
 
 File filters exist which allow modification of all configuration files after reading them from the
 filesystem but before parsing their content. Unless explicitly specified these filters are _**NOT**_ covered by our
-[Standard Versioning Policy](../../policies/versioning.md) and
+[Standard Versioning Policy](../../policies/versioning.md).
 
-There **_WILL_** be a point where:
-
-- The name of the CLI argument will change (we suggest using the environment variable which will not)
-- The `expand-env` filter will be removed as it's deprecated
-
-The filters are configured as a list of filter names by the `--config.experimental.filters` CLI argument and
+The filters are configured as a list of filter names by the `--config.filters` CLI argument and
 `X_AUTHELIA_CONFIG_FILTERS` environment variable. We recommend using the environment variable as it ensures
-commands executed from the container use the same filters and it's likely to be a permanent value whereas the argument
-will likely change. If both the CLI argument and environment variable are used the environment variable is completely
-ignored.
+commands executed from the container use the same filters. If both the CLI argument and environment variable are used
+the environment variable is completely ignored.
 
 Filters can either be used on their own, in combination, or not at all. The filters are processed in order as they are
 defined. You can preview the output of the YAML files when processed via the filters using the
@@ -292,14 +286,14 @@ filter and if it isn't that it's last.
 {{< envTab "Docker" >}}
 
 ```bash
-docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.experimental.filters template
+docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.filters template
 ```
 
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 
 ```bash
-authelia --config /config/configuration.yml --config.experimental.filters template
+authelia --config /config/configuration.yml --config.filters template
 ```
 
 {{< /envTab >}}
@@ -380,37 +374,23 @@ or placeholder value. To optionally reference a key use the `index` function, fo
 | .Authelia.Build.Branch |  The Authelia Build Branch value   |
 | .Authelia.Build.Number |  The Authelia Build Number value   |
 
+##### Delimiters
+
+You can adjust the delimiters of this filter using the options below. Please note that an empty string is the same
+as the default values of `{{` and `}}`.
+
+|                  Argument                   |                 Environment Variable                 |                     Description                     |
+| :-----------------------------------------: | :--------------------------------------------------: | :-------------------------------------------------: |
+| `--config.filters.template.delimiter.left`  | `X_AUTHELIA_CONFIG_FILTERS_TEMPLATE_DELIMITER_LEFT`  | Changes the left delimiter from `{{` to any value.  |
+| `--config.filters.template.delimiter.right` | `X_AUTHELIA_CONFIG_FILTERS_TEMPLATE_DELIMITER_RIGHT` | Changes the right delimiter from `}}` to any value. |
+
 ##### Functions
 
-In addition to the standard builtin functions we support several other functions which should operate similar.
+In addition to the standard built-in functions we support several other functions. These functions should operate
+similarly to Helm template functions.
 
 See the [Templating Reference Guide](../../reference/guides/templating.md) for more information.
 
 #### Expand Environment Variable Filter
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The Expand Environment Variable filter (i.e. `expand-env`) is officially deprecated. It will be removed in v4.40.0 and
-will result in a startup error. This removal is done based on the experimental introduction of this feature and our
-[Versioning Policy](../../policies/versioning.md). The removal decision was made due to the fact the
-[Go Template Filter](#go-template-filter) can effectively do everything this filter can do without the
-[Known Limitations](#known-limitations) which should be read carefully before usage of this filter.
-{{< /callout >}}
-
-The name used to enable this filter is `expand-env`.
-
-This filter is the most common filter type used by many other applications. It is similar to using `envsubst` where it
-replaces a string like `$EXAMPLE` or `${EXAMPLE}` with the value of the `EXAMPLE` environment variable.
-
-This filter utilizes [os.ExpandEnv](https://pkg.go.dev/os#ExpandEnv) but does not include any environment variables that
-look like they're an Authelia secret. This filter is very limited in what we can achieve, and there are known
-limitations with this filter which may not be possible for us to work around. We discourage it's usage as the `template`
-is much more robust and we have a lot more freedom to make adjustments to this filter compared to the `expand-env`
-filter.
-
-#### Known Limitations
-
-The following known limitations exist with the Expand Environment Variable Filter.
-
-- Has no inbuilt way to handle escaping a `$` so treats all `$` values as an expansion value. This can be escaped using
-  `$$` as an indication that it should be a `$` literal. However this functionality likely will not work under all
-  circumstances and is not guaranteed.
+The `expand-env` filter has been officially removed as of v4.40.0.

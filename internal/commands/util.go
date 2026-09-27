@@ -22,6 +22,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -224,11 +225,14 @@ const (
 	XEnvCLIResultEnvironment
 )
 
-func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.BytesFilter, err error) {
+func loadXEnvCLIConfigValues(cmd *cobra.Command, val *schema.StructValidator) (configs []string, filters []configuration.BytesFilter, err error) {
 	var (
 		filterNames []string
 		valuesFiles []string
 		result      XEnvCLIResult
+
+		filterTemplateLeftDelim  string
+		filterTemplateRightDelim string
 	)
 
 	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
@@ -239,7 +243,15 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		return nil, nil, err
 	}
 
-	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFilters, cmdFlagNameConfigExpFilters); err != nil {
+	if filterNames, err = loadXEnvCLIConfigFilterNames(cmd, val); err != nil {
+		return nil, nil, err
+	}
+
+	if filterTemplateLeftDelim, _, err = loadXEnvCLIStringValue(cmd, cmdFlagEnvNameConfigFiltersTemplateLeftDelimiter, cmdFlagNameConfigFiltersTemplateDelimiterLeft); err != nil {
+		return nil, nil, err
+	}
+
+	if filterTemplateRightDelim, _, err = loadXEnvCLIStringValue(cmd, cmdFlagEnvNameConfigFiltersTemplateRightDelimiter, cmdFlagNameConfigFiltersTemplateDelimiterRight); err != nil {
 		return nil, nil, err
 	}
 
@@ -251,17 +263,37 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigFiltersValues, err)
 	}
 
-	if filters, err = configuration.NewFileFilters(valuesFiles, filterNames...); err != nil {
+	if filters, err = configuration.NewFileFilters(valuesFiles, filterTemplateLeftDelim, filterTemplateRightDelim, filterNames...); err != nil {
 		var errValues *configuration.FilterValuesError
 
 		if errors.As(err, &errValues) {
 			return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigFiltersValues, err)
 		}
 
-		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
+		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigFilters, err)
 	}
 
 	return
+}
+
+func loadXEnvCLIConfigFilterNames(cmd *cobra.Command, val *schema.StructValidator) (names []string, err error) {
+	if !cmd.Flags().Changed(cmdFlagNameConfigExpFilters) {
+		names, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFilters, cmdFlagNameConfigFilters)
+
+		return names, err
+	}
+
+	if cmd.Flags().Changed(cmdFlagNameConfigFilters) {
+		return nil, fmt.Errorf("error occurred loading configuration: flag '--%s' and flag '--%s' can't be specified at the same time, the '--%s' flag is deprecated and should be removed", cmdFlagNameConfigFilters, cmdFlagNameConfigExpFilters, cmdFlagNameConfigExpFilters)
+	}
+
+	if names, err = cmd.Flags().GetStringSlice(cmdFlagNameConfigExpFilters); err != nil {
+		return nil, err
+	}
+
+	val.PushWarning(fmt.Errorf("the '--%s' flag is deprecated and will be removed in a future release, it should be replaced with the '--%s' flag", cmdFlagNameConfigExpFilters, cmdFlagNameConfigFilters))
+
+	return names, nil
 }
 
 func loadXNormalizedValuesPaths(paths []string) ([]string, error) {
@@ -341,6 +373,32 @@ func loadXNormalizedPaths(paths []string, result XEnvCLIResult) ([]string, error
 	}
 
 	return configs, nil
+}
+
+func loadXEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, result XEnvCLIResult, err error) {
+	if cmd.Flags().Changed(flagName) {
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIExplicit, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
+	case ok && env != "":
+		return env, XEnvCLIResultEnvironment, nil
+	default:
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIImplicit, err
+	}
 }
 
 func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, result XEnvCLIResult, err error) {
