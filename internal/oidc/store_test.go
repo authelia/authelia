@@ -270,6 +270,132 @@ func TestOAuth2DeviceCodeSessionGrantedResourceRoundTripsThroughStore(t *testing
 	assert.Equal(t, oauthelia2.Arguments{"https://api.example.com"}, loaded.GetGrantedResource())
 }
 
+func TestCreateDeviceCodeSessionShouldRefuseDuplicateUserCode(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	testCases := []struct {
+		name      string
+		signature string
+		userCode  string
+		err       error
+	}{
+		{name: "ShouldCreateFirstSession", signature: "sig-device-dup-1", userCode: "sig-user-dup", err: nil},
+		{name: "ShouldRefuseDuplicateUserCode", signature: "sig-device-dup-2", userCode: "sig-user-dup", err: oauthelia2.ErrDuplicateUserCode},
+		{name: "ShouldCreateUniqueUserCode", signature: "sig-device-dup-3", userCode: "sig-user-unique", err: nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			requester := &oauthelia2.DeviceAuthorizeRequest{
+				Request: oauthelia2.Request{
+					ID:             tc.signature,
+					Client:         &oidc.RegisteredClient{ID: myclient},
+					RequestedScope: oauthelia2.Arguments{oidc.ScopeOpenID},
+					Session:        &oidc.Session{},
+				},
+				DeviceCodeSignature: tc.signature,
+				UserCodeSignature:   tc.userCode,
+			}
+
+			err := s.CreateDeviceCodeSession(ctx, tc.signature, requester)
+
+			if tc.err == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, tc.err)
+			}
+		})
+	}
+}
+
+func TestSetClientAssertionJWTShouldRefuseKnownJTIForClient(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+			},
+		},
+	}, provider)
+
+	testCases := []struct {
+		name     string
+		clientID string
+		jti      string
+		exp      time.Time
+		err      error
+	}{
+		{name: "ShouldSetFirstUse", clientID: "client-a", jti: "jti-1", exp: time.Now().Add(time.Hour), err: nil},
+		{name: "ShouldRefuseSecondUse", clientID: "client-a", jti: "jti-1", exp: time.Now().Add(time.Hour), err: oauthelia2.ErrJTIKnown},
+		{name: "ShouldSetSameJTIForAnotherClient", clientID: "client-b", jti: "jti-1", exp: time.Now().Add(time.Hour), err: nil},
+		{name: "ShouldSetAnotherJTI", clientID: "client-a", jti: "jti-2", exp: time.Now().Add(time.Hour), err: nil},
+		{name: "ShouldSetExpired", clientID: "client-a", jti: "jti-3", exp: time.Now().Add(-time.Hour), err: nil},
+		{name: "ShouldSetOverExpired", clientID: "client-a", jti: "jti-3", exp: time.Now().Add(time.Hour), err: nil},
+		{name: "ShouldRefuseOverUnexpired", clientID: "client-a", jti: "jti-3", exp: time.Now().Add(time.Hour), err: oauthelia2.ErrJTIKnown},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := s.SetClientAssertionJWT(ctx, tc.clientID, tc.jti, tc.exp)
+
+			if tc.err == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, tc.err)
+			}
+		})
+	}
+
+	assert.ErrorIs(t, s.ClientAssertionJWTValid(ctx, "client-a", "jti-1"), oauthelia2.ErrJTIKnown)
+	assert.ErrorIs(t, s.ClientAssertionJWTValid(ctx, "client-b", "jti-1"), oauthelia2.ErrJTIKnown)
+	assert.NoError(t, s.ClientAssertionJWTValid(ctx, "client-b", "jti-2"))
+	assert.NoError(t, s.ClientAssertionJWTValid(ctx, "client-c", "jti-1"))
+}
+
 func TestStoreSuite(t *testing.T) {
 	suite.Run(t, &StoreSuite{})
 }
@@ -450,29 +576,29 @@ func (s *StoreSuite) TestClientAssertionJWTValid() {
 	gomock.InOrder(
 		s.mock.
 			EXPECT().
-			LoadOAuth2BlacklistedJTI(s.ctx, "3a240379e8286a7a8ff5e99d68567e0e5e34e80168b8feffa89d3d33dea95b63").
+			LoadOAuth2BlacklistedJTI(s.ctx, "3ff686f228cc5f1f480c78ccbfe6193c28d3bbc258a46f5858b1fecff7025111").
 			Return(&model.OAuth2BlacklistedJTI{
 				ID:        1,
-				Signature: "3a240379e8286a7a8ff5e99d68567e0e5e34e80168b8feffa89d3d33dea95b63",
+				Signature: "3ff686f228cc5f1f480c78ccbfe6193c28d3bbc258a46f5858b1fecff7025111",
 				ExpiresAt: time.Now().Add(time.Hour),
 			}, nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2BlacklistedJTI(s.ctx, "e7f67ad76c80d57d34b19598462817932aec21d2806a08a786a8d4b9dd476068").
+			LoadOAuth2BlacklistedJTI(s.ctx, "7dab5206b9812435edf29885482e066817a006498e63449a580ad9f797cdcb8a").
 			Return(&model.OAuth2BlacklistedJTI{
 				ID:        1,
-				Signature: "e7f67ad76c80d57d34b19598462817932aec21d2806a08a786a8d4b9dd476068",
+				Signature: "7dab5206b9812435edf29885482e066817a006498e63449a580ad9f797cdcb8a",
 				ExpiresAt: time.Now().Add(-time.Hour),
 			}, nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2BlacklistedJTI(s.ctx, "f29ef0d85303a09411b76001c579980f1b1b7fc9deb1fa647875a724f4f231c6").
+			LoadOAuth2BlacklistedJTI(s.ctx, "afcbd1e85207005b9b26671765dad1f810c2154674a40e026fbaf8e5667f4fe2").
 			Return(nil, fmt.Errorf("failed to load")),
 	)
 
-	s.EqualError(s.store.ClientAssertionJWTValid(s.ctx, "066ee771-e156-4886-b99f-ee09b0d3edf4"), "jti_known")
-	s.NoError(s.store.ClientAssertionJWTValid(s.ctx, "5dad3ff7-e4f2-41b6-98a3-b73d872076ce"))
-	s.EqualError(s.store.ClientAssertionJWTValid(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202"), "failed to load")
+	s.EqualError(s.store.ClientAssertionJWTValid(s.ctx, "example", "066ee771-e156-4886-b99f-ee09b0d3edf4"), "jti_known")
+	s.NoError(s.store.ClientAssertionJWTValid(s.ctx, "example", "5dad3ff7-e4f2-41b6-98a3-b73d872076ce"))
+	s.EqualError(s.store.ClientAssertionJWTValid(s.ctx, "example", "65471ccb-d650-4006-a95f-cb4f4e3d7202"), "failed to load")
 }
 
 func (s *StoreSuite) TestCreateSessions() {
@@ -617,7 +743,7 @@ func (s *StoreSuite) TestRevokeSessions() {
 		s.mock.
 			EXPECT().
 			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7202").
-			Return(sql.ErrNoRows),
+			Return(storage.ErrNoRowsAffected),
 		s.mock.
 			EXPECT().
 			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "rt_example1").
@@ -640,6 +766,10 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(sql.ErrNoRows),
 		s.mock.
 			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "1").
+			Return(nil),
+		s.mock.
+			EXPECT().
 			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "1").
 			Return("at_paired_1", nil),
 		s.mock.
@@ -652,6 +782,10 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(nil),
 		s.mock.
 			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "2").
+			Return(nil),
+		s.mock.
+			EXPECT().
 			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "2").
 			Return("", nil),
 		s.mock.
@@ -660,8 +794,36 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(fmt.Errorf("not found")),
 		s.mock.
 			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "3").
+			Return(nil),
+		s.mock.
+			EXPECT().
 			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "3").
 			Return("", fmt.Errorf("no refresh token session")),
+		s.mock.
+			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "4").
+			Return(storage.ErrNoRowsAffected),
+		s.mock.
+			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "5").
+			Return(fmt.Errorf("deactivate error")),
+		s.mock.
+			EXPECT().
+			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "6").
+			Return(nil),
+		s.mock.
+			EXPECT().
+			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "6").
+			Return("at_paired_6", nil),
+		s.mock.
+			EXPECT().
+			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, "at_paired_6").
+			Return(storage.ErrNoRowsAffected),
+		s.mock.
+			EXPECT().
+			DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, "65471ccb-d650-4006-a95f-cb4f4e3d7206").
+			Return(nil),
 		s.mock.
 			EXPECT().
 			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, "pkce1").
@@ -708,6 +870,9 @@ func (s *StoreSuite) TestRevokeSessions() {
 	s.NoError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200", "1"))
 	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", "2"), "not found")
 	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", "3"), "no refresh token session")
+	s.ErrorIs(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7204", "4"), oauthelia2.ErrInactiveToken)
+	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7205", "5"), "deactivate error")
+	s.NoError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7206", "6"))
 
 	s.NoError(s.store.DeletePKCERequestSession(s.ctx, "pkce1"))
 	s.EqualError(s.store.DeletePKCERequestSession(s.ctx, "pkce2"), "not found")
@@ -834,54 +999,89 @@ func (s *StoreSuite) TestGetSessions() {
 	s.EqualError(oauthelia2.ErrorToDebugRFC6749Error(err), "Could not find the requested resource(s). The requested PAR session was not found, was expired, or was otherwise invalid.")
 }
 
-func (s *StoreSuite) TestIsJWTUsed() {
+func (s *StoreSuite) TestIsRFC7523JWTUsed() {
 	gomock.InOrder(
 		s.mock.
 			EXPECT().
-			LoadOAuth2BlacklistedJTI(s.ctx, "3a240379e8286a7a8ff5e99d68567e0e5e34e80168b8feffa89d3d33dea95b63").
+			LoadOAuth2BlacklistedJTI(s.ctx, "3ff686f228cc5f1f480c78ccbfe6193c28d3bbc258a46f5858b1fecff7025111").
 			Return(&model.OAuth2BlacklistedJTI{
 				ID:        1,
-				Signature: "3a240379e8286a7a8ff5e99d68567e0e5e34e80168b8feffa89d3d33dea95b63",
+				Signature: "3ff686f228cc5f1f480c78ccbfe6193c28d3bbc258a46f5858b1fecff7025111",
 				ExpiresAt: time.Now().Add(time.Hour),
 			}, nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2BlacklistedJTI(s.ctx, "e7f67ad76c80d57d34b19598462817932aec21d2806a08a786a8d4b9dd476068").
+			LoadOAuth2BlacklistedJTI(s.ctx, "7dab5206b9812435edf29885482e066817a006498e63449a580ad9f797cdcb8a").
 			Return(&model.OAuth2BlacklistedJTI{
 				ID:        1,
-				Signature: "e7f67ad76c80d57d34b19598462817932aec21d2806a08a786a8d4b9dd476068",
+				Signature: "7dab5206b9812435edf29885482e066817a006498e63449a580ad9f797cdcb8a",
 				ExpiresAt: time.Now().Add(-time.Hour),
 			}, nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2BlacklistedJTI(s.ctx, "f29ef0d85303a09411b76001c579980f1b1b7fc9deb1fa647875a724f4f231c6").
+			LoadOAuth2BlacklistedJTI(s.ctx, "afcbd1e85207005b9b26671765dad1f810c2154674a40e026fbaf8e5667f4fe2").
 			Return(nil, fmt.Errorf("failed to load")),
 	)
 
-	used, err := s.store.IsJWTUsed(s.ctx, "066ee771-e156-4886-b99f-ee09b0d3edf4")
+	used, err := s.store.IsRFC7523JWTUsed(s.ctx, "example", "066ee771-e156-4886-b99f-ee09b0d3edf4")
 	s.True(used)
 	s.EqualError(err, "jti_known")
 
-	used, err = s.store.IsJWTUsed(s.ctx, "5dad3ff7-e4f2-41b6-98a3-b73d872076ce")
+	used, err = s.store.IsRFC7523JWTUsed(s.ctx, "example", "5dad3ff7-e4f2-41b6-98a3-b73d872076ce")
 	s.False(used)
 	s.NoError(err)
 
-	used, err = s.store.IsJWTUsed(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202")
+	used, err = s.store.IsRFC7523JWTUsed(s.ctx, "example", "65471ccb-d650-4006-a95f-cb4f4e3d7202")
 	s.True(used)
 	s.EqualError(err, "failed to load")
 }
 
-func (s *StoreSuite) TestMarkJWTUsedForTime() {
+func (s *StoreSuite) TestMarkRFC7523JWTUsedForTime() {
 	gomock.InOrder(
 		s.mock.EXPECT().
-			SaveOAuth2BlacklistedJTI(s.ctx, model.OAuth2BlacklistedJTI{Signature: "f29ef0d85303a09411b76001c579980f1b1b7fc9deb1fa647875a724f4f231c6", ExpiresAt: time.Unix(160000000, 0)}).
+			SaveOAuth2BlacklistedJTI(s.ctx, model.OAuth2BlacklistedJTI{Signature: "afcbd1e85207005b9b26671765dad1f810c2154674a40e026fbaf8e5667f4fe2", ExpiresAt: time.Unix(160000000, 0)}).
 			Return(nil),
-		s.mock.EXPECT().SaveOAuth2BlacklistedJTI(s.ctx, model.OAuth2BlacklistedJTI{Signature: "0dab0de97ed4e05da82763497448daf4f6b555c99218100e3ef5a81f36232940", ExpiresAt: time.Unix(160000000, 0)}).
+		s.mock.EXPECT().SaveOAuth2BlacklistedJTI(s.ctx, model.OAuth2BlacklistedJTI{Signature: "084a787fff055a1c2b023780064045fb342fa390b38c2c07dc784cb679b98752", ExpiresAt: time.Unix(160000000, 0)}).
 			Return(fmt.Errorf("already marked")),
 	)
 
-	s.NoError(s.store.MarkJWTUsedForTime(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", time.Unix(160000000, 0)))
-	s.EqualError(s.store.MarkJWTUsedForTime(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", time.Unix(160000000, 0)), "already marked")
+	s.NoError(s.store.MarkRFC7523JWTUsedForTime(s.ctx, "example", "65471ccb-d650-4006-a95f-cb4f4e3d7202", time.Unix(160000000, 0)))
+	s.EqualError(s.store.MarkRFC7523JWTUsedForTime(s.ctx, "example", "65471ccb-d650-4006-a95f-cb4f4e3d7201", time.Unix(160000000, 0)), "already marked")
+}
+
+func (s *StoreSuite) TestUpdateRefreshTokenSession() {
+	challenge := model.MustNullUUID(model.NewRandomNullUUID())
+	session := &oidc.Session{
+		ChallengeID: challenge,
+	}
+	sessionData, _ := json.Marshal(session)
+
+	expected := model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: "rt_update", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}
+
+	gomock.InOrder(
+		s.mock.EXPECT().UpdateOAuth2RefreshTokenSession(s.ctx, expected).Return(nil),
+		s.mock.EXPECT().UpdateOAuth2RefreshTokenSession(s.ctx, expected).Return(fmt.Errorf("error updating: %w", storage.ErrNoRowsAffected)),
+		s.mock.EXPECT().UpdateOAuth2RefreshTokenSession(s.ctx, expected).Return(fmt.Errorf("update error")),
+	)
+
+	request := &oauthelia2.Request{
+		ID:      abc,
+		Client:  &oidc.RegisteredClient{ID: "example"},
+		Session: session,
+	}
+
+	s.NoError(s.store.UpdateRefreshTokenSession(s.ctx, "rt_update", request))
+	s.ErrorIs(s.store.UpdateRefreshTokenSession(s.ctx, "rt_update", request), oauthelia2.ErrNotFound)
+	s.EqualError(s.store.UpdateRefreshTokenSession(s.ctx, "rt_update", request), "update error")
+	s.EqualError(s.store.UpdateRefreshTokenSession(s.ctx, "rt_update", nil), "failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil")
+}
+
+func (s *StoreSuite) TestDeletePARSessionShouldReturnNotFoundWhenAlreadyDeleted() {
+	s.mock.EXPECT().
+		RevokeOAuth2PushedAuthorizationSession(s.ctx, "urn:par-redeemed").
+		Return(fmt.Errorf("error revoking: %w", storage.ErrNoRowsAffected))
+
+	s.ErrorIs(s.store.DeletePARSession(s.ctx, "urn:par-redeemed"), oauthelia2.ErrNotFound)
 }
 
 func (s *StoreSuite) TestCreateDeviceCodeSession() {
@@ -982,15 +1182,29 @@ func (s *StoreSuite) TestGetDeviceCodeSession() {
 		assert.NotNil(t, request)
 	})
 
-	s.T().Run("ShouldErrWhenInactive", func(t *testing.T) {
+	s.T().Run("ShouldReturnRequestWithErrWhenInactive", func(t *testing.T) {
 		s.mock.EXPECT().LoadOAuth2DeviceCodeSession(s.ctx, abc).Return(&model.OAuth2DeviceCodeSession{
 			Active:    false,
 			Signature: abc,
+			RequestID: abc,
+			ClientID:  "hs256",
+			Session:   sessionData,
 		}, nil)
 
 		request, err := s.store.GetDeviceCodeSession(s.ctx, abc, session)
 
-		assert.Error(t, err)
+		assert.ErrorIs(t, err, oauthelia2.ErrInvalidatedDeviceCode)
+		require.NotNil(t, request)
+		assert.Equal(t, abc, request.GetID())
+		assert.Equal(t, abc, request.GetDeviceCodeSignature())
+	})
+
+	s.T().Run("ShouldErrNotFoundWhenMissing", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSession(s.ctx, abc).Return(nil, fmt.Errorf("error selecting oauth2 device code session: %w", sql.ErrNoRows))
+
+		request, err := s.store.GetDeviceCodeSession(s.ctx, abc, session)
+
+		assert.ErrorIs(t, err, oauthelia2.ErrNotFound)
 		assert.Nil(t, request)
 	})
 
@@ -1028,6 +1242,14 @@ func (s *StoreSuite) TestInvalidateDeviceCodeSession() {
 		assert.NoError(t, err)
 	})
 
+	s.T().Run("ShouldErrInvalidatedWhenAlreadyInactive", func(t *testing.T) {
+		s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, abc).Return(fmt.Errorf("error deactivating: %w", storage.ErrNoRowsAffected))
+
+		err := s.store.InvalidateDeviceCodeSession(s.ctx, abc)
+
+		assert.ErrorIs(t, err, oauthelia2.ErrInvalidatedDeviceCode)
+	})
+
 	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
 		s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, abc).Return(fmt.Errorf("deactivate error"))
 
@@ -1057,15 +1279,29 @@ func (s *StoreSuite) TestGetDeviceCodeSessionByUserCode() {
 		assert.NotNil(t, request)
 	})
 
-	s.T().Run("ShouldErrWhenInactive", func(t *testing.T) {
+	s.T().Run("ShouldReturnRequestWithErrWhenInactive", func(t *testing.T) {
 		s.mock.EXPECT().LoadOAuth2DeviceCodeSessionByUserCode(s.ctx, "user-code-123").Return(&model.OAuth2DeviceCodeSession{
 			Active:    false,
 			Signature: abc,
+			RequestID: abc,
+			ClientID:  "hs256",
+			Session:   sessionData,
 		}, nil)
 
 		request, err := s.store.GetDeviceCodeSessionByUserCode(s.ctx, "user-code-123", session)
 
-		assert.Error(t, err)
+		assert.ErrorIs(t, err, oauthelia2.ErrInvalidatedDeviceCode)
+		require.NotNil(t, request)
+		assert.Equal(t, abc, request.GetID())
+		assert.Equal(t, abc, request.GetDeviceCodeSignature())
+	})
+
+	s.T().Run("ShouldErrNotFoundWhenMissing", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSessionByUserCode(s.ctx, "user-code-123").Return(nil, fmt.Errorf("error selecting oauth2 device code session: %w", sql.ErrNoRows))
+
+		request, err := s.store.GetDeviceCodeSessionByUserCode(s.ctx, "user-code-123", session)
+
+		assert.ErrorIs(t, err, oauthelia2.ErrNotFound)
 		assert.Nil(t, request)
 	})
 
@@ -1125,6 +1361,16 @@ func (s *StoreSuite) TestSerializationFailureMapping() {
 		{
 			name: "ShouldMapRotateRefreshToken",
 			setup: func() {
+				s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(errBusy)
+			},
+			do: func() (err error) {
+				return s.store.RotateRefreshToken(s.ctx, abc, abc)
+			},
+		},
+		{
+			name: "ShouldMapRotateRefreshTokenAccessSignature",
+			setup: func() {
+				s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(nil)
 				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, abc).Return("", errBusy)
 			},
 			do: func() (err error) {

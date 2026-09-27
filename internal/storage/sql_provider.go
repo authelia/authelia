@@ -140,8 +140,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserOpaqueIdentifiers:           fmt.Sprintf(queryFmtSelectUserOpaqueIdentifiers, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
 
-		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
-		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
+		sqlInsertOAuth2BlacklistedJTI:        fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
+		sqlDeleteOAuth2BlacklistedJTIExpired: fmt.Sprintf(queryFmtDeleteOAuth2BlacklistedJTIExpired, tableOAuth2BlacklistedJTI),
+		sqlSelectOAuth2BlacklistedJTI:        fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
 		sqlUpdateOAuth2PARContext: fmt.Sprintf(queryFmtUpdateOAuth2PARContext, tableOAuth2PARContext),
@@ -193,6 +194,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeactivateOAuth2PKCERequestSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2PKCERequestSession),
 
 		sqlInsertOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2RefreshTokenSession, tableOAuth2RefreshTokenSession),
+		sqlUpdateOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtUpdateOAuth2RefreshTokenSession, tableOAuth2RefreshTokenSession),
 		sqlSelectOAuth2RefreshTokenSessionAccessSignature: fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSessionAccessSignature, tableOAuth2RefreshTokenSession),
 		sqlSelectOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2RefreshTokenSession),
 		sqlRevokeOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2RefreshTokenSession),
@@ -386,6 +388,7 @@ type SQLProvider struct {
 
 	// Table: oauth2_refresh_token_session.
 	sqlInsertOAuth2RefreshTokenSession                string
+	sqlUpdateOAuth2RefreshTokenSession                string
 	sqlSelectOAuth2RefreshTokenSessionAccessSignature string
 	sqlSelectOAuth2RefreshTokenSession                string
 	sqlRevokeOAuth2RefreshTokenSession                string
@@ -393,8 +396,9 @@ type SQLProvider struct {
 	sqlDeactivateOAuth2RefreshTokenSession            string
 	sqlDeactivateOAuth2RefreshTokenSessionByRequestID string
 
-	sqlUpsertOAuth2BlacklistedJTI string
-	sqlSelectOAuth2BlacklistedJTI string
+	sqlInsertOAuth2BlacklistedJTI        string
+	sqlDeleteOAuth2BlacklistedJTIExpired string
+	sqlSelectOAuth2BlacklistedJTI        string
 
 	// Utility.
 	sqlSelectExistingTables string
@@ -1323,6 +1327,31 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 	return nil
 }
 
+// UpdateOAuth2RefreshTokenSession replaces the request of the active OAuth2.0 refresh token session with the
+// signature of the given session in the storage provider. It returns ErrNoRowsAffected when no active session has the
+// signature.
+func (p *SQLProvider) UpdateOAuth2RefreshTokenSession(ctx context.Context, session model.OAuth2Session) (err error) {
+	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeRefreshToken.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
+		return fmt.Errorf("error encrypting oauth2 %s session data for subject '%s' and request id '%s' and challenge id '%s': %w", OAuth2SessionTypeRefreshToken, session.Subject.String, session.RequestID, session.ChallengeID.UUID, err)
+	}
+
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2RefreshTokenSession,
+		session.ChallengeID, session.RequestID, session.ClientID, session.Subject, session.RequestedAt,
+		session.RequestedScopes, session.GrantedScopes, session.RequestedAudience, session.GrantedAudience,
+		session.RequestedResource, session.GrantedResource, session.Form, session.Session,
+		session.Signature); err != nil {
+		return fmt.Errorf("error updating oauth2 %s session with signature '%s': %w", OAuth2SessionTypeRefreshToken, session.Signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error updating oauth2 %s session with signature '%s': %w", OAuth2SessionTypeRefreshToken, session.Signature, err)
+	}
+
+	return nil
+}
+
 // LoadOAuth2RefreshTokenSessionAccessSignature loads the signature of the access token issued alongside the refresh
 // token with the given signature.
 func (p *SQLProvider) LoadOAuth2RefreshTokenSessionAccessSignature(ctx context.Context, signature string) (accessSignature string, err error) {
@@ -1365,7 +1394,8 @@ func (p *SQLProvider) RevokeOAuth2Session(ctx context.Context, sessionType OAuth
 	return nil
 }
 
-// RevokeOAuth2SessionByRequestID marks an OAuth2.0 session as revoked in the storage provider.
+// RevokeOAuth2SessionByRequestID marks every OAuth2.0 session with the request id as revoked in the storage provider.
+// It returns ErrNoRowsAffected when no unrevoked session has the request id.
 func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error) {
 	var query string
 
@@ -1390,7 +1420,7 @@ func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
 	}
 
-	if err = checkSingleUpdateResult(result); err != nil {
+	if err = checkAnyUpdateResult(result); err != nil {
 		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
 	}
 
@@ -1663,9 +1693,15 @@ func (p *SQLProvider) UpdateOAuth2PushedAuthorizationSession(ctx context.Context
 	return nil
 }
 
-// SaveOAuth2BlacklistedJTI saves an OAuth2.0 blacklisted JTI to the storage provider.
+// SaveOAuth2BlacklistedJTI saves an OAuth2.0 blacklisted JTI to the storage provider. A blacklisted JTI with the same
+// signature which has expired is replaced, and one which has not expired is left as it is and results in an error
+// which satisfies IsUniqueConstraintViolation, so only one of several concurrent saves of a signature succeeds.
 func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error) {
-	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt); err != nil {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteOAuth2BlacklistedJTIExpired, blacklistedJTI.Signature, time.Now()); err != nil {
+		return fmt.Errorf("error deleting expired oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
+	}
+
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2BlacklistedJTI, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt); err != nil {
 		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
 	}
 

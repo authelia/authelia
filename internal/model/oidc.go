@@ -49,12 +49,21 @@ func NewOAuth2ConsentSessionWithForm(expires time.Time, subject uuid.UUID, r oau
 	return consent, nil
 }
 
-// NewOAuth2BlacklistedJTI creates a new OAuth2BlacklistedJTI.
-func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2BlacklistedJTI) {
+// NewOAuth2BlacklistedJTI creates a new OAuth2BlacklistedJTI for a JTI of the given issuer.
+func NewOAuth2BlacklistedJTI(issuer, jti string, exp time.Time) (jtiBlacklist OAuth2BlacklistedJTI) {
 	return OAuth2BlacklistedJTI{
-		Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(jti))),
+		Signature: NewOAuth2BlacklistedJTISignature(issuer, jti),
 		ExpiresAt: exp,
 	}
+}
+
+// NewOAuth2BlacklistedJTISignature returns the signature of a JTI of the given issuer. A JTI is only unique among the
+// JWTs of one issuer, so the signature covers the fixed length digest of the issuer followed by the JTI, which no
+// other issuer and JTI can produce.
+func NewOAuth2BlacklistedJTISignature(issuer, jti string) (signature string) {
+	digest := sha256.Sum256([]byte(issuer))
+
+	return fmt.Sprintf("%x", sha256.Sum256(append(digest[:], jti...)))
 }
 
 // NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and oauthelia2.Requester.
@@ -538,6 +547,7 @@ func (s *OAuth2Session) ToRequest(ctx context.Context, session oauthelia2.Sessio
 		GrantedResource:   oauthelia2.Arguments(s.GrantedResource),
 		Form:              values,
 		Session:           session,
+		Claims:            newClaimsRequestFromForm(values),
 	}, nil
 }
 
@@ -638,6 +648,7 @@ func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthel
 			GrantedResource:   oauthelia2.Arguments(s.GrantedResource),
 			Form:              values,
 			Session:           session,
+			Claims:            newClaimsRequestFromForm(values),
 		},
 		DeviceCodeSignature: s.Signature,
 		UserCodeSignature:   s.UserCodeSignature,
@@ -698,6 +709,7 @@ func (par *OAuth2PushedAuthorizationSession) ToAuthorizeRequest(ctx context.Cont
 		RequestedResource: oauthelia2.Arguments(par.Resource),
 		Form:              form,
 		Session:           session,
+		Claims:            newClaimsRequestFromForm(form),
 	}
 
 	request.State = form.Get("state")
@@ -733,4 +745,12 @@ type OpenIDSession interface {
 
 	GetChallengeID() uuid.NullUUID
 	GetStorageSubject() (subject string)
+}
+
+// newClaimsRequestFromForm returns the parsed OpenID Connect 1.0 'claims' parameter of a stored form. The parameter
+// was validated before the form was stored, so a value which can't be parsed is treated as not having been requested.
+func newClaimsRequestFromForm(form url.Values) (claims *oauthelia2.ClaimsRequest) {
+	claims, _ = oauthelia2.ParseClaimsRequest(form)
+
+	return claims
 }

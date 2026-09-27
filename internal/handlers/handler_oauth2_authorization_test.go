@@ -21,7 +21,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/jose"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"

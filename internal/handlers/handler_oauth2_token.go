@@ -120,6 +120,8 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 			return true
 		}
 
+		oidc.PopulateRequestedResourceImplicit(requester)
+
 		if err = oidc.PopulateClientCredentialsFlowRequester(ctx, ctx.Providers.OpenIDConnect, client, requester); err != nil {
 			ctx.GetLogger().
 				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).

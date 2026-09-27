@@ -514,6 +514,14 @@ const (
 		active, revoked, form_data, session_data, access_signature)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
+	//nolint:gosec // Not a Credential.
+	queryFmtUpdateOAuth2RefreshTokenSession = `
+		UPDATE %s
+		SET challenge_id = ?, request_id = ?, client_id = ?, subject = ?, requested_at = ?,
+		    requested_scopes = ?, granted_scopes = ?, requested_audience = ?, granted_audience = ?,
+		    requested_resource = ?, granted_resource = ?, form_data = ?, session_data = ?
+		WHERE signature = ? AND active = TRUE AND revoked = FALSE;`
+
 	queryFmtSelectOAuth2RefreshTokenSessionAccessSignature = `
 		SELECT access_signature
 		FROM %s
@@ -626,15 +634,13 @@ const (
 		FROM %s
 		WHERE signature = ?;`
 
-	queryFmtUpsertOAuth2BlacklistedJTI = `
-		REPLACE INTO %s (signature, expires_at)
-		VALUES(?, ?);`
-
-	queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL = `
+	queryFmtInsertOAuth2BlacklistedJTI = `
 		INSERT INTO %s (signature, expires_at)
-		VALUES ($1, $2)
-			ON CONFLICT (signature)
-			DO UPDATE SET expires_at = $2;`
+		VALUES (?, ?);`
+
+	queryFmtDeleteOAuth2BlacklistedJTIExpired = `
+		DELETE FROM %s
+		WHERE signature = ? AND expires_at < ?;`
 
 	queryFmtSelectOAuth2SessionEncryptedData = `
 		SELECT id, signature, session_data

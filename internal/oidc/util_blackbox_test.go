@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/language"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
-	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -950,6 +950,20 @@ func (t TestGetLangRequester) GetGrantedResource() (grantedResource oauthelia2.A
 
 func (t TestGetLangRequester) GrantResource(resource string) {}
 
+func (t TestGetLangRequester) GetRequestedAuthorizationDetails() (details oauthelia2.AuthorizationDetails) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetRequestedAuthorizationDetails(details oauthelia2.AuthorizationDetails) {
+}
+
+func (t TestGetLangRequester) GetGrantedAuthorizationDetails() (details oauthelia2.AuthorizationDetails) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetGrantedAuthorizationDetails(details oauthelia2.AuthorizationDetails) {
+}
+
 func (t TestGetLangRequester) GetSession() (session oauthelia2.Session) {
 	return nil
 }
@@ -964,6 +978,82 @@ func (t TestGetLangRequester) Merge(requester oauthelia2.Requester) {}
 
 func (t TestGetLangRequester) Sanitize(allowedParameters []string) oauthelia2.Requester {
 	return nil
+}
+
+func TestPopulateRequestedResourceImplicit(t *testing.T) {
+	resource := []string{"https://api.example.com", "https://app.example.com"}
+
+	testCases := []struct {
+		name      string
+		client    oauthelia2.Client
+		form      url.Values
+		requested oauthelia2.Arguments
+		expected  oauthelia2.Arguments
+	}{
+		{
+			name:     "ShouldPopulateImplicit",
+			client:   &oidc.RegisteredClient{Resource: resource, RequestedResourceMode: oidc.ClientRequestedResourceModeImplicit},
+			form:     url.Values{"scope": []string{"openid"}},
+			expected: resource,
+		},
+		{
+			name:     "ShouldNotPopulateExplicit",
+			client:   &oidc.RegisteredClient{Resource: resource, RequestedResourceMode: oidc.ClientRequestedResourceModeExplicit},
+			form:     url.Values{"scope": []string{"openid"}},
+			expected: nil,
+		},
+		{
+			name:     "ShouldNotPopulateAudienceRequested",
+			client:   &oidc.RegisteredClient{Resource: resource, RequestedResourceMode: oidc.ClientRequestedResourceModeImplicit},
+			form:     url.Values{"audience": []string{"https://app.example.com"}},
+			expected: nil,
+		},
+		{
+			name:     "ShouldNotPopulateAudienceEmpty",
+			client:   &oidc.RegisteredClient{Resource: resource, RequestedResourceMode: oidc.ClientRequestedResourceModeImplicit},
+			form:     url.Values{"audience": []string{""}},
+			expected: nil,
+		},
+		{
+			name:      "ShouldNotPopulateResourceRequested",
+			client:    &oidc.RegisteredClient{Resource: resource, RequestedResourceMode: oidc.ClientRequestedResourceModeImplicit},
+			form:      url.Values{"resource": []string{"https://api.example.com"}},
+			requested: oauthelia2.Arguments{"https://api.example.com"},
+			expected:  oauthelia2.Arguments{"https://api.example.com"},
+		},
+		{
+			name:     "ShouldNotPopulateResourceEmpty",
+			client:   &oidc.RegisteredClient{Resource: resource, RequestedResourceMode: oidc.ClientRequestedResourceModeImplicit},
+			form:     url.Values{"resource": []string{""}},
+			expected: nil,
+		},
+		{
+			name:     "ShouldPopulateNothingWithoutResources",
+			client:   &oidc.RegisteredClient{RequestedResourceMode: oidc.ClientRequestedResourceModeImplicit},
+			form:     url.Values{},
+			expected: nil,
+		},
+		{
+			name:     "ShouldNotPopulateOtherClient",
+			client:   &oauthelia2.DefaultClient{Resource: resource},
+			form:     url.Values{},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			requester := &oauthelia2.Request{Client: tc.client, Form: tc.form, RequestedResource: tc.requested}
+
+			oidc.PopulateRequestedResourceImplicit(requester)
+
+			assert.Equal(t, tc.expected, requester.GetRequestedResource())
+		})
+	}
+
+	assert.NotPanics(t, func() {
+		oidc.PopulateRequestedResourceImplicit(nil)
+	})
 }
 
 func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
