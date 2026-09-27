@@ -29,8 +29,6 @@ const (
 	filterField    = "filter"
 	filterTemplate = "template"
 
-	// filterRemovedExpandEnv is retained solely to produce an actionable error for users upgrading from a
-	// configuration which still enables the removed 'expand-env' filter.
 	filterRemovedExpandEnv = "expand-env"
 )
 
