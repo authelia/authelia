@@ -22,11 +22,11 @@ seo:
 
 There are several options which affect the loading of files:
 
-|               Name                |          Argument           |        Environment Variable        |                                           Description                                            |
-| :-------------------------------: | :-------------------------: | :--------------------------------: | :----------------------------------------------------------------------------------------------: |
-|        Configuration Paths        |      `--config`, `-c`       |        `X_AUTHELIA_CONFIG`         |        A list of file or directory (non-recursive) paths to load configuration files from        |
-|     [Filters](#file-filters)      |     `--config.filters`      |    `X_AUTHELIA_CONFIG_FILTERS`     |          A list of filters applied to every file from the Files or Directories options           |
-| [Filters](#file-filters) (Values) |  `--config.filters.values`  | `X_AUTHELIA_CONFIG_FILTERS_VALUES` | The path or paths to YAML/TOML/JSON files which contain values to be interpreted by some filters |
+|               Name                |         Argument          |        Environment Variable        |                                           Description                                            |
+| :-------------------------------: | :-----------------------: | :--------------------------------: | :----------------------------------------------------------------------------------------------: |
+|        Configuration Paths        |     `--config`, `-c`      |        `X_AUTHELIA_CONFIG`         |        A list of file or directory (non-recursive) paths to load configuration files from        |
+|     [Filters](#file-filters)      |    `--config.filters`     |    `X_AUTHELIA_CONFIG_FILTERS`     |          A list of filters applied to every file from the Files or Directories options           |
+| [Filters](#file-filters) (Values) | `--config.filters.values` | `X_AUTHELIA_CONFIG_FILTERS_VALUES` | The path or paths to YAML/TOML/JSON files which contain values to be interpreted by some filters |
 
 ### Configuration Paths
 

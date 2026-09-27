@@ -175,8 +175,7 @@ func NewFileFilters(valuesFiles []string, left, right string, names ...string) (
 	}
 
 	for i, name := range filterNames {
-		switch name {
-		case filterTemplate:
+		if name == filterTemplate {
 			filters[i] = NewTemplateFileFilter(values, left, right)
 		}
 	}
