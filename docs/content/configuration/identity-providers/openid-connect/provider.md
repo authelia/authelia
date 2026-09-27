@@ -230,6 +230,7 @@ The key _**MUST**_:
   - An RSA private key:
     - Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
     - Have a key size of at least 2048 bits.
+    - Have a public exponent which is odd and at least 3.
   - An ECDSA private key:
     - Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
     - Use one of the following elliptical curves:
@@ -237,6 +238,9 @@ The key _**MUST**_:
       - P-384.
       - P-512.
 - Include matching public key data if the [certificate_chain](#certificate_chain) is provided for the first certificate in the chain.
+- Be consistent, i.e. the public key data must be derived from the private key data.
+- Be usable with the configured [algorithm](#algorithm), for example the `ES384` algorithm requires an ECDSA key using
+  the P-384 curve.
 
 [PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017

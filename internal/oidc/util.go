@@ -17,9 +17,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
-	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -403,6 +403,38 @@ func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Confi
 	}
 
 	return nil
+}
+
+// RequestedResourceImplicitClient is a client which can implicitly request the resources it is permitted to request.
+type RequestedResourceImplicitClient interface {
+	// GetRequestedResourceImplicit is indicative of if a client will implicitly request all resources it is allowed
+	// to request in the absence of the audience and resource parameters.
+	GetRequestedResourceImplicit() (implicit bool)
+
+	oauthelia2.Client
+}
+
+// PopulateRequestedResourceImplicit sets the requested resources of the requester to all of the resources the client
+// is permitted to request when the client implicitly requests them, and the request includes neither the audience
+// parameter or the resource parameter. This is the equivalent of the oauthelia2.RequestedAudienceImplicitClient
+// behavior for the resource parameter.
+func PopulateRequestedResourceImplicit(requester oauthelia2.Requester) {
+	if requester == nil {
+		return
+	}
+
+	client, ok := requester.GetClient().(RequestedResourceImplicitClient)
+	if !ok || !client.GetRequestedResourceImplicit() {
+		return
+	}
+
+	form := requester.GetRequestForm()
+
+	if form.Has(FormParameterAudience) || form.Has(FormParameterResource) || len(requester.GetRequestedResource()) != 0 {
+		return
+	}
+
+	requester.SetRequestedResource(client.GetResource())
 }
 
 // IsAccessToken returns true if the provided token is possibly an Authelia OAuth 2.0 Access Token.

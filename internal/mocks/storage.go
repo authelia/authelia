@@ -1413,6 +1413,20 @@ func (mr *MockStorageMockRecorder) UpdateOAuth2PushedAuthorizationSession(ctx, p
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2PushedAuthorizationSession), ctx, par)
 }
 
+// UpdateOAuth2RefreshTokenSession mocks base method.
+func (m *MockStorage) UpdateOAuth2RefreshTokenSession(ctx context.Context, session model.OAuth2Session) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOAuth2RefreshTokenSession", ctx, session)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOAuth2RefreshTokenSession indicates an expected call of UpdateOAuth2RefreshTokenSession.
+func (mr *MockStorageMockRecorder) UpdateOAuth2RefreshTokenSession(ctx, session any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2RefreshTokenSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2RefreshTokenSession), ctx, session)
+}
+
 // UpdateTOTPConfigurationSignIn mocks base method.
 func (m *MockStorage) UpdateTOTPConfigurationSignIn(ctx context.Context, id int, lastUsedAt sql.NullTime) error {
 	m.ctrl.T.Helper()

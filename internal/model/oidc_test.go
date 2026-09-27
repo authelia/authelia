@@ -1570,9 +1570,13 @@ func TestOAuth2ConsentSessionHasExactGrants(t *testing.T) {
 }
 
 func TestMisc(t *testing.T) {
-	jti := model.NewOAuth2BlacklistedJTI("abc", time.Unix(10000, 0).UTC())
+	jti := model.NewOAuth2BlacklistedJTI("example", "abc", time.Unix(10000, 0).UTC())
 
-	assert.Equal(t, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", jti.Signature)
+	assert.Equal(t, "641fc2e1248a4939939dd0764ae8174a14da1ccbeb4c7dfa930f3a2192957561", jti.Signature)
+	assert.Equal(t, jti.Signature, model.NewOAuth2BlacklistedJTISignature("example", "abc"))
+	assert.NotEqual(t, jti.Signature, model.NewOAuth2BlacklistedJTISignature("exampleabc", ""))
+	assert.NotEqual(t, jti.Signature, model.NewOAuth2BlacklistedJTISignature("example", "eabc"))
+	assert.NotEqual(t, jti.Signature, model.NewOAuth2BlacklistedJTISignature("other", "abc"))
 	assert.Equal(t, time.Unix(10000, 0).UTC(), jti.ExpiresAt)
 
 	sub := uuid.MustParse("b9423f3a-65da-4ea8-8f6b-1dafb141f3a8")
@@ -1634,6 +1638,63 @@ func TestOAuth2ResourceSurvivesRehydration(t *testing.T) {
 			assert.Equal(t, tc.Expected, request.GetRequestedResource())
 			assert.Equal(t, tc.Expected, request.GetGrantedResource())
 			assert.Equal(t, oauthelia2.Arguments{"aud-a"}, request.GetRequestedAudience())
+		})
+	}
+}
+
+func TestOAuth2SessionClaimsSurviveRehydration(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Form     string
+		Expected *oauthelia2.ClaimsRequest
+	}{
+		{
+			Name:     "ShouldRestoreClaims",
+			Form:     url.Values{"claims": []string{`{"id_token":{"email":{"essential":true}},"userinfo":{"name":null}}`}}.Encode(),
+			Expected: &oauthelia2.ClaimsRequest{IDToken: map[string]*oauthelia2.ClaimRequest{"email": {Essential: true}}, UserInfo: map[string]*oauthelia2.ClaimRequest{"name": nil}},
+		},
+		{
+			Name:     "ShouldRestoreNoClaimsWhenAbsent",
+			Form:     url.Values{"scope": []string{"openid"}}.Encode(),
+			Expected: nil,
+		},
+		{
+			Name:     "ShouldRestoreNoClaimsWhenMalformed",
+			Form:     url.Values{"claims": []string{`not-json`}}.Encode(),
+			Expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			store := mocks.NewMockOAuth2Storage(ctrl)
+
+			store.EXPECT().GetClient(context.TODO(), "test-client").Return(&oidc.RegisteredClient{ID: "test-client"}, nil).Times(3)
+
+			session := &model.OAuth2Session{RequestID: "req-1", ClientID: "test-client", Form: tc.Form, Session: []byte("{}")}
+
+			request, err := session.ToRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, request.GetClaims())
+
+			device := &model.OAuth2DeviceCodeSession{RequestID: "req-1", ClientID: "test-client", Form: tc.Form, Session: []byte("{}")}
+
+			drequest, err := device.ToRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, drequest.GetClaims())
+
+			par := &model.OAuth2PushedAuthorizationSession{RequestID: "req-1", ClientID: "test-client", Form: tc.Form, Session: []byte("{}")}
+
+			prequest, err := par.ToAuthorizeRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, prequest.GetClaims())
 		})
 	}
 }

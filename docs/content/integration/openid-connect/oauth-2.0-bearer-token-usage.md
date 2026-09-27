@@ -98,7 +98,9 @@ the granted audience or the granted resources. The granted audience can be affec
 parameter and the users consent if relevant, or the clients `requested_audience_policy`; specifically when the
 `requested_audience_policy` is `implicit` the permitted audience values are automatically assumed to be the requested
 audience when no explicit requested audience is available. The granted resources however can only be affected by the
-`resource` request parameter and the users consent if relevant.
+`resource` request parameter and the users consent if relevant. A client can only request a resource which is permitted
+by the [resource](../../configuration/identity-providers/openid-connect/clients.md#resource) client option, the
+[audience](../../configuration/identity-providers/openid-connect/clients.md#audience) client option is not considered.
 
 The users consent plays a part when the Authorization Code Flow is used and the user is presented a consent dialog. At
 this time the user automatically grants all requested audience and requested resources, however at a future date they
