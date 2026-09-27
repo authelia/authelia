@@ -33,6 +33,15 @@ server:
     authz:
       forward-auth:
         implementation: 'ForwardAuth'
+        headers:
+          Remote-User:
+            user_attribute: 'username'
+          Remote-Groups:
+            user_attribute: 'groups'
+          Remote-Name:
+            user_attribute: 'display_name'
+          Remote-Email:
+            user_attribute: 'email'
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -41,6 +50,15 @@ server:
           - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
+        headers:
+          Remote-User:
+            user_attribute: 'username'
+          Remote-Groups:
+            user_attribute: 'groups'
+          Remote-Name:
+            user_attribute: 'display_name'
+          Remote-Email:
+            user_attribute: 'email'
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -49,6 +67,15 @@ server:
           - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
+        headers:
+          Remote-User:
+            user_attribute: 'username'
+          Remote-Groups:
+            user_attribute: 'groups'
+          Remote-Name:
+            user_attribute: 'display_name'
+          Remote-Email:
+            user_attribute: 'email'
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -79,6 +106,31 @@ alphanumeric character.
 The underlying implementation for the endpoint. Valid case-sensitive values are `ForwardAuth`, `ExtAuthz`,
 `AuthRequest`, and `Legacy`. Read more about the implementations in the
 [reference guide](../../reference/guides/proxy-authorization.md#implementations).
+
+### headers
+
+{{< confkey type="dictionary(object)" required="no" >}}
+
+The headers value contains a dictionary where the dictionary key is the header name and the dictionary value is an
+object which determines the header value.
+
+The header name must only contain valid header name characters, and must not be a standard or otherwise reserved header
+such as `Content-Type`, `Location`, `Set-Cookie`, `WWW-Authenticate`, or any of the `Access-Control-*`, `X-Forwarded-*`,
+and `X-Original-*` headers. As header names are case-insensitive the same header must not be configured more than once
+in differing cases.
+
+Configuring this option replaces the default headers entirely, so the `Remote-User`, `Remote-Groups`, `Remote-Name`, and
+`Remote-Email` headers must be included if they are still required.
+
+#### user_attribute
+
+{{< confkey type="string" required="yes" >}}
+
+The user attribute to derive the header value from. This attribute can be one available from the authentication backend
+or one determined via the [User Attribute Definitions](../definitions/user-attributes.md). Attribute names which are not
+known to Authelia, and attributes which are not mapped by the configured authentication backend, cause a startup error.
+
+Attributes which resolve to a list are joined with a comma.
 
 ### authn_strategies
 

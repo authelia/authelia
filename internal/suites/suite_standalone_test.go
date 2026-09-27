@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -294,6 +295,82 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
 	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+}
+
+func (s *StandaloneSuite) doAuthzBasicRequest(endpoint, username, password string) *http.Response {
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/authz/%s", AutheliaBaseURL, endpoint), nil)
+	s.Require().NoError(err)
+
+	req.Header.Set("X-Forwarded-Method", fasthttp.MethodGet)
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("singlefactor.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-URI", "/")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
+
+	if username != "" {
+		req.SetBasicAuth(username, password)
+	}
+
+	res, err := NewHTTPClient().Do(req)
+	s.Require().NoError(err)
+
+	s.T().Cleanup(func() {
+		_ = res.Body.Close()
+	})
+
+	return res
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithDefaultAuthzHeaders() {
+	res := s.doAuthzBasicRequest("forward-auth", "john", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("john", res.Header.Get("Remote-User"))
+	s.Assert().ElementsMatch([]string{"admins", "dev"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
+	s.Assert().Equal("John Doe", res.Header.Get("Remote-Name"))
+	s.Assert().Equal("john.doe@authelia.com", res.Header.Get("Remote-Email"))
+
+	s.Assert().Empty(res.Header.Values("Remote-Given-Name"))
+	s.Assert().Empty(res.Header.Values("Remote-Employee-Id"))
+	s.Assert().Empty(res.Header.Values("Remote-Is-Admin"))
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeaders() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "john", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("john", res.Header.Get("Remote-User"))
+	s.Assert().ElementsMatch([]string{"admins", "dev"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
+	s.Assert().Equal("John", res.Header.Get("Remote-Given-Name"))
+	s.Assert().Equal("1001", res.Header.Get("Remote-Employee-Id"))
+	s.Assert().Equal("true", res.Header.Get("Remote-Is-Admin"))
+
+	s.Assert().Empty(res.Header.Values("Remote-Name"))
+	s.Assert().Empty(res.Header.Values("Remote-Email"))
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeadersForUserWithoutAttributes() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "harry", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("harry", res.Header.Get("Remote-User"))
+	s.Assert().Equal("", res.Header.Get("Remote-Groups"))
+	s.Assert().Equal("", res.Header.Get("Remote-Given-Name"))
+	s.Assert().Equal("", res.Header.Get("Remote-Employee-Id"))
+	s.Assert().Equal("false", res.Header.Get("Remote-Is-Admin"))
+}
+
+func (s *StandaloneSuite) TestShouldNotRespondWithConfiguredAuthzHeadersWhenUnauthenticated() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "", "")
+
+	s.Assert().Equal(fasthttp.StatusFound, res.StatusCode)
+
+	for _, header := range []string{"Remote-User", "Remote-Groups", "Remote-Given-Name", "Remote-Employee-Id", "Remote-Is-Admin"} {
+		s.Assert().Empty(res.Header.Values(header), header)
+	}
 }
 
 func (s *StandaloneSuite) TestShouldServeVerboseHealthCheck() {

@@ -7,14 +7,70 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+var authzSessionUserAttributes = []string{
+	expression.AttributeUserUsername,
+	expression.AttributeUserGroups,
+	expression.AttributeUserDisplayName,
+	expression.AttributeUserEmail,
+	expression.AttributeUserEmails,
+	expression.AttributeUserEmailsExtra,
+	expression.AttributeUserEmailVerified,
+	expression.AttributeUserUpdatedAt,
+}
+
+func authzHeadersRequireExtendedUserDetails(headers []AuthzHeader) (extended bool) {
+	for _, header := range headers {
+		if !utils.IsStringInSlice(header.Attribute, authzSessionUserAttributes) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func authzHeaderValue(object any) (value string) {
+	switch v := object.(type) {
+	case nil:
+		return ""
+	case string:
+		return v
+	case []string:
+		return strings.Join(v, ",")
+	case []any:
+		values := make([]string, len(v))
+
+		for i, item := range v {
+			values[i] = authzHeaderValue(item)
+		}
+
+		return strings.Join(values, ",")
+	case bool:
+		return strconv.FormatBool(v)
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return fmt.Sprintf("%d", v)
+	case float32:
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case time.Time:
+		return v.Format(time.RFC3339)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
 
 func friendlyMethod(m string) (fm string) {
 	switch m {

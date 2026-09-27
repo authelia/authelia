@@ -21,6 +21,28 @@ server:
         - 'session'
         - 'user'
       cache: '0'
+    authz:
+      legacy:
+        implementation: 'Legacy'
+      auth-request:
+        implementation: 'AuthRequest'
+      ext-authz:
+        implementation: 'ExtAuthz'
+      forward-auth:
+        implementation: 'ForwardAuth'
+      forward-auth-attributes:
+        implementation: 'ForwardAuth'
+        headers:
+          Remote-User:
+            user_attribute: 'username'
+          Remote-Groups:
+            user_attribute: 'groups'
+          Remote-Given-Name:
+            user_attribute: 'given_name'
+          Remote-Employee-Id:
+            user_attribute: 'employee_id'
+          Remote-Is-Admin:
+            user_attribute: 'is_admin'
     rate_limits:
       reset_password_start:
         buckets:
@@ -95,6 +117,14 @@ session:
 authentication_backend:
   file:
     path: '/config/users.yml'
+    extra_attributes:
+      employee_id:
+        value_type: 'integer'
+
+definitions:
+  user_attributes:
+    is_admin:
+      expression: '"admins" in groups'
 
 totp:
   issuer: 'example.com'
