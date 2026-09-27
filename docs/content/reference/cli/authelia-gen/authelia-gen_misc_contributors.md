@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen release"
-description: "Reference for the authelia-gen release command."
+title: "authelia-gen misc contributors"
+description: "Reference for the authelia-gen misc contributors command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2026-09-09T22:15:52+10:00
 draft: false
 images: []
 weight: 915
@@ -14,18 +14,18 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia-gen release
+## authelia-gen misc contributors
 
-Prepare a release by updating version references, accepts one argument of either major, minor, or patch
+Generate the contributors card
 
 ```
-authelia-gen release {major|minor|patch} [flags]
+authelia-gen misc contributors [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for release
+  -h, --help   help for contributors
 ```
 
 ### Options inherited from parent commands
@@ -62,15 +62,13 @@ authelia-gen release {major|minor|patch} [flags]
       --file.server.generated string                               Sets the path of the server generated file (default "internal/server/gen.go")
       --file.web.i18n string                                       The i18n typescript configuration file in relation to the web directory (default "src/i18n/index.ts")
       --file.web.package string                                    The node package configuration file in relation to the web directory (default "package.json")
-      --latest                                                     Enables latest functionality with several generators like the JSON Schema generator
-      --next                                                       Enables next functionality with several generators like the JSON Schema generator
       --package.configuration.keys string                          Sets the package name of the keys file (default "schema")
       --package.scripts.gen string                                 Sets the package name of the authelia-scripts gen file (default "cmd")
       --version-count int                                          the maximum number of minor versions to list in output templates (default 5)
-      --versions strings                                           The versions to run the generator for, the special versions current and next are mutually exclusive
+      --versions strings                                           The versions to run the generator for, the special versions major, minor, and current are mutually exclusive
 ```
 
 ### SEE ALSO
 
-* [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
+* [authelia-gen misc](authelia-gen_misc.md)	 - Generate miscellaneous things
 

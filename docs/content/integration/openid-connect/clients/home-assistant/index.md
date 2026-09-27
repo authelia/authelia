@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Home Assistant"
-description: "Integrating Home Assistant with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Home Assistant with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-18T23:36:08+00:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Home Assistant]
   - Application:
     - [v2025.4.2](https://github.com/home-assistant/core/releases/tag/2025.4.2)

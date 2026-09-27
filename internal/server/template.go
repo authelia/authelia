@@ -53,9 +53,9 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		middlewares.SetBaseSecurityHeaders(ctx.RequestCtx)
 
 		switch ext {
-		case extHTML:
+		case utils.ExtHTML:
 			ctx.SetContentTypeTextHTML()
-		case extJSON:
+		case utils.ExtJSON:
 			ctx.SetContentTypeApplicationJSON()
 		default:
 			ctx.SetContentTypeTextPlain()
@@ -119,12 +119,12 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		var nonce string
 
 		switch ext {
-		case extHTML:
+		case utils.ExtHTML:
 			nonce = ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
 			ctx.Response.Header.Del(fasthttp.HeaderContentSecurityPolicy)
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwagger, nonce))
 			ctx.SetContentTypeTextHTML()
-		case extYML:
+		case utils.ExtYAML, utils.ExtYML:
 			ctx.SetContentTypeApplicationYAML()
 		default:
 			ctx.SetContentTypeTextPlain()
@@ -222,6 +222,9 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
+		TOTPAppAppleStore:       totpAppStoreLink(config.TOTP.Apps.AppleStore),
+		TOTPAppGooglePlay:       totpAppStoreLink(config.TOTP.Apps.GooglePlay),
+		RegistrationURL:         config.AuthenticationBackend.Registration.CustomURL.String(),
 		PasswordChange:          strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
 		PrivacyPolicyURL:        "",
 		PrivacyPolicyAccept:     strFalse,
@@ -249,6 +252,15 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 	return opts
 }
 
+// totpAppStoreLink returns the store listing link, or an empty value when the store is disabled.
+func totpAppStoreLink(store schema.TOTPAppsStore) string {
+	if store.Disable {
+		return ""
+	}
+
+	return store.URL.String()
+}
+
 // TemplatedFileOptions is a struct which is used for many templated files.
 type TemplatedFileOptions struct {
 	AssetPath              string
@@ -257,6 +269,9 @@ type TemplatedFileOptions struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	TOTPAppAppleStore      string
+	TOTPAppGooglePlay      string
+	RegistrationURL        string
 	PasswordChange         string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
@@ -293,6 +308,9 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		TOTPAppAppleStore:      options.TOTPAppAppleStore,
+		TOTPAppGooglePlay:      options.TOTPAppGooglePlay,
+		RegistrationURL:        options.RegistrationURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
@@ -313,6 +331,9 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		TOTPAppAppleStore:      options.TOTPAppAppleStore,
+		TOTPAppGooglePlay:      options.TOTPAppGooglePlay,
+		RegistrationURL:        options.RegistrationURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
@@ -352,6 +373,9 @@ type TemplatedFileCommonData struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	TOTPAppAppleStore      string
+	TOTPAppGooglePlay      string
+	RegistrationURL        string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
 	Session                string

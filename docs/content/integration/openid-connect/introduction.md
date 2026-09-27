@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "OpenID Connect 1.0"
-description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
+description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party including key implementation specifics."
 summary: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -45,6 +45,12 @@ actively perform the tests on each version of Authelia to maintain the latest co
 
 You can view our published conformance tests at [Certified OpenID Providers & Profiles] and
 [Certified OpenID Providers for Logout Profiles].
+
+In addition to the published conformance tests, all commits that change any part of the code run integration tests
+against every module of the conformance plans that Authelia is certified for or is planning to get certified for. These
+plans and modules are all of the tests required for an implementation to become certified. This is both done as a
+quality assurance measure to ensure confidence in Authelia's implementation and also to thoroughly test the
+implementation against normal use cases.
 
 ### OpenID Connect Protocol Suite
 

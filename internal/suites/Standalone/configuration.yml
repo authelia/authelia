@@ -14,6 +14,13 @@ server:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
   endpoints:
+    health:
+      verbose: true
+      providers:
+        - 'storage'
+        - 'session'
+        - 'user'
+      cache: '0'
     rate_limits:
       reset_password_start:
         buckets:

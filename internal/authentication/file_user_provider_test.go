@@ -40,11 +40,36 @@ func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
 }
 
 func TestShouldErrorAndGenerateUserDB(t *testing.T) {
-	dir := t.TempDir()
+	testCases := []struct {
+		name string
+		file string
+	}{
+		{"ShouldGenerateYAML", "users_database.yml"},
+		{"ShouldGenerateYAMLLong", "users_database.yaml"},
+		{"ShouldGenerateTOML", "users_database.toml"},
+		{"ShouldGenerateJSON", "users_database.json"},
+	}
 
-	f := filepath.Join(dir, "users_database.yml")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := filepath.Join(t.TempDir(), tc.file)
 
-	require.EqualError(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and has been generated", f))
+			require.EqualError(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and has been generated", f))
+
+			model := &FileDatabaseModel{}
+
+			require.NoError(t, model.Read(f))
+			require.Contains(t, model.Users, "authelia")
+
+			user := model.Users["authelia"]
+
+			assert.True(t, user.Disabled)
+			assert.Equal(t, "Test User", user.DisplayName)
+			assert.Equal(t, "authelia@authelia.com", user.Email)
+			assert.Equal(t, []string{"admins", "dev"}, user.Groups)
+			assert.Equal(t, "$argon2id$v=19$m=32768,t=1,p=8$eUhVT1dQa082YVk2VUhDMQ$E8QI4jHbUBt3EdsU1NFDu4Bq5jObKNx7nBKSn1EYQxk", user.Password)
+		})
+	}
 }
 
 func TestShouldErrorFailCreateDB(t *testing.T) {

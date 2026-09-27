@@ -280,3 +280,88 @@ func TestRunSuite(t *testing.T) {
 	s := new(ConfigurationHandlerFixture)
 	suite.Run(t, s)
 }
+
+func (s *ConfigurationHandlerFixture) TestShouldHaveNoMethodsWhenNothingUsesASecondFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP:     schema.TOTP{Disable: false},
+		WebAuthn: schema.WebAuthn{Disable: false},
+		DuoAPI:   schema.DuoAPI{Disable: false},
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+			Rules:         []schema.AccessControlRule{},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods: []string{},
+	})
+}
+
+func (s *ConfigurationHandlerFixture) TestShouldHaveMethodsWhenElevationRequiresASecondFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP:     schema.TOTP{Disable: false},
+		WebAuthn: schema.WebAuthn{Disable: false},
+		DuoAPI:   schema.DuoAPI{Disable: false},
+		IdentityValidation: schema.IdentityValidation{
+			ElevatedSession: schema.IdentityValidationElevatedSession{RequireSecondFactor: true},
+		},
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+			Rules:         []schema.AccessControlRule{},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
+	})
+}
+
+func (s *ConfigurationHandlerFixture) TestShouldHaveMethodsWhenElevationSkipsOnASecondFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP:     schema.TOTP{Disable: false},
+		WebAuthn: schema.WebAuthn{Disable: false},
+		DuoAPI:   schema.DuoAPI{Disable: false},
+		IdentityValidation: schema.IdentityValidation{
+			ElevatedSession: schema.IdentityValidationElevatedSession{SkipSecondFactor: true},
+		},
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+			Rules:         []schema.AccessControlRule{},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
+	})
+}
+
+func (s *ConfigurationHandlerFixture) TestShouldRespectDisabledMethodsWhenOnlyElevationUsesThem() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP:     schema.TOTP{Disable: true},
+		WebAuthn: schema.WebAuthn{Disable: false},
+		DuoAPI:   schema.DuoAPI{Disable: true},
+		IdentityValidation: schema.IdentityValidation{
+			ElevatedSession: schema.IdentityValidationElevatedSession{RequireSecondFactor: true},
+		},
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+			Rules:         []schema.AccessControlRule{},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods: []string{"webauthn"},
+	})
+}

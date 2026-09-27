@@ -48,12 +48,12 @@ func init() {
 
 	GlobalRegistry.Register(highAvailabilitySuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
+		OnError:         displayAutheliaLogs,
 		TestTimeout:     6 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
-		OnError:         displayAutheliaLogs,
+		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite is made to test Authelia in a *complete*
 environment, that is, with all components making Authelia highly available.`,
 	})

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Arcane"
-description: "Integrating Arcane with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Arcane with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-01-25T12:36:00+11:00
 draft: false
@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Arcane]
   - [v1.16.3](https://github.com/ofkm/arcane/releases/tag/v1.16.3)
 

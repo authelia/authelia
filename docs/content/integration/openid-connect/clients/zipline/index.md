@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Zipline"
-description: "Integrating Zipline with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Zipline with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-03-04T23:12:34+11:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Zipline]
   - [v4.2.3](https://github.com/diced/zipline/releases/tag/v4.2.3)
 

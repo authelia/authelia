@@ -1,0 +1,18 @@
+<!--
+SPDX-FileCopyrightText: 2026 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>JOSE for Go</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="go-import" content="authelia.com/provider/jose git https://github.com/authelia/jose-provider">
+    <meta http-equiv="refresh" content="0; url=https://pkg.go.dev/authelia.com/provider/jose">
+</head>
+<body>
+<a href="https://pkg.go.dev/authelia.com/provider/jose">Redirecting to documentation...</a>
+</body>
+</html>

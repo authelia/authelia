@@ -390,6 +390,11 @@
     "env": "AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL"
   },
   {
+    "path": "authentication_backend.registration.custom_url",
+    "secret": false,
+    "env": "AUTHELIA_AUTHENTICATION_BACKEND_REGISTRATION_CUSTOM_URL"
+  },
+  {
     "path": "certificates_directory",
     "secret": false,
     "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
@@ -815,6 +820,31 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_ENABLE_PPROF"
   },
   {
+    "path": "server.endpoints.health.cache",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_HEALTH_CACHE"
+  },
+  {
+    "path": "server.endpoints.health.detailed",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_HEALTH_DETAILED"
+  },
+  {
+    "path": "server.endpoints.health.providers",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_HEALTH_PROVIDERS"
+  },
+  {
+    "path": "server.endpoints.health.verbose",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_HEALTH_VERBOSE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.health.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_HEALTH_ENABLE"
+  },
+  {
     "path": "server.endpoints.rate_limits.openid_connect_introspection.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_INTROSPECTION_ENABLE"
@@ -1228,6 +1258,26 @@
     "path": "totp.allowed_periods",
     "secret": false,
     "env": "AUTHELIA_TOTP_ALLOWED_PERIODS"
+  },
+  {
+    "path": "totp.apps.apple_store.disable",
+    "secret": false,
+    "env": "AUTHELIA_TOTP_APPS_APPLE_STORE_DISABLE"
+  },
+  {
+    "path": "totp.apps.apple_store.url",
+    "secret": false,
+    "env": "AUTHELIA_TOTP_APPS_APPLE_STORE_URL"
+  },
+  {
+    "path": "totp.apps.google_play.disable",
+    "secret": false,
+    "env": "AUTHELIA_TOTP_APPS_GOOGLE_PLAY_DISABLE"
+  },
+  {
+    "path": "totp.apps.google_play.url",
+    "secret": false,
+    "env": "AUTHELIA_TOTP_APPS_GOOGLE_PLAY_URL"
   },
   {
     "path": "totp.digits",

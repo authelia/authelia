@@ -97,6 +97,18 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 		return nil, true
 	}
 
+	if consent.Responded() {
+		if !consent.IsAuthorized() {
+			ctx.GetLogger().Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
+
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied)
+
+			return nil, true
+		}
+
+		return consent, false
+	}
+
 	var requests *oidc.ClaimsRequests
 
 	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {

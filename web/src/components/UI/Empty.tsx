@@ -1,8 +1,7 @@
 import { type ComponentProps } from "react";
 
 import { type VariantProps, cva } from "class-variance-authority";
-
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 function Empty({ className, ...props }: ComponentProps<"div">) {
     return (

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "HomeBox"
-description: "Integrate HomeBox with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating HomeBox with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2026-02-01T22:46:39+00:00
 draft: false
@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [HomeBox]
   - [v0.23.1](https://github.com/sysadminsmedia/homebox/releases/tag/v0.23.1)
 

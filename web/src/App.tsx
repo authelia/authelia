@@ -28,6 +28,7 @@ import {
     getCSPNonce,
     getDuoSelfEnrollment,
     getPasskeyLogin,
+    getRegistrationURL,
     getRememberMe,
     getResetPassword,
     getResetPasswordCustomURL,
@@ -75,6 +76,7 @@ function App() {
                                                         rememberMe={getRememberMe()}
                                                         resetPassword={getResetPassword()}
                                                         resetPasswordCustomURL={getResetPasswordCustomURL()}
+                                                        registrationURL={getRegistrationURL()}
                                                     />
                                                 }
                                             />

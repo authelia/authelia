@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Granular Authorization"
-description: "Authelia Granular Authorization Implementation"
+description: "The Authelia roadmap item for granular authorization leveraging Authentication Method Reference Values and matching policies based on authentication strength."
 summary: "Implementation of a Granular Authorization framework will make the Authorization experience more tailored to complex requirements."
 date: 2025-03-23T19:03:40+11:00
 draft: false

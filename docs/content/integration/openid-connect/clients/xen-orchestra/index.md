@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Xen Orchestra"
-description: "Integrating Xen Orchestra with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Xen Orchestra with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Xen Orchestra]
   - [v5.105](https://xen-orchestra.com/blog/xen-orchestra-5-105/)
 

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/security.authentication.failed.json",
+  "properties": {
+    "username": {
+      "type": "string",
+      "title": "Username",
+      "description": "The username the occurrence concerns."
+    },
+    "display_name": {
+      "type": "string",
+      "title": "Display Name",
+      "description": "The display name recorded in the authentication backend."
+    },
+    "emails": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "title": "Emails",
+      "description": "The email addresses recorded in the authentication backend."
+    },
+    "remote_ip": {
+      "type": "string",
+      "title": "Remote IP",
+      "description": "The client address which caused the occurrence."
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "first_factor",
+        "second_factor"
+      ],
+      "title": "Stage"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "password",
+        "totp",
+        "webauthn",
+        "duo"
+      ],
+      "title": "Method"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "invalid_credentials",
+        "user_not_found",
+        "banned",
+        "internal_error"
+      ],
+      "title": "Reason",
+      "description": "The failure classification. Present on failures only."
+    }
+  },
+  "type": "object",
+  "required": [
+    "username",
+    "stage",
+    "method"
+  ],
+  "description": "DataAuthentication is the payload for the security.authentication.* events."
+}

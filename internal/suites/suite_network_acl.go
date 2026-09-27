@@ -46,12 +46,12 @@ func init() {
 
 	GlobalRegistry.Register(networkACLSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     1 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite has been created to test Authelia with basic feature in a non highly-available setup.
 Authelia basically use an in-memory cache to store user sessions and persist data on disk instead
 of using a remote database. Also, the user accounts are stored in file-based database.`,

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Donetick"
-description: "Integrating Donetick with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Donetick with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-08-19T08:32:16+00:00
 draft: false
@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Donetick]
   - [v0.1.53](https://github.com/donetick/donetick/releases/tag/v0.1.53)
 

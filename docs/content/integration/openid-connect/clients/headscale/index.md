@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Headscale"
-description: "Integrating Headscale with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Headscale with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-06-26T09:01:31+00:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Headscale]
   - [v0.29.1](https://github.com/juanfont/headscale/releases/tag/v0.29.1)
 

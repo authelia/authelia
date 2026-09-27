@@ -48,7 +48,7 @@ if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
   fi
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ :chrome: ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
 

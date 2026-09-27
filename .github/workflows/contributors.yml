@@ -12,7 +12,7 @@ on:
   pull_request:
     paths:
       - '.all-contributorsrc'
-      - 'cmd/authelia-gen/cmd_contributors.go'
+      - 'cmd/authelia-gen/cmd_misc_contributors.go'
       - 'cmd/authelia-gen/const.go'
 
 permissions: {}
@@ -43,7 +43,7 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Generate Card
-        run: go run ./cmd/authelia-gen contributors
+        run: go run ./cmd/authelia-gen misc contributors
 
       - name: Commit Card
         env:

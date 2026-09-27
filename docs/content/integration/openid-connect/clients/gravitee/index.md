@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Gravitee"
-description: "Integrating Gravitee with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Gravitee with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Gravitee]
   - [v4.7](https://documentation.gravitee.io/apim/release-information/release-notes/apim-4.7)
 

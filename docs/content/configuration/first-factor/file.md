@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "File"
-description: "File"
+description: "Configuring the Authelia file-based first factor authentication provider including user database path, search options, password hashing, and watch settings."
 summary: "Authelia supports a file based first factor user provider. This section describes configuring this."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -74,9 +74,17 @@ This section describes the individual configuration options.
 
 {{< confkey type="string" required="yes" >}}
 
-The path to the file with the user details list. Supported file types are:
+The path to the file with the user details list. The format is determined by the extension of the file, the supported
+file types are:
 
-- [YAML File](../../reference/guides/passwords.md#yaml-format)
+- [YAML File](../../reference/guides/passwords.md#yaml-format) (`.yml`, `.yaml`, or any other extension)
+- [TOML File](../../reference/guides/passwords.md#toml-format) (`.toml`)
+- [JSON File](../../reference/guides/passwords.md#json-format) (`.json`)
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Authelia writes this file back in the same format it reads it in, for example when a user resets their password. You
+must therefore not change the extension of an existing file without also converting its contents.
+{{< /callout >}}
 
 ### watch
 

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Odoo"
-description: "Integrating Odoo with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Odoo with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-03-31T14:46:10+11:00
 draft: false

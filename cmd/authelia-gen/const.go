@@ -52,21 +52,7 @@ const (
 )
 
 const (
-	suiteNameBasicFormPost           = "basic-form-post"
-	suiteNameHybridFormPost          = "hybrid-form-post"
-	suiteNameImplicitFormPost        = "implicit-form-post"
-	suiteConformanceBasic            = "conformance-basic"
-	suiteConformanceBasicFormPost    = "conformance-basic-form-post"
-	suiteConformanceImplicit         = "conformance-implicit"
-	suiteConformanceImplicitFormPost = "conformance-implicit-form-post"
-	suiteConformanceHybrid           = "conformance-hybrid"
-	suiteConformanceHybridFormPost   = "conformance-hybrid-form-post"
-)
-
-const (
 	pathJSONSchema = "json-schema"
-	extJSON        = ".json"
-	extYAML        = ".yaml"
 )
 
 const (
@@ -86,6 +72,7 @@ const (
 const (
 	cmdUseRoot                   = "authelia-gen"
 	cmdUseCompletion             = "completion"
+	cmdUseHelp                   = "help"
 	cmdUseDocs                   = "docs"
 	cmdUseManage                 = "manage"
 	cmdUseMisc                   = "misc"
@@ -146,7 +133,8 @@ const (
 )
 
 const (
-	metaVersionNext    = "next"
+	metaVersionMajor   = "major"
+	metaVersionMinor   = "minor"
 	metaVersionLatest  = "latest"
 	metaVersionCurrent = "current"
 )

@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 
@@ -22,6 +23,58 @@ import (
 
 func TestRunExtAuthzAuthzSuite(t *testing.T) {
 	suite.Run(t, NewExtAuthzAuthzSuite())
+}
+
+func TestHandleAuthzGetObjectExtAuthz(t *testing.T) {
+	testCases := []struct {
+		name          string
+		target        string
+		expectedURL   string
+		expectedPath  string
+		expectedQuery string
+	}{
+		{
+			"ShouldHandleNoQuery",
+			"https://app.example.com/subpath",
+			"https://app.example.com/subpath",
+			"/subpath",
+			"",
+		},
+		{
+			"ShouldHandleQuery",
+			"https://app.example.com/subpath?abc=123&xyz=a%20b",
+			"https://app.example.com/subpath?abc=123&xyz=a%20b",
+			"/subpath?abc=123&xyz=a%20b",
+			"abc=123&xyz=a%20b",
+		},
+		{
+			"ShouldHandleQueryNoPath",
+			"https://app.example.com/?abc=123",
+			"https://app.example.com/?abc=123",
+			"/?abc=123",
+			"abc=123",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			targetURI, err := url.ParseRequestURI(tc.target)
+			require.NoError(t, err)
+
+			setRequestExtAuthz(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+			object, err := handleAuthzGetObjectExtAuthz(mock.Ctx)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedURL, object.URL.String())
+			assert.Equal(t, tc.expectedPath, object.Path)
+			assert.Equal(t, tc.expectedQuery, object.URL.RawQuery)
+			assert.Equal(t, fasthttp.MethodGet, object.Method)
+		})
+	}
 }
 
 func NewExtAuthzAuthzSuite() *ExtAuthzAuthzSuite {
@@ -530,6 +583,7 @@ func setRequestExtAuthz(ctx *middlewares.AutheliaCtx, method string, targetURI *
 		ctx.Request.SetHost(targetURI.Host)
 		ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
 		ctx.SetUserValue(middlewares.UserValueRouterKeyExtAuthzPath, targetURI.Path)
+		ctx.Request.URI().SetQueryString(targetURI.RawQuery)
 	}
 
 	setRequestXHRValues(ctx, accept, xhr)

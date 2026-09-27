@@ -2,7 +2,7 @@
 title: "authelia storage user webauthn import"
 description: "Reference for the authelia storage user webauthn import command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2026-09-12T16:42:01+10:00
 draft: false
 images: []
 weight: 905
@@ -22,7 +22,8 @@ Perform imports of the WebAuthn credentials
 
 Perform imports of the WebAuthn credentials.
 
-This subcommand allows importing WebAuthn credentials from the YAML format.
+This subcommand allows importing WebAuthn credentials. The format is determined by the extension of the file; '.toml'
+is read as TOML, '.json' as JSON, and anything else as YAML.
 
 ```
 authelia storage user webauthn import <filename> [flags]
@@ -48,6 +49,7 @@ authelia storage user webauthn import --file authelia.export.webauthn.yml --encr
 ```
   -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
       --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.values strings         file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
       --encryption-key string                 the storage encryption key to use
       --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
       --mysql.database string                 the MySQL database name (default "authelia")

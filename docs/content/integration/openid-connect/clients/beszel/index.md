@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Beszel"
-description: "Integrating Beszel with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Beszel with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Beszel]
   - [v0.10.2](https://github.com/henrygd/beszel/releases/tag/v0.10.2)
 

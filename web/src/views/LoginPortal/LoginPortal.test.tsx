@@ -113,6 +113,7 @@ const mockCreateErrorNotification = vi.fn();
 const defaultProps = {
     duoSelfEnrollment: false,
     passkeyLogin: false,
+    registrationURL: "",
     rememberMe: true,
     resetPassword: true,
     resetPasswordCustomURL: "",
