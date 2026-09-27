@@ -15,7 +15,7 @@ import (
 
 	"github.com/weppos/publicsuffix-go/publicsuffix"
 
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/jose"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -218,6 +218,118 @@ func schemaJWKGetPropertiesEnc(jwk schema.JWK) (properties *JWKProperties, err e
 		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgECDHESA256KW, -1, key.Curve}, nil
 	default:
 		return nil, fmt.Errorf("the key type '%T' is unknown or not valid for the configuration", key)
+	}
+}
+
+func jwkValidateJOSE(jwk schema.JWK) (err error) {
+	key := jose.JSONWebKey{
+		Key:       jwk.Key,
+		KeyID:     jwk.KeyID,
+		Algorithm: jwk.Algorithm,
+		Use:       jwk.Use,
+	}
+
+	if !key.Valid() {
+		return fmt.Errorf("the key parameters are invalid or inconsistent")
+	}
+
+	public := key.Public()
+
+	if _, err = public.MarshalJSON(); err != nil {
+		return fmt.Errorf("the public key can't be published: %w", err)
+	}
+
+	if jwk.Use != oidc.KeyUseSignature || !utils.IsStringInSlice(jwk.Algorithm, validOIDCIssuerJWKSigningAlgs) {
+		return nil
+	}
+
+	if err = jwkSigningAlgSupportsKey(jwk.Algorithm, jwk.Key); err != nil || key.IsPublic() {
+		return err
+	}
+
+	var (
+		signer    jose.Signer
+		signature *jose.JSONWebSignature
+	)
+
+	if signer, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.SignatureAlgorithm(jwk.Algorithm), Key: &key}, nil); err != nil {
+		return fmt.Errorf("the key can't sign using the '%s' algorithm: %w", jwk.Algorithm, err)
+	}
+
+	if signature, err = signer.Sign([]byte("authelia")); err != nil {
+		return fmt.Errorf("the key can't sign using the '%s' algorithm: %w", jwk.Algorithm, err)
+	}
+
+	if _, err = signature.Verify(&public); err != nil {
+		return fmt.Errorf("the key produced a signature using the '%s' algorithm which can't be verified using its public key: %w", jwk.Algorithm, err)
+	}
+
+	return nil
+}
+
+func jwkSigningAlgSupportsKey(alg string, key schema.CryptographicKey) (err error) {
+	switch alg {
+	case oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512,
+		oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512:
+		switch key.(type) {
+		case *rsa.PublicKey, *rsa.PrivateKey:
+			return nil
+		}
+
+		return fmt.Errorf("the '%s' algorithm requires an RSA key but the key is a %s", alg, jwkKeyDescription(key))
+	case oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512:
+		curve := map[string]elliptic.Curve{
+			oidc.SigningAlgECDSAUsingP256AndSHA256: elliptic.P256(),
+			oidc.SigningAlgECDSAUsingP384AndSHA384: elliptic.P384(),
+			oidc.SigningAlgECDSAUsingP521AndSHA512: elliptic.P521(),
+		}[alg]
+
+		var actual elliptic.Curve
+
+		switch k := key.(type) {
+		case *ecdsa.PublicKey:
+			actual = k.Curve
+		case *ecdsa.PrivateKey:
+			actual = k.Curve
+		}
+
+		if actual == curve {
+			return nil
+		}
+
+		return fmt.Errorf("the '%s' algorithm requires an ECDSA %s key but the key is a %s", alg, curve.Params().Name, jwkKeyDescription(key))
+	case oidc.SigningAlgEd25519, oidc.SigningAlgEdDSA:
+		switch key.(type) {
+		case ed25519.PublicKey, ed25519.PrivateKey:
+			return nil
+		}
+
+		return fmt.Errorf("the '%s' algorithm requires an Ed25519 key but the key is a %s", alg, jwkKeyDescription(key))
+	default:
+		if actual, ok := oidc.SigningAlgFromMLDSAKey(key); ok && actual == alg {
+			return nil
+		}
+
+		return fmt.Errorf("the '%s' algorithm requires a %s key but the key is a %s", alg, alg, jwkKeyDescription(key))
+	}
+}
+
+func jwkKeyDescription(key schema.CryptographicKey) string {
+	switch k := key.(type) {
+	case *rsa.PublicKey, *rsa.PrivateKey:
+		return "RSA key"
+	case *ecdsa.PublicKey:
+		return fmt.Sprintf("ECDSA %s key", k.Curve.Params().Name)
+	case *ecdsa.PrivateKey:
+		return fmt.Sprintf("ECDSA %s key", k.Curve.Params().Name)
+	case ed25519.PublicKey, ed25519.PrivateKey:
+		return "Ed25519 key"
+	default:
+		if alg, ok := oidc.SigningAlgFromMLDSAKey(key); ok {
+			return fmt.Sprintf("%s key", alg)
+		}
+
+		return fmt.Sprintf("%T", key)
 	}
 }
 

@@ -42,6 +42,8 @@ func OAuth2PushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.Resp
 		return
 	}
 
+	oidc.PopulateRequestedResourceImplicit(requester)
+
 	ctx.GetLogger().Debugf("Pushed Authorization Request with id '%s' is being processed", requester.GetID())
 
 	var client oidc.Client

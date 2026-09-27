@@ -202,6 +202,7 @@ const (
 	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
 	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
 	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCProviderPrivateKeysNotUsable               = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' is not usable: %w"
 	errFmtOIDCProviderPrivateKeysKeyNotSupported         = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' must be an RSA private key, ECDSA private key, Ed25519 private key, or ML-DSA private key but it's type is %T"
 	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
 	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
@@ -261,6 +262,14 @@ const (
 		"an invalid value: request uri '%s' must have a scheme but it's absent"
 	errFmtOIDCClientRequestURIInvalidScheme = errFmtOIDCClientRequestURIHas +
 		"an invalid scheme: scheme must be 'https' but request uri '%s' has a '%s' scheme"
+
+	errFmtOIDCClientResourceHas          = errFmtOIDCClientOption + "'resource' has "
+	errFmtOIDCClientResourceCantBeParsed = errFmtOIDCClientResourceHas +
+		"an invalid value: resource '%s' could not be parsed: %v"
+	errFmtOIDCClientResourceNotAbsolute = errFmtOIDCClientResourceHas +
+		"an invalid value: resource '%s' must be an absolute uri with a scheme but it's absent"
+	errFmtOIDCClientResourceFragment = errFmtOIDCClientResourceHas +
+		"an invalid value: resource '%s' must not include a fragment"
 
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: clients: client '%s': consent: option 'mode' must be one of " +
 		"%s but it's configured as '%s'"
@@ -325,6 +334,7 @@ const (
 	errFmtOIDCClientPublicKeysWithIDInvalidOptionMissingOneOf = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option '%s' must be provided"
 	errFmtOIDCClientPublicKeysKeyMalformed                    = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
 	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits          = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCClientPublicKeysNotUsable                       = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is not usable: %w"
 	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA                = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
 	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
 	errFmtOIDCClientPublicKeysCertificateChainInvalid         = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
@@ -590,6 +600,7 @@ const (
 	attrOIDCGrantTypes                  = "grant_types"
 	attrOIDCRedirectURIs                = "redirect_uris"
 	attrOIDCRequestURIs                 = "request_uris"
+	attrOIDCResource                    = "resource"
 	attrOIDCRequestObjectSigningAlg     = "request_object_signing_alg"
 	attrOIDCTokenAuthMethod             = "token_endpoint_auth_method"
 	attrOIDCTokenAuthSigningAlg         = "token_endpoint_auth_signing_alg"
@@ -608,6 +619,7 @@ const (
 	attrOIDCIntrospectionPrefix         = "introspection"
 	attrOIDCPKCEChallengeMethod         = "pkce_challenge_method"
 	attrOIDCRequestedAudienceMode       = "requested_audience_mode"
+	attrOIDCRequestedResourceMode       = "requested_resource_mode"
 	attrSessionAutheliaURL              = "authelia_url"
 	attrSessionDomain                   = "domain"
 	attrDefaultRedirectionURL           = "default_redirection_url"

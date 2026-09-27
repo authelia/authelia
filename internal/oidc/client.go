@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"time"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/token/jose" // TODO: Review adjusting back to upstream if ML-DSA PR #282 is accepted, as well as pending significant fixes.
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
 
@@ -29,6 +29,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		Public:              config.Public,
 
 		Audience:      config.Audience,
+		Resource:      config.Resource,
 		Scopes:        config.Scopes,
 		RedirectURIs:  config.RedirectURIs,
 		RequestURIs:   config.RequestURIs,
@@ -48,6 +49,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
+		RequestedResourceMode: NewClientRequestedResourceMode(config.RequestedResourceMode),
 
 		AuthorizationSignedResponseAlg:                   config.AuthorizationSignedResponseAlg,
 		AuthorizationSignedResponseKeyID:                 config.AuthorizationSignedResponseKeyID,
@@ -215,6 +217,11 @@ func (c *RegisteredClient) GetScopes() (scopes oauthelia2.Arguments) {
 // GetAudience returns the Audience.
 func (c *RegisteredClient) GetAudience() (audience oauthelia2.Arguments) {
 	return c.Audience
+}
+
+// GetResource returns the RFC 8707 resource indicators this client is permitted to request.
+func (c *RegisteredClient) GetResource() (resource oauthelia2.Arguments) {
+	return c.Resource
 }
 
 // GetResponseModes returns the valid response modes for this client.
@@ -751,6 +758,13 @@ func (c *RegisteredClient) GetClientCredentialsFlowRequestedScopeImplicit() (all
 // request in the absence of requested audience during an Authorization Endpoint Flow or Client Credentials Flow.
 func (c *RegisteredClient) GetRequestedAudienceImplicit() (implicit bool) {
 	return c.RequestedAudienceMode == ClientRequestedAudienceModeImplicit
+}
+
+// GetRequestedResourceImplicit is indicative of if a client will implicitly request all resources it is allowed to
+// request in the absence of the audience and resource parameters during an Authorization Endpoint Flow, the Device
+// Authorization Flow, or the Client Credentials Flow.
+func (c *RegisteredClient) GetRequestedResourceImplicit() (implicit bool) {
+	return c.RequestedResourceMode == ClientRequestedResourceModeImplicit
 }
 
 // GetEnableDPoPBoundAccessTokens returns true if this client has DPoP bound access tokens enabled.
