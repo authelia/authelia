@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -5,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/url"
 	"strings"
 	"text/tabwriter"
 
@@ -57,6 +60,7 @@ func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+// AccessControlCheckRunE is the RunE for the authelia access-control check-policy command.
 func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
 	verbose, err := cmd.Flags().GetBool("verbose")
 	if err != nil {
@@ -189,11 +193,6 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 		return subject, object, err
 	}
 
-	parsedURL, err := url.ParseRequestURI(requestURL)
-	if err != nil {
-		return subject, object, err
-	}
-
 	method, err := cmd.Flags().GetString("method")
 	if err != nil {
 		return subject, object, err
@@ -216,13 +215,17 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 
 	parsedIP := net.ParseIP(remoteIP)
 
+	var requestedObject *authorization.Object
+
+	if requestedObject, err = authorization.NewObjectMethodURL([]byte(method), []byte(requestURL)); err != nil {
+		return subject, object, err
+	}
+
 	subject = authorization.Subject{
 		Username: username,
 		Groups:   groups,
 		IP:       parsedIP,
 	}
 
-	object = authorization.NewObject(parsedURL, method)
-
-	return subject, object, nil
+	return subject, *requestedObject, nil
 }

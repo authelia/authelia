@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -6,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -2307,6 +2312,9 @@ func TestNewStorageMigrateListRunE(t *testing.T) {
 }
 
 func TestNewStorageMigrationRunE(t *testing.T) {
+	latest, err := newTestCmdCtx(t).providers.StorageProvider.SchemaLatestVersion()
+	require.NoError(t, err)
+
 	testCases := []struct {
 		name  string
 		up    bool
@@ -2328,7 +2336,7 @@ func TestNewStorageMigrationRunE(t *testing.T) {
 		{
 			"ShouldErrUpMigrationTargetSameAsCurrent",
 			true,
-			map[string]string{cmdFlagNameTarget: "25"},
+			map[string]string{cmdFlagNameTarget: strconv.Itoa(latest)},
 			"schema migration target version",
 		},
 	}

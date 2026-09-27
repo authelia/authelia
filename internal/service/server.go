@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -12,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/server"
 )
 
+// ProvisionServer returns a Provider which runs the main server.
 func ProvisionServer(ctx Context) (service Provider, err error) {
 	var (
 		s        *fasthttp.Server
@@ -20,7 +25,7 @@ func ProvisionServer(ctx Context) (service Provider, err error) {
 		isTLS    bool
 	)
 
-	switch s, listener, paths, isTLS, err = server.New(ctx, ctx.GetConfiguration(), ctx.GetProviders()); {
+	switch s, listener, paths, isTLS, err = server.New(ctx.GetConfiguration(), ctx.GetProviders()); {
 	case err != nil:
 		return nil, err
 	case s != nil && listener != nil:
@@ -32,6 +37,7 @@ func ProvisionServer(ctx Context) (service Provider, err error) {
 	return service, nil
 }
 
+// ProvisionServerMetrics returns a Provider which runs the metrics server.
 func ProvisionServerMetrics(ctx Context) (service Provider, err error) {
 	var (
 		s        *fasthttp.Server

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "LDAP Integrations"
-description: "A LDAP integration reference guide"
+description: "A reference guide on LDAP integration requirements for Authelia including RootDSE anonymous discovery, supported attributes, and security considerations."
 summary: "This section contains a LDAP integration reference guide for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -40,7 +44,7 @@ available anonymously and that it does not include any overly specific version i
 The attributes that are requested during the RootDSE search are:
 
 |         Attribute         | Importance |                                              Notes                                              |
-|:-------------------------:|:----------:|:-----------------------------------------------------------------------------------------------:|
+| :-----------------------: | :--------: | :---------------------------------------------------------------------------------------------: |
 |       `objectClass`       |    Low     |                           Used to determine if the Vendor is OpenLDAP                           |
 |  `supportedLDAPVersion`   |    High    |                        Used to check the LDAP protocol version supported                        |
 |    `supportedControl`     |    High    |                      Used to convey the controls the LDAP server supports                       |

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Only include files needed for the PAM suite build context.
 # Sources are cloned from github.com/authelia/pam inside the Dockerfile itself.
 *

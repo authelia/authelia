@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Storage"
-description: "Storage Configuration"
+description: "An introduction to configuring the Authelia storage backend including the encryption key, available database providers, and shared configuration options."
 summary: "Configuring the SQL Storage."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -16,7 +20,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ supports multiple storage backends. The backend is used to store user preferences, 2FA device handles and
+**Authelia** supports multiple storage backends. The backend is used to store user preferences, 2FA device handles and
 secrets, authentication logs, etc...
 
 The available storage backends are listed in the table of contents below.
@@ -43,7 +47,7 @@ This section describes the individual configuration options.
 
 The encryption key used to encrypt data in the database.
 
-While the minimum length is 20 characters, it's __strongly recommended__ this is a
+While the minimum length is 20 characters, it's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string)
 with 64 or more characters.
 

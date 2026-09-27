@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "1Password"
-description: "Integrating 1Password with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating 1Password with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [1Password]
 
 {{% oidc-common %}}
@@ -31,8 +35,8 @@ seo:
 
 This example makes the following assumptions:
 
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `1password`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `1password`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -42,7 +46,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [1Password] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [1Password] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -84,8 +88,10 @@ To configure [1Password] to utilize Authelia as an [OpenID Connect 1.0] Provider
 2. Select `Other` from the list of identity providers and select `Next`.
 3. Select `Other` from the identity provider list.
 4. Configure the following options:
-  - Client ID: `1password`
-  - Well-known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+
+- Client ID: `1password`
+- Well-known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+
 5. Copy the listed `Redirect URIs` and configure the Authelia `redirect_uris` option.
 
 ## See Also

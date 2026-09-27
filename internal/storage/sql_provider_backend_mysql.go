@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -32,7 +36,6 @@ func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryMySQLSelectExistingTables
 
-	// Specific alterations to this provider.
 	provider.sqlFmtRenameTable = queryFmtMySQLRenameTable
 
 	return provider, nil

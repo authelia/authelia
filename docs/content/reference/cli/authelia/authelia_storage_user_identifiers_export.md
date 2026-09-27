@@ -2,7 +2,7 @@
 title: "authelia storage user identifiers export"
 description: "Reference for the authelia storage user identifiers export command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T16:42:01+10:00
 draft: false
 images: []
 weight: 905
@@ -16,13 +16,14 @@ seo:
 
 ## authelia storage user identifiers export
 
-Export the identifiers to a YAML file
+Export the identifiers to a file
 
 ### Synopsis
 
-Export the identifiers to a YAML file.
+Export the identifiers to a file.
 
-This subcommand allows exporting the opaque identifiers for users in order to back them up.
+This subcommand allows exporting the opaque identifiers for users in order to back them up. The format is determined by
+the extension of the file; '.toml' is written as TOML, '.json' as JSON, and anything else as YAML.
 
 ```
 authelia storage user identifiers export [flags]
@@ -40,7 +41,7 @@ authelia storage user identifiers export --file export.yml --encryption-key b345
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "authelia.export.opaque-identifiers.yml")
+  -f, --file string   The file name for the export, the extension determines the format (default "authelia.export.opaque-identifiers.yml")
   -h, --help          help for export
 ```
 
@@ -49,6 +50,7 @@ authelia storage user identifiers export --file export.yml --encryption-key b345
 ```
   -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
       --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.values strings         file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
       --encryption-key string                 the storage encryption key to use
       --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
       --mysql.database string                 the MySQL database name (default "authelia")

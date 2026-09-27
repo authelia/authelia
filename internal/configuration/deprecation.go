@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package configuration
 
 import (
@@ -503,6 +507,7 @@ func getHostPort(hostKey, portKey, hostFallback string, portFallback uint16, key
 	return host, port, nil
 }
 
+// GetMultiKeyMappedDeprecationKeys returns the keys of every multi-key mapped deprecation.
 func GetMultiKeyMappedDeprecationKeys() (keys []string) {
 	for _, mkm := range deprecationsMKM {
 		keys = append(keys, mkm.Keys...)

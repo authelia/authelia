@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 let hasLocalStorageSupport: boolean | null = null;
 const testKey = "authelia.test";
 const testValue = "foo";

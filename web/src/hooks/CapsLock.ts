@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Dispatch, KeyboardEvent, SetStateAction, useCallback } from "react";
 
 export const useCheckCapsLock = (setCapsLockNotify: Dispatch<SetStateAction<boolean>>) => {

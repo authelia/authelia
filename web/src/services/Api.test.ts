@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { AxiosResponse } from "axios";
 
 import {
     hasServiceError,
+    toData,
     toDataRateLimited,
     validateStatusAuthentication,
     validateStatusOneTimeCode,
@@ -95,4 +100,43 @@ it("validates status for webauthn creation", () => {
     expect(validateStatusWebAuthnCreation(409)).toBe(true);
     expect(validateStatusWebAuthnCreation(400)).toBe(false);
     expect(validateStatusWebAuthnCreation(500)).toBe(false);
+});
+
+describe("toData", () => {
+    it("returns the payload for a successful response", () => {
+        const resp = { data: { data: { value: 1 }, status: "OK" }, headers: {}, status: 200 } as any;
+        expect(toData(resp)).toEqual({ value: 1 });
+    });
+
+    it("returns undefined for a failed response", () => {
+        const resp = { data: { status: "KO" }, headers: {}, status: 400 } as any;
+        expect(toData(resp)).toBeUndefined();
+    });
+
+    it("returns undefined without a status", () => {
+        const resp = { data: { value: 1 }, headers: {}, status: 200 } as any;
+        expect(toData(resp)).toBeUndefined();
+    });
+
+    it("returns undefined without data", () => {
+        const resp = { data: undefined, headers: {}, status: 200 } as any;
+        expect(toData(resp)).toBeUndefined();
+    });
+});
+
+describe("toDataRateLimited", () => {
+    it("reports a failure that is not rate limited", () => {
+        const resp = { data: { status: "KO" }, headers: {}, status: 400 } as any;
+        expect(toDataRateLimited(resp)).toEqual({ limited: false, retryAfter: 0 });
+    });
+
+    it("returns undefined without data", () => {
+        const resp = { data: undefined, headers: {}, status: 200 } as any;
+        expect(toDataRateLimited(resp)).toBeUndefined();
+    });
+
+    it("returns undefined for an unknown status on a non 429 response", () => {
+        const resp = { data: { status: "MAYBE" }, headers: {}, status: 200 } as any;
+        expect(toDataRateLimited(resp)).toBeUndefined();
+    });
 });

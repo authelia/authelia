@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Templating"
-description: "A reference guide on the templates system"
+description: "A reference guide on the Authelia templating system including available functions, environment variable access, file operations, and string manipulation tools."
 summary: "This section contains reference documentation for Authelia's templating capabilities."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -20,6 +24,14 @@ Authelia has several methods where users can interact with templates.
 
 By default the [Notification Templates](./notification-templates.md) have templating enabled. To enable templating in configuration files, set the environment variable `X_AUTHELIA_CONFIG_FILTERS` to `template`. For more information see
 [Configuration > Methods > Files: File Filters](../../configuration/methods/files.md#file-filters).
+
+## Values
+
+When templating configuration files the `X_AUTHELIA_CONFIG_FILTERS_VALUES` environment variable can be used to make
+values from one or more external files available to the templates via the `.Values` field, and the Authelia version and
+build metadata is available via the `.Authelia` field. For more information including the supported file formats and the
+full list of fields see
+[Configuration > Methods > Files: Go Template Filter Values](../../configuration/methods/files.md#values-1).
 
 ## Validation / Debugging
 
@@ -122,8 +134,8 @@ See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_
 note that only the functions listed above are supported and while the intention is to make the functions behave exactly
 the same they may not necessarily behave exactly the same.
 
-__*Special Note:* The `env` and `expandenv` function automatically excludes environment variables that start with
-`AUTHELIA_` or `X_AUTHELIA_` and end with one of `KEY`, `SECRET`, `PASSWORD`, `TOKEN`, or `CERTIFICATE_CHAIN`.__
+**_Special Note:_ The `env` and `expandenv` function automatically excludes environment variables that start with
+`AUTHELIA_` or `X_AUTHELIA_` and end with one of `KEY`, `SECRET`, `PASSWORD`, `TOKEN`, or `CERTIFICATE_CHAIN`.**
 
 ### Special Functions
 

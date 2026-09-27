@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Artificial Intelligence"
 description: "The Authelia Artificial Intelligence Policy which describes how Artificial Intelligence is used within Authelia."
 summary: ""

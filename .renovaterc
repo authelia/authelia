@@ -6,14 +6,42 @@
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
-  "branchPrefix": "renovate-",
+  "branchPrefixOld": "renovate-",
   "rebaseWhen": "conflicted",
   "ignorePresets": [
     ":prHourlyLimit2",
     ":semanticPrefixFixDepsChoreOthers",
     "workarounds:all"
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^docs/netlify\\.toml$/"
+      ],
+      "matchStrings": [
+        "HUGO_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "hugo-extended",
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)Dockerfile[^/]*$/"
+      ],
+      "matchStrings": [
+        "https://raw\\.githubusercontent\\.com/pnpm/get\\.pnpm\\.io/(?<currentDigest>[0-9a-f]{40})/install\\.sh"
+      ],
+      "depNameTemplate": "pnpm/get.pnpm.io",
+      "packageNameTemplate": "https://github.com/pnpm/get.pnpm.io",
+      "currentValueTemplate": "main",
+      "datasourceTemplate": "git-refs"
+    }
+  ],
   "enabledManagers": [
+    "custom.regex",
     "docker-compose",
     "dockerfile",
     "github-actions",
@@ -83,6 +111,7 @@
     }
   ],
   "postUpdateOptions": [
-    "gomodTidy"
+    "gomodTidy",
+    "pnpmDedupe"
   ]
 }

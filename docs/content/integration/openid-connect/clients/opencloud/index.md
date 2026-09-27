@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "openCloud"
 description: "Integrating openCloud with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
@@ -22,9 +26,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [openCloud]
-  - [v7.2.2](https://github.com/opencloud-eu/opencloud/releases/tag/v7.2.2)
+  - [v7.2.4](https://github.com/opencloud-eu/opencloud/releases/tag/v7.2.4)
 
 {{% oidc-common %}}
 
@@ -32,9 +36,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-- __Client ID:__
+- **Application Root URL:** `https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- **Client ID:**
   - Web Application: `opencloud`
   - Android App: `opencloud-android`
   - iOS App: `opencloud-ios`
@@ -48,7 +52,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with
+The following YAML configuration is an example **Authelia** [client configuration] for use with
 [openCloud] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -157,35 +161,7 @@ To configure [openCloud] there is one method, using the [Environment Variables](
 All limitations are limitations due to the development lifecycle of the application and are not related to Authelia.
 {{< /callout >}}
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The desktop client integration is currently not production ready.
-
-The current implementation is intended for one-time use cases, such as migrating files. It should not be considered a
-stable long-term desktop client setup until the WebFinger integration is completed.
-{{< /callout >}}
-
-* The desktop client WebFinger integration is currently incomplete (pull request https://github.com/opencloud-eu/desktop/pull/847).
-* Some additional customizations may be needed as noted below.
-
-The `groups` scope must be manually added to the authorization link when setting up the desktop client.
-
-Example:
-
-```
-https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization?response_type=code&client_id=<client_id>&redirect_uri=<redirect_uri>&code_challenge=<code_challenge>&code_challenge_method=S256&scope=<scope>&prompt=<prompt>&state=<state>
-```
-
-The default scope is:
-
-```
-scope=openid%20offline_access%20email%20profile
-```
-
-Add `groups%20` manually at the beginning of the scope:
-
-```
-scope=groups%20openid%20offline_access%20email%20profile
-```
+- The desktop client may need some additional customizations if using NGINX Proxy Manager, refer to [Change the NGINX Proxy Manager setting](https://docs.opencloud.eu/docs/next/admin/resources/common-issues/desktop-client-setup-loop/#change-the-nginx-proxy-manager-setting)
 
 #### Environment Variables
 
@@ -306,13 +282,12 @@ directives:
     - '''self'''
     - 'blob:'
 ```
-Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/config/opencloud/csp.yaml)
 
+Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/config/opencloud/csp.yaml)
 
 #### Proxy
 
 When using an external IDP, you need to map groups and roles. Create the following file and save it next to `opencloud.yaml`:
-
 
 In this example the `opencloud-admins` Authelia group maps to the `admin` role in [openCloud]. This is because of the
 `role_claim` value set to `groups`, and the list of mappings in `role_mappings`. Examples also exist for the

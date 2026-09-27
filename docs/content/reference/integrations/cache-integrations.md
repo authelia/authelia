@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Cache Integrations"
-description: "A cache integration reference guide"
+description: "A reference guide on supported cache integrations for Authelia including Redis Standalone and Redis Sentinel high availability configurations with version info."
 summary: "This section contains a cache integration reference guide for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -25,7 +29,6 @@ The following is guidance on versions of [Redis] supported.
 
 When it comes to [Redis Standalone] we support the versions supported by [Redis] themselves which can be found in the
 [Redis release cycle] documentation. This is typically the latest available version.
-
 
 ### Sentinel
 

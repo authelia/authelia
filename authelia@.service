@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 [Unit]
 Description=Authelia authentication and authorization server
 Documentation=https://www.authelia.com

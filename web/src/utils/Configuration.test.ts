@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import {
     getDuoSelfEnrollment,
     getEmbeddedVariable,
@@ -6,9 +10,12 @@ import {
     getPrivacyPolicyEnabled,
     getPrivacyPolicyRequireAccept,
     getPrivacyPolicyURL,
+    getRegistrationURL,
     getRememberMe,
     getResetPassword,
     getResetPasswordCustomURL,
+    getTOTPAppAppleStore,
+    getTOTPAppGooglePlay,
     getTheme,
 } from "@utils/Configuration";
 
@@ -65,6 +72,17 @@ it("returns true when passkey login is enabled", () => {
 it("returns the reset password custom URL", () => {
     document.body.dataset.resetpasswordcustomurl = "https://example.com";
     expect(getResetPasswordCustomURL()).toBe("https://example.com");
+
+    document.body.dataset.totpappapplestore = "https://apps.example.com/app/id1";
+    expect(getTOTPAppAppleStore()).toBe("https://apps.example.com/app/id1");
+
+    document.body.dataset.totpappgoogleplay = "https://play.example.com/store/apps/details?id=org.example.otp";
+    expect(getTOTPAppGooglePlay()).toBe("https://play.example.com/store/apps/details?id=org.example.otp");
+});
+
+it("returns the registration URL", () => {
+    document.body.dataset.registrationurl = "https://register.example.com";
+    expect(getRegistrationURL()).toBe("https://register.example.com");
 });
 
 it("returns true when privacy policy URL is not empty", () => {

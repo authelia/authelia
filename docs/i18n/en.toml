@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 [404_text]
 other = "The page you are looking for doesn't exist or has been moved."
 

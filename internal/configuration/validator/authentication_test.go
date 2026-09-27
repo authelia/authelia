@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -120,8 +124,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:  schema.SHA512Lower,
-		Iterations: 1000000,
-		SaltLength: 8,
+		Iterations: 1000000, //nolint:staticcheck
+		SaltLength: 8,       //nolint:staticcheck
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -141,8 +145,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:  schema.SHA512Lower,
-		Iterations: 1000000,
-		SaltLength: 8,
+		Iterations: 1000000, //nolint:staticcheck
+		SaltLength: 8,       //nolint:staticcheck
 		SHA2Crypt: schema.AuthenticationBackendFilePasswordSHA2Crypt{
 			Variant:    schema.SHA256Lower,
 			Iterations: 50000,
@@ -167,8 +171,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:  schema.SHA512Lower,
-		Iterations: 1000000,
-		SaltLength: 64,
+		Iterations: 1000000, //nolint:staticcheck
+		SaltLength: 64,      //nolint:staticcheck
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -188,11 +192,11 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:   "argon2id",
-		Iterations:  4,
-		Memory:      1024,
-		Parallelism: 4,
-		KeyLength:   64,
-		SaltLength:  64,
+		Iterations:  4,    //nolint:staticcheck
+		Memory:      1024, //nolint:staticcheck
+		Parallelism: 4,    //nolint:staticcheck
+		KeyLength:   64,   //nolint:staticcheck
+		SaltLength:  64,   //nolint:staticcheck
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -215,11 +219,11 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:   "argon2id",
-		Iterations:  4,
-		Memory:      1024,
-		Parallelism: 4,
-		KeyLength:   64,
-		SaltLength:  64,
+		Iterations:  4,    //nolint:staticcheck
+		Memory:      1024, //nolint:staticcheck
+		Parallelism: 4,    //nolint:staticcheck
+		KeyLength:   64,   //nolint:staticcheck
+		SaltLength:  64,   //nolint:staticcheck
 		Argon2: schema.AuthenticationBackendFilePasswordArgon2{
 			Variant:     "argon2d",
 			Iterations:  1,
@@ -553,6 +557,33 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenResetURLIsI
 func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenResetURLIsValid() {
 	suite.config.PasswordReset.CustomURL = url.URL{Scheme: schemeHTTPS, Host: "google.com"}
 
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenRegistrationURLIsInvalid() {
+	suite.config.Registration.CustomURL = url.URL{Scheme: "ldap", Host: "google.com"}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: registration: option 'custom_url' is configured to 'ldap://google.com' which has the scheme 'ldap' but the scheme must be either 'http' or 'https'")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenRegistrationURLIsValid() {
+	suite.config.Registration.CustomURL = url.URL{Scheme: schemeHTTPS, Host: "google.com"}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenRegistrationURLIsUnset() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Len(suite.validator.Warnings(), 0)

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -11,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// StartupChecks performs the startup checks for each of the providers.
 func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 	config := ctx.GetConfiguration()
 
@@ -159,10 +164,12 @@ func writeHealthCheckEnv(scheme, host, path string, port uint16) (err error) {
 	return err
 }
 
+// ErrProviderStartupCheck is an error which contains the startup check error for each provider which failed.
 type ErrProviderStartupCheck struct {
 	errors map[string]error
 }
 
+// Error returns the string representation of this error.
 func (e *ErrProviderStartupCheck) Error() string {
 	keys := make([]string, 0, len(e.errors))
 	for k := range e.errors {
@@ -172,6 +179,7 @@ func (e *ErrProviderStartupCheck) Error() string {
 	return fmt.Sprintf("errors occurred performing checks on the '%s' providers", strings.Join(keys, ", "))
 }
 
+// Failed returns the names of the providers which failed their startup check.
 func (e *ErrProviderStartupCheck) Failed() (failed []string) {
 	for key := range e.errors {
 		failed = append(failed, key)
@@ -180,6 +188,7 @@ func (e *ErrProviderStartupCheck) Failed() (failed []string) {
 	return failed
 }
 
+// FilterError returns an error containing only the failures for the given providers, or nil if none of them failed.
 func (e *ErrProviderStartupCheck) FilterError(providers ...string) error {
 	filtered := map[string]error{}
 
@@ -198,6 +207,7 @@ func (e *ErrProviderStartupCheck) FilterError(providers ...string) error {
 	return &ErrProviderStartupCheck{errors: filtered}
 }
 
+// ErrorMap returns the error for each provider which failed its startup check.
 func (e *ErrProviderStartupCheck) ErrorMap() map[string]error {
 	return e.errors
 }

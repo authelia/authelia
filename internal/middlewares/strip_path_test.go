@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -54,7 +58,7 @@ func TestStripPath(t *testing.T) {
 			"?rd=abc",
 			"",
 			"",
-			"?rd=abc",
+			"/?rd=abc",
 		},
 		{
 			"ShouldHandleAuthPath",
@@ -78,7 +82,7 @@ func TestStripPath(t *testing.T) {
 			"/auth?rd=123",
 			"/auth",
 			"/auth?rd=123",
-			"?rd=123",
+			"/?rd=123",
 		},
 		{
 			"ShouldHandleAuthSubPathQueryWithTrailingSlash",

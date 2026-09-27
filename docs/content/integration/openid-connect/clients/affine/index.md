@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "AFFiNE"
 description: "Integrating AFFiNE with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
@@ -32,10 +36,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://affine.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `affine`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://affine.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `affine`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [AFFiNE] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [AFFiNE] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -87,9 +91,11 @@ To configure [AFFiNE] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 1. Login to [AFFiNE].
 2. Navigate to admin settings: `https://affine.{{< sitevar name="domain" nojs="example.com" >}}/admin/settings`.
 3. Scroll down to the `OAuth` heading and set the `OIDC OAuth provider config` to:
+
 ```json
 {"args":{},"issuer":"https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}","clientId":"affine","clientSecret":"insecure_secret"}
 ```
+
 4. Press `Save`.
 
 ## See Also

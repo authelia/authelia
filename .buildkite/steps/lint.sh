@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Usage:
 #   lint.sh                  Run every linter (CI linting step entrypoint).
 #   lint.sh shellcheck ...   Run shellcheck. With file args, those files are
@@ -8,9 +12,20 @@
 #                            discovered via git ls-files + shebang scan and
 #                            passed in. Any flag-style arguments (--format=...)
 #                            are forwarded to shellcheck.
+#   lint.sh typos ...        Run typos, reporting an abnormal exit as a finding
+#                            so reviewdog does not discard the reason.
+#   lint.sh scorecard        Run the file based OpenSSF Scorecard checks against
+#                            the git index, reporting each finding as
+#                            path:line:col: [check] message.
 #   lint.sh -flag ...        Anything else is forwarded to reviewdog.
 
 set -uo pipefail
+
+# The file based scorecard checks that describe something fixable in a tracked file.
+SCORECARD_CHECKS='Dangerous-Workflow,Dependency-Update-Tool,Pinned-Dependencies,Token-Permissions'
+
+# A finding describing the project rather than a file is reported against the workflow scorecard runs in.
+SCORECARD_ANCHOR='.github/workflows/scorecard.yml'
 
 discover_shell_files() {
   # A file is considered a shell script if any of:
@@ -56,13 +71,81 @@ run_shellcheck() {
   fi
 }
 
+run_typos() {
+  local err rc
+  err=$(mktemp)
+  typos --threads 4 --format brief "$@" 2>"${err}"
+  rc=$?
+
+  # 0 is clean and 2 is typos found; anything else is typos itself failing.
+  # reviewdog discards a runner's stderr and any stdout that does not match the
+  # errorformat, so re-emit the reason as a finding or it is lost entirely.
+  # Only the first line is given a position: the rest are continuation lines for
+  # the runner's %C errorformat, which keeps the reason as a single finding.
+  if [ ${rc} -ne 0 ] && [ ${rc} -ne 2 ]; then
+    if [ -s "${err}" ]; then
+      sed -e "1s|^|.reviewdog.yml:1:1: typos failed (exit ${rc}): |" "${err}"
+    else
+      echo ".reviewdog.yml:1:1: typos failed (exit ${rc}) without writing a reason"
+    fi
+  fi
+
+  rm -f "${err}"
+
+  return ${rc}
+}
+
+run_scorecard() {
+  local dir out err rc findings
+  dir=$(mktemp -d)
+  out=$(mktemp)
+  err=$(mktemp)
+
+  # scorecard --local walks every file on disk, node_modules included, which takes minutes. Exporting the index
+  # scans only tracked content, and under lefthook exactly what is about to be committed.
+  git checkout-index -a --prefix="${dir}/"
+  (cd "${dir}" && scorecard --local=. --checks="${SCORECARD_CHECKS}" --format=json --show-details) >"${out}" 2>"${err}"
+  rc=$?
+
+  # scorecard exits 0 when it finds problems, so a finding is turned into a failure here. An abnormal
+  # exit is re-emitted as a finding for the same reason as typos above.
+  if [ ${rc} -ne 0 ]; then
+    if [ -s "${err}" ]; then
+      sed -e "1s|^|.reviewdog.yml:1:1: scorecard failed (exit ${rc}): |" "${err}"
+    else
+      echo ".reviewdog.yml:1:1: scorecard failed (exit ${rc}) without writing a reason"
+    fi
+  else
+    # Only checks that lost points are reported. scorecard also warns about findings it does not penalize, such as
+    # the job level 'contents' write the contributors workflow needs to push the card, and failing on those would
+    # block work the scored check considers fine. A score below zero is scorecard declaring the check inconclusive.
+    #
+    # Probe outcomes are not usable for this as their polarity is per probe: pinsDependencies reports False for an
+    # unpinned dependency, while hasDangerousWorkflowScriptInjection reports True for an injection. A detail ending
+    # in path:line, optionally a line range and scorecard remediation text, is reported there, and one describing
+    # the project as a whole against the scorecard workflow.
+    findings=$(jq -r --arg anchor "${SCORECARD_ANCHOR}" '
+      .checks[] | select(.score >= 0 and .score < 10) | .name as $check | (.details // [])[]
+      | select(startswith("Warn: ")) | ltrimstr("Warn: ") | . as $detail
+      | (capture("^(?<msg>.*): (?<path>[^ :]+):(?<line>[0-9]+)(-[0-9]+)?(?<extra>: .*)?$") // {msg: $detail, path: $anchor, line: "0"})
+      | "\(.path):\([(.line | tonumber), 1] | max):1: [\($check)] \(.msg)\(.extra // "")"
+    ' "${out}")
+    if [ -n "${findings}" ]; then
+      printf '%s\n' "${findings}"
+      rc=1
+    fi
+  fi
+
+  rm -rf "${dir}" "${out}" "${err}"
+
+  return ${rc}
+}
+
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 if [[ $# -eq 0 ]]; then
   FAILED=0
 
-  echo "--- :go::service_dog: Running goimports-reviser"
-  goimports-reviser -rm-unused -format -excludes '*/node_modules,*/*/*/node_modules' -company-prefixes authelia.com,github.com/authelia ./... || FAILED=1
   echo "--- :go::service_dog: Running golangci-lint"
   golangci-lint run || FAILED=1
   echo "--- :yaml::service_dog: Running yamllint"
@@ -70,7 +153,11 @@ if [[ $# -eq 0 ]]; then
   echo "--- :shellcheck::service_dog: Running shellcheck"
   run_shellcheck || FAILED=1
   echo "--- :eslint::service_dog: Running eslint"
-  cd web && eslint '*/**/*.{js,ts,tsx}' || FAILED=1 && cd ..
+  pnpm -C web exec eslint '*/**/*.{js,ts,tsx}' || FAILED=1
+  echo "--- :prettier::service_dog: Running prettier"
+  pnpm -C docs exec eslint . || FAILED=1
+  echo "--- :copyright::service_dog: Running reuse"
+  reuse lint --lines || FAILED=1
 
   echo "--- :go::service_dog: Lint Runners Completed"
   if [[ ${FAILED} -ne 0 ]]; then
@@ -82,6 +169,11 @@ if [[ $# -eq 0 ]]; then
 elif [[ $1 == "shellcheck" ]]; then
   shift
   run_shellcheck "$@"
+elif [[ $1 == "typos" ]]; then
+  shift
+  run_typos "$@"
+elif [[ $1 == "scorecard" ]]; then
+  run_scorecard
 else
   reviewdog "$@"
 fi

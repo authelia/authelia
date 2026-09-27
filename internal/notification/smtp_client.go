@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package notification
 
 import (
@@ -8,10 +12,12 @@ import (
 	"github.com/wneessen/go-mail/smtp"
 )
 
+// SMTPClientFactory is a factory which returns an SMTPClient.
 type SMTPClientFactory interface {
 	GetClient() (client SMTPClient, err error)
 }
 
+// SMTPClient is the interface used to send messages via SMTP.
 type SMTPClient interface {
 	TLSPolicy() (policy string)
 	ServerAddr() (addr string)

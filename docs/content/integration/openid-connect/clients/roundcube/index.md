@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Roundcube"
-description: "Integrating Roundcube and Dovecot with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Roundcube and Dovecot with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -37,10 +41,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `roundcube`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `roundcube`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Roundcube] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Roundcube] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -121,12 +125,12 @@ resulting redirect URI would be something like `https://<fqdn>:<port>/...`. Thus
 {{< /callout >}}
 
 IMAP and SMTP backend configuration:
+
 - For an IMAP instance on localhost, the default conf should be enough. Otherwise, set the corresponding SSL/TLS options
   via 'imap_host' and 'imap_conn_options';
 - For a SMTP instance on localhost, no auth would be required. However
   [Roundcube OAuth enforces](https://github.com/roundcube/roundcubemail/issues/9183) 'smtp_auth_type' = 'XOAUTH2' plus
-  credentials, thus you *must* use TLS or SSL via `smtp_host` and `smtp_conn_options`!
-
+  credentials, thus you _must_ use TLS or SSL via `smtp_host` and `smtp_conn_options`!
 
 ##### Dovecot Common
 
@@ -146,7 +150,7 @@ oauth2 {
   introspection_mode = post
   introspection_url = https://roundcube:insecure_secret@auth.example.com/api/oidc/introspection
   username_attribute = username
-  
+
   active_attribute = active
   active_value = true
 

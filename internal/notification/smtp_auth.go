@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package notification
 
 import (
@@ -20,7 +24,7 @@ func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP, preference ...mail.SM
 	return &OpportunisticSMTPAuth{
 		username:          config.Username,
 		password:          config.Password,
-		host:              config.Address.Hostname(),
+		host:              config.Address.HostnameLiteral(),
 		satPreference:     preference,
 		disableRequireTLS: config.DisableRequireTLS,
 	}

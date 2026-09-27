@@ -1,9 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 //go:build externalsuites
 // +build externalsuites
 
 package suites
 
 import (
+	"flag"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -19,6 +24,10 @@ import (
 var globalDevServer atomic.Pointer[DevServer]
 
 func TestMain(m *testing.M) {
+	flag.Parse()
+
+	startArtifactWatchdog()
+
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
@@ -32,6 +41,8 @@ func TestMain(m *testing.M) {
 	}()
 
 	code := m.Run()
+
+	discardWatchdogArtifacts()
 
 	closeSharedBrowsers()
 

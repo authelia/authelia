@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+services:
+  authelia-backend:
+    environment:
+      X_AUTHELIA_CONFIG_FILTERS: 'template'
+      X_AUTHELIA_CONFIG: '/config/configuration.yml,/tmp/conformance-clients.yml'
+    volumes:
+      - './OIDCConformance/configuration.yml:/config/configuration.yml'
+      - './OIDCConformance/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+      - '${SUITE_TMP:-/tmp}:/tmp'
+
+  conformance-server:
+    build:
+      context: '.'
+      dockerfile: 'OIDCConformance/Dockerfile.server'
+    cpus: 4
+    mem_limit: 4g
+    environment:
+      BASE_URL: 'https://conformance.example.com:8443'
+      MONGODB_HOST: '${SUITE_OIDC_CONFORMANCE_MONGODB_HOST:-conformance-mongodb}'
+      JAVA_EXTRA_ARGS: '-Dfintechlabs.devmode=true'
+      OIDC_GOOGLE_CLIENTID: 'google-client'
+      OIDC_GOOGLE_SECRET: 'google-secret'
+      OIDC_GITLAB_CLIENTID: 'gitlab-client'
+      OIDC_GITLAB_SECRET: 'gitlab-secret'
+    depends_on:
+      - 'authelia-backend'
+    expose:
+      - 8080
+    networks:
+      authelianet: {}
+
+...

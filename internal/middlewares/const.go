@@ -1,9 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
 	"errors"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 var (
@@ -50,6 +56,7 @@ var (
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
 )
 
+// Header value strings.
 const (
 	HeaderCacheControlNotStore = "no-store"
 	HeaderPragmaNoCache        = "no-cache"
@@ -101,29 +108,34 @@ X_AUTHELIA_HEALTHCHECK_PORT=%d
 X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
 
+// User value keys.
 const (
 	UserValueKeyBaseURL int8 = iota
 	UserValueKeyOpenIDConnectResponseModeFormPost
 	UserValueKeyRawURI
+	UserValueRateLimitExempt
 )
 
+// Router user value keys.
 const (
 	UserValueRouterKeyExtAuthzPath = "extauthz"
 )
 
+// Startup check log messages and provider names.
 const (
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
 
-	ProviderNameNTP              = "ntp"
-	ProviderNameStorage          = "storage"
-	ProviderNameUser             = "user"
-	ProviderNameSession          = "session"
-	ProviderNameNotification     = "notification"
-	ProviderNameExpressions      = "expressions"
-	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+	ProviderNameNTP              = schema.ProviderNameNTP
+	ProviderNameStorage          = schema.ProviderNameStorage
+	ProviderNameUser             = schema.ProviderNameUser
+	ProviderNameSession          = schema.ProviderNameSession
+	ProviderNameNotification     = schema.ProviderNameNotification
+	ProviderNameExpressions      = schema.ProviderNameExpressions
+	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData
 )
 
+// Content Type strings.
 const (
 	ContentTypeApplicationJSON = "application/json; charset=utf-8"
 	ContentTypeApplicationJWT  = "application/jwt; charset=utf-8"

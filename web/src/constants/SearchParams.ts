@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 export const Identifier: string = "id";
 
 export const IdentityToken: string = "token";
@@ -17,6 +21,10 @@ export const SubFlow: string = "subflow";
 export const UserCode: string = "user_code";
 
 export const Decision: string = "decision";
+
+export const DecisionAccepted: string = "accepted";
+
+export const DecisionRejected: string = "rejected";
 
 export const Error: string = "error";
 

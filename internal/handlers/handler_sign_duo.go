@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -21,7 +25,9 @@ func DuoGET(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Error(fmt.Errorf("%s: %w", errStrUserSessionData, err), messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
@@ -30,7 +36,8 @@ func DuoGET(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Debugf("No preferred Duo device found for user: '%s': %v", userSession.Username, err)
 
 		if err := ctx.SetJSONBody(DuoDevicesResponse{Result: auth}); err != nil {
-			ctx.Error(errors.New(errStrRespBody), messageMFAValidationFailed)
+			ctx.GetLogger().WithError(err).Error(errStrRespBody)
+			ctx.SetJSONError(messageMFAValidationFailed)
 		}
 
 		return
@@ -39,7 +46,8 @@ func DuoGET(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Debugf("Found preferred Duo device '%s' and method '%s' for user: '%s'", duoDevice.Device, duoDevice.Method, userSession.Username)
 
 	if err := ctx.SetJSONBody(DuoDevicesResponse{Result: auth, PreferredDevice: duoDevice.Device, PreferredMethod: duoDevice.Method}); err != nil {
-		ctx.Error(errors.New(errStrRespBody), messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Error(errStrRespBody)
+		ctx.SetJSONError(messageMFAValidationFailed)
 	}
 }
 
@@ -56,12 +64,15 @@ func DuoPOST(duoAPI duo.Provider) middlewares.RequestHandler {
 
 		userSession, err := ctx.GetSession()
 		if err != nil {
-			ctx.Error(fmt.Errorf("%s: %w", errStrUserSessionData, err), messageMFAValidationFailed)
+			ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
+			ctx.SetJSONError(messageMFAValidationFailed)
+
 			return
 		}
 
-		if err := HandleDuoAuthentication(ctx, &userSession, duoAPI, bodyJSON); err != nil {
+		if err = HandleDuoAuthentication(ctx, &userSession, duoAPI, bodyJSON); err != nil {
 			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 	}

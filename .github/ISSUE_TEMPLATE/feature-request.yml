@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 name: 'Feature Request'
 description: 'Submit a Feature Request'
@@ -58,7 +62,8 @@ body:
       label: |
         Generative AI
       description: |
-        Indicate if generative AI used to create this issue.
+        Indicate if generative AI used to create this issue. Note you may only use AI to generate code or other
+        explicitly allowed reasons under the [Artificial Intelligence Policy](https://www.authelia.com/policies/artificial-intelligence/)
       options:
         - 'Yes'
         - 'No'

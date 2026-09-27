@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 extends: default
 
@@ -9,6 +13,7 @@ yaml-files:
   - '.yamllint'
 
 ignore: |
+  .claude/
   api/openapi.yml
   dist/public_html/api/openapi.yml
   docs/pnpm-lock.yaml

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -10,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
+// ChangePasswordPOST handles the change password request.
 func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession

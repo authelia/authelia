@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -81,8 +85,9 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 // NewProvidersBasic returns a new Providers with the simple providers.
 func NewProvidersBasic() Providers {
 	return Providers{
-		Clock:  clock.New(),
-		Random: random.New(),
+		GarbageCollector: NewGarbageCollector(),
+		Clock:            clock.New(),
+		Random:           random.New(),
 	}
 }
 

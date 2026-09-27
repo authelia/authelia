@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -164,6 +168,17 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 			"{\"status\":\"OK\",\"data\":[{\"id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"rpid\":\"\",\"username\":\"\",\"description\":\"\",\"kid\":\"\",\"attestation_type\":\"\",\"attestation_format\":\"\",\"attachment\":\"\",\"transports\":null,\"sign_count\":0,\"clone_warning\":false,\"legacy\":false,\"discoverable\":false,\"present\":false,\"verified\":false,\"backup_eligible\":false,\"backup_state\":false,\"public_key\":\"\"}]}",
 			fasthttp.StatusOK,
 			nil,
+		},
+		{
+			"ShouldHandleSessionProviderError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+			},
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+			},
 		},
 	}
 
@@ -500,6 +515,18 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred trying to determine the credential ID", "error occurred retrieving WebAuthn Credential ID from context: failed to parse 'a' as an integer: strconv.Atoi: parsing \"a\": invalid syntax")
 			},
 		},
+		{
+			"ShouldHandleSessionProviderError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+			},
+			`{"description":"abc"}`,
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -731,6 +758,17 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential", "user is anonymous")
+			},
+		},
+		{
+			"ShouldHandleSessionProviderError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+			},
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 			},
 		},
 	}

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "audiobookshelf"
-description: "Integrating audiobookshelf with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating audiobookshelf with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-03-22T03:16:02+00:00
 draft: false
@@ -33,13 +37,13 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-        `https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/login`.
-        This means if you change this value, you need to update the redirect URI.
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `audiobookshelf`
-- __Client Secret:__ `insecure_secret`
+    `https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    This means if you change this value, you need to update the redirect URI.
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `audiobookshelf`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -49,7 +53,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [audiobookshelf] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [audiobookshelf] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}

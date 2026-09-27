@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Server Endpoint Rate Limits"
-description: "Configuring the Server Authz Endpoint Settings."
+description: "Configuring Authelia server endpoint rate limits including bucket-based rate limiting for password resets, second factor attempts, and session elevation."
 summary: "Authelia supports several authorization endpoints on the internal web server. This section describes how to configure and tune them."
 date: 2025-03-01T03:28:19+00:00
 draft: false
@@ -19,7 +23,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__  imposes default rate limits on specific endpoints which can prevent faulty clients or bad actors from
+**Authelia** imposes default rate limits on specific endpoints which can prevent faulty clients or bad actors from
 consuming too many resources or using brute-force to potentially compromise security. This should not be confused with
 [Regulation](../security/regulation.md) which is used to silently ban users from using the username / password form.
 

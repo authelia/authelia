@@ -1,23 +1,28 @@
-import { Fragment, JSX } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Tooltip } from "@mui/material";
-import { TooltipProps } from "@mui/material/Tooltip";
+import { Fragment, JSX, ReactElement, ReactNode } from "react";
 
-export interface Props extends TooltipProps {
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
+
+export interface Props {
     render: boolean;
+    title: ReactNode;
+    children: ReactElement;
+    placement?: "bottom" | "left" | "right" | "top";
 }
 
-interface ComponentProps extends Omit<Props, "render"> {}
-
 const ComponentWithTooltip = function (props: Props): JSX.Element {
-    const tooltipProps = props as ComponentProps;
-
     return (
         <Fragment>
             {props.render ? (
-                <Tooltip {...tooltipProps}>
-                    <Box component={"span"}>{props.children}</Box>
-                </Tooltip>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger render={props.children} />
+                        <TooltipContent side={props.placement}>{props.title}</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             ) : (
                 props.children
             )}

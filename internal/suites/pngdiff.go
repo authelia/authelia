@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -115,7 +119,7 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 	}
 
 	if diff.Percentage <= tolerancePercentage {
-		t.Logf("snapshot %s differs by %d/%d pixels (%.2f%%) — within tolerance (%.2f%%)",
+		t.Logf("snapshot %s differs by %d/%d pixels (%.2f%%) - within tolerance (%.2f%%)",
 			baselinePath, diff.DifferingPixels, diff.TotalPixels, diff.Percentage, tolerancePercentage)
 
 		_ = os.Remove(actualPath)

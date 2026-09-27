@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 const excludedBranchPrefixes =
     /^(docs|all-contributors\/)/;
 
@@ -10,6 +14,13 @@ on("pull_request.opened")
         return !excludedBranchPrefixes.test(context.payload.pull_request.head.ref);
     })
     .filter((context) => !context.payload.pull_request.title.startsWith("docs"))
+    // A container tag admits only [A-Za-z0-9_.-], so the ref is folded to the tag the image is published under.
+    .filter((context) => {
+        context.payload.pull_request.head.ref =
+            context.payload.pull_request.head.ref.replace(/[^A-Za-z0-9_.-]+/g, "-");
+
+        return true;
+    })
     .comment(`## Artifacts
 These changes are published for testing on Buildkite, DockerHub and GitHub Container Registry.
 
@@ -31,3 +42,15 @@ These changes once approved by a team member will be published for testing on Bu
 ### Docker Container
 * \`docker pull authelia/authelia:PR{{ pull_request.number }}\`
 * \`docker pull ghcr.io/authelia/authelia:PR{{ pull_request.number }}\``);
+
+// Maintainer notification for a contributor who has not committed to the repository before, so they
+// can be credited once their work merges.
+on("pull_request.opened")
+    .filter((context) =>
+        ["FIRST_TIME_CONTRIBUTOR", "FIRST_TIMER"].includes(
+            context.payload.pull_request.author_association,
+        ),
+    )
+    .comment(`@authelia/review-general this is the first contribution to Authelia from @{{ pull_request.user.login }}.
+
+Once it merges please credit them with the [all-contributors bot](https://allcontributors.org/en/bot/usage), picking the types from the [emoji key](https://allcontributors.org/en/reference/emoji-key/).`);

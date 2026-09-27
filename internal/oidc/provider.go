@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -69,6 +73,7 @@ func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer st
 	return options
 }
 
+// WriteDynamicAuthorizeError writes the authorization error appropriate for the given requester.
 func (p *OpenIDConnectProvider) WriteDynamicAuthorizeError(ctx Context, rw http.ResponseWriter, requester oauthelia2.Requester, err error) {
 	switch r := requester.(type) {
 	case oauthelia2.DeviceAuthorizeRequester:

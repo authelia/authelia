@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Jellyfin"
-description: "Integrating Jellyfin with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Jellyfin with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-04-12T21:54:41+10:00
 draft: false
@@ -35,10 +39,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `jellyfin`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `jellyfin`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -63,7 +67,7 @@ To install the [Jellyfin SSO-Auth Plugin] for [Jellyfin] via the Web GUI:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Jellyfin] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Jellyfin] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -110,7 +114,7 @@ However the following steps must be completed via the UI first regardless of whi
 
 1. Visit the [Jellyfin] Administration Dashboard.
 2. Visit the `Plugins` section.
-3. Select __All__ plugins and the __Other__ Category, find `SSO-Auth` and select it.
+3. Select **All** plugins and the **Other** Category, find `SSO-Auth` and select it.
 4. Click `Install`.
 5. Click `Ok` to confirm the plugin installation.
 6. Once installed restart [Jellyfin].
@@ -181,19 +185,19 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
 4. Click ⚙ Settings button.
 5. Add a provider.
 6. Configure the following options:
-    - Name of the OID Provider: `authelia`
-    - OID Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-    - OpenID Client ID: `jellyfin`
-    - OID Secret: `insecure_secret`
-    - Enabled: Checked
-    - Enable Authorization by Plugin: Checked
-    - Enable All Folders: Checked
-    - Roles: `jellyfin-users`, `jellyfin-admins`
-    - Admin Roles: `jellyfin-admins`
-    - Role Claim: `groups`
-    - Request Additional Scopes: `groups`
-    - Set default username claim: `preferred_username`
-    - Scheme Override: `https`
+   - Name of the OID Provider: `authelia`
+   - OID Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - OpenID Client ID: `jellyfin`
+   - OID Secret: `insecure_secret`
+   - Enabled: Checked
+   - Enable Authorization by Plugin: Checked
+   - Enable All Folders: Checked
+   - Roles: `jellyfin-users`, `jellyfin-admins`
+   - Admin Roles: `jellyfin-admins`
+   - Role Claim: `groups`
+   - Request Additional Scopes: `groups`
+   - Set default username claim: `preferred_username`
+   - Scheme Override: `https`
 7. All other options may remain unchecked or unconfigured.
 8. Click `Save`.
 9. To log in, visit `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/start/authelia`.

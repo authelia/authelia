@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Passwords"
-description: "A reference guide on passwords and hashing etc"
+description: "A reference guide on the Authelia user password file format, supported hashing algorithms including Argon2, bcrypt, scrypt, and PBKDF2, and their tuning."
 summary: "This section contains reference documentation for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -19,6 +23,10 @@ seo:
 ## User / Password File
 
 This file should be set with read/write permissions as it could be updated by users resetting their passwords.
+
+The format is determined by the extension of the file; `.toml` is read and written as [TOML](#toml-format), `.json` as
+[JSON](#json-format), and anything else as [YAML](#yaml-format). Because Authelia writes the file back in the same
+format it reads, the extension of an existing file must not be changed without also converting its contents.
 
 ### YAML Format
 
@@ -82,6 +90,74 @@ It's recommended to check out the [Attributes Reference Guide](../../reference/g
 information on all of the attribute specifics, and it should be noted that all of the attributes are validated
 including the extra attributes which may not exist unless they are configured.
 
+### TOML Format
+
+The [TOML] format uses the same keys as the [YAML Format](#yaml-format), with each user represented as a table. An
+abbreviated example of this is as follows:
+
+```toml {title="users-database.toml"}
+[users.john]
+disabled = false
+displayname = 'John Doe'
+password = '$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'
+email = 'john.doe@authelia.com'
+groups = ['admins', 'dev']
+
+[users.bob]
+disabled = false
+displayname = 'Bob Dylan'
+password = '$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'
+email = 'bob.dylan@authelia.com'
+groups = ['dev']
+
+[users.bob.address]
+street_address = '2-3 Kitanomarukoen'
+locality = 'Chiyoda City'
+region = 'Tokyo'
+postal_code = '102-8321'
+country = 'Japan'
+
+[users.bob.extra]
+example = 'value'
+```
+
+### JSON Format
+
+The [JSON] format uses the same keys as the [YAML Format](#yaml-format), and the same
+[JSONSchema](schemas.md#json-schema) applies to it directly. An abbreviated example of this is as follows:
+
+```json {title="users-database.json"}
+{
+  "$schema": "https://www.authelia.com/schemas/latest/json-schema/user-database.json",
+  "users": {
+    "john": {
+      "disabled": false,
+      "displayname": "John Doe",
+      "password": "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM",
+      "email": "john.doe@authelia.com",
+      "groups": ["admins", "dev"]
+    },
+    "bob": {
+      "disabled": false,
+      "displayname": "Bob Dylan",
+      "password": "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM",
+      "email": "bob.dylan@authelia.com",
+      "groups": ["dev"],
+      "address": {
+        "street_address": "2-3 Kitanomarukoen",
+        "locality": "Chiyoda City",
+        "region": "Tokyo",
+        "postal_code": "102-8321",
+        "country": "Japan"
+      },
+      "extra": {
+        "example": "value"
+      }
+    }
+  }
+}
+```
+
 ## Passwords
 
 The file contains hashed passwords instead of plain text passwords for security reasons.
@@ -92,20 +168,24 @@ options for an algorithm subcommand include that command before `--help`. For ex
 `authelia crypto hash generate argon2 --help` command to see the available options.
 
 Passwords passed to [crypto hash generate] should be single quoted if using the `--password` parameter instead of the
-console prompt, especially if it has  special characters to prevent parameter substitution.
+console prompt, especially if it has special characters to prevent parameter substitution.
 
 To generate an [Argon2] hash with the docker image interactively just run:
 
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run --rm -it authelia/authelia:latest authelia crypto hash generate argon2
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia crypto hash generate argon2
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -113,18 +193,23 @@ To generate an [Argon2] hash with the docker image without a prompt you can run:
 
 {{< envTabs "Generate Password" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia crypto hash generate argon2 --password 'password'
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
 Output Example:
+
 ```bash
 Digest: $argon2id$v=19$m=65536,t=3,p=4$Hjc8e7WYcBFcJmEDUOsS9A$ozM7RyZR1EyDR8cuyVpDDfmLrGPGFgo5E2NNqRumui4
 ```
@@ -135,14 +220,18 @@ in the current directory:
 
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run --rm -it -v ./configuration.yml:/configuration.yml authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare Metal" >}}
+
 ```bash
 authelia crypto hash generate --config /configuration.yml
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -170,8 +259,8 @@ In consideration of your cost you should take into account the fact some algorit
 one factor and not others It's usually considered better to have a mix of cost types however this is not possible with
 all algorithms. The main cost type measurements are:
 
-* CPU
-* Memory
+- CPU
+- Memory
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 When using algorithms that use a memory cost like [Argon2](https://datatracker.ietf.org/doc/html/rfc9106) and [Scrypt](https://en.wikipedia.org/wiki/Scrypt) it should be noted that
@@ -211,7 +300,7 @@ Memory [cost](#cost).
 The algorithm that a hash is utilizing is identifiable by its prefix:
 
 |  Algorithm   |  Variant   |      Prefix       |
-|:------------:|:----------:|:-----------------:|
+| :----------: | :--------: | :---------------: |
 |   [Argon2]   | `argon2id` |   `$argon2id$`    |
 |   [Argon2]   | `argon2i`  |    `$argon2i$`    |
 |   [Argon2]   | `argon2d`  |    `$argon2d$`    |
@@ -227,7 +316,7 @@ The algorithm that a hash is utilizing is identifiable by its prefix:
 |   [Bcrypt]   | `standard` |      `$2b$`       |
 |   [Bcrypt]   |  `sha256`  | `$bcrypt-sha256$` |
 
-See the [Crypt (C) Wiki page](https://en.wikipedia.org/wiki/Crypt_(C)) for more information.
+See the [Crypt (C) Wiki page](<https://en.wikipedia.org/wiki/Crypt_(C)>) for more information.
 
 #### Tuning
 
@@ -263,7 +352,7 @@ detailed in the [Argon2 configuration](../../configuration/first-factor/file.md#
 This table adapts the [RFC9106 Parameter Choice] recommendations to our configuration options:
 
 |  Situation  | Variant  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
-|:-----------:|:--------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
+| :---------: | :------: | :------------: | :-------------: | :--------: | :-------: | :------: |
 | Low Memory  | argon2id |       3        |        4        |   65536    |    16     |    32    |
 | Recommended | argon2id |       1        |        4        |  2097152   |    16     |    32    |
 
@@ -272,7 +361,7 @@ This table adapts the [RFC9106 Parameter Choice] recommendations to our configur
 This table suggests the parameters for the [SHA2 Crypt] algorithm:
 
 |  Situation   | Variant | Iterations (rounds) | Salt Size |
-|:------------:|:-------:|:-------------------:|:---------:|
+| :----------: | :-----: | :-----------------: | :-------: |
 | Standard CPU | sha512  |        50000        |    16     |
 | High End CPU | sha512  |       150000        |    16     |
 
@@ -282,8 +371,9 @@ This table suggests the parameters for the [SHA2 Crypt] algorithm:
 [SHA2 Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
 [Bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
 [FIPS-140 compliance]: https://csrc.nist.gov/publications/detail/fips/140/2/final
-
 [RFC9106 Parameter Choice]: https://datatracker.ietf.org/doc/html/rfc9106#section-4
 [YAML]: https://yaml.org/
+[TOML]: https://toml.io/
+[JSON]: https://www.json.org/
 [crypto hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
 [Password Hashing Competition]: https://en.wikipedia.org/wiki/Password_Hashing_Competition

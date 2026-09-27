@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import MethodContainer, { State } from "@views/LoginPortal/SecondFactor/MethodContainer";
@@ -119,4 +123,137 @@ it("renders push notification not registered state without self enrollment", () 
         </MethodContainer>,
     );
     expect(screen.getByText("Contact your administrator to register a device")).toBeInTheDocument();
+});
+
+it("renders the device selection link when a handler is provided and the user is registered", () => {
+    const onSelectClick = vi.fn();
+
+    render(
+        <MethodContainer
+            id="test"
+            title="Security Key"
+            duoSelfEnrollment={false}
+            registered={true}
+            explanation="Touch it"
+            state={State.METHOD}
+            onSelectClick={onSelectClick}
+        >
+            <div />
+        </MethodContainer>,
+    );
+
+    fireEvent.click(screen.getByText("Select a Device"));
+
+    expect(onSelectClick).toHaveBeenCalledTimes(1);
+});
+
+it("omits the device selection link when the user is not registered", () => {
+    render(
+        <MethodContainer
+            id="test"
+            title="Security Key"
+            duoSelfEnrollment={false}
+            registered={false}
+            explanation="Touch it"
+            state={State.METHOD}
+            onSelectClick={vi.fn()}
+        >
+            <div />
+        </MethodContainer>,
+    );
+
+    expect(screen.queryByText("Select a Device")).not.toBeInTheDocument();
+});
+
+it("omits the device selection link without a handler", () => {
+    render(
+        <MethodContainer
+            id="test"
+            title="Security Key"
+            duoSelfEnrollment={false}
+            registered={true}
+            explanation="Touch it"
+            state={State.METHOD}
+        >
+            <div />
+        </MethodContainer>,
+    );
+
+    expect(screen.queryByText("Select a Device")).not.toBeInTheDocument();
+});
+
+it("omits the register link for push notifications without self enrollment", () => {
+    render(
+        <MethodContainer
+            id="test"
+            title="Push Notification"
+            duoSelfEnrollment={false}
+            registered={false}
+            explanation=""
+            state={State.NOT_REGISTERED}
+            onRegisterClick={vi.fn()}
+        >
+            <div />
+        </MethodContainer>,
+    );
+
+    expect(document.getElementById("register-link")).toBeNull();
+});
+
+it("renders the register link for push notifications with self enrollment", () => {
+    const onRegisterClick = vi.fn();
+
+    render(
+        <MethodContainer
+            id="test"
+            title="Push Notification"
+            duoSelfEnrollment={true}
+            registered={false}
+            explanation=""
+            state={State.NOT_REGISTERED}
+            onRegisterClick={onRegisterClick}
+        >
+            <div />
+        </MethodContainer>,
+    );
+
+    fireEvent.click(document.getElementById("register-link") as HTMLElement);
+
+    expect(onRegisterClick).toHaveBeenCalledTimes(1);
+});
+
+it("offers no manage devices message for a registered push notification method", () => {
+    render(
+        <MethodContainer
+            id="test"
+            title="Push Notification"
+            duoSelfEnrollment={true}
+            registered={true}
+            explanation=""
+            state={State.METHOD}
+            onRegisterClick={vi.fn()}
+        >
+            <div />
+        </MethodContainer>,
+    );
+
+    expect(document.getElementById("register-link")).toBeEmptyDOMElement();
+    expect(screen.queryByText("Manage devices")).not.toBeInTheDocument();
+});
+
+it("renders the self enrollment prompt for push notifications", () => {
+    render(
+        <MethodContainer
+            id="test"
+            title="Push Notification"
+            duoSelfEnrollment={true}
+            registered={false}
+            explanation=""
+            state={State.NOT_REGISTERED}
+        >
+            <div />
+        </MethodContainer>,
+    );
+
+    expect(screen.getByText("Register your first device by clicking on the link below")).toBeInTheDocument();
 });

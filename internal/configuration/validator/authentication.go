@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -41,6 +45,15 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		}
 	}
 
+	if config.Registration.CustomURL.String() != "" {
+		switch config.Registration.CustomURL.Scheme {
+		case schemeHTTP, schemeHTTPS:
+			break
+		default:
+			validator.Push(fmt.Errorf(errFmtAuthBackendRegistrationCustomURLScheme, config.Registration.CustomURL.String(), config.Registration.CustomURL.Scheme))
+		}
+	}
+
 	if config.LDAP != nil && config.File != nil {
 		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}
@@ -54,7 +67,6 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 	}
 }
 
-// validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(errors.New(errFmtFileAuthBackendPathNotConfigured))

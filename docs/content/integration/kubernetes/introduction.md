@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kubernetes"
-description: "An introduction into integrating Authelia with Kubernetes."
+description: "An introduction into integrating Authelia with Kubernetes including important notes on external traffic policy, service links, pod security, and prerequisites."
 summary: "An introduction into integrating Authelia with Kubernetes."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -20,9 +24,9 @@ seo:
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Important Notes
 

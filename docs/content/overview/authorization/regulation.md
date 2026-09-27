@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Regulation"
-description: "Regulation of failed attempts is an important function of an IAM system."
+description: "An overview of Authelia's regulation feature which protects against brute-force attacks by temporarily banning users after repeated failed login authentication."
 summary: "Regulation of failed attempts is an important function of an IAM system."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -16,7 +20,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ takes the security of users very seriously and comes with a way to avoid brute-forcing the first factor
+**Authelia** takes the security of users very seriously and comes with a way to avoid brute-forcing the first factor
 credentials by regulating the authentication attempts and temporarily banning an account when too many attempts have
 been made.
 

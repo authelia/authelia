@@ -1,7 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -10,8 +16,10 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.yaml.in/yaml/v4"
 	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -45,6 +53,176 @@ func TestDatabaseModel_Read(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.EqualError(t, model.Read(f), "could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token")
+}
+
+func TestFileUserDatabaseGetUserDetails(t *testing.T) {
+	john := FileUserDatabaseUserDetails{
+		Username:    "john",
+		DisplayName: "John Doe",
+		Email:       "john.doe@authelia.com",
+	}
+
+	users := map[string]FileUserDatabaseUserDetails{"john": john}
+
+	testCases := []struct {
+		name        string
+		users       map[string]FileUserDatabaseUserDetails
+		emails      map[string]string
+		aliases     map[string]string
+		searchEmail bool
+		searchCI    bool
+		have        string
+		expected    FileUserDatabaseUserDetails
+		err         string
+	}{
+		{
+			"ShouldLookupUsername",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"john",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupUnknownUsername",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"harry",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupUsernameWithMismatchedCase",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"JOHN",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldLookupEmail",
+			users,
+			map[string]string{"john.doe@authelia.com": "john"},
+			nil,
+			true,
+			false,
+			"JOHN.doe@authelia.com",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupEmailWhenSearchEmailDisabled",
+			users,
+			map[string]string{"john.doe@authelia.com": "john"},
+			nil,
+			false,
+			false,
+			"john.doe@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupEmailAliasForUserWhichNoLongerExists",
+			users,
+			map[string]string{"harry.potter@authelia.com": "harry"},
+			nil,
+			true,
+			false,
+			"harry.potter@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldLookupAlias",
+			users,
+			nil,
+			map[string]string{"john": "john"},
+			false,
+			true,
+			"JOHN",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupAliasWhenSearchCaseInsensitiveDisabled",
+			users,
+			nil,
+			map[string]string{"john": "john"},
+			false,
+			false,
+			"JOHN",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupAliasForUserWhichNoLongerExists",
+			users,
+			nil,
+			map[string]string{"harry": "harry"},
+			false,
+			true,
+			"HARRY",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotFallbackToAliasWhenEmailAliasForUserWhichNoLongerExists",
+			users,
+			map[string]string{"harry.potter@authelia.com": "harry"},
+			map[string]string{"harry.potter@authelia.com": "john"},
+			true,
+			true,
+			"harry.potter@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotFallbackToUsernameWhenAliasForUserWhichNoLongerExists",
+			users,
+			nil,
+			map[string]string{"john": "harry"},
+			false,
+			true,
+			"john",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			database := NewFileUserDatabase("", tc.searchEmail, tc.searchCI, nil)
+
+			database.Users = tc.users
+
+			if tc.emails != nil {
+				database.Emails = tc.emails
+			}
+
+			if tc.aliases != nil {
+				database.Aliases = tc.aliases
+			}
+
+			actual, err := database.GetUserDetails(tc.have)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
 }
 
 func TestFileUserDatabaseShouldNotDeadlockOnSave(t *testing.T) {
@@ -143,6 +321,170 @@ func TestFileUserDatabaseShouldNotDeadlockOnSave(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestDatabaseModel_ReadFormats(t *testing.T) {
+	const validHash = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+
+	yamlBody := "users:\n  john:\n    displayname: John\n    password: '" + validHash + "'\n    email: john@example.com\n"
+	jsonBody := `{"users":{"john":{"displayname":"John","password":"` + validHash + `","email":"john@example.com"}}}`
+	tomlBody := "[users.john]\ndisplayname = \"John\"\npassword = \"" + validHash + "\"\nemail = \"john@example.com\"\n"
+
+	testCases := []struct {
+		name         string
+		filename     string
+		body         string
+		expectedUser string
+		err          string
+	}{
+		{
+			"ShouldReadYAML",
+			"users.yml",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadYAMLLongExtension",
+			"users.yaml",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadJSON",
+			"users.json",
+			jsonBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadTOML",
+			"users.toml",
+			tomlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadUnknownExtensionAsYAML",
+			"users.txt",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldErrorOnMalformedJSON",
+			"users.json",
+			`{"users":{`,
+			"",
+			"could not parse the JSON database: unexpected end of JSON input",
+		},
+		{
+			"ShouldErrorOnMalformedTOML",
+			"users.toml",
+			"[users.john\npassword=\"x\"",
+			"",
+			"could not parse the TOML database:",
+		},
+		{
+			"ShouldErrorOnUnknownExtensionWithMalformedYAML",
+			"users.txt",
+			"users:\n\tjohn: {}",
+			"",
+			"could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token",
+		},
+		{
+			"ShouldErrorOnSchemaValidationWhenUsersMissing",
+			"users.yml",
+			"users:\n",
+			"",
+			"could not validate the schema: users: non zero value required",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, tc.filename)
+
+			require.NoError(t, os.WriteFile(path, []byte(tc.body), 0600))
+
+			model := &FileDatabaseModel{}
+
+			err := model.Read(path)
+
+			if tc.err == "" {
+				require.NoError(t, err)
+				require.Contains(t, model.Users, tc.expectedUser)
+				assert.Equal(t, "john@example.com", model.Users[tc.expectedUser].Email)
+			} else {
+				assert.ErrorContains(t, err, tc.err)
+			}
+		})
+	}
+
+	t.Run("ShouldErrorOnMissingFile", func(t *testing.T) {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "does-not-exist.yml")
+
+		model := &FileDatabaseModel{}
+
+		err := model.Read(path)
+
+		require.ErrorIs(t, err, fs.ErrNotExist)
+		assert.ErrorContains(t, err, fmt.Sprintf("failed to read the '%s' file: ", path))
+	})
+}
+
+func TestFileUserDatabaseShouldRetainJSONSchemaMember(t *testing.T) {
+	const (
+		validHash = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+		schemaURL = "https://www.authelia.com/schemas/latest/json-schema/user-database.json"
+	)
+
+	path := filepath.Join(t.TempDir(), "users.json")
+
+	require.NoError(t, os.WriteFile(path, []byte(`{"$schema":"`+schemaURL+`","users":{"john":{"displayname":"John","password":"`+validHash+`","email":"john@example.com"}}}`), 0600))
+
+	db := NewFileUserDatabase(path, false, false, nil)
+
+	require.NoError(t, db.Load())
+	require.Contains(t, db.Users, "john")
+	assert.Equal(t, schemaURL, db.Schema)
+
+	require.NoError(t, db.Save())
+
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+
+	var m map[string]any
+
+	require.NoError(t, json.Unmarshal(data, &m))
+	assert.Equal(t, schemaURL, m["$schema"])
+
+	t.Run("ShouldNotWriteSchemaToOtherFormats", func(t *testing.T) {
+		for _, name := range []string{"users.yml", "users.toml"} {
+			other := filepath.Join(t.TempDir(), name)
+
+			require.NoError(t, (&FileDatabaseModel{Schema: schemaURL, Users: map[string]FileDatabaseUserDetailsModel{"john": {Password: validHash, DisplayName: "John"}}}).Write(other))
+
+			data, err := os.ReadFile(other)
+			require.NoError(t, err)
+
+			assert.NotContains(t, string(data), "schema")
+		}
+	})
+
+	t.Run("ShouldOmitEmptySchemaFromJSON", func(t *testing.T) {
+		other := filepath.Join(t.TempDir(), "users.json")
+
+		require.NoError(t, (&FileDatabaseModel{Users: map[string]FileDatabaseUserDetailsModel{"john": {Password: validHash, DisplayName: "John"}}}).Write(other))
+
+		data, err := os.ReadFile(other)
+		require.NoError(t, err)
+
+		assert.NotContains(t, string(data), "$schema")
+	})
 }
 
 //nolint:gosec // Test Credentials.
@@ -1034,6 +1376,101 @@ func TestDatabaseModelExtended(t *testing.T) {
 			"",
 			"error occurred validating extra attributes for user 'example': attribute 'example' has the unknown item type 'uint8'",
 		},
+		{
+			"ShouldHandleArrayStringTypeMismatch",
+			&FileDatabaseUserDetailsModel{
+				Password:       "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng",
+				DisplayName:    "John Smith",
+				Email:          "jsmith@example.com",
+				Groups:         []string{"abc"},
+				GivenName:      "john",
+				MiddleName:     "jacob",
+				FamilyName:     "smith",
+				Nickname:       "johnny",
+				Gender:         "male",
+				Birthdate:      "2025",
+				Website:        "https://authelia.com",
+				Profile:        "https://authelia.com/jsmith",
+				Picture:        "https://authelia.com/jsmith.jpg",
+				ZoneInfo:       "unzone",
+				Locale:         "en-US",
+				PhoneNumber:    "129812",
+				PhoneExtension: "123",
+				Address: &FileUserDatabaseUserDetailsAddressModel{
+					StreetAddress: "123 Baker St",
+					Locality:      "Internet",
+					Region:        "Online",
+					PostalCode:    "98765",
+					Country:       "US",
+				},
+				Extra: map[string]any{
+					"example": []any{"abc", "123"},
+				},
+			},
+			&FileUserDatabaseUserDetails{
+				Username:       "example",
+				Password:       schema.NewPasswordDigest(digest),
+				DisplayName:    "John Smith",
+				GivenName:      "john",
+				MiddleName:     "jacob",
+				FamilyName:     "smith",
+				Nickname:       "johnny",
+				Gender:         "male",
+				Birthdate:      "2025",
+				Website:        mustParseURI("https://authelia.com"),
+				Profile:        mustParseURI("https://authelia.com/jsmith"),
+				Picture:        mustParseURI("https://authelia.com/jsmith.jpg"),
+				ZoneInfo:       "unzone",
+				Locale:         mustParseTag("en-US"),
+				PhoneNumber:    "129812",
+				PhoneExtension: "123",
+				Email:          "jsmith@example.com",
+				Groups:         []string{"abc"},
+				Address:        &FileUserDatabaseUserDetailsAddressModel{StreetAddress: "123 Baker St", Locality: "Internet", Region: "Online", PostalCode: "98765", Country: "US"},
+				Extra: map[string]any{
+					"example": []any{"abc", "123"},
+				},
+			},
+			&UserDetailsExtended{
+				GivenName:      "john",
+				FamilyName:     "smith",
+				MiddleName:     "jacob",
+				Nickname:       "johnny",
+				Profile:        mustParseURI("https://authelia.com/jsmith"),
+				Picture:        mustParseURI("https://authelia.com/jsmith.jpg"),
+				Website:        mustParseURI("https://authelia.com"),
+				Gender:         "male",
+				Birthdate:      "2025",
+				ZoneInfo:       "unzone",
+				Locale:         mustParseTag("en-US"),
+				PhoneNumber:    "129812",
+				PhoneExtension: "123",
+				Address: &UserDetailsAddress{
+					StreetAddress: "123 Baker St",
+					Locality:      "Internet",
+					Region:        "Online",
+					PostalCode:    "98765",
+					Country:       "US",
+				},
+				Extra: map[string]any{
+					"example": []any{"abc", "123"},
+				},
+				UserDetails: &UserDetails{
+					Username:    "example",
+					DisplayName: "John Smith",
+					Emails:      []string{"jsmith@example.com"},
+					Groups:      []string{"abc"},
+				},
+			},
+			map[string]expression.ExtraAttribute{
+				"example": schema.AuthenticationBackendExtraAttribute{
+					MultiValued: true,
+					ValueType:   "integer",
+				},
+			},
+			"",
+			"error occurred validating extra attributes for user 'example': attribute 'example' has the known item type 'string' but '[]integer' is the expected type",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1062,6 +1499,111 @@ func TestDatabaseModelExtended(t *testing.T) {
 					assert.EqualError(t, tc.have.ValidateExtra("example", tc.extra), tc.errExtra)
 				}
 			}
+		})
+	}
+}
+
+func TestDatabaseModel_WriteFormats(t *testing.T) {
+	const validHash = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+
+	testCases := []struct {
+		name     string
+		filename string
+		contains string
+	}{
+		{"ShouldWriteYML", "users.yml", "password: " + validHash},
+		{"ShouldWriteYAML", "users.yaml", "password: " + validHash},
+		{"ShouldWriteJSON", "users.json", `"password": "` + validHash + `"`},
+		{"ShouldWriteTOML", "users.toml", "password = '" + validHash + "'"},
+		{"ShouldWriteUnknownExtensionAsYAML", "users.txt", "password: " + validHash},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), tc.filename)
+
+			model := &FileDatabaseModel{
+				Users: map[string]FileDatabaseUserDetailsModel{
+					"john": {
+						Password:    validHash,
+						DisplayName: "John",
+						Email:       "john@example.com",
+						Groups:      []string{"admins", "dev"},
+						Address:     &FileUserDatabaseUserDetailsAddressModel{StreetAddress: "1 Road", Country: "AU"},
+						Extra:       map[string]any{"example": "value"},
+					},
+				},
+			}
+
+			require.NoError(t, model.Write(path))
+
+			data, err := os.ReadFile(path)
+			require.NoError(t, err)
+
+			assert.Contains(t, string(data), tc.contains)
+
+			actual := &FileDatabaseModel{}
+
+			require.NoError(t, actual.Read(path))
+
+			require.Contains(t, actual.Users, "john")
+
+			assert.Equal(t, model.Users["john"].Password, actual.Users["john"].Password)
+			assert.Equal(t, model.Users["john"].DisplayName, actual.Users["john"].DisplayName)
+			assert.Equal(t, model.Users["john"].Email, actual.Users["john"].Email)
+			assert.Equal(t, model.Users["john"].Groups, actual.Users["john"].Groups)
+			assert.Equal(t, model.Users["john"].Extra, actual.Users["john"].Extra)
+
+			require.NotNil(t, actual.Users["john"].Address)
+
+			assert.Equal(t, model.Users["john"].Address.StreetAddress, actual.Users["john"].Address.StreetAddress)
+			assert.Equal(t, model.Users["john"].Address.Country, actual.Users["john"].Address.Country)
+		})
+	}
+}
+
+func TestDatabaseModel_WriteShouldOmitUnsetFields(t *testing.T) {
+	const validHash = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+
+	testCases := []struct {
+		name      string
+		filename  string
+		unmarshal func(data []byte, v any) error
+	}{
+		{"ShouldOmitYAML", "users.yml", yaml.Unmarshal},
+		{"ShouldOmitTOML", "users.toml", toml.Unmarshal},
+		{"ShouldOmitJSON", "users.json", json.Unmarshal},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), tc.filename)
+
+			model := &FileDatabaseModel{
+				Users: map[string]FileDatabaseUserDetailsModel{
+					"john": {
+						Password:    validHash,
+						DisplayName: "John",
+					},
+					"jane": {
+						Password:    validHash,
+						DisplayName: "Jane",
+						Address:     &FileUserDatabaseUserDetailsAddressModel{Country: "AU"},
+					},
+				},
+			}
+
+			require.NoError(t, model.Write(path))
+
+			data, err := os.ReadFile(path)
+			require.NoError(t, err)
+
+			raw := map[string]map[string]map[string]any{}
+
+			require.NoError(t, tc.unmarshal(data, &raw))
+
+			assert.Equal(t, map[string]any{"password": validHash, "displayname": "John"}, raw["users"]["john"])
+			assert.Equal(t, map[string]any{"password": validHash, "displayname": "Jane", "address": map[string]any{"country": "AU"}}, raw["users"]["jane"])
 		})
 	}
 }

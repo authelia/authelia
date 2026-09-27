@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -29,6 +33,7 @@ func MultiWrap(next fasthttp.RequestHandler, middlewares ...Basic) (handler fast
 	return next
 }
 
+// RequestCtxRemoteIP returns the remote IP of the given request context.
 func RequestCtxRemoteIP(ctx *fasthttp.RequestCtx) net.IP {
 	if header := ctx.Request.Header.PeekBytes(headerXForwardedFor); len(header) != 0 {
 		ips := strings.SplitN(string(header), ",", 2)

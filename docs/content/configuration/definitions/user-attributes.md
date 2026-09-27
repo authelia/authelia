@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "User Attributes"
-description: "User Attributes Definitions Configuration"
+description: "Configuring the Authelia user attribute definitions which allow defining custom user attributes using CEL expressions for use in OpenID Connect 1.0 claims."
 summary: "Authelia allows configuring reusable user attribute definitions."
 date: 2025-02-22T06:40:08+00:00
 draft: false
@@ -83,7 +87,7 @@ compromised clients).
 
 The following attributes are available for use in expressions depending on the context:
 
-|           Attribute           |                     Description                      |                  Context                  |
-|:-----------------------------:|:----------------------------------------------------:|:-----------------------------------------:|
-| `openid_authreq_claim_value`  | The `value` property of the relevant claims request  | OpenID Connect 1.0 Authorization Request  |
-| `openid_authreq_claim_values` | The `values` property of the relevant claims request | OpenID Connect 1.0 Authorization Request  |
+|           Attribute           |                     Description                      |                 Context                  |
+| :---------------------------: | :--------------------------------------------------: | :--------------------------------------: |
+| `openid_authreq_claim_value`  | The `value` property of the relevant claims request  | OpenID Connect 1.0 Authorization Request |
+| `openid_authreq_claim_values` | The `values` property of the relevant claims request | OpenID Connect 1.0 Authorization Request |

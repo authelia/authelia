@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "SFTPGo"
-description: "Integrating SFTPGo with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating SFTPGo with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [SFTPGo]
   - [v2.6.6](https://github.com/drakkan/sftpgo/releases/tag/v2.6.6)
 
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://sftpgo.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `sftpgo`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://sftpgo.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `sftpgo`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -52,7 +56,7 @@ renders the value `manager` if they are in the `sftpgo_managers` group, otherwis
 to your preference to assign a role to the appropriate user groups.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [SFTPGo] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [SFTPGo] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}

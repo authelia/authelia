@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100" role="img" aria-label="levkoburburas">
+  <style>
+    svg { color-scheme: light dark }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,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" x="32.0" y="0" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="60.0" cy="28.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+  <text x="60.0" y="73" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">levkoburburas</text>
+  <text x="60.0" y="91" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">💻🤔🐛</text>
+</svg>

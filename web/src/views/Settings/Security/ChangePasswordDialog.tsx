@@ -1,22 +1,23 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
-import {
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    TextField,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
 import axios from "axios";
+import { cn } from "cn";
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter";
+import { Button } from "@components/UI/Button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@components/UI/Dialog";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
+import { Spinner } from "@components/UI/Spinner";
 import { useNotifications } from "@contexts/NotificationsContext";
 import useCheckCapsLock from "@hooks/CapsLock";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
@@ -32,8 +33,11 @@ const ChangePasswordDialog = (props: Props) => {
     const { t: translate } = useTranslation(["settings", "portal"]);
 
     const { createErrorNotification, createSuccessNotification } = useNotifications();
+    const { showPassword: showOldPassword, toggleProps: oldPasswordToggleProps } = usePasswordVisibility();
+    const { showPassword: showNewPassword, toggleProps: newPasswordToggleProps } = usePasswordVisibility();
 
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [oldPassword, setOldPassword] = useState("");
     const [oldPasswordError, setOldPasswordError] = useState(false);
     const [newPassword, setNewPassword] = useState("");
@@ -80,6 +84,7 @@ const ChangePasswordDialog = (props: Props) => {
         resetCapsLockErrors();
 
         setLoading(false);
+        setSubmitting(false);
     }, [resetPasswordErrors, resetCapsLockErrors]);
 
     const handleClose = useCallback(() => {
@@ -126,6 +131,8 @@ const ChangePasswordDialog = (props: Props) => {
             return;
         }
 
+        setSubmitting(true);
+
         try {
             await postPasswordChange(props.username, oldPassword, newPassword);
             createSuccessNotification(translate("Password changed successfully"));
@@ -133,6 +140,7 @@ const ChangePasswordDialog = (props: Props) => {
         } catch (err) {
             resetPasswordErrors();
             setLoading(false);
+            setSubmitting(false);
             if (axios.isAxiosError(err) && err.response) {
                 switch (err.response.status) {
                     case 400: // Bad Request - Weak Password
@@ -210,100 +218,157 @@ const ChangePasswordDialog = (props: Props) => {
     const disabled = props.disabled || false;
 
     return (
-        <Dialog open={props.open} maxWidth="xs">
-            <DialogTitle>{translate("Change Password")}</DialogTitle>
-            <DialogContent>
-                <FormControl id={"change-password-form"} disabled={loading}>
-                    <Grid container spacing={1} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                        <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                            <TextField
-                                inputRef={oldPasswordRef}
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open && !submitting) handleClose();
+            }}
+        >
+            <DialogContent className="sm:max-w-xs" showCloseButton={false}>
+                <DialogHeader>
+                    <DialogTitle>{translate("Change Password")}</DialogTitle>
+                </DialogHeader>
+                <fieldset id={"change-password-form"} disabled={loading} className="space-y-1 text-center">
+                    <div className="w-full pt-6">
+                        <Label htmlFor="old-password" className="sr-only">
+                            {translate("Old Password")}
+                        </Label>
+                        <div className="relative">
+                            <Input
+                                ref={oldPasswordRef}
                                 id="old-password"
-                                label={translate("Old Password")}
-                                variant="outlined"
+                                placeholder={translate("Old Password") + " *"}
                                 required
                                 value={oldPassword}
                                 error={oldPasswordError}
                                 disabled={disabled}
-                                fullWidth
+                                className="w-full pr-10"
                                 onChange={(v) => setOldPassword(v.target.value)}
                                 onFocus={() => setOldPasswordError(false)}
-                                type="password"
+                                type={showOldPassword ? "text" : "password"}
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleOldPWKeyDown}
                                 onKeyUp={useCheckCapsLock(setIsCapsLockOnOldPW)}
-                                helperText={isCapsLockOnOldPW ? translate("Caps Lock is on") : " "}
-                                color={isCapsLockOnOldPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnOldPW(false)}
                             />
-                        </Grid>
-                        <Grid size={{ xs: 12 }} sx={{ mt: 3 }}>
-                            <TextField
-                                inputRef={newPasswordRef}
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle old password visibility")}
+                                showPassword={showOldPassword}
+                                {...oldPasswordToggleProps}
+                            />
+                        </div>
+                        <p
+                            className={cn(
+                                "text-xs mt-1 h-4",
+                                isCapsLockOnOldPW ? "text-destructive" : "text-transparent",
+                            )}
+                        >
+                            {isCapsLockOnOldPW ? translate("Caps Lock is on") : "\u00A0"}
+                        </p>
+                    </div>
+                    <div className="w-full mt-6">
+                        <Label htmlFor="new-password" className="sr-only">
+                            {translate("New Password")}
+                        </Label>
+                        <div className="relative">
+                            <Input
+                                ref={newPasswordRef}
                                 id="new-password"
-                                label={translate("New Password")}
-                                variant="outlined"
+                                placeholder={translate("New Password") + " *"}
                                 required
-                                fullWidth
+                                error={newPasswordError}
+                                className="w-full pr-10"
                                 disabled={disabled}
                                 value={newPassword}
-                                error={newPasswordError}
                                 onChange={(v) => setNewPassword(v.target.value)}
                                 onFocus={() => setNewPasswordError(false)}
-                                type="password"
+                                type={showNewPassword ? "text" : "password"}
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleNewPWKeyDown}
                                 onKeyUp={useCheckCapsLock(setIsCapsLockOnNewPW)}
-                                helperText={isCapsLockOnNewPW ? translate("Caps Lock is on") : " "}
-                                color={isCapsLockOnNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnNewPW(false)}
                             />
-                            {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
-                                <PasswordMeter value={newPassword} policy={pPolicy} />
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle new password visibility")}
+                                showPassword={showNewPassword}
+                                {...newPasswordToggleProps}
+                            />
+                        </div>
+                        <p
+                            className={cn(
+                                "text-xs mt-1 h-4",
+                                isCapsLockOnNewPW ? "text-destructive" : "text-transparent",
                             )}
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <TextField
-                                inputRef={repeatNewPasswordRef}
+                        >
+                            {isCapsLockOnNewPW ? translate("Caps Lock is on") : "\u00A0"}
+                        </p>
+                        {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
+                            <PasswordMeter value={newPassword} policy={pPolicy} />
+                        )}
+                    </div>
+                    <div className="w-full">
+                        <Label htmlFor="repeat-new-password" className="sr-only">
+                            {translate("Repeat New Password")}
+                        </Label>
+                        <div className="relative">
+                            <Input
+                                ref={repeatNewPasswordRef}
                                 id="repeat-new-password"
-                                label={translate("Repeat New Password")}
-                                variant="outlined"
+                                placeholder={translate("Repeat New Password") + " *"}
                                 required
-                                fullWidth
+                                error={repeatNewPasswordError}
+                                className="w-full pr-10"
                                 disabled={disabled}
                                 value={repeatNewPassword}
-                                error={repeatNewPasswordError}
                                 onChange={(v) => setRepeatNewPassword(v.target.value)}
                                 onFocus={() => setRepeatNewPasswordError(false)}
-                                type="password"
+                                type={showNewPassword ? "text" : "password"}
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleRepeatNewPWKeyDown}
                                 onKeyUp={useCheckCapsLock(setIsCapsLockOnRepeatNewPW)}
-                                helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is on") : " "}
-                                color={isCapsLockOnRepeatNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
                             />
-                        </Grid>
-                    </Grid>
-                </FormControl>
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle repeat new password visibility")}
+                                showPassword={showNewPassword}
+                                {...newPasswordToggleProps}
+                            />
+                        </div>
+                        <p
+                            className={cn(
+                                "text-xs mt-1 h-4",
+                                isCapsLockOnRepeatNewPW ? "text-destructive" : "text-transparent",
+                            )}
+                        >
+                            {isCapsLockOnRepeatNewPW ? translate("Caps Lock is on") : "\u00A0"}
+                        </p>
+                    </div>
+                </fieldset>
+                <DialogFooter>
+                    <Button
+                        id={"password-change-dialog-cancel"}
+                        variant={"ghost"}
+                        color={"destructive"}
+                        disabled={submitting}
+                        onClick={handleClose}
+                    >
+                        {translate("Cancel")}
+                    </Button>
+                    <Button
+                        id={"password-change-dialog-submit"}
+                        variant={"ghost"}
+                        color={"primary"}
+                        onClick={handlePasswordChange}
+                        disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length) || loading}
+                    >
+                        {loading ? <Spinner size={20} /> : null}
+                        {translate("Submit")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button id={"password-change-dialog-cancel"} color={"error"} onClick={handleClose}>
-                    {translate("Cancel")}
-                </Button>
-                <Button
-                    id={"password-change-dialog-submit"}
-                    color={"primary"}
-                    onClick={handlePasswordChange}
-                    disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length) || loading}
-                    startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
-                >
-                    {translate("Submit")}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };

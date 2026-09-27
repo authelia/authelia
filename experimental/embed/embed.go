@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package embed
 
 import (
@@ -6,6 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/service"
 )
 
+// ProvidersStartupCheck performs the startup checks for all providers given a context.
 func ProvidersStartupCheck(ctx Context, log bool) (err error) {
 	providers := ctx.GetProviders()
 

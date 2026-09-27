@@ -1,0 +1,18 @@
+<!--
+SPDX-FileCopyrightText: 2026 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>SAML Framework for Go (Identity Provider and Service Provider Roles)</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="go-import" content="authelia.com/provider/saml git https://github.com/authelia/saml-provider">
+    <meta http-equiv="refresh" content="0; url=https://pkg.go.dev/authelia.com/provider/saml">
+</head>
+<body>
+<a href="https://pkg.go.dev/authelia.com/provider/saml">Redirecting to documentation...</a>
+</body>
+</html>

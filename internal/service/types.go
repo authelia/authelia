@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -9,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
+// Context represents the context used by the services.
 type Context interface {
 	GetLogger() *logrus.Entry
 	GetProviders() middlewares.Providers
@@ -23,7 +28,7 @@ type errWatcher interface {
 	WatcherReloadErrorCritical() bool
 }
 
-// runContext wraps a service.Context, replacing the underlying context.Context methods (Deadline/Done/Err/Value) with
+// runContext wraps a service.Context, replacing the underlying [context.Context] methods (Deadline/Done/Err/Value) with
 // those of the runtime context which is cancelled when shutdown is initiated. The accessor methods continue to delegate
 // to the original service.Context.
 type runContext struct {

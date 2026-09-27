@@ -1,4 +1,8 @@
 # yamllint disable-file
+
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
 ---
 {{- range (walk "./test_resources/config_walk/" "" false) }}
   {{ if not .IsDir }}

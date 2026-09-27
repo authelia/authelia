@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -31,7 +35,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
 			if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
-				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+				ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 		} else {
 			ctx.ReplyOK()
@@ -40,10 +44,11 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	var targetURL *url.URL
+	var object *authorization.Object
 
-	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
+	if object, err = authorization.NewObjectMethodURL([]byte(requestMethod), []byte(targetURI)); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred parsing the target URL '%s'", targetURI)
+		ctx.SetJSONError(messageAuthenticationFailed)
 
 		return
 	}
@@ -54,25 +59,25 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 			Groups:   groups,
 			IP:       ctx.RemoteIP(),
 		},
-		authorization.NewObject(targetURL, requestMethod))
+		*object)
 
-	ctx.Logger.Debugf("Required level for the URL %s is %s", targetURI, requiredLevel)
+	ctx.GetLogger().Debugf("Required level for the URL %s is %s", targetURI, requiredLevel)
 
 	if requiredLevel == authorization.TwoFactor {
-		ctx.Logger.Warnf("%s requires 2FA, cannot be redirected yet", targetURI)
+		ctx.GetLogger().Warnf("%s requires 2FA, cannot be redirected yet", object.URL)
 		ctx.ReplyOK()
 
 		return
 	}
 
-	if !ctx.IsSafeRedirectionTargetURI(targetURL) {
-		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
+	if !ctx.IsSafeRedirectionTargetURI(object.URL) {
+		ctx.GetLogger().Debugf("Redirection URL %s is not safe", object.URL)
 
 		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
 			if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
-				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+				ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 
 			return
@@ -83,10 +88,10 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
+	ctx.GetLogger().Debugf("Redirection URL %s is safe", object.URL)
 
 	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
-		ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
+		ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)
 	}
 }
 
@@ -104,7 +109,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		}
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
-			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 
 		return
@@ -116,17 +121,19 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	)
 
 	if parsedURI, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to determine if URI '%s' is safe to redirect to: failed to parse URI '%s': %w", targetURI, targetURI, err), messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Errorf("Error occurred determining if the URI '%s' is safe to redirect to as it could not be parsed", targetURI)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
 	safe = ctx.IsSafeRedirectionTargetURI(parsedURI)
 
 	if safe {
-		ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
+		ctx.GetLogger().Debugf("Redirection URL %s is safe", targetURI)
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
-			ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
+			ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)
 		}
 
 		return
@@ -152,7 +159,7 @@ func handleFlowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserS
 	default:
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: id, logging.FieldFlow: flow, logging.FieldSubflow: subflow}).
 			Error("Failed to find flow handler for the given flow parameters")
 	}
@@ -167,7 +174,7 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 	default:
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: id, logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Failed to find flow handler for the given flow parameters")
 	}
@@ -183,7 +190,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if flowID, err = uuid.Parse(id); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: id, logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Error occurred parsing the consent session flow id")
@@ -194,7 +201,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Error occurred loading the consent session")
@@ -205,7 +212,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if consent.Responded() {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Failed to process consent session as it has already been responded to")
 
@@ -226,7 +233,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if userSession.IsAnonymous() {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID()}).
 			Error("Failed to redirect for consent as the user is anonymous")
 
@@ -270,7 +277,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		targetURL.RawQuery = query.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 				Error("Error occurred marshaling JSON response body for consent redirection")
@@ -416,13 +423,13 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx *middlewares.A
 		targetURL.RawQuery = query.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 				Error("Failed to marshal JSON response body for authorization redirection")
 		}
 	default:
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 			Info("OpenID Connect 1.0 client requires 2FA")
 
@@ -451,7 +458,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponseNoUserCode(ctx *mid
 		targetURL.RawQuery = query.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).
 				Error("Failed to marshal JSON response body for flow response redirection")

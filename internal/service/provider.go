@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -27,13 +31,16 @@ type ReloadableProvider interface {
 	Reload() (reloaded bool, err error)
 }
 
+// Provisioner is a function which provisions a Provider.
 type Provisioner func(ctx Context) (provider Provider, err error)
 
+// GetProvisioners returns every Provisioner in the order they should be provisioned.
 func GetProvisioners() []Provisioner {
 	return []Provisioner{
 		ProvisionServer,
 		ProvisionServerMetrics,
 		ProvisionUsersFileWatcher,
 		ProvisionLoggingSignal,
+		ProvisionGarbageCollector,
 	}
 }

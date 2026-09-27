@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # PROVIDE: authelia
 # REQUIRE: DAEMON NETWORKING
 # KEYWORD: shutdown

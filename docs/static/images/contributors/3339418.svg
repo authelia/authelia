@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100" role="img" aria-label="Amir Zarrinkafsh">
+  <style>
+    svg { color-scheme: light dark }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,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" x="32.0" y="0" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="60.0" cy="28.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+  <text x="60.0" y="73" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">Amir Zarrinkafsh</text>
+  <text x="60.0" y="91" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">💻📖🤔🚧+9</text>
+</svg>

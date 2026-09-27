@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 root = true
 
 [*]
@@ -22,10 +26,12 @@ indent_size = 2
 charset                     = UTF-8
 indent_style                = space
 
-[{internal/templates/src/,web/}{package.json,pnpm-lock.yaml}]
+[{internal/templates/src/,web/}{components.json,package.json,pnpm-lock.yaml}]
 indent_style = space
 indent_size = 2
 
 [web/**]
 indent_style = space
 
+[internal/mocks/LICENSE.header]
+insert_final_newline = false

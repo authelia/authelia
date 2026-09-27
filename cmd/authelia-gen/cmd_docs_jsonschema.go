@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -217,7 +221,6 @@ func docsJSONSchemaUserDatabaseRunE(cmd *cobra.Command, args []string) (err erro
 	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &authentication.FileUserDatabase{}, dir, file, jsonschemaKoanfMapper)
 }
 
-//nolint:gocyclo
 func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.SemanticVersion, schemaDir string, v any, dir, file string, mapper func(reflect.Type) *jsonschema.Schema) (err error) {
 	r := &jsonschema.Reflector{
 		RequiredFromJSONSchemaTags: true,
@@ -246,6 +249,7 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 
 	var (
 		versions []string
+		target   model.SemanticVersion
 	)
 
 	versions, _ = cmd.Flags().GetStringSlice(cmdFlagVersions)
@@ -254,32 +258,27 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 		versions = []string{metaVersionLatest, metaVersionCurrent}
 	}
 
-	next := utils.IsStringInSlice(metaVersionNext, versions)
-
-	if next && utils.IsStringInSlice(metaVersionCurrent, versions) {
-		return fmt.Errorf("failed to generate: meta version next and current are mutually exclusive")
+	if target, err = jsonSchemaVersionTarget(version, versions); err != nil {
+		return err
 	}
 
 	schema := r.Reflect(v)
+
+	jsonSchemaAddSchemaProperty(schema)
 
 	for _, versionName := range versions {
 		var out string
 
 		switch versionName {
-		case metaVersionNext:
-			out = fmt.Sprintf("v%d.%d", version.Major, version.Minor+1)
+		case metaVersionMajor, metaVersionMinor:
+			out = jsonSchemaVersionDir(target)
 			schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, out, file))
 		case metaVersionCurrent:
-			out = fmt.Sprintf("v%d.%d", version.Major, version.Minor)
+			out = jsonSchemaVersionDir(*version)
 			schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, out, file))
 		case metaVersionLatest:
 			out = metaVersionLatest
-
-			if next {
-				schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, fmt.Sprintf("v%d.%d", version.Major, version.Minor+1), file))
-			} else {
-				schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, fmt.Sprintf("v%d.%d", version.Major, version.Minor), file))
-			}
+			schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, jsonSchemaVersionDir(target), file))
 		default:
 			var parsed *model.SemanticVersion
 
@@ -287,8 +286,8 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 				return fmt.Errorf("failed to parse version: %w", err)
 			}
 
-			out = fmt.Sprintf("v%d.%d", parsed.Major, parsed.Minor)
-			schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, fmt.Sprintf("v%d.%d", version.Major, version.Minor), file))
+			out = jsonSchemaVersionDir(*parsed)
+			schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, out, file))
 		}
 
 		if err = writeJSONSchema(schema, dir, out, file); err != nil {
@@ -299,15 +298,58 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 	return nil
 }
 
+// jsonSchemaAddSchemaProperty adds the '$schema' property to the root object so JSON files may reference the schema
+// without failing validation, as the root object does not allow additional properties.
+func jsonSchemaAddSchemaProperty(schema *jsonschema.Schema) {
+	root := schema
+
+	if name, ok := strings.CutPrefix(schema.Ref, "#/$defs/"); ok {
+		if def, ok := schema.Definitions[name]; ok {
+			root = def
+		}
+	}
+
+	if root.Properties == nil {
+		return
+	}
+
+	root.Properties.Set("$schema", &jsonschema.Schema{
+		Type:        "string",
+		Format:      "uri",
+		Title:       "JSON Schema",
+		Description: "The JSON Schema which applies to this file.",
+	})
+}
+
+func jsonSchemaVersionTarget(version *model.SemanticVersion, versions []string) (target model.SemanticVersion, err error) {
+	major, minor := utils.IsStringInSlice(metaVersionMajor, versions), utils.IsStringInSlice(metaVersionMinor, versions)
+
+	if major && minor {
+		return target, fmt.Errorf("failed to generate: meta versions major and minor are mutually exclusive")
+	}
+
+	if (major || minor) && utils.IsStringInSlice(metaVersionCurrent, versions) {
+		return target, fmt.Errorf("failed to generate: meta version current is mutually exclusive with major and minor")
+	}
+
+	switch {
+	case major:
+		return version.NextMajor(), nil
+	case minor:
+		return version.NextMinor(), nil
+	default:
+		return version.Copy(), nil
+	}
+}
+
+func jsonSchemaVersionDir(version model.SemanticVersion) string {
+	return fmt.Sprintf("v%d.%d", version.Major, version.Minor)
+}
+
 func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err error) {
 	var (
-		data []byte
-		f    *os.File
+		f *os.File
 	)
-
-	if data, err = json.MarshalIndent(schema, "", "  "); err != nil {
-		return err
-	}
 
 	if _, err = os.Stat(filepath.Join(dir, version, pathJSONSchema)); err != nil && os.IsNotExist(err) {
 		if err = os.MkdirAll(filepath.Join(dir, version, pathJSONSchema), 0755); err != nil {
@@ -315,11 +357,15 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 		}
 	}
 
-	if f, err = os.Create(filepath.Join(dir, version, pathJSONSchema, file+extJSON)); err != nil {
+	if f, err = os.Create(filepath.Join(dir, version, pathJSONSchema, file+utils.ExtJSON)); err != nil {
 		return err
 	}
 
-	if _, err = f.Write(data); err != nil {
+	encoder := json.NewEncoder(f)
+
+	encoder.SetIndent("", "  ")
+
+	if err = encoder.Encode(schema); err != nil {
 		return err
 	}
 

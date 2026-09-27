@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 export function getEmbeddedVariable(variableName: string) {
     const value = document.body.getAttribute(`data-${variableName}`);
     if (value === null) {
@@ -5,6 +9,10 @@ export function getEmbeddedVariable(variableName: string) {
     }
 
     return value;
+}
+
+export function getCSPNonce() {
+    return document.querySelector<HTMLMetaElement>('meta[property="csp-nonce"]')?.content ?? "";
 }
 
 export function getDuoSelfEnrollment() {
@@ -29,6 +37,18 @@ export function getPasskeyLogin() {
 
 export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
+}
+
+export function getTOTPAppAppleStore() {
+    return getEmbeddedVariable("totpappapplestore");
+}
+
+export function getTOTPAppGooglePlay() {
+    return getEmbeddedVariable("totpappgoogleplay");
+}
+
+export function getRegistrationURL() {
+    return getEmbeddedVariable("registrationurl");
 }
 
 export function getPrivacyPolicyEnabled() {

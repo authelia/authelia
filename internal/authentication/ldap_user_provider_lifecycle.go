@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
@@ -8,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// Close implements the UserProvider interface.
 func (p *LDAPUserProvider) Close() (err error) {
 	return p.factory.Close()
 }

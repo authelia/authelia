@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 const (
@@ -5,11 +9,14 @@ const (
 )
 
 const (
-	logFieldService = "service"
-	logFieldFile    = "file"
-	logFieldOP      = "op"
+	logFieldService   = "service"
+	logFieldFile      = "file"
+	logFieldOP        = "op"
+	logFieldProvider  = "provider"
+	logFieldFrequency = "frequency"
 
 	serviceTypeServer  = "server"
 	serviceTypeWatcher = "watcher"
 	serviceTypeSignal  = "signal"
+	serviceTypeGC      = "gc"
 )

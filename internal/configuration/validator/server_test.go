@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -978,6 +982,98 @@ func TestValidateServerAssets(t *testing.T) {
 				default:
 					t.Fatal("Expected regex or string for error type")
 				}
+			}
+		})
+	}
+}
+
+func TestValidateServerEndpointsHealth(t *testing.T) {
+	duration := func(d time.Duration) *time.Duration {
+		return &d
+	}
+
+	testCases := []struct {
+		name     string
+		have     schema.ServerEndpointHealth
+		expected schema.ServerEndpointHealth
+		errs     []string
+		warnings []string
+	}{
+		{
+			"ShouldSetDefaults",
+			schema.ServerEndpointHealth{},
+			schema.ServerEndpointHealth{
+				Providers: []string{schema.ProviderNameStorage, schema.ProviderNameSession, schema.ProviderNameUser},
+				Cache:     duration(time.Second * 10),
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldKeepConfiguredProviders",
+			schema.ServerEndpointHealth{Verbose: true, Providers: []string{schema.ProviderNameNotification}, Cache: duration(time.Minute)},
+			schema.ServerEndpointHealth{Verbose: true, Providers: []string{schema.ProviderNameNotification}, Cache: duration(time.Minute)},
+			nil,
+			nil,
+		},
+		{
+			"ShouldKeepExplicitZeroCache",
+			schema.ServerEndpointHealth{Providers: []string{schema.ProviderNameStorage}, Cache: duration(0)},
+			schema.ServerEndpointHealth{Providers: []string{schema.ProviderNameStorage}, Cache: duration(0)},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnUnknownProvider",
+			schema.ServerEndpointHealth{Providers: []string{"nonexistent"}},
+			schema.ServerEndpointHealth{Providers: []string{"nonexistent"}, Cache: duration(time.Second * 10)},
+			[]string{"server: endpoints: health: option 'providers' must only include the values 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', or 'webauthn-metadata' but it's configured as 'nonexistent'"},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnDuplicateProvider",
+			schema.ServerEndpointHealth{Providers: []string{schema.ProviderNameStorage, schema.ProviderNameStorage}},
+			schema.ServerEndpointHealth{Providers: []string{schema.ProviderNameStorage, schema.ProviderNameStorage}, Cache: duration(time.Second * 10)},
+			[]string{"server: endpoints: health: option 'providers' has a duplicate value 'storage'"},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnNegativeCache",
+			schema.ServerEndpointHealth{Providers: []string{schema.ProviderNameStorage}, Cache: duration(-time.Second)},
+			schema.ServerEndpointHealth{Providers: []string{schema.ProviderNameStorage}, Cache: duration(-time.Second)},
+			[]string{"server: endpoints: health: option 'cache' must be greater than or equal to 0 but it's configured as '-1s'"},
+			nil,
+		},
+		{
+			"ShouldWarnWhenDetailedWithoutVerbose",
+			schema.ServerEndpointHealth{Detailed: true, Providers: []string{schema.ProviderNameStorage}, Cache: duration(time.Second)},
+			schema.ServerEndpointHealth{Detailed: true, Providers: []string{schema.ProviderNameStorage}, Cache: duration(time.Second)},
+			nil,
+			[]string{"server: endpoints: health: option 'detailed' has no effect unless option 'verbose' is enabled"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.Configuration{Server: schema.Server{Endpoints: schema.ServerEndpoints{Health: tc.have}}}
+
+			validateServerEndpointsHealth(config, validator)
+
+			assert.Equal(t, tc.expected, config.Server.Endpoints.Health)
+
+			errs := validator.Errors()
+			require.Len(t, errs, len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, errs[i], expected)
+			}
+
+			warnings := validator.Warnings()
+			require.Len(t, warnings, len(tc.warnings))
+
+			for i, expected := range tc.warnings {
+				assert.EqualError(t, warnings[i], expected)
 			}
 		})
 	}

@@ -1,14 +1,18 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 module resources
 
 go 1.25.1
 
 require (
 	github.com/cespare/reflex v0.3.2
-	github.com/go-delve/delve v1.27.1
+	github.com/go-delve/delve v1.27.2
 )
 
 require (
-	github.com/cilium/ebpf v0.21.0 // indirect
+	github.com/cilium/ebpf v0.22.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/cosiner/argv v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
@@ -34,4 +38,4 @@ require (
 	golang.org/x/telemetry v0.0.0-20260316223853-b6b0c46d1ccd // indirect
 )
 
-replace golang.org/x/net => golang.org/x/net v0.58.0
+replace golang.org/x/net => golang.org/x/net v0.59.0

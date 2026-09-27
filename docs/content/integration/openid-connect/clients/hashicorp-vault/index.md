@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "HashiCorp Vault"
-description: "Integrating HashiCorp Vault with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating HashiCorp Vault with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://vault.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `vault`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://vault.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `vault`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [HashiCorp Vault] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [HashiCorp Vault] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -84,10 +88,53 @@ identity_providers:
 To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect 1.0] Provider please see the links in the
 [see also](#see-also) section.
 
+Below are Terraform code snippets that describe how to configure the OIDC auth backend for Vault and a Vault role to go with it.
+
+Terraform Vault Provider v5.11 was used with this example.
+
+```hcl {title="vault_jwt_auth_backend resource"}
+resource "vault_jwt_auth_backend" "anthelia" {
+  description                   = ""
+  path                          = "oidc"
+  type                          = "oidc"
+  oidc_discovery_url            = "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
+  oidc_client_id                = "vault"
+  oidc_client_secret_wo         = "insecure_secret"
+  oidc_client_secret_wo_version = 1
+  bound_issuer                  = "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
+  default_role                  = "authelia"
+  oidc_response_types           = ["code"]
+}
+```
+
+```hcl {title="vault_jwt_auth_backend_role resource"}
+resource "vault_jwt_auth_backend_role" "anthelia" {
+  backend    = vault_jwt_auth_backend.authelia.path
+  role_name  = "authelia"
+  role_type  = "oidc"
+  user_claim = "sub" # REQUIRED
+  allowed_redirect_uris = [
+    "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback",
+    "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/ui/vault/auth/oidc/callback"
+  ]
+  oidc_scopes = [
+    "profile",
+    "email"
+  ]
+  token_policies = [
+    "default"
+  ]
+  token_ttl     = 3600  # in seconds
+  token_max_ttl = 28800 # in seconds
+}
+```
+
 ## See Also
 
 - [HashiCorp Vault JWT/OIDC Auth Documentation](https://www.vaultproject.io/docs/auth/jwt)
 - [HashiCorp Vault OpenID Connect Providers Documentation](https://www.vaultproject.io/docs/auth/jwt/oidc-providers)
+- [Terraform Vault Provider Resource - `vault_jwt_auth_backend`](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/jwt_auth_backend)
+- [Terraform Vault Provider Resource - `vault_jwt_auth_backend_role`](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/jwt_auth_backend_role)
 
 [Authelia]: https://www.authelia.com
 [HashiCorp Vault]: https://www.vaultproject.io/
