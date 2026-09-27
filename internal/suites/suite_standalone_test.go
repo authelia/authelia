@@ -305,6 +305,7 @@ func (s *StandaloneSuite) doAuthzBasicRequest(endpoint, username, password strin
 	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("singlefactor.%s", BaseDomain))
 	req.Header.Set("X-Forwarded-URI", "/")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
 
 	if username != "" {
 		req.SetBasicAuth(username, password)
@@ -365,7 +366,7 @@ func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeadersForUserWith
 func (s *StandaloneSuite) TestShouldNotRespondWithConfiguredAuthzHeadersWhenUnauthenticated() {
 	res := s.doAuthzBasicRequest("forward-auth-attributes", "", "")
 
-	s.Assert().Equal(fasthttp.StatusUnauthorized, res.StatusCode)
+	s.Assert().Equal(fasthttp.StatusFound, res.StatusCode)
 
 	for _, header := range []string{"Remote-User", "Remote-Groups", "Remote-Given-Name", "Remote-Employee-Id", "Remote-Is-Admin"} {
 		s.Assert().Empty(res.Header.Values(header), header)
