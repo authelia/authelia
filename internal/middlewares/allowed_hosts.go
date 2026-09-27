@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 )
@@ -19,11 +20,17 @@ func AllowedHosts(hosts []string) (middleware Basic) {
 		return nil
 	}
 
-	hosts = slices.Compact(slices.Sorted(slices.Values(hosts)))
-
-	allowed := make([][]byte, len(hosts))
+	normalized := make([]string, len(hosts))
 
 	for i, host := range hosts {
+		normalized[i] = strings.ToLower(host)
+	}
+
+	normalized = slices.Compact(slices.Sorted(slices.Values(normalized)))
+
+	allowed := make([][]byte, len(normalized))
+
+	for i, host := range normalized {
 		allowed[i] = []byte(host)
 	}
 
@@ -32,7 +39,7 @@ func AllowedHosts(hosts []string) (middleware Basic) {
 			host := ctx.Host()
 
 			for _, a := range allowed {
-				if bytes.Equal(host, a) {
+				if bytes.EqualFold(host, a) {
 					next(ctx)
 
 					return

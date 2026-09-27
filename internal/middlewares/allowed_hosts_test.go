@@ -26,6 +26,10 @@ func TestAllowedHosts(t *testing.T) {
 		{"ShouldRespondOKWhenHostMatchesDuplicates", "authelia", []string{"authelia", "127.0.0.1", "authelia"}, fasthttp.StatusOK, "next"},
 		{"ShouldRespondNotFoundWhenHostMatchesWithoutPort", "authelia:9091", []string{"authelia"}, fasthttp.StatusNotFound, "404 Not Found"},
 		{"ShouldRespondOKWhenHostMatchesWithPort", "authelia:9091", []string{"authelia:9091"}, fasthttp.StatusOK, "next"},
+		{"ShouldRespondOKWhenConfiguredHostUppercase", "authelia:9091", []string{"AUTHELIA:9091"}, fasthttp.StatusOK, "next"},
+		{"ShouldRespondOKWhenRequestHostUppercase", "Auth.Example.com", []string{"auth.example.com"}, fasthttp.StatusOK, "next"},
+		{"ShouldRespondOKWhenDuplicatesDifferByCase", "authelia", []string{"Authelia", "authelia"}, fasthttp.StatusOK, "next"},
+		{"ShouldRespondNotFoundWhenPortDiffers", "AUTHELIA:9092", []string{"Authelia:9091"}, fasthttp.StatusNotFound, "404 Not Found"},
 	}
 
 	for _, tc := range testCases {
