@@ -511,9 +511,6 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 	return details, authentication.OneFactor, nil
 }
 
-// handleGetUserDetails retrieves the user details from the authentication backend. The extended value determines if the
-// extended user details are retrieved which is only necessary when the configured response headers resolve user
-// attributes which are not part of the standard user details.
 func handleGetUserDetails(ctx AuthzContext, username string, extended bool) (details *authentication.UserDetailsExtended, err error) {
 	if extended {
 		return ctx.GetUserProvider().GetDetailsExtended(username)

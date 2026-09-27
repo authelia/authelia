@@ -20,8 +20,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// authzSessionUserAttributes is the list of user attributes which can be resolved from the session details alone i.e.
-// they do not require the extended user details to be retrieved from the authentication backend.
 var authzSessionUserAttributes = []string{
 	expression.AttributeUserUsername,
 	expression.AttributeUserGroups,
@@ -33,9 +31,6 @@ var authzSessionUserAttributes = []string{
 	expression.AttributeUserUpdatedAt,
 }
 
-// authzHeadersRequireExtendedUserDetails returns true when any of the given response headers resolve a user attribute
-// which can't be resolved from the session details, i.e. the extended user details must be retrieved from the
-// authentication backend. This is intentionally determined when the Authz handler is built rather than per-request.
 func authzHeadersRequireExtendedUserDetails(headers []AuthzHeader) (extended bool) {
 	for _, header := range headers {
 		if !utils.IsStringInSlice(header.Attribute, authzSessionUserAttributes) {
@@ -46,7 +41,6 @@ func authzHeadersRequireExtendedUserDetails(headers []AuthzHeader) (extended boo
 	return false
 }
 
-// authzHeaderValue formats a resolved user attribute as a response header value.
 func authzHeaderValue(object any) (value string) {
 	switch v := object.(type) {
 	case nil:
