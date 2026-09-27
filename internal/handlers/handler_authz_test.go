@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
@@ -21,6 +22,7 @@ import (
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -2667,7 +2669,12 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	default:
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+	}
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
@@ -2734,7 +2741,12 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	default:
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+	}
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
@@ -2997,6 +3009,168 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 	s.Equal(fmt.Sprintf("%d %s", expected, fasthttp.StatusMessage(expected)), string(mock.Ctx.Response.Body()))
 	s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 	s.Equal("text/plain; charset=utf-8", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentType)))
+}
+
+func (s *AuthzSuite) TestShouldHandleForbiddenCookieSession() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	testCases := []struct {
+		name string
+		xhr  bool
+	}{
+		{"ShouldHandleBrowser", false},
+		{"ShouldHandleXHR", true},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			builder := s.Builder()
+
+			builder = builder.WithStrategies(
+				NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)),
+			)
+
+			authz := builder.Build()
+
+			mock := mocks.NewMockAutheliaCtx(s.T())
+
+			defer mock.Close()
+
+			setUpMockClock(mock)
+
+			mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
+			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+			targetURI := s.RequireParseRequestURI("https://deny.example.com")
+
+			s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, tc.xhr)
+
+			userSession, err := mock.Ctx.GetSession()
+			s.Require().NoError(err)
+
+			userSession.Username = testUsername
+			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+			userSession.LastActivity = mock.Clock.Now().Unix()
+			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+			s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+			authz.Handler(mock.Ctx)
+
+			location := s.RequireParseRequestURI(mock.Ctx.Configuration.Session.Cookies[0].AutheliaURL.String())
+
+			if location.Path == "" {
+				location.Path = "/"
+			}
+
+			location = location.JoinPath("error")
+
+			query := location.Query()
+			query.Set("ec", "forbidden")
+			query.Set(queryArgRD, targetURI.String())
+			query.Set(queryArgRM, fasthttp.MethodGet)
+
+			location.RawQuery = query.Encode()
+
+			switch {
+			case s.implementation == AuthzImplLegacy:
+				s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+				s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+			case s.implementation == AuthzImplAuthRequest:
+				s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+				s.Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+			case tc.xhr:
+				s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+				s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+			default:
+				s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+				s.Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+			}
+		})
+	}
+}
+
+func (s *AuthzSuite) TestShouldHandleForbiddenCookieSessionWithAccessDeniedRedirectDisabled() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	builder := s.Builder()
+
+	builder = builder.
+		WithEndpointConfig(schema.ServerEndpointsAuthz{Implementation: s.implementation.String(), DisableAccessDeniedRedirect: true}).
+		WithStrategies(NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)))
+
+	authz := builder.Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+	targetURI := s.RequireParseRequestURI("https://deny.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	userSession.Username = testUsername
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.LastActivity = mock.Clock.Now().Unix()
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+}
+
+func TestAuthzGetForbiddenRedirectionURL(t *testing.T) {
+	object := authorization.Object{
+		URL:    &url.URL{Scheme: "https", Host: "deny.example.com", Path: "/secret.html"},
+		Method: fasthttp.MethodGet,
+	}
+
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+	}{
+		{"ShouldReturnNilWithoutAutheliaURL", "", ""},
+		{"ShouldJoinRootPath", "https://auth.example.com", "https://auth.example.com/error?ec=forbidden&rd=https%3A%2F%2Fdeny.example.com%2Fsecret.html&rm=GET"},
+		{"ShouldJoinBasePath", "https://example.com/authelia", "https://example.com/authelia/error?ec=forbidden&rd=https%3A%2F%2Fdeny.example.com%2Fsecret.html&rm=GET"},
+		{"ShouldJoinBasePathWithTrailingSlash", "https://example.com/authelia/", "https://example.com/authelia/error?ec=forbidden&rd=https%3A%2F%2Fdeny.example.com%2Fsecret.html&rm=GET"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var autheliaURL *url.URL
+
+			if tc.have != "" {
+				var err error
+
+				autheliaURL, err = url.ParseRequestURI(tc.have)
+				require.NoError(t, err)
+			}
+
+			actual := (&Authz{}).getForbiddenRedirectionURL(&object, autheliaURL)
+
+			if tc.expected == "" {
+				assert.Nil(t, actual)
+			} else {
+				assert.Equal(t, tc.expected, actual.String())
+			}
+		})
+	}
 }
 
 func setRequestXHRValues(ctx *middlewares.AutheliaCtx, accept, xhr bool) {

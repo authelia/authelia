@@ -32,12 +32,17 @@ type Authz struct {
 
 	handleAuthorized   HandlerAuthzAuthorized
 	handleUnauthorized HandlerAuthzUnauthorized
+	handleForbidden    HandlerAuthzForbidden
 
 	implementation AuthzImplementation
 }
 
 // HandlerAuthzUnauthorized is a Authz handler func that handles unauthorized responses.
 type HandlerAuthzUnauthorized func(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
+
+// HandlerAuthzForbidden is a Authz handler func that handles forbidden responses. The redirectionURL is the portal
+// access denied page, or nil when the Authelia URL could not be determined.
+type HandlerAuthzForbidden func(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
 
 // HandlerAuthzAuthorized is a Authz handler func that handles authorized responses.
 type HandlerAuthzAuthorized func(ctx AuthzContext, authn *Authn)
@@ -107,6 +112,8 @@ type AuthzBuilder struct {
 	config         AuthzConfig
 	implementation AuthzImplementation
 	strategies     []AuthnStrategy
+
+	disableAccessDeniedRedirect bool
 }
 
 // AuthnStrategy is a strategy used for Authz authentication.

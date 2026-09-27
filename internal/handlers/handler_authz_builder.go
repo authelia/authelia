@@ -76,6 +76,8 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
 func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
+	b.disableAccessDeniedRedirect = config.DisableAccessDeniedRedirect
+
 	switch config.Implementation {
 	case AuthzImplForwardAuth.String():
 		b.WithImplementationForwardAuth()
@@ -134,19 +136,27 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.config.StatusCodeBadRequest = fasthttp.StatusUnauthorized
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
+		authz.handleForbidden = handleAuthzForbiddenStandard
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy
 	case AuthzImplForwardAuth:
 		authz.handleGetObject = handleAuthzGetObjectForwardAuth
 		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
+		authz.handleForbidden = handleAuthzForbiddenCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplAuthRequest:
 		authz.handleGetObject = handleAuthzGetObjectAuthRequest
 		authz.handleUnauthorized = handleAuthzUnauthorizedAuthRequest
+		authz.handleForbidden = handleAuthzForbiddenAuthRequest
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplExtAuthz:
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
 		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
+		authz.handleForbidden = handleAuthzForbiddenCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
+	}
+
+	if b.disableAccessDeniedRedirect {
+		authz.handleForbidden = handleAuthzForbiddenStandard
 	}
 
 	return authz

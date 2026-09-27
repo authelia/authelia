@@ -14,6 +14,7 @@ export const SecondFactorPushSubRoute: string = "/push-notification";
 export const ResetPasswordStep1Route: string = "/reset-password/step1";
 export const ResetPasswordStep2Route: string = "/reset-password/step2";
 export const LogoutRoute: string = "/logout";
+export const ErrorRoute: string = "/error";
 
 export const SettingsRoute: string = "/settings";
 export const SettingsTwoFactorAuthenticationSubRoute: string = "/two-factor-authentication";

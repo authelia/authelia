@@ -507,6 +507,26 @@ location /internal/authelia/authz {
     proxy_send_timeout 240;
     proxy_connect_timeout 240;
 }
+
+## Redirect only when the authz endpoint supplied a location, otherwise keep its status. A client which authenticates
+## with a header gets no location and would otherwise be redirected to an empty URL.
+set $redirection_url "";
+
+location @authelia_unauthorized {
+    if ($redirection_url = "") {
+        return 401;
+    }
+
+    return 302 $redirection_url;
+}
+
+location @authelia_forbidden {
+    if ($redirection_url = "") {
+        return 403;
+    }
+
+    return 302 $redirection_url;
+}
 ```
 
 #### authelia-authrequest.conf
@@ -538,7 +558,11 @@ proxy_set_header Remote-Name $name;
 auth_request_set $redirection_url $upstream_http_location;
 
 ## Modern Method: When there is a 401 response code from the authz endpoint redirect to the $redirection_url.
-error_page 401 =302 $redirection_url;
+error_page 401 = @authelia_unauthorized;
+
+## Modern Method (Optional): When there is a 403 response code from the authz endpoint redirect to the access denied
+## page in the portal instead of responding with the NGINX 403 page.
+# error_page 403 = @authelia_forbidden;
 
 ## Legacy Method: Set $target_url to the original requested URL.
 ## This requires http_set_misc module, replace 'set_escape_uri' with 'set' if you don't have this module.

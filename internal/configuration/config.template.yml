@@ -132,12 +132,15 @@
       # forward-auth:
         # implementation: 'ForwardAuth'
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # ext-authz:
         # implementation: 'ExtAuthz'
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # auth-request:
         # implementation: 'AuthRequest'
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # legacy:
         # implementation: 'Legacy'
         # authn_strategies: []

@@ -21,6 +21,18 @@ server:
         - 'session'
         - 'user'
       cache: '0'
+    authz:
+      forward-auth:
+        implementation: 'ForwardAuth'
+      forward-auth-no-redirect:
+        implementation: 'ForwardAuth'
+        disable_access_denied_redirect: true
+      ext-authz:
+        implementation: 'ExtAuthz'
+      auth-request:
+        implementation: 'AuthRequest'
+      legacy:
+        implementation: 'Legacy'
     rate_limits:
       reset_password_start:
         buckets:
