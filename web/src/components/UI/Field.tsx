@@ -3,10 +3,10 @@
 import { type ComponentProps, type ReactNode, useMemo } from "react";
 
 import { type VariantProps, cva } from "class-variance-authority";
+import { cn } from "cn";
 
 import { Label } from "@components/UI/Label";
 import { Separator } from "@components/UI/Separator";
-import { cn } from "@utils/Styles";
 
 function FieldSet({ className, ...props }: ComponentProps<"fieldset">) {
     return (

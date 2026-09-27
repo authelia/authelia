@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: nginx-backend
-          image: nginx:1.31.5-alpine
+          image: nginx:1.31.6-alpine
           ports:
             - containerPort: 80
           volumeMounts:

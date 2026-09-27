@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "OpenID Connect Playground"
-description: "Integrating OpenID Connect Playground with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating the OpenID Connect Playground with the Authelia OpenID Connect 1.0 Provider with configuration examples and an overview of the options."
 summary: ""
 date: 2025-05-07T09:48:38+10:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [OpenID Connect Playground]
   - Not Applicable
 

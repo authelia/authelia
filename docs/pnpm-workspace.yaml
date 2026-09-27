@@ -4,6 +4,6 @@ preferSymlinkedExecutables: true
 nodeLinker: hoisted
 overrides:
   adm-zip: 0.6.1
-  brace-expansion: 5.0.9
+  brace-expansion: 5.0.12
   picomatch: 4.0.7
   semver: 7.8.5

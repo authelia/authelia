@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Duo / Mobile Push"
-description: "Configuring the Duo Mobile Push Notification Second Factor Method."
+description: "Configuring the Authelia Duo mobile push notification second factor method including the API hostname, integration key, secret key, and self-enrollment."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -14,6 +14,13 @@ on("pull_request.opened")
         return !excludedBranchPrefixes.test(context.payload.pull_request.head.ref);
     })
     .filter((context) => !context.payload.pull_request.title.startsWith("docs"))
+    // A container tag admits only [A-Za-z0-9_.-], so the ref is folded to the tag the image is published under.
+    .filter((context) => {
+        context.payload.pull_request.head.ref =
+            context.payload.pull_request.head.ref.replace(/[^A-Za-z0-9_.-]+/g, "-");
+
+        return true;
+    })
     .comment(`## Artifacts
 These changes are published for testing on Buildkite, DockerHub and GitHub Container Registry.
 

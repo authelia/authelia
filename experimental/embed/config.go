@@ -65,9 +65,11 @@ func ValidateConfiguration(config *schema.Configuration, val *schema.StructValid
 }
 
 // NewNamedConfigFileFilters allows configuring a set of file filters. The officially supported filter has the name
-// 'template'. The only other one at this stage is 'expand-env' which is deprecated.
-func NewNamedConfigFileFilters(names ...string) (filters []configuration.BytesFilter, err error) {
-	if filters, err = configuration.NewFileFilters(names); err != nil {
+// 'template'. The only other one at this stage is 'expand-env' which is deprecated. The valuesFiles paths support
+// .yml, .yaml, .json, and .toml; they are loaded in order and deep-merged on top of each other, and are only loaded if
+// one of the named filters utilizes them.
+func NewNamedConfigFileFilters(valuesFiles []string, names ...string) (filters []configuration.BytesFilter, err error) {
+	if filters, err = configuration.NewFileFilters(valuesFiles, names...); err != nil {
 		return nil, fmt.Errorf("error occurred loading filters: %w", err)
 	}
 

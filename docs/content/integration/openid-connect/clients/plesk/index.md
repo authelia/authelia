@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Plesk"
-description: "Integrating Plesk with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Plesk with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Plesk]
   - [v18.0.69](https://docs.plesk.com/release-notes/obsidian/change-log/#plesk-18069)
 

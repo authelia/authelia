@@ -19,6 +19,17 @@
 # each of them; disabled file-wide since it's a false positive here.
 # shellcheck disable=SC2034
 
+# Makes a branch name safe to use in a Docker tag. A Docker tag admits only [A-Za-z0-9_.-], so the "/" in the
+# "<type>/<summary>" branch convention (and anything else out of that set) is folded down to "-": fix/oidc-claims
+# becomes fix-oidc-claims. Applied line by line, so a list of branch names can be passed in one call.
+#
+# Every place that turns a branch name into a tag must agree on this mapping, including the ones outside this file:
+# the tag reaper in hooks/post-command, which compares the published tags against the live branch names, and
+# sanitizeTag() in cmd/authelia-scripts/cmd/docker.go, which tags the manifests this pushes.
+sanitize_tag() {
+  echo "${1}" | sed -E 's/[^A-Za-z0-9_.-]+/-/g'
+}
+
 changed() {
   local base_ref="${1}"
   local path_pattern="${2}"
@@ -64,7 +75,7 @@ resolve_base_ref() {
 #      ":latest" tag resolve to the same image callers only need to
 #      override this when they explicitly want the literal "master"
 #      tag instead (grypescans.sh does).
-# $2 - "true" (default) to collapse renovate-* branches to the literal
+# $2 - "true" (default) to collapse renovate/* branches to the literal
 #      suffix "renovate", matching the image tag integration.sh actually
 #      builds under. Pass "false" to fall through to the literal branch
 #      name instead; grypescans.sh scans the main "authelia/authelia"
@@ -79,10 +90,10 @@ resolve_tag_suffix() {
   local collapse_renovate="${2:-true}"
   TAG_SUFFIX=""
 
-  if [[ "${collapse_renovate}" == "true" ]] && [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
+  if [[ "${collapse_renovate}" == "true" ]] && [[ "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
     TAG_SUFFIX="renovate"
   elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-    TAG_SUFFIX="${BUILDKITE_BRANCH}"
+    TAG_SUFFIX=$(sanitize_tag "${BUILDKITE_BRANCH}")
   elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
     TAG_SUFFIX="PR${BUILDKITE_PULL_REQUEST}"
   elif [[ "${BUILDKITE_BRANCH}" == "master" ]] && [[ "${BUILDKITE_PULL_REQUEST}" == "false" ]]; then

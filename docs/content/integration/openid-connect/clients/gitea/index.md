@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Gitea"
-description: "Integrating Gitea with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Gitea with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2026-09-13T13:00:14-7:00
 draft: false

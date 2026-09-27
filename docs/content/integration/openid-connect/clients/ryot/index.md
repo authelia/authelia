@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Ryot (Roll Your Own Tracker)"
-description: "Integrating Ryot with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Ryot with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-07-26T19:41:59+10:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Ryot]
   - [v8.9.0](https://github.com/IgnisDa/ryot/releases/tag/v8.9.0)
 

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Wanderer"
-description: "Integrating Wanderer with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Wanderer with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2026-02-12T00:00:00+00:00
 draft: false
@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Wanderer]
   - [v0.18.4](https://github.com/open-wanderer/wanderer/releases/tag/v0.18.4)
 

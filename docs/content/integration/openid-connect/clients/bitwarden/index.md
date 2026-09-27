@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Bitwarden"
-description: "Integrating Bitwarden with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Bitwarden with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Bitwarden]
   - [v2025.7.3](https://github.com/bitwarden/server/releases/tag/v2025.7.3)
 

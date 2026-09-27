@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "opkssh"
-description: "Integrating OpenPubkey SSH with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating OpenPubkey SSH (opkssh) with the Authelia OpenID Connect 1.0 Provider including configuration examples for enabling single sign-on (SSO)."
 summary: ""
 date: 2025-04-04T10:36:34+00:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [opkssh]
   - [v0.10.0](https://github.com/openpubkey/opkssh/releases/tag/v0.10.0)
 

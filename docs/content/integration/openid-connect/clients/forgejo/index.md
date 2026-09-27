@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Forgejo"
-description: "Integrating Forgejo with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Forgejo with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-07-10T08:55:15+00:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Forgejo]
   - [v13.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v13.0.2)
 

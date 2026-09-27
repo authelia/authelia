@@ -28,7 +28,7 @@ if [[ ! "${BUILDKITE_COMMAND}" =~ ^\.buildkite/pipeline.sh ]]; then
   # shellcheck source=/dev/null
   source bootstrap.sh
 
-  if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]] || [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
+  if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]] || [[ "${BUILDKITE_LABEL}" =~ :chrome: ]]; then
     go mod download
   fi
 fi

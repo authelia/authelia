@@ -53,8 +53,6 @@ const (
 
 const (
 	pathJSONSchema = "json-schema"
-	extJSON        = ".json"
-	extYAML        = ".yaml"
 )
 
 const (
@@ -74,6 +72,7 @@ const (
 const (
 	cmdUseRoot                   = "authelia-gen"
 	cmdUseCompletion             = "completion"
+	cmdUseHelp                   = "help"
 	cmdUseDocs                   = "docs"
 	cmdUseManage                 = "manage"
 	cmdUseMisc                   = "misc"
@@ -134,7 +133,8 @@ const (
 )
 
 const (
-	metaVersionNext    = "next"
+	metaVersionMajor   = "major"
+	metaVersionMinor   = "minor"
 	metaVersionLatest  = "latest"
 	metaVersionCurrent = "current"
 )

@@ -48,6 +48,7 @@ if [[ ${BUILDKITE_PIPELINE_SLUG} == "authelia-cve" ]]; then
   LINT_REPORTER="local"
 fi
 
+
 cat << EOF
 env:
   BUILD_DUO: ${BUILD_DUO}
@@ -59,28 +60,38 @@ env:
   CI_PRIVATE: ${CI_PRIVATE}
 
 steps:
-  - label: ":service_dog: Linting"
-    command: "CI_PULL_REQUEST= lint.sh -reporter=${LINT_REPORTER} -filter-mode=nofilter -fail-level=error -fail-on-error"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
+  - group: ":hammer_and_wrench: Lint, Unit Test and Build"
+    steps:
+      - label: ":service_dog: Linting"
+        command: "CI_PULL_REQUEST= lint.sh -reporter=${LINT_REPORTER} -filter-mode=nofilter -fail-level=error -fail-on-error"
+        if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
-  - label: ":chrome: External Tests"
-    command: "e2epackages.sh | buildkite-agent pipeline upload"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/ && build.env("CI_MERGE_QUEUE") != "true"
+      - label: ":hammer_and_wrench: Unit Test"
+        command: "authelia-scripts --log-level debug ci --buildkite"
+        agents:
+          build: "unit-test"
+        artifact_paths:
+          - "*.tar.gz"
+          - "*.deb"
+          - "*.sha256"
+          - "*.sig"
+          - "*.{c,sp}dx.json"
+        key: "unit-test"
+        env:
+          NODE_OPTIONS: "--no-deprecation"
+        if: build.env("CI_BYPASS") != "true"
 
-  - label: ":hammer_and_wrench: Unit Test"
-    command: "authelia-scripts --log-level debug ci --buildkite"
-    agents:
-      build: "unit-test"
-    artifact_paths:
-      - "*.tar.gz"
-      - "*.deb"
-      - "*.sha256"
-      - "*.sig"
-      - "*.{c,sp}dx.json"
-    key: "unit-test"
-    env:
-      NODE_OPTIONS: "--no-deprecation"
-    if: build.env("CI_BYPASS") != "true"
+      - label: ":docker: Build Image [coverage]"
+        command: "authelia-scripts docker build --container=coverage"
+        retry:
+          manual:
+            permit_on_passed: true
+        agents:
+          build: "linux-coverage"
+        artifact_paths:
+          - "authelia-image-coverage.tar.zst"
+        key: "build-docker-linux-coverage"
+        if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":grype: Vulnerability Scanning"
     command: "grypescans.sh"
@@ -161,73 +172,69 @@ EOF
 fi
 fi
 cat << EOF
-  - label: ":docker: Build Image [coverage]"
-    command: "authelia-scripts docker build --container=coverage"
-    retry:
-      manual:
-        permit_on_passed: true
-    agents:
-      build: "linux-coverage"
-    artifact_paths:
-      - "authelia-image-coverage.tar.zst"
-    key: "build-docker-linux-coverage"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
+  - group: ":test_tube: Tests"
+    steps:
+      - label: ":buildkite: Integration Tests"
+        command: "e2etests.sh | buildkite-agent pipeline upload"
+        depends_on:
+          - "build-docker-linux-coverage"
+        if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
-  - label: ":chrome: Integration Tests"
-    command: "e2etests.sh | buildkite-agent pipeline upload"
-    depends_on:
-      - "build-docker-linux-coverage"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
+  - group: ":test_tube: External Tests"
+    steps:
+      - label: ":buildkite: External Tests"
+        command: "e2epackages.sh | buildkite-agent pipeline upload"
+        if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/ && build.env("CI_MERGE_QUEUE") != "true"
 
-EOF
-cat << EOF
-  - label: ":docker: Deploy Manifest"
-    command: "authelia-scripts docker push-manifest"
-    depends_on:
-      - "unit-test"
+  - group: ":rocket: Deploy"
+    steps:
+      - label: ":docker: Deploy Manifest"
+        command: "authelia-scripts docker push-manifest"
+        depends_on:
+          - "unit-test"
 EOF
 if [[ "${BUILDKITE_TAG}" != "" ]]; then
 cat << EOF
-      - "baseimage"
+          - "baseimage"
 EOF
 fi
 cat << EOF
-    retry:
-      manual:
-        permit_on_passed: true
-    agents:
-      upload: "fast"
-    key: "build-docker-linux"
+        retry:
+          manual:
+            permit_on_passed: true
+        agents:
+          upload: "fast"
+        key: "build-docker-linux"
 EOF
 if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
 cat << EOF
-    concurrency: 1
-    concurrency_group: "deployments"
+        concurrency: 1
+        concurrency_group: "deployments"
 EOF
 fi
 cat << EOF
-    if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
+        if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
 
-  - label: ":github: Deploy Artifacts"
-    command: "ghartifacts.sh"
-    depends_on:
-      - "unit-test"
-    retry:
-      automatic: true
-    agents:
-      upload: "fast"
-    key: "artifacts"
-    if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
+      - label: ":github: Deploy Artifacts"
+        command: "ghartifacts.sh"
+        depends_on:
+          - "unit-test"
+        retry:
+          automatic: true
+        agents:
+          upload: "fast"
+        key: "artifacts"
+        if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
 
-  - label: ":linux: Deploy AUR"
-    command: "aurpackages.sh | buildkite-agent pipeline upload"
-    if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
+      - label: ":buildkite: Deploy AUR"
+        command: "aurpackages.sh | buildkite-agent pipeline upload"
+        if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
 
-  - label: ":debian: :fedora: :ubuntu: Deploy APT"
-    command: "aptdeploy.sh"
-    depends_on:
-      - "unit-test"
-    agents:
-      upload: "fast"
-    if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
+      - label: ":debian: :fedora: :ubuntu: Deploy APT"
+        command: "aptdeploy.sh"
+        depends_on:
+          - "unit-test"
+        agents:
+          upload: "fast"
+        if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
 EOF

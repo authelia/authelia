@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Miniflux"
-description: "Integrating Miniflux with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Miniflux with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Miniflux]
   - [v2.2.8](https://github.com/miniflux/v2/releases/tag/2.2.8)
 

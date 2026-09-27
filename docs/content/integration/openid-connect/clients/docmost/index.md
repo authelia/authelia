@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Docmost"
-description: "Integrating Docmost with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Docmost with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -25,7 +25,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Docmost]
   - [v0.22.2](https://github.com/docmost/docmost/releases/tag/v0.22.2)
 

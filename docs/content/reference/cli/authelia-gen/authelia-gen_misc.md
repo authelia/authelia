@@ -58,17 +58,17 @@ Generate miscellaneous things
       --file.server.generated string                               Sets the path of the server generated file (default "internal/server/gen.go")
       --file.web.i18n string                                       The i18n typescript configuration file in relation to the web directory (default "src/i18n/index.ts")
       --file.web.package string                                    The node package configuration file in relation to the web directory (default "package.json")
-      --latest                                                     Enables latest functionality with several generators like the JSON Schema generator
-      --next                                                       Enables next functionality with several generators like the JSON Schema generator
       --package.configuration.keys string                          Sets the package name of the keys file (default "schema")
       --package.scripts.gen string                                 Sets the package name of the authelia-scripts gen file (default "cmd")
       --version-count int                                          the maximum number of minor versions to list in output templates (default 5)
-      --versions strings                                           The versions to run the generator for, the special versions current and next are mutually exclusive
+      --versions strings                                           The versions to run the generator for, the special versions major, minor, and current are mutually exclusive
 ```
 
 ### SEE ALSO
 
 * [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
+* [authelia-gen misc contributors](authelia-gen_misc_contributors.md)	 - Generate the contributors card
 * [authelia-gen misc locale-move](authelia-gen_misc_locale-move.md)	 - Move locales between namespaces
 * [authelia-gen misc oidc](authelia-gen_misc_oidc.md)	 - Generate OpenID Connect 1.0 configurations
+* [authelia-gen misc release](authelia-gen_misc_release.md)	 - Prepare a release by updating version references, accepts one argument of either major, minor, or patch
 

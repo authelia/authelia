@@ -218,6 +218,15 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
+	if config.Server.Endpoints.Health.Verbose {
+		rateLimitHealth := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.Health), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
+
+		handlerHealthVerbose := handlers.HealthVerboseGET(config.Server.Endpoints.Health)
+
+		r.HEAD("/api/health/verbose", middlewareAPI(rateLimitHealth(handlerHealthVerbose)))
+		r.GET("/api/health/verbose", middlewareAPI(rateLimitHealth(handlerHealthVerbose)))
+	}
+
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
 
 	r.GET("/api/configuration", middleware1FA(handlers.ConfigurationGET))

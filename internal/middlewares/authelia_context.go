@@ -205,13 +205,18 @@ func (ctx *AutheliaCtx) QueryArgAutheliaURL() []byte {
 	return ctx.QueryArgs().PeekBytes(qryArgAutheliaURL)
 }
 
-// AuthzPath returns the 'authz_path' value.
+// AuthzPath returns the 'authz_path' value including the query string if one is present.
 func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
-	if uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath); uv != nil {
-		return []byte(uv.(string))
+	uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath)
+	if uv == nil {
+		return nil
 	}
 
-	return nil
+	if query := ctx.URI().QueryString(); len(query) != 0 {
+		return utils.BytesJoin([]byte(uv.(string)), []byte("?"), query)
+	}
+
+	return []byte(uv.(string))
 }
 
 // BasePath returns the base_url as per the path visited by the client.

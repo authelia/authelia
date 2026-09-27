@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Pangolin"
-description: "Integrating Pangolin with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Pangolin with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-05-07T10:26:55+10:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Pangolin]
   - [v1.14.1](https://github.com/fosrl/pangolin/releases/tag/1.14.1)
 

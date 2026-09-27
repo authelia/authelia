@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Network"
-description: "Network Definitions Configuration"
+description: "Configuring the Authelia network definitions section which allows defining reusable named network lists of IP addresses and CIDR notation address ranges."
 summary: "Authelia allows configuring reusable network definitions."
 date: 2025-02-18T09:38:36+00:00
 draft: false

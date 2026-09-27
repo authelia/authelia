@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM node:26-alpine@sha256:ef24c5053d50fdc3e4e56eb4e7ddb7861874ab0fdc797046ba897581deb8e868
+FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80
 
 ARG USER_ID
 ARG GROUP_ID
@@ -11,8 +11,7 @@ ENV \
     SHELL="/bin/sh" \
     PNPM_HOME="/usr/local"
 
-RUN wget -qO /tmp/pnpm-install.sh https://get.pnpm.io/install.sh && \
-    echo '44dfbba11a70a9751090894a07f8d64c9f7954cb782dfe39a1f2b2753e1d5eea /tmp/pnpm-install.sh' | sha256sum -c - && \
+RUN wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/916ce9e8412d2ce06bb7106a53ce24690b9001dd/install.sh && \
     ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
     deluser node && \
     if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \

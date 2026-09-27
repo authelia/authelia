@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Ghostfolio"
-description: "Integrating Ghostfolio with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Ghostfolio with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-01-25T12:36:00+11:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Ghostfolio]
   - [v2.222.0](https://github.com/ghostfolio/ghostfolio/releases/tag/2.222.0)
 
