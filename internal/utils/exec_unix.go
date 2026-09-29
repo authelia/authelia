@@ -17,6 +17,7 @@ func setProcessGroup(cmd *exec.Cmd) {
 	}
 
 	cmd.SysProcAttr.Setpgid = true
+	cmd.SysProcAttr.Pgid = 0
 }
 
 func signalProcessGroup(cmd *exec.Cmd, sig syscall.Signal) error {

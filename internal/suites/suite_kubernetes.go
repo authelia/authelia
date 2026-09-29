@@ -5,6 +5,7 @@
 package suites
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -142,17 +143,19 @@ func waitUntilIngressRoutes() error {
 }
 
 func displayKubernetesState() error {
+	var errs []error
+
 	for _, cmdline := range []string{
 		"kubectl get pods --all-namespaces -o wide",
 		"kubectl get events --all-namespaces --sort-by=.lastTimestamp",
 		"kubectl describe pods -n " + namespaceAuthelia,
 	} {
 		if err := k3dCommand(cmdline).Run(); err != nil {
-			return err
+			errs = append(errs, err)
 		}
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 func loadDockerImages() error {
