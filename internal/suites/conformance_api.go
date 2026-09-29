@@ -269,9 +269,28 @@ func (c *ConformanceClient) CreateTest(ctx context.Context, planID, module strin
 	return out.ID, nil
 }
 
-// StartTest starts a module which is waiting in the CONFIGURED state.
-func (c *ConformanceClient) StartTest(ctx context.Context, id string) error {
-	return c.do(ctx, http.MethodPost, c.uri(nil, "runner", id), nil, "", http.StatusOK, nil)
+// StartTest starts a module which is waiting in the CONFIGURED state. The server answers with the module's status,
+// which it serializes while the module may already be running and changing it, so it intermittently fails with a 500
+// from a ConcurrentModificationException. The server only starts a module which is still CONFIGURED, which makes the
+// request safe to repeat, so a transport level failure is retried until ctx expires as it is in WaitState.
+func (c *ConformanceClient) StartTest(ctx context.Context, id string) (err error) {
+	for {
+		if err = c.do(ctx, http.MethodPost, c.uri(nil, "runner", id), nil, "", http.StatusOK, nil); err == nil {
+			return nil
+		}
+
+		var statusErr *conformanceUnexpectedStatusError
+
+		if errors.As(err, &statusErr) && statusErr.Status < http.StatusInternalServerError {
+			return err
+		}
+
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("module '%s' could not be started: %w (last error: %v)", id, ctx.Err(), err)
+		case <-time.After(conformanceWaitStateRetryInterval):
+		}
+	}
 }
 
 // WaitState long polls until the module reaches one of states, or ctx expires. The server clamps each poll to 30
