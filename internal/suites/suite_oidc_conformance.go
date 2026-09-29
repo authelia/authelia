@@ -213,12 +213,16 @@ func init() {
 			return err
 		}
 
+		if err = waitUntilPortalServesRoot(oidcConformanceAutheliaURL); err != nil {
+			return err
+		}
+
 		client, err := NewConformanceClient(oidcConformanceBaseURL)
 		if err != nil {
 			return err
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
 		defer cancel()
 
 		if err = client.WaitReady(ctx); err != nil {
@@ -238,10 +242,10 @@ func init() {
 
 	GlobalRegistry.Register(oidcConformanceSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    2 * time.Minute,
+		SetUpTimeout:    3 * time.Minute,
 		OnSetupTimeout:  displayLogs,
 		OnError:         displayLogs,
-		TestTimeout:     8 * time.Minute,
+		TestTimeout:     10 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 1 * time.Minute,
 		Description:     "This suite runs the OpenID Foundation conformance suite against Authelia for every profile Authelia is OpenID Certified for.",

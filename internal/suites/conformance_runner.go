@@ -20,7 +20,7 @@ const (
 	conformanceStatusFinished       = "FINISHED"
 	conformanceStatusInterrupted    = "INTERRUPTED"
 	conformanceModuleTimeout        = time.Minute * 5
-	conformancePlaceholderTimeout   = time.Second * 30
+	conformancePlaceholderTimeout   = time.Second * 60
 	conformanceUploadSettleInterval = time.Second
 	conformanceUploadSettleTimeout  = time.Second * 10
 	conformancePlaceholderInterval  = time.Second
