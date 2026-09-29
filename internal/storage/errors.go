@@ -109,3 +109,29 @@ func IsSerializationFailure(err error) (failure bool) {
 		return false
 	}
 }
+
+// IsUniqueConstraintViolation returns true when the error indicates a statement was rejected because it would have
+// duplicated a value in a column or set of columns with a unique constraint, which is what a concurrent insert of the
+// same row fails with. The statement has not been applied, and the row which it conflicted with exists.
+func IsUniqueConstraintViolation(err error) (violation bool) {
+	if err == nil {
+		return false
+	}
+
+	var (
+		errSQLite   sqlite3.Error
+		errMySQL    *mysql.MySQLError
+		errPostgres *pgconn.PgError
+	)
+
+	switch {
+	case errors.As(err, &errSQLite):
+		return errSQLite.ExtendedCode == sqlite3.ErrConstraintUnique
+	case errors.As(err, &errMySQL):
+		return errMySQL.Number == codeMySQLDuplicateEntry
+	case errors.As(err, &errPostgres):
+		return errPostgres.Code == codePostgresUniqueViolation
+	default:
+		return false
+	}
+}
