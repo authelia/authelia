@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM haproxy:3.4.5-alpine@sha256:7ffdd3845020aa4c97ffaa56c8cab3ad473ecae0b8ea5e55d2378d663755e092
+FROM haproxy:3.4.6-alpine@sha256:a235ee03fe88d9fd3e1a91ee568ff48d581f6866e6148005840fb8c362d358ab
 USER root
 
 RUN \
