@@ -353,6 +353,74 @@ func (s *StoreSuite) TestGetSubject() {
 		assert.EqualError(t, err, "failed to save")
 		assert.Equal(t, uuid.Nil, opaqueID)
 	})
+
+	s.T().Run("ReturnConcurrentlySaved", func(t *testing.T) {
+		existing := &model.UserOpaqueIdentifier{Service: "openid", Username: "john", Identifier: uuid.MustParse("ef95d1a4-3d8e-4f07-a4ba-3a3e7e0c4a2e")}
+
+		gomock.InOrder(
+			s.mock.
+				EXPECT().
+				LoadUserOpaqueIdentifierBySignature(s.ctx, "openid", "", "john").
+				Return(nil, nil),
+			s.mock.
+				EXPECT().
+				SaveUserOpaqueIdentifier(s.ctx, gomock.Any()).
+				Return(fmt.Errorf("error inserting user opaque id for user 'john': %w", sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintUnique})),
+			s.mock.
+				EXPECT().
+				LoadUserOpaqueIdentifierBySignature(s.ctx, "openid", "", "john").
+				Return(existing, nil),
+		)
+
+		opaqueID, err := s.store.GetSubject(s.ctx, "", "john")
+
+		assert.NoError(t, err)
+		assert.Equal(t, existing.Identifier, opaqueID)
+	})
+
+	s.T().Run("ReturnDatabaseErrorOnLoadConcurrentlySaved", func(t *testing.T) {
+		gomock.InOrder(
+			s.mock.
+				EXPECT().
+				LoadUserOpaqueIdentifierBySignature(s.ctx, "openid", "", "john").
+				Return(nil, nil),
+			s.mock.
+				EXPECT().
+				SaveUserOpaqueIdentifier(s.ctx, gomock.Any()).
+				Return(sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintUnique}),
+			s.mock.
+				EXPECT().
+				LoadUserOpaqueIdentifierBySignature(s.ctx, "openid", "", "john").
+				Return(nil, fmt.Errorf("failed to load")),
+		)
+
+		opaqueID, err := s.store.GetSubject(s.ctx, "", "john")
+
+		assert.EqualError(t, err, "failed to load")
+		assert.Equal(t, uuid.Nil, opaqueID)
+	})
+
+	s.T().Run("ReturnErrorOnConcurrentlySavedNotFound", func(t *testing.T) {
+		gomock.InOrder(
+			s.mock.
+				EXPECT().
+				LoadUserOpaqueIdentifierBySignature(s.ctx, "openid", "", "john").
+				Return(nil, nil),
+			s.mock.
+				EXPECT().
+				SaveUserOpaqueIdentifier(s.ctx, gomock.Any()).
+				Return(sqlite3.Error{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintUnique}),
+			s.mock.
+				EXPECT().
+				LoadUserOpaqueIdentifierBySignature(s.ctx, "openid", "", "john").
+				Return(nil, nil),
+		)
+
+		opaqueID, err := s.store.GetSubject(s.ctx, "", "john")
+
+		assert.EqualError(t, err, "error loading the user opaque id which was saved concurrently for user 'john': the user opaque id was not found")
+		assert.Equal(t, uuid.Nil, opaqueID)
+	})
 }
 
 func (s *StoreSuite) TestTx() {

@@ -83,7 +83,15 @@ func (s *Store) GenerateOpaqueUserID(ctx context.Context, sectorID, username str
 		}
 
 		if err = s.provider.SaveUserOpaqueIdentifier(ctx, *opaqueID); err != nil {
-			return nil, errStorage(err)
+			if !storage.IsUniqueConstraintViolation(err) {
+				return nil, errStorage(err)
+			}
+
+			if opaqueID, err = s.provider.LoadUserOpaqueIdentifierBySignature(ctx, "openid", sectorID, username); err != nil {
+				return nil, errStorage(err)
+			} else if opaqueID == nil {
+				return nil, errStorage(fmt.Errorf("error loading the user opaque id which was saved concurrently for user '%s': the user opaque id was not found", username))
+			}
 		}
 	}
 
