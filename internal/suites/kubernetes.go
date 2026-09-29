@@ -76,7 +76,11 @@ func (k Kubectl) WaitPodsReady(namespace string, timeout time.Duration) error {
 		cmd := k3dCommand(fmt.Sprintf("kubectl get -n %s pods --no-headers --field-selector=status.phase!=Succeeded", namespace))
 		cmd.Stdout = nil
 		cmd.Stderr = nil
-		output, _ := cmd.Output()
+
+		output, err := cmd.Output()
+		if err != nil {
+			return false, nil
+		}
 
 		lines := strings.Split(string(output), "\n")
 
@@ -86,6 +90,10 @@ func (k Kubectl) WaitPodsReady(namespace string, timeout time.Duration) error {
 			if line != "" {
 				nonEmptyLines = append(nonEmptyLines, line)
 			}
+		}
+
+		if len(nonEmptyLines) == 0 {
+			return false, nil
 		}
 
 		for _, line := range nonEmptyLines {
