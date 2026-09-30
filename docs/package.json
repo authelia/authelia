@@ -16,13 +16,13 @@
     "@docsearch/css": "5.1.1",
     "@docsearch/js": "5.1.1",
     "@tabler/icons": "3.48.0",
-    "@thulite/core": "1.5.9",
-    "@thulite/doks-core": "1.9.3",
+    "@thulite/core": "2.0.3",
+    "@thulite/doks-core": "1.9.4",
     "@thulite/images": "3.3.4",
     "@thulite/inline-svg": "1.2.2",
     "@thulite/seo": "2.4.4",
     "bootstrap-icons": "1.13.1",
-    "thulite": "2.6.5"
+    "thulite": "3.0.2"
   },
   "devDependencies": {
     "@changesets/changelog-github": "1.0.1",
@@ -46,7 +46,8 @@
     "vite": "8.3.1"
   },
   "optionalDependencies": {
-    "hugo-extended": "0.166.0"
+    "hugo-extended": "0.166.0",
+    "sass-embedded": "1.105.0"
   },
   "engines": {
     "node": ">=24.13.0",
