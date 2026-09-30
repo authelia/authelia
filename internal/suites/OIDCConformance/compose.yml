@@ -16,9 +16,8 @@ services:
       - '${SUITE_TMP:-/tmp}:/tmp'
 
   conformance-server:
-    build:
-      context: '.'
-      dockerfile: 'OIDCConformance/Dockerfile.server'
+    image: 'authelia/integration-oidcconformance'
+    pull_policy: '${SUITE_PULL_POLICY:-missing}'
     cpus: 4
     mem_limit: 4g
     environment:

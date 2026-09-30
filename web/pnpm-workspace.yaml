@@ -2,6 +2,7 @@ allowBuilds:
   lefthook: true
   unrs-resolver: true
 overrides:
+  brace-expansion: 5.0.12
   fast-uri: 4.2.1
   js-yaml: 5.4.2
   minimatch: 10.2.6

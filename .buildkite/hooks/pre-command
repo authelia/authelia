@@ -99,6 +99,11 @@ if [[ "${BUILDKITE_LABEL}" =~ :chrome: ]]; then
       CONTAINER="integration-samba"
       FILE="internal/suites/example/compose/samba/compose.yml"
       ;;
+    OIDCConformance)
+      BUILD_FLAG="${BUILD_OIDCCONFORMANCE}"
+      CONTAINER="integration-oidcconformance"
+      FILE="internal/suites/OIDCConformance/compose.yml"
+      ;;
   esac
   [[ "${BUILD_FLAG}" == "true" ]] && INTEGRATION
 fi
