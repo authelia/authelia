@@ -9,6 +9,7 @@ set -u
 # shellcheck source=/dev/null
 source "$(dirname "${BASH_SOURCE[0]}")/libs/common.sh"
 
+CONTEXT=""
 DIRECTORY="unset"
 GROUP="unset"
 PREFIX="authelia/"
@@ -27,6 +28,10 @@ elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-haproxy" ]]; then
 elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-samba" ]]; then
   DIRECTORY="internal/suites/example/compose/samba"
   GROUP="samba-deployments"
+elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-oidcconformance" ]]; then
+  CONTEXT="internal/suites"
+  DIRECTORY="internal/suites/example/compose/oidc-conformance"
+  GROUP="oidcconformance-deployments"
 fi
 
 REVISION=$(git log -1 --format=%H -- "${DIRECTORY}")
@@ -35,8 +40,8 @@ cat << EOF
 steps:
   - label: ":docker: Build and Deploy"
     commands:
-      - "cd ${DIRECTORY}"
       - "docker build \
+        --file ${DIRECTORY}/Dockerfile \
         --tag ${PREFIX}${BUILDKITE_PIPELINE_NAME}:${TAG} \
         --label org.opencontainers.image.created=${CREATED} \
         --label org.opencontainers.image.revision=${REVISION} \
@@ -46,7 +51,7 @@ steps:
         --provenance mode=max,reproducible=true \
         --sbom true \
         --builder buildx \
-        --pull --push ."
+        --pull --push ${CONTEXT:-${DIRECTORY}}"
     concurrency: 1
     concurrency_group: "${GROUP}"
     agents:

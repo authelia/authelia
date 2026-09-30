@@ -11,6 +11,7 @@ BYPASS_REGEX='/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|cr
 
 BUILD_DUO="false"
 BUILD_HAPROXY="false"
+BUILD_OIDCCONFORMANCE="false"
 BUILD_SAMBA="false"
 CI_BYPASS="false"
 CI_MERGE_QUEUE="false"
@@ -23,6 +24,8 @@ resolve_base_ref
 if [[ "${BASE_REF_OK}" == "true" ]] && [[ "${BUILDKITE_TAG}" == "" ]]; then
   changed "${BASE_REF}" "internal/suites/example/compose/duo-api/Dockerfile" && BUILD_DUO="true"
   changed "${BASE_REF}" "internal/suites/example/compose/haproxy/Dockerfile" && BUILD_HAPROXY="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/oidc-conformance/Dockerfile" && BUILD_OIDCCONFORMANCE="true"
+  changed "${BASE_REF}" "internal/suites/common/pki/ca.public.crt" && BUILD_OIDCCONFORMANCE="true"
   changed "${BASE_REF}" "internal/suites/example/compose/samba/Dockerfile" && BUILD_SAMBA="true"
   CI_BYPASS=$(bypass_check "${BASE_REF}" "${BYPASS_REGEX}")
 
@@ -53,6 +56,7 @@ cat << EOF
 env:
   BUILD_DUO: ${BUILD_DUO}
   BUILD_HAPROXY: ${BUILD_HAPROXY}
+  BUILD_OIDCCONFORMANCE: ${BUILD_OIDCCONFORMANCE}
   BUILD_SAMBA: ${BUILD_SAMBA}
   CI_BYPASS: ${CI_BYPASS}
   CI_MERGE_QUEUE: ${CI_MERGE_QUEUE}
@@ -144,6 +148,21 @@ if [[ ${BUILD_HAPROXY} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-haproxy]"
     trigger: "integration-haproxy"
+    build:
+      message: "${BUILDKITE_MESSAGE%%$'\n'*}"
+      commit: "${BUILDKITE_COMMIT}"
+      branch: "${BUILDKITE_BRANCH}"
+      env:
+        BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
+        BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
+        BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
+
+EOF
+fi
+if [[ ${BUILD_OIDCCONFORMANCE} == "true" ]]; then
+cat << EOF
+  - label: ":rocket: Trigger Pipeline [integration-oidcconformance]"
+    trigger: "integration-oidcconformance"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
