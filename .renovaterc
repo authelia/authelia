@@ -29,6 +29,18 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
+        "/^docs/netlify\\.toml$/"
+      ],
+      "matchStrings": [
+        "DART_SASS_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "sass-embedded",
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
         "/(^|/)Dockerfile[^/]*$/"
       ],
       "matchStrings": [
