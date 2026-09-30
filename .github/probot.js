@@ -44,10 +44,11 @@ These changes once approved by a team member will be published for testing on Bu
 * \`docker pull ghcr.io/authelia/authelia:PR{{ pull_request.number }}\``);
 
 // Maintainer notification for a contributor who has not committed to the repository before, so they
-// can be credited once their work merges.
+// can be credited once their work merges. The webhook reports such an author as NONE, the first time
+// values only appear when the pull request is read back through the API later.
 on("pull_request.opened")
     .filter((context) =>
-        ["FIRST_TIME_CONTRIBUTOR", "FIRST_TIMER"].includes(
+        ["FIRST_TIME_CONTRIBUTOR", "FIRST_TIMER", "NONE"].includes(
             context.payload.pull_request.author_association,
         ),
     )
