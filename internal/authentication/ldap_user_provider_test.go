@@ -7612,3 +7612,70 @@ func TestLDAPUserProviderChangePasswordActiveDirectoryFallback(t *testing.T) {
 
 	assert.NoError(t, provider.ChangePassword("john", "oldpass", "newpass"))
 }
+
+// TestLDAPUserProviderChangePasswordUserBoundFallbackConnection verifies the
+// RFC 3062 fallback path with distinct clients per connection: the user-bound
+// modification is refused and the modification is retried over the service
+// client rather than the user client.
+func TestLDAPUserProviderChangePasswordUserBoundFallbackConnection(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	svcClient := NewMockLDAPClient(ctrl)
+	userClient := NewMockLDAPClient(ctrl)
+	factory := NewMockLDAPClientFactory(ctrl)
+
+	config := &schema.AuthenticationBackendLDAP{
+		Address:  testLDAPAddress,
+		User:     "cn=admin,dc=example,dc=com",
+		Password: "password",
+		Attributes: schema.AuthenticationBackendLDAPAttributes{
+			Username:    "uid",
+			Mail:        "mail",
+			DisplayName: "displayName",
+			MemberOf:    "memberOf",
+		},
+		UsersFilter:       "(uid={input})",
+		AdditionalUsersDN: "ou=users",
+		BaseDN:            "dc=example,dc=com",
+	}
+
+	provider := NewLDAPUserProviderWithFactory(config, false, factory)
+
+	svcClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,ou=users,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{Name: "uid", Values: []string{"john"}},
+					},
+				},
+			},
+		}, nil)
+
+	// GetClient expectations match in registration order: service client
+	// first, user-bound client second.
+	factory.EXPECT().GetClient(gomock.Any()).Return(svcClient, nil)
+	factory.EXPECT().GetClient(gomock.Any()).Return(userClient, nil)
+
+	userClient.EXPECT().Discovery().
+		Return(LDAPDiscovery{Extensions: LDAPDiscoveryExtensions{PwdModify: true}}).AnyTimes()
+
+	// The user-bound modification is refused.
+	userClient.EXPECT().PasswordModify(gomock.Any()).
+		Return(nil, ldap.NewError(ldap.LDAPResultUnwillingToPerform, errors.New("unwilling to verify old password")))
+
+	svcClient.EXPECT().Discovery().
+		Return(LDAPDiscovery{Extensions: LDAPDiscoveryExtensions{PwdModify: true}}).AnyTimes()
+
+	// The retry must be issued over the service client.
+	svcClient.EXPECT().PasswordModify(gomock.Any()).
+		Return(&ldap.PasswordModifyResult{}, nil)
+
+	factory.EXPECT().ReleaseClient(svcClient).Return(nil)
+	factory.EXPECT().ReleaseClient(userClient).Return(nil)
+
+	assert.NoError(t, provider.ChangePassword("john", "oldpass", "newpass"))
+}
