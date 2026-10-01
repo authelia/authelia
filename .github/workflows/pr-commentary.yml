@@ -1,0 +1,111 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: PR Commentary
+
+on:
+  pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    types:
+      - opened
+
+permissions: {}
+
+jobs:
+  comment:
+    name: Comment
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1  # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Generate Token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          client-id: ${{ vars.AUTHELIA_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.AUTHELIA_BOT_PRIVATE_KEY }}
+          permission-pull-requests: write
+
+      - name: Comment
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          # yamllint disable rule:indentation
+          script: |
+            const IMAGE = 'authelia/authelia';
+            const EXCLUDED = /^(docs|all-contributors\/)/;
+            const THANKS =
+              "Thanks for choosing to contribute @{login}. We lint all PR's with golangci-lint and eslint, " +
+              'I may add a review to your PR with some suggestions.\n\n' +
+              "You are free to apply the changes if you're comfortable, alternatively you are welcome to ask " +
+              'a team member for advice.';
+            const FIRST_TIMER = true;
+
+            const pr = context.payload.pull_request;
+            const login = pr.user.login;
+            const comments = [];
+
+            // A pull request from a branch of the organization is published under its branch name, every
+            // other pull request is published under its number once a team member approves it.
+            if (pr.head.label.startsWith('authelia:')) {
+              if (!EXCLUDED.test(pr.head.ref) && !pr.title.startsWith('docs')) {
+                // A container tag admits only [A-Za-z0-9_.-], so the ref is folded to the tag the image is
+                // published under.
+                const tag = pr.head.ref.replace(/[^A-Za-z0-9_.-]+/g, '-');
+
+                comments.push([
+                  '## Artifacts',
+                  'These changes are published for testing on Buildkite, DockerHub and GitHub Container Registry.',
+                  '',
+                  '### Docker Container',
+                  `* \`docker pull ${IMAGE}:${tag}\``,
+                  `* \`docker pull ghcr.io/${IMAGE}:${tag}\``,
+                ].join('\n'));
+              }
+            } else {
+              const lines = [];
+
+              if (THANKS) {
+                lines.push(THANKS.replace('{login}', login), '');
+              }
+
+              lines.push(
+                '## Artifacts',
+                'These changes once approved by a team member will be published for testing on Buildkite, ' +
+                  'DockerHub and GitHub Container Registry.',
+                '',
+                '### Docker Container',
+                `* \`docker pull ${IMAGE}:PR${pr.number}\``,
+                `* \`docker pull ghcr.io/${IMAGE}:PR${pr.number}\``,
+              );
+
+              comments.push(lines.join('\n'));
+            }
+
+            // The webhook reports an author who has not committed to the repository before as NONE, the
+            // first time values only appear when the pull request is read back through the API later.
+            if (FIRST_TIMER && ['FIRST_TIME_CONTRIBUTOR', 'FIRST_TIMER', 'NONE'].includes(pr.author_association)) {
+              comments.push([
+                `@authelia/review-general this is the first contribution to Authelia from @${login}.`,
+                '',
+                'Once it merges please credit them with the ' +
+                  '[all-contributors bot](https://allcontributors.org/en/bot/usage), ' +
+                  'picking the types from the [emoji key](https://allcontributors.org/en/reference/emoji-key/).',
+              ].join('\n'));
+            }
+
+            for (const body of comments) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+            }
+          # yamllint enable rule:indentation
+...
