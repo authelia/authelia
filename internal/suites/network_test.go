@@ -62,12 +62,28 @@ func TestNetworkFailures(t *testing.T) {
 
 	session.WaitElementLocatedByID(t, page, "reported")
 
-	data, ok := networkFailures(page)
-	require.True(t, ok, "a tab created for a test records its failed requests")
-
 	var failures []networkFailure
 
-	require.NoError(t, json.Unmarshal(data, &failures))
+	require.Eventually(t, func() bool {
+		data, ok := networkFailures(page)
+		if !ok {
+			return false
+		}
+
+		failures = nil
+
+		if err := json.Unmarshal(data, &failures); err != nil {
+			return false
+		}
+
+		for _, failure := range failures {
+			if strings.HasSuffix(failure.URL, "/drop") {
+				return true
+			}
+		}
+
+		return false
+	}, 5*time.Second, 50*time.Millisecond, "a tab created for a test records its failed requests")
 
 	t.Run("ShouldRecordAFailedRequestWithTheReasonChromeGave", func(t *testing.T) {
 		require.Len(t, failures, 1, "only the request that failed is recorded")
