@@ -116,7 +116,11 @@ const IdentityVerificationDialog = function (props: Props) {
         if (codeInput === "") return;
 
         setLoading(true);
-        const success = await verifyUserSessionElevation(codeInput);
+        const success = await verifyUserSessionElevation(codeInput).catch((err) => {
+            console.error(err);
+
+            return false;
+        });
 
         if (success) {
             handleSuccess();

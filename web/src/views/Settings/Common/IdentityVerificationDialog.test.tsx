@@ -257,6 +257,25 @@ describe("verification", () => {
         expect(getCode()).toHaveFocus();
     });
 
+    it("notifies, clears and re-enables the field when verification fails", async () => {
+        verifyMock.mockRejectedValue(new Error("Network Error"));
+
+        renderDialog();
+        await screen.findByText("Verify");
+
+        fireEvent.change(getCode(), { target: { value: "123456" } });
+        clickVerify();
+
+        await waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
+                "The One-Time Code either doesn't match the one generated or an unknown error occurred",
+            ),
+        );
+        await waitFor(() => expect(getCode()).toHaveValue(""));
+        expect(getCode()).toBeEnabled();
+        expect(document.getElementById("dialog-verify")).toBeEnabled();
+    });
+
     it("clears the error once the user retypes", async () => {
         verifyMock.mockResolvedValue(false as any);
 
