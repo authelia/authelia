@@ -86,6 +86,8 @@ func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
 			log.Debugf("Error installing the console collector: %v", err)
 		}
 
+		recordNetworkFailures(page)
+
 		err = rs.doNavigate(page, url)
 
 		created <- tab{page: page, err: err}

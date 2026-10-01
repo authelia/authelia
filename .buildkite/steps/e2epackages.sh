@@ -23,6 +23,7 @@ cat << EOF
           - "screenshots/**/*.html"
           - "screenshots/**/*.resources.json"
           - "screenshots/**/*.console.json"
+          - "screenshots/**/*.network.json"
           - "screenshots/**/*.containers.log"
           - "internal/suites/testdata/*.actual.png"
         timeout_in_minutes: 20

@@ -482,6 +482,14 @@ func (rs *RodSession) collectDiagnostics(page *rod.Page, base string) {
 			log.Debugf("Error writing '%s': %v", path, err)
 		}
 	}
+
+	if data, ok := networkFailures(page); ok {
+		path, _ := screenshotPaths(base + ".network.json")
+
+		if err := os.WriteFile(path, data, 0600); err != nil {
+			log.Debugf("Error writing '%s': %v", path, err)
+		}
+	}
 }
 
 func (rs *RodSession) collectPage(page *rod.Page, base string) (err error) {
