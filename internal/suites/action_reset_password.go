@@ -13,6 +13,8 @@ import (
 func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
 	rs.ClickElementLocatedByID(t, page, "reset-password-button")
 
+	rs.WaitElementLocatedByID(t, page, "reset-password-step1-stage")
+
 	rs.TypeElementLocatedByID(t, page, "username-textfield", username)
 
 	rs.ClickElementLocatedByID(t, page, "reset-button")
