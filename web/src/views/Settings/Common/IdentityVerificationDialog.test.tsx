@@ -257,6 +257,25 @@ describe("verification", () => {
         expect(getCode()).toHaveFocus();
     });
 
+    it("notifies, clears and re-enables the field when verification fails", async () => {
+        verifyMock.mockRejectedValue(new Error("Network Error"));
+
+        renderDialog();
+        await screen.findByText("Verify");
+
+        fireEvent.change(getCode(), { target: { value: "123456" } });
+        clickVerify();
+
+        await waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
+                "The One-Time Code either doesn't match the one generated or an unknown error occurred",
+            ),
+        );
+        await waitFor(() => expect(getCode()).toHaveValue(""));
+        expect(getCode()).toBeEnabled();
+        expect(document.getElementById("dialog-verify")).toBeEnabled();
+    });
+
     it("clears the error once the user retypes", async () => {
         verifyMock.mockResolvedValue(false as any);
 
@@ -355,6 +374,51 @@ describe("dismissal", () => {
         fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
 
         await waitFor(() => expect(handleClosed).toHaveBeenCalledWith(false));
+    });
+
+    it("ignores a verification that succeeds after Escape is pressed", async () => {
+        vi.useFakeTimers();
+
+        let resolve: (value: unknown) => void = () => {};
+        verifyMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { handleClosed } = renderDialog();
+        await vi.waitFor(() => expect(screen.getByText("Verify")).toBeInTheDocument());
+
+        fireEvent.change(getCode(), { target: { value: "123456" } });
+        clickVerify();
+        await vi.waitFor(() => expect(verifyMock).toHaveBeenCalledWith("123456"));
+
+        fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+        await vi.waitFor(() => expect(handleClosed).toHaveBeenCalledWith(false));
+
+        await act(async () => {
+            resolve(true);
+            await vi.advanceTimersByTimeAsync(750);
+        });
+
+        expect(handleClosed).toHaveBeenCalledTimes(1);
+    });
+
+    it("ignores a verification that fails after Escape is pressed", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        verifyMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { handleClosed } = renderDialog();
+        await screen.findByText("Verify");
+
+        fireEvent.change(getCode(), { target: { value: "123456" } });
+        clickVerify();
+        await waitFor(() => expect(verifyMock).toHaveBeenCalledWith("123456"));
+
+        fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+        await waitFor(() => expect(handleClosed).toHaveBeenCalledWith(false));
+
+        await act(async () => {
+            resolve(false);
+        });
+
+        expect(mocks.createErrorNotification).not.toHaveBeenCalled();
     });
 
     it("logs when there is no delete code to invalidate", async () => {
