@@ -52,6 +52,7 @@ cat << EOF
           - "screenshots/**/*.console.json"
           - "screenshots/**/*.containers.log"
           - "screenshots/**/*.html"
+          - "screenshots/**/*.network.json"
           - "screenshots/**/*.png"
           - "screenshots/**/*.resources.json"
           - "test-results-*.json"
