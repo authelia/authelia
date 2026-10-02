@@ -134,6 +134,7 @@ if [[ ${BUILD_DUO} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-duo]"
     trigger: "integration-duo"
+    key: "integration-duo"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
@@ -149,6 +150,7 @@ if [[ ${BUILD_HAPROXY} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-haproxy]"
     trigger: "integration-haproxy"
+    key: "integration-haproxy"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
@@ -164,6 +166,7 @@ if [[ ${BUILD_OIDCCONFORMANCE} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-oidcconformance]"
     trigger: "integration-oidcconformance"
+    key: "integration-oidcconformance"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
@@ -179,6 +182,7 @@ if [[ ${BUILD_SAMBA} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-samba]"
     trigger: "integration-samba"
+    key: "integration-samba"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"

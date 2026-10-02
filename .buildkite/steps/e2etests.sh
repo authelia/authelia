@@ -22,6 +22,19 @@ declare -A SUITE_NO_FAILFAST=(
   [OIDCConformance]="true"
 )
 
+declare -A SUITE_DEPENDS_ON=()
+
+depends_on_integration() {
+  if [[ "${2}" == "true" ]]; then
+    SUITE_DEPENDS_ON[${1}]="${3}"
+  fi
+}
+
+depends_on_integration ActiveDirectory "${BUILD_SAMBA:-false}" "integration-samba"
+depends_on_integration DuoPush "${BUILD_DUO:-false}" "integration-duo"
+depends_on_integration HAProxy "${BUILD_HAPROXY:-false}" "integration-haproxy"
+depends_on_integration OIDCConformance "${BUILD_OIDCCONFORMANCE:-false}" "integration-oidcconformance"
+
 DEBUG_REGEX='\[(debug test|test debug)\]'
 SUITE_DEBUG="false"
 
@@ -70,4 +83,11 @@ cat << EOF
           SUITE: "${SUITE_NAME}"
           SUITE_DEBUG: "${SUITE_DEBUG}"
 EOF
+
+  if [[ -n "${SUITE_DEPENDS_ON[${SUITE_NAME}]:-}" ]]; then
+cat << EOF
+        depends_on:
+          - "${SUITE_DEPENDS_ON[${SUITE_NAME}]}"
+EOF
+  fi
 done
