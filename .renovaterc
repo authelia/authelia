@@ -50,6 +50,18 @@
       "packageNameTemplate": "https://github.com/pnpm/get.pnpm.io",
       "currentValueTemplate": "main",
       "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^internal/suites/example/compose/oidc-conformance/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG CONFORMANCE_SUITE_REF=(?<currentValue>\\S+)\\nARG CONFORMANCE_SUITE_COMMIT=(?<currentDigest>[0-9a-f]{40})"
+      ],
+      "depNameTemplate": "openid/conformance-suite",
+      "datasourceTemplate": "gitlab-tags",
+      "registryUrlTemplate": "https://gitlab.com"
     }
   ],
   "enabledManagers": [
@@ -79,6 +91,26 @@
         "internal/suites/example/compose/traefik/compose.v2.yml"
       ],
       "allowedVersions": "<3.0.0"
+    },
+    {
+      "matchPackageNames": [
+        "openid/conformance-suite",
+        "registry.gitlab.com/openid/conformance-suite"
+      ],
+      "versioning": "regex:^release-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      "groupName": "openid conformance suite"
+    },
+    {
+      "matchDatasources": [
+        "gitlab-tags"
+      ],
+      "matchPackageNames": [
+        "openid/conformance-suite"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "enabled": false
     },
     {
       "matchDatasources": [
