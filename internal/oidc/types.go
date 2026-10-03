@@ -134,6 +134,9 @@ type RegisteredClient struct {
 	ClientCredentialsFlowAllowImplicitScope bool
 	DPoPBoundAccessTokens                   bool
 
+	ClientAssertionJWTValidationHeaderAllowEmptyType bool
+	ClientAssertionJWTValidationHeaderAllowTypes     []string
+
 	AuthorizationPolicy ClientAuthorizationPolicy
 
 	ConsentPolicy         ClientConsentPolicy
@@ -1149,6 +1152,7 @@ var (
 	_ oauthelia2.ClientAuthenticationPolicyClient                         = (*RegisteredClient)(nil)
 	_ oauthelia2.JARClient                                                = (*RegisteredClient)(nil)
 	_ oauthelia2.JWTSecuredAuthorizationRequestJWTValidationOptionsClient = (*RegisteredClient)(nil)
+	_ oauthelia2.ClientAssertionJWTValidationOptionsClient                = (*RegisteredClient)(nil)
 	_ oauthelia2.AuthenticationMethodClient                               = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshFlowScopeClient                                   = (*RegisteredClient)(nil)
 	_ oauthelia2.RevokeFlowRevokeRefreshTokensExplicitClient              = (*RegisteredClient)(nil)
