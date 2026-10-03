@@ -176,9 +176,19 @@ Authelia processes the request, including the port if the client included one. I
 handles requests from appropriate sources without having to configure the more secure
 [client_certificates](#client_certificates) option.
 
+Each value must be a host with an optional port, for example `auth.example.com` or `authelia:9091`. Values which are
+empty or include anything else such as a scheme or path are considered invalid.
+
+List The values are matched against the whole `Host` header without regard to case, for example `Auth.Example.com` matches
+`auth.example.com`. The match is otherwise exact, for example `authelia` does not match `authelia:9091`.
+
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 If using the container image and the health check is not disabled, the host used by the health check script must also be
-included. This is typically `localhost` along with the port, for example `localhost:9091`.
+included. This host always includes the port and is derived from the host of the [address](#address):
+
+- No host, for example the default `tcp://:9091/`: `localhost:9091`.
+- The host `0.0.0.0`, for example `tcp://0.0.0.0:9091/`: `127.0.0.1:9091`.
+- Any other host, for example `tcp://192.168.1.10:9091/`: that host, i.e. `192.168.1.10:9091`.
 {{< /callout >}}
 
 {{< details "Docker Proxy" >}}

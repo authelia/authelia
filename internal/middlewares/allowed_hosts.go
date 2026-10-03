@@ -11,10 +11,12 @@ import (
 	"strings"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 // AllowedHosts returns a middleware which ensures the host header of the request is one of the provided hosts, otherwise
-// it responds with a 404 Not Found. It returns nil if no hosts are provided.
+// it logs the rejection at the debug level and responds with a 404 Not Found. It returns nil if no hosts are provided.
 func AllowedHosts(hosts []string) (middleware Basic) {
 	if len(hosts) == 0 {
 		return nil
@@ -45,6 +47,8 @@ func AllowedHosts(hosts []string) (middleware Basic) {
 					return
 				}
 			}
+
+			NewRequestLogger(ctx).WithField(logging.FieldHost, string(host)).Debug("Request rejected as the host is not one of the allowed hosts")
 
 			ctx.Response.Reset()
 

@@ -7,8 +7,13 @@ package middlewares
 import (
 	"testing"
 
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 func TestAllowedHosts(t *testing.T) {
@@ -50,4 +55,46 @@ func TestAllowedHosts(t *testing.T) {
 			assert.Equal(t, tc.expectedBody, string(ctx.Response.Body()))
 		})
 	}
+}
+
+func TestAllowedHostsShouldLogRejectedRequests(t *testing.T) {
+	logger := logging.Logger()
+
+	level := logger.GetLevel()
+
+	logger.SetLevel(logrus.DebugLevel)
+
+	hook := test.NewLocal(logger)
+
+	t.Cleanup(func() {
+		logger.SetLevel(level)
+		logger.ReplaceHooks(logrus.LevelHooks{})
+	})
+
+	handler := Wrap(AllowedHosts([]string{"authelia"}), func(ctx *fasthttp.RequestCtx) {})
+
+	ctx := &fasthttp.RequestCtx{}
+
+	ctx.Request.SetRequestURI("/api/health")
+	ctx.Request.SetHost("authelia")
+
+	handler(ctx)
+
+	assert.Len(t, hook.AllEntries(), 0)
+
+	ctx = &fasthttp.RequestCtx{}
+
+	ctx.Request.SetRequestURI("/api/health")
+	ctx.Request.SetHost("auth.phishingdomain.com")
+
+	handler(ctx)
+
+	entries := hook.AllEntries()
+
+	require.Len(t, entries, 1)
+
+	assert.Equal(t, logrus.DebugLevel, entries[0].Level)
+	assert.Equal(t, "Request rejected as the host is not one of the allowed hosts", entries[0].Message)
+	assert.Equal(t, "auth.phishingdomain.com", entries[0].Data[logging.FieldHost])
+	assert.Equal(t, "/api/health", entries[0].Data[logging.FieldPath])
 }

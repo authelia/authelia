@@ -53,6 +53,7 @@ const (
 	FieldMethod              = "method"
 	FieldPath                = "path"
 	FieldPathRaw             = "path_raw"
+	FieldHost                = "host"
 	FieldStatusCode          = "status_code"
 	FieldFlowID              = "flow_id"
 	FieldFlow                = "flow"

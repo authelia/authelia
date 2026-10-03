@@ -989,6 +989,56 @@ func TestValidateServerAssets(t *testing.T) {
 	}
 }
 
+func TestValidateServerHeadersAllowedHosts(t *testing.T) {
+	const errFmt = "server: headers: option 'allowed_hosts' must only contain hosts with an optional port and without a scheme or path but it has the value '%s'"
+
+	testCases := []struct {
+		name string
+		have []string
+		errs []string
+	}{
+		{"ShouldAllowNotConfigured", nil, nil},
+		{"ShouldAllowHost", []string{"auth.example.com"}, nil},
+		{"ShouldAllowHostWithPort", []string{"authelia:9091", "localhost:9091"}, nil},
+		{"ShouldAllowIPv4", []string{"127.0.0.1", "127.0.0.1:9091"}, nil},
+		{"ShouldAllowIPv6", []string{"[::1]", "[::1]:9091"}, nil},
+		{"ShouldAllowUppercase", []string{"AUTH.example.com"}, nil},
+		{"ShouldRaiseErrorOnEmpty", []string{""}, []string{fmt.Sprintf(errFmt, "")}},
+		{"ShouldRaiseErrorOnScheme", []string{"https://auth.example.com"}, []string{fmt.Sprintf(errFmt, "https://auth.example.com")}},
+		{"ShouldRaiseErrorOnPath", []string{"auth.example.com/authelia"}, []string{fmt.Sprintf(errFmt, "auth.example.com/authelia")}},
+		{"ShouldRaiseErrorOnTrailingSlash", []string{"auth.example.com/"}, []string{fmt.Sprintf(errFmt, "auth.example.com/")}},
+		{"ShouldRaiseErrorOnQuery", []string{"auth.example.com?a=b"}, []string{fmt.Sprintf(errFmt, "auth.example.com?a=b")}},
+		{"ShouldRaiseErrorOnUserInfo", []string{"user@auth.example.com"}, []string{fmt.Sprintf(errFmt, "user@auth.example.com")}},
+		{"ShouldRaiseErrorOnInvalidPort", []string{"auth.example.com:abc"}, []string{fmt.Sprintf(errFmt, "auth.example.com:abc")}},
+		{"ShouldRaiseErrorOnEmptyPort", []string{"auth.example.com:"}, []string{fmt.Sprintf(errFmt, "auth.example.com:")}},
+		{"ShouldRaiseErrorOnOnlyPort", []string{":9091"}, []string{fmt.Sprintf(errFmt, ":9091")}},
+		{"ShouldRaiseErrorOnWhitespace", []string{" auth.example.com"}, []string{fmt.Sprintf(errFmt, " auth.example.com")}},
+		{
+			"ShouldRaiseErrorPerInvalidValue",
+			[]string{"authelia:9091", "https://auth.example.com", ""},
+			[]string{fmt.Sprintf(errFmt, "https://auth.example.com"), fmt.Sprintf(errFmt, "")},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.Configuration{Server: schema.Server{Headers: schema.ServerHeaders{AllowedHosts: tc.have}}}
+
+			validateServerHeaders(config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+
+			errs := validator.Errors()
+			require.Len(t, errs, len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, errs[i], expected)
+			}
+		})
+	}
+}
+
 func TestValidateServerEndpointsHealth(t *testing.T) {
 	duration := func(d time.Duration) *time.Duration {
 		return &d

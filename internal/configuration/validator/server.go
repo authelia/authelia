@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -66,6 +67,7 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 	ValidateServerAddress(config, validator)
 	ValidateServerTLS(config, validator)
 	validateServerAssets(config, validator)
+	validateServerHeaders(config, validator)
 
 	if config.Server.Buffers.Read <= 0 {
 		config.Server.Buffers.Read = schema.DefaultServerConfiguration.Buffers.Read
@@ -280,6 +282,27 @@ func validateServerAssetsIterate(keyRoot, path string, translations map[string]a
 			continue
 		}
 	}
+}
+
+func validateServerHeaders(config *schema.Configuration, validator *schema.StructValidator) {
+	for _, host := range config.Server.Headers.AllowedHosts {
+		if !isValidServerHeadersAllowedHost(host) {
+			validator.Push(fmt.Errorf(errFmtServerHeadersAllowedHostInvalid, host))
+		}
+	}
+}
+
+func isValidServerHeadersAllowedHost(host string) (valid bool) {
+	if host == "" || strings.ContainsAny(host, " \t\r\n") {
+		return false
+	}
+
+	uri, err := url.Parse("//" + host)
+	if err != nil {
+		return false
+	}
+
+	return uri.Host == host && uri.Hostname() != "" && uri.User == nil && uri.Path == "" && uri.RawQuery == "" && uri.Fragment == "" && !strings.HasSuffix(host, ":")
 }
 
 func validateServerEndpointsHealth(config *schema.Configuration, validator *schema.StructValidator) {
