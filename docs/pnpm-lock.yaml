@@ -200,8 +200,8 @@ importers:
         specifier: 1.13.1
         version: 1.13.1
       thulite:
-        specifier: 3.0.2
-        version: 3.0.2(yaml@2.9.0)
+        specifier: 3.0.3
+        version: 3.0.3(yaml@2.9.0)
     devDependencies:
       '@changesets/changelog-github':
         specifier: 1.0.1
@@ -1174,6 +1174,11 @@ packages:
 
   '@thulite/core@2.0.3':
     resolution: {integrity: sha512-Neu/nsu2ib31UuAeN78FDL/xmg3mbIS7Greu1zdokjUJ/hhsvaM7wct25gaWl2FtsMt98UI4TUpdhZjZ5Ru3Dg==}
+    engines: {node: '>=20.11.0'}
+    hasBin: true
+
+  '@thulite/core@2.0.4':
+    resolution: {integrity: sha512-Eq3NzrepAJ8aazoyk73Dn55yye9Vjv397ohQ1nD03I2Nei+mbFt3v86eZuPQvOrbNOu4cqpEqis+/NSZV5Vafw==}
     engines: {node: '>=20.11.0'}
     hasBin: true
 
@@ -2317,8 +2322,8 @@ packages:
     resolution: {integrity: sha512-fab7Xg+zELr9KOv4fkaBoe/b3L0GMGLd0IBSCn16GoE/Qx6/OfCr1eGNyEcDU2pUA79qQfZ8kPQWlRuok4YwTw==}
     engines: {node: '>=6'}
 
-  thulite@3.0.2:
-    resolution: {integrity: sha512-9MGh/23GmFs3VDm9bkAbjHb7RSNjVcJ7VMjT86VKQX51jrlMLNsGsXu6K7YXPR5Tueteeyvpxkj9yfmXs/Fylg==}
+  thulite@3.0.3:
+    resolution: {integrity: sha512-D7vQOIXvfhuh0zx2wUWHhWt72rBRAJTFw27F3dvh7BU0XNaPM3HzE+EY8IDmpP9mzEYIZKewJUmKHnhhWu0oaQ==}
     engines: {node: '>=20.11.0'}
 
   tiny-emitter@2.1.0:
@@ -3455,6 +3460,24 @@ snapshots:
       bootstrap: 5.3.8(@popperjs/core@2.11.8)
 
   '@thulite/core@2.0.3(yaml@2.9.0)':
+    dependencies:
+      '@babel/cli': 8.0.6(@babel/core@8.0.6)
+      '@babel/core': 8.0.6
+      '@babel/preset-env': 8.0.6(@babel/core@8.0.6)
+      '@fullhuman/postcss-purgecss': 8.0.0(postcss@8.5.28)
+      autoprefixer: 10.6.1(postcss@8.5.28)
+      lazysizes: 5.3.2
+      postcss: 8.5.28
+      postcss-cli: 12.0.0(postcss@8.5.28)(yaml@2.9.0)
+      quicklink: 3.0.2
+    transitivePeerDependencies:
+      - jiti
+      - react
+      - react-dom
+      - tsx
+      - yaml
+
+  '@thulite/core@2.0.4(yaml@2.9.0)':
     dependencies:
       '@babel/cli': 8.0.6(@babel/core@8.0.6)
       '@babel/core': 8.0.6
@@ -4686,9 +4709,9 @@ snapshots:
 
   throttles@1.0.1: {}
 
-  thulite@3.0.2(yaml@2.9.0):
+  thulite@3.0.3(yaml@2.9.0):
     dependencies:
-      '@thulite/core': 2.0.3(yaml@2.9.0)
+      '@thulite/core': 2.0.4(yaml@2.9.0)
     transitivePeerDependencies:
       - jiti
       - react
