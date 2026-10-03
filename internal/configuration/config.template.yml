@@ -1317,6 +1317,157 @@ session:
         # -----END PRIVATE KEY-----
 
 ##
+## Webhooks Configuration
+##
+## Webhooks deliver events describing occurrences within Authelia, such as a password change or an applied ban, to
+## HTTPS receivers as CloudEvents. See https://www.authelia.com/c/webhooks for more information.
+# webhooks:
+  ## Performs a single delivery attempt against every destination during startup. A failed check is logged and never
+  ## prevents startup.
+  # startup_check: false
+
+  ## The destinations which receive events.
+  # destinations:
+  #   -
+      ## Required. The unique name of this destination used in logs and metrics.
+      # name: 'admin-api'
+
+      ## Required. The address events are delivered to. The scheme must be 'https' and it must not contain an
+      ## 'access_token' query parameter.
+      # address: 'https://admin.example.com/hooks/authelia'
+
+      ## Required. The event types this destination receives, either exact names or prefix globs ending in an
+      ## asterisk. The value '*' selects every event type.
+      # events:
+        # - 'com.authelia.user.*'
+        # - 'com.authelia.security.ban.applied'
+
+      ## The timeout for an individual delivery attempt in the duration common syntax.
+      # timeout: '10 seconds'
+
+      ## The number of events which may be queued for this destination before events are dropped.
+      # buffer_size: 256
+
+      ## Includes credential equivalent values such as One-Time Codes and reset link URLs in payloads. A receiver
+      ## holding these values can take over any account. It's strongly recommended this is left disabled.
+      # disable_redaction: false
+
+      ## The HMAC signature of each payload sent in the X-Authelia-Signature header.
+      # signature:
+        ## The shared secret used to sign payloads. Signing is disabled when this is empty.
+        # secret: 'insecure_secret'
+
+        ## The HMAC hash algorithm. Options are sha256 and sha512.
+        # algorithm: 'sha256'
+
+      ## Required. The credentials presented to the receiver. Exactly one of the bearer or basic options must be
+      ## configured.
+      # authentication:
+        ## Presents a token.
+        # bearer:
+          ## The token value.
+          # token: 'insecure_token'
+
+          ## How the token is presented. Options are header which uses the Authorization header, and query which
+          ## adds the token to the address as the 'access_token' query parameter.
+          # method: 'header'
+
+          ## The authorization scheme prefixed to the token. Must not be configured when the method is query.
+          # scheme: 'Bearer'
+
+        ## Presents HTTP Basic credentials in the Authorization header.
+        # basic:
+          ## The username.
+          # username: 'authelia'
+
+          ## The password.
+          # password: 'insecure_password'
+
+      ## Additional static headers included with every request. The Authorization, Cache-Control, Content-Type, and
+      ## User-Agent headers, and any header beginning with X-Authelia- or ce-, are reserved.
+      # headers:
+        # X-Tenant: 'acme'
+
+      ## The CloudEvents abuse protection handshake performed before any event is delivered.
+      # validation:
+        ## Skips the handshake and delivers events without asking the destination to confirm it accepts them.
+        # disable: false
+
+        ## The origin presented to the destination, which must be a DNS name. Used only when the origin can't be
+        ## derived from the session configuration, unless force_origin is enabled.
+        # origin: 'auth.example.com'
+
+        ## Presents the configured origin even when an origin can be derived from the session configuration.
+        # force_origin: false
+
+        ## The delivery rate in requests per minute requested from the destination. No rate is requested when this
+        ## is 0.
+        # rate: 0
+
+      ## The batching properties. Batching is disabled unless size is configured.
+      # batch:
+        ## The number of events delivered in a single request. Batching is disabled when this is 0.
+        # size: 0
+
+        ## The longest an event waits for the batch to fill before the batch is delivered regardless, in the duration
+        ## common syntax.
+        # max_wait: '5 seconds'
+
+        ## The event types which bypass batching and are delivered on their own as soon as they occur, either exact
+        ## names or prefix globs ending in an asterisk.
+        # immediate:
+          # - 'com.authelia.security.*'
+
+      ## The retry policy for failed deliveries.
+      # retry:
+        ## The maximum number of delivery attempts including the first.
+        # attempts: 3
+
+        ## The backoff interval before the second attempt in the duration common syntax. It doubles before each
+        ## subsequent attempt.
+        # initial_interval: '1 second'
+
+        ## The ceiling applied to the backoff interval in the duration common syntax. It is not applied to a
+        ## Retry-After header, which is always honored in full.
+        # maximum_interval: '1 minute'
+
+      # tls:
+        ## The server subject name to check the servers certificate against during the validation process.
+        ## This option is not required if the certificate has a SAN which matches the address options hostname.
+        # server_name: 'admin.example.com'
+
+        ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add
+        ## the certificate or the certificate of the authority signing the certificate to the certificates directory
+        ## which is defined by the `certificates_directory` option at the top of the configuration.
+        ## It's important to note the public key should be added to the directory, not the private key.
+        ## This option is strongly discouraged but may be useful in some self-signed situations where validation is
+        ## not important to the administrator.
+        # skip_verify: false
+
+        ## Minimum TLS version for the connection.
+        # minimum_version: 'TLS1.2'
+
+        ## Maximum TLS version for the connection.
+        # maximum_version: 'TLS1.3'
+
+        ## The certificate chain used with the private_key if the server requests TLS Client Authentication
+        ## i.e. Mutual TLS.
+        # certificate_chain: |
+          # -----BEGIN CERTIFICATE-----
+          # ...
+          # -----END CERTIFICATE-----
+          # -----BEGIN CERTIFICATE-----
+          # ...
+          # -----END CERTIFICATE-----
+
+        ## The private key used with the certificate_chain if the server requests TLS Client Authentication
+        ## i.e. Mutual TLS.
+        # private_key: |
+          # -----BEGIN PRIVATE KEY-----
+          # ...
+          # -----END PRIVATE KEY-----
+
+##
 ## Identity Providers
 ##
 # identity_providers:

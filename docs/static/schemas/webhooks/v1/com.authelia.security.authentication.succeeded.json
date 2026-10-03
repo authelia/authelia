@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/webhooks/v1/security.authentication.failed.json",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/com.authelia.security.authentication.succeeded.json",
   "properties": {
     "username": {
       "type": "string",
@@ -61,5 +61,5 @@
     "stage",
     "method"
   ],
-  "description": "DataAuthentication is the payload for the security.authentication.* events."
+  "description": "DataAuthentication is the payload for the com.authelia.security.authentication.* events."
 }
