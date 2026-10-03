@@ -21,6 +21,9 @@ import { useRememberMePrompt } from "@hooks/RememberMe";
 import { AssertionResult, AssertionResultFailureString } from "@models/WebAuthn";
 import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
 
+const CONDITIONAL_REARM_MARGIN = 10000;
+const CONDITIONAL_REARM_FALLBACK = 60000;
+
 export interface Props {
     disabled: boolean;
     rememberMe: boolean;
@@ -42,12 +45,39 @@ const PasskeyForm = function (props: Props) {
     const { dialogProps: rememberMeDialogProps, prompt: promptRememberMe } = useRememberMePrompt(props.rememberMe);
 
     const [loading, setLoading] = useState(false);
+    const [conditionalGeneration, setConditionalGeneration] = useState(0);
 
     const loadingRef = useRef(false);
-    const unmountedRef = useRef(false);
+    const conditionalRef = useRef<AbortController | null>(null);
+    const rearmTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-    const handleSignIn = async (conditionalMediation: boolean) => {
+    const rearm = () => {
+        setConditionalGeneration((generation) => generation + 1);
+    };
+
+    const clearRearm = () => {
+        clearTimeout(rearmTimerRef.current);
+
+        rearmTimerRef.current = undefined;
+    };
+
+    const scheduleRearm = (timeout: number = CONDITIONAL_REARM_FALLBACK) => {
+        clearRearm();
+
+        rearmTimerRef.current = setTimeout(rearm, Math.max(timeout - CONDITIONAL_REARM_MARGIN, timeout / 2));
+    };
+
+    const disarm = () => {
+        clearRearm();
+
+        conditionalRef.current?.abort();
+        conditionalRef.current = null;
+    };
+
+    const handleSignIn = async (conditional?: AbortSignal) => {
         if (loadingRef.current) return;
+
+        const conditionalMediation = conditional !== undefined;
 
         let interactive = !conditionalMediation;
 
@@ -68,16 +98,21 @@ const PasskeyForm = function (props: Props) {
         };
 
         const fail = (message: string) => {
-            stopUI();
-
             if (!interactive) return;
 
+            stopUI();
+
             props.onAuthenticationError(new Error(translate(message)));
+
+            rearm();
         };
 
-        if (!conditionalMediation) startUI();
+        if (!conditionalMediation) {
+            disarm();
+            startUI();
+        }
 
-        const signal = getSignal();
+        const signal = conditional ?? getSignal();
 
         try {
             const optionsStatus = await getWebAuthnPasskeyOptions(signal, conditionalMediation);
@@ -85,10 +120,14 @@ const PasskeyForm = function (props: Props) {
             if (signal.aborted) return;
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
+                if (conditionalMediation) scheduleRearm();
+
                 fail("Failed to initiate security key sign in process");
 
                 return;
             }
+
+            if (conditionalMediation) scheduleRearm(optionsStatus.options.timeout);
 
             const result = await getWebAuthnResult(optionsStatus.options, conditionalMediation);
 
@@ -106,7 +145,10 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            if (conditionalMediation) startUI();
+            if (conditionalMediation) {
+                clearRearm();
+                startUI();
+            }
 
             const rememberMe = await promptRememberMe();
 
@@ -123,33 +165,43 @@ const PasskeyForm = function (props: Props) {
                 signal,
             );
 
-            stopUI();
-
             if (response.data.status === "OK" && response.status === 200) {
+                stopUI();
+
                 props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
 
                 return;
             }
 
-            props.onAuthenticationError(new Error(translate("The server rejected the security key")));
+            fail("The server rejected the security key");
         } catch (err) {
-            stopUI();
+            if (axios.isCancel(err) || signal.aborted) {
+                stopUI();
 
-            if (axios.isCancel(err) || !interactive) return;
+                return;
+            }
+
+            if (!interactive) {
+                scheduleRearm();
+
+                return;
+            }
 
             console.error(err);
 
-            props.onAuthenticationError(new Error(translate("Failed to initiate security key sign in process")));
+            fail("Failed to initiate security key sign in process");
         }
     };
 
-    const handleConditionalMediation = useEffectEvent(async () => {
+    const handleConditionalMediation = useEffectEvent(async (controller: AbortController) => {
+        conditionalRef.current = controller;
+
         try {
             const supported = await browserSupportsWebAuthnAutofill();
 
-            if (unmountedRef.current || !supported) return;
+            if (controller.signal.aborted || !supported) return;
 
-            await handleSignIn(true);
+            await handleSignIn(controller.signal);
         } catch (err) {
             if (axios.isCancel(err)) return;
 
@@ -157,17 +209,21 @@ const PasskeyForm = function (props: Props) {
         }
     });
 
+    const handleConditionalMediationStop = useEffectEvent((controller: AbortController) => {
+        clearRearm();
+
+        controller.abort();
+
+        WebAuthnAbortService.cancelCeremony();
+    });
+
     useEffect(() => {
-        unmountedRef.current = false;
+        const controller = new AbortController();
 
-        void handleConditionalMediation();
+        void handleConditionalMediation(controller);
 
-        return () => {
-            unmountedRef.current = true;
-
-            WebAuthnAbortService.cancelCeremony();
-        };
-    }, []);
+        return () => handleConditionalMediationStop(controller);
+    }, [conditionalGeneration]);
 
     return (
         <Fragment>
@@ -183,7 +239,7 @@ const PasskeyForm = function (props: Props) {
                     id="passkey-sign-in-button"
                     variant="default"
                     className="w-full"
-                    onClick={() => void handleSignIn(false)}
+                    onClick={() => void handleSignIn()}
                     disabled={props.disabled}
                 >
                     <PasskeyIcon />
