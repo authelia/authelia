@@ -24,6 +24,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -456,6 +457,9 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Added", gomock.Any(), gomock.Any()).
 						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialWebAuthnAdded, "test", true))),
 				)
 			},
 			dataPOSTGood,
@@ -514,6 +518,9 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Added", gomock.Any(), gomock.Any()).
 						Return(fmt.Errorf("invalid server")),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialWebAuthnAdded, "test", false))),
 				)
 			},
 			dataPOSTGood,
@@ -571,6 +578,10 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						GetDetails(testUsername).
 						Return(nil, fmt.Errorf("failed conn")),
 				)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialWebAuthnAdded, "test", false))).
+					Times(1)
 			},
 			`{"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"attestationObject":"o2NmbXRmcGFja2VkZ2F0dFN0bXSjY2FsZyZjc2lnWEcwRQIhAI505i2XKRL3xsFcSNRz6crTg7_AIpJIsVOjuv8MKW6jAiBJCrqGIc9kKSgS1x54lq53SWUpVNXmlakZfp5NIXrJcmN4NWOBWQHeMIIB2jCCAX2gAwIBAgIBATANBgkqhkiG9w0BAQsFADBgMQswCQYDVQQGEwJVUzERMA8GA1UECgwIQ2hyb21pdW0xIjAgBgNVBAsMGUF1dGhlbnRpY2F0b3IgQXR0ZXN0YXRpb24xGjAYBgNVBAMMEUJhdGNoIENlcnRpZmljYXRlMB4XDTE3MDcxNDAyNDAwMFoXDTQzMTEyMTA4MDAzOVowYDELMAkGA1UEBhMCVVMxETAPBgNVBAoMCENocm9taXVtMSIwIAYDVQQLDBlBdXRoZW50aWNhdG9yIEF0dGVzdGF0aW9uMRowGAYDVQQDDBFCYXRjaCBDZXJ0aWZpY2F0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABI1hfmXJUI5kvMVnOsgqZ5naPBRGaCwljEY__99Y39L6Pmw3i1PXlcSk3_tBme3Xhi8jq68CA7S4kRugVpmU4QGjJTAjMAwGA1UdEwEB_wQCMAAwEwYLKwYBBAGC5RwCAQEEBAMCBSAwDQYJKoZIhvcNAQELBQADSAAwRQIgI4PXvgxbCt2L3tk_p22e3QmDCw0ZOPJ6dIJcp2LoTRACIQDqhWGzBtSCdnTiGq2CjhApHJxER1tBy9vRbRaioTz-ZGhhdXRoRGF0YVikDGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiYXFfQVhkdnNETXNLV18xYVkzMVhRaFUxN1pNZzFpMFRLMDEzRHd1a0IyVSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","transports":["usb"],"publicKeyAlgorithm":-7,"publicKey":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuBHGqg5RF-1k2nt6MEw4lBdvrfVD77Dlx83VLu9b3rerjXRKRLRRQlF_USnsrSYHCSKAp2UzGVTvZAp8daWysw","authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM"},"type":"public-key","clientExtensionResults":{"credProps":{"rk":false}},"authenticatorAttachment":"cross-platform"}`,
 			`{"status":"OK"}`,

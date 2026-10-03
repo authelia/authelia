@@ -14,6 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
@@ -138,7 +139,25 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delay
 		ctx.GetLogger().Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data); err != nil {
+		err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data)
+
+		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataIdentityVerification{
+			Action:      args.ActionClaim,
+			Username:    identity.Username,
+			DisplayName: identity.DisplayName,
+			Emails:      []string{identity.Email},
+			RemoteIP:    ctx.RemoteIP().String(),
+			Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, args.MailTitle, []events.Recipient{
+				{Email: identity.Email, Username: identity.Username, DisplayName: identity.DisplayName},
+			}, &events.NotificationValues{
+				Domain:            data.Domain,
+				LinkURL:           data.LinkURL,
+				LinkText:          data.LinkText,
+				RevocationLinkURL: data.RevocationLinkURL,
+			}),
+		}))
+
+		if err != nil {
 			ctx.GetLogger().WithError(err).Error("Error occurred sending the identity verification email")
 			ctx.SetJSONError(messageOperationFailed)
 

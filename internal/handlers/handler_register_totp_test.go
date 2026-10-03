@@ -17,6 +17,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -609,10 +610,69 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Added", gomock.Any(), gomock.Any()).
 						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPAdded, "", true))),
 				)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
+			nil,
+		},
+		{
+			"ShouldNotifyAndEmitWhenTheSessionCanNotBeSaved",
+			schema.DefaultTOTPConfiguration,
+			`{"token":"012345"}`,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				backend := newFailingSessionBackend(t, mock)
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.TOTP = &session.TOTP{
+					Issuer:    "abc",
+					Algorithm: "SHA1",
+					Digits:    6,
+					Period:    30,
+					Secret:    testBASE32TOTPSecret,
+					Expires:   mock.Clock.Now().Add(time.Minute),
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				backend.fail = true
+
+				gomock.InOrder(
+					mock.TOTPMock.
+						EXPECT().
+						Validate(mock.Ctx, "012345", &model.TOTPConfiguration{CreatedAt: mock.Clock.Now(), Username: testUsername, Issuer: "abc", Algorithm: "SHA1", Period: 30, Digits: 6, Secret: []byte(testBASE32TOTPSecret)}).
+						Return(true, getStepTOTP(mock.Ctx, -1), nil),
+					mock.StorageMock.
+						EXPECT().
+						SaveTOTPHistory(mock.Ctx, "john", uint64(1701295890)).
+						Return(nil),
+					mock.StorageMock.
+						EXPECT().
+						SaveTOTPConfiguration(mock.Ctx, model.TOTPConfiguration{CreatedAt: mock.Clock.Now(), Username: testUsername, Issuer: "abc", Algorithm: "SHA1", Period: 30, Digits: 6, Secret: []byte(testBASE32TOTPSecret)}).
+						Return(nil),
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
+					mock.NotifierMock.
+						EXPECT().
+						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Added", gomock.Any(), gomock.Any()).
+						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPAdded, "", true))),
+				)
+			},
+			`{"status":"KO","message":"Unable to set up one-time password."}`,
+			fasthttp.StatusForbidden,
 			nil,
 		},
 		{
@@ -665,6 +725,9 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Added", gomock.Any(), gomock.Any()).
 						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPAdded, "", true))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -714,6 +777,9 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Added", gomock.Any(), gomock.Any()).
 						Return(fmt.Errorf("kittens")),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPAdded, "", false))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -762,6 +828,10 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						GetDetails(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName}, nil),
 				)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPAdded, "", false))).
+					Times(1)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -809,6 +879,10 @@ func TestTOTPRegisterPOST(t *testing.T) {
 						GetDetails(testUsername).
 						Return(nil, fmt.Errorf("lookup failure")),
 				)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPAdded, "", false))).
+					Times(1)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -962,6 +1036,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					mock.StorageMock.EXPECT().DeleteTOTPConfiguration(mock.Ctx, testUsername).Return(nil),
 					mock.UserProviderMock.EXPECT().GetDetails(testUsername).Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.EXPECT().Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Removed", gomock.Any(), gomock.Any()).Return(nil),
+					mock.EventsMock.EXPECT().Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPRemoved, "", true))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -988,6 +1063,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					mock.StorageMock.EXPECT().DeleteTOTPConfiguration(mock.Ctx, testUsername).Return(nil),
 					mock.UserProviderMock.EXPECT().GetDetails(testUsername).Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.EXPECT().Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Removed", gomock.Any(), gomock.Any()).Return(fmt.Errorf("bad conn")),
+					mock.EventsMock.EXPECT().Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPRemoved, "", false))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -1016,6 +1092,10 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					mock.StorageMock.EXPECT().DeleteTOTPConfiguration(mock.Ctx, testUsername).Return(nil),
 					mock.UserProviderMock.EXPECT().GetDetails(testUsername).Return(nil, fmt.Errorf("lookup err")),
 				)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialTOTPRemoved, "", false))).
+					Times(1)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,

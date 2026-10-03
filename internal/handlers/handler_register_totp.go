@@ -11,6 +11,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -243,8 +244,16 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.TOTP = nil
 
+	body := emailEventBody{
+		Prefix: eventEmailAction2FAPrefix,
+		Body:   eventEmailAction2FABody,
+		Suffix: eventEmailAction2FAAddedSuffix,
+	}
+
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
+
+		ctxLogEvent(ctx, events.TypeUserCredentialTOTPAdded, userSession.Username, eventLogAction2FAAdded, body, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryOneTimePassword})
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
@@ -252,13 +261,7 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	body := emailEventBody{
-		Prefix: eventEmailAction2FAPrefix,
-		Body:   eventEmailAction2FABody,
-		Suffix: eventEmailAction2FAAddedSuffix,
-	}
-
-	ctxLogEvent(ctx, userSession.Username, eventLogAction2FAAdded, body, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryOneTimePassword})
+	ctxLogEvent(ctx, events.TypeUserCredentialTOTPAdded, userSession.Username, eventLogAction2FAAdded, body, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryOneTimePassword})
 
 	ctx.ReplyOK()
 }
@@ -355,7 +358,7 @@ func TOTPConfigurationDELETE(ctx *middlewares.AutheliaCtx) {
 		Suffix: eventEmailAction2FARemovedSuffix,
 	}
 
-	ctxLogEvent(ctx, userSession.Username, eventLogAction2FARemoved, body, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryOneTimePassword})
+	ctxLogEvent(ctx, events.TypeUserCredentialTOTPRemoved, userSession.Username, eventLogAction2FARemoved, body, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryOneTimePassword})
 
 	ctx.ReplyOK()
 }

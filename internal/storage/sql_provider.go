@@ -406,6 +406,7 @@ type SQLProviderKeys struct {
 	encryption []byte
 	otcHMAC    []byte
 	otpHMAC    []byte
+	whcHMAC    []byte
 }
 
 func (p *SQLProvider) conn(ctx context.Context) (conn SQLXConnection) {
@@ -464,6 +465,10 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	if p.keys.otpHMAC, err = p.getHMACOneTimePassword(ctx); err != nil {
 		return fmt.Errorf("failed to initialize the hmac one-time password signature key during startup: %w", err)
+	}
+
+	if p.keys.whcHMAC, err = p.getHMACWebhookCallback(ctx); err != nil {
+		return fmt.Errorf("failed to initialize the hmac webhook callback signature key during startup: %w", err)
 	}
 
 	return nil

@@ -22,6 +22,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -378,6 +379,10 @@ func TestResetPasswordPOST(t *testing.T) {
 						GetDetails(testUsername).
 						Return(nil, fmt.Errorf("failed to get details")),
 				)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, false))).
+					Times(1)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -407,6 +412,10 @@ func TestResetPasswordPOST(t *testing.T) {
 						GetDetails(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName}, nil),
 				)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, false))).
+					Times(1)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -434,6 +443,9 @@ func TestResetPasswordPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, "Password changed successfully", gomock.Any(), gomock.Any()).
 						Return(fmt.Errorf("failed to notify")),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, false))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -470,6 +482,9 @@ func TestResetPasswordPOST(t *testing.T) {
 							BodySuffix:  eventEmailActionPasswordModifySuffix,
 						}).
 						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, true))),
 				)
 			},
 			``,
@@ -480,6 +495,39 @@ func TestResetPasswordPOST(t *testing.T) {
 				require.NoError(t, err)
 				assert.Nil(t, us.PasswordResetUsername)
 			},
+		},
+		{
+			"ShouldNotifyAndEmitWhenTheSessionCanNotBeSaved",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				backend := newFailingSessionBackend(t, mock)
+
+				setTestPasswordResetUsername(t, mock)
+
+				backend.fail = true
+
+				mock.Ctx.Request.SetBodyString(`{"password":"password123"}`)
+
+				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						UpdatePassword(testUsername, "password123").
+						Return(nil),
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
+					mock.NotifierMock.
+						EXPECT().
+						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, "Password changed successfully", gomock.Any(), gomock.Any()).
+						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, true))),
+				)
+			},
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusOK,
+			nil,
 		},
 		{
 			"ShouldHandleGetSessionError",
