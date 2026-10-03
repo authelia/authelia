@@ -199,7 +199,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	}
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
-		ctx.SetJSONError(messageAuthenticationFailed)
+		ctx.SetJSONError(messageAuthenticationFlowExpired)
 
 		ctx.GetLogger().
 			WithError(err).
@@ -210,7 +210,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	}
 
 	if consent.Responded() {
-		ctx.SetJSONError(messageAuthenticationFailed)
+		ctx.SetJSONError(messageAuthenticationFlowExpired)
 
 		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
