@@ -442,6 +442,34 @@ func TestSchemaEncryptionUpgradeFromLegacyKey(t *testing.T) {
 	}
 }
 
+func TestWebhookCallbackSignatureShouldBeStableForTheSameStorage(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "db.sqlite3")
+
+	first := newTestSQLiteProviderAtPath(t, path)
+
+	assert.Empty(t, first.WebhookCallbackSignature([]byte("admin-api")), "the key is not loaded before the startup check")
+
+	require.NoError(t, first.StartupCheck())
+
+	signature := first.WebhookCallbackSignature([]byte("admin-api"))
+
+	assert.Len(t, signature, 64)
+	assert.Equal(t, signature, first.WebhookCallbackSignature([]byte("admin-api")))
+	assert.NotEqual(t, signature, first.WebhookCallbackSignature([]byte("other-api")))
+
+	second := newTestSQLiteProviderAtPath(t, path)
+
+	require.NoError(t, second.StartupCheck())
+
+	assert.Equal(t, signature, second.WebhookCallbackSignature([]byte("admin-api")), "every instance sharing the storage must sign identically")
+
+	other := newTestSQLiteProvider(t)
+
+	require.NoError(t, other.StartupCheck())
+
+	assert.NotEqual(t, signature, other.WebhookCallbackSignature([]byte("admin-api")))
+}
+
 func TestStorageUserTOTPShouldRoundTripWithoutStartupCheck(t *testing.T) {
 	config := &schema.Configuration{
 		Storage: schema.Storage{

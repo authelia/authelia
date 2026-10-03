@@ -18,11 +18,29 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
+
+func condIdentityVerification(action, username string, sent bool) func(event *events.Event) bool {
+	return func(event *events.Event) bool {
+		data, ok := event.Data.(*events.DataIdentityVerification)
+		if !ok {
+			return false
+		}
+
+		notification := data.Notification
+
+		if notification == nil || notification.Sent != sent || (notification.Error != "") == sent {
+			return false
+		}
+
+		return event.Type == events.TypeUserIdentityVerificationStarted && data.Action == action && data.Username == username
+	}
+}
 
 func TestIdentityVerificationStart_ShouldPanic(t *testing.T) {
 	assert.PanicsWithError(t, "identity verification requires an identity retriever", func() {
@@ -79,6 +97,10 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(fmt.Errorf("no notif"))
 
+	mock.EventsMock.EXPECT().
+		Emit(mock.Ctx, gomock.Cond(condIdentityVerification("Claim", "john", false))).
+		Times(1)
+
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
@@ -101,6 +123,10 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock.NotifierMock.EXPECT().
 		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(nil)
+
+	mock.EventsMock.EXPECT().
+		Emit(mock.Ctx, gomock.Cond(condIdentityVerification("Claim", "john", true))).
+		Times(1)
 
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
@@ -125,6 +151,10 @@ func TestShouldSucceedIdentityVerificationStartProcessHS256(t *testing.T) {
 	mock.NotifierMock.EXPECT().
 		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(nil)
+
+	mock.EventsMock.EXPECT().
+		Emit(mock.Ctx, gomock.Cond(condIdentityVerification("Claim", "john", true))).
+		Times(1)
 
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)

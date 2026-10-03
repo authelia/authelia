@@ -242,3 +242,13 @@ type Contributor struct {
 	Profile       string   `json:"profile"`
 	Contributions []string `json:"contributions"`
 }
+
+type openAPIWebhookSchemaDocument struct {
+	Name  string
+	Value any
+}
+
+type webhookJSONSchemaDocument struct {
+	Name  string
+	Value any
+}

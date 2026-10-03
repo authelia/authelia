@@ -15,6 +15,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -231,7 +232,23 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.GetLogger().WithFields(map[string]any{"signature": signature, "id": otp.PublicID.String(), "username": details.Username}).
 		Debug("Sending an email to user to confirm identity for session elevation")
 
-	if err = ctx.Providers.Notifier.Send(ctx, details.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {
+	err = ctx.Providers.Notifier.Send(ctx, details.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data)
+
+	ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataSessionElevation{
+		Username:    details.Username,
+		DisplayName: details.DisplayName,
+		Emails:      details.Emails,
+		RemoteIP:    ctx.RemoteIP().String(),
+		Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, data.Title, []events.Recipient{
+			{Email: details.Emails[0], Username: details.Username, DisplayName: details.DisplayName},
+		}, &events.NotificationValues{
+			Domain:            data.Domain,
+			OneTimeCode:       data.OneTimeCode,
+			RevocationLinkURL: data.RevocationLinkURL,
+		}),
+	}))
+
+	if err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred sending the user the notification", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

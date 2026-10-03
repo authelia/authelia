@@ -25,3 +25,14 @@ func TestNewPrometheus(t *testing.T) {
 	p.RecordAuthenticationDuration(true, time.Second)
 	p.RecordRequestOpenIDConnect("example", "200", time.Second)
 }
+
+func TestPrometheusShouldRecordWebhookDelivery(t *testing.T) {
+	provider, err := NewPrometheus()
+	require.NoError(t, err)
+
+	assert.NotPanics(t, func() {
+		provider.RecordWebhookDelivery("admin-api", "com.authelia.user.password.changed", "delivered")
+		provider.RecordWebhookDelivery("admin-api", "com.authelia.user.password.changed", "retried")
+		provider.RecordWebhookDelivery("admin-api", "com.authelia.user.password.changed", "dropped")
+	})
+}

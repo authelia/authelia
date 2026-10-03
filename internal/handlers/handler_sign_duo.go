@@ -101,8 +101,8 @@ func PerformDuoAuthentication(ctx *middlewares.AutheliaCtx, userSession *session
 
 	if authResponse.Result != allow {
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeDuo,
-			fmt.Errorf("duo auth result: '%s', status: '%s', message: '%s'", authResponse.Result, authResponse.Status,
-				authResponse.StatusMessage))
+			newErrAuthenticationRejected(fmt.Errorf("duo auth result: '%s', status: '%s', message: '%s'", authResponse.Result, authResponse.Status,
+				authResponse.StatusMessage)))
 
 		return fmt.Errorf("duo authentication failed")
 	}

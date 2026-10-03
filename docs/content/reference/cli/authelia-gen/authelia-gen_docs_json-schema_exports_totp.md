@@ -2,7 +2,7 @@
 title: "authelia-gen docs json-schema exports totp"
 description: "Reference for the authelia-gen docs json-schema exports totp command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2026-09-12T18:06:43+10:00
 draft: false
 images: []
 weight: 915
@@ -40,11 +40,14 @@ authelia-gen docs json-schema exports totp [flags]
       --dir.docs.data string                                       The directory with the docs data (default "data")
       --dir.docs.static string                                     The directory with the docs static files (default "static")
       --dir.docs.static.json-schemas string                        The directory with the docs static JSONSchema files (default "schemas")
+      --dir.docs.static.json-schemas.webhooks string               The directory with the docs static webhook JSONSchema files in relation to the docs static JSONSchema directory (default "webhooks")
+      --dir.events string                                          The events directory in relation to the root (default "internal/events")
       --dir.locales string                                         The locales directory in relation to the root (default "internal/server/locales")
   -d, --dir.root string                                            The repository root (default "./")
       --dir.schema string                                          The schema directory in relation to the root (default "internal/configuration/schema")
       --dir.web string                                             The repository web directory in relation to the root directory (default "web")
   -X, --exclude strings                                            Sets the names of excluded generators
+      --file.api.openapi string                                    The OpenAPI specification file in relation to the root (default "api/openapi.yml")
       --file.bug-report string                                     Sets the path of the bug report issue template file (default ".github/ISSUE_TEMPLATE/bug-report.yml")
       --file.commit-lint-config string                             The commit lint javascript configuration file in relation to the root (default "commitlint.config.mjs")
       --file.configuration-keys string                             Sets the path of the keys file (default "internal/configuration/schema/keys.go")
