@@ -182,8 +182,8 @@ importers:
         specifier: 3.48.0
         version: 3.48.0
       '@thulite/core':
-        specifier: 2.0.3
-        version: 2.0.3(yaml@2.9.0)
+        specifier: 2.0.4
+        version: 2.0.4(yaml@2.9.0)
       '@thulite/doks-core':
         specifier: 1.9.4
         version: 1.9.4
@@ -1172,8 +1172,8 @@ packages:
     resolution: {integrity: sha512-Mhkq3P3/s9zYJqI5v6Td3uaWscyZSeqVOXs2b5a+vuJn9R4ntAKwWE52kYdeuHC12xCFVL5uwnXjeH22b0SnAA==}
     engines: {node: '>=20.11.0'}
 
-  '@thulite/core@2.0.3':
-    resolution: {integrity: sha512-Neu/nsu2ib31UuAeN78FDL/xmg3mbIS7Greu1zdokjUJ/hhsvaM7wct25gaWl2FtsMt98UI4TUpdhZjZ5Ru3Dg==}
+  '@thulite/core@2.0.4':
+    resolution: {integrity: sha512-Eq3NzrepAJ8aazoyk73Dn55yye9Vjv397ohQ1nD03I2Nei+mbFt3v86eZuPQvOrbNOu4cqpEqis+/NSZV5Vafw==}
     engines: {node: '>=20.11.0'}
     hasBin: true
 
@@ -3454,7 +3454,7 @@ snapshots:
       '@popperjs/core': 2.11.8
       bootstrap: 5.3.8(@popperjs/core@2.11.8)
 
-  '@thulite/core@2.0.3(yaml@2.9.0)':
+  '@thulite/core@2.0.4(yaml@2.9.0)':
     dependencies:
       '@babel/cli': 8.0.6(@babel/core@8.0.6)
       '@babel/core': 8.0.6
@@ -4688,7 +4688,7 @@ snapshots:
 
   thulite@3.0.2(yaml@2.9.0):
     dependencies:
-      '@thulite/core': 2.0.3(yaml@2.9.0)
+      '@thulite/core': 2.0.4(yaml@2.9.0)
     transitivePeerDependencies:
       - jiti
       - react
