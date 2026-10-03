@@ -26,6 +26,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/identity"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -571,6 +572,8 @@ func TestFirstFactorExternalIdentityCallbackGET(t *testing.T) {
 						RequestMethod: fasthttp.MethodGet,
 					}).
 					Return(nil)
+
+				expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
 			},
 			Assert: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				userSession, err := mock.Ctx.GetSession()
@@ -606,6 +609,8 @@ func TestFirstFactorExternalIdentityCallbackGET(t *testing.T) {
 				mock.StorageMock.EXPECT().
 					AppendAuthenticationLog(mock.Ctx, gomock.Any()).
 					Return(nil)
+
+				expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonUserNotFound)
 			},
 			Assert: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				userSession, err := mock.Ctx.GetSession()
@@ -920,6 +925,8 @@ func setupTestOpenIDConnectCallbackLinked(mock *mocks.MockAutheliaCtx) {
 	mock.StorageMock.EXPECT().
 		AppendAuthenticationLog(mock.Ctx, gomock.Any()).
 		Return(nil)
+
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
 }
 
 func newTestOpenIDConnectUpstream(t *testing.T) (key *rsa.PrivateKey, server *httptest.Server, requests *atomic.Int64) {

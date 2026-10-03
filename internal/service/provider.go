@@ -62,5 +62,6 @@ func GetProvisioners() []Provisioner {
 		ProvisionGarbageCollector,
 		ProvisionSessionCollector,
 		ProvisionSystemdWatchdog,
+		ProvisionWebhooks,
 	}
 }

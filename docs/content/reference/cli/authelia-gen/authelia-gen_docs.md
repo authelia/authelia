@@ -2,7 +2,7 @@
 title: "authelia-gen docs"
 description: "Reference for the authelia-gen docs command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2026-09-12T18:06:43+10:00
 draft: false
 images: []
 weight: 915
@@ -40,11 +40,14 @@ authelia-gen docs [flags]
       --dir.docs.data string                                       The directory with the docs data (default "data")
       --dir.docs.static string                                     The directory with the docs static files (default "static")
       --dir.docs.static.json-schemas string                        The directory with the docs static JSONSchema files (default "schemas")
+      --dir.docs.static.json-schemas.webhooks string               The directory with the docs static webhook JSONSchema files in relation to the docs static JSONSchema directory (default "webhooks")
+      --dir.events string                                          The events directory in relation to the root (default "internal/events")
       --dir.locales string                                         The locales directory in relation to the root (default "internal/server/locales")
   -d, --dir.root string                                            The repository root (default "./")
       --dir.schema string                                          The schema directory in relation to the root (default "internal/configuration/schema")
       --dir.web string                                             The repository web directory in relation to the root directory (default "web")
   -X, --exclude strings                                            Sets the names of excluded generators
+      --file.api.openapi string                                    The OpenAPI specification file in relation to the root (default "api/openapi.yml")
       --file.bug-report string                                     Sets the path of the bug report issue template file (default ".github/ISSUE_TEMPLATE/bug-report.yml")
       --file.commit-lint-config string                             The commit lint javascript configuration file in relation to the root (default "commitlint.config.mjs")
       --file.configuration-keys string                             Sets the path of the keys file (default "internal/configuration/schema/keys.go")
@@ -71,6 +74,7 @@ authelia-gen docs [flags]
 ### SEE ALSO
 
 * [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
+* [authelia-gen docs api](authelia-gen_docs_api.md)	 - Generate the API specifications
 * [authelia-gen docs cli](authelia-gen_docs_cli.md)	 - Generate CLI docs
 * [authelia-gen docs data](authelia-gen_docs_data.md)	 - Generate docs data files
 * [authelia-gen docs date](authelia-gen_docs_date.md)	 - Generate doc dates

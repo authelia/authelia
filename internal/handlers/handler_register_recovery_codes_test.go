@@ -17,6 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -35,6 +36,10 @@ func TestRecoveryCodesGenerationPOST_SurfacesSMTPFailure(t *testing.T) {
 	mock.NotifierMock.EXPECT().
 		Send(gomock.Any(), gomock.Any(), gomock.Eq("Recovery codes generated"), gomock.Any(), gomock.Any()).
 		Return(errors.New("smtp temporarily unavailable"))
+
+	mock.EventsMock.EXPECT().
+		Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialRecoveryCodesGenerated, "", false))).
+		Times(1)
 
 	RecoveryCodesGenerationPOST(mock.Ctx)
 
@@ -143,6 +148,10 @@ func TestRecoveryCodesGenerationPOST(t *testing.T) {
 				mock.NotifierMock.EXPECT().
 					Send(gomock.Any(), gomock.Any(), gomock.Eq("Recovery codes generated"), gomock.Any(), gomock.Any()).
 					Return(nil)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialRecoveryCodesGenerated, "", true))).
+					Times(1)
 			},
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -200,6 +209,10 @@ func TestRecoveryCodesGenerationPOST(t *testing.T) {
 				mock.StorageMock.EXPECT().
 					ReplaceRecoveryCodesByUsername(gomock.Any(), gomock.Eq(testUsername), gomock.Len(model.RecoveryCodeBatchSize), gomock.Any()).
 					Return(nil)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialRecoveryCodesGenerated, "", false))).
+					Times(1)
 			},
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -234,6 +247,10 @@ func TestRecoveryCodesGenerationPOST(t *testing.T) {
 				mock.StorageMock.EXPECT().
 					ReplaceRecoveryCodesByUsername(gomock.Any(), gomock.Eq(testUsername), gomock.Len(model.RecoveryCodeBatchSize), gomock.Any()).
 					Return(nil)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialRecoveryCodesGenerated, "", false))).
+					Times(1)
 			},
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())

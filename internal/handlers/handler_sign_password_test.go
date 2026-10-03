@@ -16,6 +16,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -103,6 +104,8 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodPassword)
+
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), redirectResponse{
@@ -143,6 +146,8 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodPassword)
+
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
@@ -179,6 +184,8 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURLDelayFunc()
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodPassword)
 
 	SecondFactorPasswordPOST(middlewares.NewTimingAttackDelay(10, time.Millisecond))(s.mock.Ctx)
 
@@ -218,6 +225,8 @@ func (s *HandlerSignPasswordSuite) TestShouldErrorMarkAttempt() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodPassword)
+
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
@@ -250,6 +259,8 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPassword() {
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnFailure(s.mock, testUsername, events.StageSecondFactor, events.MethodPassword, events.ReasonInvalidCredentials)
 
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
@@ -284,6 +295,8 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPasswordMarkAttemptError()
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnFailure(s.mock, testUsername, events.StageSecondFactor, events.MethodPassword, events.ReasonInvalidCredentials)
+
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
@@ -316,6 +329,8 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPasswordWithError() {
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnFailure(s.mock, testUsername, events.StageSecondFactor, events.MethodPassword, events.ReasonInternalError)
 
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 

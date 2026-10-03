@@ -207,7 +207,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.GetLogger().WithError(webauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, "error occurred provisioning the configuration")
 
-		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
 
 		return
 	}
@@ -218,7 +218,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.GetLogger().WithError(webauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, "error performing the login validation")
 
-		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, newErrAuthenticationRejected(webauthn.FormatError(err)))
 
 		return
 	}
@@ -235,7 +235,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.Logger.Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, "the user object was not of the correct type", u.WebAuthnName())
 
-		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, fmt.Errorf("the user object was of type %T rather than the expected type", u))
 
 		return
 	}
@@ -260,7 +260,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 				ctx.GetLogger().WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred saving the credential sign-in information to the storage backend")
 
-				doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+				doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
 
 				return
 			}
@@ -277,7 +277,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.GetLogger().WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred saving the credential sign-in information to storage")
 
-		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, newErrAuthenticationRejected(err))
 
 		return
 	}
@@ -290,7 +290,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.GetLogger().WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred validating the authenticator response")
 
-		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, newErrAuthenticationRejected(err))
 
 		return
 	}
@@ -301,7 +301,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.GetLogger().WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error retrieving user details")
 
-		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
 
 		return
 	}
