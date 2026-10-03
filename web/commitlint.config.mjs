@@ -58,6 +58,7 @@ export default {
                 "session",
                 "storage",
                 "suites",
+                "systemd",
                 "templates",
                 "totp",
                 "utils",
