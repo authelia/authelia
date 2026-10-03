@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/identity"
 	"github.com/authelia/authelia/v4/internal/metrics"
@@ -59,6 +60,7 @@ type Providers struct {
 	UserProvider          authentication.UserProvider
 	StorageProvider       storage.Provider
 	Notifier              notification.Notifier
+	Events                events.Emitter
 	Templates             *templates.Provider
 	TOTP                  totp.Provider
 	PasswordPolicy        PasswordPolicyProvider

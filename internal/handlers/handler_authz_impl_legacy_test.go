@@ -18,6 +18,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -661,6 +662,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() {
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 	)
 
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
+
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -709,6 +712,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 						EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, "https://one-factor.example.com"))).Return(nil),
 				)
+
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodPassword, events.ReasonUserNotFound)
 			},
 		},
 		{
@@ -737,6 +742,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 						EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, "https://one-factor.example.com"))).Return(nil),
 				)
+
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodPassword, events.ReasonInvalidCredentials)
 			},
 		},
 		{
@@ -772,6 +779,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 						EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 				)
+
+				expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
 			},
 		},
 		{
@@ -812,6 +821,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 						EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 				)
+
+				expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
 			},
 		},
 	}

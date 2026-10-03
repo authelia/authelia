@@ -385,28 +385,27 @@ func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []
 		return err
 	}
 
-	var (
-		table, name string
-		truncate    bool
-	)
+	var name, removal, removed string
 
 	switch cmd.Use {
 	case "otc":
-		table, name, truncate = "one_time_code", "otc", true
+		name, removal, removed = "otc", "truncate the 'one_time_code' table", "cleanly truncated the 'one_time_code' table"
 	case "otp":
-		table, name, truncate = "totp_history", "otp", true
+		name, removal, removed = "otp", "truncate the 'totp_history' table", "cleanly truncated the 'totp_history' table"
 	case "rc":
-		table, name, truncate = "recovery_codes", "rc", true
+		name, removal, removed = "rc", "truncate the 'recovery_codes' table", "cleanly truncated the 'recovery_codes' table"
 	case "session":
-		table, name, truncate = "session", "session", true
+		name, removal, removed = "session", "truncate the 'session' table", "cleanly truncated the 'session' table"
 	case cmdUseStorageEncryptionRotateHMACExternalIdentityLink:
-		table, name, truncate = "user_external_identity_links", "external_identity_link", false
+		name, removal, removed = "external_identity_link", "sign the 'user_external_identity_links' table again, and delete any row whose signature is not valid", "signed the 'user_external_identity_links' table again"
+	case "whc":
+		name, removal, removed = "whc", "delete the webhook callback confirmations", "deleted the webhook callback confirmations"
 	}
 
-	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, table, name, truncate, force)
+	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, removal, removed, name, force)
 }
 
-func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store storage.Provider, table, name string, truncate, force bool) (err error) {
+func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store storage.Provider, removal, removed, name string, force bool) (err error) {
 	var version int
 	if version, err = store.SchemaVersion(ctx); err != nil {
 		return err
@@ -419,13 +418,7 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 	if !force {
 		var confirmed bool
 
-		prompt := fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table)
-
-		if !truncate {
-			prompt = fmt.Sprintf("This will rotate the HMAC key, sign the '%s' table again, and delete any row whose signature is not valid, this is not reversible, type 'ROTATE' and press return to continue: ", table)
-		}
-
-		if confirmed, err = termReadConfirmation(prompt, "ROTATE"); err != nil {
+		if confirmed, err = termReadConfirmation(fmt.Sprintf("This will rotate the HMAC key and %s, this is not reversible, type 'ROTATE' and press return to continue: ", removal), "ROTATE"); err != nil {
 			return err
 		}
 
@@ -438,11 +431,7 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 		return err
 	}
 
-	if truncate {
-		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and cleanly truncated the '%s' table.\n", name, table)
-	} else {
-		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and signed the '%s' table again.\n", name, table)
-	}
+	_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and %s.\n", name, removed)
 
 	return nil
 }

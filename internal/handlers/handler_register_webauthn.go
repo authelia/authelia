@@ -16,6 +16,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -332,7 +333,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		Suffix: eventEmailAction2FAAddedSuffix,
 	}
 
-	ctxLogEvent(ctx, userSession.Username, eventLogAction2FAAdded, body, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryWebAuthnCredential, eventLogKeyDescription: credential.Description})
+	ctxLogEvent(ctx, events.TypeUserCredentialWebAuthnAdded, userSession.Username, eventLogAction2FAAdded, body, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryWebAuthnCredential, eventLogKeyDescription: credential.Description})
 }
 
 // WebAuthnRegistrationDELETE deletes any active WebAuthn registration session..

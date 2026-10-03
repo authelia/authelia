@@ -29,6 +29,7 @@ type Recorder interface {
 	RecordAuthz(statusCode string)
 	RecordAuthenticationDuration(success bool, elapsed time.Duration)
 	RecordRecoveryCodesGenerated(count int)
+	RecordWebhookDelivery(destination, event, outcome string)
 }
 
 // RecoveryCodeCounts is the minimal storage-side surface the metrics provider needs to expose scrape-time gauges

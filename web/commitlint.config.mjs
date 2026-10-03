@@ -36,6 +36,7 @@ export default {
                 "deps",
                 "docker",
                 "duo",
+                "events",
                 "expression",
                 "go",
                 "golangci-lint",
@@ -66,6 +67,7 @@ export default {
                 "utils",
                 "web",
                 "webauthn",
+                "webhooks",
             ],
         ],
         "type-enum": [

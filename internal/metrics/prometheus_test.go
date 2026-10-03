@@ -216,3 +216,13 @@ func gatherMetricValue(t *testing.T, p *Prometheus, name string) (kind string, v
 
 	return "", 0, false
 }
+func TestPrometheusShouldRecordWebhookDelivery(t *testing.T) {
+	provider, err := NewPrometheus()
+	require.NoError(t, err)
+
+	assert.NotPanics(t, func() {
+		provider.RecordWebhookDelivery("admin-api", "com.authelia.user.password.changed", "delivered")
+		provider.RecordWebhookDelivery("admin-api", "com.authelia.user.password.changed", "retried")
+		provider.RecordWebhookDelivery("admin-api", "com.authelia.user.password.changed", "dropped")
+	})
+}

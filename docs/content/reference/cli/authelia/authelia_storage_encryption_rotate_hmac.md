@@ -65,4 +65,5 @@ authelia storage encryption rotate hmac --help
 * [authelia storage encryption rotate hmac otp](authelia_storage_encryption_rotate_hmac_otp.md)	 - Rotate the OTP HMAC key
 * [authelia storage encryption rotate hmac rc](authelia_storage_encryption_rotate_hmac_rc.md)	 - Rotate the recovery code HMAC key
 * [authelia storage encryption rotate hmac session](authelia_storage_encryption_rotate_hmac_session.md)	 - Rotate the session HMAC key
+* [authelia storage encryption rotate hmac whc](authelia_storage_encryption_rotate_hmac_whc.md)	 - Rotate the webhook callback HMAC key
 

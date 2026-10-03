@@ -22,6 +22,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -319,6 +320,8 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"ShouldSuccess",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageSecondFactor, events.MethodWebAuthn)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -546,6 +549,8 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"ShouldFailAuthLogFailure",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageSecondFactor, events.MethodWebAuthn)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -621,6 +626,8 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"ShouldFailBadRPIDHash",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, testUsername, events.StageSecondFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -944,6 +951,8 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"ShouldHandleFlow",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageSecondFactor, events.MethodWebAuthn)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)

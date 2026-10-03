@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/webhooks/v1/user.credential.totp.removed.json",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/com.authelia.user.identity_verification.started.json",
   "$defs": {
     "Notification": {
       "properties": {
@@ -135,10 +135,10 @@
       "title": "Remote IP",
       "description": "The client address which caused the occurrence."
     },
-    "description": {
+    "action": {
       "type": "string",
-      "title": "Description",
-      "description": "The description of the credential."
+      "title": "Action",
+      "description": "The action the verification authorizes."
     },
     "notification": {
       "$ref": "#/$defs/Notification",
@@ -149,5 +149,5 @@
   "required": [
     "username"
   ],
-  "description": "DataUserCredential is the payload for the user.credential.* events."
+  "description": "DataIdentityVerification is the payload for the com.authelia.user.identity_verification.started event."
 }
