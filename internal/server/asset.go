@@ -40,6 +40,77 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	return newEmbeddedHandler(assets, assetsRoot)
 }
 
+func newCustomAssetsHandler(root string) (handler fasthttp.RequestHandler, err error) {
+	if root == "" {
+		return nil, nil
+	}
+
+	dir := filepath.Join(root, dirCustomAssets)
+
+	var exists bool
+
+	if exists, err = utils.DirectoryExists(dir); err != nil {
+		return nil, fmt.Errorf("error occurred reading the '%s' directory: %w", dir, err)
+	}
+
+	if !exists {
+		return nil, nil
+	}
+
+	stripper := fasthttp.NewPathSlashesStripper(pathCustomAssetsStrip)
+
+	fileSystem := &fasthttp.FS{
+		Root:               dir,
+		GenerateIndexPages: false,
+		AcceptByteRange:    true,
+		PathRewrite:        stripper,
+		PathNotFound: func(ctx *fasthttp.RequestCtx) {
+			hfsHandleErr(ctx, fs.ErrNotExist)
+		},
+		Compress:       true,
+		CompressBrotli: true,
+		CompressZstd:   true,
+		SkipCache:      true,
+	}
+
+	next := fileSystem.NewRequestHandler()
+
+	return func(ctx *fasthttp.RequestCtx) {
+		info, err := os.Stat(filepath.Join(dir, string(stripper(ctx))))
+
+		if err != nil || !info.Mode().IsRegular() {
+			hfsHandleErr(ctx, fs.ErrNotExist)
+
+			return
+		}
+
+		etag := generateEtagFileInfo(info)
+
+		ctx.Response.Header.SetBytesKV(headerETag, etag)
+		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+
+		if noneMatch := ctx.Request.Header.PeekBytes(headerIfNoneMatch); noneMatch != nil {
+			if bytes.Equal(etag, noneMatch) {
+				ctx.SetStatusCode(fasthttp.StatusNotModified)
+
+				return
+			}
+
+			ctx.Request.Header.DelBytes(headerIfModifiedSince)
+		}
+
+		middlewares.SetBaseSecurityHeaders(ctx)
+		middlewares.SetSecurityHeadersCSPNone(ctx)
+
+		next(ctx)
+
+		if ctx.Response.StatusCode() == fasthttp.StatusNotModified {
+			ctx.Response.Header.SetBytesKV(headerETag, etag)
+			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+		}
+	}, nil
+}
+
 func newEmbeddedHandler(embedFS embed.FS, root string) fasthttp.RequestHandler {
 	etags := map[string][]byte{}
 
@@ -479,6 +550,10 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err er
 			ctx.SetBody(data)
 		}
 	}, nil
+}
+
+func generateEtagFileInfo(info os.FileInfo) []byte {
+	return []byte(fmt.Sprintf(`"%x-%x"`, info.Size(), info.ModTime().UnixNano()))
 }
 
 func generateEtag(payload []byte) []byte {
