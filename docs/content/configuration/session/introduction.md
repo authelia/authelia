@@ -37,6 +37,7 @@ Some of the values within this page can automatically be replaced with documenta
 ```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
+  storage: 'internal'
   name: 'authelia_session'
   same_site: 'lax'
   inactivity: '5m'
@@ -55,17 +56,19 @@ session:
 
 ## Providers
 
-There are currently two providers for session storage (three if you count Redis Sentinel as a separate provider):
+Session data is persisted to one of two backends, selected with the [storage](#storage) option:
 
-- Memory (default, stateful, no additional configuration)
-- [Redis](redis.md) (stateless).
-- [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
+- `internal` (default): the configured [storage](../storage/introduction.md) provider. This is stateless when using the
+  [PostgreSQL](../storage/postgres.md) or [MySQL](../storage/mysql.md) providers, and stateful when using the
+  [SQLite](../storage/sqlite.md) provider.
+- `cache`: the configured [cache](../cache/introduction.md) provider, which is one of [Redis](../cache/redis.md),
+  [Redis Sentinel](../cache/redis-sentinel.md), or [Redis Cluster](../cache/redis-cluster.md) (stateless).
 
 ### Kubernetes or High Availability
 
-It's important to note when picking a provider, the stateful providers are not recommended in High Availability
-scenarios like Kubernetes. Each provider has a note beside it indicating it is _stateful_ or _stateless_ the stateless
-providers are recommended.
+It's important to note when picking a backend, the stateful backends are not recommended in High Availability
+scenarios like Kubernetes. Each backend has a note beside it indicating it is _stateful_ or _stateless_ the stateless
+backends are recommended. See [statelessness](../../overview/authorization/statelessness.md) for more information.
 
 ## Options
 
@@ -73,13 +76,26 @@ This section describes the individual configuration options.
 
 ### secret
 
-{{< confkey type="string" required="yes" secret="yes" >}}
+{{< confkey type="string" required="situational" secret="yes" >}}
 
-The secret key used to encrypt session data in Redis.
+The secret used to derive the key which encrypts session data before it's persisted to the [storage](#storage) backend.
+
+This option is required when [storage](#storage) is `cache`. When [storage](#storage) is `internal` and this option is
+not configured, the storage [encryption_key](../storage/introduction.md#encryption_key) is used to derive the session
+encryption key instead and a warning is logged. It's strongly recommended this option is explicitly configured
+regardless, as changing the storage [encryption_key](../storage/introduction.md#encryption_key) would otherwise
+invalidate every session.
 
 It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
+
+### storage
+
+{{< confkey type="string" default="internal" required="no" >}}
+
+The backend session data is persisted to. Must be one of `internal` or `cache`. See [Providers](#providers) for more
+information about each backend.
 
 ### name
 
@@ -177,6 +193,58 @@ must:
 3. Not be the same as the [authelia_url](#authelia_url)
 
 If this option is absent you must use the appropriate query parameter or header for your relevant proxy.
+
+#### anchor_remote_ip
+
+{{< confkey type="structure" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The remote IP is determined from the first value of the `X-Forwarded-For` header when it's present, falling back to the
+IP of the connection. Your proxy must overwrite this header rather than append to a value supplied by the client,
+otherwise a client can present any remote IP it likes and this option provides no protection.
+{{< /callout >}}
+
+Anchors sessions for this session cookie domain to the network of the remote IP they're first saved from. When a session
+is used from a remote IP outside of that network it's destroyed, and the request continues with a new anonymous session,
+which requires the user to authenticate again. This includes a session anchored to an IPv4 network being used from an
+IPv6 address, and a session anchored to an IPv6 network being used from an IPv4 address.
+
+Sessions are not anchored by default. They're only anchored when this section is configured, in which case any of the
+options within it which are absent use their default value. For example the following anchors sessions using the default
+value for both options:
+
+```yaml {title="configuration.yml"}
+session:
+  cookies:
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      anchor_remote_ip: {}
+```
+
+The network a session is anchored to is recorded with the session. Changing the options within this section only affects
+the sessions which are created afterwards, and removing this section stops the check from being performed for every
+session.
+
+Sessions which were created before this option was enabled aren't anchored to any network, and are destroyed the first
+time they're used after it's enabled.
+
+Users whose remote IP regularly changes to one in another network, such as users of mobile networks, will be required to
+authenticate each time it changes.
+
+##### ipv4_mask
+
+{{< confkey type="integer" default="32" required="no" >}}
+
+The prefix length of the network sessions are anchored to when the remote IP is an IPv4 address, which must be between
+`1` and `32`. The default of `32` anchors sessions to the exact IPv4 address.
+
+##### ipv6_mask
+
+{{< confkey type="integer" default="64" required="no" >}}
+
+The prefix length of the network sessions are anchored to when the remote IP is an IPv6 address, which must be between
+`1` and `128`. The default of `64` anchors sessions to the network which is typically assigned to a single site, so that
+users of IPv6 temporary addresses aren't required to authenticate each time their address changes. A value of `128`
+anchors sessions to the exact IPv6 address.
 
 #### name
 

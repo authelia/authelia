@@ -15,6 +15,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -202,11 +203,8 @@ func TestHandle2FAResponse(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
-		config := mock.Ctx.Configuration.Session
-
-		config.Cookies[0].DefaultRedirectionURL = nil
-
-		mock.Ctx.Providers.SessionProvider = session.NewProvider(config, nil)
+		mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = nil
+		mock.ResetSessionProvider()
 
 		Handle2FAResponse(mock.Ctx, "")
 
@@ -258,7 +256,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := session.UserSession{}
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, &authentication.UserDetails{}, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -284,7 +282,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -310,7 +308,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		body := redirectResponse{}
 
@@ -341,7 +339,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		body := redirectResponse{}
 
@@ -373,7 +371,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
