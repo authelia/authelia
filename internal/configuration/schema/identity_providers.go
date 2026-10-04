@@ -9,6 +9,10 @@ import (
 	"net"
 	"net/url"
 	"time"
+
+	"github.com/iancoleman/orderedmap"
+
+	"github.com/authelia/jsonschema"
 )
 
 // IdentityProviders represents the Identity Providers configuration for Authelia.
@@ -164,6 +168,54 @@ type IdentityProvidersOpenIDConnectCORS struct {
 	AllowedOriginsFromClientRedirectURIs bool `koanf:"allowed_origins_from_client_redirect_uris" yaml:"allowed_origins_from_client_redirect_uris" toml:"allowed_origins_from_client_redirect_uris" json:"allowed_origins_from_client_redirect_uris" jsonschema:"default=false,title=Allowed Origins From Client Redirect URIs" jsonschema_description:"Automatically include the redirect URIs from the registered clients."`
 }
 
+// IdentityProvidersOpenIDConnectClientTokenExchangePolicy represents a single entry in the
+// 'subject_token_clients_supported' option. It permits a registered client to perform a Token Exchange using tokens
+// issued to this client as the 'subject_token', optionally restricted to specific requested token types.
+type IdentityProvidersOpenIDConnectClientTokenExchangePolicy struct {
+	ClientID            string   `koanf:"client_id" yaml:"client_id" toml:"client_id" json:"client_id" jsonschema:"required,title=Client ID" jsonschema_description:"The identifier of the registered client permitted to perform the Token Exchange."`
+	RequestedTokenTypes []string `koanf:"requested_token_types" yaml:"requested_token_types,omitempty" toml:"requested_token_types,omitempty" json:"requested_token_types" jsonschema:"enum=urn:ietf:params:oauth:token-type:access_token,enum=urn:ietf:params:oauth:token-type:refresh_token,enum=urn:ietf:params:oauth:token-type:id_token,uniqueItems,title=Requested Token Types" jsonschema_description:"The token types this client may request via 'requested_token_type' when exchanging tokens issued to this client. An empty list permits any token type the requesting client is itself permitted to request."`
+}
+
+// JSONSchema returns the JSON Schema for this type, permitting the bare client identifier shorthand documented on
+// the 'subject_token_clients_supported' option in addition to the structured mapping.
+func (IdentityProvidersOpenIDConnectClientTokenExchangePolicy) JSONSchema() *jsonschema.Schema {
+	properties := orderedmap.New()
+
+	properties.Set("client_id", &jsonschema.Schema{
+		Type:        jsonschema.TypeString,
+		Title:       "Client ID",
+		Description: "The identifier of the registered client permitted to perform the Token Exchange.",
+	})
+	properties.Set("requested_token_types", &jsonschema.Schema{
+		Type: jsonschema.TypeArray,
+		Items: &jsonschema.Schema{
+			Type: jsonschema.TypeString,
+			Enum: []any{
+				"urn:ietf:params:oauth:token-type:access_token",
+				"urn:ietf:params:oauth:token-type:refresh_token",
+				"urn:ietf:params:oauth:token-type:id_token",
+			},
+		},
+		UniqueItems: true,
+		Title:       "Requested Token Types",
+		Description: "The token types this client may request via 'requested_token_type' when exchanging tokens issued to this client. An empty list permits any token type the requesting client is itself permitted to request.",
+	})
+
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			{
+				Type: jsonschema.TypeString,
+			},
+			{
+				Type:                 jsonschema.TypeObject,
+				Properties:           properties,
+				Required:             []string{"client_id"},
+				AdditionalProperties: jsonschema.FalseSchema,
+			},
+		},
+	}
+}
+
 // IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client.
 type IdentityProvidersOpenIDConnectClient struct {
 	ID                  string          `koanf:"client_id" yaml:"client_id" toml:"client_id" json:"client_id" jsonschema:"required,minLength=1,title=Client ID" jsonschema_description:"The Client ID."`
@@ -177,7 +229,7 @@ type IdentityProvidersOpenIDConnectClient struct {
 
 	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
 	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
-	GrantTypes    []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
+	GrantTypes    []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,enum=urn:ietf:params:oauth:grant-type:token-exchange,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
 	ResponseTypes []string `koanf:"response_types" yaml:"response_types,omitempty" toml:"response_types,omitempty" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
 	ResponseModes []string `koanf:"response_modes" yaml:"response_modes,omitempty" toml:"response_modes,omitempty" json:"response_modes" jsonschema:"enum=form_post,enum=form_post.jwt,enum=query,enum=query.jwt,enum=fragment,enum=fragment.jwt,enum=jwt,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request."`
 
@@ -241,6 +293,14 @@ type IdentityProvidersOpenIDConnectClient struct {
 	PushedAuthorizationRequestAuthSigningAlg     string `koanf:"pushed_authorization_request_endpoint_auth_signing_alg" yaml:"pushed_authorization_request_endpoint_auth_signing_alg,omitempty" toml:"pushed_authorization_request_endpoint_auth_signing_alg,omitempty" json:"pushed_authorization_request_endpoint_auth_signing_alg" jsonschema:"enum=,enum=HS256,enum=HS384,enum=HS512,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,enum=Ed25519,enum=EdDSA,enum=ML-DSA-44,enum=ML-DSA-65,enum=ML-DSA-87,title=Pushed Authorization Request Endpoint Auth Signing Algorithm" jsonschema_description:"The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."`
 
 	AllowMultipleAuthenticationMethods bool `koanf:"allow_multiple_auth_methods" yaml:"allow_multiple_auth_methods,omitempty" toml:"allow_multiple_auth_methods,omitempty" json:"allow_multiple_auth_methods" jsonschema:"title=Allow Multiple Authentication Methods" jsonschema_description:"Permits this registered client to accept misbehaving clients which use a broad authentication approach. This is not standards complaint, use at your own security risk."`
+
+	SubjectTokenTypesSupported     []string                                                  `koanf:"subject_token_types_supported" yaml:"subject_token_types_supported,omitempty" toml:"subject_token_types_supported,omitempty" json:"subject_token_types_supported" jsonschema:"enum=urn:ietf:params:oauth:token-type:access_token,enum=urn:ietf:params:oauth:token-type:refresh_token,enum=urn:ietf:params:oauth:token-type:id_token,uniqueItems,title=Subject Token Types Supported" jsonschema_description:"The Token Exchange subject token types this client is permitted to present as the 'subject_token'."`
+	SubjectTokenIssuersSupported   []string                                                  `koanf:"subject_token_issuers_supported" yaml:"subject_token_issuers_supported,omitempty" toml:"subject_token_issuers_supported,omitempty" json:"subject_token_issuers_supported" jsonschema:"title=Subject Token Issuers Supported" jsonschema_description:"The JWT 'iss' claim values this client is permitted to present as the 'subject_token'. This option only applies to the 'id_token' subject token type. An empty list disables the per-client issuer check, in which case the 'id_token' issuer must match this provider's own issuer."`
+	ActorTokenTypesSupported       []string                                                  `koanf:"actor_token_types_supported" yaml:"actor_token_types_supported,omitempty" toml:"actor_token_types_supported,omitempty" json:"actor_token_types_supported" jsonschema:"enum=urn:ietf:params:oauth:token-type:access_token,enum=urn:ietf:params:oauth:token-type:refresh_token,enum=urn:ietf:params:oauth:token-type:id_token,uniqueItems,title=Actor Token Types Supported" jsonschema_description:"The Token Exchange actor token types this client is permitted to present as the 'actor_token'."`
+	ActorTokenIssuersSupported     []string                                                  `koanf:"actor_token_issuers_supported" yaml:"actor_token_issuers_supported,omitempty" toml:"actor_token_issuers_supported,omitempty" json:"actor_token_issuers_supported" jsonschema:"title=Actor Token Issuers Supported" jsonschema_description:"The JWT 'iss' claim values this client is permitted to present as the 'actor_token'. This option only applies to the 'id_token' actor token type. An empty list disables the per-client issuer check, in which case the 'id_token' issuer must match this provider's own issuer."`
+	ActorTokenWithoutMayActAllowed bool                                                      `koanf:"actor_token_without_may_act_allowed" yaml:"actor_token_without_may_act_allowed,omitempty" toml:"actor_token_without_may_act_allowed,omitempty" json:"actor_token_without_may_act_allowed" jsonschema:"default=false,title=Actor Token Without May Act Allowed" jsonschema_description:"Permits this client to perform delegation with an 'actor_token' on subject tokens that do not include a 'may_act' claim. Enable this only when an out-of-band authorization mechanism verifies that the actor is permitted to act on behalf of the subject."`
+	RequestTokenTypesSupported     []string                                                  `koanf:"request_token_types_supported" yaml:"request_token_types_supported,omitempty" toml:"request_token_types_supported,omitempty" json:"request_token_types_supported" jsonschema:"enum=urn:ietf:params:oauth:token-type:access_token,enum=urn:ietf:params:oauth:token-type:refresh_token,enum=urn:ietf:params:oauth:token-type:id_token,uniqueItems,title=Requested Token Types Supported" jsonschema_description:"The Token Exchange token types this client is permitted to request via the 'requested_token_type'."`
+	SubjectTokenClientsSupported   []IdentityProvidersOpenIDConnectClientTokenExchangePolicy `koanf:"subject_token_clients_supported" yaml:"subject_token_clients_supported,omitempty" toml:"subject_token_clients_supported,omitempty" json:"subject_token_clients_supported" jsonschema:"title=Subject Token Clients Supported" jsonschema_description:"The registered clients permitted to perform a Token Exchange using tokens that were issued to this client as the 'subject_token'. Each entry is either a client identifier string or a mapping with 'client_id' and optional 'requested_token_types'."`
 
 	JSONWebKeysURI *url.URL `koanf:"jwks_uri" yaml:"jwks_uri,omitempty" toml:"jwks_uri,omitempty" json:"jwks_uri" jsonschema:"title=JSON Web Keys URI" jsonschema_description:"URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
 	JSONWebKeys    []JWK    `koanf:"jwks" yaml:"jwks,omitempty" toml:"jwks,omitempty" json:"jwks" jsonschema:"title=JSON Web Keys" jsonschema_description:"List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
