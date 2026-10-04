@@ -60,22 +60,30 @@ func getEnvConfigMap(keys []string, prefix, delimiter string, ds map[string]Depr
 	return keyMap, ignoredKeys
 }
 
-func getSecretConfigMap(keys []string, prefix, delimiter string, ds map[string]Deprecation) (keyMap map[string]string) {
+func getSecretConfigMap(keys []string, prefix, delimiter string, ds map[string]Deprecation, dms []MultiKeyMappedDeprecation) (keyMap map[string]string) {
 	keyMap = make(map[string]string)
 
-	for _, key := range keys {
-		if IsSecretKey(key) {
-			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
-
-			keyMap[prefix+originalKey] = key
+	add := func(key string) {
+		if !IsSecretKey(key) {
+			return
 		}
+
+		originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
+
+		keyMap[prefix+originalKey] = key
+	}
+
+	for _, key := range keys {
+		add(key)
 	}
 
 	for key := range ds {
-		if IsSecretKey(key) {
-			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
+		add(key)
+	}
 
-			keyMap[prefix+originalKey] = key
+	for _, deprecation := range dms {
+		for _, key := range deprecation.Keys {
+			add(key)
 		}
 	}
 

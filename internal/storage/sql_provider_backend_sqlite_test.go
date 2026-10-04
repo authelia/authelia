@@ -7,8 +7,10 @@ package storage
 import (
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -42,6 +44,35 @@ func TestNewSQLiteProvider(t *testing.T) {
 	}
 }
 
+func TestSQLiteProviderUpsertSession(t *testing.T) {
+	_, provider := newTestSessionProvider(t)
+
+	assert.NotContains(t, provider.sqlUpsertSession, "REPLACE INTO")
+	assert.Contains(t, provider.sqlUpsertSession, "ON CONFLICT (issuer, signature)")
+
+	expiration := time.Now().Add(time.Hour)
+
+	_, err := provider.db.Exec(provider.sqlUpsertSession, "issuer", "signature", "public", "john", expiration, []byte("first"))
+	require.NoError(t, err)
+
+	var id int
+
+	require.NoError(t, provider.db.QueryRowx(`SELECT id FROM session WHERE signature = ?;`, "signature").Scan(&id))
+
+	_, err = provider.db.Exec(provider.sqlUpsertSession, "issuer", "signature", "public", "john", expiration, []byte("second"))
+	require.NoError(t, err)
+
+	var (
+		updated int
+		data    []byte
+	)
+
+	require.NoError(t, provider.db.QueryRowx(`SELECT id, data FROM session WHERE signature = ?;`, "signature").Scan(&updated, &data))
+
+	assert.Equal(t, id, updated)
+	assert.Equal(t, []byte("second"), data)
+}
+
 func TestSQLiteRegisteredFuncs(t *testing.T) {
 	output := sqlite3BLOBToTEXTBase64([]byte("example"))
 	assert.Equal(t, "ZXhhbXBsZQ==", output)
@@ -49,4 +80,30 @@ func TestSQLiteRegisteredFuncs(t *testing.T) {
 	decoded, err := sqlite3TEXTBase64ToBLOB("ZXhhbXBsZQ==")
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("example"), decoded)
+}
+
+func TestSQLiteProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
+	testCases := []struct {
+		name  string
+		table string
+	}{
+		{hmacNameSession, tableSession},
+		{hmacNameOneTimeCode, tableOneTimeCode},
+		{hmacNameOneTimePassword, tableTOTPHistory},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, provider := newTestSessionProvider(t)
+
+			require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data")))
+
+			require.NoError(t, provider.SchemaEncryptionRotateHMACKey(ctx, tc.name))
+
+			var count int
+
+			require.NoError(t, provider.db.GetContext(ctx, &count, "SELECT COUNT(*) FROM "+tc.table+";"))
+			assert.Equal(t, 0, count)
+		})
+	}
 }

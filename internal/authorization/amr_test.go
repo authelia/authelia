@@ -53,6 +53,31 @@ func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
 	}
 }
 
+func TestNewAuthenticationMethodsReferencesFromClaimShouldDeduplicateExtra(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected authorization.AuthenticationMethodsReferences
+	}{
+		{
+			"ShouldDeduplicateUnknownValues",
+			[]string{"pwd", "abc", "xyz", "abc"},
+			authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, Extra: []string{"abc", "xyz"}},
+		},
+		{
+			"ShouldDeduplicateMultiChannelWhenNotImplied",
+			[]string{"mca", "mca"},
+			authorization.AuthenticationMethodsReferences{Extra: []string{"mca"}},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, authorization.NewAuthenticationMethodsReferencesFromClaim(tc.have))
+		})
+	}
+}
+
 func TestAuthenticationMethodsReferences(t *testing.T) {
 	testCases := []struct {
 		name     string

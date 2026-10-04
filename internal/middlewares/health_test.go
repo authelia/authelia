@@ -12,35 +12,28 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/notification"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-type fakeStorage struct {
-	storage.Provider
+func TestProvidersHealthChecksShouldProbeTheCacheRatherThanTheSessionRepository(t *testing.T) {
+	errBroken := errors.New("could not reach the redis server")
 
-	err error
+	providers := Providers{
+		Cache:             &fakeCache{err: errBroken},
+		SessionRepository: &fakeSessionRepository{},
+	}
+
+	checks := providers.HealthChecks(&clock.Real{}, []string{schema.ProviderNameCache})
+
+	require.Len(t, checks, 1)
+	assert.Equal(t, schema.ProviderNameCache, checks[0].Name)
+	assert.EqualError(t, checks[0].Err, errBroken.Error())
 }
-
-func (f *fakeStorage) StartupCheck() (err error) { return f.err }
-
-type fakeUser struct {
-	authentication.UserProvider
-
-	err error
-}
-
-func (f *fakeUser) StartupCheck() (err error) { return f.err }
-
-type fakeNotifier struct {
-	notification.Notifier
-
-	err error
-}
-
-func (f *fakeNotifier) StartupCheck() (err error) { return f.err }
 
 func TestProvidersHealthChecks(t *testing.T) {
 	errBroken := errors.New("could not reach the server")
@@ -84,10 +77,10 @@ func TestProvidersHealthChecks(t *testing.T) {
 		},
 		{
 			"ShouldReportAProviderWhichIsNotConfigured",
-			[]string{schema.ProviderNameSession},
+			[]string{schema.ProviderNameCache},
 			false,
 			[]HealthCheck{
-				{Name: schema.ProviderNameSession, Err: ErrHealthCheckProviderNotConfigured},
+				{Name: schema.ProviderNameCache, Err: ErrHealthCheckProviderNotConfigured},
 			},
 		},
 		{
@@ -131,3 +124,41 @@ func TestProvidersHealthChecks(t *testing.T) {
 		})
 	}
 }
+
+type fakeStorage struct {
+	storage.Provider
+
+	err error
+}
+
+func (f *fakeStorage) StartupCheck() (err error) { return f.err }
+
+type fakeUser struct {
+	authentication.UserProvider
+
+	err error
+}
+
+func (f *fakeUser) StartupCheck() (err error) { return f.err }
+
+type fakeCache struct {
+	cache.Provider
+
+	err error
+}
+
+func (f *fakeCache) StartupCheck() (err error) { return f.err }
+
+type fakeSessionRepository struct {
+	session.Repository
+}
+
+func (f *fakeSessionRepository) StartupCheck() (err error) { return nil }
+
+type fakeNotifier struct {
+	notification.Notifier
+
+	err error
+}
+
+func (f *fakeNotifier) StartupCheck() (err error) { return f.err }

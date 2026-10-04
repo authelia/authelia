@@ -88,12 +88,111 @@ func TestHandleAuthzGetObjectLegacy(t *testing.T) {
 	}
 }
 
-func NewLegacyAuthzSuite() *LegacyAuthzSuite {
-	return &LegacyAuthzSuite{
-		AuthzSuite: &AuthzSuite{
-			implementation: AuthzImplLegacy,
-			setRequest:     setRequestLegacy,
+func TestHandleAuthzGetObjectLegacyFallbacks(t *testing.T) {
+	testCases := []struct {
+		name           string
+		originalURL    string
+		forwardedHost  string
+		forwardedURI   string
+		host           string
+		requestURI     string
+		expectedDomain string
+		expectedPath   string
+		err            string
+	}{
+		{
+			"ShouldUseOriginalURL",
+			"https://app.example.com/admin",
+			"forwarded.example.com",
+			"/forwarded",
+			"host.example.com",
+			"/start",
+			"app.example.com",
+			"/admin",
+			"",
 		},
+		{
+			"ShouldUseForwardedHeaders",
+			"",
+			"forwarded.example.com",
+			"/forwarded",
+			"host.example.com",
+			"/start",
+			"forwarded.example.com",
+			"/forwarded",
+			"",
+		},
+		{
+			"ShouldFallbackToHostHeaderWhenForwardedHostMissing",
+			"",
+			"",
+			"/forwarded",
+			"host.example.com",
+			"/start",
+			"host.example.com",
+			"/forwarded",
+			"",
+		},
+		{
+			"ShouldFallbackToStartLinePathWhenForwardedURIMissing",
+			"",
+			"forwarded.example.com",
+			"",
+			"host.example.com",
+			"/start",
+			"forwarded.example.com",
+			"/start",
+			"",
+		},
+		{
+			"ShouldFallbackToBothWhenForwardedHeadersMissing",
+			"",
+			"",
+			"",
+			"host.example.com",
+			"/start",
+			"host.example.com",
+			"/start",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.SetMethod(fasthttp.MethodGet)
+			mock.Ctx.Request.SetRequestURI(tc.requestURI)
+			mock.Ctx.Request.SetHost(tc.host)
+
+			mock.Ctx.Request.Header.Del("X-Forwarded-Host")
+			mock.Ctx.Request.Header.Del("X-Forwarded-URI")
+			mock.Ctx.Request.Header.Del("X-Original-URL")
+
+			if tc.originalURL != "" {
+				mock.Ctx.Request.Header.Set("X-Original-URL", tc.originalURL)
+			}
+
+			if tc.forwardedHost != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-Host", tc.forwardedHost)
+			}
+
+			if tc.forwardedURI != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.forwardedURI)
+			}
+
+			object, err := handleAuthzGetObjectLegacy(mock.Ctx)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedDomain, object.Domain)
+				assert.Equal(t, tc.expectedPath, object.Path)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
 	}
 }
 
@@ -542,11 +641,13 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() {
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
-			Return(&authentication.UserDetails{
-				Username: "john",
-				Emails:   []string{"john@example.com"},
-				Groups:   []string{"dev", "admins"},
+			GetDetailsExtendedCached(gomock.Eq("john")).
+			Return(&authentication.UserDetailsExtended{
+				UserDetails: &authentication.UserDetails{
+					Username: "john",
+					Emails:   []string{"john@example.com"},
+					Groups:   []string{"dev", "admins"},
+				},
 			}, nil),
 		mock.StorageMock.
 			EXPECT().
@@ -601,7 +702,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
-						GetDetails(gomock.Eq("john")).
+						GetDetailsExtendedCached(gomock.Eq("john")).
 						Return(nil, authentication.ErrUserNotFound),
 					mock.StorageMock.
 						EXPECT().
@@ -618,7 +719,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 				mock.UserProviderMock.EXPECT().
-					GetDetails(gomock.Eq("john")).
+					GetDetailsExtendedCached(gomock.Eq("john")).
 					Return(nil, fmt.Errorf("backend unreachable"))
 			},
 		},
@@ -629,7 +730,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
-						GetDetails(gomock.Eq("john")).
+						GetDetailsExtendedCached(gomock.Eq("john")).
 						Return(nil, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -658,8 +759,10 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
-						GetDetails(gomock.Eq("john")).
-						Return(&authentication.UserDetails{Username: "john"}, nil),
+						GetDetailsExtendedCached(gomock.Eq("john")).
+						Return(&authentication.UserDetailsExtended{
+							UserDetails: &authentication.UserDetails{Username: "john"},
+						}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
@@ -694,11 +797,13 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
-						GetDetails(gomock.Eq("john")).
-						Return(&authentication.UserDetails{
-							Username: "john",
-							Emails:   []string{"john@example.com"},
-							Groups:   []string{"dev", "admin"},
+						GetDetailsExtendedCached(gomock.Eq("john")).
+						Return(&authentication.UserDetailsExtended{
+							UserDetails: &authentication.UserDetails{
+								Username: "john",
+								Emails:   []string{"john@example.com"},
+								Groups:   []string{"dev", "admin"},
+							},
 						}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -750,7 +855,6 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 		path         string
 		expected     int
 	}{
-		// The first byte in the host sequence is the null byte. This should never respond with 200 OK.
 		{"Should401UnauthorizedWithNullByte",
 			[]byte("https"), []byte{0, 110, 111, 116, 45, 111, 110, 101, 45, 102, 97, 99, 116, 111, 114, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109}, "/path-example",
 			fasthttp.StatusUnauthorized,
@@ -790,6 +894,15 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 	}
 }
 
+func NewLegacyAuthzSuite() *LegacyAuthzSuite {
+	return &LegacyAuthzSuite{
+		AuthzSuite: &AuthzSuite{
+			implementation: AuthzImplLegacy,
+			setRequest:     setRequestLegacy,
+		},
+	}
+}
+
 func setRequestLegacy(ctx *middlewares.AutheliaCtx, method string, targetURI *url.URL, accept, xhr bool) {
 	if method != "" {
 		ctx.Request.Header.Set("X-Forwarded-Method", method)
@@ -800,112 +913,4 @@ func setRequestLegacy(ctx *middlewares.AutheliaCtx, method string, targetURI *ur
 	}
 
 	setRequestXHRValues(ctx, accept, xhr)
-}
-
-func TestHandleAuthzGetObjectLegacyFallbacks(t *testing.T) {
-	testCases := []struct {
-		name           string
-		originalURL    string
-		forwardedHost  string
-		forwardedURI   string
-		host           string
-		requestURI     string
-		expectedDomain string
-		expectedPath   string
-		err            string
-	}{
-		{
-			"ShouldUseOriginalURL",
-			"https://app.example.com/admin",
-			"forwarded.example.com",
-			"/forwarded",
-			"host.example.com",
-			"/start",
-			"app.example.com",
-			"/admin",
-			"",
-		},
-		{
-			"ShouldUseForwardedHeaders",
-			"",
-			"forwarded.example.com",
-			"/forwarded",
-			"host.example.com",
-			"/start",
-			"forwarded.example.com",
-			"/forwarded",
-			"",
-		},
-		{
-			"ShouldFallbackToHostHeaderWhenForwardedHostMissing",
-			"",
-			"",
-			"/forwarded",
-			"host.example.com",
-			"/start",
-			"host.example.com",
-			"/forwarded",
-			"",
-		},
-		{
-			"ShouldFallbackToStartLinePathWhenForwardedURIMissing",
-			"",
-			"forwarded.example.com",
-			"",
-			"host.example.com",
-			"/start",
-			"forwarded.example.com",
-			"/start",
-			"",
-		},
-		{
-			"ShouldFallbackToBothWhenForwardedHeadersMissing",
-			"",
-			"",
-			"",
-			"host.example.com",
-			"/start",
-			"host.example.com",
-			"/start",
-			"",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			mock := mocks.NewMockAutheliaCtx(t)
-
-			defer mock.Close()
-
-			mock.Ctx.Request.Header.SetMethod(fasthttp.MethodGet)
-			mock.Ctx.Request.SetRequestURI(tc.requestURI)
-			mock.Ctx.Request.SetHost(tc.host)
-
-			mock.Ctx.Request.Header.Del("X-Forwarded-Host")
-			mock.Ctx.Request.Header.Del("X-Forwarded-URI")
-			mock.Ctx.Request.Header.Del("X-Original-URL")
-
-			if tc.originalURL != "" {
-				mock.Ctx.Request.Header.Set("X-Original-URL", tc.originalURL)
-			}
-
-			if tc.forwardedHost != "" {
-				mock.Ctx.Request.Header.Set("X-Forwarded-Host", tc.forwardedHost)
-			}
-
-			if tc.forwardedURI != "" {
-				mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.forwardedURI)
-			}
-
-			object, err := handleAuthzGetObjectLegacy(mock.Ctx)
-
-			if tc.err == "" {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedDomain, object.Domain)
-				assert.Equal(t, tc.expectedPath, object.Path)
-			} else {
-				assert.EqualError(t, err, tc.err)
-			}
-		})
-	}
 }
