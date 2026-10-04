@@ -20,6 +20,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -46,7 +47,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -71,6 +72,10 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -106,9 +111,13 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -129,6 +138,30 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				assert.Nil(t, us.WebAuthn)
 
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "failed")
+			},
+		},
+		{
+			"ShouldHandleUserDetailsError",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.UserProviderMock.
+					EXPECT().
+					GetDetails(testUsername).
+					Return(nil, fmt.Errorf("failed to lookup user"))
+			},
+			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}`),
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred loading user details", "failed to lookup user")
 			},
 		},
 		{
@@ -164,7 +197,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!@NJK#N!@#IKJ!@NJK")
 			},
@@ -191,7 +224,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:                1,
@@ -213,6 +246,10 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -297,7 +334,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -322,6 +359,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -370,7 +411,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -395,6 +436,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -441,7 +486,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -466,6 +511,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -512,7 +561,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -537,6 +586,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -583,7 +636,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -608,6 +661,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -632,6 +689,39 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			},
 		},
 		{
+			"ShouldFailUserDetails",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.WebAuthn = &session.WebAuthn{
+					SessionData: &webauthn.SessionData{
+						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.UserProviderMock.
+					EXPECT().
+					GetDetails(testUsername).
+					Return(nil, fmt.Errorf("failed to lookup user"))
+			},
+			dataReqGood,
+			"",
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred loading user details", "failed to lookup user")
+			},
+		},
+		{
 			"ShouldFailBadResponse",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -650,7 +740,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Clock.Set(mock.Clock.Now().Add(2 * time.Minute))
 			},
@@ -681,7 +771,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Clock.Set(mock.Clock.Now().Add(2 * time.Minute))
 			},
@@ -711,11 +801,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Clock.Set(mock.Clock.Now().Add(2 * time.Minute))
 
-				// This malformed URL is chosen to invoke the url.Parse errors.
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!@#*(&jklqnwdkjqwe")
 			},
 			dataReqGood,
@@ -736,7 +825,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			dataReqGood,
 			"",
@@ -788,9 +877,13 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -827,9 +920,13 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -862,7 +959,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -883,6 +980,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -950,12 +1051,3 @@ func tDecodeBase64StringStdEncoding(t *testing.T, in string) []byte {
 
 	return value
 }
-
-//nolint:godot
-/*
-[00] sign challenge response post body {"response":{"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtwFAAAAAw","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiaW4xY0wtb1dmU2pTZDd1dXdVdnYybmRPQW1SWGIwY09BYlVvVHRBcXZHRSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZSwib3RoZXJfa2V5c19jYW5fYmVfYWRkZWRfaGVyZSI6ImRvIG5vdCBjb21wYXJlIGNsaWVudERhdGFKU09OIGFnYWluc3QgYSB0ZW1wbGF0ZS4gU2VlIGh0dHBzOi8vZ29vLmdsL3lhYlBleCJ9","signature":"MEQCIBlJ2Fxf6ZwLNTCQglz0AW0pD4HlU8W5Yk696jjfxVxhAiAhAMkLh8iKyhW6zSmzwfQDjMF2nKjVHzEs7jLHRPDZ2A"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"cross-platform"},"targetURL":null}
-[00] sign challenge session data {"challenge":"in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE","user_id":"OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA==","allowed_credentials":["rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU="],"expires":"2023-11-26T08:02:44.624158134Z","userVerification":"preferred","description":""}
-
-[00] registration challenge response post body {"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"attestationObject":"o2NmbXRmcGFja2VkZ2F0dFN0bXSjY2FsZyZjc2lnWEcwRQIhAI505i2XKRL3xsFcSNRz6crTg7_AIpJIsVOjuv8MKW6jAiBJCrqGIc9kKSgS1x54lq53SWUpVNXmlakZfp5NIXrJcmN4NWOBWQHeMIIB2jCCAX2gAwIBAgIBATANBgkqhkiG9w0BAQsFADBgMQswCQYDVQQGEwJVUzERMA8GA1UECgwIQ2hyb21pdW0xIjAgBgNVBAsMGUF1dGhlbnRpY2F0b3IgQXR0ZXN0YXRpb24xGjAYBgNVBAMMEUJhdGNoIENlcnRpZmljYXRlMB4XDTE3MDcxNDAyNDAwMFoXDTQzMTEyMTA4MDAzOVowYDELMAkGA1UEBhMCVVMxETAPBgNVBAoMCENocm9taXVtMSIwIAYDVQQLDBlBdXRoZW50aWNhdG9yIEF0dGVzdGF0aW9uMRowGAYDVQQDDBFCYXRjaCBDZXJ0aWZpY2F0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABI1hfmXJUI5kvMVnOsgqZ5naPBRGaCwljEY__99Y39L6Pmw3i1PXlcSk3_tBme3Xhi8jq68CA7S4kRugVpmU4QGjJTAjMAwGA1UdEwEB_wQCMAAwEwYLKwYBBAGC5RwCAQEEBAMCBSAwDQYJKoZIhvcNAQELBQADSAAwRQIgI4PXvgxbCt2L3tk_p22e3QmDCw0ZOPJ6dIJcp2LoTRACIQDqhWGzBtSCdnTiGq2CjhApHJxER1tBy9vRbRaioTz-ZGhhdXRoRGF0YVikDGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiYXFfQVhkdnNETXNLV18xYVkzMVhRaFUxN1pNZzFpMFRLMDEzRHd1a0IyVSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","transports":["usb"],"publicKeyAlgorithm":-7,"publicKey":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuBHGqg5RF-1k2nt6MEw4lBdvrfVD77Dlx83VLu9b3rerjXRKRLRRQlF_USnsrSYHCSKAp2UzGVTvZAp8daWysw","authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM"},"type":"public-key","clientExtensionResults":{"credProps":{"rk":false}},"authenticatorAttachment":"cross-platform"}
-[00] registration challenge session data {"challenge":"aq_AXdvsDMsKW_1aY31XQhU17ZMg1i0TK013DwukB2U","user_id":"OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA==","expires":"2023-11-26T08:01:39.891837286Z","userVerification":"preferred","description":"test"}
-*/

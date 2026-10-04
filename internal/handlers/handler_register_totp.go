@@ -117,7 +117,7 @@ func TOTPRegisterPUT(ctx *middlewares.AutheliaCtx) {
 		Expires:   ctx.GetClock().Now().Add(time.Minute * 10),
 	}
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -243,7 +243,7 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.TOTP = nil
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -295,7 +295,7 @@ func TOTPRegisterDELETE(ctx *middlewares.AutheliaCtx) {
 
 	userSession.TOTP = nil
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "deleted pending TOTP configuration", regulation.AuthTypeTOTP, logFmtActionRegistration, userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

@@ -19,34 +19,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
-
-const (
-	assetsOpenAPIPath = "public_html/api/openapi.yml"
-	localOpenAPIPath  = "../../api/openapi.yml"
-)
-
-type ReadFileOpenAPI struct{}
-
-func (lfs *ReadFileOpenAPI) Open(name string) (fs.File, error) {
-	switch name {
-	case assetsOpenAPIPath:
-		return os.Open(localOpenAPIPath)
-	default:
-		return assets.Open(name)
-	}
-}
-
-func (lfs *ReadFileOpenAPI) ReadFile(name string) ([]byte, error) {
-	switch name {
-	case assetsOpenAPIPath:
-		return os.ReadFile(localOpenAPIPath)
-	default:
-		return assets.ReadFile(name)
-	}
-}
 
 func TestShouldTemplateOpenAPI(t *testing.T) {
 	provider, err := templates.New(templates.Config{})
@@ -67,7 +41,7 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 		},
 	}
 
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	opts := NewTemplatedFileOptions(&mock.Ctx.Configuration)
 
@@ -162,7 +136,7 @@ func TestServeTemplatedFile(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			mock.ResetSessionProvider()
 
 			opts := NewTemplatedFileOptions(&mock.Ctx.Configuration)
 
@@ -192,35 +166,6 @@ func TestServeTemplatedFile(t *testing.T) {
 	}
 }
 
-const tmplTestPortalIndex = `<!doctype html>
-<html lang="{{ .Language }}">
-    <head>
-        <meta property="csp-nonce" content="{{ .CSPNonce }}" />
-    </head>
-    <body data-theme="{{ .Theme }}" data-rememberme="{{ .RememberMe }}">
-        <div id="root"></div>
-    </body>
-</html>`
-
-var reTestCSPNonce = regexp.MustCompile(`'nonce-([a-zA-Z0-9]{32})'`)
-
-// ReadFilePortalIndex substitutes the portal index template so the per request values can be asserted without having
-// built the frontend.
-type ReadFilePortalIndex struct{}
-
-func (lfs *ReadFilePortalIndex) Open(name string) (fs.File, error) {
-	return assets.Open(name)
-}
-
-func (lfs *ReadFilePortalIndex) ReadFile(name string) ([]byte, error) {
-	switch name {
-	case "public_html/index.html":
-		return []byte(tmplTestPortalIndex), nil
-	default:
-		return assets.ReadFile(name)
-	}
-}
-
 func TestServeTemplatedFileShouldServeIdentityWithPerRequestNonce(t *testing.T) {
 	tmpl, err := templates.New(templates.Config{})
 	require.NoError(t, err)
@@ -246,8 +191,6 @@ func TestServeTemplatedFileShouldServeIdentityWithPerRequestNonce(t *testing.T) 
 
 		require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-		// The index is templated per request so it can't be pre-compressed, and it's small enough that compressing it
-		// on the fly isn't worthwhile.
 		assert.Empty(t, mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentEncoding))
 		assert.Contains(t, string(mock.Ctx.Response.Header.ContentType()), "text/html")
 
@@ -268,9 +211,6 @@ func TestServeTemplatedFileShouldServeIdentityWithPerRequestNonce(t *testing.T) 
 	assert.NotEqual(t, nonces[0], nonces[1])
 }
 
-// The direct handler test above can't show that the route which actually serves the portal is the templated one, so
-// this drives the registered "/" route to prove the index reaching a client is neither compressed nor shared between
-// requests.
 func TestHandlerMainShouldServeTemplatedIndexUncompressed(t *testing.T) {
 	provider, err := templates.New(templates.Config{})
 	require.NoError(t, err)
@@ -389,7 +329,7 @@ func TestETagRootURL(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			mock.ResetSessionProvider()
 
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
@@ -401,7 +341,7 @@ func TestETagRootURL(t *testing.T) {
 
 				firstMock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
 				firstMock.Ctx.Configuration.Session = mock.Ctx.Configuration.Session
-				firstMock.Ctx.Providers.SessionProvider = session.NewProvider(firstMock.Ctx.Configuration.Session, nil)
+				firstMock.ResetSessionProvider()
 				firstMock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 				firstMock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
 				firstMock.Ctx.Request.Header.Set("X-Forwarded-URI", "/api/openapi.yml")
@@ -608,5 +548,57 @@ func TestTemplatedFileOptionsOpenAPIData(t *testing.T) {
 			assert.Equal(t, "example.com", data.Domain)
 			assert.Equal(t, "nonce123", data.CSPNonce)
 		})
+	}
+}
+
+const (
+	assetsOpenAPIPath = "public_html/api/openapi.yml"
+	localOpenAPIPath  = "../../api/openapi.yml"
+)
+
+const tmplTestPortalIndex = `<!doctype html>
+<html lang="{{ .Language }}">
+    <head>
+        <meta property="csp-nonce" content="{{ .CSPNonce }}" />
+    </head>
+    <body data-theme="{{ .Theme }}" data-rememberme="{{ .RememberMe }}">
+        <div id="root"></div>
+    </body>
+</html>`
+
+var reTestCSPNonce = regexp.MustCompile(`'nonce-([a-zA-Z0-9]{32})'`)
+
+type ReadFileOpenAPI struct{}
+
+func (lfs *ReadFileOpenAPI) Open(name string) (fs.File, error) {
+	switch name {
+	case assetsOpenAPIPath:
+		return os.Open(localOpenAPIPath)
+	default:
+		return assets.Open(name)
+	}
+}
+
+func (lfs *ReadFileOpenAPI) ReadFile(name string) ([]byte, error) {
+	switch name {
+	case assetsOpenAPIPath:
+		return os.ReadFile(localOpenAPIPath)
+	default:
+		return assets.ReadFile(name)
+	}
+}
+
+type ReadFilePortalIndex struct{}
+
+func (lfs *ReadFilePortalIndex) Open(name string) (fs.File, error) {
+	return assets.Open(name)
+}
+
+func (lfs *ReadFilePortalIndex) ReadFile(name string) ([]byte, error) {
+	switch name {
+	case "public_html/index.html":
+		return []byte(tmplTestPortalIndex), nil
+	default:
+		return assets.ReadFile(name)
 	}
 }
