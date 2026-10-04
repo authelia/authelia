@@ -1,0 +1,136 @@
+SPDX-FileCopyrightText: 2026 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+
+Replaces the Google and GitLab logins of the OpenID Connect 1.0 conformance suite with a single Authelia login.
+
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+index 21e2671..7a8e3e1 100644
+--- a/src/main/resources/application.properties
++++ b/src/main/resources/application.properties
+@@ -46,7 +46,12 @@ oidc.admin.group=openid-conformance-suite-admins
+ # https://gitlab.com - use the cloud gitlab, set oidc.admin.group to the gitlab group your admins are members of
+ # or you could use a local gitlab install & set oidc.admin.group
+ # Other issuers that can return a 'groups' array in the userinfo or id_token can be used (e.g. azure)
+-oidc.admin.issuer=https://gitlab.com
++oidc.admin.issuer=${oidc.authelia.iss}
++
++# 'login with authelia' openid connect client credentials
++oidc.authelia.clientid=authelia-client
++oidc.authelia.secret=authelia-secret
++oidc.authelia.iss=https://auth.example.com
+ 
+ # 'login with gitlab' openid connect client credentials
+ # setup on https://gitlab.com/oauth/applications/
+@@ -97,25 +102,15 @@ springdoc.swagger-ui.operations-sorter=alpha
+ # collapse the Schemas section at the bottom of the page
+ springdoc.swagger-ui.default-models-expand-depth=-1
+ 
+-spring.security.oauth2.client.provider.gitlab.issuerUri=${oidc.gitlab.iss}
+-spring.security.oauth2.client.provider.gitlab.user-name-attribute=preferred_username
+-spring.security.oauth2.client.registration.gitlab.client-name=GitLab
+-spring.security.oauth2.client.registration.gitlab.client-id=${oidc.gitlab.clientid}
+-spring.security.oauth2.client.registration.gitlab.client-secret=${oidc.gitlab.secret}
+-spring.security.oauth2.client.registration.gitlab.client-authentication-method=client_secret_post
+-spring.security.oauth2.client.registration.gitlab.authorization-grant-type=authorization_code
+-spring.security.oauth2.client.registration.gitlab.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+-spring.security.oauth2.client.registration.gitlab.scope=openid,email
+-
+-spring.security.oauth2.client.provider.google.issuerUri=${oidc.google.iss}
+-spring.security.oauth2.client.provider.google.user-name-attribute=email
+-spring.security.oauth2.client.registration.google.client-name=Google
+-spring.security.oauth2.client.registration.google.client-id=${oidc.google.clientid}
+-spring.security.oauth2.client.registration.google.client-secret=${oidc.google.secret}
+-spring.security.oauth2.client.registration.google.client-authentication-method=client_secret_post
+-spring.security.oauth2.client.registration.google.authorization-grant-type=authorization_code
+-spring.security.oauth2.client.registration.google.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+-spring.security.oauth2.client.registration.google.scope=openid,email
++spring.security.oauth2.client.provider.authelia.issuerUri=${oidc.authelia.iss}
++spring.security.oauth2.client.provider.authelia.user-name-attribute=preferred_username
++spring.security.oauth2.client.registration.authelia.client-name=Authelia
++spring.security.oauth2.client.registration.authelia.client-id=${oidc.authelia.clientid}
++spring.security.oauth2.client.registration.authelia.client-secret=${oidc.authelia.secret}
++spring.security.oauth2.client.registration.authelia.client-authentication-method=client_secret_basic
++spring.security.oauth2.client.registration.authelia.authorization-grant-type=authorization_code
++spring.security.oauth2.client.registration.authelia.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
++spring.security.oauth2.client.registration.authelia.scope=openid,profile,email,groups
+ 
+ springdoc.show-actuator=false
+ 
+diff --git a/src/main/resources/static/components/cts-login-page.js b/src/main/resources/static/components/cts-login-page.js
+index b0ba2b6..ec72602 100644
+--- a/src/main/resources/static/components/cts-login-page.js
++++ b/src/main/resources/static/components/cts-login-page.js
+@@ -55,6 +55,45 @@ const GITLAB_BRAND_SVG = html`<svg
+   ></path>
+ </svg>`;
+ 
++// Authelia: the logo mark from the Authelia branding assets
++// (https://www.authelia.com/images/branding/logo-cropped.svg). Its fills are
++// baked in like the Google G, folded into the single gradient every path of
++// the original shares.
++const AUTHELIA_BRAND_SVG = html`<svg
++  class="oidf-login-brand-mark"
++  xmlns="http://www.w3.org/2000/svg"
++  viewBox="0 0 268 268"
++  data-brand="authelia"
++  aria-hidden="true"
++>
++  <defs>
++    <linearGradient id="authelia-brand-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="134" x2="266" y2="134">
++      <stop offset="0" stop-color="#3F51B4"></stop>
++      <stop offset="1" stop-color="#113155"></stop>
++    </linearGradient>
++  </defs>
++  <path
++    fill="url(#authelia-brand-gradient)"
++    d="M135.05,201.03c-36.56-0.01-66.7-30-66.44-66.48c0.28-38.3,32.06-66.61,67.02-66.25 c34.53,0.36,65.85,27.43,65.95,66.44C201.68,172.35,171.49,200.97,135.05,201.03z M152.33,108.56 c0.03-8.46-4.93-15.14-12.72-17.16c-7.65-1.98-15.64,1.39-19.49,8.22c-4.02,7.14-2.95,15.28,3.44,20.97 c3.13,2.78,3.39,5.42,2.43,9.13c-2.92,11.19-5.54,22.45-8.3,33.68c-1.02,4.15,0.08,7.7,3.29,10.42c6.72,5.69,18.96,6.24,26.23,1.3 c5.21-3.54,6.53-6.38,5.13-12.49c-2.68-11.65-5.5-23.28-8.41-34.88c-0.66-2.61-0.41-4.36,1.9-6.17 C149.96,118.35,152.61,114.12,152.33,108.56z"
++  ></path>
++  <path
++    fill="url(#authelia-brand-gradient)"
++    d="M134.55,233.7 c-46.99,1.51-92.09-34.1-98.42-86.74c-4.12-34.3,6.37-63.81,32.26-87.09c5.94-5.35,13.15-9.38,20.09-13.5 c5.38-3.2,9.91-1.82,12.68,2.92c2.86,4.9,1.48,9.35-3.83,12.9c-4.96,3.31-10.16,6.37-14.71,10.19 C65.74,86.54,56.31,104.8,54.29,126.7c-1.85,20.03,2.58,38.69,14.57,54.94c15.67,21.25,36.96,32.67,63.48,33.66 c23.63,0.89,43.94-7.5,60.24-24.26c6.63-6.82,11.22-15.67,16.42-23.8c2.89-4.52,6.77-6.8,11.14-5.47 c5.56,1.69,8.46,6.61,5.76,12.25c-3.76,7.85-7.85,15.8-13.23,22.57c-17.27,21.75-40.29,33.61-67.75,37.03 c-0.39,0.05-0.79,0.08-1.19,0.08C140.66,233.71,137.6,233.7,134.55,233.7z"
++  ></path>
++  <path
++    fill="url(#authelia-brand-gradient)"
++    d="M2.18,138.52 c0.45-36.23,10.6-63.74,30.28-87.67c19.89-24.18,45.32-39.44,76.07-45.37c6.29-1.21,12.96-0.62,19.45-0.59 c3.42,0.01,5.2,2.28,5.8,5.52c0.67,3.64-1,8.25-4.17,9.58c-2.88,1.2-6.08,1.81-9.2,2.22c-21.46,2.84-40.86,10.65-57.54,24.48 c-23.59,19.57-37.93,44.44-41.33,75.15c-3.32,30.02,4.51,57.09,22.27,81.36c2.73,3.74,6.05,7.04,8.91,10.7 c4.18,5.36,3.88,9.53-0.7,13.63c-3.86,3.45-8.62,3-12.99-1.47c-16.95-17.34-28.14-37.94-33.34-61.53 C3.45,154.36,2.86,143.82,2.18,138.52z"
++  ></path>
++  <path
++    fill="url(#authelia-brand-gradient)"
++    d="M148.59,264.81 c-1.33,0-2.66,0.08-3.99-0.01c-4.99-0.35-8.37-3.27-8.85-7.59c-0.52-4.65,2.44-8.69,7.49-9.8c3.5-0.77,7.08-1.13,10.61-1.77 c35.49-6.4,62.32-25.07,80.22-56.5c9.27-16.29,14.09-33.9,14.53-52.46c0.34-14.12-1.91-28.05-7.16-41.36 c-0.82-2.08-1.27-4.77-0.69-6.84c1.09-3.87,3.72-6.75,8.17-7.09c4.13-0.32,7.69,1.56,9.26,6.12c2.54,7.39,5,14.9,6.43,22.56 c5.17,27.69,2.12,54.53-10.01,80.06c-9.87,20.78-24.13,38.04-42.96,51.4c-16.75,11.89-35.17,19.69-55.53,22.76 c-2.49,0.37-5.01,0.52-7.51,0.78C148.61,264.98,148.6,264.89,148.59,264.81z"
++  ></path>
++  <path
++    fill="url(#authelia-brand-gradient)"
++    d="M232.15,114.52 c0,5.45-2.74,8.89-7.43,9.73c-4.53,0.82-8.3-1.57-10.1-6.45c-2.39-6.46-4.28-13.16-7.19-19.37 c-7.66-16.33-19.99-28.22-36.08-36.27c-1.31-0.65-2.64-1.27-3.91-1.98c-4.87-2.74-6.74-7.83-4.64-12.49 c2.19-4.87,6.98-7.09,12.32-4.45c7.21,3.58,14.43,7.48,20.82,12.33c17.93,13.63,29.45,31.75,35.34,53.47 c0.31,1.15,0.55,2.33,0.75,3.5C232.14,113.31,232.13,114.12,232.15,114.52z"
++  ></path>
++</svg>`;
++
+ const STYLE_ID = "cts-login-page-styles";
+ 
+ // Scoped styles for the login page. Two-pane layout at >=860px (warm-ink
+@@ -473,23 +512,16 @@ class CtsLoginPage extends LitElement {
+             <header class="oidf-login-form__head">
+               <h1 class="oidf-login-title">Sign in to continue</h1>
+               <p class="oidf-login-subtitle">
+-                Use your Google or GitLab account. New users are registered automatically on first
+-                sign in.
++                Use your Authelia account. New users are registered automatically on first sign in.
+               </p>
+             </header>
+             ${this._renderError()}${this._renderLogout()}
+             <div class="oidf-login-providers">
+               <a
+                 class="oidf-btn oidf-btn-secondary oidf-btn-lg"
+-                href="/oauth2/authorization/google"
+-                role="button"
+-                >${GOOGLE_BRAND_SVG} Proceed with Google</a
+-              >
+-              <a
+-                class="oidf-btn oidf-btn-secondary oidf-btn-lg"
+-                href="/oauth2/authorization/gitlab"
++                href="/oauth2/authorization/authelia"
+                 role="button"
+-                >${GITLAB_BRAND_SVG} Proceed with GitLab</a
++                >${AUTHELIA_BRAND_SVG} Proceed with Authelia</a
+               >
+             </div>
+             <div class="oidf-login-divider" role="separator">

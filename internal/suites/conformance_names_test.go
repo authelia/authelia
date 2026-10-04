@@ -165,9 +165,28 @@ func TestConformanceArchiveReference(t *testing.T) {
 }
 
 func TestOIDCConformanceRelease(t *testing.T) {
-	assert.Equal(t, "v4.39.24 (commit 7498f635a5f3)", oidcConformanceRelease("7498f635a5f3", "v4.39.24"))
-	assert.Equal(t, "commit 7498f635a5f3", oidcConformanceRelease("7498f635a5f3", ""))
-	assert.Empty(t, oidcConformanceRelease("", ""), "without a commit the builder's own version is left in place")
+	testCases := []struct {
+		name                                string
+		commit, branch, pullRequest, header string
+		expected                            string
+	}{
+		{"ShouldNameTheReleaseMergedIntoMaster", "7498f635a5f3", "master", "false", "release: v4.39.24 (#13070)", "release v4.39.24 commit 7498f635a5f3"},
+		{"ShouldNameTheReleaseWithoutTheVPrefix", "7498f635a5f3", "master", "false", "release: 4.39.24", "release v4.39.24 commit 7498f635a5f3"},
+		{"ShouldNameMasterOutsideARelease", "7498f635a5f3", "master", "false", "fix(oidc): something (#13071)", "branch master commit 7498f635a5f3"},
+		{"ShouldNotNameAReleaseOutsideMaster", "7498f635a5f3", "release-prep", "13069", "release: v4.39.24", "branch release-prep commit 7498f635a5f3"},
+		{"ShouldNameTheBranch", "7498f635a5f3", "ci/oidc-conformance-authelia-login", "13335", "ci(suites): something", "branch ci/oidc-conformance-authelia-login commit 7498f635a5f3"},
+		{"ShouldNameThePullRequestOfAnExternalContribution", "7498f635a5f3", "someone:fix-thing", "13336", "fix(oidc): something", "PR #13336 commit 7498f635a5f3"},
+		{"ShouldNameTheBranchOfAnExternalContributionWithoutAPullRequest", "7498f635a5f3", "someone:fix-thing", "false", "fix(oidc): something", "branch someone:fix-thing commit 7498f635a5f3"},
+		{"ShouldNameOnlyTheCommitOnADetachedHead", "7498f635a5f3", "HEAD", "", "fix(oidc): something", "commit 7498f635a5f3"},
+		{"ShouldNameOnlyTheCommitWithoutABranch", "7498f635a5f3", "", "", "", "commit 7498f635a5f3"},
+		{"ShouldLeaveTheBuildersVersionWithoutACommit", "", "master", "false", "release: v4.39.24", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidcConformanceRelease(tc.commit, tc.branch, tc.pullRequest, tc.header))
+		})
+	}
 }
 
 func TestConformanceOutcomeAccepted(t *testing.T) {
