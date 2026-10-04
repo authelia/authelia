@@ -6,6 +6,7 @@ package webauthn_test
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -101,55 +102,55 @@ func TestIsCredentialCreationDiscoverable(t *testing.T) {
 func TestValidateCredentialAllowed(t *testing.T) {
 	testCases := []struct {
 		name     string
-		config   *schema.WebAuthn
+		config   *schema.WebAuthnBase
 		have     *model.WebAuthnCredential
 		expected string
 	}{
 		{
 			"ShouldAllowNotConfigured",
-			&schema.WebAuthn{},
+			&schema.WebAuthnBase{},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"",
 		},
 		{
 			"ShouldAllowNotConfigured",
-			&schema.WebAuthn{},
+			&schema.WebAuthnBase{},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))), BackupEligible: true, BackupState: true},
 			"",
 		},
 		{
 			"ShouldNotProhibitBackupEligibilityFalse",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: true}},
+			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: new(true)}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"",
 		},
 		{
 			"ShouldProhibitBackupEligibilityTrue",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: true}},
+			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: new(true)}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))), BackupEligible: true},
 			"error checking webauthn credential: filters have been configured which prohibit credentials that are backup eligible",
 		},
 		{
 			"ShouldAllowPermittedAAGUIDs",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{PermittedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))}}},
+			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{PermittedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"",
 		},
 		{
 			"ShouldNotAllowUnallowedAAGUID",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{PermittedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af5"))}}},
+			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{PermittedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af5"))}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"error checking webauthn credential: filters have been configured which explicitly require only permitted AAGUID's be used and '7a5d62c8-1164-41a5-807c-af16cccb8af4' is not permitted",
 		},
 		{
 			"ShouldAllowNotProhibitedAAGUID",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af5"))}}},
+			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af5"))}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"",
 		},
 		{
 			"Should",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))}}},
+			&schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"error checking webauthn credential: filters have been configured which prohibit the AAGUID '7a5d62c8-1164-41a5-807c-af16cccb8af4' from registration",
 		},
@@ -164,6 +165,238 @@ func TestValidateCredentialAllowed(t *testing.T) {
 			} else {
 				assert.EqualError(t, actual, tc.expected)
 			}
+		})
+	}
+}
+
+func TestGetRelatedOriginConfigByRPID(t *testing.T) {
+	testCases := []struct {
+		name     string
+		config   schema.WebAuthn
+		rpid     string
+		expected bool
+	}{
+		{
+			"ShouldReturnNilWhenNoRelatedOrigins",
+			schema.WebAuthn{},
+			"example.com",
+			false,
+		},
+		{
+			"ShouldReturnNilWhenNotFound",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"other.com": {Origins: []*url.URL{MustParseURL("https://other.com")}},
+				},
+			},
+			"example.com",
+			false,
+		},
+		{
+			"ShouldReturnMatchWhenFound",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			"example.com",
+			true,
+		},
+		{
+			"ShouldReturnMatchCaseInsensitive",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			"EXAMPLE.COM",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := webauthn.GetRelatedOriginConfigByRPID(tc.config, tc.rpid)
+
+			if tc.expected {
+				assert.NotNil(t, result)
+			} else {
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
+	testCases := []struct {
+		name         string
+		config       schema.WebAuthn
+		origin       *url.URL
+		expectedRPID string
+		expectedNil  bool
+	}{
+		{
+			"ShouldReturnNilForNilOrigin",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			nil,
+			"",
+			true,
+		},
+		{
+			"ShouldReturnNilWhenNoRelatedOrigins",
+			schema.WebAuthn{},
+			MustParseURL("https://example.com"),
+			"",
+			true,
+		},
+		{
+			"ShouldReturnNilWhenOriginNotFound",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"other.com": {Origins: []*url.URL{MustParseURL("https://other.com")}},
+				},
+			},
+			MustParseURL("https://example.com"),
+			"",
+			true,
+		},
+		{
+			"ShouldMatchOrigin",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com"), MustParseURL("https://auth.example.com")}},
+				},
+			},
+			MustParseURL("https://auth.example.com"),
+			"example.com",
+			false,
+		},
+		{
+			"ShouldMatchOriginCaseInsensitive",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			MustParseURL("HTTPS://EXAMPLE.COM"),
+			"example.com",
+			false,
+		},
+		{
+			"ShouldNotMatchWhenSchemeDiffers",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			MustParseURL("http://example.com"),
+			"",
+			true,
+		},
+		{
+			"ShouldNotMatchWhenPortDiffers",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			MustParseURL("https://example.com:8443"),
+			"",
+			true,
+		},
+		{
+			"ShouldMatchWhenPortIsDefaultForScheme",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com:443")}},
+				},
+			},
+			MustParseURL("https://example.com"),
+			"example.com",
+			false,
+		},
+		{
+			"ShouldMatchWhenExplicitPortsEqual",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com:8443")}},
+				},
+			},
+			MustParseURL("HTTPS://Example.com:8443"),
+			"example.com",
+			false,
+		},
+		{
+			"ShouldNotMatchWhenOriginHasPath",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			MustParseURL("https://example.com/some/path"),
+			"",
+			true,
+		},
+		{
+			"ShouldNotMatchWhenConfigOriginHasPath",
+			schema.WebAuthn{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com/path")}},
+				},
+			},
+			MustParseURL("https://example.com"),
+			"",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rpid, result := webauthn.GetRelatedOriginConfigByOrigin(tc.config, tc.origin)
+
+			if tc.expectedNil {
+				assert.Empty(t, rpid)
+				assert.Nil(t, result)
+			} else {
+				assert.Equal(t, tc.expectedRPID, rpid)
+				assert.NotNil(t, result)
+			}
+		})
+	}
+}
+
+func MustParseURL(rawURL string) *url.URL {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return u
+}
+
+func TestOriginKey(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *url.URL
+		expected string
+	}{
+		{"ShouldHandleNil", nil, ""},
+		{"ShouldHandleHTTPS", &url.URL{Scheme: "https", Host: "example.com"}, "https://example.com"},
+		{"ShouldLowerCase", &url.URL{Scheme: "HTTPS", Host: "Example.COM"}, "https://example.com"},
+		{"ShouldOmitDefaultPortHTTPS", &url.URL{Scheme: "https", Host: "example.com:443"}, "https://example.com"},
+		{"ShouldOmitDefaultPortHTTP", &url.URL{Scheme: "http", Host: "example.com:80"}, "http://example.com"},
+		{"ShouldKeepNonDefaultPort", &url.URL{Scheme: "https", Host: "example.com:8443"}, "https://example.com:8443"},
+		{"ShouldKeepCrossSchemeDefaultPort", &url.URL{Scheme: "https", Host: "example.com:80"}, "https://example.com:80"},
+		{"ShouldHandleIPv6", &url.URL{Scheme: "https", Host: "[::1]:8443"}, "https://[::1]:8443"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, webauthn.OriginKey(tc.have))
 		})
 	}
 }
