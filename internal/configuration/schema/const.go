@@ -232,3 +232,19 @@ const (
 	AddressSchemeSUBMISSIONS    = "submissions"
 	AddressSchemeFileDescriptor = "fd"
 )
+
+const (
+	// WebhookQueryParameterAccessToken is the query parameter added to a webhook destination address to carry the
+	// token when it is not sent in the Authorization header.
+	WebhookQueryParameterAccessToken = "access_token"
+
+	// WebhookAuthenticationMethodHeader presents the token of a webhook destination in the Authorization header.
+	WebhookAuthenticationMethodHeader = "header"
+
+	// WebhookAuthenticationMethodQuery presents the token of a webhook destination in the access_token query
+	// parameter of its address.
+	WebhookAuthenticationMethodQuery = "query"
+
+	// DefaultWebhookAuthenticationScheme is the default authorization scheme for a webhook destination.
+	DefaultWebhookAuthenticationScheme = "Bearer"
+)

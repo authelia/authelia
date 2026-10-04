@@ -1454,3 +1454,21 @@ func (mr *MockStorageMockRecorder) UpdateWebAuthnCredentialSignIn(ctx, credentia
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebAuthnCredentialSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateWebAuthnCredentialSignIn), ctx, credential)
 }
+
+// WebhookCallbackSignature mocks base method.
+func (m *MockStorage) WebhookCallbackSignature(values ...[]byte) string {
+	m.ctrl.T.Helper()
+	varargs := []any{}
+	for _, a := range values {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "WebhookCallbackSignature", varargs...)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// WebhookCallbackSignature indicates an expected call of WebhookCallbackSignature.
+func (mr *MockStorageMockRecorder) WebhookCallbackSignature(values ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WebhookCallbackSignature", reflect.TypeOf((*MockStorage)(nil).WebhookCallbackSignature), values...)
+}

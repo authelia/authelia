@@ -30,6 +30,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webhooks"
 )
 
 func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
@@ -225,6 +226,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		r.HEAD("/api/health/verbose", middlewareAPI(rateLimitHealth(handlerHealthVerbose)))
 		r.GET("/api/health/verbose", middlewareAPI(rateLimitHealth(handlerHealthVerbose)))
+	}
+
+	if len(config.Webhooks.Destinations) != 0 {
+		r.GET(webhooks.PathConfirm, middlewareAPI(handlers.WebhookConfirm))
+		r.POST(webhooks.PathConfirm, middlewareAPI(handlers.WebhookConfirm))
 	}
 
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))

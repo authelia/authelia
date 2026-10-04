@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/webhooks/v1/security.authentication.succeeded.json",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/com.authelia.security.ban.applied.json",
   "properties": {
     "username": {
       "type": "string",
@@ -25,41 +25,31 @@
       "title": "Remote IP",
       "description": "The client address which caused the occurrence."
     },
-    "stage": {
+    "target": {
       "type": "string",
-      "enum": [
-        "first_factor",
-        "second_factor"
-      ],
-      "title": "Stage"
+      "title": "Target",
+      "description": "The banned value, a username or an IP address."
     },
-    "method": {
+    "target_type": {
       "type": "string",
       "enum": [
-        "password",
-        "totp",
-        "webauthn",
-        "duo"
+        "user",
+        "ip"
       ],
-      "title": "Method"
+      "title": "Target Type"
     },
-    "reason": {
+    "expires": {
       "type": "string",
-      "enum": [
-        "invalid_credentials",
-        "user_not_found",
-        "banned",
-        "internal_error"
-      ],
-      "title": "Reason",
-      "description": "The failure classification. Present on failures only."
+      "format": "date-time",
+      "title": "Expires",
+      "description": "When the ban expires. Present on applied only."
     }
   },
   "type": "object",
   "required": [
     "username",
-    "stage",
-    "method"
+    "target",
+    "target_type"
   ],
-  "description": "DataAuthentication is the payload for the security.authentication.* events."
+  "description": "DataBan is the payload for the com.authelia.security.ban.* events."
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -125,6 +126,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodDuo)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
@@ -332,6 +335,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodDuo)
+
 	DuoPOST(duoMock)(s.mock.Ctx)
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
@@ -455,6 +460,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnFailure(s.mock, testUsername, events.StageSecondFactor, events.MethodDuo, events.ReasonInvalidCredentials)
+
 	DuoPOST(duoMock)(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusUnauthorized, s.mock.Ctx.Response.StatusCode())
@@ -534,6 +541,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodDuo)
+
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: testRedirectionURLString,
@@ -580,6 +589,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodDuo)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
@@ -636,6 +647,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodDuo)
+
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: "https://example.com",
@@ -684,6 +697,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodDuo)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
@@ -734,6 +749,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 
 	r := regexp.MustCompile("^authelia_session=(.*); path=")
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	expectAuthnSuccess(s.mock, testUsername, events.StageSecondFactor, events.MethodDuo)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)

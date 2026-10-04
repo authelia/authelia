@@ -5,7 +5,13 @@
 package handlers
 
 import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"net/url"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,8 +21,10 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -158,6 +166,8 @@ func TestDoMarkAuthenticationAttempt(t *testing.T) {
 			})).
 			Return(nil)
 
+		expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodPassword)
+
 		doMarkAuthenticationAttempt(mock.Ctx, true, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), regulation.AuthType1FA, nil)
 	})
 
@@ -178,6 +188,8 @@ func TestDoMarkAuthenticationAttempt(t *testing.T) {
 			})).
 			Return(nil)
 
+		expectAuthnFailure(mock, testUsername, events.StageFirstFactor, events.MethodPassword, events.ReasonInvalidCredentials)
+
 		doMarkAuthenticationAttempt(mock.Ctx, false, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), regulation.AuthType1FA, nil)
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Unsuccessful 1FA authentication attempt by user 'john'", nil)
@@ -190,6 +202,8 @@ func TestDoMarkAuthenticationAttempt(t *testing.T) {
 		mock.StorageMock.EXPECT().
 			AppendAuthenticationLog(gomock.Any(), gomock.Any()).
 			Return(nil)
+
+		expectAuthnFailure(mock, testUsername, events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
 
 		doMarkAuthenticationAttempt(mock.Ctx, false, regulation.NewBan(regulation.BanTypeUser, testUsername, nil), regulation.AuthType1FA, nil)
 
@@ -379,4 +393,106 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred getting the original form from the consent session", regexpAnyError)
 	})
+}
+
+func TestAuthenticationEventStageAndMethod(t *testing.T) {
+	testCases := []struct {
+		name          string
+		authType      string
+		stage, method string
+	}{
+		{"ShouldMapFirstFactor", regulation.AuthType1FA, events.StageFirstFactor, events.MethodPassword},
+		{"ShouldMapPasskeyToFirstFactorWebAuthn", regulation.AuthTypePasskey, events.StageFirstFactor, events.MethodWebAuthn},
+		{"ShouldMapPasswordToSecondFactor", regulation.AuthTypePassword, events.StageSecondFactor, events.MethodPassword},
+		{"ShouldMapTOTP", regulation.AuthTypeTOTP, events.StageSecondFactor, events.MethodTOTP},
+		{"ShouldMapWebAuthn", regulation.AuthTypeWebAuthn, events.StageSecondFactor, events.MethodWebAuthn},
+		{"ShouldMapDuo", regulation.AuthTypeDuo, events.StageSecondFactor, events.MethodDuo},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			stage, method := doGetAuthenticationEventStageAndMethod(tc.authType)
+
+			assert.Equal(t, tc.stage, stage)
+			assert.Equal(t, tc.method, method)
+		})
+	}
+}
+
+func TestAuthenticationEventRejectedRendersAsTheWrappedError(t *testing.T) {
+	inner := fmt.Errorf("duo auth result: 'deny', status: 'deny', message: 'Login request denied.'")
+
+	rejected := newErrAuthenticationRejected(inner)
+
+	assert.Equal(t, inner.Error(), rejected.Error())
+	assert.ErrorIs(t, rejected, inner)
+}
+
+func TestAuthenticationEventReason(t *testing.T) {
+	testCases := []struct {
+		name       string
+		successful bool
+		ban        *regulation.Ban
+		errAuth    error
+		expected   string
+	}{
+		{"ShouldNotClassifyASuccess", true, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), nil, ""},
+		{"ShouldClassifyABannedUser", false, regulation.NewBan(regulation.BanTypeUser, testUsername, nil), nil, events.ReasonBanned},
+		{"ShouldClassifyABannedIP", false, regulation.NewBan(regulation.BanTypeIP, "127.0.0.1", nil), nil, events.ReasonBanned},
+		{"ShouldPreferTheBanOverTheError", false, regulation.NewBan(regulation.BanTypeUser, testUsername, nil), fmt.Errorf("backend unreachable"), events.ReasonBanned},
+		{"ShouldClassifyAnErrorAsInternal", false, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), fmt.Errorf("backend unreachable"), events.ReasonInternalError},
+		{"ShouldClassifyARejectionAsInvalidCredentials", false, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), newErrAuthenticationRejected(fmt.Errorf("duo auth result: 'deny'")), events.ReasonInvalidCredentials},
+		{"ShouldUnwrapAWrappedRejection", false, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), fmt.Errorf("outer: %w", newErrAuthenticationRejected(fmt.Errorf("duo auth result: 'deny'"))), events.ReasonInvalidCredentials},
+		{"ShouldPreferTheBanOverTheRejection", false, regulation.NewBan(regulation.BanTypeUser, testUsername, nil), newErrAuthenticationRejected(fmt.Errorf("duo auth result: 'deny'")), events.ReasonBanned},
+		{"ShouldClassifyTheAbsenceOfAnErrorAsInvalidCredentials", false, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), nil, events.ReasonInvalidCredentials},
+		{"ShouldClassifyANotFoundUser", false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), authentication.ErrUserNotFound, events.ReasonUserNotFound},
+		{"ShouldUnwrapAWrappedNotFoundUser", false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), fmt.Errorf("failed to retrieve user details for user john: %w", authentication.ErrUserNotFound), events.ReasonUserNotFound},
+		{"ShouldPreferTheBanOverTheNotFoundUser", false, regulation.NewBan(regulation.BanTypeIP, "127.0.0.1", nil), authentication.ErrUserNotFound, events.ReasonBanned},
+		{"ShouldPreferTheRejectionOverTheNotFoundUser", false, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), newErrAuthenticationRejected(authentication.ErrUserNotFound), events.ReasonInvalidCredentials},
+		{"ShouldNotClassifyAnUnreachableBackendAsNotFound", false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), fmt.Errorf("failed to connect: connection refused"), events.ReasonInternalError},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, doGetAuthenticationEventReason(tc.successful, tc.ban, tc.errAuth))
+		})
+	}
+}
+
+func TestAuthenticationEventStageAndMethodCoversEveryAuthType(t *testing.T) {
+	fset := token.NewFileSet()
+
+	file, err := parser.ParseFile(fset, filepath.Join("..", "regulation", "const.go"), nil, 0)
+	require.NoError(t, err)
+
+	stages := []string{events.StageFirstFactor, events.StageSecondFactor}
+	methods := []string{events.MethodPassword, events.MethodTOTP, events.MethodWebAuthn, events.MethodDuo}
+
+	var n int
+
+	for _, decl := range file.Decls {
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok || gen.Tok != token.CONST {
+			continue
+		}
+
+		for _, spec := range gen.Specs {
+			value, ok := spec.(*ast.ValueSpec)
+			if !ok || len(value.Names) != 1 || len(value.Values) != 1 || !strings.HasPrefix(value.Names[0].Name, "AuthType") {
+				continue
+			}
+
+			lit, ok := value.Values[0].(*ast.BasicLit)
+			require.True(t, ok, "%s is not a string literal", value.Names[0].Name)
+
+			n++
+
+			stage, method := doGetAuthenticationEventStageAndMethod(strings.Trim(lit.Value, `"`))
+
+			assert.Contains(t, stages, stage, "%s does not map to a documented stage", value.Names[0].Name)
+			assert.Contains(t, methods, method, "%s does not map to a documented method", value.Names[0].Name)
+		}
+	}
+
+	assert.Equal(t, 6, n, "the number of authentication types changed, update the mapping and this expectation")
 }

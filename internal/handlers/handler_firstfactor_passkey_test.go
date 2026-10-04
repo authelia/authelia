@@ -23,6 +23,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -182,6 +183,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			"ShouldFailAlreadyLoggedIn",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
@@ -243,6 +246,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			"ShouldFailSessionData",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
@@ -279,6 +284,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			"ShouldFailGetProvider",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInternalError)
+
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
@@ -324,6 +331,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldSuccess",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -427,6 +436,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldSuccessUpgrade",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn)
+
 				mock.Ctx.Configuration.WebAuthn.EnablePasskeyUpgrade = true
 
 				us, err := mock.Ctx.GetSession()
@@ -532,6 +543,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldSuccessUpgradeDiscoverable",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn)
+
 				mock.Ctx.Configuration.WebAuthn.EnablePasskeyUpgrade = true
 
 				us, err := mock.Ctx.GetSession()
@@ -637,6 +650,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldHandleFlow",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn)
+
 				mock.Ctx.Configuration.WebAuthn.EnablePasskeyUpgrade = true
 
 				us, err := mock.Ctx.GetSession()
@@ -739,6 +754,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldNotAllowBannedUserToUsePasskey",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn, events.ReasonBanned)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -844,6 +861,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldNotAllowBannedIPToUsePasskey",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn, events.ReasonBanned)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1038,6 +1057,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldSuccessKeepLoggedIn",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn)
+
 				mock.Ctx.Configuration.Session.RememberMe = time.Hour
 
 				us, err := mock.Ctx.GetSession()
@@ -1144,6 +1165,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailMark",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1249,6 +1272,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailUserDetails",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInternalError)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1348,6 +1373,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailCloned",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1444,6 +1471,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailCredentialNotFound",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1515,6 +1544,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailUpdateCredential",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInternalError)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1611,6 +1642,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailGetCredentials",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1660,6 +1693,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailGetHandle",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1706,6 +1741,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailGetHandleBlank",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
@@ -1749,6 +1786,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailHeaders",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInternalError)
+
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
@@ -1793,6 +1832,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailBadRPIDHash",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				us, err := mock.Ctx.GetSession()
 
 				require.NoError(t, err)
@@ -1864,6 +1905,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailBadJSON",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				setUpMockClock(mock)
 
 				gomock.InOrder(
@@ -1909,6 +1952,8 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 			name:   "ShouldFailBadResponseJSON",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{

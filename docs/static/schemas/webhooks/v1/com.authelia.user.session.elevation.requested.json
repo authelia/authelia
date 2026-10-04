@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/webhooks/v1/user.password.reset.json",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/com.authelia.user.session.elevation.requested.json",
   "$defs": {
     "Notification": {
       "properties": {
@@ -144,5 +144,5 @@
   "required": [
     "username"
   ],
-  "description": "DataUserPassword is the payload for the user.password.changed and user.password.reset events."
+  "description": "DataSessionElevation is the payload for the com.authelia.user.session.elevation.requested event."
 }
