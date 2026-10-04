@@ -16,7 +16,7 @@
     "@docsearch/css": "5.1.1",
     "@docsearch/js": "5.1.1",
     "@tabler/icons": "3.48.0",
-    "@thulite/core": "2.0.3",
+    "@thulite/core": "2.0.4",
     "@thulite/doks-core": "1.9.4",
     "@thulite/images": "3.3.4",
     "@thulite/inline-svg": "1.2.2",
@@ -35,7 +35,7 @@
     "basiclightbox": "5.0.4",
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
-    "eslint": "10.11.0",
+    "eslint": "10.12.0",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",
     "eslint-plugin-prettier": "5.5.6",
@@ -53,7 +53,7 @@
     "node": ">=24.13.0",
     "pnpm": "12"
   },
-  "packageManager": "pnpm@12.8.1",
+  "packageManager": "pnpm@12.8.2",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
