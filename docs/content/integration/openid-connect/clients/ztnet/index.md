@@ -8,11 +8,12 @@ images: []
 weight: 620
 toc: true
 support:
+  level: community
   versions: true
   integration: true
 seo:
-  title: ""
-  description: ""
+  title: "ztnet | OpenID Connect 1.0 | Integration"
+  description: "Step-by-step guide to configuring ztnet with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: ""
   noindex: false
 ---
@@ -37,13 +38,11 @@ This example makes the following assumptions:
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
-{{< sample-used-variables >}}
+{{< sitevar-preferences >}}
 
 ## Configuration
 
 ### Authelia
-
-{{< oidc-client-config >}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [ZTNET] which will
 operate with the application example:
