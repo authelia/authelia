@@ -445,6 +445,8 @@ const (
 	errFmtServerPathNotEndForwardSlash = "server: option 'address' must be a single subpath (i.e. '%s'), but '%s' contains multiple segments"
 	errFmtServerPathAlphaNumeric       = "server: option 'address' must have a path with only alphanumeric characters but it's configured as '%s'"
 
+	errFmtServerHeadersAllowedHostInvalid = "server: headers: option 'allowed_hosts' must only contain hosts with an optional port and without a scheme or path but it has the value '%s'"
+
 	errFmtServerEndpointsAuthzOptionLegacy               = "server: endpoints: authz: %s: option '%s' must not be configured for the 'Legacy' implementation"
 	errFmtServerEndpointsAuthzHeaderInvalidName          = "server: endpoints: authz: %s: headers: %s: header name must only contain valid header name characters"
 	errFmtServerEndpointsAuthzHeaderReservedName         = "server: endpoints: authz: %s: headers: %s: header name must not be a standard or reserved header"

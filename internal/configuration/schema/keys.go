@@ -405,6 +405,7 @@ var Keys = []string{
 	"server.endpoints.rate_limits.session_elevation_start.buckets[].period",
 	"server.endpoints.rate_limits.session_elevation_start.buckets[].requests",
 	"server.endpoints.rate_limits.session_elevation_start.enable",
+	"server.headers.allowed_hosts",
 	"server.headers.csp_template",
 	"server.timeouts.idle",
 	"server.timeouts.read",
