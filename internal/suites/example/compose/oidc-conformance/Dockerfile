@@ -5,8 +5,8 @@
 FROM --platform=${BUILDPLATFORM} maven:3.10.0-eclipse-temurin-21@sha256:1f4555322b25bc65c1ae2b87d0558047754ef766abf9bd8a0df8bd342d136eb5 AS builder
 
 ARG CONFORMANCE_SUITE_REPO=https://gitlab.com/openid/conformance-suite.git
-ARG CONFORMANCE_SUITE_REF=release-v5.2.4
-ARG CONFORMANCE_SUITE_COMMIT=ab35a8df4864da35b49eff11483e204e01aa7961
+ARG CONFORMANCE_SUITE_REF=release-v5.3.1
+ARG CONFORMANCE_SUITE_COMMIT=440eec8bac7b12b7389d7ca9cbc459b53507a443
 
 WORKDIR /src
 
@@ -20,7 +20,7 @@ git apply /tmp/authelia-login.patch
 mvn -B package -DskipTests=true
 EOF
 
-FROM registry.gitlab.com/openid/conformance-suite:release-v5.2.4@sha256:3a2615ed95a7f3bb92d545b4c65c0268f82a3893d6cd97fd98fd8e44eb15d81f
+FROM registry.gitlab.com/openid/conformance-suite:release-v5.3.1@sha256:69495f453a920c262f66e5e72abd12501c33e05ce88051cddf300c00621a4d70
 
 COPY --link --from=builder /src/target/fapi-test-suite.jar /server/fapi-test-suite.jar
 
