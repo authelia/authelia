@@ -25,6 +25,7 @@ if [[ "${BASE_REF_OK}" == "true" ]] && [[ "${BUILDKITE_TAG}" == "" ]]; then
   changed "${BASE_REF}" "internal/suites/example/compose/duo-api/Dockerfile" && BUILD_DUO="true"
   changed "${BASE_REF}" "internal/suites/example/compose/haproxy/Dockerfile" && BUILD_HAPROXY="true"
   changed "${BASE_REF}" "internal/suites/example/compose/oidc-conformance/Dockerfile" && BUILD_OIDCCONFORMANCE="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/oidc-conformance/authelia-login.patch" && BUILD_OIDCCONFORMANCE="true"
   changed "${BASE_REF}" "internal/suites/common/pki/ca.public.crt" && BUILD_OIDCCONFORMANCE="true"
   changed "${BASE_REF}" "internal/suites/example/compose/samba/Dockerfile" && BUILD_SAMBA="true"
   CI_BYPASS=$(bypass_check "${BASE_REF}" "${BYPASS_REGEX}")
@@ -133,6 +134,7 @@ if [[ ${BUILD_DUO} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-duo]"
     trigger: "integration-duo"
+    key: "integration-duo"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
@@ -148,6 +150,7 @@ if [[ ${BUILD_HAPROXY} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-haproxy]"
     trigger: "integration-haproxy"
+    key: "integration-haproxy"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
@@ -163,6 +166,7 @@ if [[ ${BUILD_OIDCCONFORMANCE} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-oidcconformance]"
     trigger: "integration-oidcconformance"
+    key: "integration-oidcconformance"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
@@ -178,6 +182,7 @@ if [[ ${BUILD_SAMBA} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-samba]"
     trigger: "integration-samba"
+    key: "integration-samba"
     build:
       message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
