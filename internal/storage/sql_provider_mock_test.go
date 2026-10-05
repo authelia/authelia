@@ -2054,7 +2054,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otc", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM one_time_code;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "one_time_code").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(errors.New("commit failed"))
 			},
 			expectErr: "error committing transaction to rotate hmac key: commit failed",
@@ -2067,7 +2066,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otc", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM one_time_code;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "one_time_code").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(nil)
 			},
 		},
@@ -2129,7 +2127,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otp", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM totp_history;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "totp_history").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(errors.New("commit failed"))
 			},
 			expectErr: "error committing transaction to rotate hmac key: commit failed",
@@ -2142,7 +2139,38 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otp", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM totp_history;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "totp_history").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
+				tx.EXPECT().Commit().Return(nil)
+			},
+		},
+		{
+			name:     "ShouldErrSetCryptographyKeyForSessionAndRollback",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, errors.New("upsert failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error setting the hmac key: upsert failed",
+		},
+		{
+			name:     "ShouldErrTruncateForSessionAndRollback",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM session;").Return(nil, errors.New("delete failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error truncating sessions: error occurred truncating table 'session': error occurred performing the delete: delete failed",
+		},
+		{
+			name:     "ShouldSucceedForSession",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM session;").Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "session").Return(nil, nil)
 				tx.EXPECT().Commit().Return(nil)
 			},
 		},
