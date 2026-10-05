@@ -100,6 +100,7 @@ func buildAutheliaBinaryCI(xflags []string) {
 		"-v", "/buildkite/.tools/bin/goreleaser:/usr/local/bin/goreleaser",
 		"-v", "/buildkite/.tools/bin/grype:/usr/local/bin/grype",
 		"-v", "/buildkite/.tools/bin/syft:/usr/local/bin/syft",
+		"--tmpfs", "/run/user/1000:uid=1000,gid=1000,mode=0700",
 		"authelia/crossbuild",
 		"goreleaser", "release", "--skip=publish,validate",
 	}
