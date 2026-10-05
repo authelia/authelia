@@ -11,7 +11,7 @@ ENV \
     SHELL="/bin/sh" \
     PNPM_HOME="/usr/local"
 
-RUN wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/916ce9e8412d2ce06bb7106a53ce24690b9001dd/install.sh && \
+RUN wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/5f964df357def9173ec96c27e1ed059dd78520cf/install.sh && \
     ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
     deluser node && \
     if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \
