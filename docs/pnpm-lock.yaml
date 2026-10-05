@@ -200,8 +200,8 @@ importers:
         specifier: 1.13.1
         version: 1.13.1
       thulite:
-        specifier: 3.0.2
-        version: 3.0.2(yaml@2.9.0)
+        specifier: 3.0.3
+        version: 3.0.3(yaml@2.9.0)
     devDependencies:
       '@changesets/changelog-github':
         specifier: 1.0.1
@@ -2312,8 +2312,8 @@ packages:
     resolution: {integrity: sha512-fab7Xg+zELr9KOv4fkaBoe/b3L0GMGLd0IBSCn16GoE/Qx6/OfCr1eGNyEcDU2pUA79qQfZ8kPQWlRuok4YwTw==}
     engines: {node: '>=6'}
 
-  thulite@3.0.2:
-    resolution: {integrity: sha512-9MGh/23GmFs3VDm9bkAbjHb7RSNjVcJ7VMjT86VKQX51jrlMLNsGsXu6K7YXPR5Tueteeyvpxkj9yfmXs/Fylg==}
+  thulite@3.0.3:
+    resolution: {integrity: sha512-D7vQOIXvfhuh0zx2wUWHhWt72rBRAJTFw27F3dvh7BU0XNaPM3HzE+EY8IDmpP9mzEYIZKewJUmKHnhhWu0oaQ==}
     engines: {node: '>=20.11.0'}
 
   tiny-emitter@2.1.0:
@@ -4672,7 +4672,7 @@ snapshots:
 
   throttles@1.0.1: {}
 
-  thulite@3.0.2(yaml@2.9.0):
+  thulite@3.0.3(yaml@2.9.0):
     dependencies:
       '@thulite/core': 2.0.4(yaml@2.9.0)
     transitivePeerDependencies:
