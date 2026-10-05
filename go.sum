@@ -132,8 +132,8 @@ github.com/knadh/koanf/parsers/yaml v1.1.1 h1:u70vV5IyaM0HvONh8HoqBC97oTgO33KcpZ
 github.com/knadh/koanf/parsers/yaml v1.1.1/go.mod h1:HHmcHXUrp9cOPcuC+2wrr44GTUB0EC+PyfN3HZD9tFg=
 github.com/knadh/koanf/providers/confmap v1.0.1 h1:L15hbvMqlvhwUuCtL9BkL+rqiMAjk6cZc8O9XoDtE3A=
 github.com/knadh/koanf/providers/confmap v1.0.1/go.mod h1:txHYHiI2hAtF0/0sCmcuol4IDcuQbKTybiB1nOcUo1A=
-github.com/knadh/koanf/providers/env/v2 v2.0.1 h1:a3KagndPqhcWHQv6Pz4OZmwkI/yMeTjkiZye6ZCkyW0=
-github.com/knadh/koanf/providers/env/v2 v2.0.1/go.mod h1:1g01PE+Ve1gBfWNNw2wmULRP0tc8RJrjn5p2N/jNCIc=
+github.com/knadh/koanf/providers/env/v2 v2.0.2 h1:nLZ4Ct/i7kXX2Ne8tkwEVThI0HxO6Psu51tCCfwLfho=
+github.com/knadh/koanf/providers/env/v2 v2.0.2/go.mod h1:1g01PE+Ve1gBfWNNw2wmULRP0tc8RJrjn5p2N/jNCIc=
 github.com/knadh/koanf/providers/posflag v1.0.2 h1:ky9Yqmoz0EHGfby6/gB6SUXmLs5kjxW/1ekbHRuPwIk=
 github.com/knadh/koanf/providers/posflag v1.0.2/go.mod h1:3Wn3+YG3f4ljzRyCUgIwH7G0sZ1pMjCOsNBovrbKmAk=
 github.com/knadh/koanf/providers/rawbytes v1.0.1 h1:JCQoly+djX23Okr8kqtS19R7UXKleTAp62Vib2VrVYs=
