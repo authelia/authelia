@@ -176,8 +176,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       '@docsearch/js':
-        specifier: 5.1.1
-        version: 5.1.1
+        specifier: 5.1.2
+        version: 5.1.2
       '@tabler/icons':
         specifier: 3.48.0
         version: 3.48.0
@@ -842,8 +842,8 @@ packages:
   '@docsearch/css@5.1.1':
     resolution: {integrity: sha512-+sPTcGV9QVTB7m9KRl2uym1lY3N3lwV2Y4KRttdZF7MPrS3Wd/Dkp5LarZTk81IpqF3hXxxyxhkl5vwQZGuGUQ==}
 
-  '@docsearch/js@5.1.1':
-    resolution: {integrity: sha512-Kez8gF8uqDM0KasXCa48I5u9Gctjas3mnmPRIdVhWPu+chiglm5mL5XfWxHLnfc9JBTvKZVZ5fNYN/w+aGGVpA==}
+  '@docsearch/js@5.1.2':
+    resolution: {integrity: sha512-ZScgB1upT5i4Ob1EYfp964lc5Xx0w9VUMLTeH099LPAU7v01STDIgIMu31rhYcLRi4RHIr0UtfB2VvcRPKvNWQ==}
 
   '@eslint-community/eslint-utils@4.10.1':
     resolution: {integrity: sha512-cuadcxVFE8sDK6iWJbs8Sn0av2Nrh2QSGQhVlBW9AaAHqHwjWsZHT8LJ4hFGPh7ASBV2deFdM7H/DPjulmh8rg==}
@@ -3187,7 +3187,7 @@ snapshots:
 
   '@docsearch/css@5.1.1': {}
 
-  '@docsearch/js@5.1.1': {}
+  '@docsearch/js@5.1.2': {}
 
   '@eslint-community/eslint-utils@4.10.1(eslint@10.12.0(supports-color@8.1.1))':
     dependencies:
