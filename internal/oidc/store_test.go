@@ -620,6 +620,10 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(sql.ErrNoRows),
 		s.mock.
 			EXPECT().
+			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7203").
+			Return(fmt.Errorf("error revoking oauth2 access token session with request id '65471ccb-d650-4006-a95f-cb4f4e3d7203': %w", storage.ErrNoRowsAffected)),
+		s.mock.
+			EXPECT().
 			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "rt_example1").
 			Return(nil),
 		s.mock.
@@ -697,6 +701,7 @@ func (s *StoreSuite) TestRevokeSessions() {
 	s.NoError(s.store.RevokeAccessToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200"))
 	s.EqualError(s.store.RevokeAccessToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201"), "not found")
 	s.EqualError(s.store.RevokeAccessToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202"), "not_found")
+	s.EqualError(s.store.RevokeAccessToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7203"), "not_found")
 
 	s.NoError(s.store.DeleteRefreshTokenSession(s.ctx, "rt_example1"))
 	s.EqualError(s.store.DeleteRefreshTokenSession(s.ctx, "rt_example2"), "not found")
