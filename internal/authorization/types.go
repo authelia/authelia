@@ -118,6 +118,10 @@ func NewObjectMethodSchemeHostPath(rawMethod, rawScheme, rawHost, rawPath []byte
 func NewObjectMethodURL(rawMethod, rawURL []byte) (object *Object, err error) {
 	var objectURL *url.URL
 
+	if len(rawMethod) > MethodMaxLength {
+		return nil, fmt.Errorf("method header with length %d exceeds the maximum length of %d", len(rawMethod), MethodMaxLength)
+	}
+
 	if hasInvalidMethodCharacters(rawMethod) {
 		return nil, fmt.Errorf("method header with value '%s' has invalid characters", rawMethod)
 	}
@@ -178,7 +182,7 @@ func (r RuleMatchResult) IsPotentialMatch() (match bool) {
 
 func hasInvalidMethodCharacters(v []byte) bool {
 	for _, c := range v {
-		if (c < 0x41 || c > 0x5A) && (c < 0x61 || c > 0x7A) {
+		if (c < 0x41 || c > 0x5A) && (c < 0x61 || c > 0x7A) && c != 0x2D {
 			return true
 		}
 	}
