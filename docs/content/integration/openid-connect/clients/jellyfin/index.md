@@ -31,7 +31,7 @@ seo:
 - [Jellyfin]
   - [v10.11.11](https://github.com/jellyfin/jellyfin/releases/tag/v10.11.11)
 - [Jellyfin SSO-Auth Plugin]
-  - [v4.0.0.3](https://github.com/Buco7854/jellyfin-plugin-sso/releases/tag/v5.0.0.2)
+  - [v5.0.0.2](https://github.com/Buco7854/jellyfin-plugin-sso/releases/tag/v5.0.0.2)
 
 {{% oidc-common %}}
 
