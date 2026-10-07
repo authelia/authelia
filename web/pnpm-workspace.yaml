@@ -4,7 +4,7 @@ allowBuilds:
 overrides:
   brace-expansion: 5.0.12
   fast-uri: 4.2.1
-  js-yaml: 5.4.2
+  js-yaml: 5.4.3
   minimatch: 10.2.6
   picomatch: 4.0.7
   qs: 6.16.0
