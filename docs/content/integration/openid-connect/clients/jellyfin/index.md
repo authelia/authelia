@@ -165,6 +165,9 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
           </OidScopes>
           <CanonicalLinks></CanonicalLinks>
           <DisableHttps>false</DisableHttps>
+          <!-- this is required when pushed_authorizations.force is left with its default value.
+            If your configuration has pushed_authorizations.force: true globally, or require_pushed_authorization_requests: true in the client, set this to false instead.
+          -->
           <DisablePushedAuthorization>true</DisablePushedAuthorization>
           <DoNotValidateEndpoints>false</DoNotValidateEndpoints>
           <DoNotValidateIssuerName>false</DoNotValidateIssuerName>
@@ -198,7 +201,7 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
    - Role Claim: `groups`
    - Request Additional Scopes: `groups`
    - Set default username claim: `preferred_username`
-   - Disable Pushed Authorization: Checked
+   - Disable Pushed Authorization: Checked (uncheck this if `pushed_authorizations.force` or `<client>.require_pushed_authorization_requests` is `true` in your authelia config.)
    - Scheme Override: `https`
 7. All other options may remain unchecked or unconfigured.
 8. Click `Save`.
