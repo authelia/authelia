@@ -3,4 +3,5 @@
 # SPDX-License-Identifier: Apache-2.0
 
 overrides:
+  proxy-addr: 2.0.8
   qs: 6.16.0
