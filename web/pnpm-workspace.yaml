@@ -9,6 +9,7 @@ overrides:
   picomatch: 4.0.7
   qs: 6.16.0
   semver: 7.8.5
+  source-map-js: 1.2.2
   vite: 8.3.2
 peerDependencyRules:
   allowedVersions:
