@@ -28,7 +28,7 @@
     "@changesets/changelog-github": "1.0.1",
     "@changesets/cli": "3.0.3",
     "@eslint/css": "2.0.0",
-    "@eslint/json": "2.1.0",
+    "@eslint/json": "2.1.1",
     "@eslint/markdown": "8.0.3",
     "@fullhuman/postcss-purgecss": "8.0.0",
     "autoprefixer": "10.6.1",
