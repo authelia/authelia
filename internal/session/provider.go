@@ -29,18 +29,24 @@ func NewProvider(config schema.Session, certPool *x509.CertPool) *Provider {
 		return &Provider{errStartup: fmt.Errorf("error initializing session backend: %w", err)}
 	}
 
+	return NewProviderWithBackend(config, name, p, s)
+}
+
+// NewProviderWithBackend instantiates a session provider which stores its sessions in the given backend.
+func NewProviderWithBackend(config schema.Session, name string, backend session.Provider, serializer Serializer) *Provider {
 	provider := &Provider{
 		sessions:    map[string]*Session{},
-		backend:     p,
+		backend:     backend,
 		backendName: name,
 	}
 
 	var (
 		holder *session.Session
+		err    error
 	)
 
 	for _, dconfig := range config.Cookies {
-		if _, holder, err = NewProviderConfigAndSession(dconfig, name, s, p); err != nil {
+		if _, holder, err = NewProviderConfigAndSession(dconfig, name, serializer, backend); err != nil {
 			provider.errStartup = fmt.Errorf("error initializing session for domain '%s': %w", dconfig.Domain, err)
 
 			return provider

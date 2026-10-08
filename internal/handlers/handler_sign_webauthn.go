@@ -208,7 +208,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if c, err = w.ValidateLogin(user, *userSession.WebAuthn.SessionData, response); err != nil {
-		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeWebAuthn, iwebauthn.FormatError(err))
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeWebAuthn, newErrAuthenticationRejected(iwebauthn.FormatError(err)))
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)

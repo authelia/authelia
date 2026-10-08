@@ -660,6 +660,27 @@ func (p *SQLProvider) otpHMACSignature(values ...[]byte) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
+// WebhookCallbackSignature returns the signature of the values under the webhook callback HMAC key, which is used to
+// derive the key in the callback address given to a webhook destination. It returns an empty string when the key has
+// not been loaded, which is the case before the startup check has run.
+func (p *SQLProvider) WebhookCallbackSignature(values ...[]byte) (signature string) {
+	if len(p.keys.whcHMAC) == 0 {
+		return ""
+	}
+
+	h := hmac.New(sha256.New, p.keys.whcHMAC)
+
+	for i := range values {
+		h.Write(values[i])
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (p *SQLProvider) getHMACWebhookCallback(ctx context.Context) (key []byte, err error) {
+	return p.getHMACKey(ctx, hmacNameWebhookCallback, sha256.BlockSize)
+}
+
 func (p *SQLProvider) getHMACOneTimeCode(ctx context.Context) (key []byte, err error) {
 	return p.getHMACKey(ctx, hmacNameOneTimeCode, sha512.BlockSize)
 }

@@ -36,6 +36,7 @@ type Prometheus struct {
 	authnCounter        *prometheus.CounterVec
 	authnPasskeyCounter *prometheus.CounterVec
 	authn2FACounter     *prometheus.CounterVec
+	webhookCounter      *prometheus.CounterVec
 }
 
 // GetRegisterer returns the prometheus.Registerer.
@@ -62,6 +63,12 @@ func (r *Prometheus) RecordRequestOpenIDConnect(endpoint, statusCode string, ela
 // RecordAuthz takes the statusCode string to record the verify endpoint request metrics.
 func (r *Prometheus) RecordAuthz(statusCode string) {
 	r.authzCounter.WithLabelValues(statusCode).Inc()
+}
+
+// RecordWebhookDelivery takes the destination name, event type, and outcome to record webhook delivery metrics. The
+// outcome is one of 'delivered', 'retried', or 'dropped'.
+func (r *Prometheus) RecordWebhookDelivery(destination, event, outcome string) {
+	r.webhookCounter.WithLabelValues(destination, event, outcome).Inc()
 }
 
 // RecordAuthn takes the success and regulated booleans and a method string to record the authentication metrics.
@@ -138,6 +145,15 @@ func (r *Prometheus) register() (err error) {
 			Help:      "The number of authz requests processed.",
 		},
 		[]string{"code"},
+	)
+
+	r.webhookCounter = promauto.With(r.registry).NewCounterVec(
+		prometheus.CounterOpts{
+			Subsystem: "authelia",
+			Name:      "webhook_delivery",
+			Help:      "The number of webhook deliveries processed.",
+		},
+		[]string{"destination", "event", "outcome"},
 	)
 
 	r.authnCounter = promauto.With(r.registry).NewCounterVec(

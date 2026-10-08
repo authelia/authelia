@@ -17,7 +17,7 @@ func newDocsCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newDocsCLICmd(), newDocsDataCmd(), newDocsDateCmd(), newDocsSEOCmd(), newDocsJSONSchemaCmd(), newDocsManageCmd())
+	cmd.AddCommand(newDocsAPICmd(), newDocsCLICmd(), newDocsDataCmd(), newDocsDateCmd(), newDocsSEOCmd(), newDocsJSONSchemaCmd(), newDocsManageCmd())
 
 	return cmd
 }
