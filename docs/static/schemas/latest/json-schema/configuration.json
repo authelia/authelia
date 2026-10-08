@@ -3713,6 +3713,15 @@
     },
     "ServerHeaders": {
       "properties": {
+        "allowed_hosts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Allowed Hosts",
+          "description": "The list of allowed Host header values. Requests with any other Host header receive a 404 Not Found response."
+        },
         "csp_template": {
           "type": "string",
           "title": "CSP Template",
