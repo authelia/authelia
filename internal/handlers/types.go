@@ -71,12 +71,14 @@ type bodySignPasskeyRequest struct {
 }
 
 type bodyGETUserSessionElevate struct {
-	RequireSecondFactor bool `json:"require_second_factor"`
-	SkipSecondFactor    bool `json:"skip_second_factor"`
-	CanSkipSecondFactor bool `json:"can_skip_second_factor"`
-	FactorKnowledge     bool `json:"factor_knowledge"`
-	Elevated            bool `json:"elevated"`
-	Expires             int  `json:"expires"`
+	RequireSecondFactor     bool     `json:"require_second_factor"`
+	SkipSecondFactor        bool     `json:"skip_second_factor"`
+	CanSkipSecondFactor     bool     `json:"can_skip_second_factor"`
+	FactorKnowledge         bool     `json:"factor_knowledge"`
+	Elevated                bool     `json:"elevated"`
+	Expires                 int      `json:"expires"`
+	RequireReauthentication bool     `json:"require_reauthentication"`
+	ReauthenticationMethods []string `json:"reauthentication_methods"`
 }
 
 type bodyPOSTUserSessionElevate struct {

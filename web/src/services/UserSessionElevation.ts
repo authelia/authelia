@@ -14,6 +14,8 @@ import {
     validateStatusOneTimeCode,
 } from "@services/Api";
 
+export type ReauthenticationMethod = "password" | "second_factor";
+
 export interface UserSessionElevation {
     require_second_factor: boolean;
     skip_second_factor: boolean;
@@ -21,6 +23,8 @@ export interface UserSessionElevation {
     factor_knowledge: boolean;
     elevated: boolean;
     expires: number;
+    require_reauthentication: boolean;
+    reauthentication_methods: ReauthenticationMethod[];
 }
 
 export interface UserSessionElevationGenerateData {
