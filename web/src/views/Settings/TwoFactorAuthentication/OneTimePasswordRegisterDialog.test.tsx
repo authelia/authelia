@@ -131,6 +131,11 @@ async function advanceToRegisterStep() {
     await waitFor(() => expect(getTOTPSecretMock).toHaveBeenCalled());
 }
 
+async function advanceToIssuedSecret() {
+    await advanceToRegisterStep();
+    await screen.findByTestId("qr-code");
+}
+
 async function advanceToConfirmStep() {
     await advanceToRegisterStep();
     next();
@@ -378,7 +383,7 @@ describe("register step", () => {
 
     it("exposes the URI and secret through copy buttons", async () => {
         renderDialog();
-        await advanceToRegisterStep();
+        await advanceToIssuedSecret();
 
         fireEvent.click(document.getElementById("qr-toggle") as HTMLElement);
 
@@ -518,7 +523,7 @@ describe("closing", () => {
         const setClosed = vi.fn();
 
         renderDialog({ setClosed });
-        await advanceToRegisterStep();
+        await advanceToIssuedSecret();
 
         cancel();
 
@@ -530,7 +535,7 @@ describe("closing", () => {
         stopTOTPRegisterMock.mockRejectedValue(new Error("boom"));
 
         renderDialog();
-        await advanceToRegisterStep();
+        await advanceToIssuedSecret();
 
         cancel();
 
@@ -562,7 +567,7 @@ describe("dismissal", () => {
 
     it("stops the registration when Escape is pressed after a secret was issued", async () => {
         renderDialog();
-        await advanceToRegisterStep();
+        await advanceToIssuedSecret();
 
         fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
 
