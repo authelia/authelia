@@ -27,16 +27,33 @@ This guide effectively documents the usage of the
 /config/assets/
 ├── favicon.ico
 ├── logo.png
-└── locales/<lang>[-[variant]]/<namespace>.json
+├── locales/<lang>[-[variant]]/<namespace>.json
+└── static/custom/
 ```
 
 ## Assets
 
-|        Asset        |  File Name  | Directory |          Notes          |
-| :-----------------: | :---------: | :-------: | :---------------------: |
-|       Favicon       | favicon.ico |    No     |           N/A           |
-|        Logo         |  logo.png   |    No     |           N/A           |
-| Translation Locales |   locales   |    Yes    | see [locales](#locales) |
+|        Asset        |   File Name   | Directory |               Notes                |
+| :-----------------: | :-----------: | :-------: | :--------------------------------: |
+|       Favicon       |  favicon.ico  |    No     |                N/A                 |
+|        Logo         |   logo.png    |    No     |                N/A                 |
+| Translation Locales |    locales    |    Yes    |      see [locales](#locales)       |
+|    Custom Assets    | static/custom |    Yes    | see [static/custom](#staticcustom) |
+
+## static/custom
+
+The `static/custom` directory is served as is at the `/static/custom/` path of your Authelia deployment. For example a
+file at `static/custom/theme.css` is served at `https://auth.example.com/static/custom/theme.css`.
+
+This directory is intended for arbitrary assets you wish to reference yourself, such as images or stylesheets. Authelia
+does not reference any of these files on its own.
+
+The route is only registered when both the [asset_path](../../configuration/miscellaneous/server.md#asset_path) option
+is configured and the `static/custom` directory exists at the time the server starts. Adding the directory to an already
+running instance requires a restart.
+
+Directory listings are not generated, and requests which do not resolve to a file within this directory return a 404
+response.
 
 ## locales
 
