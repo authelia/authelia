@@ -11,6 +11,7 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/rfc8693"
 	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
@@ -56,6 +57,13 @@ type ClientStore interface {
 // MemoryClientStore is an implementation of the ClientStore which just stores the clients in memory.
 type MemoryClientStore struct {
 	clients map[string]Client
+}
+
+// TokenExchangePolicy describes a registered client permitted to perform a Token Exchange using tokens issued to
+// this client as the 'subject_token', optionally restricted to specific requested token types.
+type TokenExchangePolicy struct {
+	ClientID            string
+	RequestedTokenTypes []string
 }
 
 // RegisteredClient represents a registered client.
@@ -138,6 +146,14 @@ type RegisteredClient struct {
 
 	ConsentPolicy         ClientConsentPolicy
 	RequestedAudienceMode ClientRequestedAudienceMode
+
+	SubjectTokenTypesSupported     []string
+	SubjectTokenIssuersSupported   []string
+	ActorTokenTypesSupported       []string
+	ActorTokenIssuersSupported     []string
+	ActorTokenWithoutMayActAllowed bool
+	RequestTokenTypesSupported     []string
+	SubjectTokenClientsSupported   []TokenExchangePolicy
 
 	RequestURIs    []string
 	JSONWebKeys    *jose.JSONWebKeySet
@@ -1159,6 +1175,9 @@ var (
 	_ oauthelia2.RequestedAudienceImplicitClient                          = (*RegisteredClient)(nil)
 	_ oauthelia2.JWTProfileClient                                         = (*RegisteredClient)(nil)
 	_ oauthelia2.IntrospectionJWTResponseClient                           = (*RegisteredClient)(nil)
+	_ rfc8693.Client                                                      = (*RegisteredClient)(nil)
+
+	_ rfc8693.Session = (*Session)(nil)
 
 	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
 	_ RequesterFormSession = (*model.OAuth2DeviceCodeSession)(nil)
