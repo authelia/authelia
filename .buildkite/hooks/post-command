@@ -69,7 +69,7 @@ if [[ ${BUILDKITE_LABEL} =~ (:chrome:|:nodejs:) ]] && [[ -n ${BUILDKITE_ANALYTIC
 
     # gotestsum synthesizes a failure when a suite dies without a terminal event, which is what a
     # `panic: test timed out` looks like in the event stream.
-    if ! gotestsum --junitfile "${JUNIT}" --raw-command -- cat "${RESULTS}" > /dev/null; then
+    if ! gotestsum --junitfile-hide-parent-failures --junitfile "${JUNIT}" --raw-command -- cat "${RESULTS}" > /dev/null; then
       echo "Failed to convert ${RESULTS} to JUnit" >&2
     fi
 
