@@ -3,7 +3,7 @@ allowBuilds:
   sharp: true
 overrides:
   "@babel/traverse": 8.0.7
-  baseline-browser-mapping: 2.11.27
+  baseline-browser-mapping: 2.11.28
   brace-expansion: 5.0.12
   fast-uri: 4.2.1
   next: 16.3.8
