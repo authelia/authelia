@@ -21,7 +21,7 @@
     "@thulite/images": "3.3.4",
     "@thulite/inline-svg": "1.2.2",
     "@thulite/seo": "2.4.4",
-    "bootstrap-icons": "1.13.1",
+    "bootstrap-icons": "1.13.2",
     "thulite": "3.0.3"
   },
   "devDependencies": {
