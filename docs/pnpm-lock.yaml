@@ -258,8 +258,8 @@ importers:
         specifier: 3.9.9
         version: 3.9.9
       vite:
-        specifier: 8.3.3
-        version: 8.3.3(sass-embedded@1.105.1)(sass@1.105.1)(yaml@2.9.0)
+        specifier: 8.3.4
+        version: 8.3.4(sass-embedded@1.105.1)(sass@1.105.1)(yaml@2.9.0)
     optionalDependencies:
       hugo-extended:
         specifier: 0.167.0
@@ -2388,8 +2388,8 @@ packages:
     resolution: {integrity: sha512-zj/ob3UsvJGN0whEAKFp53REA5X66hvffVqoCtVQAakJKnKlH+/PcOfMoFwIG/o4rElqLv/ycAFlx8ZlXUorCg==}
     engines: {node: '>=18.12.0'}
 
-  vite@8.3.3:
-    resolution: {integrity: sha512-cTAldKPImjg6c+gk48U19POPn3GCBzZwpdsN8ZMEEcbpes+6/wvfqUd0C2y3qYY4wsj8PwgFwrZ/1jBPVttMSg==}
+  vite@8.3.4:
+    resolution: {integrity: sha512-IftLE8phJhdNRIGNEV4JCCvfNScoZQVfcXaN8TQropWGJtOHcu+iAB9pHcuGvmEb/kddw0LBe/jS8ztdC6xdiQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -4754,7 +4754,7 @@ snapshots:
 
   verkit@0.3.2: {}
 
-  vite@8.3.3(sass-embedded@1.105.1)(sass@1.105.1)(yaml@2.9.0):
+  vite@8.3.4(sass-embedded@1.105.1)(sass@1.105.1)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
