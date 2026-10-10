@@ -40,7 +40,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/otiai10/copy v1.14.1
 	github.com/pelletier/go-toml/v2 v2.4.3
-	github.com/prometheus/client_golang v1.24.1
+	github.com/prometheus/client_golang v1.25.0
 	github.com/rpadovani/sqlx-v2 v0.1.2
 	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761
 	github.com/sirupsen/logrus v1.10.2
@@ -96,9 +96,9 @@ require (
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.70.1 // indirect
-	github.com/prometheus/procfs v0.21.1 // indirect
+	github.com/prometheus/client_model v0.6.3 // indirect
+	github.com/prometheus/common v0.72.0 // indirect
+	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/redis/go-redis/v9 v9.18.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/test-go/testify v1.1.4 // indirect
@@ -116,7 +116,7 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 replace (
