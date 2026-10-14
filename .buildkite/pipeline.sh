@@ -87,7 +87,7 @@ steps:
         if: build.env("CI_BYPASS") != "true"
 
       - label: ":docker: Build Image [coverage]"
-        command: "authelia-scripts docker build --container=coverage"
+        command: "authelia-scripts docker build --container=coverage --tag=authelia:dist-\$\${BUILDKITE_JOB_ID}"
         retry:
           manual:
             permit_on_passed: true
