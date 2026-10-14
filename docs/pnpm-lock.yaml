@@ -243,8 +243,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       eslint-plugin-prettier:
-        specifier: 5.5.6
-        version: 5.5.6(eslint@10.12.0(supports-color@8.1.1))(prettier@3.9.9)
+        specifier: 5.5.7
+        version: 5.5.7(eslint@10.12.0(supports-color@8.1.1))(prettier@3.9.9)
       flexsearch:
         specifier: 0.8.212
         version: 0.8.212
@@ -845,6 +845,9 @@ packages:
   '@docsearch/js@5.1.2':
     resolution: {integrity: sha512-ZScgB1upT5i4Ob1EYfp964lc5Xx0w9VUMLTeH099LPAU7v01STDIgIMu31rhYcLRi4RHIr0UtfB2VvcRPKvNWQ==}
 
+  '@dual-bundle/import-meta-resolve@4.2.1':
+    resolution: {integrity: sha512-id+7YRUgoUX6CgV0DtuhirQWodeeA7Lf4i2x71JS/vtA5pRb/hIGWlw+G6MeXvsM+MXrz0VAydTGElX1rAfgPg==}
+
   '@eslint-community/eslint-utils@4.10.1':
     resolution: {integrity: sha512-cuadcxVFE8sDK6iWJbs8Sn0av2Nrh2QSGQhVlBW9AaAHqHwjWsZHT8LJ4hFGPh7ASBV2deFdM7H/DPjulmh8rg==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -1424,8 +1427,8 @@ packages:
     resolution: {integrity: sha512-nlFHURh+u+dY78hVMvYZbGlUKLGcPpZTgzOxBy162/Scli1/W4i7vKsQABqjBw7OHVhAqlCL24TLiUf1mibk5A==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  eslint-plugin-prettier@5.5.6:
-    resolution: {integrity: sha512-ifetmTcxWfz+4qRW3pH/ujdTq2jQIj59AxJMIN26K5avYgU8dxycUETQonWiW+wPrYXA0j3Try0l1CnwVQtDqQ==}
+  eslint-plugin-prettier@5.5.7:
+    resolution: {integrity: sha512-WjHyn3GrFd+ZR0rzsLiM4zJZ35PZMOE0SUIxzGmnWNG0126yNfJKJzObmmkYDwHJfGlkz3PSlzyG9ez/LJntwg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
       '@types/eslint': '>=8.0.0'
@@ -2297,8 +2300,8 @@ packages:
     resolution: {integrity: sha512-gAQ9qrUN/UCypHtGFbbe7Rc/f9bzO88IwrG8TDo/aMKAApKyD6E3W4Cm0EfhfBb6Z6SKt59tTCTfD+n1xmAvMg==}
     engines: {node: '>=16.0.0'}
 
-  synckit@0.11.13:
-    resolution: {integrity: sha512-eNRKgb3z66Yp3D2CixVujOUvXLFUTij/zVnV8KRyvFdQwpz7I5DS8UfRkTeLzb64u+dkzDSdelE24izu+zSSUg==}
+  synckit@0.12.3:
+    resolution: {integrity: sha512-U+/AXT6LWsxnj2vz9HeUuPWBNgdWxjyIEjEPdbJARC9txmgPzo2VEdqnFo4hHaNyMPtycyVJrSaQYeQv/PoyyA==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
   tar@7.5.22:
@@ -3189,6 +3192,8 @@ snapshots:
 
   '@docsearch/js@5.1.2': {}
 
+  '@dual-bundle/import-meta-resolve@4.2.1': {}
+
   '@eslint-community/eslint-utils@4.10.1(eslint@10.12.0(supports-color@8.1.1))':
     dependencies:
       eslint: 10.12.0(supports-color@8.1.1)
@@ -3671,12 +3676,12 @@ snapshots:
 
   eslint-formatter-visualstudio@9.0.1: {}
 
-  eslint-plugin-prettier@5.5.6(eslint@10.12.0(supports-color@8.1.1))(prettier@3.9.9):
+  eslint-plugin-prettier@5.5.7(eslint@10.12.0(supports-color@8.1.1))(prettier@3.9.9):
     dependencies:
       eslint: 10.12.0(supports-color@8.1.1)
       prettier: 3.9.9
       prettier-linter-helpers: 1.0.1
-      synckit: 0.11.13
+      synckit: 0.12.3
 
   eslint-scope@9.1.2:
     dependencies:
@@ -4655,8 +4660,9 @@ snapshots:
   sync-message-port@1.2.0:
     optional: true
 
-  synckit@0.11.13:
+  synckit@0.12.3:
     dependencies:
+      '@dual-bundle/import-meta-resolve': 4.2.1
       '@pkgr/core': 0.3.6
 
   tar@7.5.22:
