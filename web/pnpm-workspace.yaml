@@ -3,7 +3,7 @@ allowBuilds:
   unrs-resolver: true
 overrides:
   brace-expansion: 5.0.12
-  fast-uri: 4.2.1
+  fast-uri: 4.2.2
   js-yaml: 5.4.3
   minimatch: 10.2.6
   picomatch: 4.0.7
