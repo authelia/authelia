@@ -392,7 +392,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	handler = middlewares.StripPath(config.Server.Address.RouterPath())(handler)
 
-	handler = middlewares.MultiWrap(handler, middlewares.RecoverPanic, middlewares.NewMetricsRequest(providers.Metrics))
+	handler = middlewares.MultiWrap(handler, middlewares.RecoverPanic, middlewares.NewMetricsRequest(providers.Metrics), middlewares.AllowedHosts(config.Server.Headers.AllowedHosts))
 
 	return handler, nil
 }
