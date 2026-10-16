@@ -5,6 +5,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { completeTOTPSignIn } from "@services/OneTimePassword";
+import { RateLimitedError } from "@services/RateLimit";
 import SecondFactorMethodOneTimePassword from "@views/Settings/Common/SecondFactorMethodOneTimePassword";
 
 const mocks = vi.hoisted(() => ({
@@ -66,7 +67,7 @@ beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.config = { digits: 6, period: 30 };
     mocks.configError = null;
-    completeSignInMock.mockResolvedValue({} as any);
+    completeSignInMock.mockResolvedValue({ redirect: "https://example.com" });
 });
 
 afterEach(() => {
@@ -133,34 +134,33 @@ describe("sign in", () => {
         await waitFor(() => expect(screen.getByTestId("otp-dial")).toHaveAttribute("data-passcode", ""));
     });
 
-    it("notifies and fails when the code is rejected", async () => {
-        completeSignInMock.mockResolvedValue(null as any);
+    it("succeeds when the response carries no data", async () => {
+        completeSignInMock.mockResolvedValue(undefined);
 
         const { onSecondFactorSuccess } = renderMethod();
 
         fireEvent.click(screen.getByTestId("dial-full"));
 
-        await waitFor(() =>
-            expect(mocks.createErrorNotification).toHaveBeenCalledWith("The One-Time Password might be wrong"),
-        );
-        await waitFor(() => expect(screen.getByTestId("otp-dial")).toHaveAttribute("data-state", "3"));
-        expect(onSecondFactorSuccess).not.toHaveBeenCalled();
+        await waitFor(() => expect(onSecondFactorSuccess).toHaveBeenCalled());
+        expect(screen.getByTestId("otp-dial")).toHaveAttribute("data-state", "2");
     });
 
     it("fails when the request throws", async () => {
         completeSignInMock.mockRejectedValue(new Error("boom"));
 
-        renderMethod();
+        const { onSecondFactorSuccess } = renderMethod();
 
         fireEvent.click(screen.getByTestId("dial-full"));
 
         await waitFor(() => expect(screen.getByTestId("otp-dial")).toHaveAttribute("data-state", "3"));
         expect(console.error).toHaveBeenCalled();
+        expect(mocks.createErrorNotification).not.toHaveBeenCalled();
+        expect(onSecondFactorSuccess).not.toHaveBeenCalled();
     });
 
     it("reports rate limiting and recovers after the retry window", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 4 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(4));
 
         renderMethod();
 
@@ -180,7 +180,7 @@ describe("sign in", () => {
 
     it("ignores new submissions while rate limited", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 4 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(4));
 
         renderMethod();
 
@@ -205,7 +205,7 @@ describe("sign in", () => {
 
         expect(completeSignInMock).toHaveBeenCalledTimes(1);
 
-        resolve({});
+        resolve(undefined);
         await waitFor(() => expect(screen.getByTestId("otp-dial")).toHaveAttribute("data-state", "2"));
     });
 
@@ -222,7 +222,7 @@ describe("sign in", () => {
 
     it("clears the rate limit timer on unmount", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 4 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(4));
 
         const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
 
@@ -231,7 +231,6 @@ describe("sign in", () => {
         fireEvent.click(screen.getByTestId("dial-full"));
         await vi.waitFor(() => expect(screen.getByTestId("otp-dial")).toHaveAttribute("data-state", "4"));
 
-        // Identify the component's own rate limit timer rather than any timer React happens to clear.
         const index = setTimeoutSpy.mock.calls.findIndex(([, timeout]) => timeout === 4000);
 
         expect(index).toBeGreaterThanOrEqual(0);

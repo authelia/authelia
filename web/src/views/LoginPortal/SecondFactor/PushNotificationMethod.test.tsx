@@ -10,6 +10,7 @@ import {
     getPreferredDuoDevice,
     initiateDuoDeviceSelectionProcess,
 } from "@services/PushNotification";
+import { RateLimitedError } from "@services/RateLimit";
 import { AuthenticationLevel } from "@services/State";
 import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
 
@@ -108,7 +109,7 @@ beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "debug").mockImplementation(() => {});
     getPreferredMock.mockResolvedValue({} as any);
-    completeSignInMock.mockResolvedValue(null as any);
+    completeSignInMock.mockResolvedValue(undefined);
     initiateSelectionMock.mockResolvedValue({} as any);
     completeSelectionMock.mockResolvedValue(undefined as any);
 });
@@ -180,7 +181,7 @@ describe("preferred device lookup", () => {
 describe("sign in", () => {
     it("reports success after the success delay", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ data: { redirect: "https://example.com" } } as any);
+        completeSignInMock.mockResolvedValue({ redirect: "https://example.com" } as any);
 
         const { props } = renderMethod();
 
@@ -192,9 +193,9 @@ describe("sign in", () => {
         expect(props.onSignInSuccess).toHaveBeenCalledWith("https://example.com");
     });
 
-    it("reports success with no redirect when the response carries no data", async () => {
+    it("reports success with no redirect when the response carries no redirect", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ data: undefined } as any);
+        completeSignInMock.mockResolvedValue({} as any);
 
         const { props } = renderMethod();
 
@@ -205,17 +206,18 @@ describe("sign in", () => {
         expect(props.onSignInSuccess).toHaveBeenCalledWith(undefined);
     });
 
-    it("fails when the sign in response is missing", async () => {
-        completeSignInMock.mockResolvedValue(null as any);
+    it("reports success with no redirect when the sign in response is missing", async () => {
+        vi.useFakeTimers();
+        completeSignInMock.mockResolvedValue(undefined);
 
         const { props } = renderMethod();
 
-        await waitFor(() =>
-            expect(props.onSignInError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "There was an issue completing sign in process" }),
-            ),
-        );
-        expect(screen.getByTestId("failure-icon")).toBeInTheDocument();
+        await vi.waitFor(() => expect(screen.getByTestId("success-icon")).toBeInTheDocument());
+
+        await vi.advanceTimersByTimeAsync(1500);
+
+        expect(props.onSignInSuccess).toHaveBeenCalledWith(undefined);
+        expect(props.onSignInError).not.toHaveBeenCalled();
     });
 
     it("fails when the sign in request throws", async () => {
@@ -243,10 +245,8 @@ describe("sign in", () => {
 
     it("shows the device selection when the result requires auth", async () => {
         completeSignInMock.mockResolvedValue({
-            data: {
-                devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
-                result: "auth",
-            },
+            devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
+            result: "auth",
         } as any);
 
         renderMethod();
@@ -259,9 +259,7 @@ describe("sign in", () => {
     });
 
     it("moves to the enroll state when no compatible device exists", async () => {
-        completeSignInMock.mockResolvedValue({
-            data: { enroll_url: "https://enroll.example.com", result: "enroll" },
-        } as any);
+        completeSignInMock.mockResolvedValue({ enroll_url: "https://enroll.example.com", result: "enroll" } as any);
 
         const { props } = renderMethod({ duoSelfEnrollment: true });
 
@@ -275,9 +273,7 @@ describe("sign in", () => {
     });
 
     it("does not offer self enrollment when it is disabled", async () => {
-        completeSignInMock.mockResolvedValue({
-            data: { enroll_url: "https://enroll.example.com", result: "enroll" },
-        } as any);
+        completeSignInMock.mockResolvedValue({ enroll_url: "https://enroll.example.com", result: "enroll" } as any);
 
         renderMethod({ duoSelfEnrollment: false });
 
@@ -288,7 +284,7 @@ describe("sign in", () => {
     });
 
     it("does not offer self enrollment when no enroll url is returned", async () => {
-        completeSignInMock.mockResolvedValue({ data: { result: "enroll" } } as any);
+        completeSignInMock.mockResolvedValue({ result: "enroll" } as any);
 
         renderMethod({ duoSelfEnrollment: true });
 
@@ -299,7 +295,7 @@ describe("sign in", () => {
     });
 
     it("fails when the Duo policy denies the device", async () => {
-        completeSignInMock.mockResolvedValue({ data: { result: "deny" } } as any);
+        completeSignInMock.mockResolvedValue({ result: "deny" } as any);
 
         const { props } = renderMethod();
 
@@ -313,7 +309,7 @@ describe("sign in", () => {
 
     it("reports rate limiting and recovers after the retry window", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 5 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(5));
 
         const { props } = renderMethod();
 
@@ -332,7 +328,7 @@ describe("sign in", () => {
     });
 
     it("retries the sign in from the failure state", async () => {
-        completeSignInMock.mockResolvedValue(null as any);
+        completeSignInMock.mockRejectedValue(new Error("boom"));
 
         renderMethod();
 
@@ -468,10 +464,8 @@ describe("device selection", () => {
 
     it("returns to the previous state when selection is dismissed", async () => {
         completeSignInMock.mockResolvedValue({
-            data: {
-                devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
-                result: "auth",
-            },
+            devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
+            result: "auth",
         } as any);
 
         renderMethod();
@@ -485,10 +479,8 @@ describe("device selection", () => {
 
     it("persists a newly selected device and signs in again", async () => {
         completeSignInMock.mockResolvedValue({
-            data: {
-                devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
-                result: "auth",
-            },
+            devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
+            result: "auth",
         } as any);
 
         renderMethod({ registered: false });
@@ -507,10 +499,8 @@ describe("device selection", () => {
 
     it("notifies the parent when an unregistered user picks a device", async () => {
         completeSignInMock.mockResolvedValue({
-            data: {
-                devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
-                result: "auth",
-            },
+            devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
+            result: "auth",
         } as any);
 
         const { props } = renderMethod({ registered: false });
@@ -524,10 +514,8 @@ describe("device selection", () => {
 
     it("does not notify the parent when the user is already registered", async () => {
         completeSignInMock.mockResolvedValue({
-            data: {
-                devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
-                result: "auth",
-            },
+            devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
+            result: "auth",
         } as any);
 
         const { props } = renderMethod({ registered: true });
@@ -542,10 +530,8 @@ describe("device selection", () => {
 
     it("reports failures updating the preferred Duo device", async () => {
         completeSignInMock.mockResolvedValue({
-            data: {
-                devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
-                result: "auth",
-            },
+            devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
+            result: "auth",
         } as any);
         completeSelectionMock.mockRejectedValue(new Error("boom"));
 
@@ -564,10 +550,8 @@ describe("device selection", () => {
 
     it("swallows cancelled preferred device updates", async () => {
         completeSignInMock.mockResolvedValue({
-            data: {
-                devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
-                result: "auth",
-            },
+            devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
+            result: "auth",
         } as any);
         completeSelectionMock.mockRejectedValue({ __CANCEL__: true });
 
@@ -603,9 +587,7 @@ describe("device selection", () => {
 describe("self enrollment", () => {
     it("opens the enrollment url in a new tab", async () => {
         const open = vi.spyOn(window, "open").mockImplementation(() => null);
-        completeSignInMock.mockResolvedValue({
-            data: { enroll_url: "https://enroll.example.com", result: "enroll" },
-        } as any);
+        completeSignInMock.mockResolvedValue({ enroll_url: "https://enroll.example.com", result: "enroll" } as any);
 
         renderMethod({ duoSelfEnrollment: true });
 
@@ -622,11 +604,11 @@ describe("self enrollment", () => {
 describe("cleanup and edge cases", () => {
     it("clears both pending timers on unmount", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 5 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(5));
 
         const { unmount } = renderMethod();
 
-        await vi.waitFor(() => expect(completeSignInMock).toHaveBeenCalled());
+        await vi.waitFor(() => expect(document.getElementById("rate-limit-countdown")).toBeInTheDocument());
 
         const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
 
@@ -637,7 +619,7 @@ describe("cleanup and edge cases", () => {
 
     it("clears the success timer on unmount", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ data: { redirect: "https://example.com" } } as any);
+        completeSignInMock.mockResolvedValue({ redirect: "https://example.com" } as any);
 
         const { props, unmount } = renderMethod();
 
@@ -654,7 +636,7 @@ describe("cleanup and edge cases", () => {
 
     it("replaces an in flight rate limit timer", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 5 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(5));
 
         const { props } = renderMethod();
 
@@ -705,7 +687,7 @@ describe("cleanup and edge cases", () => {
     });
 
     it("returns to the pre-selection state after browsing devices from the method container", async () => {
-        completeSignInMock.mockResolvedValue(null as any);
+        completeSignInMock.mockRejectedValue(new Error("boom"));
         initiateSelectionMock.mockResolvedValue({
             devices: [{ capabilities: ["push"], device: "device-a", display_name: "Phone" }],
             result: "auth",
