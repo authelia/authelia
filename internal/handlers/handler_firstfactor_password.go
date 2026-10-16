@@ -215,7 +215,7 @@ func FirstFactorReauthenticatePOST(delayer middlewares.Delayer) middlewares.Requ
 
 		if ban, value, expires, err = ctx.Providers.Regulator.BanCheck(ctx, userSession.Username); err != nil {
 			if errors.Is(err, regulation.ErrUserIsBanned) {
-				doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, nil)
+				doMarkAuthenticationAttemptWithUsername(ctx, false, regulation.NewBan(ban, value, expires), userSession.Username, regulation.AuthType1FA, nil)
 
 				respondUnauthorized(ctx, messageAuthenticationFailed)
 

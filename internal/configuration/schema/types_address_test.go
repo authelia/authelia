@@ -761,7 +761,7 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 	}{
 		{
 			"ShouldNotBeSocket",
-			"tcp://:9091",
+			"tcp://127.0.0.1:0",
 			false,
 			nil,
 			"",
@@ -862,8 +862,8 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 					assert.EqualError(t, err, tc.lnerr)
 					assert.Nil(t, ln)
 				} else {
-					assert.NoError(t, err)
-					assert.NotNil(t, ln)
+					require.NoError(t, err)
+					require.NotNil(t, ln)
 
 					assert.NoError(t, ln.Close())
 				}

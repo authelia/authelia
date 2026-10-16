@@ -30,7 +30,7 @@ func TestResolveCmdName(t *testing.T) {
 		},
 		{
 			"ShouldResolveDocsSubCmd",
-			newRootCmd().Commands()[0].Commands()[0],
+			rootSubCmd(newRootCmd(), cmdUseCode).Commands()[0],
 			"code.keys",
 		},
 		{
@@ -66,7 +66,7 @@ func TestRootCmdGetArgs(t *testing.T) {
 
 				cmd.SetArgs([]string{"a", "b"})
 
-				return cmd.Commands()[0]
+				return rootSubCmd(cmd, cmdUseCode)
 			},
 			[]string{"c", "d"},
 			[]string{"authelia-gen", "code", "c", "d"},
@@ -74,9 +74,7 @@ func TestRootCmdGetArgs(t *testing.T) {
 		{
 			"ShouldReturnRootCmdWithoutArgs",
 			func() *cobra.Command {
-				cmd := newRootCmd()
-
-				return cmd.Commands()[0]
+				return rootSubCmd(newRootCmd(), cmdUseCode)
 			},
 			nil,
 			[]string{"authelia-gen", "code"},
@@ -84,13 +82,7 @@ func TestRootCmdGetArgs(t *testing.T) {
 		{
 			"ShouldReturnRootCmdArgsWithoutArgumentSpec",
 			func() *cobra.Command {
-				for _, subCmd := range newRootCmd().Commands() {
-					if subCmd.Name() == cmdUseMisc {
-						return subCmd.Commands()[3]
-					}
-				}
-
-				return nil
+				return rootSubCmd(newRootCmd(), cmdUseMisc).Commands()[3]
 			},
 			nil,
 			[]string{"authelia-gen", "misc", "release"},
@@ -118,7 +110,12 @@ func TestSortCmds(t *testing.T) {
 		{
 			"ShouldSortDocsCmd",
 			newDocsCmd(),
-			[]string{"cli", "data", pathJSONSchema, cmdUseManage, "seo", "date"},
+			[]string{cmdUseDocsAPI, "cli", "data", pathJSONSchema, cmdUseManage, "seo", "date"},
+		},
+		{
+			"ShouldSortDocsAPICmd",
+			newDocsAPICmd(),
+			[]string{cmdUseDocsAPIOpenAPI},
 		},
 		{
 			"ShouldSortDocsSEOCmd",
@@ -165,4 +162,14 @@ func TestSortCmds(t *testing.T) {
 			}
 		})
 	}
+}
+
+func rootSubCmd(cmd *cobra.Command, name string) *cobra.Command {
+	for _, subCmd := range cmd.Commands() {
+		if subCmd.Name() == name {
+			return subCmd
+		}
+	}
+
+	return nil
 }

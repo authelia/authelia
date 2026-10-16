@@ -25,6 +25,7 @@ type Configuration struct {
 	Regulation            Regulation            `koanf:"regulation" yaml:"regulation,omitempty" toml:"regulation,omitempty" json:"regulation,omitempty" jsonschema:"title=Regulation" jsonschema_description:"Regulation Configuration."`
 	Storage               Storage               `koanf:"storage" yaml:"storage,omitempty" toml:"storage,omitempty" json:"storage,omitempty" jsonschema:"title=Storage" jsonschema_description:"Storage Configuration."`
 	Notifier              Notifier              `koanf:"notifier" yaml:"notifier,omitempty" toml:"notifier,omitempty" json:"notifier,omitempty" jsonschema:"title=Notifier" jsonschema_description:"Notifier Configuration."`
+	Webhooks              Webhooks              `koanf:"webhooks" yaml:"webhooks,omitempty" toml:"webhooks,omitempty" json:"webhooks,omitempty" jsonschema:"title=Webhooks" jsonschema_description:"Webhooks configuration."`
 	Server                Server                `koanf:"server" yaml:"server,omitempty" toml:"server,omitempty" json:"server,omitempty" jsonschema:"title=Server" jsonschema_description:"Server Configuration."`
 	Telemetry             Telemetry             `koanf:"telemetry" yaml:"telemetry,omitempty" toml:"telemetry,omitempty" json:"telemetry,omitempty" jsonschema:"title=Telemetry" jsonschema_description:"Telemetry Configuration."`
 	WebAuthn              WebAuthn              `koanf:"webauthn" yaml:"webauthn,omitempty" toml:"webauthn,omitempty" json:"webauthn,omitempty" jsonschema:"title=WebAuthn" jsonschema_description:"WebAuthn Configuration."`

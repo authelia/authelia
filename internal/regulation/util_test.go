@@ -116,3 +116,10 @@ func TestFormatExpiresShort(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatExpiresRFC3339(t *testing.T) {
+	expires := time.Unix(1_700_000_000, 0).UTC()
+
+	assert.Equal(t, "", formatExpiresRFC3339(nil))
+	assert.Equal(t, "2023-11-14T22:13:20Z", formatExpiresRFC3339(&expires))
+}
