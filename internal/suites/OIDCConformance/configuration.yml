@@ -42,6 +42,7 @@ regulation:
   max_retries: 0
 
 session:
+  storage: 'cache'
   secret: 'unsecure_session_secret'
   cookies:
     - domain: 'example.com'
@@ -49,9 +50,10 @@ session:
       expiration: '1 hour'
       inactivity: '5 minutes'
       remember_me: '1 year'
+
+cache:
   redis:
-    host: 'redis'
-    port: 6379
+    address: 'tcp://redis:6379'
 
 authentication_backend:
   file:
