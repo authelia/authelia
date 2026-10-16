@@ -838,14 +838,46 @@ func TestNewIsRateLimitExempt(t *testing.T) {
 }
 
 func TestHandlerRateLimitAPI(t *testing.T) {
-	ctx := newTestAutheliaCtx("192.168.1.1")
+	testCases := []struct {
+		name       string
+		retryAfter time.Duration
+		expected   string
+	}{
+		{
+			"ShouldRenderWholeSeconds",
+			time.Second * 30,
+			"30",
+		},
+		{
+			"ShouldRoundPartialSecondsUp",
+			time.Millisecond * 1500,
+			"2",
+		},
+		{
+			"ShouldRenderSubSecondAsOne",
+			time.Millisecond,
+			"1",
+		},
+		{
+			"ShouldRenderZero",
+			0,
+			"0",
+		},
+	}
 
-	HandlerRateLimitAPI(ctx, 30*time.Second)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := newTestAutheliaCtx("192.168.1.1")
 
-	body := string(ctx.Response.Body())
-	assert.Contains(t, body, "Too Many Requests")
-	assert.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
-	assert.NotEmpty(t, ctx.Response.Header.Peek(fasthttp.HeaderRetryAfter))
+			HandlerRateLimitAPI(ctx, tc.retryAfter)
+
+			assert.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
+			assert.Equal(t, tc.expected, string(ctx.Response.Header.Peek(fasthttp.HeaderRetryAfter)))
+			assert.Equal(t, HeaderCacheControlNotStore, string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
+			assert.Equal(t, HeaderPragmaNoCache, string(ctx.Response.Header.Peek(fasthttp.HeaderPragma)))
+			assert.JSONEq(t, `{"status":"KO","message":"Too Many Requests"}`, string(ctx.Response.Body()))
+		})
+	}
 }
 
 func TestHandlerRateLimitOpenIDConnect(t *testing.T) {

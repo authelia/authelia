@@ -714,9 +714,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password/identity/finish:
@@ -753,9 +753,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password:
@@ -791,9 +791,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -826,9 +826,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   {{- end }}
@@ -940,9 +940,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     put:
@@ -983,9 +983,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/user/session/elevation/{id}:
@@ -1211,9 +1211,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -1558,9 +1558,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/secondfactor/duo_devices:
@@ -2141,9 +2141,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
           content:

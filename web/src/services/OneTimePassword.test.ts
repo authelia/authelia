@@ -2,11 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-    DeleteWithOptionalResponse,
-    PostWithOptionalResponse,
-    PostWithOptionalResponseRateLimited,
-} from "@services/Client";
+import { DeleteWithOptionalResponse, PostWithOptionalResponse } from "@services/Client";
 import { completeTOTPRegister, completeTOTPSignIn, stopTOTPRegister } from "@services/OneTimePassword";
 
 vi.mock("@services/Api", () => ({
@@ -16,13 +12,12 @@ vi.mock("@services/Api", () => ({
 vi.mock("@services/Client", () => ({
     DeleteWithOptionalResponse: vi.fn(),
     PostWithOptionalResponse: vi.fn(),
-    PostWithOptionalResponseRateLimited: vi.fn(),
 }));
 
 it("completes totp sign in", async () => {
-    (PostWithOptionalResponseRateLimited as any).mockResolvedValue("response");
+    (PostWithOptionalResponse as any).mockResolvedValue("response");
     const result = await completeTOTPSignIn("123456", "url", "flow", "flowtype", "sub", "code");
-    expect(PostWithOptionalResponseRateLimited).toHaveBeenCalledWith("/totp/signin", {
+    expect(PostWithOptionalResponse).toHaveBeenCalledWith("/totp/signin", {
         flow: "flowtype",
         flowID: "flow",
         subflow: "sub",

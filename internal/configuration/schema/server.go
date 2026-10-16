@@ -95,6 +95,47 @@ type ServerEndpointRateLimits struct {
 	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
 }
 
+// Endpoints returns a ServerEndpointRateLimitEndpoint for every endpoint rate limit in field order. The Config of each
+// ServerEndpointRateLimitEndpoint is a pointer to the field of this ServerEndpointRateLimits.
+func (r *ServerEndpointRateLimits) Endpoints() []ServerEndpointRateLimitEndpoint {
+	return []ServerEndpointRateLimitEndpoint{
+		{Name: "reset_password_start", Config: &r.ResetPasswordStart},
+		{Name: "reset_password_finish", Config: &r.ResetPasswordFinish},
+		{Name: "second_factor_totp", Config: &r.SecondFactorTOTP},
+		{Name: "second_factor_duo", Config: &r.SecondFactorDuo},
+		{Name: "second_factor_password", Config: &r.SecondFactorPassword},
+		{Name: "session_elevation_start", Config: &r.SessionElevationStart, Weight: weightElevatedSessionCodeLifespan},
+		{Name: "health", Config: &r.Health},
+		{Name: "session_elevation_finish", Config: &r.SessionElevationFinish, Weight: weightElevatedSessionElevationLifespan},
+		{Name: "openid_connect_token", Config: &r.OpenIDConnectToken},
+		{Name: "openid_connect_pushed_authorization_request", Config: &r.OpenIDConnectPushedAuthorizationRequest},
+		{Name: "openid_connect_userinfo", Config: &r.OpenIDConnectUserInfo},
+		{Name: "openid_connect_introspection", Config: &r.OpenIDConnectIntrospection},
+		{Name: "openid_connect_revocation", Config: &r.OpenIDConnectRevocation},
+	}
+}
+
+// ServerEndpointRateLimitEndpoint describes a single endpoint rate limit of ServerEndpointRateLimits.
+type ServerEndpointRateLimitEndpoint struct {
+	// Name is the configuration key of the endpoint rate limit.
+	Name string
+
+	// Config is the endpoint rate limit configuration.
+	Config *ServerEndpointRateLimit
+
+	// Weight returns the duration each default bucket period is multiplied by. A nil Weight means the default bucket
+	// periods are absolute durations.
+	Weight func(config *Configuration) time.Duration
+}
+
+func weightElevatedSessionCodeLifespan(config *Configuration) time.Duration {
+	return config.IdentityValidation.ElevatedSession.CodeLifespan
+}
+
+func weightElevatedSessionElevationLifespan(config *Configuration) time.Duration {
+	return config.IdentityValidation.ElevatedSession.ElevationLifespan
+}
+
 // ServerEndpointRateLimit represents the rate limiter configuration for a single endpoint.
 type ServerEndpointRateLimit struct {
 	Enable  bool                            `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=true,title=Enable" jsonschema_description:"Enables the rate limiter for this endpoint."`

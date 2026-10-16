@@ -4,10 +4,14 @@
 
 import { act, render, screen } from "@testing-library/react";
 
+import { RateLimitedError } from "@services/RateLimit";
 import RevokeResetPasswordTokenView from "@views/Revoke/RevokeResetPasswordTokenView";
 
 vi.mock("react-i18next", () => ({
-    useTranslation: () => ({ t: (key: string) => key }),
+    useTranslation: () => ({
+        t: (key: string, options?: { count?: number }) =>
+            options?.count === undefined ? key : `${key}:${options.count}`,
+    }),
 }));
 
 const mockNavigate = vi.fn();
@@ -68,15 +72,15 @@ it("shows error when token is not provided", async () => {
     expect(mockCreateError).toHaveBeenCalledWith("The Token was not provided");
 });
 
-it("shows rate limited error on 429 response", async () => {
+it("shows rate limited error when the request is rate limited", async () => {
     const { deleteResetPasswordToken } = await import("@services/ResetPassword");
-    vi.mocked(deleteResetPasswordToken).mockResolvedValueOnce({ ok: false, status: 429 });
+    vi.mocked(deleteResetPasswordToken).mockRejectedValueOnce(new RateLimitedError(30));
 
     await act(async () => {
         render(<RevokeResetPasswordTokenView />);
     });
 
-    expect(mockCreateError).toHaveBeenCalledWith("You have made too many requests");
+    expect(mockCreateError).toHaveBeenCalledWith("You have made too many requests, try again in {{count}} seconds:30");
 });
 
 it("reports a successful revocation", async () => {
@@ -94,6 +98,17 @@ it("reports a successful revocation", async () => {
 it("reports a failed revocation", async () => {
     const { deleteResetPasswordToken } = await import("@services/ResetPassword");
     vi.mocked(deleteResetPasswordToken).mockResolvedValue({ ok: false, status: 400 } as any);
+
+    await act(async () => {
+        render(<RevokeResetPasswordTokenView />);
+    });
+
+    expect(mockCreateError).toHaveBeenCalledWith("Failed to revoke the Token");
+});
+
+it("reports a failed revocation when the request throws", async () => {
+    const { deleteResetPasswordToken } = await import("@services/ResetPassword");
+    vi.mocked(deleteResetPasswordToken).mockRejectedValueOnce(new Error("network error"));
 
     await act(async () => {
         render(<RevokeResetPasswordTokenView />);
