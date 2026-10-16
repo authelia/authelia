@@ -5,6 +5,7 @@
 package server
 
 import (
+	"path/filepath"
 	"regexp"
 
 	"github.com/valyala/fasthttp"
@@ -12,6 +13,9 @@ import (
 
 const (
 	assetsRoot = "public_html"
+
+	dirCustomAssetsParent = "static"
+	dirCustomAssetsChild  = "custom"
 
 	fileLogo = "logo.png"
 )
@@ -24,6 +28,10 @@ const (
 	compressionLevelGzip   = fasthttp.CompressDefaultCompression
 
 	compressionMinSize = 1024
+)
+
+const (
+	pathCustomAssetsStrip = 2
 )
 
 const (
@@ -48,6 +56,8 @@ var (
 		"swagger-ui.css",
 	}
 
+	dirCustomAssets = filepath.Join(dirCustomAssetsParent, dirCustomAssetsChild)
+
 	// Directories excluded from the not found handler proceeding to the next() handler.
 	dirsHTTPServer = []struct {
 		name, prefix string
@@ -68,6 +78,7 @@ const (
 var (
 	headerETag            = []byte(fasthttp.HeaderETag)
 	headerIfNoneMatch     = []byte(fasthttp.HeaderIfNoneMatch)
+	headerIfModifiedSince = []byte(fasthttp.HeaderIfModifiedSince)
 	headerCacheControl    = []byte(fasthttp.HeaderCacheControl)
 	headerAcceptEncoding  = []byte(fasthttp.HeaderAcceptEncoding)
 	headerContentEncoding = []byte(fasthttp.HeaderContentEncoding)
