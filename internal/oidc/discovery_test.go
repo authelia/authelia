@@ -145,7 +145,7 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
 
 	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}, disco.IntrospectionEndpointAuthMethodsSupported)
-	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}, disco.GrantTypesSupported)
+	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode, oidc.GrantTypeTokenExchange}, disco.GrantTypesSupported)
 
 	expectedSigningAlgs := func(extra ...string) (algs []string) {
 		algs = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgEd25519, oidc.SigningAlgEdDSA}
