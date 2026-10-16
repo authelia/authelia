@@ -42,4 +42,15 @@ func ValidateIdentityValidation(config *schema.Configuration, validator *schema.
 	} else if config.IdentityValidation.ElevatedSession.Characters > 20 {
 		validator.Push(fmt.Errorf(errFmtIdentityValidationElevatedSessionCharacterLength, config.IdentityValidation.ElevatedSession.Characters))
 	}
+
+	switch {
+	case len(config.IdentityValidation.ElevatedSession.RequireReauthentication) == 0:
+		config.IdentityValidation.ElevatedSession.RequireReauthentication = schema.DefaultIdentityValidation.ElevatedSession.RequireReauthentication
+	case !utils.IsStringInSlice(config.IdentityValidation.ElevatedSession.RequireReauthentication, validIdentityValidationElevatedSessionReauthentication):
+		validator.Push(fmt.Errorf(errFmtIdentityValidationElevatedSessionRequireReauthentication, utils.StringJoinOr(validIdentityValidationElevatedSessionReauthentication), config.IdentityValidation.ElevatedSession.RequireReauthentication))
+	}
+
+	if config.IdentityValidation.ElevatedSession.ReauthenticationLifespan <= 0 {
+		config.IdentityValidation.ElevatedSession.ReauthenticationLifespan = schema.DefaultIdentityValidation.ElevatedSession.ReauthenticationLifespan
+	}
 }

@@ -3113,6 +3113,22 @@ components:
               type: integer
               examples:
                 - 300
+            require_reauthentication:
+              description: >
+                Indicates if the user must reauthenticate before the elevated session can be used. This requirement is
+                checked before any of the other elevation requirements.
+              type: boolean
+            reauthentication_methods:
+              description: >
+                The methods the user may use to reauthenticate. Empty when reauthentication is not required.
+              type: array
+              items:
+                type: string
+                enum:
+                  - 'password'
+                  - 'second_factor'
+              examples:
+                - ['password', 'second_factor']
     handlers.ElevationStart.Response:
       type: object
       properties:

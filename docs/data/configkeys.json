@@ -535,6 +535,16 @@
     "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_ELEVATION_LIFESPAN"
   },
   {
+    "path": "identity_validation.elevated_session.reauthentication_lifespan",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_REAUTHENTICATION_LIFESPAN"
+  },
+  {
+    "path": "identity_validation.elevated_session.require_reauthentication",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_REQUIRE_REAUTHENTICATION"
+  },
+  {
     "path": "identity_validation.elevated_session.require_second_factor",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_REQUIRE_SECOND_FACTOR"
