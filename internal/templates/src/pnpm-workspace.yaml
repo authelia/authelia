@@ -6,6 +6,6 @@ overrides:
   baseline-browser-mapping: 2.11.28
   brace-expansion: 5.0.12
   fast-uri: 4.2.2
-  next: 16.3.8
+  next: 16.4.1
   postcss: 8.5.30
   source-map-js: 1.2.2
