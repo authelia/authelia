@@ -79,7 +79,7 @@
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-perfectionist": "5.12.1",
     "eslint-plugin-prettier": "5.5.7",
-    "happy-dom": "20.14.6",
+    "happy-dom": "21.0.1",
     "lefthook": "2.2.2",
     "prettier": "3.9.10",
     "tailwindcss": "4.3.3",
