@@ -12,6 +12,7 @@ linters:
     - gocyclo
     - godoclint
     - godot
+    - goheader
     - gosec
     - misspell
     - nolintlint
@@ -46,6 +47,14 @@ linters:
       scope: all
       exclude:
         - '^\s*SPDX-'
+    goheader:
+      values:
+        const:
+          YEAR: "2026"
+      template: |-
+        SPDX-FileCopyrightText: {{ YEAR }} Authelia
+
+        SPDX-License-Identifier: Apache-2.0
     revive:
       confidence: 0.8
   exclusions:
@@ -60,6 +69,9 @@ linters:
       - linters:
           - forbidigo
         path: cmd/
+      - linters:
+          - goheader
+        path: internal/session/memory/stdlib\.go$
       - path: (.+)\.go$
         text: Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked  # yamllint disable-line rule:line-length
       - path: (.+)\.go$
