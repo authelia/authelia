@@ -7,7 +7,6 @@ package middlewares
 import (
 	"context"
 	"math"
-	"net/http"
 	"slices"
 	"strconv"
 	"sync"
@@ -205,7 +204,7 @@ func WithRateLimitCollector(collector *GarbageCollector) RateLimiterOption {
 func HandlerRateLimitAPI(ctx *AutheliaCtx, retryAfter time.Duration) {
 	ctx.SetStatusCode(fasthttp.StatusTooManyRequests)
 
-	ctx.Response.Header.SetBytesK(headerRetryAfter, time.Now().UTC().Add(retryAfter).Format(http.TimeFormat))
+	ctx.Response.Header.SetBytesK(headerRetryAfter, formatRetryAfter(retryAfter))
 	ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueNoStore)
 	ctx.Response.Header.SetBytesKV(headerPragma, headerValueNoCache)
 
@@ -216,12 +215,16 @@ func HandlerRateLimitAPI(ctx *AutheliaCtx, retryAfter time.Duration) {
 func HandlerRateLimitOpenIDConnect(ctx *AutheliaCtx, retryAfter time.Duration) {
 	ctx.SetStatusCode(fasthttp.StatusTooManyRequests)
 
-	ctx.Response.Header.SetBytesK(headerRetryAfter, strconv.Itoa(int(math.Ceil(retryAfter.Seconds()))))
+	ctx.Response.Header.SetBytesK(headerRetryAfter, formatRetryAfter(retryAfter))
 	ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueNoStore)
 	ctx.Response.Header.SetBytesKV(headerPragma, headerValueNoCache)
 	ctx.Response.Header.SetBytesKV(headerContentType, contentTypeApplicationJSON)
 
 	ctx.Response.SetBodyRaw(bodyOpenIDConnectRateLimitExceeded)
+}
+
+func formatRetryAfter(retryAfter time.Duration) string {
+	return strconv.Itoa(int(math.Ceil(retryAfter.Seconds())))
 }
 
 func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handler RateLimitRequestHandler, exemptStatusCodes []int) RequestHandler {

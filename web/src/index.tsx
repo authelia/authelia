@@ -9,6 +9,9 @@ import { createRoot } from "react-dom/client";
 import "@root/index.css";
 import App from "@root/App";
 import "@i18n/index";
+import { registerRateLimitInterceptor } from "@services/RateLimit";
+
+registerRateLimitInterceptor();
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>

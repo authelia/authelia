@@ -7,6 +7,7 @@ import { MemoryRouter } from "react-router";
 
 import { PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
+import { RateLimitedError } from "@services/RateLimit";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
 import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
 
@@ -102,7 +103,7 @@ beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
     queryParam.token = "test-token";
-    completeProcessMock.mockResolvedValue({} as any);
+    completeProcessMock.mockResolvedValue(undefined);
     getPolicyMock.mockResolvedValue(standardPolicy);
     resetPasswordMock.mockResolvedValue(undefined as any);
 });
@@ -192,7 +193,7 @@ describe("process initiation", () => {
     });
 
     it("notifies and keeps the form disabled when rate limited", async () => {
-        completeProcessMock.mockResolvedValue({ limited: true, retryAfter: 30 } as any);
+        completeProcessMock.mockRejectedValue(new RateLimitedError(30));
 
         renderStep();
 
@@ -201,6 +202,33 @@ describe("process initiation", () => {
         );
         expect(getReset()).toBeDisabled();
         expect(getPolicyMock).not.toHaveBeenCalled();
+    });
+
+    it("shows a countdown and retries the process once the retry period elapses when rate limited", async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+
+        try {
+            completeProcessMock.mockRejectedValueOnce(new RateLimitedError(30));
+
+            renderStep();
+
+            await waitFor(() =>
+                expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
+            );
+            expect(document.getElementById("rate-limit-countdown")).toBeInTheDocument();
+            expect(completeProcessMock).toHaveBeenCalledTimes(1);
+
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(30000);
+            });
+
+            await waitFor(() => expect(completeProcessMock).toHaveBeenCalledTimes(2));
+            expect(completeProcessMock).toHaveBeenLastCalledWith("test-token");
+            await waitFor(() => expect(getReset()).not.toBeDisabled());
+            expect(document.getElementById("rate-limit-countdown")).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("notifies and keeps the form disabled when the token expired", async () => {
