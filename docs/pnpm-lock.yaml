@@ -262,8 +262,8 @@ importers:
         version: 8.3.4(sass-embedded@1.105.2)(sass@1.105.2)(yaml@2.9.0)
     optionalDependencies:
       hugo-extended:
-        specifier: 0.167.0
-        version: 0.167.0
+        specifier: 0.168.0
+        version: 0.168.0
       sass-embedded:
         specifier: 1.105.2
         version: 1.105.2
@@ -1603,8 +1603,8 @@ packages:
   hookified@2.2.0:
     resolution: {integrity: sha512-p/LgFzRN5FeoD3DLS6bkUapeye6E4SI6yJs6KetENd18S+FBthqYq2amJUWpt5z0EQwwHemidjY5OqJGEKm5uA==}
 
-  hugo-extended@0.167.0:
-    resolution: {integrity: sha512-XEtjQwhAT4IJqGSGaP7Tm3tUfkaeUk1J8fWo1E7wBAYTywyjNSvBz8bu8czc3axskQ8WycewIuOz89vEZGWlig==}
+  hugo-extended@0.168.0:
+    resolution: {integrity: sha512-KhWR1CWYrpIcM3aL+s0ii/rVKQDpTDVqWXKH4o2iRbcbj1O/0dHyKmk29zIcsHsjLHpfS+7Z228fBycDgv9gkw==}
     engines: {node: '>=18.17'}
     hasBin: true
 
@@ -3854,7 +3854,7 @@ snapshots:
 
   hookified@2.2.0: {}
 
-  hugo-extended@0.167.0:
+  hugo-extended@0.168.0:
     dependencies:
       adm-zip: 0.6.1
       tar: 7.5.22
