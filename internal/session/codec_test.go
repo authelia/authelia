@@ -19,7 +19,10 @@ import (
 func TestSecureCodec_Verify(t *testing.T) {
 	codec := newTestCodec(t)
 
-	other, err := NewCodec(testSecret, []byte("another-hmac-key"), random.NewMathematical())
+	keys := newTestHMACKeys()
+	keys.Session = []byte("another-hmac-key")
+
+	other, err := NewCodec(testSecret, keys, random.NewMathematical())
 	require.NoError(t, err)
 
 	data := []byte("a-session-identifier")
@@ -60,7 +63,7 @@ func TestSecureCodec_GenerateSessionID(t *testing.T) {
 }
 
 func TestSecureCodec_GenerateSessionIDShouldReturnRandomError(t *testing.T) {
-	codec, err := NewCodec(testSecret, []byte(testHMACKey), &failingRandom{Provider: random.NewMathematical()})
+	codec, err := NewCodec(testSecret, newTestHMACKeys(), &failingRandom{Provider: random.NewMathematical()})
 	require.NoError(t, err)
 
 	id, err := codec.GenerateSessionID()
@@ -160,6 +163,60 @@ func TestSecureCodec_SealAndOpenShouldRoundTrip(t *testing.T) {
 
 	assert.Equal(t, testUsername, actual.Username)
 	assert.Equal(t, testDomain, actual.CookieDomain)
+}
+
+func TestNewCodecShouldRequireEveryHMACKey(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     func(keys *HMACKeys)
+		expected string
+	}{
+		{"ShouldRequireSession", func(keys *HMACKeys) { keys.Session = nil }, "error occurred creating the session codec: every hmac key is required"},
+		{"ShouldRequireSessionAuthz", func(keys *HMACKeys) { keys.SessionAuthz = nil }, "error occurred creating the session codec: every hmac key is required"},
+		{"ShouldRequireSessionCSRF", func(keys *HMACKeys) { keys.SessionCSRF = []byte{} }, "error occurred creating the session codec: every hmac key is required"},
+		{"ShouldRequireDistinctSessionAndAuthz", func(keys *HMACKeys) { keys.SessionAuthz = keys.Session }, "error occurred creating the session codec: every hmac key must be distinct"},
+		{"ShouldRequireDistinctSessionAndCSRF", func(keys *HMACKeys) { keys.SessionCSRF = keys.Session }, "error occurred creating the session codec: every hmac key must be distinct"},
+		{"ShouldRequireDistinctAuthzAndCSRF", func(keys *HMACKeys) { keys.SessionCSRF = keys.SessionAuthz }, "error occurred creating the session codec: every hmac key must be distinct"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			keys := newTestHMACKeys()
+
+			tc.have(&keys)
+
+			codec, err := NewCodec(testSecret, keys, random.NewMathematical())
+
+			assert.Nil(t, codec)
+			assert.EqualError(t, err, tc.expected)
+		})
+	}
+}
+
+func TestSecureCodecShouldSignWithTheKeyForEachPurpose(t *testing.T) {
+	codec := newTestCodec(t)
+
+	data := []byte("a-value")
+
+	signatures := []string{codec.Sign(data), codec.SignAuthz(data), codec.SignCSRF(data)}
+
+	assert.NotEqual(t, signatures[0], signatures[1])
+	assert.NotEqual(t, signatures[0], signatures[2])
+	assert.NotEqual(t, signatures[1], signatures[2])
+
+	assert.True(t, codec.Verify(data, signatures[0]))
+	assert.False(t, codec.Verify(data, signatures[1]))
+	assert.False(t, codec.Verify(data, signatures[2]))
+
+	keys := newTestHMACKeys()
+	keys.SessionAuthz = []byte("a-rotated-authz-hmac-key")
+
+	rotated, err := NewCodec(testSecret, keys, random.NewMathematical())
+	require.NoError(t, err)
+
+	assert.Equal(t, signatures[0], rotated.Sign(data))
+	assert.NotEqual(t, signatures[1], rotated.SignAuthz(data))
+	assert.Equal(t, signatures[2], rotated.SignCSRF(data))
 }
 
 type failingRandom struct {

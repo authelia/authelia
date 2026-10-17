@@ -107,7 +107,8 @@ The default `name` value for all [cookies](#cookies) configurations.
 
 {{< confkey type="string" default="lax" required="no" >}}
 
-The default `same_site` value for all `cookies` configurations.
+The default `same_site` value for all `cookies` configurations. See the cookie [same_site](#same_site-1) option for
+what this value applies to.
 
 ### inactivity
 
@@ -208,15 +209,47 @@ The name of the session cookie. By default this is set to the `name` value in th
 
 _**Default Value:** This option takes its default value from the [same_site](#same_site) setting above._
 
-Sets the cookies SameSite value. Prior to offering the configuration choice this defaulted to None. The new default is
-Lax. This option is defined in lower-case. So for example if you want to set it to `Strict`, the value in configuration
-needs to be `strict`.
+Sets the SameSite value of the authorization cookie. This option is defined in lower-case. So for example if you want
+to set it to `Strict`, the value in configuration needs to be `strict`.
+
+Two cookies are issued for every session once the user has signed in:
+
+- The session cookie, which uses the configured [name](#name-1). It is always issued with a SameSite value of Strict
+  regardless of this option, and it is the only cookie the portal and the API accept. It is accepted on every endpoint
+  except the [authorization endpoints] (`/api/authz/*` and the legacy `/api/verify`).
+- The authorization cookie, which uses the configured name with the suffix `_authz`. It is issued with the SameSite
+  value configured here, and it is only accepted by the [authorization endpoints] used by your proxy
+  (`/api/authz/*` and the legacy `/api/verify`) and by no other endpoint. It can't be
+  used to sign in, to change credentials, or to perform any other action against the API. The only exception is that
+  signing in or signing out without a session cookie ends the session the authorization cookie belongs to.
+
+The authorization cookie is linked to the session. It is replaced whenever the session cookie is replaced and stops
+working as soon as the session is destroyed. When the session cookie is valid but the authorization cookie is missing
+or no longer matches the session, Authelia issues the authorization cookie again the next time the user visits the
+portal.
+
+Requests to the authorization endpoints record activity for the [inactivity](#inactivity-1) check, but they never
+extend the [expiration](#expiration-1) of the session and don't reissue either cookie. Both cookies are issued with a
+lifetime of at least 30 days, or the [remember_me](#remember_me-1) or [expiration](#expiration-1) value when either is
+longer. The cookies only identify the session: whether the session is still valid, including whether it has expired,
+is decided by Authelia alone, so a cookie which outlives its session is simply rejected.
 
 You can read about the SameSite cookie in detail on the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite). In short setting SameSite to Lax
 is generally the most desirable option for Authelia. None is not recommended unless you absolutely know what you're
-doing and trust all the protected apps. Strict is not going to work in many use cases and we have not tested it in this
-state but it's available as an option anyway.
+doing and trust all the protected apps. Strict prevents a user who follows a link from another site to a protected
+application from being recognized until they navigate within the application.
+
+Because the session cookie is always Strict, it is not sent when a user arrives at Authelia from another site, such
+as an OpenID Connect 1.0 relying party hosted on a different site. Authelia handles this for authorization requests
+by continuing the request from a page it serves itself, after which the session cookie is sent. This only applies
+when the user's browser performs an ordinary page navigation to Authelia; a relying party which performs silent
+renewal in a hidden frame from another site, or which makes the request by script from another site, still receives
+the `login_required` error. See the
+[OpenID Connect 1.0 frequently asked questions](../../integration/openid-connect/frequently-asked-questions.md#why-does-an-authorization-request-with-promptnone-return-login_required-when-the-user-is-signed-in)
+for the details and the limits of this.
+
+[authorization endpoints]: ../miscellaneous/server-endpoints-authz.md
 
 #### inactivity
 
@@ -233,8 +266,11 @@ but don't want unused devices to be vulnerable.
 
 _**Default Value:** This option takes its default value from the [expiration](#expiration) setting above._
 
-The period of time before the cookie expires and the session is destroyed. This is overridden by
-[remember_me](#remember_me) when the remember me box is checked.
+The period of time before the session is destroyed. It is extended whenever the portal saves the session, such as
+when the user signs in, but never by requests to the authorization endpoints, so a user who only uses protected
+applications is asked to sign in again once it elapses. Use [inactivity](#inactivity-1) to end sessions which are no
+longer being used. The cookies themselves are issued with a longer lifetime, see [same_site](#same_site-1) for more
+information. This is overridden by [remember_me](#remember_me) when the remember me box is checked.
 
 #### remember_me
 
@@ -242,7 +278,7 @@ The period of time before the cookie expires and the session is destroyed. This 
 
 _**Default Value:** This option takes its default value from the [remember_me](#remember_me) setting above._
 
-The period of time before the cookie expires and the session is destroyed when the remember me box is checked. Setting
+The period of time before the session is destroyed when the remember me box is checked. Setting
 this to `-1` disables this feature entirely for this session cookie domain.
 
 It should be noted that the Passkey Login Flow currently requires remembering sessions if enabled. This is because the

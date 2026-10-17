@@ -10,13 +10,16 @@ import (
 )
 
 const (
-	testDomain     = "example.com"
-	testExpiration = time.Second * 40
-	testRememberMe = time.Hour * 24
-	testName       = "my_session"
-	testUsername   = "john"
-	testSecret     = "a-secret-value"
-	testHMACKey    = "an-hmac-key"
+	testDomain       = "example.com"
+	testExpiration   = time.Second * 40
+	testRememberMe   = time.Hour * 24
+	testName         = "my_session"
+	testNameAuthz    = "my_session_authz"
+	testUsername     = "john"
+	testSecret       = "a-secret-value"
+	testHMACKey      = "an-hmac-key"
+	testHMACKeyAuthz = "an-authz-hmac-key"
+	testHMACKeyCSRF  = "a-csrf-hmac-key"
 )
 
 var errTestFailure = errors.New("bad stuff")

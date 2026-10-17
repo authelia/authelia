@@ -100,6 +100,62 @@ func TestLogoutPOSTShouldHandleSessionDestroyError(t *testing.T) {
 	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred destroying the user session during logout", "unable to destroy user session: unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 }
 
+func TestLogoutPOSTShouldRefuseCrossSiteRequests(t *testing.T) {
+	testCases := []struct {
+		name      string
+		site      string
+		destroyed bool
+	}{
+		{"ShouldRefuseCrossSite", "cross-site", false},
+		{"ShouldRefuseCrossSiteMixedCase", "Cross-Site", false},
+		{"ShouldAllowSameOrigin", "same-origin", true},
+		{"ShouldAllowWithoutFetchMetadata", "", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			us, err := mock.Ctx.GetSession()
+
+			require.NoError(t, err)
+
+			us.Username = testUsername
+
+			require.NoError(t, mock.Ctx.SaveSession(&us))
+
+			// Only the authz cookie is sent cross-site, as the session cookie is always strict.
+			mock.Ctx.Request.Header.DelCookie("authelia_session")
+			mock.Ctx.Response.Reset()
+
+			if tc.site != "" {
+				mock.Ctx.Request.Header.Set(headerSecFetchSite, tc.site)
+			}
+
+			mock.Ctx.Request.SetBodyString(`{}`)
+
+			LogoutPOST(mock.Ctx)
+
+			cleared := mock.Ctx.Response.Header.PeekCookie("authelia_session_authz")
+
+			if tc.destroyed {
+				assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
+				assert.True(t, strings.HasPrefix(string(cleared), "authelia_session_authz=;"))
+
+				return
+			}
+
+			assert.Equal(t, `{"status":"KO","message":"Operation failed."}`, string(mock.Ctx.Response.Body()))
+			assert.Empty(t, cleared)
+			assert.Empty(t, mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred during logout: the request was cross-site", nil)
+		})
+	}
+}
+
 func TestRunLogoutSuite(t *testing.T) {
 	s := new(LogoutSuite)
 	suite.Run(t, s)

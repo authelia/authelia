@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"errors"
+	"html/template"
 
 	"github.com/valyala/fasthttp"
 
@@ -176,3 +177,33 @@ var (
 const (
 	sessionActivityRefreshDivisor = 10
 )
+
+const (
+	cookieNameOAuth2AuthorizationBounce   = "authelia_authorization_bounce"
+	cookieValueOAuth2AuthorizationBounce  = "1"
+	cookieMaxAgeOAuth2AuthorizationBounce = 60
+
+	headerSecFetchSite            = "Sec-Fetch-Site"
+	headerSecFetchMode            = "Sec-Fetch-Mode"
+	headerSecFetchDest            = "Sec-Fetch-Dest"
+	valueSecFetchSiteCrossSite    = "cross-site"
+	valueSecFetchModeNavigate     = "navigate"
+	valueSecFetchDestDocument     = "document"
+	valueReferrerPolicyNoReferrer = "no-referrer"
+	valueContentTypeTextHTML      = "text/html; charset=utf-8"
+)
+
+const tmplSourceOAuth2AuthorizationBounce = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0;url={{ .Target }}">
+<title>Authelia</title>
+</head>
+<body>
+<a href="{{ .Target }}">Continue</a>
+</body>
+</html>
+`
+
+var tmplOAuth2AuthorizationBounce = template.Must(template.New("bounce").Parse(tmplSourceOAuth2AuthorizationBounce))

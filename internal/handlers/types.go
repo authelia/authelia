@@ -230,3 +230,7 @@ type handlerAuthorizationConsent func(
 	userSession session.UserSession, details *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)
+
+type oauth2AuthorizationBounceData struct {
+	Target string
+}

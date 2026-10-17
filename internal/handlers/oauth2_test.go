@@ -204,6 +204,8 @@ func newTestOAuth2Request(t *testing.T, method, uri string, values url.Values) (
 		}
 	}
 
+	r.Header.Set(headerSecFetchSite, "same-origin")
+
 	return httptest.NewRecorder(), r
 }
 

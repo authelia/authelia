@@ -68,11 +68,11 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 }
 
 // Finalize completes the provider construction which depends on other providers, resolving the configured session
-// storage backend and the HMAC key the session provider signs identifiers with.
+// storage backend and the HMAC keys the session provider signs identifiers with.
 func (p *Providers) Finalize(ctx ServiceContext) (err error) {
 	var (
-		repository  session.Repository
-		sessionHMAC []byte
+		repository session.Repository
+		keys       session.HMACKeys
 	)
 
 	switch name := ctx.GetConfiguration().Session.Storage; name {
@@ -84,11 +84,20 @@ func (p *Providers) Finalize(ctx ServiceContext) (err error) {
 		return fmt.Errorf("unknown session storage '%s'", name)
 	}
 
-	if sessionHMAC, err = p.StorageProvider.LoadHMACKey(ctx, "session", sha256.BlockSize); err != nil {
-		return err
+	for _, key := range []struct {
+		name  string
+		value *[]byte
+	}{
+		{session.HMACKeyNameSession, &keys.Session},
+		{session.HMACKeyNameSessionAuthz, &keys.SessionAuthz},
+		{session.HMACKeyNameSessionCSRF, &keys.SessionCSRF},
+	} {
+		if *key.value, err = p.StorageProvider.LoadHMACKey(ctx, key.name, sha256.BlockSize); err != nil {
+			return err
+		}
 	}
 
-	if p.Session, err = session.NewProvider(ctx.GetConfiguration(), sessionHMAC, p.Clock, p.Random, repository); err != nil {
+	if p.Session, err = session.NewProvider(ctx.GetConfiguration(), keys, p.Clock, p.Random, repository); err != nil {
 		return err
 	}
 

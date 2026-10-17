@@ -50,8 +50,8 @@ func (r SessionRepository) Save(ctx context.Context, issuer, id, pid, username s
 }
 
 // SaveData implements the session.Repository interface.
-func (r SessionRepository) SaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	return r.provider.SessionSaveData(ctx, issuer, id, pid, username, expiration, data)
+func (r SessionRepository) SaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error) {
+	return r.provider.SessionSaveData(ctx, issuer, id, pid, username, expiration, previous, data)
 }
 
 // Delete implements the session.Repository interface.
@@ -154,10 +154,34 @@ func (p *SQLProvider) sessionPublicIDMoved(ctx context.Context, issuer, id, pid 
 }
 
 // SessionSaveData updates the data and expiration of an existing session. The public id and username are unused as
-// they are columns of the session row itself rather than separate records with their own expiry.
-func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionData, p.sessionExpires(expiration), data, issuer, id); err != nil {
+// they are columns of the session row itself rather than separate records with their own expiry. When previous isn't
+// nil the session is only updated if its data is still exactly previous, and otherwise session.ErrSessionSuperseded is
+// returned. The data written always differs from previous as sealing it uses a random nonce, so the row is reported as
+// affected by every backend when the update applies.
+func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, previous, data []byte) (err error) {
+	if previous == nil {
+		if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionData, p.sessionExpires(expiration), data, issuer, id); err != nil {
+			return fmt.Errorf("error updating session data: %w", err)
+		}
+
+		return nil
+	}
+
+	var (
+		result   sql.Result
+		affected int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlUpdateSessionDataIfUnchanged, p.sessionExpires(expiration), data, issuer, id, previous); err != nil {
 		return fmt.Errorf("error updating session data: %w", err)
+	}
+
+	if affected, err = result.RowsAffected(); err != nil {
+		return fmt.Errorf("error updating session data: %w", err)
+	}
+
+	if affected == 0 {
+		return session.ErrSessionSuperseded
 	}
 
 	return nil

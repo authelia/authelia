@@ -5,6 +5,7 @@
 package cache
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"slices"
@@ -133,9 +134,10 @@ func (m *Memory) SessionSave(ctx context.Context, issuer, id, pid, username stri
 }
 
 // SessionSaveData updates the session data. The public id and username are unused as the stored session already records
-// them and its lookups are derived from it rather than expiring independently.
+// them and its lookups are derived from it rather than expiring independently. When previous isn't nil the session is
+// only updated if its data is still exactly previous.
 // SessionSaveData implements the Provider interface.
-func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
+func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, previous, data []byte) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -146,7 +148,7 @@ func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, e
 		return fmt.Errorf("session not found: %s", key)
 	}
 
-	if item.destroyed {
+	if item.destroyed || (previous != nil && !bytes.Equal(item.data, previous)) {
 		return session.ErrSessionSuperseded
 	}
 

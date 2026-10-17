@@ -37,6 +37,10 @@ type Context interface {
 	// same name, domain, and path as the cookie being cleared, as user agents key cookies on all three and would
 	// otherwise retain the original.
 	ClearCookie(cookie *http.Cookie)
+
+	// IsAuthzEndpointRequest returns true when the request is being handled by an authorization endpoint, which are
+	// the only endpoints the authorization cookie is honored on and the only endpoints the session cookie is not.
+	IsAuthzEndpointRequest() bool
 }
 
 // CachingContext is an optional interface a Context may implement to retain the session it loaded for the duration of
@@ -77,7 +81,8 @@ type Strategy interface {
 
 	// Get returns the session of the request, which is an anonymous session when the request carries no session cookie
 	// or the cookie doesn't resolve to a session which is still held by the Repository. An error is returned when the
-	// Repository fails, or when the session can't be opened or is bound to another cookie domain.
+	// Repository fails, or when the session can't be opened or is bound to another cookie domain. An authenticated
+	// session which the authz cookie of the request isn't linked to is issued a new authz cookie.
 	Get(ctx Context) (session *UserSession, err error)
 
 	// Save persists the session and delivers the session cookie to the user agent, generating the identifiers the
@@ -89,8 +94,55 @@ type Strategy interface {
 	// preserving the session data. It mitigates session fixation and is expected at every authentication level change.
 	Regenerate(ctx Context) (err error)
 
-	// Destroy removes the persisted session of the request and instructs the user agent to discard the session cookie.
+	// Destroy removes the persisted session of the request and instructs the user agent to discard both cookies. A
+	// request which carries no session cookie has the session its authz cookie is linked to removed instead.
 	Destroy(ctx Context) (err error)
+
+	// Authz returns the restricted view of this Strategy which the authorization endpoints use. The view resolves the
+	// session from the authz cookie alone and can only update the activity of the session or destroy it.
+	Authz() (strategy AuthzStrategy)
+}
+
+// The AuthzStrategy is the restricted view of a Strategy for the authorization endpoints. It resolves the session from
+// the authz cookie, never from the session cookie, and has no means to create a session, to change who a session
+// belongs to, or to change how it was authenticated.
+type AuthzStrategy interface {
+	// GetConfig returns the session cookie configuration of the Strategy this view belongs to.
+	GetConfig() (config schema.SessionCookie)
+
+	// NewDefault returns an anonymous session bound to the cookie domain of this view, which can't be persisted.
+	NewDefault() (userSession UserSession)
+
+	// Get returns the session the authz cookie of the request is linked to, which is an anonymous session when the
+	// request carries no authz cookie or it doesn't resolve to a session which records it. An error is returned only
+	// when the Repository fails.
+	Get(ctx Context) (session *UserSession, err error)
+
+	// SaveActivity persists the last activity and refresh time of the given session onto the stored session, discarding
+	// every other difference, and extends the authz cookie. It does nothing when the request has no stored session.
+	SaveActivity(ctx Context, userSession *UserSession) (err error)
+
+	// Destroy removes the persisted session of the request and instructs the user agent to discard both cookies.
+	Destroy(ctx Context) (err error)
+}
+
+// AuthzManager is the interface that wraps the methods of an AuthzStrategy bound to a specific request.
+type AuthzManager interface {
+	// NewDefaultUserSession returns an anonymous session bound to the cookie domain of the underlying AuthzStrategy.
+	NewDefaultUserSession() (userSession UserSession)
+
+	// GetSession returns the session the authz cookie of the bound request is linked to.
+	GetSession() (userSession UserSession, err error)
+
+	// SaveSessionActivity persists the last activity and refresh time of the session of the bound request.
+	SaveSessionActivity(userSession *UserSession) (err error)
+
+	// DestroySession removes the persisted session of the bound request and instructs the user agent to discard both
+	// cookies.
+	DestroySession() (err error)
+
+	// GetSessionConfig returns the session cookie configuration of the underlying AuthzStrategy.
+	GetSessionConfig() (config schema.SessionCookie)
 }
 
 // The Record is a session as a Repository holds it. It carries the signature the session is stored against alongside
@@ -131,8 +183,11 @@ type Repository interface {
 	Save(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 
 	// SaveData updates only the sealed session data and expiration of the existing session record for the identifier,
-	// and isn't guaranteed to create the record or update the public identifier or username associated with it.
-	SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
+	// and isn't guaranteed to create the record or update the public identifier or username associated with it. When
+	// previous isn't nil the record is only updated if its sealed data is still exactly previous, and otherwise nothing
+	// is written and ErrSessionSuperseded is returned, which includes when the record was destroyed or moved. This allows
+	// a caller which read the record to write it back without discarding a write made to it in the meantime.
+	SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, previous, data []byte) (err error)
 
 	// Delete destroys the session record for the identifier and removes the public identifier and username lookups which
 	// refer to it. The destroyed session is retained until it would have expired so that a later Save of it is refused.
@@ -167,9 +222,18 @@ type Codec interface {
 	// signature which isn't valid hexadecimal is never verified.
 	Verify(data []byte, signature string) bool
 
-	// Sign returns the hexadecimal encoded HMAC signature of the given data. The session cookie value is signed this way
-	// to derive the identifier a session is stored against, so the Repository never holds the cookie value itself.
+	// Sign returns the hexadecimal encoded HMAC signature of the given data using the session key. The session cookie
+	// value is signed this way to derive the identifier a session is stored against, so the Repository never holds the
+	// cookie value itself.
 	Sign(data []byte) string
+
+	// SignAuthz returns the hexadecimal encoded HMAC signature of the given data using the session authz key, which the
+	// authz cookie value is derived from and signed with to derive the identifier its index is stored against.
+	SignAuthz(data []byte) string
+
+	// SignCSRF returns the hexadecimal encoded HMAC signature of the given data using the session CSRF key, which is
+	// reserved for values which protect against cross-site request forgery.
+	SignCSRF(data []byte) string
 
 	// Seal marshals and encrypts the session, binding the result to the cookie domain and the identifier it's stored
 	// against so that it can't be opened after being moved to another domain or another record.

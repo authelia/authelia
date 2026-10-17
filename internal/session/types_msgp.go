@@ -33,6 +33,7 @@ type UserSession struct {
 
 	KeepMeLoggedIn bool  `msg:"r"`
 	LastActivity   int64 `msg:"act"`
+	Expires        int64 `msg:"x,omitempty"`
 
 	FirstFactorAuthnTimestamp  int64 `msg:"ffa,omitempty"`
 	SecondFactorAuthnTimestamp int64 `msg:"mfa,omitempty"`

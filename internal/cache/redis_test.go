@@ -174,7 +174,7 @@ func TestRedis_SessionChangeID(t *testing.T) {
 				require.Len(t, client.evals, 2)
 
 				assert.Equal(t, mockRedisEval{script: redisSessionMove, keys: []string{keyOld}, args: []any{"new", int64(3600000)}}, client.evals[0])
-				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keyNew}, args: []any{[]byte("resealed"), int64(3600000), "pid", "john"}}, client.evals[1])
+				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keyNew}, args: []any{[]byte("resealed"), int64(3600000), "pid", "john", "0", []byte(nil)}}, client.evals[1])
 
 				assert.Equal(t, []mockRedisSet{{key: getSessionPublicKey("example.com", "pid"), value: "new", expiration: time.Hour}}, client.sets)
 				require.Len(t, client.added[getSessionUserKey("example.com", "john")], 1)

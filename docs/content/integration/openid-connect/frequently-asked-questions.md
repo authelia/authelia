@@ -314,6 +314,30 @@ The following specific and intentional limitations exist:
 5. If the current flow is otherwise not compatible with implicit consent for any reason; for example:
    1. The Device Authorization Flow which requires interactive consent due to the code functionality.
 
+### Why does an Authorization Request with prompt=none return login_required when the user is signed in?
+
+The session cookie the portal and the Authorization [Endpoint] rely on is always issued with a SameSite value
+of Strict, which means the browser doesn't send it when a relying party hosted on another site redirects the user to
+Authelia. See the session [same_site](../../configuration/session/introduction.md#same_site-1) option for more
+information.
+
+When Authelia receives an Authorization Request like that without a session cookie, it answers with a page which
+immediately continues the same request from Authelia itself, after which the browser sends the session cookie and the
+request is processed normally. A user who is signed in is not shown the portal, and `prompt=none` works.
+
+This also applies to an Authorization Request sent as a form POST, which Authelia redirects to the same request using
+GET before the above takes place. A user agent which does not send the `Sec-Fetch-Site` request header is always
+answered with this page when the session cookie is absent, as Authelia can't determine where the request came from.
+
+This has one limit: it only works when the user's browser is performing an ordinary page navigation to Authelia. A
+relying party which performs silent renewal in a hidden frame (an iframe) from another site still receives the
+`login_required` error from `prompt=none`. The browser decides whether to send the cookie based on the site shown in
+the address bar, which is the relying party's, so the session cookie is never sent to a frame like this regardless
+of how the request is continued. Requests made by script from another site are not continued either. A relying party
+which needs silent renewal should perform the `prompt=none` request as a top level navigation instead of in a frame.
+
+A relying party hosted on the same site as Authelia is not affected.
+
 ## Solutions
 
 The following section details solutions for multiple of the questions above.

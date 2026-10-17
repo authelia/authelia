@@ -16,13 +16,31 @@ import (
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 func TestProvidersFinalize(t *testing.T) {
-	hmacKey := func(mock *mocks.MockAutheliaCtx) {
-		mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, "session", sha256.BlockSize).Return(make([]byte, sha256.BlockSize), nil)
+	names := []string{session.HMACKeyNameSession, session.HMACKeyNameSessionAuthz, session.HMACKeyNameSessionCSRF}
+
+	hmacKeys := func(failing string) func(mock *mocks.MockAutheliaCtx) {
+		return func(mock *mocks.MockAutheliaCtx) {
+			for i, name := range names {
+				if name == failing {
+					mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, name, sha256.BlockSize).Return(nil, errors.New("failed to load the key"))
+
+					return
+				}
+
+				key := make([]byte, sha256.BlockSize)
+				key[0] = byte(i + 1)
+
+				mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, name, sha256.BlockSize).Return(key, nil)
+			}
+		}
 	}
+
+	hmacKey := hmacKeys("")
 
 	testCases := []struct {
 		name     string
@@ -35,14 +53,19 @@ func TestProvidersFinalize(t *testing.T) {
 		{"ShouldUseTheCache", "cache", hmacKey, cache.SessionRepository{}, ""},
 		{"ShouldUseTheStorage", "internal", hmacKey, storage.SessionRepository{}, ""},
 		{"ShouldErrorOnUnknownStorage", "unknown", nil, nil, "unknown session storage 'unknown'"},
+		{"ShouldErrorWhenTheSessionHMACKeyCannotBeLoaded", "internal", hmacKeys(session.HMACKeyNameSession), nil, "failed to load the key"},
+		{"ShouldErrorWhenTheSessionAuthzHMACKeyCannotBeLoaded", "internal", hmacKeys(session.HMACKeyNameSessionAuthz), nil, "failed to load the key"},
+		{"ShouldErrorWhenTheSessionCSRFHMACKeyCannotBeLoaded", "internal", hmacKeys(session.HMACKeyNameSessionCSRF), nil, "failed to load the key"},
 		{
-			"ShouldErrorWhenTheHMACKeyCannotBeLoaded",
+			"ShouldErrorWhenTheHMACKeysAreNotDistinct",
 			"internal",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, "session", sha256.BlockSize).Return(nil, errors.New("failed to load the key"))
+				for _, name := range names {
+					mock.StorageMock.EXPECT().LoadHMACKey(mock.Ctx, name, sha256.BlockSize).Return(make([]byte, sha256.BlockSize), nil)
+				}
 			},
 			nil,
-			"failed to load the key",
+			"error occurred creating the session codec: every hmac key must be distinct",
 		},
 	}
 

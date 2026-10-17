@@ -29,7 +29,7 @@ func TestAutheliaCtxShouldFallBackToADefaultSessionWhenTheSessionCannotBeOpened(
 
 	defer mock.Close()
 
-	provider, err := session.NewProvider(&mock.Ctx.Configuration, []byte("cd21a70d4d24b23e0d1ae0a5cf6c4e1d3e2b8a5f7c9d0e1f2a3b4c5d6e7f8a9b"), mock.Ctx.Providers.Clock, mock.Ctx.Providers.Random, &mismatchedSessionRepository{Repository: cache.NewSessionRepository(cache.NewMemory())})
+	provider, err := session.NewProvider(&mock.Ctx.Configuration, mocks.NewTestSessionHMACKeys(), mock.Ctx.Providers.Clock, mock.Ctx.Providers.Random, &mismatchedSessionRepository{Repository: cache.NewSessionRepository(cache.NewMemory())})
 	require.NoError(t, err)
 
 	mock.Ctx.Providers.Session = provider
@@ -189,6 +189,80 @@ func TestAutheliaCtxShouldTreatAnInvalidSessionCookieAsANewAnonymousSession(t *t
 			assert.Len(t, id, 32)
 		})
 	}
+}
+
+func TestAutheliaCtx_IsAuthzEndpointRequest(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		marked   bool
+		expected bool
+	}{
+		{"ShouldHandleMarkedLegacy", "/api/verify", true, true},
+		{"ShouldHandleMarkedAuthz", "/api/authz/forward-auth", true, true},
+		{"ShouldHandleMarkedOtherPath", "/api/state", true, true},
+		{"ShouldNotHandleUnmarkedLegacy", "/api/verify", false, false},
+		{"ShouldNotHandleUnmarkedAuthz", "/api/authz/forward-auth", false, false},
+		{"ShouldNotHandleUnmarkedPortal", "/", false, false},
+		{"ShouldNotHandleUnmarkedAPI", "/api/state", false, false},
+		{"ShouldNotHandleUnmarkedEncodedTraversalToLegacy", "/api/secondfactor/webauthn/credential/..%2f..%2f..%2f..%2fapi%2fverify", false, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.SetRequestURI(tc.have)
+
+			var actual bool
+
+			handler := func(_ *fasthttp.RequestCtx) {
+				actual = mock.Ctx.IsAuthzEndpointRequest()
+			}
+
+			if tc.marked {
+				handler = middlewares.AuthzEndpoint(handler)
+			}
+
+			handler(mock.Ctx.RequestCtx)
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestAutheliaCtx_IsAuthzEndpointRequestShouldIgnoreAnUnexpectedValue(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.SetUserValue(middlewares.UserValueKeyAuthzEndpoint, "true")
+
+	assert.False(t, mock.Ctx.IsAuthzEndpointRequest())
+
+	mock.Ctx.SetUserValue(middlewares.UserValueKeyAuthzEndpoint, false)
+
+	assert.False(t, mock.Ctx.IsAuthzEndpointRequest())
+}
+
+func TestAuthzEndpointShouldMarkTheRequestBehindStripPath(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	var actual bool
+
+	handler := middlewares.AuthzEndpoint(middlewares.StripPath("/authelia")(func(_ *fasthttp.RequestCtx) {
+		actual = mock.Ctx.IsAuthzEndpointRequest()
+	}))
+
+	mock.Ctx.Request.SetRequestURI("/authelia/api/verify")
+
+	handler(mock.Ctx.RequestCtx)
+
+	assert.True(t, actual)
 }
 
 func newTestSessionCookie(label string) string {

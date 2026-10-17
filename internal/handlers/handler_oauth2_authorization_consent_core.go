@@ -89,7 +89,7 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx, provider session.Strategy, userSession *session.UserSession, client oidc.Client, policy oidc.ClientAuthorizationPolicy, rw http.ResponseWriter, requester oauthelia2.Requester) (handled bool) {
 	var err error
 
-	if modified, invalid := handleAuthnCookieValidate(ctx, session.NewEncapsulatedSession(provider, ctx), userSession); invalid {
+	if modified, invalid := handleAuthnCookieValidate(ctx, provider.GetConfig(), userSession); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while destroying session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
 		}
