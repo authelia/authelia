@@ -302,6 +302,40 @@ describe("device selection", () => {
         await waitFor(() => expect(completeSignInMock).toHaveBeenCalledTimes(2));
     });
 
+    it("clears the rate limit when a device is selected during the retry window", async () => {
+        vi.useFakeTimers();
+        completeSignInMock.mockRejectedValueOnce(new RateLimitedError(3));
+        initiateSelectionMock.mockResolvedValue(authResponse as any);
+
+        const { onSecondFactorSuccess } = renderPush();
+
+        await vi.waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
+        );
+
+        completeSignInMock.mockResolvedValue({ result: "allow" } as any);
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "Select a Device" }));
+        });
+
+        await vi.waitFor(() => expect(screen.getByTestId("device-selection")).toBeInTheDocument());
+
+        await act(async () => {
+            fireEvent.click(screen.getByTestId("device-select"));
+        });
+
+        await vi.waitFor(() => expect(onSecondFactorSuccess).toHaveBeenCalled());
+        expect(document.getElementById("rate-limit-countdown")).not.toBeInTheDocument();
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(3000);
+        });
+
+        expect(screen.queryByTestId("failure-icon")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Select a Device" })).not.toBeInTheDocument();
+    });
+
     it("logs failures updating the preferred Duo device", async () => {
         completeSignInMock.mockResolvedValue(authResponse as any);
         completeSelectionMock.mockRejectedValue(new Error("boom"));
