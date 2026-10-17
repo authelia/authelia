@@ -34,6 +34,7 @@ type Action =
     | { type: "pushFailure" }
     | { type: "pushSuccess" }
     | { type: "rateLimited" }
+    | { type: "rateLimitExpired" }
     | { type: "selectDevices"; devices: SelectableDevice[] }
     | { type: "setDevices"; devices: SelectableDevice[] }
     | { type: "setStatus"; status: ComponentState["status"] }
@@ -60,6 +61,8 @@ function reducer(state: ComponentState, action: Action): ComponentState {
             return { ...state, devices: action.devices, status: "selecting" };
         case "rateLimited":
             return { ...state, status: "rate_limited" };
+        case "rateLimitExpired":
+            return state.status === "rate_limited" ? { ...state, status: "failure" } : state;
         default:
             return state;
     }
@@ -76,7 +79,11 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     const { createErrorNotification } = useNotifications();
 
-    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() => dispatch({ type: "pushFailure" }));
+    const {
+        clear: clearRateLimit,
+        secondsRemaining,
+        trigger: triggerRateLimit,
+    } = useRateLimit(() => dispatch({ type: "rateLimitExpired" }));
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
@@ -174,13 +181,14 @@ const SecondFactorMethodMobilePush = function (props: Props) {
         async function (device: DuoDevicePostRequest) {
             try {
                 await completeDuoDeviceSelectionProcess(device);
+                clearRateLimit();
                 dispatch({ type: "startPush" });
             } catch (err) {
                 console.error(err);
                 console.error(new Error(translate("There was an issue updating preferred Duo device")));
             }
         },
-        [translate],
+        [clearRateLimit, translate],
     );
 
     const handleDuoDeviceSelected = useCallback(
