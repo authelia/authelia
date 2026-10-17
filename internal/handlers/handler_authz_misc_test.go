@@ -55,20 +55,27 @@ func TestCookieSessionAuthnStrategyShouldReturnErrorWhenUserDetailsFail(t *testi
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	manager, err := mock.Ctx.GetSessionManagerByTargetURI(&url.URL{Scheme: "https", Host: "app.example.com"})
+	targetURI := &url.URL{Scheme: "https", Host: "app.example.com"}
+
+	primary, err := mock.Ctx.GetSessionManagerByTargetURI(targetURI)
 	require.NoError(t, err)
 
 	userSession := session.NewUserSession(testUsername)
 	userSession.CookieDomain = "example.com"
 	userSession.SetOneFactorPassword(mock.Ctx.GetClock().Now(), false)
 
-	require.NoError(t, manager.SaveSession(&userSession))
+	require.NoError(t, primary.SaveSession(&userSession))
+
+	manager, err := mock.Ctx.GetAuthzSessionManagerByTargetURI(targetURI)
+	require.NoError(t, err)
 
 	mock.UserProviderMock.EXPECT().
 		GetDetailsExtendedCached(gomock.Eq(testUsername)).
 		Return(nil, fmt.Errorf("failed to lookup user"))
 
-	_, err = strategy.Get(mock.Ctx, manager, nil)
+	withAuthzRequest(mock.Ctx, func() {
+		_, err = strategy.Get(mock.Ctx, manager, nil)
+	})
 
 	assert.EqualError(t, err, "failed to retrieve user details: failed to lookup user")
 }
@@ -237,11 +244,15 @@ func TestCookieSessionAuthnStrategyGetShouldDestroyCookieWithMismatchedDomain(t 
 	userSession.Username = testUsername
 	userSession.CookieDomain = "notexample.com"
 
-	manager := &mismatchedCookieDomainManager{Manager: session.NewEncapsulatedSession(provider, mock.Ctx), userSession: userSession}
+	manager := &mismatchedCookieDomainManager{AuthzManager: session.NewEncapsulatedAuthzSession(provider.Authz(), mock.Ctx), userSession: userSession}
 
 	strategy := NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways())
 
-	authn, err := strategy.Get(mock.Ctx, manager, &authorization.Object{})
+	var authn *Authn
+
+	withAuthzRequest(mock.Ctx, func() {
+		authn, err = strategy.Get(mock.Ctx, manager, &authorization.Object{})
+	})
 
 	require.NoError(t, err)
 	assert.Equal(t, anonymous, authn.Username)
@@ -271,6 +282,195 @@ func TestHandleAuthzUnauthorizedLegacy(t *testing.T) {
 	})
 }
 
+func TestCookieSessionAuthnStrategyShouldOnlyHonorTheAuthzCookie(t *testing.T) {
+	testCases := []struct {
+		name     string
+		remove   string
+		expected string
+	}{
+		{"ShouldAuthenticateWithBothCookies", "", testUsername},
+		{"ShouldAuthenticateWithOnlyTheAuthzCookie", "authelia_session", testUsername},
+		{"ShouldNotAuthenticateWithOnlyThePrimaryCookie", "authelia_session_authz", anonymous},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			targetURI := &url.URL{Scheme: "https", Host: "app.example.com"}
+
+			primary, err := mock.Ctx.GetSessionManagerByTargetURI(targetURI)
+			require.NoError(t, err)
+
+			userSession := session.NewUserSession(testUsername)
+			userSession.CookieDomain = "example.com"
+			userSession.SetOneFactorPassword(mock.Ctx.GetClock().Now(), false)
+
+			require.NoError(t, primary.SaveSession(&userSession))
+
+			if tc.remove != "" {
+				mock.Ctx.Request.Header.DelCookie(tc.remove)
+			}
+
+			mock.UserProviderMock.EXPECT().
+				GetDetailsExtendedCached(gomock.Eq(testUsername)).
+				Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Username: testUsername}}, nil).
+				AnyTimes()
+
+			manager, err := mock.Ctx.GetAuthzSessionManagerByTargetURI(targetURI)
+			require.NoError(t, err)
+
+			var authn *Authn
+
+			withAuthzRequest(mock.Ctx, func() {
+				authn, err = NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()).Get(mock.Ctx, manager, nil)
+			})
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, authn.Username)
+		})
+	}
+}
+
+func TestSessionShouldNotBeResolvedFromTheAuthzCookieByTheAPI(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession := mock.Ctx.NewSession()
+	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(mock.Ctx.GetClock().Now(), false)
+
+	require.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+	saved, err := mock.Ctx.GetSession()
+
+	require.NoError(t, err)
+	require.Equal(t, testUsername, saved.Username)
+	require.False(t, saved.IsAnonymous())
+
+	authz := mock.Ctx.Request.Header.Cookie("authelia_session_authz")
+
+	require.NotEmpty(t, authz)
+
+	other := mocks.NewMockAutheliaCtx(t)
+	defer other.Close()
+
+	other.Ctx.Providers.Session = mock.Ctx.Providers.Session
+	other.Ctx.Request.Header.SetCookieBytesKV([]byte("authelia_session_authz"), authz)
+
+	actual, err := other.Ctx.GetSession()
+
+	require.NoError(t, err)
+	assert.Equal(t, "", actual.Username)
+	assert.True(t, actual.IsAnonymous())
+}
+
+func TestSessionShouldRecoverTheAuthzCookieOnTheNextPortalRequest(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession := mock.Ctx.NewSession()
+	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(mock.Ctx.GetClock().Now(), false)
+
+	require.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+	primary := mock.Ctx.Request.Header.Cookie("authelia_session")
+	issued := mock.Ctx.Request.Header.Cookie("authelia_session_authz")
+
+	require.NotEmpty(t, primary)
+	require.NotEmpty(t, issued)
+
+	other := mocks.NewMockAutheliaCtx(t)
+	defer other.Close()
+
+	other.Ctx.Providers.Session = mock.Ctx.Providers.Session
+	other.Ctx.Request.Header.SetCookieBytesKV([]byte("authelia_session"), primary)
+
+	targetURI := &url.URL{Scheme: "https", Host: "app.example.com"}
+
+	manager, err := other.Ctx.GetAuthzSessionManagerByTargetURI(targetURI)
+	require.NoError(t, err)
+
+	var before session.UserSession
+
+	withAuthzRequest(other.Ctx, func() {
+		before, err = manager.GetSession()
+	})
+
+	require.NoError(t, err)
+	require.True(t, before.IsAnonymous())
+
+	actual, err := other.Ctx.GetSession()
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, actual.Username)
+	assert.False(t, actual.IsAnonymous())
+
+	healed := other.Ctx.Request.Header.Cookie("authelia_session_authz")
+
+	require.NotEmpty(t, healed)
+
+	// The authz cookie is derived from the session so it is recovered with the value it was originally issued with.
+	assert.Equal(t, issued, healed)
+	assert.Equal(t, primary, other.Ctx.Request.Header.Cookie("authelia_session"))
+
+	cookie := fasthttp.AcquireCookie()
+	defer fasthttp.ReleaseCookie(cookie)
+
+	cookie.SetKey("authelia_session_authz")
+
+	require.True(t, other.Ctx.Response.Header.Cookie(cookie))
+	assert.Equal(t, healed, cookie.Value())
+
+	cookie.Reset()
+	cookie.SetKey("authelia_session")
+
+	assert.False(t, other.Ctx.Response.Header.Cookie(cookie))
+
+	manager, err = other.Ctx.GetAuthzSessionManagerByTargetURI(targetURI)
+	require.NoError(t, err)
+
+	var resolved session.UserSession
+
+	withAuthzRequest(other.Ctx, func() {
+		resolved, err = manager.GetSession()
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, resolved.Username)
+	assert.False(t, resolved.IsAnonymous())
+}
+
+func TestAuthzShouldNotHonorTheSessionCookieAlone(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession := mock.Ctx.NewSession()
+	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(mock.Ctx.GetClock().Now(), false)
+
+	require.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+	mock.Ctx.SetUserValue(middlewares.UserValueKeyAuthzEndpoint, true)
+
+	actual, err := mock.Ctx.GetSession()
+
+	require.NoError(t, err)
+	assert.Equal(t, "", actual.Username)
+	assert.True(t, actual.IsAnonymous())
+
+	assert.ErrorIs(t, mock.Ctx.SaveSession(&userSession), session.ErrNotPermittedOnAuthzEndpointRequest)
+
+	mock.Ctx.RemoveUserValue(middlewares.UserValueKeyAuthzEndpoint)
+
+	actual, err = mock.Ctx.GetSession()
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, actual.Username)
+}
+
 type testDelayer struct {
 	cached bool
 }
@@ -282,7 +482,7 @@ func (d *testDelayer) CachedDelay(_ middlewares.TimingContext, _ time.Time, _, _
 }
 
 type mismatchedCookieDomainManager struct {
-	session.Manager
+	session.AuthzManager
 
 	userSession session.UserSession
 }

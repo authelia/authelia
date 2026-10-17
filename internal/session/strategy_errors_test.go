@@ -84,11 +84,76 @@ func TestDefaultStrategy_SaveShouldReturnErrors(t *testing.T) {
 
 			userSession := strategy.NewDefault()
 			userSession.Username = testUsername
+			userSession.SetOneFactorPassword(time.Now(), false)
 
 			assert.EqualError(t, strategy.Save(ctx, &userSession), tc.expected)
 			assert.NotContains(t, ctx.cookies, testName)
 		})
 	}
+}
+
+func TestDefaultStrategy_SaveShouldWithholdTheAuthzCookieWhenTheAuthzIndexCannotBeSaved(t *testing.T) {
+	repository := &erroringRepository{testRepository: newTestRepository(), errSave: errTestFailure, errSaveAt: 2}
+	strategy := newTestStrategyWithCodec(t, newTestCodec(t), repository)
+	ctx := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	userSession.SetOneFactorPassword(time.Now(), false)
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	assert.NotEmpty(t, ctx.cookies[testName])
+	assert.NotContains(t, ctx.cookies, testNameAuthz)
+	assert.Contains(t, repository.data, testPrimaryKey(t, strategy, ctx))
+
+	again := newTestContext()
+
+	again.cookies[testName] = ctx.cookies[testName]
+
+	actual, err := strategy.Get(again)
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, actual.Username)
+	require.NotEmpty(t, again.cookies[testNameAuthz])
+
+	resolved, err := strategy.Authz().Get(newTestAuthzContext(again))
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, resolved.Username)
+}
+
+func TestDefaultStrategy_RegenerateShouldIssueTheSessionCookieWhenTheAuthzIndexCannotBeSaved(t *testing.T) {
+	repository := &erroringRepository{testRepository: newTestRepository()}
+	strategy := newTestStrategyWithCodec(t, newTestCodec(t), repository)
+	ctx := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	userSession.SetOneFactorPassword(time.Now(), false)
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	original, authz := ctx.cookies[testName], ctx.cookies[testNameAuthz]
+
+	repository.errSave = errTestFailure
+	repository.errSaveAt = repository.saves + 1
+
+	require.NoError(t, strategy.Regenerate(ctx))
+
+	assert.NotEqual(t, original, ctx.cookies[testName])
+	assert.Equal(t, authz, ctx.cookies[testNameAuthz])
+
+	actual, err := strategy.Get(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, actual.Username)
+	assert.NotEqual(t, authz, ctx.cookies[testNameAuthz])
+
+	resolved, err := strategy.Authz().Get(newTestAuthzContext(ctx))
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, resolved.Username)
 }
 
 func TestDefaultStrategy_RegenerateShouldReturnErrorWhenTheSessionCannotBeRetrieved(t *testing.T) {
@@ -147,6 +212,7 @@ func TestDefaultStrategy_RegenerateShouldReturnErrors(t *testing.T) {
 			if tc.persist {
 				userSession := strategy.NewDefault()
 				userSession.Username = testUsername
+				userSession.SetOneFactorPassword(time.Now(), false)
 
 				require.NoError(t, strategy.Save(ctx, &userSession))
 			}
@@ -174,6 +240,7 @@ func TestDefaultStrategy_DestroyShouldReturnErrorWhenTheRepositoryFailsToDelete(
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
@@ -249,17 +316,6 @@ func TestDefaultStrategy_GetShouldRejectSessionRecordingAnotherCookieDomain(t *t
 	assert.EqualError(t, err, "error occurred getting session: domain does not match cookie domain")
 }
 
-func TestDefaultStrategy_GetExpires(t *testing.T) {
-	strategy, ok := newTestStrategy(t, nil).(*DefaultStrategy)
-	require.True(t, ok)
-
-	assert.Equal(t, expireUnlimited, strategy.getExpires(0))
-
-	now := time.Now()
-
-	assert.WithinDuration(t, now.Add(testExpiration), strategy.getExpires(testExpiration), time.Second*5)
-}
-
 func TestNewSameSite(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -321,12 +377,17 @@ type erroringRepository struct {
 	*testRepository
 
 	errSave     error
+	errSaveAt   int
 	errChangeID error
 	errDelete   error
+
+	saves int
 }
 
 func (r *erroringRepository) Save(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	if r.errSave != nil {
+	r.saves++
+
+	if r.errSave != nil && (r.errSaveAt == 0 || r.errSaveAt == r.saves) {
 		return r.errSave
 	}
 

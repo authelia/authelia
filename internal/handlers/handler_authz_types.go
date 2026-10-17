@@ -120,7 +120,7 @@ type AuthzBuilder struct {
 
 // AuthnStrategy is a strategy used for Authz authentication.
 type AuthnStrategy interface {
-	Get(ctx AuthzContext, manager session.Manager, object *authorization.Object) (authn *Authn, err error)
+	Get(ctx AuthzContext, manager session.AuthzManager, object *authorization.Object) (authn *Authn, err error)
 	CanHandleUnauthorized() (handle bool)
 	HeaderStrategy() (is bool)
 	HandleUnauthorized(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)

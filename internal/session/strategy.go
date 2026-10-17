@@ -5,7 +5,9 @@
 package session
 
 import (
+	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,26 +19,30 @@ import (
 )
 
 // NewStrategy returns a new Strategy for the given session cookie configuration. The issuer is the signature of the
-// Authelia URL, falling back to the cookie domain, which scopes every record this strategy stores.
+// Authelia URL, falling back to the cookie domain, which scopes every record this strategy stores. The session cookie
+// is always strict, and the configured same site value is applied to the authz cookie.
 func NewStrategy(config schema.SessionCookie, clock clock.Provider, codec Codec, storage Repository) (provider Strategy) {
 	sameSite := newSameSite(config.SameSite)
 
-	var issuer string
+	var scope string
 
 	if config.AutheliaURL == nil {
-		issuer = codec.Sign([]byte(strings.ToLower(config.Domain)))
+		scope = strings.ToLower(config.Domain)
 	} else {
-		issuer = codec.Sign([]byte(strings.ToLower(config.AutheliaURL.String())))
+		scope = strings.ToLower(config.AutheliaURL.String())
 	}
 
 	return &DefaultStrategy{
-		config:     config,
-		issuer:     issuer,
-		domain:     newDomain(config.Domain, sameSite),
-		samesite:   sameSite,
-		clock:      clock,
-		codec:      codec,
-		repository: storage,
+		config:        config,
+		issuer:        codec.Sign([]byte(scope)),
+		domain:        newDomain(config.Domain, http.SameSiteStrictMode),
+		authzName:     config.Name + cookieNameSuffixAuthz,
+		authzIssuer:   codec.SignAuthz([]byte(issuerPrefixAuthz + scope)),
+		authzDomain:   newDomain(config.Domain, sameSite),
+		authzSameSite: sameSite,
+		clock:         clock,
+		codec:         codec,
+		repository:    storage,
 	}
 }
 
@@ -45,9 +51,13 @@ func NewStrategy(config schema.SessionCookie, clock clock.Provider, codec Codec,
 type DefaultStrategy struct {
 	config schema.SessionCookie
 
-	issuer   string
-	domain   string
-	samesite http.SameSite
+	issuer string
+	domain string
+
+	authzName     string
+	authzIssuer   string
+	authzDomain   string
+	authzSameSite http.SameSite
 
 	clock clock.Provider
 
@@ -76,20 +86,35 @@ func (p *DefaultStrategy) NewDefault() (userSession UserSession) {
 }
 
 // Get returns the session for the given request, returning an anonymous session when the request has no session
-// cookie or the cookie does not resolve to a readable record.
+// cookie or the cookie does not resolve to a readable record. An authenticated session which the authz cookie of the
+// request isn't linked to is issued a new authz cookie, and the user agent is instructed to discard the authz cookie
+// when the session cookie resolves to an anonymous session. A request to an authorization endpoint always receives an
+// anonymous session as the session cookie is not honored there.
 func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
-	_, session, err = p.get(ctx)
+	if ctx.IsAuthzEndpointRequest() {
+		userSession := p.NewDefault()
+
+		return &userSession, nil
+	}
+
+	_, session, err = p.get(ctx, true)
 
 	return session, err
 }
 
-// Save persists the session. The userSession is a pointer as a session which has no public identifier has one generated
-// for it, and the caller must observe it to avoid orphaning the generated identifier on a subsequent save. An anonymous
-// session which holds no state isn't persisted, and the record and cookie of any previously persisted session for the
-// request are discarded instead, as the absence of a session is equivalent to it.
+// Save persists the session. The userSession is a pointer as a session which has no public identifier or authz
+// identifier has one generated for it, and the caller must observe them to avoid orphaning them on a subsequent save.
+// An anonymous session which holds no state isn't persisted, and the records and cookies of any previously persisted
+// session for the request are discarded instead, as the absence of a session is equivalent to it. An anonymous session
+// is never issued the authz cookie, and the user agent is instructed to discard any authz cookie it holds for the
+// session. It returns ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
 func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	if session == nil {
 		return fmt.Errorf("error occurred saving session: it is nil")
+	}
+
+	if ctx.IsAuthzEndpointRequest() {
+		return fmt.Errorf("error occurred saving session: %w", ErrNotPermittedOnAuthzEndpointRequest)
 	}
 
 	switch {
@@ -105,7 +130,11 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 
 	var id, data []byte
 
-	if id = p.getCookieID(ctx); len(id) == 0 {
+	id = p.getCookieID(ctx, p.config.Name)
+
+	existing := len(id) != 0
+
+	if !existing {
 		if id, err = p.codec.GenerateSessionID(); err != nil {
 			return fmt.Errorf("error occurred generating session ID: %w", err)
 		}
@@ -119,13 +148,14 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 
 	sid := p.codec.Sign(id)
 
+	expiration := p.getExpiration(*session)
+	session.Expires = p.getExpiresAt(expiration)
+
 	if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
 		return fmt.Errorf("error occurred encoding session: %w", err)
 	}
 
-	expiration := p.getExpiration(*session)
-
-	cookie := p.newCookie(id, p.getExpires(expiration))
+	expires := p.getCookieExpires(expiration)
 
 	if err = p.repository.Save(ctx, p.issuer, sid, session.PublicID, session.Username, expiration, data); err != nil {
 		if errors.Is(err, ErrSessionSuperseded) {
@@ -135,23 +165,47 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		return fmt.Errorf("error occurred saving session to registry: %w", err)
 	}
 
-	p.setCached(ctx, session)
+	p.setCached(ctx, p.cacheKey(), session)
+	p.setCached(ctx, p.cacheKeyAuthz(), nil)
 
-	ctx.SetCookie(cookie)
+	ctx.SetCookie(p.newCookie(id, expires))
+
+	p.saveAuthzCookie(ctx, session, existing, sid, expiration, expires)
 
 	return nil
 }
 
-// Regenerate issues a new session identifier for the current session, preserving the session data and public
-// identifier, which mitigates session fixation across an authentication level change.
+func (p *DefaultStrategy) saveAuthzCookie(ctx Context, session *UserSession, existing bool, sid string, expiration time.Duration, expires time.Time) {
+	if session.IsAnonymous() {
+		if existing {
+			p.clearAuthzCookie(ctx)
+		}
+
+		return
+	}
+
+	authz, aid := p.getAuthzValue(sid)
+
+	if err := p.saveAuthzIndex(ctx, aid, sid, expiration); err == nil {
+		ctx.SetCookie(p.newAuthzCookie(authz, expires))
+	}
+}
+
+// Regenerate issues a new session identifier and a new authz identifier for the current session, preserving the
+// session data and public identifier, which mitigates session fixation across an authentication level change. It
+// returns ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
 func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
+	if ctx.IsAuthzEndpointRequest() {
+		return fmt.Errorf("error occurred regenerating session: %w", ErrNotPermittedOnAuthzEndpointRequest)
+	}
+
 	var (
-		oldSID  string
-		id      []byte
-		session *UserSession
+		oldSID    string
+		id, authz []byte
+		session   *UserSession
 	)
 
-	if oldSID, session, err = p.get(ctx); err != nil {
+	if oldSID, session, err = p.get(ctx, false); err != nil {
 		return err
 	}
 
@@ -161,9 +215,12 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 
 	sid := p.codec.Sign(id)
 	expiration := p.getExpiration(*session)
+	expires := p.getCookieExpires(expiration)
 
 	if len(oldSID) != 0 {
 		var data []byte
+
+		session.Expires = p.getExpiresAt(expiration)
 
 		if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
 			return fmt.Errorf("error occurred encoding session: %w", err)
@@ -172,57 +229,124 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 		if err = p.repository.ChangeID(ctx, p.issuer, oldSID, sid, session.PublicID, session.Username, expiration, data); err != nil {
 			return fmt.Errorf("error occurred changing session ID: %w", err)
 		}
+
+		p.setCached(ctx, p.cacheKey(), session)
+		p.setCached(ctx, p.cacheKeyAuthz(), nil)
+
+		var aid string
+
+		// The session has moved at this point so failing to store the authz index must not prevent the session cookie
+		// being issued, and only withholds the authz cookie, which the next request the session is read on issues again.
+		if authz, aid = p.getAuthzValue(sid); session.IsAnonymous() || p.saveAuthzIndex(ctx, aid, sid, expiration) != nil {
+			authz = nil
+		}
+
+		_, previous := p.getAuthzValue(oldSID)
+
+		_ = p.deleteAuthzIndex(ctx, previous)
 	}
 
-	ctx.SetCookie(p.newCookie(id, p.getExpires(expiration)))
+	ctx.SetCookie(p.newCookie(id, expires))
+
+	switch {
+	case len(authz) != 0:
+		ctx.SetCookie(p.newAuthzCookie(authz, expires))
+	case len(oldSID) != 0 && session.IsAnonymous():
+		p.clearAuthzCookie(ctx)
+	}
 
 	return nil
 }
 
-// Destroy removes the backend record for the current session and instructs the user agent to discard the cookie.
+// Destroy removes the backend record for the current session and instructs the user agent to discard both the session
+// cookie and the authz cookie. A request which has no session cookie has the session its authz cookie is linked to
+// removed instead. It returns ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
 func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
-	id, userSession, _ := p.get(ctx)
+	if ctx.IsAuthzEndpointRequest() {
+		return fmt.Errorf("error occurred destroying session: %w", ErrNotPermittedOnAuthzEndpointRequest)
+	}
 
-	if len(id) != 0 {
-		var pid, username string
+	id, userSession, _ := p.get(ctx, false)
 
-		if userSession != nil {
-			pid = userSession.PublicID
-			username = userSession.Username
-		}
+	if len(id) == 0 {
+		err = p.destroyByAuthz(ctx)
+	} else {
+		err = p.destroyByID(ctx, id, userSession)
+	}
 
-		if err = p.repository.Delete(ctx, p.issuer, id, pid, username); err != nil {
+	if err != nil {
+		return err
+	}
+
+	p.setCached(ctx, p.cacheKey(), nil)
+	p.setCached(ctx, p.cacheKeyAuthz(), nil)
+
+	ctx.ClearCookie(p.newDeletionCookie())
+	ctx.ClearCookie(p.newAuthzDeletionCookie())
+
+	return nil
+}
+
+func (p *DefaultStrategy) destroyByID(ctx Context, id string, userSession *UserSession) (err error) {
+	var pid, username string
+
+	if userSession != nil {
+		pid = userSession.PublicID
+		username = userSession.Username
+	}
+
+	if err = p.repository.Delete(ctx, p.issuer, id, pid, username); err != nil {
+		return fmt.Errorf("error occurred deleting session from backend: %w", err)
+	}
+
+	_, aid := p.getAuthzValue(id)
+
+	_ = p.deleteAuthzIndex(ctx, aid)
+
+	return nil
+}
+
+func (p *DefaultStrategy) destroyByAuthz(ctx Context) (err error) {
+	sid, aid, userSession, _ := (&DefaultAuthzStrategy{base: p}).resolve(ctx)
+
+	if userSession != nil {
+		if err = p.repository.Delete(ctx, p.issuer, sid, userSession.PublicID, userSession.Username); err != nil {
 			return fmt.Errorf("error occurred deleting session from backend: %w", err)
 		}
 	}
 
-	p.setCached(ctx, nil)
-
-	ctx.ClearCookie(p.newDeletionCookie())
+	if aid != "" {
+		_ = p.deleteAuthzIndex(ctx, aid)
+	}
 
 	return nil
 }
 
+// discard removes the records and cookies of the request for a session which doesn't require persistence. The cookies
+// are cleared rather than retained as the Repository refuses later saves against a deleted record, which would otherwise
+// prevent the request from persisting a session again until the deleted record expired.
 func (p *DefaultStrategy) discard(ctx Context, session *UserSession) (err error) {
-	id := p.getCookieID(ctx)
+	id := p.getCookieID(ctx, p.config.Name)
 
 	if len(id) == 0 {
 		return nil
 	}
 
-	if err = p.repository.Delete(ctx, p.issuer, p.codec.Sign(id), session.PublicID, session.Username); err != nil {
-		return fmt.Errorf("error occurred deleting session from backend: %w", err)
+	if err = p.destroyByID(ctx, p.codec.Sign(id), session); err != nil {
+		return err
 	}
 
-	p.setCached(ctx, nil)
+	p.setCached(ctx, p.cacheKey(), nil)
+	p.setCached(ctx, p.cacheKeyAuthz(), nil)
 
 	ctx.ClearCookie(p.newDeletionCookie())
+	ctx.ClearCookie(p.newAuthzDeletionCookie())
 
 	return nil
 }
 
-func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err error) {
-	cookie := p.getCookieID(ctx)
+func (p *DefaultStrategy) get(ctx Context, heal bool) (id string, session *UserSession, err error) {
+	cookie := p.getCookieID(ctx, p.config.Name)
 
 	userSession := p.NewDefault()
 
@@ -232,7 +356,7 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 
 	id = p.codec.Sign(cookie)
 
-	if cached, ok := p.getCached(ctx); ok {
+	if cached, ok := p.getCached(ctx, p.cacheKey()); ok {
 		return id, cached, nil
 	}
 
@@ -243,7 +367,11 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 	}
 
 	if record == nil || len(record.GetSessionData()) == 0 {
-		p.setCached(ctx, &userSession)
+		if heal {
+			p.clearAuthzCookie(ctx)
+		}
+
+		p.setCached(ctx, p.cacheKey(), &userSession)
 
 		return id, &userSession, nil
 	}
@@ -262,18 +390,65 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 		return id, nil, fmt.Errorf("error occurred getting session: domain does not match cookie domain")
 	}
 
-	p.setCached(ctx, session)
+	if heal {
+		if session.IsAnonymous() {
+			p.clearAuthzCookie(ctx)
+		} else {
+			p.healAuthz(ctx, id, session)
+		}
+	}
+
+	p.setCached(ctx, p.cacheKey(), session)
 
 	return id, session, nil
 }
 
-func (p *DefaultStrategy) getCached(ctx Context) (session *UserSession, ok bool) {
+func (p *DefaultStrategy) healAuthz(ctx Context, sid string, session *UserSession) {
+	value, aid := p.getAuthzValue(sid)
+
+	if current := p.getCookieID(ctx, p.authzName); len(current) != 0 && subtle.ConstantTimeCompare(current, value) == 1 {
+		return
+	}
+
+	remaining, ok := p.getRemaining(*session)
+	if !ok {
+		return
+	}
+
+	if err := p.saveAuthzIndex(ctx, aid, sid, remaining); err != nil {
+		return
+	}
+
+	p.setCached(ctx, p.cacheKeyAuthz(), nil)
+
+	ctx.SetCookie(p.newAuthzCookie(value, p.getCookieExpires(p.getExpiration(*session))))
+}
+
+func (p *DefaultStrategy) clearAuthzCookie(ctx Context) {
+	if ctx.GetCookie(p.authzName) == "" {
+		return
+	}
+
+	p.setCached(ctx, p.cacheKeyAuthz(), nil)
+
+	ctx.ClearCookie(p.newAuthzDeletionCookie())
+}
+
+func (p *DefaultStrategy) cacheKey() string {
+	return p.config.Domain
+}
+
+func (p *DefaultStrategy) cacheKeyAuthz() string {
+	return cacheKeyPrefixAuthz + p.config.Domain
+}
+
+func (p *DefaultStrategy) getCached(ctx Context, key string) (session *UserSession, ok bool) {
 	caching, ok := ctx.(CachingContext)
 	if !ok {
 		return nil, false
 	}
 
-	cached, ok := caching.CachedSession(p.config.Domain)
+	cached, ok := caching.CachedSession(key)
 	if !ok || cached == nil {
 		return nil, false
 	}
@@ -283,25 +458,25 @@ func (p *DefaultStrategy) getCached(ctx Context) (session *UserSession, ok bool)
 	return &value, true
 }
 
-func (p *DefaultStrategy) setCached(ctx Context, session *UserSession) {
+func (p *DefaultStrategy) setCached(ctx Context, key string, session *UserSession) {
 	caching, ok := ctx.(CachingContext)
 	if !ok {
 		return
 	}
 
 	if session == nil {
-		caching.CacheSession(p.config.Domain, nil)
+		caching.CacheSession(key, nil)
 
 		return
 	}
 
 	value := session.deepCopy()
 
-	caching.CacheSession(p.config.Domain, &value)
+	caching.CacheSession(key, &value)
 }
 
-func (p *DefaultStrategy) getCookieID(ctx Context) (id []byte) {
-	value := ctx.GetCookie(p.config.Name)
+func (p *DefaultStrategy) getCookieID(ctx Context, name string) (id []byte) {
+	value := ctx.GetCookie(name)
 
 	if len(value) == 0 {
 		return nil
@@ -316,8 +491,21 @@ func (p *DefaultStrategy) getCookieID(ctx Context) (id []byte) {
 	return id
 }
 
+func (p *DefaultStrategy) getAuthzValue(sid string) (value []byte, aid string) {
+	value, _ = hex.DecodeString(p.codec.SignAuthz([]byte(authzValuePrefix + p.issuer + ":" + sid)))
+
+	return value, p.codec.SignAuthz(value)
+}
+
+func (p *DefaultStrategy) saveAuthzIndex(ctx Context, aid, sid string, expiration time.Duration) (err error) {
+	return p.repository.Save(ctx, p.authzIssuer, aid, getAuthzIndexPublicID(aid), "", expiration, []byte(sid))
+}
+
+func (p *DefaultStrategy) deleteAuthzIndex(ctx Context, aid string) (err error) {
+	return p.repository.Delete(ctx, p.authzIssuer, aid, getAuthzIndexPublicID(aid), "")
+}
+
 func (p *DefaultStrategy) newCookie(id []byte, expires time.Time) (cookie *http.Cookie) {
-	//nolint:gosec // The SameSite attribute is determined by the validated configuration which restricts it to 'none', 'lax', or 'strict'.
 	return &http.Cookie{
 		Name:     p.config.Name,
 		Value:    encodeCookieID(id),
@@ -326,8 +514,26 @@ func (p *DefaultStrategy) newCookie(id []byte, expires time.Time) (cookie *http.
 		Expires:  expires,
 		Secure:   true,
 		HttpOnly: true,
-		SameSite: p.samesite,
+		SameSite: http.SameSiteStrictMode,
 	}
+}
+
+func (p *DefaultStrategy) newAuthzCookie(id []byte, expires time.Time) (cookie *http.Cookie) {
+	//nolint:gosec // The SameSite attribute is determined by the validated configuration which restricts it to 'none', 'lax', or 'strict'.
+	return &http.Cookie{
+		Name:     p.authzName,
+		Value:    encodeCookieID(id),
+		Path:     "/",
+		Domain:   p.authzDomain,
+		Expires:  expires,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: p.authzSameSite,
+	}
+}
+
+func (p *DefaultStrategy) newAuthzDeletionCookie() (cookie *http.Cookie) {
+	return p.newAuthzCookie(nil, p.clock.Now().Add(-cookieDeletionOffset))
 }
 
 func (p *DefaultStrategy) newDeletionCookie() (cookie *http.Cookie) {
@@ -345,12 +551,48 @@ func (p *DefaultStrategy) getExpiration(userSession UserSession) (expiration tim
 	return p.config.Expiration
 }
 
-func (p *DefaultStrategy) getExpires(expiration time.Duration) (exp time.Time) {
+func (p *DefaultStrategy) getExpiresAt(expiration time.Duration) (expires int64) {
+	if expiration == 0 {
+		return 0
+	}
+
+	return p.clock.Now().Add(expiration).Unix()
+}
+
+func (p *DefaultStrategy) getRemaining(session UserSession) (remaining time.Duration, ok bool) {
+	if session.Expires == 0 {
+		return p.getExpiration(session), true
+	}
+
+	remaining = time.Unix(session.Expires, 0).Sub(p.clock.Now())
+
+	return remaining, remaining > 0
+}
+
+func (p *DefaultStrategy) getCookieExpires(expiration time.Duration) (exp time.Time) {
 	if expiration == 0 {
 		return expireUnlimited
 	}
 
-	return p.clock.Now().Add(expiration)
+	lifetime := max(expiration, sessionCookieLifetimeMinimum)
+
+	if !p.config.DisableRememberMe {
+		lifetime = max(lifetime, p.config.RememberMe)
+	}
+
+	return p.clock.Now().Add(lifetime)
+}
+
+func equalSignature(a, b string) bool {
+	return len(a) != 0 && subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
+}
+
+func getAuthzIndexPublicID(aid string) string {
+	if len(aid) <= authzIndexPublicIDLength {
+		return aid
+	}
+
+	return aid[:authzIndexPublicIDLength]
 }
 
 func encodeCookieID(id []byte) string {

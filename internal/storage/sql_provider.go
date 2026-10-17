@@ -95,6 +95,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectSessionSignatureByPublicID:  fmt.Sprintf(queryFmtSelectSessionSignatureByPublicID, tableSession),
 		sqlSelectSessionSignaturesByUsername: fmt.Sprintf(queryFmtSelectSessionSignaturesByUsername, tableSession),
 		sqlUpdateSessionData:                 fmt.Sprintf(queryFmtUpdateSessionData, tableSession),
+		sqlUpdateSessionDataIfUnchanged:      fmt.Sprintf(queryFmtUpdateSessionDataIfUnchanged, tableSession),
 		sqlUpdateSessionSignature:            fmt.Sprintf(queryFmtUpdateSessionSignature, tableSession),
 		sqlUpdateSessionDestroyed:            fmt.Sprintf(queryFmtUpdateSessionDestroyed, tableSession),
 		sqlDeleteSessionExpired:              fmt.Sprintf(queryFmtDeleteSessionExpired, tableSession),
@@ -273,6 +274,7 @@ type SQLProvider struct {
 	sqlSelectSessionSignatureByPublicID  string
 	sqlSelectSessionSignaturesByUsername string
 	sqlUpdateSessionData                 string
+	sqlUpdateSessionDataIfUnchanged      string
 	sqlUpdateSessionSignature            string
 	sqlUpdateSessionDestroyed            string
 	sqlDeleteSessionExpired              string

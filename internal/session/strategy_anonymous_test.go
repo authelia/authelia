@@ -30,7 +30,7 @@ func TestDefaultStrategy_SaveShouldNotPersistAnonymousSessionWithoutState(t *tes
 	assert.Empty(t, userSession.PublicID)
 	assert.Equal(t, 0, ctx.set)
 	assert.Equal(t, 0, repository.deletes)
-	assert.Nil(t, ctx.cleared)
+	assert.Empty(t, ctx.cleared)
 	assert.NotContains(t, ctx.cookies, testName)
 }
 
@@ -80,13 +80,14 @@ func TestDefaultStrategy_SaveShouldPersistAnonymousSessionWithState(t *testing.T
 
 	assert.NotEmpty(t, userSession.PublicID)
 	assert.NotEmpty(t, ctx.cookies[testName])
-	assert.Equal(t, now.Add(testAnonymousExpiration), ctx.expires)
+	assert.Equal(t, now.Add(testAnonymousExpiration).Unix(), userSession.Expires)
 
 	actual, err := strategy.Get(ctx)
 
 	require.NoError(t, err)
 	require.NotNil(t, actual.PasswordResetUsername)
 	assert.Equal(t, testUsername, *actual.PasswordResetUsername)
+	assert.Equal(t, now.Add(testAnonymousExpiration).Unix(), actual.Expires)
 }
 
 func TestDefaultStrategy_SaveShouldDiscardAnonymousSessionWhenItNoLongerHasState(t *testing.T) {
@@ -109,10 +110,14 @@ func TestDefaultStrategy_SaveShouldDiscardAnonymousSessionWhenItNoLongerHasState
 
 	assert.Empty(t, repository.data)
 	assert.Empty(t, repository.publicIDs)
-	assert.Equal(t, 1, repository.deletes)
+	// The session record and its authz index are both deleted.
+	assert.Equal(t, 2, repository.deletes)
 	assert.NotContains(t, ctx.cookies, testName)
-	require.NotNil(t, ctx.cleared)
-	assert.True(t, ctx.cleared.Expires.Before(time.Now()))
+	require.NotEmpty(t, ctx.cleared)
+
+	for _, cookie := range ctx.cleared {
+		assert.True(t, cookie.Expires.Before(time.Now()))
+	}
 
 	actual, err := strategy.Get(ctx)
 
@@ -130,6 +135,36 @@ func TestDefaultStrategy_SaveShouldDiscardAnonymousSessionWhenItNoLongerHasState
 	})
 }
 
+func TestDefaultStrategy_SaveShouldDiscardTheAuthzCookieAndIndex(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	ctx := newTestContext()
+
+	authenticated := strategy.New(testUsername)
+
+	authenticated.SetOneFactorPassword(time.Now(), false)
+
+	require.NoError(t, strategy.Save(ctx, &authenticated))
+	require.Contains(t, ctx.jar, testNameAuthz)
+	require.Len(t, repository.data, 2)
+
+	anonymous := strategy.NewDefault()
+
+	require.NoError(t, strategy.Save(ctx, &anonymous))
+
+	assert.Empty(t, repository.data)
+	assert.NotContains(t, ctx.cookies, testName)
+	assert.NotContains(t, ctx.cookies, testNameAuthz)
+
+	names := make([]string, 0, len(ctx.cleared))
+
+	for _, cookie := range ctx.cleared {
+		names = append(names, cookie.Name)
+	}
+
+	assert.ElementsMatch(t, []string{testName, testNameAuthz}, names)
+}
+
 func TestDefaultStrategy_SaveShouldReturnErrorWhenDiscardFails(t *testing.T) {
 	repository := &erroringRepository{testRepository: newTestRepository()}
 	strategy := newTestStrategyWithRepository(t, repository, nil)
@@ -145,7 +180,7 @@ func TestDefaultStrategy_SaveShouldReturnErrorWhenDiscardFails(t *testing.T) {
 
 	assert.EqualError(t, strategy.Save(ctx, &userSession), "error occurred deleting session from backend: bad stuff")
 	assert.Contains(t, ctx.cookies, testName)
-	assert.Nil(t, ctx.cleared)
+	assert.Empty(t, ctx.cleared)
 }
 
 func TestDefaultStrategy_SaveShouldApplyAnonymousExpiration(t *testing.T) {
@@ -285,6 +320,7 @@ func TestUserSession_RequiresPersistenceShouldConsiderEveryField(t *testing.T) {
 		"KeepMeLoggedIn": true,
 		"LastActivity":   true,
 		"RefreshTTL":     true,
+		"Expires":        true,
 	}
 
 	fields := reflect.TypeFor[UserSession]()

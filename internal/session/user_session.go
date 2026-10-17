@@ -35,7 +35,7 @@ func (s *UserSession) IsAnonymous() bool {
 
 // RequiresPersistence returns true if the session holds state which must be persisted to the Repository. Every session
 // which belongs to a user does, whereas an anonymous session only does when it carries state such as a pending WebAuthn
-// ceremony or password reset. The identifiers, activity, and remember me values of an anonymous session are
+// ceremony or password reset. The identifiers, activity, expiry, and remember me values of an anonymous session are
 // meaningless without a user and are disregarded.
 func (s *UserSession) RequiresPersistence() bool {
 	switch {

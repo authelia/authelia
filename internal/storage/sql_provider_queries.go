@@ -426,6 +426,11 @@ const (
 		SET expiration = ?, data = ?
 		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
 
+	queryFmtUpdateSessionDataIfUnchanged = `
+		UPDATE %s
+		SET expiration = ?, data = ?
+		WHERE issuer = ? AND signature = ? AND data = ? AND LENGTH(data) > 0;`
+
 	queryFmtUpdateSessionSignature = `
 		UPDATE %s
 		SET signature = ?, expiration = ?, data = ?

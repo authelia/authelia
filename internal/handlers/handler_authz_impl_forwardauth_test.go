@@ -56,7 +56,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsDeny() {
 
 					s.setRequest(mock.Ctx, method, pairURI.TargetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					switch method {
 					case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
@@ -97,7 +97,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDen
 					mock.Ctx.RequestCtx.QueryArgs().Set("authelia_url", pairURI.AutheliaURI.String())
 					s.setRequest(mock.Ctx, method, pairURI.TargetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					switch method {
 					case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
@@ -137,7 +137,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, fmt.Sprintf("%d %s", fasthttp.StatusBadRequest, fasthttp.StatusMessage(fasthttp.StatusBadRequest)), string(mock.Ctx.Response.Body()))
@@ -170,7 +170,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 							s.setRequest(mock.Ctx, method, pairURI.TargetURI, x, x)
 
-							authz.Handler(mock.Ctx)
+							handleAuthzRequest(authz, mock.Ctx)
 
 							assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 
@@ -207,7 +207,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -231,7 +231,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleMissingHostDeny() {
 			mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-			authz.Handler(mock.Ctx)
+			handleAuthzRequest(authz, mock.Ctx)
 
 			assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -256,7 +256,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllow() {
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -280,7 +280,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					if method == methodACL {
 						assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -331,7 +331,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 
 					s.setRequest(mock.Ctx, method, targetURI, true, true)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -377,7 +377,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -405,7 +405,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleAuthRequestAllMethodsAllow() 
 
 					setRequestAuthRequest(mock.Ctx, method, targetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -429,7 +429,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleAuthRequestAllMethodsWithMeth
 
 					setRequestAuthRequest(mock.Ctx, method, targetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -457,7 +457,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllow() {
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -487,7 +487,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllowXHR() 
 
 							setRequestExtAuthz(mock.Ctx, method, targetURI, x, x)
 
-							authz.Handler(mock.Ctx)
+							handleAuthzRequest(authz, mock.Ctx)
 
 							assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 							assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -513,7 +513,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsWithMethods
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))

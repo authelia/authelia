@@ -261,9 +261,20 @@ func (r *Redis) SessionGetIDsByUsername(ctx context.Context, issuer, username st
 // atomically when the session was moved to a new id after the caller retrieved it, as saving it would restore the
 // session under the id it was moved from. The indexes which refer to the session are updated once it's saved.
 func (r *Redis) SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	return r.sessionSaveAndIndex(ctx, issuer, id, pid, username, expiration, nil, data)
+}
+
+// SessionSaveData updates the session data. Every key which refers to the session has its expiry refreshed alongside it,
+// as each is a distinct key with an independent TTL which would otherwise lapse while the session is still alive. When
+// previous isn't nil the session is only updated if its data is still exactly previous.
+func (r *Redis) SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error) {
+	return r.sessionSaveAndIndex(ctx, issuer, id, pid, username, expiration, previous, data)
+}
+
+func (r *Redis) sessionSaveAndIndex(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error) {
 	var previousPID, previousUsername string
 
-	if previousPID, previousUsername, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, data); err != nil {
+	if previousPID, previousUsername, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, previous, data); err != nil {
 		return err
 	}
 
@@ -284,12 +295,6 @@ func (r *Redis) SessionSave(ctx context.Context, issuer, id, pid, username strin
 	}
 
 	return nil
-}
-
-// SessionSaveData updates the session data. Every key which refers to the session has its expiry refreshed alongside it,
-// as each is a distinct key with an independent TTL which would otherwise lapse while the session is still alive.
-func (r *Redis) SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	return r.SessionSave(ctx, issuer, id, pid, username, expiration, data)
 }
 
 // SessionDelete implements the Provider interface. The indexes named by the caller are retired, falling back to those the
@@ -349,7 +354,7 @@ func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, use
 
 	previousPID, previousUsername = getRedisString(result, 1), getRedisString(result, 2)
 
-	if _, _, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, data); err != nil {
+	if _, _, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, nil, data); err != nil {
 		return err
 	}
 
@@ -372,10 +377,17 @@ func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, use
 	return nil
 }
 
-func (r *Redis) sessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (previousPID, previousUsername string, err error) {
-	var result []any
+func (r *Redis) sessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (previousPID, previousUsername string, err error) {
+	var (
+		result  []any
+		compare = "0"
+	)
 
-	if result, err = redisSessionSave.Run(ctx, r.client, []string{getSessionKey(issuer, id)}, data, getSessionExpirationMilliseconds(expiration), pid, username).Slice(); err != nil {
+	if previous != nil {
+		compare = "1"
+	}
+
+	if result, err = redisSessionSave.Run(ctx, r.client, []string{getSessionKey(issuer, id)}, data, getSessionExpirationMilliseconds(expiration), pid, username, compare, previous).Slice(); err != nil {
 		return "", "", err
 	}
 

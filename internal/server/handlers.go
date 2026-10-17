@@ -240,9 +240,9 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		authz := handlers.NewAuthzBuilder().WithConfig(config).WithEndpointConfig(endpoint).Build()
 
-		handlerAuthz := middlewares.Wrap(metricsVRMW, bridge(func(ctx *middlewares.AutheliaCtx) {
+		handlerAuthz := middlewares.AuthzEndpoint(middlewares.Wrap(metricsVRMW, bridge(func(ctx *middlewares.AutheliaCtx) {
 			authz.Handler(ctx)
-		}))
+		})))
 
 		switch name {
 		case "legacy":

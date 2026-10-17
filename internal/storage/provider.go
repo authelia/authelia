@@ -318,8 +318,9 @@ type Provider interface {
 	// SessionSave persists a session, replacing any session with the same signature and issuer.
 	SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
 
-	// SessionSaveData updates the data and expiration of an existing session.
-	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
+	// SessionSaveData updates the data and expiration of an existing session. When previous isn't nil the session is
+	// only updated if its data is still exactly previous, and otherwise session.ErrSessionSuperseded is returned.
+	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error)
 
 	// SessionDelete removes a session.
 	SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error)

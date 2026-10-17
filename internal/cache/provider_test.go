@@ -30,7 +30,7 @@ func TestSessionRepositoryShouldDelegateToProvider(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, session.NewRecord("id", []byte("first")), record)
 
-	require.NoError(t, repository.SaveData(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("second")))
+	require.NoError(t, repository.SaveData(ctx, "example.com", "id", "pid", "john", time.Hour, nil, []byte("second")))
 
 	record, err = repository.GetByPublicID(ctx, "example.com", "pid")
 	require.NoError(t, err)

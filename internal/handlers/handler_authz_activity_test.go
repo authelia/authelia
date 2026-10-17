@@ -66,7 +66,7 @@ func TestHandleAuthnCookieValidateActivity(t *testing.T) {
 
 			recorded := userSession.LastActivity
 
-			modified, invalid := handleAuthnCookieValidate(mock.Ctx, manager, &userSession)
+			modified, invalid := handleAuthnCookieValidate(mock.Ctx, manager.GetSessionConfig(), &userSession)
 
 			require.False(t, invalid)
 			assert.Equal(t, tc.Expected, modified)

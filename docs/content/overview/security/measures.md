@@ -424,6 +424,18 @@ This is used to encrypt the session data when it is stored in the [Redis](../../
 database. The value of this option should be long and as random as possible. See more in the
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 
+Every session is represented by two cookies. The session cookie is always issued with a SameSite value of Strict and is
+the only cookie accepted by the portal and the API, which means a request initiated by another site never carries it. A
+separate authorization cookie, which uses the configured
+[same_site](../../configuration/session/introduction.md#same_site-1) value, is accepted only by the authorization
+endpoints and can only be used to check access, to record activity, and to end the session. The authorization cookie is
+derived from the session identifier using a key known only to Authelia, so it changes whenever the session cookie does,
+and neither cookie can be derived from the other without that key. Which cookie is honored is decided by the endpoint
+which handles the request, so the session cookie is ignored by the authorization endpoints and the authorization cookie
+is ignored everywhere else, with one exception: when the session cookie is absent, signing in or signing out ends the
+session the authorization cookie belongs to so that it can't outlive the user's intent. A sign out request which the
+browser reports as cross-site is refused so this can't be triggered by another site.
+
 The validity period of session is highly configurable. For example, in a highly security conscious domain you could
 set the session [remember_me](../../configuration/session/introduction.md#remember_me) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the

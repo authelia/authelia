@@ -34,8 +34,9 @@ type Provider interface {
 	SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
 
 	// SessionSaveData updates the session data in the cache, refreshing the expiry of the session and every lookup
-	// which refers to it.
-	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
+	// which refers to it. When previous isn't nil the session is only updated if its data is still exactly previous, and
+	// otherwise session.ErrSessionSuperseded is returned.
+	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error)
 
 	// SessionDelete should delete a session from the cache, as well as the related lookup information.
 	SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error)
@@ -88,8 +89,8 @@ func (s SessionRepository) Save(ctx context.Context, issuer string, id string, p
 }
 
 // SaveData implements the session.Repository interface.
-func (s SessionRepository) SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error) {
-	return s.provider.SessionSaveData(ctx, issuer, id, pid, username, expiration, data)
+func (s SessionRepository) SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, previous, data []byte) (err error) {
+	return s.provider.SessionSaveData(ctx, issuer, id, pid, username, expiration, previous, data)
 }
 
 // Delete implements the session.Repository interface.

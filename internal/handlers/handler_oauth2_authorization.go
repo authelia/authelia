@@ -24,6 +24,10 @@ import (
 //
 //nolint:gocyclo
 func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+	if handleOAuth2AuthorizationBounce(ctx, rw, r) {
+		return
+	}
+
 	var (
 		issuer    *url.URL
 		responder oauthelia2.AuthorizeResponder

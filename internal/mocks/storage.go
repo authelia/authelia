@@ -1489,17 +1489,17 @@ func (mr *MockStorageMockRecorder) SessionSave(ctx, issuer, id, pid, username, e
 }
 
 // SessionSaveData mocks base method.
-func (m *MockStorage) SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) error {
+func (m *MockStorage) SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SessionSaveData", ctx, issuer, id, pid, username, expiration, data)
+	ret := m.ctrl.Call(m, "SessionSaveData", ctx, issuer, id, pid, username, expiration, previous, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SessionSaveData indicates an expected call of SessionSaveData.
-func (mr *MockStorageMockRecorder) SessionSaveData(ctx, issuer, id, pid, username, expiration, data any) *gomock.Call {
+func (mr *MockStorageMockRecorder) SessionSaveData(ctx, issuer, id, pid, username, expiration, previous, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionSaveData", reflect.TypeOf((*MockStorage)(nil).SessionSaveData), ctx, issuer, id, pid, username, expiration, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionSaveData", reflect.TypeOf((*MockStorage)(nil).SessionSaveData), ctx, issuer, id, pid, username, expiration, previous, data)
 }
 
 // StartupCheck mocks base method.

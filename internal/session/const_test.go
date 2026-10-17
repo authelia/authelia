@@ -15,9 +15,12 @@ const (
 	testRememberMe          = time.Hour * 24
 	testAnonymousExpiration = time.Second * 20
 	testName                = "my_session"
+	testNameAuthz           = "my_session_authz"
 	testUsername            = "john"
 	testSecret              = "a-secret-value"
 	testHMACKey             = "an-hmac-key"
+	testHMACKeyAuthz        = "an-authz-hmac-key"
+	testHMACKeyCSRF         = "a-csrf-hmac-key"
 )
 
 var errTestFailure = errors.New("bad stuff")

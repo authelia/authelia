@@ -213,7 +213,7 @@ func TestRedis_SessionSave(t *testing.T) {
 			func(t *testing.T, client *mockRedisCmdable) {
 				require.Len(t, client.evals, 1)
 
-				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keySession}, args: []any{[]byte("data"), int64(3600000), "pid", "john"}}, client.evals[0])
+				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keySession}, args: []any{[]byte("data"), int64(3600000), "pid", "john", "0", []byte(nil)}}, client.evals[0])
 				assert.Equal(t, []mockRedisSet{{key: keyPublic, value: "id", expiration: time.Hour}}, client.sets)
 
 				require.Len(t, client.added[keyUser], 1)
@@ -232,7 +232,7 @@ func TestRedis_SessionSave(t *testing.T) {
 			nil,
 			"",
 			func(t *testing.T, client *mockRedisCmdable) {
-				assert.Equal(t, []any{[]byte("data"), int64(3600000), "pid", ""}, client.evals[0].args)
+				assert.Equal(t, []any{[]byte("data"), int64(3600000), "pid", "", "0", []byte(nil)}, client.evals[0].args)
 				assert.Len(t, client.sets, 1)
 				assert.Empty(t, client.added)
 			},
@@ -351,7 +351,7 @@ func TestRedis_SessionSave(t *testing.T) {
 				var err error
 
 				if data {
-					err = provider.SessionSaveData(context.Background(), "example.com", "id", "pid", tc.Username, tc.Expiration, []byte("data"))
+					err = provider.SessionSaveData(context.Background(), "example.com", "id", "pid", tc.Username, tc.Expiration, nil, []byte("data"))
 				} else {
 					err = provider.SessionSave(context.Background(), "example.com", "id", "pid", tc.Username, tc.Expiration, []byte("data"))
 				}
@@ -370,12 +370,30 @@ func TestRedis_SessionSave(t *testing.T) {
 	}
 }
 
+func TestRedis_SessionSaveDataShouldPassThePreviousDataToTheScript(t *testing.T) {
+	keySession := getSessionKey("example.com", "id")
+
+	client := &mockRedisCmdable{evalResults: []any{[]any{int64(1), "pid", "john"}}}
+	provider := NewRedis(client, "standalone")
+
+	require.NoError(t, provider.SessionSaveData(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("previous"), []byte("data")))
+
+	require.Len(t, client.evals, 1)
+	assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keySession}, args: []any{[]byte("data"), int64(3600000), "pid", "john", "1", []byte("previous")}}, client.evals[0])
+
+	client = &mockRedisCmdable{evalResults: []any{[]any{int64(0)}}}
+	provider = NewRedis(client, "standalone")
+
+	assert.ErrorIs(t, provider.SessionSaveData(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale"), []byte("data")), session.ErrSessionSuperseded)
+	assert.Empty(t, client.sets)
+}
+
 func TestRedis_SessionSaveShouldReturnSupersededWhenTheScriptDiscardsTheSave(t *testing.T) {
 	client := &mockRedisCmdable{evalResults: []any{[]any{int64(0)}, []any{int64(0)}}}
 	provider := NewRedis(client, "standalone")
 
 	assert.ErrorIs(t, provider.SessionSave(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
-	assert.ErrorIs(t, provider.SessionSaveData(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
+	assert.ErrorIs(t, provider.SessionSaveData(context.Background(), "example.com", "id", "pid", "john", time.Hour, nil, []byte("stale")), session.ErrSessionSuperseded)
 }
 
 func TestRedis_SessionDelete(t *testing.T) {

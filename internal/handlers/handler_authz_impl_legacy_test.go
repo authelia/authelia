@@ -225,7 +225,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", pairURI.TargetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					switch method {
 					case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
@@ -271,7 +271,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", pairURI.TargetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					switch method {
 					case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
@@ -314,7 +314,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLBypassSta
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, "", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
@@ -346,7 +346,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLOneFactor
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, "", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
@@ -377,7 +377,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsRDAutheliaURLOneFactorStatu
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 					mock.Ctx.Request.SetRequestURI("/api/verify?rd=https%3A%2F%2Fauth.example.com")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					switch method {
 					case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
@@ -428,7 +428,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 								mock.Ctx.Request.Header.Set(fasthttp.HeaderXRequestedWith, "XMLHttpRequest")
 							}
 
-							authz.Handler(mock.Ctx)
+							handleAuthzRequest(authz, mock.Ctx)
 
 							assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 
@@ -470,7 +470,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -495,7 +495,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleMissingHostDeny() {
 			mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-			authz.Handler(mock.Ctx)
+			handleAuthzRequest(authz, mock.Ctx)
 
 			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -525,7 +525,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllow() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -550,7 +550,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 					mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, "https://auth.example.com")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					if method == methodACL {
 						assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -605,7 +605,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
@@ -663,7 +663,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() {
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 	)
 
-	authz.Handler(mock.Ctx)
+	handleAuthzRequest(authz, mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
@@ -839,7 +839,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 				tc.setup(mock)
 			}
 
-			authz.Handler(mock.Ctx)
+			handleAuthzRequest(authz, mock.Ctx)
 
 			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, "401 Unauthorized", string(mock.Ctx.Response.Body()))
@@ -884,7 +884,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
-					authz.Handler(mock.Ctx)
+					handleAuthzRequest(authz, mock.Ctx)
 
 					assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
