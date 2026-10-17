@@ -5,7 +5,9 @@
 package handlers
 
 import (
+	"database/sql"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -375,8 +379,178 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
-		mock.Assert200KO(t, messageAuthenticationFailed)
+		assertConsentCompletionRedirect(t, mock, "", "")
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred getting the original form from the consent session", regexpAnyError)
+	})
+
+	t.Run("ShouldHandleMalformedFlowID", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, "not-a-uuid", flowNameOpenIDConnect, "", "")
+
+		assertConsentCompletionRedirect(t, mock, "", "")
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the consent session flow id", regexpAnyError)
+	})
+
+	t.Run("ShouldHandleUnknownConsentSession", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		flowID := uuid.Must(uuid.NewRandom())
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), flowID).
+			Return(nil, sql.ErrNoRows)
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, flowID.String(), flowNameOpenIDConnect, "", "")
+
+		assertConsentCompletionRedirect(t, mock, "", "")
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading the consent session", "sql: no rows in result set")
+	})
+
+	t.Run("ShouldHandleConsentSessionAlreadyRespondedTo", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		consent := newConsent(t, mock)
+		consent.SetRespondedAt(mock.Ctx.GetClock().Now().Add(-time.Minute), 0)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+
+		assertConsentCompletionRedirect(t, mock, "", "")
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to process consent session as it has already been responded to", nil)
+	})
+
+	t.Run("ShouldHandleUnregisteredClient", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = nil
+
+		setupTestOIDCProvider(t, mock, config)
+
+		consent := newConsent(t, mock)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+
+		assertConsentCompletionRedirect(t, mock, "", "")
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading the client for the consent session", regexpAnyError)
+	})
+}
+
+func TestHandleFlowResponseOpenIDConnectErrorDebug(t *testing.T) {
+	setup := func(t *testing.T, debug bool) *mocks.MockAutheliaCtx {
+		t.Helper()
+
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+		config.EnableClientDebugMessages = debug
+
+		setupTestOIDCProvider(t, mock, config)
+
+		return mock
+	}
+
+	respondedConsent := func(t *testing.T, mock *mocks.MockAutheliaCtx) *model.OAuth2ConsentSession {
+		t.Helper()
+
+		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent.SetRespondedAt(mock.Ctx.GetClock().Now().Add(-time.Minute), 0)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		return consent
+	}
+
+	t.Run("ShouldExcludeSpecificCauseWhenDebugDisabled", func(t *testing.T) {
+		mock := setup(t, false)
+		defer mock.Close()
+
+		consent := respondedConsent(t, mock)
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+
+		assertConsentCompletionRedirect(t, mock, "", "")
+	})
+
+	t.Run("ShouldIncludeSpecificCauseWhenDebugEnabled", func(t *testing.T) {
+		mock := setup(t, true)
+		defer mock.Close()
+
+		consent := respondedConsent(t, mock)
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+
+		assertConsentCompletionRedirect(t, mock, "", "invalid_request: "+oidc.ErrConsentCouldNotPerform.HintField)
+	})
+
+	t.Run("ShouldFallBackToDescriptionWhenCauseHasNoHint", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = nil
+		config.EnableClientDebugMessages = true
+
+		setupTestOIDCProvider(t, mock, config)
+
+		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+
+		assertConsentCompletionRedirect(t, mock, "", "invalid_client: "+oauthelia2.ErrInvalidClient.DescriptionField)
+	})
+
+	t.Run("ShouldIncludeSpecificCauseForDeviceSubflowWhenDebugEnabled", func(t *testing.T) {
+		mock := setup(t, true)
+		defer mock.Close()
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, strings.Repeat("A", 33))
+
+		assertConsentCompletionRedirect(t, mock, flowOpenIDConnectSubFlowNameDeviceAuthorization, "invalid_request: "+oidc.ErrDeviceCodeMalformedUserCode.HintField)
 	})
 }
