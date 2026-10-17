@@ -111,19 +111,25 @@ Authelia supports three key audience issuance modes.
    (at the token endpoint). This allows for opaque and arbitrary audiences.
 2. Using the `resource` parameter in the authorization request (at the authorization endpoint) or in the access request
    (at the token endpoint). This allows for audiences that are absolute URIs, which allows for special matching
-   behaviors.
-3. Implicitly granting all audiences when neither the `audience` or `resource` parameters are used (by policy only).
+   behaviors. These are compared with the
+   [resource](../../configuration/identity-providers/openid-connect/clients.md#resource) values of the client and not
+   the [audience](../../configuration/identity-providers/openid-connect/clients.md#audience) values.
+3. Implicitly granting all audiences or all resources when neither the `audience` or `resource` parameters are used (by
+   policy only). See the
+   [requested_audience_mode](../../configuration/identity-providers/openid-connect/clients.md#requested_audience_mode)
+   and [requested_resource_mode](../../configuration/identity-providers/openid-connect/clients.md#requested_resource_mode)
+   client options.
 
 Both the `audience` and `resource` parameters can be used together. The matching strategy for the `audience` parameter
 only allows for exact matches.
 
 The matching strategy for the `resource` parameter however allows for exact matches and also
-allows for special matching behaviors, specifically they can request a suffix of an allowed audience if the client is
-allowed to request the `https://example.com/example` they can request the `https://example.com/example` or
-`https://example.com/example/admin` audience using the resource parameter, but cannot request the
-`https://example.com/notexample/admin/users` audience.
+allows for special matching behaviors, specifically they can request a path beneath an allowed resource if the client
+is allowed to request the `https://example.com/example` they can request the `https://example.com/example` or
+`https://example.com/example/admin` resource using the resource parameter, but cannot request the
+`https://example.com/notexample/admin/users` resource.
 
-Please note that this only applies to absolute URLs and both the `audience` allowed to the client and the `resource`
+Please note that this only applies to absolute URLs and both the `resource` allowed to the client and the `resource`
 requested by the client must be absolute URLs, otherwise they are skipped and will eventually result in an error.
 
 ### Access Token Audience vs ID Token Audience
@@ -205,6 +211,12 @@ parameter):
 _In addition to the algorithms listed above, the value `none` is often accepted to indicate no signing and/or encryption
 should take place._
 
+When the `dir` algorithm is used the content encryption key is derived from the `client_secret` using the hash the
+content encryption algorithm requires as per
+[OpenID Connect Core 1.0 Section 10.2](https://openid.net/specs/openid-connect-core-1_0.html#Encryption), i.e.
+SHA-256 for `A128CBC-HS256`, `A128GCM`, `A192GCM`, and `A256GCM`, SHA-384 for `A192CBC-HS384`, and SHA-512 for
+`A256CBC-HS512`.
+
 ### Request Object
 
 Authelia accepts request objects with the following signature and content encryption algorithms (i.e. the `alg`
@@ -247,6 +259,11 @@ parameter):
 | PBES2-HS256+A128KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS384+A192KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS512+A256KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
+
+A request object encrypted with a `PBES2` algorithm is only accepted when that algorithm is the
+[request_object_encryption_alg](../../configuration/identity-providers/openid-connect/clients.md#request_object_encryption_alg)
+registered for the client, and its `p2c` (PBKDF2 iteration count) header must be between 200,000 and 600,000
+inclusive. Requests using another `p2c` value are rejected before any key is derived.
 
 A signed request object must have a `typ` header value of `oauth-authz-req+jwt` or `JWT`. An unsigned request object,
 which is only accepted from a client registered with a [request_object_signing_alg] of `none`, may omit the `typ`

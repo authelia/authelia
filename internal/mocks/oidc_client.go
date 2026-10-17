@@ -19,8 +19,8 @@ import (
 	reflect "reflect"
 	time "time"
 
+	jose "authelia.com/provider/jose"
 	oauth2 "authelia.com/provider/oauth2"
-	jose "authelia.com/provider/oauth2/token/jose"
 	authentication "github.com/authelia/authelia/v4/internal/authentication"
 	authorization "github.com/authelia/authelia/v4/internal/authorization"
 	oidc "github.com/authelia/authelia/v4/internal/oidc"
@@ -625,6 +625,20 @@ func (m *MockOIDCClient) GetRequirePushedAuthorizationRequests() bool {
 func (mr *MockOIDCClientMockRecorder) GetRequirePushedAuthorizationRequests() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRequirePushedAuthorizationRequests", reflect.TypeOf((*MockOIDCClient)(nil).GetRequirePushedAuthorizationRequests))
+}
+
+// GetResource mocks base method.
+func (m *MockOIDCClient) GetResource() oauth2.Arguments {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetResource")
+	ret0, _ := ret[0].(oauth2.Arguments)
+	return ret0
+}
+
+// GetResource indicates an expected call of GetResource.
+func (mr *MockOIDCClientMockRecorder) GetResource() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResource", reflect.TypeOf((*MockOIDCClient)(nil).GetResource))
 }
 
 // GetResponseModes mocks base method.

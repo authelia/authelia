@@ -55,6 +55,16 @@ func NewClientRequestedAudienceMode(mode string) ClientRequestedAudienceMode {
 	}
 }
 
+// NewClientRequestedResourceMode converts the config option into an oidc.ClientRequestedResourceMode.
+func NewClientRequestedResourceMode(mode string) ClientRequestedResourceMode {
+	switch mode {
+	case ClientRequestedResourceModeImplicit.String():
+		return ClientRequestedResourceModeImplicit
+	default:
+		return ClientRequestedResourceModeExplicit
+	}
+}
+
 // ClientAuthorizationPolicy controls and represents a client policy.
 type ClientAuthorizationPolicy struct {
 	Name          string
@@ -168,6 +178,31 @@ func (ram ClientRequestedAudienceMode) String() string {
 	case ClientRequestedAudienceModeExplicit:
 		return valueExplicit
 	case ClientRequestedAudienceModeImplicit:
+		return valueImplicit
+	default:
+		return ""
+	}
+}
+
+// ClientRequestedResourceMode represents the requested resource mode for a client.
+type ClientRequestedResourceMode int
+
+const (
+	// ClientRequestedResourceModeExplicit means the client requires that the resource is explicitly requested
+	// for it to be considered requested and therefore granted.
+	ClientRequestedResourceModeExplicit ClientRequestedResourceMode = iota
+
+	// ClientRequestedResourceModeImplicit means the client implicitly assumes that the requested resource is all of the
+	// permitted resources when the audience and resource request parameters are absent.
+	ClientRequestedResourceModeImplicit
+)
+
+// String returns the string representation of the ClientRequestedResourceMode.
+func (rrm ClientRequestedResourceMode) String() string {
+	switch rrm {
+	case ClientRequestedResourceModeExplicit:
+		return valueExplicit
+	case ClientRequestedResourceModeImplicit:
 		return valueImplicit
 	default:
 		return ""

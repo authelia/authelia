@@ -261,6 +261,8 @@ const (
 	FormParameterResponseMode = "response_mode"
 	FormParameterResponseType = "response_type"
 	FormParameterScope        = valueScope
+	FormParameterAudience     = "audience"
+	FormParameterResource     = "resource"
 	FormParameterPrompt       = "prompt"
 	FormParameterMaximumAge   = "max_age"
 	FormParameterClaims       = "claims"

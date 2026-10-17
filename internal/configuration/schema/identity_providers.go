@@ -175,7 +175,8 @@ type IdentityProvidersOpenIDConnectClient struct {
 	RedirectURIs IdentityProvidersOpenIDConnectClientURIs `koanf:"redirect_uris" yaml:"redirect_uris,omitempty" toml:"redirect_uris,omitempty" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of whitelisted redirect URIs."`
 	RequestURIs  IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
 
-	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
+	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audience values."`
+	Resource      []string `koanf:"resource" yaml:"resource,omitempty" toml:"resource,omitempty" json:"resource" jsonschema:"uniqueItems,title=Resource" jsonschema_description:"List of authorized resource values."`
 	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
 	GrantTypes    []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
 	ResponseTypes []string `koanf:"response_types" yaml:"response_types,omitempty" toml:"response_types,omitempty" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
@@ -186,6 +187,7 @@ type IdentityProvidersOpenIDConnectClient struct {
 	ClaimsPolicy        string `koanf:"claims_policy" yaml:"claims_policy,omitempty" toml:"claims_policy,omitempty" json:"claims_policy" jsonschema:"title=Claims Policy" jsonschema_description:"The claims policy to apply to this client."`
 
 	RequestedAudienceMode        string         `koanf:"requested_audience_mode" yaml:"requested_audience_mode,omitempty" toml:"requested_audience_mode,omitempty" json:"requested_audience_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Audience Modes" jsonschema_description:"The Requested Audience Modes used for this client."`
+	RequestedResourceMode        string         `koanf:"requested_resource_mode" yaml:"requested_resource_mode,omitempty" toml:"requested_resource_mode,omitempty" json:"requested_resource_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Resource Modes" jsonschema_description:"The Requested Resource Modes used for this client."`
 	ConsentMode                  string         `koanf:"consent_mode" yaml:"consent_mode,omitempty" toml:"consent_mode,omitempty" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Modes" jsonschema_description:"The Consent Modes used for this client."`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration" yaml:"pre_configured_consent_duration,omitempty" toml:"pre_configured_consent_duration,omitempty" json:"pre_configured_consent_duration" jsonschema:"default=7 days,title=Pre-Configured Consent Duration" jsonschema_description:"The Pre-Configured Consent Duration when using Consent Modes pre-configured for this client."`
 
@@ -281,6 +283,7 @@ var DefaultOpenIDConnectClientConfiguration = IdentityProvidersOpenIDConnectClie
 	UserinfoSignedResponseAlg:      "none",
 	IntrospectionSignedResponseAlg: "none",
 	RequestedAudienceMode:          "explicit",
+	RequestedResourceMode:          "explicit",
 	ConsentMode:                    "auto",
 	ConsentPreConfiguredDuration:   &defaultOIDCClientConsentPreConfiguredDuration,
 }

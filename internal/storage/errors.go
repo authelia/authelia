@@ -112,7 +112,8 @@ func IsSerializationFailure(err error) (failure bool) {
 
 // IsUniqueConstraintViolation returns true when the error indicates a statement was rejected because it would have
 // duplicated a value in a column or set of columns with a unique constraint, which is what a concurrent insert of the
-// same row fails with. The statement has not been applied, and the row which it conflicted with exists.
+// same row fails with. This covers SQLite unique and primary key constraint failures, MySQL duplicate entries, and
+// PostgreSQL unique violations. The statement has not been applied, and the row which it conflicted with exists.
 func IsUniqueConstraintViolation(err error) (violation bool) {
 	if err == nil {
 		return false
@@ -126,7 +127,7 @@ func IsUniqueConstraintViolation(err error) (violation bool) {
 
 	switch {
 	case errors.As(err, &errSQLite):
-		return errSQLite.ExtendedCode == sqlite3.ErrConstraintUnique
+		return errSQLite.ExtendedCode == sqlite3.ErrConstraintUnique || errSQLite.ExtendedCode == sqlite3.ErrConstraintPrimaryKey
 	case errors.As(err, &errMySQL):
 		return errMySQL.Number == codeMySQLDuplicateEntry
 	case errors.As(err, &errPostgres):
