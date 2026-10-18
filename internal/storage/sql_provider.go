@@ -178,6 +178,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSessionCheckedAt:  fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionCheckedAt, tableOAuth2DeviceCodeSession),
+		sqlClaimOAuth2DeviceCodeSession:            fmt.Sprintf(queryFmtClaimOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlDecideOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtDecideOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlDeactivateOAuth2DeviceCodeSession:       fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSessionByUserCode: fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByUserCode, tableOAuth2DeviceCodeSession),
@@ -356,6 +357,7 @@ type SQLProvider struct {
 	sqlSelectOAuth2DeviceCodeSession           string
 	sqlUpdateOAuth2DeviceCodeSession           string
 	sqlUpdateOAuth2DeviceCodeSessionCheckedAt  string
+	sqlClaimOAuth2DeviceCodeSession            string
 	sqlDecideOAuth2DeviceCodeSession           string
 	sqlDeactivateOAuth2DeviceCodeSession       string
 	sqlSelectOAuth2DeviceCodeSessionByUserCode string
@@ -1571,6 +1573,28 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session
 func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionCheckedAt(ctx context.Context, signature string, checkedAt time.Time) (err error) {
 	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionCheckedAt, checkedAt, signature); err != nil {
 		return fmt.Errorf("error updating oauth2 device code session checked at with signature '%s': %w", signature, err)
+	}
+
+	return nil
+}
+
+// ClaimOAuth2DeviceCodeSession binds an OAuth2.0 Device Code session to the challenge id of a consent session and the
+// subject which consented, and records the status and active values of the session, which is either the
+// DeviceAuthorizeStatusClaimed status while the user has not yet decided, or the decision itself when the user
+// rejected the request. The session is only claimed while it's active, has the DeviceAuthorizeStatusNew status, and
+// has not been bound to a consent session, and the ErrNoRowsAffected error is returned when it isn't, so of two
+// requests which claim a session concurrently only one claims it.
+func (p *SQLProvider) ClaimOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlClaimOAuth2DeviceCodeSession,
+		session.ChallengeID, session.Subject, session.Status, session.Active,
+		session.Signature, int(oauthelia2.DeviceAuthorizeStatusNew)); err != nil {
+		return fmt.Errorf("error claiming oauth2 device code session with signature '%s': %w", session.Signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error claiming oauth2 device code session with signature '%s': %w", session.Signature, err)
 	}
 
 	return nil

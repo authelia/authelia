@@ -597,6 +597,15 @@ const (
 		SET checked_at = ?
 		WHERE signature = ?;`
 
+	queryFmtClaimOAuth2DeviceCodeSession = `
+		UPDATE %s
+		SET
+			challenge_id = ?,
+			subject = ?,
+			status = ?,
+			active = ?
+		WHERE signature = ? AND challenge_id IS NULL AND status = ? AND active = TRUE AND revoked = FALSE;`
+
 	queryFmtDecideOAuth2DeviceCodeSession = `
 		UPDATE %s
 		SET

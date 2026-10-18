@@ -410,9 +410,9 @@ func setupTestOIDCConsentStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 	mock.StorageMock.EXPECT().
 		SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().
-		DoAndReturn(func(_ context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error) {
+		DoAndReturn(func(_ context.Context, consent *model.OAuth2ConsentSession, authorized bool) (err error) {
 			stored := *consent
-			stored.Authorized = !rejection
+			stored.Authorized = authorized
 
 			consents[consent.ChallengeID] = &stored
 
@@ -598,8 +598,25 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 			return nil
 		})
 
-	// The decision is only stored while the device code session is active, undecided, and bound to the challenge id
-	// of the decision, the same as the storage providers.
+	mock.StorageMock.EXPECT().
+		ClaimOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+			stored := bySignature(session.Signature)
+
+			switch {
+			case stored == nil,
+				!stored.Active || stored.Revoked,
+				stored.ChallengeID.Valid,
+				stored.Status != int(oauthelia2.DeviceAuthorizeStatusNew):
+				return storage.ErrNoRowsAffected
+			}
+
+			stored.ChallengeID, stored.Subject, stored.Status, stored.Active = session.ChallengeID, session.Subject, session.Status, session.Active
+
+			return nil
+		})
+
 	mock.StorageMock.EXPECT().
 		DecideOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
 		AnyTimes().

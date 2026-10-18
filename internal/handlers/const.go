@@ -172,4 +172,7 @@ const (
 var (
 	errUserAnonymous              = errors.New("user is anonymous")
 	errUserIsAlreadyAuthenticated = errors.New("user is already authenticated")
+
+	errOAuth2DeviceCodeSessionInactive = errors.New("the device code session is not active")
+	errOAuth2DeviceCodeSessionClaimed  = errors.New("the device code session has been claimed by another request")
 )

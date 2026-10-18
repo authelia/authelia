@@ -93,6 +93,7 @@ type ServerEndpointRateLimits struct {
 	OpenIDConnectUserInfo                   ServerEndpointRateLimit `koanf:"openid_connect_userinfo" yaml:"openid_connect_userinfo,omitempty" toml:"openid_connect_userinfo,omitempty" json:"openid_connect_userinfo,omitempty" jsonschema:"title=OpenID Connect UserInfo" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 UserInfo Endpoint."`
 	OpenIDConnectIntrospection              ServerEndpointRateLimit `koanf:"openid_connect_introspection" yaml:"openid_connect_introspection,omitempty" toml:"openid_connect_introspection,omitempty" json:"openid_connect_introspection,omitempty" jsonschema:"title=OpenID Connect Introspection" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Introspection Endpoint."`
 	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
+	OpenIDConnectUserCode                   ServerEndpointRateLimit `koanf:"openid_connect_user_code" yaml:"openid_connect_user_code,omitempty" toml:"openid_connect_user_code,omitempty" json:"openid_connect_user_code,omitempty" jsonschema:"title=OpenID Connect User Code" jsonschema_description:"Configures the rate limiter which applies to user codes which do not identify a pending OpenID Connect 1.0 Device Authorization Flow."`
 }
 
 // Endpoints returns a ServerEndpointRateLimitEndpoint for every configurable rate limiter in field order.
@@ -111,6 +112,7 @@ func (r *ServerEndpointRateLimits) Endpoints() []ServerEndpointRateLimitEndpoint
 		{Name: "openid_connect_userinfo", Config: &r.OpenIDConnectUserInfo},
 		{Name: "openid_connect_introspection", Config: &r.OpenIDConnectIntrospection},
 		{Name: "openid_connect_revocation", Config: &r.OpenIDConnectRevocation},
+		{Name: "openid_connect_user_code", Config: &r.OpenIDConnectUserCode},
 	}
 }
 
@@ -347,6 +349,13 @@ var DefaultServerConfiguration = Server{
 					{Period: 2 * time.Minute, Requests: 40},
 					{Period: 10 * time.Minute, Requests: 50},
 					{Period: time.Hour, Requests: 100},
+				},
+			},
+			OpenIDConnectUserCode: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 5},
+					{Period: 10 * time.Minute, Requests: 10},
+					{Period: time.Hour, Requests: 20},
 				},
 			},
 		},

@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -299,23 +300,24 @@ func handleOAuth2DeviceAuthorizationConsent(ctx *middlewares.AutheliaCtx, rw htt
 		return true
 	}
 
-	if consent.ChallengeID != flowID || !device.ChallengeID.Valid || device.ChallengeID.UUID != consent.ChallengeID {
+	if consent.ChallengeID != flowID {
+		err = fmt.Errorf("%w: the consent session is not the one for the requested flow", errOAuth2DeviceCodeSessionClaimed)
+	} else {
+		err = validateOAuth2DeviceCodeSessionClaimedBy(device, consent)
+	}
+
+	if err != nil {
 		log.
+			WithError(err).
 			WithField("device_flow_id", device.ChallengeID.UUID.String()).
-			Error("Device Authorization Request failed to match the consent session to the flow of the device code session during the User Authorization Flow")
+			Error("Device Authorization Request failed to match the device code session to the consent session which claimed it during the User Authorization Flow")
 
 		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
 
 		return true
 	}
 
-	if !device.Subject.Valid || device.Subject.String != consent.Subject.UUID.String() {
-		log.Error("Device Authorization Request failed to match the consent session to the subject of the device code session during the User Authorization Flow")
-
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
-
-		return true
-	}
+	setOAuth2UserCodeRateLimitExempt(ctx)
 
 	if err = consent.MatchesRequester(requester, ""); err != nil {
 		log.
@@ -350,9 +352,6 @@ func handleOAuth2DeviceAuthorizationConsent(ctx *middlewares.AutheliaCtx, rw htt
 	return false
 }
 
-// handleOAuth2DeviceAuthorizationSessionRefresh refreshes the user session from the authentication backend when the
-// refresh interval requires it, so a user who was deleted or disabled can't approve the request, and the client
-// authorization policy is evaluated against their current groups.
 func handleOAuth2DeviceAuthorizationSessionRefresh(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, requester oauthelia2.DeviceAuthorizeRequester, userSession *session.UserSession, log *logrus.Entry) (handled bool) {
 	var err error
 
@@ -384,4 +383,40 @@ func handleOAuth2DeviceAuthorizationSessionRefresh(ctx *middlewares.AutheliaCtx,
 	}
 
 	return false
+}
+
+func setOAuth2UserCodeRateLimitExempt(ctx *middlewares.AutheliaCtx) {
+	ctx.SetUserValue(middlewares.UserValueRateLimitExempt, true)
+}
+
+func validateOAuth2DeviceCodeSessionPending(device *model.OAuth2DeviceCodeSession) (err error) {
+	switch {
+	case !device.Active || device.Revoked:
+		return errOAuth2DeviceCodeSessionInactive
+	case device.ChallengeID.Valid || device.Subject.Valid:
+		return fmt.Errorf("%w: the device code session is already bound to a consent session", errOAuth2DeviceCodeSessionClaimed)
+	default:
+		return validateOAuth2DeviceCodeSessionStatus(device, oauthelia2.DeviceAuthorizeStatusNew)
+	}
+}
+
+func validateOAuth2DeviceCodeSessionClaimedBy(device *model.OAuth2DeviceCodeSession, consent *model.OAuth2ConsentSession) (err error) {
+	switch {
+	case !device.Active || device.Revoked:
+		return errOAuth2DeviceCodeSessionInactive
+	case !device.ChallengeID.Valid || device.ChallengeID.UUID != consent.ChallengeID:
+		return fmt.Errorf("%w: the consent session is not the one which claimed the device code session", errOAuth2DeviceCodeSessionClaimed)
+	case !device.Subject.Valid || device.Subject.String != consent.Subject.UUID.String():
+		return fmt.Errorf("%w: the subject of the consent session is not the one which claimed the device code session", errOAuth2DeviceCodeSessionClaimed)
+	default:
+		return validateOAuth2DeviceCodeSessionStatus(device, oauthelia2.DeviceAuthorizeStatusClaimed)
+	}
+}
+
+func validateOAuth2DeviceCodeSessionStatus(device *model.OAuth2DeviceCodeSession, expected oauthelia2.DeviceAuthorizeStatus) (err error) {
+	if actual := oauthelia2.DeviceAuthorizeStatus(device.Status); actual != expected {
+		return fmt.Errorf("the device code session does not have the expected status: expected '%s' but it's '%s'", oauthelia2.DeviceAuthorizeStatusToString(expected), oauthelia2.DeviceAuthorizeStatusToString(actual))
+	}
+
+	return nil
 }
