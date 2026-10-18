@@ -278,6 +278,12 @@ func (s *OAuth2ConsentPreConfig) CanConsentAt(now time.Time) bool {
 	return !s.Revoked && (!s.ExpiresAt.Valid || s.ExpiresAt.Time.After(now))
 }
 
+// CanConsentAtWithin returns true if this pre-configuration can still provide consent at a particular time and was
+// created within the lifespan, so a pre-configuration doesn't outlive a lifespan which was reduced after it was created.
+func (s *OAuth2ConsentPreConfig) CanConsentAtWithin(now time.Time, lifespan time.Duration) bool {
+	return s.CanConsentAt(now) && s.CreatedAt.Add(lifespan).After(now)
+}
+
 // OAuth2ConsentSession stores information about an OAuth2.0 Consent.
 type OAuth2ConsentSession struct {
 	ID          int           `db:"id"`

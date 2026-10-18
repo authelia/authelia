@@ -258,6 +258,19 @@ func TestShouldNotFindSliceDifferences(t *testing.T) {
 	assert.False(t, IsStringSlicesDifferentFold(a, b))
 }
 
+func TestShouldFindSliceDifferencesWithDuplicates(t *testing.T) {
+	a := []string{"abc", "abc"}
+	b := []string{"abc", "xyz"}
+
+	assert.True(t, IsStringSlicesDifferent(a, b))
+	assert.True(t, IsStringSlicesDifferent(b, a))
+	assert.True(t, IsStringSlicesDifferentFold(a, b))
+	assert.True(t, IsStringSlicesDifferentFold(b, a))
+
+	assert.False(t, IsStringSlicesDifferent(a, []string{"abc", "abc"}))
+	assert.False(t, IsStringSlicesDifferent([]string{"abc", "xyz"}, []string{"xyz", "abc"}))
+}
+
 func TestShouldFindSliceDifferenceWhenDifferentLength(t *testing.T) {
 	a := []string{"abc", "onetwothree"}
 	b := []string{"abc", "onetwothree", "more"}

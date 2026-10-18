@@ -55,8 +55,6 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 		return
 	}
 
-	oidc.PopulateRequestedResourceImplicit(requester)
-
 	log := ctx.GetLogger().WithFields(map[string]any{logging.FieldRequestID: requester.GetID(), logging.FieldClientID: requester.GetClient().GetID(), logging.FieldScope: strings.Join(requester.GetRequestedScopes(), " ")})
 
 	log.Debug("Device Authorization Request is processing the Device Authorization Flow")

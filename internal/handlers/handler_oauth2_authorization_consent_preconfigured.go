@@ -261,7 +261,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 			return nil, fmt.Errorf("error iterating rows: %w", err)
 		}
 
-		if !config.CanConsentAt(ctx.GetClock().Now()) {
+		if !config.CanConsentAtWithin(ctx.GetClock().Now(), client.GetConsentPolicy().Duration) {
 			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but it is revoked, expired, or otherwise can no longer provide consent", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID)
 
 			continue
