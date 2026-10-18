@@ -45,7 +45,7 @@ func handleAuthzAuthorizedStandard(ctx AuthzContext, headers []AuthzHeader, auth
 	resolver, updated := ctx.GetProviderUserAttributeResolver(), ctx.GetClock().Now()
 
 	for _, header := range headers {
-		object, ok := resolver.Resolve(header.Attribute, authn.Details, updated)
+		object, ok := resolver.Resolve(header.Attribute, &authn.Details, updated)
 		if !ok {
 			ctx.SetResponseHeaderValue(header.Key, "")
 
