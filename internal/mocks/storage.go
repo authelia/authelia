@@ -78,6 +78,20 @@ func (mr *MockStorageMockRecorder) BeginTX(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTX", reflect.TypeOf((*MockStorage)(nil).BeginTX), ctx)
 }
 
+// ClaimOAuth2DeviceCodeSession mocks base method.
+func (m *MockStorage) ClaimOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ClaimOAuth2DeviceCodeSession", ctx, session)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ClaimOAuth2DeviceCodeSession indicates an expected call of ClaimOAuth2DeviceCodeSession.
+func (mr *MockStorageMockRecorder) ClaimOAuth2DeviceCodeSession(ctx, session any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClaimOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).ClaimOAuth2DeviceCodeSession), ctx, session)
+}
+
 // Close mocks base method.
 func (m *MockStorage) Close() error {
 	m.ctrl.T.Helper()

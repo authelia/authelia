@@ -8,6 +8,7 @@ import { useFormStatus } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import LogoutButton from "@components/LogoutButton";
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import SwitchUserButton from "@components/SwitchUserButton";
 import { Button } from "@components/UI/Button";
 import { Card } from "@components/UI/Card";
@@ -24,9 +25,13 @@ import {
     SubFlowNameDeviceAuthorization,
     UserCode,
 } from "@constants/SearchParams";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
+import { useRateLimit } from "@hooks/RateLimit";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
+import { getConsentResponse } from "@services/ConsentOpenIDConnect";
+import { RateLimitedError } from "@services/RateLimit";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
@@ -45,11 +50,29 @@ function DeviceAuthorizationFormView({ state }: Props) {
 
     const navigate = useRouterNavigate();
 
+    const { createErrorNotification } = useNotifications();
+
+    const { limited: rateLimited, secondsRemaining, trigger: triggerRateLimit } = useRateLimit();
+
     const autoSubmittedRef = useRef(false);
 
     const handleCode = useCallback(
-        (code: string) => {
+        async (code: string) => {
             if (code === "") {
+                return;
+            }
+
+            try {
+                await getConsentResponse(undefined, code);
+            } catch (err) {
+                if (err instanceof RateLimitedError) {
+                    triggerRateLimit(err.retryAfter);
+
+                    createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
+                } else {
+                    createErrorNotification(translate("The code is invalid or has expired"));
+                }
+
                 return;
             }
 
@@ -61,7 +84,7 @@ function DeviceAuthorizationFormView({ state }: Props) {
 
             navigate(`${ConsentRoute}${ConsentOpenIDSubRoute}${ConsentDecisionSubRoute}`, true, true, true, params);
         },
-        [navigate],
+        [createErrorNotification, navigate, translate, triggerRateLimit],
     );
 
     useEffect(() => {
@@ -96,8 +119,8 @@ function DeviceAuthorizationFormView({ state }: Props) {
         handleCode(normalizeUserCode(userCode));
     }, [handleCode, state.authentication_level, userCode]);
 
-    const submitCode = useCallback(() => {
-        handleCode(code);
+    const submitCode = useCallback(async () => {
+        await handleCode(code);
     }, [code, handleCode]);
 
     if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
@@ -144,9 +167,10 @@ function DeviceAuthorizationFormView({ state }: Props) {
                         <p className="text-xs text-muted-foreground">
                             {translate("You will be asked to review the request next")}
                         </p>
-                        <DeviceAuthorizationSubmit disabled={code === ""}>
+                        <DeviceAuthorizationSubmit disabled={code === "" || rateLimited}>
                             {translate("Confirm", { ns: "settings" })}
                         </DeviceAuthorizationSubmit>
+                        <RateLimitCountdown secondsRemaining={secondsRemaining} />
                     </div>
                 </form>
             </div>

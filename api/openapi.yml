@@ -2051,6 +2051,13 @@ paths:
       summary: RFC8628 OAuth 2.0 Device Authorization Grant Endpoint
       description: >
         This endpoint performs the user interaction for the Device Authorization Flow.
+
+
+        The device authorization must have been claimed by the consent session identified by the flow_id using the
+        consent endpoint, and that consent session must have been authorized by the user, belong to the user, and
+        not have expired or been used. The decision is recorded once. Requests with a user_code which does not
+        identify the device authorization claimed by the consent session are subject to the
+        openid_connect_user_code rate limit.
       requestBody:
         description: Device Authorize Request (User Code Flow) Parameters.
         required: true
@@ -2070,8 +2077,34 @@ paths:
           description: OK
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - authelia_auth: []
   /api/oidc/pushed-authorization-request:
@@ -2381,6 +2414,11 @@ paths:
 
         Either the flow_id or user_code parameter must be provided. The user_code parameter is used by the
         RFC8628 OAuth 2.0 Device Authorization Grant sub-flow.
+
+
+        Requests with a user_code which does not identify a pending device authorization are subject to the
+        openid_connect_user_code rate limit, which this endpoint shares with the other endpoints which accept a
+        user code. While the rate limit applies every request with a user_code is refused.
       parameters:
         - $ref: '#/components/parameters/flowIDParam'
         - $ref: '#/components/parameters/userCodeParam'
@@ -2393,6 +2431,18 @@ paths:
                 $ref: '#/components/schemas/openid.request.consent'
         "403":
           description: Forbidden
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     post:
@@ -2403,6 +2453,14 @@ paths:
       summary: OpenID Connect 1.0 Consent Response
       description: >
         This endpoint retrieves the consent response for a specific consent ID during the consent workflow.
+
+
+        When the device_authorization subflow is used the user_code must identify a pending device authorization,
+        which this request claims for the consent session it creates and the user. Only that consent session can
+        then be used to authorize the device authorization, using the flow_id of the response. When the user rejects
+        the request the rejection is recorded instead. A device authorization can only be claimed once. Requests
+        with a user_code which does not identify a pending device authorization are subject to the
+        openid_connect_user_code rate limit.
       requestBody:
         required: true
         content:
@@ -2418,6 +2476,18 @@ paths:
                 $ref: '#/components/schemas/openid.response.consent'
         "403":
           description: Forbidden
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   {{- end }}
@@ -2567,6 +2637,7 @@ components:
       in: query
       description: >
         The RFC8628 OAuth 2.0 Device Authorization Grant user code. Required unless the flow_id parameter is provided.
+        It must identify a pending device authorization, which is one that's active and has not been claimed.
       required: false
       schema:
         type: string
@@ -2746,7 +2817,10 @@ components:
           enum:
             - 'device_authorization'
         userCode:
-          description: The user code from the Device Authorization Flow if applicable.
+          description: >
+            The user code from the Device Authorization Flow if applicable. It's not checked during authentication,
+            it's included in the redirection to the device authorization form which checks it using the consent
+            endpoint.
           type: string
           examples:
             - 'XGQWWFMM'
@@ -2789,7 +2863,10 @@ components:
           enum:
             - 'device_authorization'
         userCode:
-          description: The user code from the Device Authorization Flow if applicable.
+          description: >
+            The user code from the Device Authorization Flow if applicable. It's not checked during authentication,
+            it's included in the redirection to the device authorization form which checks it using the consent
+            endpoint.
           type: string
           examples:
             - 'XGQWWFMM'
@@ -2838,7 +2915,10 @@ components:
           enum:
             - 'device_authorization'
         userCode:
-          description: The user code from the Device Authorization Flow if applicable.
+          description: >
+            The user code from the Device Authorization Flow if applicable. It's not checked during authentication,
+            it's included in the redirection to the device authorization form which checks it using the consent
+            endpoint.
           type: string
           examples:
             - 'XGQWWFMM'
@@ -2964,7 +3044,10 @@ components:
           enum:
             - 'device_authorization'
         userCode:
-          description: The user code from the Device Authorization Flow if applicable.
+          description: >
+            The user code from the Device Authorization Flow if applicable. It's not checked during authentication,
+            it's included in the redirection to the device authorization form which checks it using the consent
+            endpoint.
           type: string
           examples:
             - 'XGQWWFMM'
@@ -3305,7 +3388,10 @@ components:
           enum:
             - 'device_authorization'
         userCode:
-          description: The user code from the Device Authorization Flow if applicable.
+          description: >
+            The user code from the Device Authorization Flow if applicable. It's not checked during authentication,
+            it's included in the redirection to the device authorization form which checks it using the consent
+            endpoint.
           type: string
           examples:
             - 'XGQWWFMM'
@@ -3416,7 +3502,10 @@ components:
           enum:
             - 'device_authorization'
         userCode:
-          description: The user code from the Device Authorization Flow if applicable.
+          description: >
+            The user code from the Device Authorization Flow if applicable. It's not checked during authentication,
+            it's included in the redirection to the device authorization form which checks it using the consent
+            endpoint.
           type: string
           examples:
             - 'XGQWWFMM'

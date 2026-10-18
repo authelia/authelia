@@ -865,6 +865,11 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_TOKEN_ENABLE"
   },
   {
+    "path": "server.endpoints.rate_limits.openid_connect_user_code.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_USER_CODE_ENABLE"
+  },
+  {
     "path": "server.endpoints.rate_limits.openid_connect_userinfo.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_USERINFO_ENABLE"

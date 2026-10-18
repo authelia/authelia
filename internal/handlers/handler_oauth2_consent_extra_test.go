@@ -358,7 +358,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to determine if the device code session is active during the Consent Flow stage of the Device Authorization Flow", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred during the Consent Flow stage of the Device Authorization Flow as the user code does not identify a pending device code session", "the device code session is not active")
 	})
 
 	t.Run("ShouldHandleDeviceCodeSessionWithExistingChallenge", func(t *testing.T) {
@@ -373,7 +373,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the device code session already has a challenge id", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred during the Consent Flow stage of the Device Authorization Flow as the user code does not identify a pending device code session", "the device code session has been claimed by another request: the device code session is already bound to a consent session")
 	})
 
 	t.Run("ShouldHandleInsufficientAuthenticationLevel", func(t *testing.T) {
@@ -424,7 +424,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to determine the subject during the Consent Flow stage of the Device Authorization Flow", regexpAnyError)
 	})
 
-	t.Run("ShouldHandleSubjectMismatch", func(t *testing.T) {
+	t.Run("ShouldHandleDeviceCodeSessionWithExistingSubject", func(t *testing.T) {
 		mock, userCode := setup(t, func(device *model.OAuth2DeviceCodeSession) {
 			device.Subject = sql.NullString{String: uuid.Must(uuid.NewRandom()).String(), Valid: true}
 		})
@@ -438,7 +438,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to determine the subject during the Consent Flow stage of the Device Authorization Flow as the subject of the device code session does not match the subject of the user session", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred during the Consent Flow stage of the Device Authorization Flow as the user code does not identify a pending device code session", "the device code session has been claimed by another request: the device code session is already bound to a consent session")
 	})
 
 	t.Run("ShouldHandleSaveConsentSessionError", func(t *testing.T) {
@@ -483,7 +483,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred saving the consent session response to the database during the Consent Flow stage of the Device Authorization Flow", regexpAnyError)
 	})
 
-	t.Run("ShouldHandleUpdateDeviceCodeSessionError", func(t *testing.T) {
+	t.Run("ShouldHandleClaimDeviceCodeSessionError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
@@ -525,7 +525,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 			Return(nil)
 
 		mock.StorageMock.EXPECT().
-			UpdateOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+			ClaimOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
 			Return(fmt.Errorf("error in db"))
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
@@ -537,7 +537,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred saving the device code session challenge id to the database during the Consent Flow stage of the Device Authorization Flow", regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred claiming the device code session during the Consent Flow stage of the Device Authorization Flow", "error in db")
 	})
 }
 

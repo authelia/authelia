@@ -68,7 +68,7 @@ func TestOAuth2ConsentDeviceAuthorizationGET(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Flow failed to retrieve Consent Flow data as device code session is not active or has been revoked", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Flow failed to retrieve Consent Flow data as the user code does not identify a pending device code session", "the device code session is not active")
 	})
 
 	t.Run("ShouldHandleInsufficientAuthenticationLevel", func(t *testing.T) {

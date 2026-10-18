@@ -140,6 +140,15 @@ server:
             requests: 50
           - period: '1 hour'
             requests: 100
+      openid_connect_user_code:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 5
+          - period: '10 minutes'
+            requests: 10
+          - period: '1 hour'
+            requests: 20
 ```
 
 ## Common Options
@@ -246,5 +255,20 @@ See [Common Options](#common-options) for the individual options for this sectio
 
 Configures the rate limiter which applies to the
 [OpenID Connect 1.0 Revocation Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### openid_connect_user_code
+
+Configures the rate limiter which applies to the user codes entered by users during the
+[OpenID Connect 1.0 Device Authorization Flow](../../integration/openid-connect/introduction.md#grant-types). User codes are short so
+users can type them, which means they're far easier to guess than other codes, so
+[RFC8628 Section 5.1](https://datatracker.ietf.org/doc/html/rfc8628#section-5.1) recommends the attempts are limited.
+
+Unlike the other rate limiters this one only counts user codes which do not identify a pending device authorization, so
+it limits incorrect guesses rather than every request. It applies to the consent and device authorization endpoints
+which accept a user code, which together share the one limit for each remote IP. While it applies every user code is
+refused, including one which would otherwise be accepted, so guesses can't continue to be tested until the limit
+expires.
 
 See [Common Options](#common-options) for the individual options for this section.

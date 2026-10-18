@@ -27,6 +27,7 @@
 	"Scope": "Scope {{name}}",
 	"Show request details": "Show request details",
 	"The actions the application will be allowed to perform on your behalf": "The actions the application will be allowed to perform on your behalf",
+	"The code is invalid or has expired": "The code is invalid or has expired",
 	"The information about you the application will receive": "The information about you the application will receive",
 	"The protected resources the application intends to access": "The protected resources the application intends to access",
 	"The services the issued tokens will be valid for": "The services the issued tokens will be valid for",

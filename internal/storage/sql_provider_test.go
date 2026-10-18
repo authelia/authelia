@@ -1052,6 +1052,111 @@ func TestSQLProviderOAuth2DeviceCodeSession(t *testing.T) {
 	})
 }
 
+func TestSQLProviderClaimOAuth2DeviceCodeSession(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	n := 0
+
+	setup := func(t *testing.T) *model.OAuth2DeviceCodeSession {
+		t.Helper()
+
+		n++
+
+		session := &model.OAuth2DeviceCodeSession{
+			Signature:         fmt.Sprintf("dev-claim-sig-%d", n),
+			RequestID:         fmt.Sprintf("dev-claim-req-%d", n),
+			ClientID:          "test-client",
+			UserCodeSignature: fmt.Sprintf("dev-claim-user-code-%d", n),
+			Status:            int(oauthelia2.DeviceAuthorizeStatusNew),
+			Active:            true,
+			RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+			Session:           []byte("{}"),
+			RequestedAt:       time.Now().Truncate(time.Second),
+		}
+
+		require.NoError(t, provider.SaveOAuth2DeviceCodeSession(ctx, session))
+
+		claim := *session
+		claim.ChallengeID = uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+		claim.Subject = sql.NullString{String: "subject", Valid: true}
+		claim.Status = int(oauthelia2.DeviceAuthorizeStatusClaimed)
+
+		return &claim
+	}
+
+	t.Run("ShouldClaimNewSession", func(t *testing.T) {
+		claim := setup(t)
+
+		require.NoError(t, provider.ClaimOAuth2DeviceCodeSession(ctx, claim))
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, claim.Signature)
+		require.NoError(t, err)
+
+		assert.Equal(t, claim.ChallengeID, loaded.ChallengeID)
+		assert.Equal(t, claim.Subject, loaded.Subject)
+		assert.Equal(t, int(oauthelia2.DeviceAuthorizeStatusClaimed), loaded.Status)
+		assert.True(t, loaded.Active)
+	})
+
+	t.Run("ShouldClaimAndDenyNewSession", func(t *testing.T) {
+		claim := setup(t)
+		claim.Status = int(oauthelia2.DeviceAuthorizeStatusDenied)
+		claim.Active = false
+
+		require.NoError(t, provider.ClaimOAuth2DeviceCodeSession(ctx, claim))
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, claim.Signature)
+		require.NoError(t, err)
+
+		assert.Equal(t, int(oauthelia2.DeviceAuthorizeStatusDenied), loaded.Status)
+		assert.False(t, loaded.Active)
+	})
+
+	t.Run("ShouldNotClaimTwice", func(t *testing.T) {
+		claim := setup(t)
+
+		require.NoError(t, provider.ClaimOAuth2DeviceCodeSession(ctx, claim))
+
+		other := *claim
+		other.ChallengeID = uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+		other.Subject = sql.NullString{String: "other", Valid: true}
+
+		assert.ErrorIs(t, provider.ClaimOAuth2DeviceCodeSession(ctx, &other), ErrNoRowsAffected)
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, claim.Signature)
+		require.NoError(t, err)
+
+		assert.Equal(t, claim.ChallengeID, loaded.ChallengeID)
+		assert.Equal(t, claim.Subject, loaded.Subject)
+	})
+
+	t.Run("ShouldNotClaimDecidedSession", func(t *testing.T) {
+		claim := setup(t)
+
+		decision := *claim
+		decision.Status = int(oauthelia2.DeviceAuthorizeStatusApproved)
+		decision.Session = []byte("{}")
+
+		require.NoError(t, provider.ClaimOAuth2DeviceCodeSession(ctx, claim))
+		require.NoError(t, provider.DecideOAuth2DeviceCodeSession(ctx, &decision))
+
+		claim.ChallengeID = uuid.NullUUID{}
+
+		assert.ErrorIs(t, provider.ClaimOAuth2DeviceCodeSession(ctx, claim), ErrNoRowsAffected)
+	})
+
+	t.Run("ShouldNotClaimInactiveSession", func(t *testing.T) {
+		claim := setup(t)
+
+		require.NoError(t, provider.DeactivateOAuth2DeviceCodeSession(ctx, claim.Signature))
+
+		assert.ErrorIs(t, provider.ClaimOAuth2DeviceCodeSession(ctx, claim), ErrNoRowsAffected)
+	})
+}
+
 func TestSQLProviderDecideOAuth2DeviceCodeSession(t *testing.T) {
 	provider := newTestSQLiteProviderWithEncryption(t)
 	require.NoError(t, provider.StartupCheck())

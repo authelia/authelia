@@ -2,14 +2,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { getConsentResponse } from "@services/ConsentOpenIDConnect";
+import { RateLimitedError } from "@services/RateLimit";
 import { AuthenticationLevel } from "@services/State";
 import DeviceAuthorizationFormView from "@views/ConsentPortal/OpenIDConnect/DeviceAuthorizationFormView";
 
 const mocks = vi.hoisted(() => ({
+    createErrorNotification: vi.fn(),
     navigate: vi.fn(),
     userCode: { current: null as null | string },
+}));
+
+vi.mock("@contexts/NotificationsContext", () => ({
+    useNotifications: () => ({
+        createErrorNotification: mocks.createErrorNotification,
+    }),
+}));
+
+vi.mock("@services/ConsentOpenIDConnect", () => ({
+    getConsentResponse: vi.fn(),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -63,8 +76,20 @@ const expectedQuery = (code: string) => {
 beforeEach(() => {
     vi.clearAllMocks();
 
+    vi.mocked(getConsentResponse).mockResolvedValue({} as any);
+
     mocks.userCode.current = null;
 });
+
+const submitCode = async (code: string) => {
+    await act(async () => {
+        fireEvent.change(screen.getByLabelText("Code"), { target: { value: code } });
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /Confirm/ }));
+    });
+};
 
 it("renders loading page when unauthenticated", () => {
     renderView(AuthenticationLevel.Unauthenticated);
@@ -110,14 +135,9 @@ it("submits the form with the confirm button so a keyboard return works", () => 
 it("navigates to the decision route when the code is submitted", async () => {
     renderView();
 
-    await act(async () => {
-        fireEvent.change(screen.getByLabelText("Code"), { target: { value: "BGKMRTVX" } });
-    });
+    await submitCode("BGKMRTVX");
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Confirm/ }));
-    });
-
+    expect(getConsentResponse).toHaveBeenCalledWith(undefined, "BGKMRTVX");
     expect(mocks.navigate).toHaveBeenCalledWith(
         "/consent/openid/decision",
         true,
@@ -179,28 +199,56 @@ it("disables the confirmation until a code is entered", async () => {
     expect(screen.getByRole("button", { name: /Confirm/ })).toBeEnabled();
 });
 
-it("submits a code supplied in the url without waiting for the user", () => {
+it("stays on the form when the code is invalid", async () => {
+    vi.mocked(getConsentResponse).mockRejectedValue(new Error("Operation failed."));
+
+    renderView();
+
+    await submitCode("BGKMRTVX");
+
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(mocks.createErrorNotification).toHaveBeenCalledWith("The code is invalid or has expired");
+    expect(screen.getByRole("button", { name: /Confirm/ })).toBeEnabled();
+});
+
+it("disables the confirmation while rate limited", async () => {
+    vi.mocked(getConsentResponse).mockRejectedValue(new RateLimitedError(30));
+
+    renderView();
+
+    await submitCode("BGKMRTVX");
+
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests");
+    expect(screen.getByRole("button", { name: /Confirm/ })).toBeDisabled();
+});
+
+it("submits a code supplied in the url without waiting for the user", async () => {
     mocks.userCode.current = "BGKMRTVX";
 
     renderView();
 
-    expect(mocks.navigate).toHaveBeenCalledWith(
-        "/consent/openid/decision",
-        true,
-        true,
-        true,
-        expectedQuery("BGKMRTVX"),
+    await waitFor(() =>
+        expect(mocks.navigate).toHaveBeenCalledWith(
+            "/consent/openid/decision",
+            true,
+            true,
+            true,
+            expectedQuery("BGKMRTVX"),
+        ),
     );
 });
 
-it("submits a code supplied in the url only once", () => {
+it("submits a code supplied in the url only once", async () => {
     mocks.userCode.current = "BGKMRTVX";
 
     const { rerender } = renderView();
 
     rerender(<DeviceAuthorizationFormView state={{ authentication_level: AuthenticationLevel.OneFactor } as any} />);
 
-    expect(mocks.navigate).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledTimes(1));
+
+    expect(getConsentResponse).toHaveBeenCalledTimes(1);
 });
 
 it("separates the account actions", () => {

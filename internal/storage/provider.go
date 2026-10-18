@@ -268,6 +268,10 @@ type Provider interface {
 	// session in the storage provider.
 	UpdateOAuth2DeviceCodeSessionCheckedAt(ctx context.Context, signature string, checkedAt time.Time) (err error)
 
+	// ClaimOAuth2DeviceCodeSession binds an OAuth2.0 device code session to a consent session and subject, and records
+	// its status, only while it's active, new, and not bound to another consent session.
+	ClaimOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
 	// DecideOAuth2DeviceCodeSession records the decision of an OAuth2.0 device code session in the storage provider
 	// only while it's active, undecided, and bound to the challenge id of the session.
 	DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
