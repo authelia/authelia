@@ -1766,20 +1766,32 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			expectErr: "error updating oauth2 device code session with signature 'sig': boom",
 		},
 		{
-			name: "ShouldReturnErrUpdateOAuth2DeviceCodeSessionData",
+			name: "ShouldReturnErrUpdateOAuth2DeviceCodeSessionCheckedAt",
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), "sig",
+					gomock.Any(), "sig",
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.UpdateOAuth2DeviceCodeSessionData(context.Background(), &model.OAuth2DeviceCodeSession{Signature: "sig"})
+				return p.UpdateOAuth2DeviceCodeSessionCheckedAt(context.Background(), "sig", time.Now())
 			},
-			expectErr: "error updating oauth2 device code session data with signature 'sig': boom",
+			expectErr: "error updating oauth2 device code session checked at with signature 'sig': boom",
+		},
+		{
+			name: "ShouldReturnErrDecideOAuth2DeviceCodeSession",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(
+					gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), "sig", gomock.Any(),
+					gomock.Any(), gomock.Any(),
+				).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.DecideOAuth2DeviceCodeSession(context.Background(), &model.OAuth2DeviceCodeSession{Signature: "sig"})
+			},
+			expectErr: "error deciding oauth2 device code session with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrDeactivateOAuth2DeviceCodeSession",

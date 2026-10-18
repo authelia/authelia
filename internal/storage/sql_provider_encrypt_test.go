@@ -99,15 +99,15 @@ func TestSQLProviderEncryptErrors(t *testing.T) {
 			expectErr: "error encrypting oauth2 device code session data for session with signature '' for subject 'dev-sig-123' and request id 'dev-req-123': crypto/aes: invalid key size 0",
 		},
 		{
-			name: "ShouldReturnErrUpdateOAuth2DeviceCodeSessionData",
+			name: "ShouldReturnErrDecideOAuth2DeviceCodeSession",
 			invoke: func(p *storage.SQLProvider) error {
-				return p.UpdateOAuth2DeviceCodeSessionData(context.Background(), &model.OAuth2DeviceCodeSession{
+				return p.DecideOAuth2DeviceCodeSession(context.Background(), &model.OAuth2DeviceCodeSession{
 					Signature: "dev-sig-123",
 					RequestID: "dev-req-123",
 					Session:   []byte(`{"device":"code"}`),
 				})
 			},
-			expectErr: "error encrypting oauth2 device code session data for session with signature '' for subject 'dev-sig-123' and request id 'dev-req-123': crypto/aes: invalid key size 0",
+			expectErr: "error encrypting oauth2 device code session data for session with signature 'dev-sig-123' for subject '' and request id 'dev-req-123': crypto/aes: invalid key size 0",
 		},
 		{
 			name: "ShouldReturnErrSaveOAuth2PushedAuthorizationSession",

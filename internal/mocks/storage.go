@@ -176,6 +176,20 @@ func (mr *MockStorageMockRecorder) DeactivateOAuth2SessionByRequestID(ctx, sessi
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeactivateOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).DeactivateOAuth2SessionByRequestID), ctx, sessionType, requestID)
 }
 
+// DecideOAuth2DeviceCodeSession mocks base method.
+func (m *MockStorage) DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DecideOAuth2DeviceCodeSession", ctx, session)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DecideOAuth2DeviceCodeSession indicates an expected call of DecideOAuth2DeviceCodeSession.
+func (mr *MockStorageMockRecorder) DecideOAuth2DeviceCodeSession(ctx, session any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecideOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).DecideOAuth2DeviceCodeSession), ctx, session)
+}
+
 // DeleteCachedData mocks base method.
 func (m *MockStorage) DeleteCachedData(ctx context.Context, name string) error {
 	m.ctrl.T.Helper()
@@ -1385,18 +1399,18 @@ func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSession(ctx, session an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSession), ctx, session)
 }
 
-// UpdateOAuth2DeviceCodeSessionData mocks base method.
-func (m *MockStorage) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) error {
+// UpdateOAuth2DeviceCodeSessionCheckedAt mocks base method.
+func (m *MockStorage) UpdateOAuth2DeviceCodeSessionCheckedAt(ctx context.Context, signature string, checkedAt time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSessionData", ctx, session)
+	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSessionCheckedAt", ctx, signature, checkedAt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateOAuth2DeviceCodeSessionData indicates an expected call of UpdateOAuth2DeviceCodeSessionData.
-func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSessionData(ctx, session any) *gomock.Call {
+// UpdateOAuth2DeviceCodeSessionCheckedAt indicates an expected call of UpdateOAuth2DeviceCodeSessionCheckedAt.
+func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSessionCheckedAt(ctx, signature, checkedAt any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSessionData", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSessionData), ctx, session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSessionCheckedAt", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSessionCheckedAt), ctx, signature, checkedAt)
 }
 
 // UpdateOAuth2PushedAuthorizationSession mocks base method.

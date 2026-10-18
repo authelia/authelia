@@ -746,6 +746,10 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(storage.ErrNoRowsAffected),
 		s.mock.
 			EXPECT().
+			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7203").
+			Return(fmt.Errorf("error revoking oauth2 access token session with request id '65471ccb-d650-4006-a95f-cb4f4e3d7203': %w", storage.ErrNoRowsAffected)),
+		s.mock.
+			EXPECT().
 			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "rt_example1").
 			Return(nil),
 		s.mock.
@@ -859,6 +863,7 @@ func (s *StoreSuite) TestRevokeSessions() {
 	s.NoError(s.store.RevokeAccessToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200"))
 	s.EqualError(s.store.RevokeAccessToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201"), "not found")
 	s.EqualError(s.store.RevokeAccessToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202"), "not_found")
+	s.EqualError(s.store.RevokeAccessToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7203"), "not_found")
 
 	s.NoError(s.store.DeleteRefreshTokenSession(s.ctx, "rt_example1"))
 	s.EqualError(s.store.DeleteRefreshTokenSession(s.ctx, "rt_example2"), "not found")
@@ -1130,35 +1135,88 @@ func (s *StoreSuite) TestCreateDeviceCodeSession() {
 }
 
 func (s *StoreSuite) TestUpdateDeviceCodeSession() {
-	challenge := model.MustNullUUID(model.NewRandomNullUUID())
-	session := &oidc.Session{ChallengeID: challenge}
+	checked := time.Unix(1700000000, 0)
 
-	s.T().Run("ShouldSucceed", func(t *testing.T) {
-		s.mock.EXPECT().UpdateOAuth2DeviceCodeSessionData(s.ctx, gomock.Any()).Return(nil)
+	s.T().Run("ShouldOnlyUpdateTheCheckedAtValue", func(t *testing.T) {
+		s.mock.EXPECT().UpdateOAuth2DeviceCodeSessionCheckedAt(s.ctx, abc, checked).Return(nil)
 
 		err := s.store.UpdateDeviceCodeSession(s.ctx, abc, &oauthelia2.DeviceAuthorizeRequest{
 			Request: oauthelia2.Request{
 				ID:      abc,
 				Client:  &oidc.RegisteredClient{ID: "example"},
-				Session: session,
+				Session: &oidc.Session{},
 			},
+			Status:      oauthelia2.DeviceAuthorizeStatusNew,
+			LastChecked: checked,
 		})
 
 		assert.NoError(t, err)
 	})
 
 	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
-		s.mock.EXPECT().UpdateOAuth2DeviceCodeSessionData(s.ctx, gomock.Any()).Return(fmt.Errorf("update error"))
+		s.mock.EXPECT().UpdateOAuth2DeviceCodeSessionCheckedAt(s.ctx, abc, checked).Return(fmt.Errorf("update error"))
 
 		err := s.store.UpdateDeviceCodeSession(s.ctx, abc, &oauthelia2.DeviceAuthorizeRequest{
 			Request: oauthelia2.Request{
 				ID:      abc,
 				Client:  &oidc.RegisteredClient{ID: "example"},
-				Session: session,
+				Session: &oidc.Session{},
 			},
+			LastChecked: checked,
 		})
 
 		assert.EqualError(t, err, "update error")
+	})
+}
+
+func (s *StoreSuite) TestDecideDeviceCodeSession() {
+	challenge := model.MustNullUUID(model.NewRandomNullUUID())
+	session := &oidc.Session{ChallengeID: challenge}
+
+	request := func() *oauthelia2.DeviceAuthorizeRequest {
+		return &oauthelia2.DeviceAuthorizeRequest{
+			Request: oauthelia2.Request{
+				ID:      abc,
+				Client:  &oidc.RegisteredClient{ID: "example"},
+				Session: session,
+			},
+			DeviceCodeSignature: abc,
+			Status:              oauthelia2.DeviceAuthorizeStatusApproved,
+		}
+	}
+
+	s.T().Run("ShouldSucceed", func(t *testing.T) {
+		s.mock.EXPECT().
+			DecideOAuth2DeviceCodeSession(s.ctx, gomock.Any()).
+			DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) error {
+				assert.Equal(t, challenge, session.ChallengeID)
+				assert.Equal(t, int(oauthelia2.DeviceAuthorizeStatusApproved), session.Status)
+
+				return nil
+			})
+
+		assert.NoError(t, s.store.DecideDeviceCodeSession(s.ctx, abc, request()))
+	})
+
+	s.T().Run("ShouldErrDecidedWhenNoRowsAffected", func(t *testing.T) {
+		s.mock.EXPECT().
+			DecideOAuth2DeviceCodeSession(s.ctx, gomock.Any()).
+			Return(fmt.Errorf("error deciding: %w", storage.ErrNoRowsAffected))
+
+		err := s.store.DecideDeviceCodeSession(s.ctx, abc, request())
+
+		assert.ErrorIs(t, err, oauthelia2.ErrDeviceAuthorizeDecided)
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().
+			DecideOAuth2DeviceCodeSession(s.ctx, gomock.Any()).
+			Return(fmt.Errorf("decide error"))
+
+		err := s.store.DecideDeviceCodeSession(s.ctx, abc, request())
+
+		assert.EqualError(t, err, "decide error")
+		assert.NotErrorIs(t, err, oauthelia2.ErrDeviceAuthorizeDecided)
 	})
 }
 

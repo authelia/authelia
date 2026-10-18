@@ -408,14 +408,32 @@ func (s *Store) CreateDeviceCodeSession(ctx context.Context, signature string, r
 	return nil
 }
 
-// UpdateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
+// UpdateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface. The token endpoint uses it to record each
+// time the device polls, so only the last checked value is stored. The device code session was loaded before the poll
+// was handled, and storing the rest of it would overwrite the consent flow binding or the decision stored since.
+// Decisions are stored using DecideDeviceCodeSession instead.
 func (s *Store) UpdateDeviceCodeSession(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
+	return errStorage(s.provider.UpdateOAuth2DeviceCodeSessionCheckedAt(ctx, signature, request.GetLastChecked()))
+}
+
+// DecideDeviceCodeSession implements the rfc8628.DecisionStorage interface. The decision is only stored while the
+// device code session is undecided and bound to the consent session of the request, so of two decisions made
+// concurrently only one is recorded, and it returns the oauthelia2.ErrDeviceAuthorizeDecided error otherwise.
+func (s *Store) DecideDeviceCodeSession(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
 	session, err := model.NewOAuth2DeviceCodeSessionFromRequest(request)
 	if err != nil {
 		return err
 	}
 
-	return errStorage(s.provider.UpdateOAuth2DeviceCodeSessionData(ctx, session))
+	if err = s.provider.DecideOAuth2DeviceCodeSession(ctx, session); err != nil {
+		if errors.Is(err, storage.ErrNoRowsAffected) {
+			return fmt.Errorf("%w: %w", oauthelia2.ErrDeviceAuthorizeDecided, err)
+		}
+
+		return errStorage(err)
+	}
+
+	return nil
 }
 
 // GetDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
@@ -635,4 +653,5 @@ var (
 	_ oauth2.TokenRevocationStorage      = (*Store)(nil)
 	_ openid.OpenIDConnectRequestStorage = (*Store)(nil)
 	_ rfc8628.Storage                    = (*Store)(nil)
+	_ rfc8628.DecisionStorage            = (*Store)(nil)
 )

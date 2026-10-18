@@ -609,6 +609,7 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 	}
 
 	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
+	device.Subject = sql.NullString{String: subject.String(), Valid: true}
 
 	if !bodyJSON.Consent {
 		device.Active = false
