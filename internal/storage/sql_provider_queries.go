@@ -592,22 +592,21 @@ const (
 			session_data = ?
 		WHERE signature = ? AND revoked = FALSE;`
 
-	queryFmtUpdateOAuth2DeviceCodeSessionData = `
+	queryFmtUpdateOAuth2DeviceCodeSessionCheckedAt = `
+		UPDATE %s
+		SET checked_at = ?
+		WHERE signature = ?;`
+
+	queryFmtDecideOAuth2DeviceCodeSession = `
 		UPDATE %s
 		SET
-			challenge_id = ?,
-			client_id = ?,
 			status = ?,
 			subject = ?,
-			requested_scopes = ?,
-			requested_audience = ?,
-			requested_resource = ?,
 			granted_scopes = ?,
 			granted_audience = ?,
 			granted_resource = ?,
-			form_data = ?,
 			session_data = ?
-		WHERE signature = ?;`
+		WHERE signature = ? AND challenge_id = ? AND status IN (?, ?) AND active = TRUE AND revoked = FALSE;`
 
 	queryFmtSelectOAuth2PARContext = `
 		SELECT id, signature, request_id, client_id, requested_at, scopes, audience, resource,

@@ -27,6 +27,8 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -575,10 +577,49 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 		AnyTimes().
 		DoAndReturn(save)
 
+	bySignature := func(signature string) *model.OAuth2DeviceCodeSession {
+		for _, stored := range sessions {
+			if stored.Signature == signature {
+				return stored
+			}
+		}
+
+		return nil
+	}
+
 	mock.StorageMock.EXPECT().
-		UpdateOAuth2DeviceCodeSessionData(gomock.Any(), gomock.Any()).
+		UpdateOAuth2DeviceCodeSessionCheckedAt(gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().
-		DoAndReturn(save)
+		DoAndReturn(func(_ context.Context, signature string, checkedAt time.Time) (err error) {
+			if stored := bySignature(signature); stored != nil {
+				stored.CheckedAt = checkedAt
+			}
+
+			return nil
+		})
+
+	// The decision is only stored while the device code session is active, undecided, and bound to the challenge id
+	// of the decision, the same as the storage providers.
+	mock.StorageMock.EXPECT().
+		DecideOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+			stored := bySignature(session.Signature)
+
+			switch {
+			case stored == nil,
+				!stored.Active || stored.Revoked,
+				!stored.ChallengeID.Valid || stored.ChallengeID != session.ChallengeID,
+				stored.Status != int(oauthelia2.DeviceAuthorizeStatusNew) && stored.Status != int(oauthelia2.DeviceAuthorizeStatusClaimed):
+				return storage.ErrNoRowsAffected
+			}
+
+			stored.Status, stored.Subject = session.Status, session.Subject
+			stored.GrantedScopes, stored.GrantedAudience, stored.GrantedResource = session.GrantedScopes, session.GrantedAudience, session.GrantedResource
+			stored.Session = session.Session
+
+			return nil
+		})
 
 	mock.StorageMock.EXPECT().
 		LoadOAuth2DeviceCodeSessionByUserCode(gomock.Any(), gomock.Any()).

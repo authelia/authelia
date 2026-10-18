@@ -63,8 +63,17 @@ func TestRefreshTokenReuseRevokesGrant(t *testing.T) {
 
 			tc.replay(t, provider, original, rotated)
 
-			_, err = doRefreshTokenGrant(provider, rotated.refresh)
-			assert.ErrorIs(t, err, oauthelia2.ErrInvalidGrant)
+			// RFC 6749 Section 5.2: a revoked refresh token is answered with 'invalid_grant' every time it's presented,
+			// not only the first time, so the client stops retrying it and starts a new authorization.
+			for i := 0; i < 2; i++ {
+				_, err = doRefreshTokenGrant(provider, rotated.refresh)
+				assert.ErrorIs(t, err, oauthelia2.ErrInvalidGrant)
+				assert.NotErrorIs(t, err, oauthelia2.ErrServerError)
+
+				_, err = doRefreshTokenGrant(provider, original.refresh)
+				assert.ErrorIs(t, err, oauthelia2.ErrInvalidGrant)
+				assert.NotErrorIs(t, err, oauthelia2.ErrServerError)
+			}
 
 			assertAccessTokenRevoked(t, provider, rotated.access)
 		})
@@ -94,6 +103,56 @@ func TestRefreshTokenReplayCaughtAtPopulationRevokesGrant(t *testing.T) {
 	assert.ErrorIs(t, err, oauthelia2.ErrInvalidGrant)
 
 	assertAccessTokenRevoked(t, provider, rotated.access)
+}
+
+// TestTokenRevocationOfRevokedTokens ensures a RFC 7009 revocation request succeeds when the token, or the grant it
+// belongs to, was already revoked, as RFC 7009 Section 2.2 requires the same response whether the token was revoked by
+// the request or was already invalid.
+func TestTokenRevocationOfRevokedTokens(t *testing.T) {
+	type revocation struct {
+		token func(grant refreshTokenGrant) string
+		hint  string
+	}
+
+	access := revocation{func(grant refreshTokenGrant) string { return grant.access }, "access_token"}
+	refresh := revocation{func(grant refreshTokenGrant) string { return grant.refresh }, "refresh_token"}
+
+	testCases := []struct {
+		name        string
+		revocations []revocation
+	}{
+		{"ShouldRevokeRefreshTokenTwice", []revocation{refresh, refresh}},
+		{"ShouldRevokeAccessTokenTwice", []revocation{access, access}},
+		{"ShouldRevokeRefreshTokenAfterAccessToken", []revocation{access, refresh}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newRefreshTokenReuseProvider(t)
+
+			grant := seedRefreshTokenGrant(t, provider)
+
+			for _, r := range tc.revocations {
+				assert.NoError(t, doTokenRevocation(provider, r.token(grant), r.hint))
+			}
+
+			assertAccessTokenRevoked(t, provider, grant.access)
+		})
+	}
+}
+
+func doTokenRevocation(provider *oidc.OpenIDConnectProvider, token, hint string) error {
+	form := url.Values{
+		"token":                    []string{token},
+		"token_type_hint":          []string{hint},
+		oidc.FormParameterClientID: []string{refreshReuseClientID},
+		"client_secret":            []string{"client-secret"},
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "https://auth.example.com/api/oidc/revocation", strings.NewReader(form.Encode()))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	return provider.NewRevocationRequest(context.Background(), r)
 }
 
 type refreshTokenGrant struct {

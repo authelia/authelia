@@ -19,6 +19,8 @@ import (
 	"github.com/rpadovani/sqlx-v2"
 	"github.com/sirupsen/logrus"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -175,7 +177,8 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtInsertOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
-		sqlUpdateOAuth2DeviceCodeSessionData:       fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionData, tableOAuth2DeviceCodeSession),
+		sqlUpdateOAuth2DeviceCodeSessionCheckedAt:  fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionCheckedAt, tableOAuth2DeviceCodeSession),
+		sqlDecideOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtDecideOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlDeactivateOAuth2DeviceCodeSession:       fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSessionByUserCode: fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByUserCode, tableOAuth2DeviceCodeSession),
 
@@ -352,7 +355,8 @@ type SQLProvider struct {
 	sqlInsertOAuth2DeviceCodeSession           string
 	sqlSelectOAuth2DeviceCodeSession           string
 	sqlUpdateOAuth2DeviceCodeSession           string
-	sqlUpdateOAuth2DeviceCodeSessionData       string
+	sqlUpdateOAuth2DeviceCodeSessionCheckedAt  string
+	sqlDecideOAuth2DeviceCodeSession           string
 	sqlDeactivateOAuth2DeviceCodeSession       string
 	sqlSelectOAuth2DeviceCodeSessionByUserCode string
 
@@ -1561,18 +1565,36 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session
 	return nil
 }
 
-// UpdateOAuth2DeviceCodeSessionData updates the session data of an OAuth2.0 Device Code session in the storage provider.
-func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
-	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
-		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
+// UpdateOAuth2DeviceCodeSessionCheckedAt updates the time the device last polled for an OAuth2.0 Device Code session in
+// the storage provider. Only the checked at value is written so a poll can't overwrite the consent flow binding or the
+// decision which were stored after the device code session was loaded.
+func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionCheckedAt(ctx context.Context, signature string, checkedAt time.Time) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionCheckedAt, checkedAt, signature); err != nil {
+		return fmt.Errorf("error updating oauth2 device code session checked at with signature '%s': %w", signature, err)
 	}
 
-	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionData,
-		session.ChallengeID, session.ClientID, session.Status, session.Subject,
-		session.RequestedScopes, session.RequestedAudience, session.RequestedResource,
-		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
-		session.Form, session.Session, session.Signature); err != nil {
-		return fmt.Errorf("error updating oauth2 device code session data with signature '%s': %w", session.Signature, err)
+	return nil
+}
+
+// DecideOAuth2DeviceCodeSession records the decision of an OAuth2.0 Device Code session in the storage provider. The
+// decision is only recorded while the session is active, undecided, and bound to the challenge id of the session, and
+// the ErrNoRowsAffected error is returned when it isn't, so of two decisions made concurrently only one is recorded.
+func (p *SQLProvider) DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
+		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Signature, session.Subject.String, session.RequestID, err)
+	}
+
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlDecideOAuth2DeviceCodeSession,
+		session.Status, session.Subject, session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
+		session.Session, session.Signature, session.ChallengeID,
+		int(oauthelia2.DeviceAuthorizeStatusNew), int(oauthelia2.DeviceAuthorizeStatusClaimed)); err != nil {
+		return fmt.Errorf("error deciding oauth2 device code session with signature '%s': %w", session.Signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error deciding oauth2 device code session with signature '%s': %w", session.Signature, err)
 	}
 
 	return nil

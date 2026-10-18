@@ -653,6 +653,41 @@ func TestOAuth2DeviceAuthorizationPUTConsent(t *testing.T) {
 			http.StatusBadRequest,
 		},
 		{
+			"ShouldNotApproveWhenTheDeviceCodeSessionHasNoSubject",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, consent *model.OAuth2ConsentSession) {
+				device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
+				device.Subject = sql.NullString{}
+
+				require.NoError(t, mock.Ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSession(mock.Ctx, device))
+			},
+			"Device Authorization Request failed to match the consent session to the subject of the device code session during the User Authorization Flow",
+			nil,
+			http.StatusBadRequest,
+		},
+		{
+			"ShouldApproveWhenTheDevicePolledAfterTheConsentFlow",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, consent *model.OAuth2ConsentSession) {
+				// The token endpoint holds the device code session as it was before the consent flow bound it.
+				device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
+				device.ChallengeID, device.Subject = uuid.NullUUID{}, sql.NullString{}
+
+				request, err := device.ToRequest(mock.Ctx, oidc.NewSession(), mock.Ctx.Providers.OpenIDConnect.Store)
+				require.NoError(t, err)
+
+				request.SetLastChecked(time.Now())
+
+				require.NoError(t, mock.Ctx.Providers.OpenIDConnect.UpdateDeviceCodeSession(mock.Ctx, device.Signature, request))
+
+				device = mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
+
+				assert.Equal(t, consent.ChallengeID, device.ChallengeID.UUID)
+				assert.True(t, device.Subject.Valid)
+			},
+			"",
+			nil,
+			http.StatusOK,
+		},
+		{
 			"ShouldNotApproveWhenTheDeviceCodeSessionHasNoFlow",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, consent *model.OAuth2ConsentSession) {
 				device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
@@ -991,6 +1026,7 @@ func newTestOIDCDeviceConsentSession(t *testing.T, mock *mocks.MockAutheliaCtx, 
 	consent.Authorized = true
 
 	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
+	device.Subject = sql.NullString{String: subject.String(), Valid: true}
 
 	require.NoError(t, mock.Ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSession(mock.Ctx, device))
 

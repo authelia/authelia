@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 )
@@ -1018,11 +1020,26 @@ func TestSQLProviderOAuth2DeviceCodeSession(t *testing.T) {
 		assert.Equal(t, "dev-req-123", loaded.RequestID)
 	})
 
-	t.Run("ShouldUpdateDeviceCodeSessionData", func(t *testing.T) {
-		deviceSession.GrantedScopes = model.StringSlicePipeDelimited{"openid", "profile"}
-		deviceSession.Session = []byte(`{"updated":true}`)
+	t.Run("ShouldUpdateDeviceCodeSessionCheckedAtOnly", func(t *testing.T) {
+		bound := *deviceSession
+		bound.ChallengeID = uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+		bound.Subject = sql.NullString{String: "subject", Valid: true}
+		bound.Status = int(oauthelia2.DeviceAuthorizeStatusClaimed)
+		bound.Session = []byte("{}")
 
-		require.NoError(t, provider.UpdateOAuth2DeviceCodeSessionData(ctx, deviceSession))
+		require.NoError(t, provider.UpdateOAuth2DeviceCodeSession(ctx, &bound))
+
+		checked := time.Now().Add(time.Minute).Truncate(time.Second)
+
+		require.NoError(t, provider.UpdateOAuth2DeviceCodeSessionCheckedAt(ctx, "dev-sig-123", checked))
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, "dev-sig-123")
+		require.NoError(t, err)
+
+		assert.True(t, checked.Equal(loaded.CheckedAt))
+		assert.Equal(t, bound.ChallengeID, loaded.ChallengeID)
+		assert.Equal(t, bound.Subject, loaded.Subject)
+		assert.Equal(t, int(oauthelia2.DeviceAuthorizeStatusClaimed), loaded.Status)
 	})
 
 	t.Run("ShouldDeactivateDeviceCodeSession", func(t *testing.T) {
@@ -1032,6 +1049,106 @@ func TestSQLProviderOAuth2DeviceCodeSession(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.False(t, loaded.Active)
+	})
+}
+
+func TestSQLProviderDecideOAuth2DeviceCodeSession(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	n := 0
+
+	setup := func(t *testing.T, challenge uuid.NullUUID, status oauthelia2.DeviceAuthorizeStatus) *model.OAuth2DeviceCodeSession {
+		t.Helper()
+
+		n++
+
+		session := &model.OAuth2DeviceCodeSession{
+			ChallengeID:       challenge,
+			Signature:         fmt.Sprintf("dev-decide-sig-%d", n),
+			RequestID:         fmt.Sprintf("dev-decide-req-%d", n),
+			ClientID:          "test-client",
+			UserCodeSignature: fmt.Sprintf("dev-decide-user-code-%d", n),
+			Status:            int(status),
+			Active:            true,
+			RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+			Session:           []byte("{}"),
+			RequestedAt:       time.Now().Truncate(time.Second),
+		}
+
+		require.NoError(t, provider.SaveOAuth2DeviceCodeSession(ctx, session))
+
+		decision := *session
+		decision.Status = int(oauthelia2.DeviceAuthorizeStatusApproved)
+		decision.Subject = sql.NullString{String: "subject", Valid: true}
+		decision.GrantedScopes = model.StringSlicePipeDelimited{"openid"}
+		decision.Session = []byte(`{"decided":true}`)
+
+		return &decision
+	}
+
+	bound := func() uuid.NullUUID {
+		return uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+	}
+
+	t.Run("ShouldDecideBoundSession", func(t *testing.T) {
+		decision := setup(t, bound(), oauthelia2.DeviceAuthorizeStatusNew)
+
+		require.NoError(t, provider.DecideOAuth2DeviceCodeSession(ctx, decision))
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, decision.Signature)
+		require.NoError(t, err)
+
+		assert.Equal(t, int(oauthelia2.DeviceAuthorizeStatusApproved), loaded.Status)
+		assert.Equal(t, "subject", loaded.Subject.String)
+		assert.Equal(t, model.StringSlicePipeDelimited{"openid"}, loaded.GrantedScopes)
+		assert.Equal(t, []byte(`{"decided":true}`), loaded.Session)
+	})
+
+	t.Run("ShouldDecideClaimedSession", func(t *testing.T) {
+		decision := setup(t, bound(), oauthelia2.DeviceAuthorizeStatusClaimed)
+
+		require.NoError(t, provider.DecideOAuth2DeviceCodeSession(ctx, decision))
+	})
+
+	t.Run("ShouldNotDecideTwice", func(t *testing.T) {
+		decision := setup(t, bound(), oauthelia2.DeviceAuthorizeStatusNew)
+
+		require.NoError(t, provider.DecideOAuth2DeviceCodeSession(ctx, decision))
+
+		denial := *decision
+		denial.Status = int(oauthelia2.DeviceAuthorizeStatusDenied)
+		denial.Session = []byte("{}")
+
+		assert.ErrorIs(t, provider.DecideOAuth2DeviceCodeSession(ctx, &denial), ErrNoRowsAffected)
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, decision.Signature)
+		require.NoError(t, err)
+
+		assert.Equal(t, int(oauthelia2.DeviceAuthorizeStatusApproved), loaded.Status)
+	})
+
+	t.Run("ShouldNotDecideWithAnotherChallengeID", func(t *testing.T) {
+		decision := setup(t, bound(), oauthelia2.DeviceAuthorizeStatusNew)
+		decision.ChallengeID = bound()
+
+		assert.ErrorIs(t, provider.DecideOAuth2DeviceCodeSession(ctx, decision), ErrNoRowsAffected)
+	})
+
+	t.Run("ShouldNotDecideUnboundSession", func(t *testing.T) {
+		decision := setup(t, uuid.NullUUID{}, oauthelia2.DeviceAuthorizeStatusNew)
+
+		assert.ErrorIs(t, provider.DecideOAuth2DeviceCodeSession(ctx, decision), ErrNoRowsAffected)
+	})
+
+	t.Run("ShouldNotDecideInactiveSession", func(t *testing.T) {
+		decision := setup(t, bound(), oauthelia2.DeviceAuthorizeStatusNew)
+
+		require.NoError(t, provider.DeactivateOAuth2DeviceCodeSession(ctx, decision.Signature))
+
+		assert.ErrorIs(t, provider.DecideOAuth2DeviceCodeSession(ctx, decision), ErrNoRowsAffected)
 	})
 }
 

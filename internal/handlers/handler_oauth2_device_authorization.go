@@ -309,7 +309,7 @@ func handleOAuth2DeviceAuthorizationConsent(ctx *middlewares.AutheliaCtx, rw htt
 		return true
 	}
 
-	if device.Subject.Valid && device.Subject.String != consent.Subject.UUID.String() {
+	if !device.Subject.Valid || device.Subject.String != consent.Subject.UUID.String() {
 		log.Error("Device Authorization Request failed to match the consent session to the subject of the device code session during the User Authorization Flow")
 
 		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
