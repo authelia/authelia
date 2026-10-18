@@ -864,6 +864,48 @@ func TestOAuth2ConsentPreConfig(t *testing.T) {
 	assert.False(t, config.HasClaimsSignature("abc"))
 }
 
+func TestOAuth2ConsentPreConfigCanConsentAtWithin(t *testing.T) {
+	now := time.Unix(1700000000, 0)
+
+	testCases := []struct {
+		Name     string
+		Config   model.OAuth2ConsentPreConfig
+		Lifespan time.Duration
+		Expected bool
+	}{
+		{
+			Name:     "ShouldConsentWithinTheLifespan",
+			Config:   model.OAuth2ConsentPreConfig{CreatedAt: now.Add(-time.Hour), ExpiresAt: sql.NullTime{Time: now.Add(time.Hour), Valid: true}},
+			Lifespan: 2 * time.Hour,
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotConsentWhenTheLifespanWasReduced",
+			Config:   model.OAuth2ConsentPreConfig{CreatedAt: now.Add(-2 * time.Hour), ExpiresAt: sql.NullTime{Time: now.Add(time.Hour), Valid: true}},
+			Lifespan: time.Hour,
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotConsentWhenExpired",
+			Config:   model.OAuth2ConsentPreConfig{CreatedAt: now.Add(-time.Hour), ExpiresAt: sql.NullTime{Time: now.Add(-time.Minute), Valid: true}},
+			Lifespan: 24 * time.Hour,
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotConsentWhenRevoked",
+			Config:   model.OAuth2ConsentPreConfig{CreatedAt: now.Add(-time.Hour), ExpiresAt: sql.NullTime{Time: now.Add(time.Hour), Valid: true}, Revoked: true},
+			Lifespan: 24 * time.Hour,
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, tc.Config.CanConsentAtWithin(now, tc.Lifespan))
+		})
+	}
+}
+
 func TestOAuth2ConsentPreConfigHasExactGrants(t *testing.T) {
 	testCases := []struct {
 		Name     string
@@ -912,6 +954,32 @@ func TestOAuth2ConsentPreConfigHasExactGrants(t *testing.T) {
 			Audience: []string{"aud-a"},
 			Resource: []string{"https://a.example.com", "https://b.example.com"},
 			Expected: false,
+		},
+		{
+			Name:     "ShouldNotMatchAnAdditionalScopeAgainstADuplicatedScope",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid", "openid"}},
+			Scopes:   []string{"openid", "profile"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotMatchAnAdditionalAudienceAgainstADuplicatedAudience",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a", "aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a", "aud-b"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotMatchAnAdditionalResourceAgainstADuplicatedResource",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com", "https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Resource: []string{"https://a.example.com", "https://b.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldMatchRegardlessOfOrder",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid", "profile"}},
+			Scopes:   []string{"profile", "openid"},
+			Expected: true,
 		},
 	}
 

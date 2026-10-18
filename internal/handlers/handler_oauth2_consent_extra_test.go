@@ -243,7 +243,7 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 }
 
 func TestHandleSavePreConfiguredConsentExtra(t *testing.T) {
-	t.Run("ShouldLogClaimsParseError", func(t *testing.T) {
+	t.Run("ShouldNotSaveWhenTheClaimsCanNotBeParsed", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
@@ -262,13 +262,13 @@ func TestHandleSavePreConfiguredConsentExtra(t *testing.T) {
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentPreConfiguration(gomock.Any(), gomock.Any()).
-			Return(int64(5), nil)
+			Times(0)
 
 		handleSavePreConfiguredConsent(mock.Ctx, newTestOIDCUserSession(1), consent, registered, url.Values{oidc.FormParameterClaims: []string{"not json"}}, nil)
 
-		assert.Equal(t, sql.NullInt64{Int64: 5, Valid: true}, consent.PreConfiguration)
+		assert.False(t, consent.PreConfiguration.Valid)
 
-		AssertLogEntryMessageAndError(t, MustGetLogLastSeq(t, mock.Hook, 0), "Error occurred parsing request form claims parameter", regexpAnyError)
+		AssertLogEntryMessageAndError(t, MustGetLogLastSeq(t, mock.Hook, 0), "Error occurred parsing request form claims parameter so the consent pre-configuration was not saved", regexpAnyError)
 	})
 
 	t.Run("ShouldSerializeClaimsRequests", func(t *testing.T) {

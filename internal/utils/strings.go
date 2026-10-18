@@ -133,6 +133,12 @@ func isStringSlicesDifferent(a, b []string, method func(s string, b []string) bo
 		}
 	}
 
+	for _, s := range b {
+		if !method(s, a) {
+			return true
+		}
+	}
+
 	return false
 }
 

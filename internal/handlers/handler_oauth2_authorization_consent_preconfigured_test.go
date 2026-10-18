@@ -637,6 +637,50 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredMisc(t *testing.T) {
 		assert.Contains(t, rw.Header().Get("Location"), oidc.FrontendEndpointPathConsentDecision)
 	})
 
+	t.Run("ShouldNotUsePreConfigurationCreatedBeforeTheCurrentLifespan", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		setupTestOIDCProvider(t, mock, nil)
+
+		preConfig := newPreConfig(mock)
+		preConfig.CreatedAt = mock.Ctx.Providers.Clock.Now().Add(-preConfClient.ConsentPolicy.Duration - time.Minute)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentPreConfigurations(gomock.Eq(mock.Ctx), gomock.Eq(testValue), gomock.Eq(preConfSubject), gomock.Any()).
+			DoAndReturn(func(_ any, _ string, _ uuid.UUID, _ time.Time) (*storage.ConsentPreConfigRows, error) {
+				rows, _ := mocks.NewConsentPreConfigRows(t, preConfig)
+
+				return rows, nil
+			})
+
+		config, err := handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(mock.Ctx, preConfClient, preConfSubject, newPreConfRequester(nil))
+
+		assert.Nil(t, config)
+		assert.Nil(t, err)
+	})
+
+	t.Run("ShouldUsePreConfigurationWithinTheCurrentLifespan", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		setupTestOIDCProvider(t, mock, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentPreConfigurations(gomock.Eq(mock.Ctx), gomock.Eq(testValue), gomock.Eq(preConfSubject), gomock.Any()).
+			DoAndReturn(func(_ any, _ string, _ uuid.UUID, _ time.Time) (*storage.ConsentPreConfigRows, error) {
+				rows, _ := mocks.NewConsentPreConfigRows(t, newPreConfig(mock))
+
+				return rows, nil
+			})
+
+		config, err := handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(mock.Ctx, preConfClient, preConfSubject, newPreConfRequester(nil))
+
+		require.NoError(t, err)
+		require.NotNil(t, config)
+		assert.Equal(t, int64(10), config.ID)
+	})
+
 	t.Run("ShouldReturnNoPreConfigurationWhenRowsAreClosed", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
@@ -663,7 +707,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredMisc(t *testing.T) {
 var (
 	preConfClient = &oidc.RegisteredClient{
 		ID:            testValue,
-		ConsentPolicy: oidc.ClientConsentPolicy{Mode: oidc.ClientConsentModePreConfigured},
+		ConsentPolicy: oidc.ClientConsentPolicy{Mode: oidc.ClientConsentModePreConfigured, Duration: 24 * time.Hour},
 	}
 
 	preConfChallenge = uuid.MustParse("11303e1f-f8af-436a-9a72-c7361bfc9f37")

@@ -380,7 +380,9 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred parsing request form claims parameter")
+			Error("Error occurred parsing request form claims parameter so the consent pre-configuration was not saved")
+
+		return
 	} else if requests == nil {
 		config.RequestedClaims = sql.NullString{Valid: false}
 		config.SignatureClaims = sql.NullString{Valid: false}
@@ -388,7 +390,9 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred calculating claims signature for consent")
+			Error("Error occurred calculating claims signature for consent so the consent pre-configuration was not saved")
+
+		return
 	} else {
 		config.RequestedClaims.Valid = true
 		config.SignatureClaims.Valid = true

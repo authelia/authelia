@@ -1,7 +1,7 @@
 authelia.com/provider/jose v0.1.1-0.20260927121420-a92ce770ed25 h1:UPJACcJsWPnsm1QxvE3SU/otMZQmU9p1Gk3hDWq3UZY=
 authelia.com/provider/jose v0.1.1-0.20260927121420-a92ce770ed25/go.mod h1:7JRiGC2AA3I58ShAl6acw7MDa0h7t/E/NxHeH1yYkGk=
-authelia.com/provider/oauth2 v0.3.4-0.20261017015022-576248724c3f h1:xwr4K9NmLaq1fwuQlAqXeAHrxejQA4XB+f6lscqbJc8=
-authelia.com/provider/oauth2 v0.3.4-0.20261017015022-576248724c3f/go.mod h1:l1TKbuHsjxOlHvsh+47omaLqRD7aNpxI4tRjOZS55f4=
+authelia.com/provider/oauth2 v0.3.4-0.20261018051208-b05ffa07c949 h1:5yYBLTzX4jlNEuzUUOnumw/4FI5YKSa+AKuBJfseyS4=
+authelia.com/provider/oauth2 v0.3.4-0.20261018051208-b05ffa07c949/go.mod h1:l1TKbuHsjxOlHvsh+47omaLqRD7aNpxI4tRjOZS55f4=
 cel.dev/cel-go v0.32.0 h1:irvpFKr5EuGPyxeME03ERh0rii1TX+BDAnB9eL3IvNk=
 cel.dev/cel-go v0.32.0/go.mod h1:DnVip7tpJSsgZymwfT+m1tnEVy3ivAjSMXPx12YrMkU=
 cel.dev/expr v0.25.1 h1:1KrZg61W6TWSxuNZ37Xy49ps13NUovb66QLprthtwi4=
