@@ -35,8 +35,8 @@ importers:
         specifier: 0.7.1
         version: 0.7.1
       cn:
-        specifier: 0.4.0
-        version: 0.4.0
+        specifier: 0.5.0
+        version: 0.5.0
       i18next:
         specifier: 26.4.7
         version: 26.4.7(@typescript/typescript6@6.0.2)
@@ -1799,9 +1799,9 @@ packages:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
 
-  cn@0.4.0:
-    resolution: {integrity: sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg==}
-    engines: {node: '>=20'}
+  cn@0.5.0:
+    resolution: {integrity: sha512-JGEixZEpfFXm1P5uXwvEobOFLlHwIWi5v4tjd1ZwfiYmcEilkuD2l+054rvJcYCR1B+uVThHeUbgmNz1FwuxuA==}
+    engines: {node: '>=22'}
     hasBin: true
 
   color-convert@2.0.1:
@@ -5654,7 +5654,7 @@ snapshots:
 
   clsx@2.1.1: {}
 
-  cn@0.4.0: {}
+  cn@0.5.0: {}
 
   color-convert@2.0.1:
     dependencies:
