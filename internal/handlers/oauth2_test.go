@@ -504,6 +504,15 @@ func newTestOIDCUserSession(level int) session.UserSession {
 	return us
 }
 
+func setupTestOIDCUserRefresh(t *testing.T, mock *mocks.MockAutheliaCtx) {
+	t.Helper()
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(testUsername).
+		AnyTimes().
+		Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}, Groups: []string{"dev"}}, nil)
+}
+
 func setupTestOIDCUserDetails(t *testing.T, mock *mocks.MockAutheliaCtx) {
 	t.Helper()
 

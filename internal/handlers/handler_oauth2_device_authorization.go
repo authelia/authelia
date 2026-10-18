@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/x/errorsx"
@@ -164,11 +165,34 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
+	if userSession.IsAnonymous() {
+		log.Error("Device Authorization Request failed as the user is anonymous during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
+
+		return
+	}
+
 	log = log.WithField(logging.FieldUsername, userSession.Username)
 
-	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
+	if handled = handleOAuth2DeviceAuthorizationSessionRefresh(ctx, rw, requester, &userSession, log); handled {
+		return
+	}
 
-	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
+	subjectAuthz := authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}
+
+	if client.GetAuthorizationPolicyRequiredLevel(subjectAuthz) == authorization.Denied {
+		log.
+			WithFields(map[string]any{logging.FieldGroups: userSession.Groups, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
+			Error("Device Authorization Request failed as the user is not authorized to use the client during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(level, subjectAuthz) {
 		log.
 			WithFields(map[string]any{logging.FieldAuthenticationLevel: level.String(), logging.FieldGroups: userSession.Groups, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
 			Error("Device Authorization Request failed as the user did not satisfy the client authorization policy during the User Authorization Flow")
@@ -192,11 +216,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	if subject != consent.Subject.UUID {
-		log.Error("Device Authorization Request failed to match the session to the subject during the User Authorization Flow")
-
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not match the consent session to the subject."))
-
+	if handled = handleOAuth2DeviceAuthorizationConsent(ctx, rw, requester, consent, flowID, subject, log); handled {
 		return
 	}
 
@@ -251,4 +271,117 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 	log.Debug("Device Authorization Request was successfully processed during the User Authorization Flow")
 
 	ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeResponse(ctx, rw, requester, responder)
+}
+
+func handleOAuth2DeviceAuthorizationConsent(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, requester oauthelia2.DeviceAuthorizeRequester, consent *model.OAuth2ConsentSession, flowID, subject uuid.UUID, log *logrus.Entry) (handled bool) {
+	var (
+		device *model.OAuth2DeviceCodeSession
+		err    error
+	)
+
+	log = log.WithField(logging.FieldSessionID, consent.ID)
+
+	if !consent.Subject.Valid || subject != consent.Subject.UUID {
+		log.Error("Device Authorization Request failed to match the session to the subject during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not match the consent session to the subject."))
+
+		return true
+	}
+
+	if device, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, requester.GetUserCodeSignature()); err != nil {
+		log.
+			WithError(err).
+			Error("Device Authorization Request failed with error to load the device code session during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError)
+
+		return true
+	}
+
+	if consent.ChallengeID != flowID || !device.ChallengeID.Valid || device.ChallengeID.UUID != consent.ChallengeID {
+		log.
+			WithField("device_flow_id", device.ChallengeID.UUID.String()).
+			Error("Device Authorization Request failed to match the consent session to the flow of the device code session during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
+
+		return true
+	}
+
+	if device.Subject.Valid && device.Subject.String != consent.Subject.UUID.String() {
+		log.Error("Device Authorization Request failed to match the consent session to the subject of the device code session during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
+
+		return true
+	}
+
+	if err = consent.MatchesRequester(requester, ""); err != nil {
+		log.
+			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+			Error("Device Authorization Request failed to match the consent session to the request during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, err)
+
+		return true
+	}
+
+	if !consent.CanGrant(ctx.GetClock().Now()) {
+		log.
+			WithFields(map[string]any{logging.FieldExpiration: consent.ExpiresAt.Unix(), "granted": consent.Granted}).
+			Error("Device Authorization Request failed as the consent session has either expired or already been granted during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
+
+		return true
+	}
+
+	if !consent.IsAuthorized() {
+		log.
+			WithField("responded", consent.Responded()).
+			Error("Device Authorization Request failed as the consent session was not authorized by the user during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied)
+
+		return true
+	}
+
+	return false
+}
+
+// handleOAuth2DeviceAuthorizationSessionRefresh refreshes the user session from the authentication backend when the
+// refresh interval requires it, so a user who was deleted or disabled can't approve the request, and the client
+// authorization policy is evaluated against their current groups.
+func handleOAuth2DeviceAuthorizationSessionRefresh(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, requester oauthelia2.DeviceAuthorizeRequester, userSession *session.UserSession, log *logrus.Entry) (handled bool) {
+	var err error
+
+	modified, invalid := handleSessionValidateRefresh(ctx, userSession, ctx.Configuration.AuthenticationBackend.RefreshInterval)
+
+	switch {
+	case invalid:
+		if err = ctx.DestroySession(); err != nil {
+			log.
+				WithError(err).
+				Error("Device Authorization Request had an error while destroying the user session during the User Authorization Flow")
+		}
+
+		log.Error("Device Authorization Request failed as the user is no longer authorized to login during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
+
+		return true
+	case modified:
+		if err = ctx.SaveSession(*userSession); err != nil {
+			log.
+				WithError(err).
+				Error("Device Authorization Request had an error while saving the updated user session during the User Authorization Flow")
+
+			ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not save the user session."))
+
+			return true
+		}
+	}
+
+	return false
 }
