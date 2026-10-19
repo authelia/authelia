@@ -24,6 +24,9 @@ var (
 	headerXForwardedFor   = []byte(fasthttp.HeaderXForwardedFor)
 	headerXRequestedWith  = []byte(fasthttp.HeaderXRequestedWith)
 
+	headerSecFetchMode = []byte("Sec-Fetch-Mode")
+	headerSecFetchDest = []byte("Sec-Fetch-Dest")
+
 	headerXForwardedURI    = []byte("X-Forwarded-URI")
 	headerXOriginalURL     = []byte("X-Original-URL")
 	headerXOriginalMethod  = []byte("X-Original-Method")
@@ -165,6 +168,9 @@ var (
 
 const (
 	headerValueXRequestedWithXHR = "XMLHttpRequest"
+
+	headerValueSecFetchModeNavigate = "navigate"
+	headerValueSecFetchDestDocument = "document"
 )
 
 var okMessageBytes = []byte("{\"status\":\"OK\"}")

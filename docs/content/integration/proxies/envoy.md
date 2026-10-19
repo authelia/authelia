@@ -251,6 +251,9 @@ static_resources:
                           - exact: 'authorization'
                           - exact: 'proxy-authorization'
                           - exact: 'accept'
+                          - exact: 'sec-fetch-mode'
+                          - exact: 'sec-fetch-dest'
+                          - exact: 'x-requested-with'
                           - exact: 'cookie'
                           - exact: 'location'
                       http_service:
@@ -265,6 +268,9 @@ static_resources:
                               - exact: 'authorization'
                               - exact: 'proxy-authorization'
                               - exact: 'accept'
+                              - exact: 'sec-fetch-mode'
+                              - exact: 'sec-fetch-dest'
+                              - exact: 'x-requested-with'
                               - exact: 'cookie'
                               - exact: 'location'
                           headers_to_add:
