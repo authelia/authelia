@@ -16,7 +16,7 @@
     "react-email": "6.11.3"
   },
   "devDependencies": {
-    "@eslint-react/eslint-plugin": "5.28.0",
+    "@eslint-react/eslint-plugin": "5.28.1",
     "@eslint/js": "10.0.1",
     "@react-email/ui": "6.11.3",
     "@types/node": "26.6.5",
