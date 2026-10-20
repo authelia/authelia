@@ -616,6 +616,23 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	return issuerURL, nil
 }
 
+// IsNavigation returns true if the request is a top-level browser navigation. The Fetch Metadata request headers are
+// used when present, otherwise this falls back to the X-Requested-With and Accept headers. Navigations of nested
+// browsing contexts such as iframes are not considered top-level navigations.
+func (ctx *AutheliaCtx) IsNavigation() (navigation bool) {
+	if mode := ctx.Request.Header.PeekBytes(headerSecFetchMode); len(mode) != 0 {
+		if !strings.EqualFold(string(mode), headerValueSecFetchModeNavigate) {
+			return false
+		}
+
+		dest := ctx.Request.Header.PeekBytes(headerSecFetchDest)
+
+		return len(dest) == 0 || strings.EqualFold(string(dest), headerValueSecFetchDestDocument)
+	}
+
+	return !ctx.IsXHR() && ctx.AcceptsMIME("text/html")
+}
+
 // IsXHR returns true if the request is a XMLHttpRequest.
 func (ctx *AutheliaCtx) IsXHR() (xhr bool) {
 	if requestedWith := ctx.Request.Header.PeekBytes(headerXRequestedWith); requestedWith != nil && strings.EqualFold(string(requestedWith), headerValueXRequestedWithXHR) {
