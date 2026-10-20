@@ -95,8 +95,7 @@ type ServerEndpointRateLimits struct {
 	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
 }
 
-// Endpoints returns a ServerEndpointRateLimitEndpoint for every endpoint rate limit in field order. The Config of each
-// ServerEndpointRateLimitEndpoint is a pointer to the field of this ServerEndpointRateLimits.
+// Endpoints returns a ServerEndpointRateLimitEndpoint for every configurable rate limiter in field order.
 func (r *ServerEndpointRateLimits) Endpoints() []ServerEndpointRateLimitEndpoint {
 	return []ServerEndpointRateLimitEndpoint{
 		{Name: "reset_password_start", Config: &r.ResetPasswordStart},
