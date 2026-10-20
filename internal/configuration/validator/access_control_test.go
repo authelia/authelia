@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
@@ -423,6 +424,54 @@ func (suite *AccessControl) TestShouldSetQueryDefaults() {
 	t := &regexp.Regexp{}
 
 	suite.Assert().IsType(t, suite.config.AccessControl.Rules[1].Query[0][0].Value)
+}
+
+func (suite *AccessControl) TestShouldNormalizeQueryOperatorCase() {
+	domains := []string{"public.example.com"}
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
+		{
+			Domains: domains,
+			Policy:  "bypass",
+			Query: [][]schema.AccessControlRuleQuery{
+				{
+					{Operator: "Present", Key: "a"},
+					{Operator: "ABSENT", Key: "b"},
+					{Operator: "Equal", Key: "c", Value: "x"},
+					{Operator: "Not Equal", Key: "d", Value: "x"},
+					{Operator: "Pattern", Key: "e", Value: "^(x|y|z)$"},
+					{Operator: "NOT PATTERN", Key: "f", Value: "^(x|y|z)$"},
+				},
+			},
+		},
+	}
+
+	ValidateRules(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Require().Len(suite.config.AccessControl.Rules[0].Query, 1)
+	suite.Require().Len(suite.config.AccessControl.Rules[0].Query[0], 6)
+
+	query := suite.config.AccessControl.Rules[0].Query[0]
+
+	suite.Assert().Equal("present", query[0].Operator)
+	suite.Assert().Equal("absent", query[1].Operator)
+	suite.Assert().Equal("equal", query[2].Operator)
+	suite.Assert().Equal("not equal", query[3].Operator)
+	suite.Assert().Equal("pattern", query[4].Operator)
+	suite.Assert().Equal("not pattern", query[5].Operator)
+
+	t := &regexp.Regexp{}
+
+	suite.Assert().IsType(t, query[4].Value)
+	suite.Assert().IsType(t, query[5].Value)
+
+	for _, q := range query {
+		_, err := authorization.NewAccessControlQueryObjectMatcher(q)
+
+		suite.Assert().NoError(err)
+	}
 }
 
 func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {

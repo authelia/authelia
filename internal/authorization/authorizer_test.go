@@ -472,6 +472,91 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 	}
 }
 
+func (s *AuthorizerSuite) TestShouldCheckQueryPolicyAmbiguous() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy(twoFactor).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"deny.example.com"},
+			Query: [][]schema.AccessControlRuleQuery{
+				{
+					{
+						Operator: operatorEqual,
+						Key:      "view",
+						Value:    "admin",
+					},
+				},
+			},
+			Policy: deny,
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"equal.example.com"},
+			Query: [][]schema.AccessControlRuleQuery{
+				{
+					{
+						Operator: operatorEqual,
+						Key:      "view",
+						Value:    "public",
+					},
+				},
+			},
+			Policy: bypass,
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"absent.example.com"},
+			Query: [][]schema.AccessControlRuleQuery{
+				{
+					{
+						Operator: operatorAbsent,
+						Key:      "admin",
+					},
+				},
+			},
+			Policy: bypass,
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"notpattern.example.com"},
+			Query: [][]schema.AccessControlRuleQuery{
+				{
+					{
+						Operator: operatorNotPattern,
+						Key:      "random",
+						Value:    regexp.MustCompile(`^(1|2)$`),
+					},
+				},
+			},
+			Policy: bypass,
+		}).
+		Build()
+
+	testCases := []struct {
+		name, requestURL string
+		expected         Level
+	}{
+		{"ShouldDenyRepeatedKeyLastValue", "https://deny.example.com/?view=public&view=admin", Denied},
+		{"ShouldDenyRepeatedKeyFirstValue", "https://deny.example.com/?view=admin&view=public", Denied},
+		{"ShouldDenySemicolonValue", "https://deny.example.com/?x=1;view=admin", Denied},
+		{"ShouldNotDenyUnambiguous", "https://deny.example.com/?view=public", TwoFactor},
+		{"ShouldNotBypassRepeatedKey", "https://equal.example.com/?view=public&view=admin", TwoFactor},
+		{"ShouldNotBypassRepeatedKeyFirstValue", "https://equal.example.com/?view=admin&view=public", TwoFactor},
+		{"ShouldNotBypassSemicolonValue", "https://equal.example.com/?view=public;admin", TwoFactor},
+		{"ShouldBypassRepeatedKeySameValue", "https://equal.example.com/?view=public&view=public", Bypass},
+		{"ShouldBypassRepeatedUnrelatedKey", "https://equal.example.com/?view=public&tag=a&tag=b", Bypass},
+		{"ShouldBypassInvalidEscapeUnrelatedKey", "https://equal.example.com/?view=public&tag=%zz", Bypass},
+		{"ShouldBypassUnambiguous", "https://equal.example.com/?view=public", Bypass},
+		{"ShouldNotBypassAbsentSemicolon", "https://absent.example.com/?x=1;admin=1", TwoFactor},
+		{"ShouldNotBypassAbsentInvalidEscape", "https://absent.example.com/?admin=%zz", TwoFactor},
+		{"ShouldBypassAbsent", "https://absent.example.com/?x=1", Bypass},
+		{"ShouldNotBypassNotPatternRepeatedKey", "https://notpattern.example.com/?random=3&random=1", TwoFactor},
+		{"ShouldBypassNotPattern", "https://notpattern.example.com/?random=3", Bypass},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			tester.CheckAuthorizations(t, UserWithGroups, tc.requestURL, fasthttp.MethodGet, tc.expected)
+		})
+	}
+}
+
 func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).

@@ -458,6 +458,11 @@ The format of this rule is unique in as much as it is a list of lists. The logic
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
 Additionally each level of these lists does not have to be explicitly defined.
 
+Applications do not agree on how to read a query string which repeats a key or contains pairs which can't be strictly
+parsed, such as those containing a semicolon or an invalid escape sequence. When a request has such a query string the
+rules are evaluated against each plausible interpretation of it, using the first and the last value of each key and
+splitting pairs on the semicolon or not, and the most restrictive resulting policy is applied.
+
 ##### key
 
 {{< confkey type="string" required="yes" >}}

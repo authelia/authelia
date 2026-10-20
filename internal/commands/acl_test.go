@@ -284,6 +284,30 @@ func TestAccessControlCheckRunE(t *testing.T) {
 			[]string{"two_factor", "rule #2"},
 		},
 		{
+			"ShouldSucceedAmbiguousQuery",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "two_factor",
+						Rules: []schema.AccessControlRule{
+							{
+								Domains: schema.AccessControlRuleDomains{"example.com"},
+								Policy:  "bypass",
+								Query: [][]schema.AccessControlRuleQuery{
+									{
+										{Operator: "equal", Key: "view", Value: "public"},
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/?view=public&view=admin", "method": fasthttp.MethodGet},
+			"",
+			[]string{"The query string of this request is ambiguous so the most restrictive policy of all of its interpretations will be applied, which is 'two_factor'."},
+		},
+		{
 			"ShouldErrInvalidURL",
 			func() *schema.Configuration {
 				return &schema.Configuration{

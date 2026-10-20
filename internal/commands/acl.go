@@ -16,6 +16,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
@@ -82,7 +83,27 @@ func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err e
 
 	results := authorizer.GetRuleMatchResults(subject, object)
 
-	return runAccessControlCheck(cmd.OutOrStdout(), object, subject, results, ctx.config.AccessControl.DefaultPolicy, verbose)
+	if err = runAccessControlCheck(cmd.OutOrStdout(), object, subject, results, ctx.config.AccessControl.DefaultPolicy, verbose); err != nil {
+		return err
+	}
+
+	if hasAccessControlRuleQuery(ctx.config.AccessControl) && authorization.NewObjectQueryInterpretations(object) != nil {
+		_, level := authorizer.GetRequiredLevel(subject, object)
+
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "The query string of this request is ambiguous so the most restrictive policy of all of its interpretations will be applied, which is '%s'.\n\n", level)
+	}
+
+	return nil
+}
+
+func hasAccessControlRuleQuery(config schema.AccessControl) bool {
+	for _, rule := range config.Rules {
+		if len(rule.Query) != 0 {
+			return true
+		}
+	}
+
+	return false
 }
 
 func runAccessControlCheck(w io.Writer, object authorization.Object, subject authorization.Subject, results []authorization.RuleMatchResult, defaultPolicy string, verbose bool) (err error) {

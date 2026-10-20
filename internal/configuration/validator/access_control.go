@@ -143,7 +143,8 @@ func validateMethods(rulePosition int, rule schema.AccessControlRule, validator 
 func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configuration, validator *schema.StructValidator) {
 	for j := 0; j < len(config.AccessControl.Rules[i].Query); j++ {
 		for k := 0; k < len(config.AccessControl.Rules[i].Query[j]); k++ {
-			if config.AccessControl.Rules[i].Query[j][k].Operator == "" {
+			switch {
+			case config.AccessControl.Rules[i].Query[j][k].Operator == "":
 				if config.AccessControl.Rules[i].Query[j][k].Key != "" {
 					switch config.AccessControl.Rules[i].Query[j][k].Value {
 					case "", nil:
@@ -152,7 +153,9 @@ func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configur
 						config.AccessControl.Rules[i].Query[j][k].Operator = operatorEqual
 					}
 				}
-			} else if !utils.IsStringInSliceFold(config.AccessControl.Rules[i].Query[j][k].Operator, validACLRuleOperators) {
+			case utils.IsStringInSliceFold(config.AccessControl.Rules[i].Query[j][k].Operator, validACLRuleOperators):
+				config.AccessControl.Rules[i].Query[j][k].Operator = strings.ToLower(config.AccessControl.Rules[i].Query[j][k].Operator)
+			default:
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), utils.StringJoinOr(validACLRuleOperators), config.AccessControl.Rules[i].Query[j][k].Operator))
 			}
 

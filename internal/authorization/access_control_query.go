@@ -6,7 +6,9 @@ package authorization
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -52,19 +54,22 @@ func (acq AccessControlQuery) IsMatch(object Object) (isMatch bool) {
 }
 
 // NewAccessControlQueryObjectMatcher creates a new ObjectMatcher rule type from a schema.AccessControlRuleQuery.
+// The operator is case-insensitive, however the key and value are not as query arguments are case-sensitive.
 func NewAccessControlQueryObjectMatcher(rule schema.AccessControlRuleQuery) (matcher ObjectMatcher, err error) {
-	switch rule.Operator {
+	operator := strings.ToLower(rule.Operator)
+
+	switch operator {
 	case operatorPresent, operatorAbsent:
-		return &AccessControlQueryMatcherPresent{key: rule.Key, present: rule.Operator == operatorPresent}, nil
+		return &AccessControlQueryMatcherPresent{key: rule.Key, present: operator == operatorPresent}, nil
 	case operatorEqual, operatorNotEqual:
 		if value, ok := rule.Value.(string); ok {
-			return &AccessControlQueryMatcherEqual{key: rule.Key, value: value, equal: rule.Operator == operatorEqual}, nil
+			return &AccessControlQueryMatcherEqual{key: rule.Key, value: value, equal: operator == operatorEqual}, nil
 		} else {
 			return nil, fmt.Errorf("rule value is not a string and is instead %T", rule.Value)
 		}
 	case operatorPattern, operatorNotPattern:
 		if pattern, ok := rule.Value.(*regexp.Regexp); ok {
-			return &AccessControlQueryMatcherPattern{key: rule.Key, pattern: pattern, match: rule.Operator == operatorPattern}, nil
+			return &AccessControlQueryMatcherPattern{key: rule.Key, pattern: pattern, match: operator == operatorPattern}, nil
 		} else {
 			return nil, fmt.Errorf("rule value is not a *regexp.Regexp and is instead %T", rule.Value)
 		}
@@ -120,4 +125,96 @@ func (acl AccessControlQueryMatcherPattern) IsMatch(object Object) (isMatch bool
 	default:
 		return !acl.pattern.MatchString(object.URL.Query().Get(acl.key))
 	}
+}
+
+// NewObjectQueryInterpretations returns a copy of the object for each plausible interpretation of an ambiguous query
+// string, or nil if the query string is unambiguous. A query string is ambiguous when a key is repeated, or when it
+// contains pairs which can't be strictly parsed such as those containing a semicolon or an invalid escape sequence,
+// as the backend may read a different value than the query criteria would otherwise evaluate.
+//
+// The interpretations are the strict parse, a lenient parse which only separates pairs with an ampersand, and a
+// lenient parse which separates pairs with either an ampersand or a semicolon. Each of these is interpreted using the
+// first value and the last value of every key.
+func NewObjectQueryInterpretations(object Object) (objects []Object) {
+	if object.URL == nil || object.URL.RawQuery == "" {
+		return nil
+	}
+
+	strict, err := url.ParseQuery(object.URL.RawQuery)
+
+	if err == nil && !isQueryValuesRepeated(strict) {
+		return nil
+	}
+
+	seen := map[string]struct{}{}
+
+	for _, values := range []url.Values{strict, parseQueryLenient(object.URL.RawQuery, "&"), parseQueryLenient(object.URL.RawQuery, "&;")} {
+		for _, last := range []bool{false, true} {
+			query := queryValuesSingle(values, last).Encode()
+
+			if _, ok := seen[query]; ok {
+				continue
+			}
+
+			seen[query] = struct{}{}
+
+			u := *object.URL
+			u.RawQuery = query
+
+			o := object
+			o.URL = &u
+
+			objects = append(objects, o)
+		}
+	}
+
+	return objects
+}
+
+func isQueryValuesRepeated(values url.Values) bool {
+	for _, v := range values {
+		if len(v) > 1 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func parseQueryLenient(raw, separators string) (values url.Values) {
+	values = url.Values{}
+
+	for _, pair := range strings.FieldsFunc(raw, func(r rune) bool { return strings.ContainsRune(separators, r) }) {
+		key, value, _ := strings.Cut(pair, "=")
+
+		values.Add(queryUnescapeLenient(key), queryUnescapeLenient(value))
+	}
+
+	return values
+}
+
+func queryUnescapeLenient(raw string) string {
+	if value, err := url.QueryUnescape(raw); err == nil {
+		return value
+	}
+
+	return raw
+}
+
+func queryValuesSingle(values url.Values, last bool) (single url.Values) {
+	single = make(url.Values, len(values))
+
+	for key, v := range values {
+		if len(v) == 0 {
+			continue
+		}
+
+		if last {
+			single[key] = []string{v[len(v)-1]}
+		} else {
+			single[key] = []string{v[0]}
+		}
+	}
+
+	return single
 }

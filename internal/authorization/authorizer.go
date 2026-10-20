@@ -16,6 +16,7 @@ type Authorizer struct {
 	defaultPolicy Level
 	rules         []*AccessControlRule
 	mfa           bool
+	query         bool
 	log           *logrus.Logger
 }
 
@@ -25,6 +26,14 @@ func NewAuthorizer(config *schema.Configuration) (authorizer *Authorizer) {
 		defaultPolicy: NewLevel(config.AccessControl.DefaultPolicy),
 		rules:         NewAccessControlRules(config.AccessControl),
 		log:           logging.Logger(),
+	}
+
+	for _, rule := range authorizer.rules {
+		if len(rule.Query) != 0 {
+			authorizer.query = true
+
+			break
+		}
 	}
 
 	if authorizer.defaultPolicy == TwoFactor {
@@ -51,8 +60,32 @@ func (p *Authorizer) IsSecondFactorEnabled() bool {
 	return p.mfa
 }
 
-// GetRequiredLevel retrieve the required level of authorization to access the object.
+// GetRequiredLevel retrieve the required level of authorization to access the object. If any rule has query criteria
+// and the query string of the object is ambiguous, the most restrictive level of every interpretation is returned.
 func (p *Authorizer) GetRequiredLevel(subject Subject, object Object) (hasSubjects bool, level Level) {
+	hasSubjects, level = p.getRequiredLevel(subject, object)
+
+	if !p.query {
+		return hasSubjects, level
+	}
+
+	for _, o := range NewObjectQueryInterpretations(object) {
+		p.log.Debugf("Check authorization of subject %s and object %s (method %s) using an interpretation of the ambiguous query string.", subject.String(), o.String(), o.Method)
+
+		h, l := p.getRequiredLevel(subject, o)
+
+		switch {
+		case l > level:
+			hasSubjects, level = h, l
+		case l == level:
+			hasSubjects = hasSubjects || h
+		}
+	}
+
+	return hasSubjects, level
+}
+
+func (p *Authorizer) getRequiredLevel(subject Subject, object Object) (hasSubjects bool, level Level) {
 	p.log.Debugf("Check authorization of subject %s and object %s (method %s).",
 		subject.String(), object.String(), object.Method)
 
