@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -567,14 +566,11 @@ var (
 	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 	validWebAuthnAttachment                  = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
 	validWebAuthnDiscoverability             = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
-	validRFC7231HTTPMethodVerbs              = []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodDelete, fasthttp.MethodTrace, fasthttp.MethodConnect, fasthttp.MethodOptions}
-	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 )
 
 var (
-	validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
-	validACLRulePolicies    = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
-	validACLRuleOperators   = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
+	validACLRulePolicies  = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+	validACLRuleOperators = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
 )
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}

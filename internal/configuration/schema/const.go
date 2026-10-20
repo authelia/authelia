@@ -7,7 +7,10 @@ package schema
 import (
 	"errors"
 	"regexp"
+	"slices"
 	"time"
+
+	"github.com/valyala/fasthttp"
 )
 
 // Provider names, used by the startup checks and the verbose health check endpoint.
@@ -68,6 +71,60 @@ const (
 
 	// Version10 is the textual representation of version 1.0.
 	Version10 = "1.0"
+)
+
+// HTTP request methods defined by RFC4918 (WebDAV).
+const (
+	MethodCopy      = "COPY"
+	MethodLock      = "LOCK"
+	MethodMkCol     = "MKCOL"
+	MethodMove      = "MOVE"
+	MethodPropFind  = "PROPFIND"
+	MethodPropPatch = "PROPPATCH"
+	MethodUnlock    = "UNLOCK"
+)
+
+// HTTP request methods registered in the IANA HTTP Method Registry not otherwise defined by RFC7231 or RFC4918.
+const (
+	MethodACL               = "ACL"
+	MethodBaselineControl   = "BASELINE-CONTROL"
+	MethodBind              = "BIND"
+	MethodCheckIn           = "CHECKIN"
+	MethodCheckOut          = "CHECKOUT"
+	MethodLabel             = "LABEL"
+	MethodLink              = "LINK"
+	MethodMerge             = "MERGE"
+	MethodMkActivity        = "MKACTIVITY"
+	MethodMkCalendar        = "MKCALENDAR"
+	MethodMkRedirectRef     = "MKREDIRECTREF"
+	MethodMkWorkspace       = "MKWORKSPACE"
+	MethodOrderPatch        = "ORDERPATCH"
+	MethodPri               = "PRI"
+	MethodQuery             = "QUERY"
+	MethodRebind            = "REBIND"
+	MethodReport            = "REPORT"
+	MethodSearch            = "SEARCH"
+	MethodUnbind            = "UNBIND"
+	MethodUnCheckOut        = "UNCHECKOUT"
+	MethodUnlink            = "UNLINK"
+	MethodUpdate            = "UPDATE"
+	MethodUpdateRedirectRef = "UPDATEREDIRECTREF"
+	MethodVersionControl    = "VERSION-CONTROL"
+)
+
+var (
+	// HTTPMethodsRFC7231 is the list of HTTP request methods defined by RFC7231 and RFC5789.
+	HTTPMethodsRFC7231 = []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodDelete, fasthttp.MethodTrace, fasthttp.MethodConnect, fasthttp.MethodOptions}
+
+	// HTTPMethodsRFC4918 is the list of HTTP request methods defined by RFC4918 (WebDAV).
+	HTTPMethodsRFC4918 = []string{MethodCopy, MethodLock, MethodMkCol, MethodMove, MethodPropFind, MethodPropPatch, MethodUnlock}
+
+	// HTTPMethodsIANA is the list of HTTP request methods registered in the IANA HTTP Method Registry not otherwise
+	// defined by RFC7231 or RFC4918.
+	HTTPMethodsIANA = []string{MethodACL, MethodBaselineControl, MethodBind, MethodCheckIn, MethodCheckOut, MethodLabel, MethodLink, MethodMerge, MethodMkActivity, MethodMkCalendar, MethodMkRedirectRef, MethodMkWorkspace, MethodOrderPatch, MethodPri, MethodQuery, MethodRebind, MethodReport, MethodSearch, MethodUnbind, MethodUnCheckOut, MethodUnlink, MethodUpdate, MethodUpdateRedirectRef, MethodVersionControl}
+
+	// HTTPMethods is the list of all HTTP request methods supported by Authelia.
+	HTTPMethods = slices.Concat(HTTPMethodsRFC7231, HTTPMethodsRFC4918, HTTPMethodsIANA)
 )
 
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.

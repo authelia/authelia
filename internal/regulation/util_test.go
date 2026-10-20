@@ -11,7 +11,32 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
+
+func TestSanitizeRequestMethod(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+	}{
+		{"ShouldAllowRFC7231Method", fasthttp.MethodGet, fasthttp.MethodGet},
+		{"ShouldAllowRFC4918Method", schema.MethodPropFind, schema.MethodPropFind},
+		{"ShouldAllowIANAMethod", schema.MethodVersionControl, schema.MethodVersionControl},
+		{"ShouldReturnEmptyForEmptyMethod", "", ""},
+		{"ShouldUppercaseLowerCaseMethod", "get", fasthttp.MethodGet},
+		{"ShouldReturnEmptyForUnknownMethod", "HOP", ""},
+		{"ShouldReturnEmptyForOverLengthMethod", "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFG", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FormatRequestMethod(tc.have))
+		})
+	}
+}
 
 func TestReturnBanResult(t *testing.T) {
 	type testCase struct {

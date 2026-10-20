@@ -27,9 +27,13 @@ func NewMetricsRequest(metrics metrics.Recorder) (middleware Basic) {
 			next(ctx)
 
 			statusCode := strconv.Itoa(ctx.Response.StatusCode())
-			requestMethod := string(ctx.Method())
+			requestMethod := formatRequestMethod(string(ctx.Method()))
 
-			metrics.RecordRequest(statusCode, requestMethod, time.Since(started))
+			if requestMethod == "" {
+				metrics.RecordRequest(statusCode, "UNKNOWN", time.Since(started))
+			} else {
+				metrics.RecordRequest(statusCode, requestMethod, time.Since(started))
+			}
 		}
 	}
 }
