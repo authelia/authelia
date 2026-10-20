@@ -38,7 +38,15 @@ bootstrapping _Authelia_.
 
 You need the following to run **Authelia** with [NGINX]:
 
+- [NGINX] must be version 1.29.8 or newer as the examples use the `$is_request_port` and `$request_port` variables which
+  were introduced in 1.29.3 but were not available in subrequests such as those made by the `auth_request` directive
+  until 1.29.8
 - [NGINX] must be built with the `http_auth_request` module which is relatively common
+- [NGINX] must have a [resolver](https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver) configured as the
+  examples use variables in the `proxy_pass` directive which are resolved at runtime rather than at startup. The
+  [linuxserver.io] images, [SWAG](swag.md), and [NGINX Proxy Manager](nginx-proxy-manager/index.md) configure this for
+  you, otherwise you will need to add a directive such as `resolver 127.0.0.11 valid=30s;` (the Docker DNS server) to
+  the `http` block, or `no resolver defined to resolve` errors will occur
 - [NGINX] must be built with the `http_realip` module which is relatively common
 - [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to use the
   legacy method and preserve more than one query parameter when redirected to the portal due to a limitation in [NGINX]
@@ -222,7 +230,7 @@ Below you will find commented examples of the following configuration:
 - [Supporting Configuration Snippets](#supporting-configuration-snippets)
 - Assumes the following since we cannot reasonably provide a configuration for every architecture:
   - [NGINX] is also running in Docker and uses Docker DNS as a
-    [resolver](https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver) which is standard
+    [resolver](https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver) (see the [requirements](#requirements))
   - [NGINX] shares a network with the `authelia` and `nextcloud` containers
 
 ### Assumptions
@@ -251,11 +259,12 @@ server {
     listen 80;
     server_name auth.*;
 
-    return 301 https://$server_name$request_uri;
+    return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name auth.*;
 
     include /config/nginx/snippets/ssl.conf;
@@ -274,11 +283,12 @@ server {
     listen 80;
     server_name nextcloud.*;
 
-    return 301 https://$server_name$request_uri;
+    return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name nextcloud.*;
 
     include /config/nginx/snippets/ssl.conf;
@@ -299,11 +309,12 @@ server {
     listen 80;
     server_name portainer.*;
 
-    return 301 https://$server_name$request_uri;
+    return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name portainer.*;
 
     include /config/nginx/snippets/ssl.conf;
@@ -331,11 +342,12 @@ server {
     listen 80;
     server_name whoami.*;
 
-    return 301 https://$server_name$request_uri;
+    return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name whoami.*;
 
     include /config/nginx/snippets/ssl.conf;
@@ -367,17 +379,18 @@ server {
     listen 80;
     server_name nextcloud.*;
 
-    return 301 https://$server_name$request_uri;
+    return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name nextcloud.*;
 
     include /config/nginx/snippets/ssl.conf;
     include /config/nginx/snippets/authelia-location-basic.conf; # Use the "basic" endpoint
 
-    set $upstream https://nextcloud;
+    set $upstream http://nextcloud;
 
     location / {
         include /config/nginx/snippets/proxy.conf;
@@ -407,10 +420,10 @@ Generally this variant is the suggested variant.
 
 ```nginx {title="proxy.conf"}
 ## Headers
-proxy_set_header Host $host;
-proxy_set_header X-Original-URL $scheme://$host$request_uri;
+proxy_set_header Host $host$is_request_port$request_port;
+proxy_set_header X-Original-URL $scheme://$host$is_request_port$request_port$request_uri;
 proxy_set_header X-Forwarded-Proto $scheme;
-proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Host $host$is_request_port$request_port;
 proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
@@ -419,10 +432,10 @@ proxy_set_header X-Real-IP $remote_addr;
 ## Basic Proxy Configuration
 client_body_buffer_size 128k;
 proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; ## Timeout if the real server is dead.
-proxy_redirect  http://  $scheme://;
 proxy_http_version 1.1;
-proxy_cache_bypass $cookie_session;
-proxy_no_cache $cookie_session;
+## Replace authelia_session with the session cookie name if it has been changed.
+proxy_cache_bypass $cookie_authelia_session;
+proxy_no_cache $cookie_authelia_session;
 proxy_buffers 64 256k;
 
 ## Trusted Proxies Configuration
@@ -449,10 +462,10 @@ headers for Authelia to operate.
 
 ```nginx {title="proxy.conf"}
 ## Headers
-proxy_set_header Host $host;
-proxy_set_header X-Original-URL $scheme://$host$request_uri;
+proxy_set_header Host $host$is_request_port$request_port;
+proxy_set_header X-Original-URL $scheme://$host$is_request_port$request_port$request_uri;
 proxy_set_header X-Forwarded-Proto $scheme;
-proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Host $host$is_request_port$request_port;
 proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
@@ -486,7 +499,7 @@ location /internal/authelia/authz {
     ## Headers
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-Method $request_method;
-    proxy_set_header X-Original-URL $scheme://$host$request_uri;
+    proxy_set_header X-Original-URL $scheme://$host$is_request_port$request_port$request_uri;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header Content-Length "";
     proxy_set_header Connection "";
@@ -494,10 +507,10 @@ location /internal/authelia/authz {
     ## Basic Proxy Configuration
     proxy_pass_request_body off;
     proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; # Timeout if the real server is dead
-    proxy_redirect http:// $scheme://;
     proxy_http_version 1.1;
-    proxy_cache_bypass $cookie_session;
-    proxy_no_cache $cookie_session;
+    ## Replace authelia_session with the session cookie name if it has been changed.
+    proxy_cache_bypass $cookie_authelia_session;
+    proxy_no_cache $cookie_authelia_session;
     proxy_buffers 4 32k;
     client_body_buffer_size 128k;
 
@@ -542,7 +555,7 @@ error_page 401 =302 $redirection_url;
 
 ## Legacy Method: Set $target_url to the original requested URL.
 ## This requires http_set_misc module, replace 'set_escape_uri' with 'set' if you don't have this module.
-# set_escape_uri $target_url $scheme://$host$request_uri;
+# set_escape_uri $target_url $scheme://$host$is_request_port$request_port$request_uri;
 
 ## Legacy Method: When there is a 401 response code from the authz endpoint redirect to the portal with the 'rd'
 ## URL parameter set to $target_url. This requires users update '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/' with their external authelia URL.
@@ -557,9 +570,30 @@ snippet is rarely required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead._
 
-{{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This example assumes you configured an authz endpoint with the name `auth-request/basic` and the
-implementation `AuthRequest` which contains the `HeaderAuthorization` and `HeaderProxyAuthorization` strategies.
+This snippet requires an [authz endpoint](../../configuration/miscellaneous/server-endpoints-authz.md) named
+`auth-request/basic` with the `AuthRequest` implementation and only the `HeaderAuthorization` strategy, which responds
+with a `401` status code and the `WWW-Authenticate` header when the `Authorization` header is absent or invalid.
+Configuring any authz endpoint replaces the default endpoints, so the default `auth-request` endpoint must also be
+configured if it's used by other snippets. For example:
+
+```yaml {title="configuration.yml"}
+server:
+  endpoints:
+    authz:
+      auth-request:
+        implementation: 'AuthRequest'
+      auth-request/basic:
+        implementation: 'AuthRequest'
+        authn_strategies:
+          - name: 'HeaderAuthorization'
+            schemes:
+              - 'Basic'
+```
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Do not add the `HeaderProxyAuthorization` strategy to an endpoint with the `AuthRequest` implementation. It responds
+with a `407` status code which the `auth_request` directive treats as an error. Use the
+`HeaderAuthRequestProxyAuthorization` strategy instead if the `Proxy-Authorization` header is required.
 {{< /callout >}}
 
 ```nginx {title="authelia-location-basic.conf"}
@@ -574,10 +608,10 @@ location /internal/authelia/authz/basic {
     ## Headers
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-Method $request_method;
-    proxy_set_header X-Original-URL $scheme://$host$request_uri;
+    proxy_set_header X-Original-URL $scheme://$host$is_request_port$request_port$request_uri;
     proxy_set_header X-Forwarded-Method $request_method;
     proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Host $host$is_request_port$request_port;
     proxy_set_header X-Forwarded-URI $request_uri;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header Content-Length "";
@@ -586,10 +620,10 @@ location /internal/authelia/authz/basic {
     ## Basic Proxy Configuration
     proxy_pass_request_body off;
     proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; # Timeout if the real server is dead
-    proxy_redirect http:// $scheme://;
     proxy_http_version 1.1;
-    proxy_cache_bypass $cookie_session;
-    proxy_no_cache $cookie_session;
+    ## Replace authelia_session with the session cookie name if it has been changed.
+    proxy_cache_bypass $cookie_authelia_session;
+    proxy_no_cache $cookie_authelia_session;
     proxy_buffers 4 32k;
     client_body_buffer_size 128k;
 
@@ -634,6 +668,11 @@ snippet is rarely required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead._
 
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This snippet requires both the `auth-request` and `auth-request/basic` authz endpoints described in the
+[authelia-location-basic.conf](#authelia-location-basicconf) section.
+{{< /callout >}}
+
 ```nginx {title="authelia-location-detect.conf"}
 include /config/nginx/snippets/authelia-location.conf;
 
@@ -643,7 +682,7 @@ set $is_basic_auth ""; # false value
 ## For the example we just match a path on the original request
 if ($request_uri = "/force-basic") {
     set $is_basic_auth "true";
-    set $upstream_authelia "$upstream_authelia?auth=basic";
+    set $upstream_authelia "${upstream_authelia}/basic";
 }
 
 ## A new virtual endpoint to used if the auth_request failed
@@ -679,10 +718,10 @@ endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequ
 auth_request /internal/authelia/authz;
 
 ## Comment this line if you're using nginx without the http_set_misc module.
-set_escape_uri $target_url $scheme://$host$request_uri;
+set_escape_uri $target_url $scheme://$host$is_request_port$request_port$request_uri;
 
 ## Uncomment this line if you're using NGINX without the http_set_misc module.
-# set $target_url $scheme://$host$request_uri;
+# set $target_url $scheme://$host$is_request_port$request_port$request_uri;
 
 ## Save the upstream response headers from Authelia to variables.
 auth_request_set $user $upstream_http_remote_user;
@@ -712,55 +751,86 @@ The `X-Original-URL` header is required for the `auth_request` directive to work
 so that it's natively compatible with the [Kubernetes](#kubernetes) integrations. This means most of the time you do not
 need to include it, only for the `auth_request` directive to work.
 
-### I want to run nginx on a custom port, how do I do that?
+### Why do the examples use $host$is_request_port$request_port instead of $http_host?
 
-If you're using nginx with a custom port i.e. not 443 you will be required to adapt this configuration to handle this.
-Specifically you will need to change the `proxy_set_header X-Forwarded-Host` and `proxy_set_header X-Original-URL`
-directives. The advice is to either replace all instances of `$host` with `$host:{port}` i.e. static configuration or
-create a map.
+The `$http_host` variable is the raw value of the `Host` request header. Clients using HTTP/3 send the host in the
+`:authority` pseudo-header instead of the `Host` header, which leaves `$http_host` empty. This causes the
+`X-Forwarded-Host` and `X-Original-URL` headers to be sent without a host, i.e. `https:///`, and Authelia is unable to
+determine the URL of the request.
 
-#### Static Configuration Example
+The `$host` variable is populated regardless of the HTTP version, and the `$request_port` variable contains the port the
+client included in the request if any, with `$is_request_port` containing the `:` separator when it does. Together they
+produce the equivalent of `$http_host` without depending on the `Host` header. You should not replace these variables
+with `$http_host` when adapting the examples.
 
-Before:
+### NGINX is behind another proxy which terminates TLS, how do I configure that?
 
-```nginx
-proxy_set_header X-Forwarded-Host $host;
-proxy_set_header X-Original-URL $scheme://$host$request_uri;
-```
+If [NGINX] receives requests over plain HTTP from another proxy which terminates TLS, such as a Cloudflare Tunnel or a
+load balancer, the `$scheme` variable is `http`. This causes the `X-Forwarded-Proto` and `X-Original-URL` headers to
+report the `http` scheme, and Authelia rejects these requests as they use an insecure scheme.
 
-After (assuming port 8080):
-
-```nginx
-proxy_set_header X-Forwarded-Host $host:8080;
-proxy_set_header X-Original-URL $scheme://$host:8080$request_uri;
-```
-
-#### Map Example
-
-You need to add this map in the `http {}` block for your configuration.
+To resolve this you can use the `X-Forwarded-Proto` header sent by that proxy, but only when the request comes from
+that proxy. Add the following to the `http {}` block, adjusting the address ranges to only include the proxies which
+terminate TLS in front of [NGINX]:
 
 ```nginx
-http {
-    map $http_host $port_suffix {
-        "~:(?<port>\d+)$"  ":$port";
-        default            "";
-    }
+geo $realip_remote_addr $is_trusted_proxy {
+    default     0;
+    10.0.0.0/8  1;
+}
+
+map "$is_trusted_proxy:$http_x_forwarded_proto" $forwarded_proto {
+    default                  $scheme;
+    "~^1:(?<proto>https?)$"  $proto;
+}
+
+map $forwarded_proto $forwarded_ssl {
+    default  off;
+    https    on;
 }
 ```
 
-Before:
+Then replace `$scheme` with `$forwarded_proto` in every `X-Forwarded-Proto` and `X-Original-URL` header and every
+`$target_url` variable in the [proxy.conf](#proxyconf), `authelia-location*.conf`, and `authelia-authrequest*.conf`
+snippets, and replace `on` with `$forwarded_ssl` in the `X-Forwarded-Ssl` header, for example:
 
 ```nginx
-proxy_set_header X-Forwarded-Host $host;
-proxy_set_header X-Original-URL $scheme://$host$request_uri;
+proxy_set_header X-Original-URL $forwarded_proto://$host$is_request_port$request_port$request_uri;
+proxy_set_header X-Forwarded-Proto $forwarded_proto;
+proxy_set_header X-Forwarded-Ssl $forwarded_ssl;
 ```
 
-After (assuming port 8080):
+The `server` blocks must also accept plain HTTP from that proxy on the port it forwards requests to, rather than
+redirecting them to HTTPS like the `listen 80` blocks in the examples.
 
-```nginx
-proxy_set_header X-Forwarded-Host $host$port_suffix;
-proxy_set_header X-Original-URL $scheme://$host$port_suffix$request_uri;
-```
+### Why does NGINX respond with a 500 status code and log auth request unexpected status?
+
+The `auth_request` directive only accepts a `2xx` status code which allows the request, or a `401` or `403` status code
+which denies the request. Any other status code returned by the authz endpoint causes [NGINX] to respond with a `500`
+status code and log an error such as `auth request unexpected status: 400`. The status code in the log message, along
+with the Authelia logs, indicates the cause:
+
+- `302` or `303`: The authz endpoint is using the `ForwardAuth` implementation instead of the `AuthRequest`
+  implementation. Ensure the [authz endpoint](../../configuration/miscellaneous/server-endpoints-authz.md) used in
+  the `authelia-location.conf` snippet has the `AuthRequest` implementation, which is the case for the default
+  `auth-request` endpoint.
+- `400`: The request could not be processed. The Authelia logs contain the specific reason, which is usually one of:
+  - The `X-Original-URL` header is missing or is not a valid URL, see [authelia-location.conf](#authelia-locationconf).
+  - The `X-Original-URL` header has the `http` scheme, see
+    [NGINX is behind another proxy which terminates TLS](#nginx-is-behind-another-proxy-which-terminates-tls-how-do-i-configure-that).
+  - The domain of the `X-Original-URL` header does not match any of the
+    [session cookies](../../configuration/session/introduction.md#cookies) configurations.
+  - The legacy session configuration is used, which does not have the `authelia_url` option required by the
+    `AuthRequest` implementation, see the [session cookies](../../configuration/session/introduction.md#cookies)
+    configuration.
+- `404`: The URL in the `$upstream_authelia` variable does not match an authz endpoint. The path must be
+  `/api/authz/` followed by the name of an endpoint which exists in the configuration, for example the
+  `authelia-location-basic.conf` snippet requires you to configure the `auth-request/basic` endpoint.
+- `407`: The authz endpoint has the `HeaderProxyAuthorization` strategy, which is not compatible with the
+  `AuthRequest` implementation. Use the `HeaderAuthRequestProxyAuthorization` strategy instead.
+- `502` or `504`: [NGINX] could not get a timely response from Authelia. Check that Authelia is running, that the
+  URL in the `$upstream_authelia` variable is reachable from [NGINX], and that a
+  [resolver](#requirements) is configured.
 
 ## Kubernetes
 
