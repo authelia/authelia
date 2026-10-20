@@ -2,7 +2,27 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM registry.gitlab.com/openid/conformance-suite:release-v5.2.4@sha256:3a2615ed95a7f3bb92d545b4c65c0268f82a3893d6cd97fd98fd8e44eb15d81f
+FROM --platform=${BUILDPLATFORM} maven:3.10.0-eclipse-temurin-21@sha256:d23342b1a070a07555f4ef20c085a81aa40e5f5b3288ebf8ddae2f67e9d760c8 AS builder
+
+ARG CONFORMANCE_SUITE_REPO=https://gitlab.com/openid/conformance-suite.git
+ARG CONFORMANCE_SUITE_REF=release-v5.3.3
+ARG CONFORMANCE_SUITE_COMMIT=7d420f716e49d44f8a6b04f0a3e240ad6d68ab55
+
+WORKDIR /src
+
+COPY --link example/compose/oidc-conformance/authelia-login.patch /tmp/authelia-login.patch
+
+RUN --mount=type=cache,target=/root/.m2 <<EOF
+set -eu
+git clone --depth 1 --branch "${CONFORMANCE_SUITE_REF}" "${CONFORMANCE_SUITE_REPO}" .
+test "$(git rev-parse HEAD)" = "${CONFORMANCE_SUITE_COMMIT}"
+git apply /tmp/authelia-login.patch
+mvn -B package -DskipTests=true
+EOF
+
+FROM registry.gitlab.com/openid/conformance-suite:release-v5.3.3@sha256:377ab51f011d821c4b6f7729053e85adf062d691e51a3615f40507fd900a2436
+
+COPY --link --from=builder /src/target/fapi-test-suite.jar /server/fapi-test-suite.jar
 
 # The conformance server fetches Authelia's discovery document, JWKS, token endpoint and userinfo endpoint over TLS
 # signed by the suite development CA, which no public root vouches for. Importing into the JDK's own cacerts adds that

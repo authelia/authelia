@@ -3,13 +3,14 @@ allowBuilds:
   unrs-resolver: true
 overrides:
   brace-expansion: 5.0.12
-  fast-uri: 4.2.1
-  js-yaml: 5.4.2
+  fast-uri: 4.2.2
+  js-yaml: 5.5.0
   minimatch: 10.2.6
   picomatch: 4.0.7
-  qs: 6.16.0
+  qs: 6.16.1
   semver: 7.8.5
-  vite: 8.3.2
+  source-map-js: 1.2.2
+  vite: 8.3.4
 peerDependencyRules:
   allowedVersions:
     "@types/react": "19"
