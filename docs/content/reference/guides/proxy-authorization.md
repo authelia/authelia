@@ -100,14 +100,14 @@ This is the implementation which supports [Envoy] via the [HTTP ExtAuthz Filter]
 
 #### ExtAuthz Metadata
 
-|     Metadata      |            Source            |           Key            |
-| :---------------: | :--------------------------: | :----------------------: |
-|    Method [^1]    |        _[Start Line]_        |    [HTTP Method] [^2]    |
-|    Scheme [^1]    |           [Header]           | [X-Forwarded-Proto] [^2] |
-|   Hostname [^1]   |           [Header]           |       [Host] [^2]        |
-|     Path [^1]     |           [Header]           |  Endpoint Sub-Path [^2]  |
-|      IP [^1]      |           [Header]           |  [X-Forwarded-For] [^2]  |
-| Authelia URL [^1] | Session Cookie Configuration |      `authelia_url`      |
+|     Metadata      |            Source            |               Key                |
+| :---------------: | :--------------------------: | :------------------------------: |
+|    Method [^1]    |        _[Start Line]_        |        [HTTP Method] [^2]        |
+|    Scheme [^1]    |           [Header]           |     [X-Forwarded-Proto] [^2]     |
+|   Hostname [^1]   |           [Header]           |           [Host] [^2]            |
+|     Path [^1]     |           [Header]           | Endpoint Sub-Path and Query [^2] |
+|      IP [^1]      |           [Header]           |      [X-Forwarded-For] [^2]      |
+| Authelia URL [^1] | Session Cookie Configuration |          `authelia_url`          |
 
 #### ExtAuthz Metadata Alternatives
 

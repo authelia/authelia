@@ -28,7 +28,7 @@ seo:
 
 In addition to this configuration, it's possible to configure the integration via OpenID Connect 1.0 which may be more
 desirable when you wish to share an ID Token or Access Token with a backend. See that guide
-[here](../../openid-connect/envoy-gateway/index.md).
+[here](../../openid-connect/clients/envoy-gateway/index.md).
 
 The [Envoy Proxy documentation](../../proxies/envoy.md) may also be useful with this ingress even though it's not
 specific to Kubernetes.
@@ -54,19 +54,48 @@ This example assumes that you have deployed an Authelia pod and you have configu
 there is a Kubernetes Service with the name `authelia` in the `default` namespace with TCP port `80` configured to route
 to the Authelia pod's HTTP port and that your cluster is configured with the default DNS domain name of `cluster.local`.
 
+### Client Traffic Policy
+
+Authelia uses the first address in the `X-Forwarded-For` header as the client address. [Envoy Gateway] appends the
+address of the client to any `X-Forwarded-For` header sent by the client, which means the client can choose the first
+address. The following [ClientTrafficPolicy] manifest removes the `X-Forwarded-For` header sent by the client before
+[Envoy Gateway] adds the address of the client, which requires [Envoy Gateway] v1.2.0 or higher.
+
+```yaml {title="client-traffic-policy.yml"}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: 'authelia-client-address'
+spec:
+  targetRefs:
+    - group: 'gateway.networking.k8s.io'
+      kind: 'Gateway'
+      name: 'eg'
+  headers:
+    earlyRequestHeaders:
+      remove:
+        - 'x-forwarded-for'
+```
+
+This assumes [Envoy Gateway] receives connections directly from clients, for example via a `LoadBalancer` Service with
+`externalTrafficPolicy: Local`, or via the PROXY protocol using the `proxyProtocol` option of the
+[ClientTrafficPolicy]. You should not configure the `clientIPDetection` option of the [ClientTrafficPolicy] with this
+integration, as it causes [Envoy Gateway] to keep the `X-Forwarded-Proto` header sent by the client.
+
 ### Security Policy
 
 The following Security Policy examples assume the following:
 
 1. Authelia is deployed to the `default` namespace.
-2. AUthelia is deployed with a service named `authelia` which translates port `:80` to the Authelia server port.
+2. Authelia is deployed with a service named `authelia` which translates port `:80` to the Authelia server port.
 
 #### Scoped to Gateway
 
 This is an example [SecurityPolicy] manifest adjusted to authenticate with Authelia which is scoped to a single
 [Gateway] named `eg`.
 
-```yaml {title="istio-operator.yml"}
+```yaml {title="security-policy-gateway.yml"}
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
@@ -81,10 +110,10 @@ spec:
     headersToExtAuth:
       - 'accept'
       - 'cookie'
-      - 'location'
       - 'authorization'
       - 'proxy-authorization'
       - 'x-forwarded-proto'
+      - 'x-forwarded-for'
     failOpen: false
     http:
       backendRefs:
@@ -93,10 +122,10 @@ spec:
           port: 80
       path: '/api/authz/ext-authz/'
       headersToBackend:
-        - Remote-User
-        - Remote-Groups
-        - Remote-Name
-        - Remote-Email
+        - 'remote-user'
+        - 'remote-groups'
+        - 'remote-name'
+        - 'remote-email'
 ```
 
 #### Scoped to HTTP Route
@@ -104,7 +133,7 @@ spec:
 This is an example [SecurityPolicy] manifest adjusted to authenticate with Authelia which is scoped to a single
 [HTTPRoute] named `example`.
 
-```yaml {title="istio-operator.yml"}
+```yaml {title="security-policy-route.yml"}
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
@@ -122,6 +151,7 @@ spec:
       - 'authorization'
       - 'proxy-authorization'
       - 'x-forwarded-proto'
+      - 'x-forwarded-for'
     failOpen: false
     http:
       backendRefs:
@@ -130,10 +160,10 @@ spec:
           port: 80
       path: '/api/authz/ext-authz/'
       headersToBackend:
-        - Remote-User
-        - Remote-Groups
-        - Remote-Name
-        - Remote-Email
+        - 'remote-user'
+        - 'remote-groups'
+        - 'remote-name'
+        - 'remote-email'
 ```
 
 ##### HTTP Route
@@ -141,7 +171,7 @@ spec:
 The following [HTTPRoute] has the above [SecurityPolicy] applied to it for the
 `app.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
-```yaml {title="authorization-policy.yml"}
+```yaml {title="httproute.yml"}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -151,7 +181,7 @@ spec:
   parentRefs:
     - name: 'eg'
   hostnames:
-    - 'app.example.com'
+    - 'app.{{< sitevar name="domain" nojs="example.com" >}}'
   rules:
     - matches:
         - path:
@@ -170,7 +200,7 @@ communication. The following example assumes the following:
 1. Authelia is deployed to the `default` namespace.
 2. You have deployed the [Scoped to Gateway](#scoped-to-gateway) Security Policy to the `eg` namespace.
 
-```yaml
+```yaml {title="reference-grant.yml"}
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
@@ -198,6 +228,7 @@ spec:
 [Envoy Gateway]: https://gateway.envoyproxy.io/
 [Gateway API]: https://gateway-api.sigs.k8s.io/
 [SecurityPolicy]: https://gateway.envoyproxy.io/contributions/design/security-policy/
+[ClientTrafficPolicy]: https://gateway.envoyproxy.io/docs/api/extension_types/#clienttrafficpolicy
 [HTTPRoute]: https://gateway-api.sigs.k8s.io/api-types/httproute/
 [Gateway]: https://gateway-api.sigs.k8s.io/api-types/gateway/
 [Envoy]: https://www.envoyproxy.io/

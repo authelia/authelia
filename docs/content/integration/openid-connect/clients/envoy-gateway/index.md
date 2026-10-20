@@ -67,6 +67,8 @@ identity_providers:
         pkce_challenge_method: ''
         redirect_uris:
           - 'https://envoy.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
+          ## Only required for the Apply to an entire Gateway example.
+          - 'https://envoy-oidc.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
         scopes:
           - 'openid'
           - 'offline_access'
@@ -106,7 +108,7 @@ following instructions:
 The following example [HTTPRoute] is a example real application just for the purposes of showcasing this. The important
 factors are the `name` value being `envoy`.
 
-```yaml {title="httproute.yaml
+```yaml {title="httproute.yaml"}
 ---
 apiVersion: 'gateway.networking.k8s.io/v1'
 kind: 'HTTPRoute'
@@ -131,7 +133,7 @@ spec:
 The following [SecurityPolicy] requires [OpenID Connect 1.0] authorization for just the `envoy` [HTTPRoute] as
 described above, the important factors are the `targetRefs` which indicates what resource to apply this to.
 
-```yaml
+```yaml {title="securitypolicy.yaml"}
 ---
 apiVersion: 'gateway.envoyproxy.io/v1alpha1'
 kind: 'SecurityPolicy'
@@ -151,9 +153,6 @@ spec:
     clientSecret:
       name: 'envoy-oidc-client-secret'
     cookieDomain: 'envoy.{{< sitevar name="domain" nojs="example.com" >}}'
-    cookieNames:
-      idToken: ''
-      accessToken: ''
     scopes:
       - 'openid'
       - 'offline_access'
@@ -169,14 +168,16 @@ To configure [Envoy Gateway] to utilize Authelia as an [OpenID Connect 1.0] Prov
 following instructions:
 
 1. Use `kubectl` to create the secret:
-
-- `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
-
+   - `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
 2. Apply the below manifests for the `eg` [Gateway].
 
-The following example [HTTPRoute] is a fake application just for the redirection behavior.
+The following example [HTTPRoute] is a fake application just for the redirection behavior. Every [HTTPRoute] on the
+[Gateway] uses the `envoy-oidc.{{< sitevar name="domain" nojs="example.com" >}}` host for the redirect URL, so the `cookieDomain` in the
+[SecurityPolicy] below must be the parent domain of all of the [HTTPRoute] hosts. This means the ID Token and Access Token
+cookies are sent to every subdomain of the parent domain, which is contrary to the recommendations in the
+[Important Notes](#configuration-file) above, so you should only use this method if every subdomain is trusted.
 
-```yaml {title="httproute.yaml
+```yaml {title="httproute.yaml"}
 ---
 apiVersion: 'gateway.networking.k8s.io/v1'
 kind: 'HTTPRoute'
@@ -198,7 +199,7 @@ spec:
 The following [SecurityPolicy] requires [OpenID Connect 1.0] authorization for every [HTTPRoute] on the `eg` [Gateway],
 the important factors are the `targetRefs` which indicates what resource to apply this to.
 
-```yaml
+```yaml {title="securitypolicy.yaml"}
 ---
 apiVersion: 'gateway.envoyproxy.io/v1alpha1'
 kind: 'SecurityPolicy'
@@ -217,10 +218,7 @@ spec:
     clientID: 'envoy'
     clientSecret:
       name: 'envoy-oidc-client-secret'
-    cookieDomain: 'envoy-oidc.{{< sitevar name="domain" nojs="example.com" >}}'
-    cookieNames:
-      idToken: ''
-      accessToken: ''
+    cookieDomain: '{{< sitevar name="domain" nojs="example.com" >}}'
     scopes:
       - 'openid'
       - 'offline_access'

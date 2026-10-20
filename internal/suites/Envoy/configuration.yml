@@ -95,6 +95,10 @@ webauthn:
 access_control:
   default_policy: 'deny'
   rules:
+    - domain: 'secure.example.com'
+      resources: ['^/headers$']
+      networks: ['192.0.2.1/32']
+      policy: 'bypass'
     - domain: ['home.example.com', 'public.example.com']
       policy: 'bypass'
     - domain: 'deny.example.com'

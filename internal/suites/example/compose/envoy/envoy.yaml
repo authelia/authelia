@@ -31,6 +31,11 @@ static_resources:
                       '@type': 'type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog'
                 route_config:
                   name: 'local_route'
+                  request_headers_to_add:
+                    - header:
+                        key: 'X-Forwarded-For'
+                        value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+                      append_action: 'OVERWRITE_IF_EXISTS_OR_ADD'
                   virtual_hosts:
                     - name: 'login_service'
                       domains: ['login.example.com:8080']
@@ -101,11 +106,13 @@ static_resources:
                         server_uri:
                           uri: 'authelia-backend:9091'
                           cluster: 'authelia-backend'
-                          timeout: '0.25s'
+                          timeout: '2s'
                         authorization_request:
                           headers_to_add:
                             - key: 'X-Forwarded-Proto'
-                              value: '%REQ(:SCHEME)%'
+                              value: '%REQ(X-FORWARDED-PROTO)%'
+                            - key: 'X-Forwarded-For'
+                              value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
@@ -121,6 +128,8 @@ static_resources:
                             patterns:
                               - exact: 'set-cookie'
                       failure_mode_allow: false
+                      status_on_error:
+                        code: 'ServiceUnavailable'
                   - name: 'envoy.filters.http.router'
                     typed_config:
                       '@type': 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router'
@@ -244,15 +253,6 @@ static_resources:
                     socket_address:
                       address: 'nginx-backend'
                       port_value: 80
-layered_runtime:
-  layers:
-    - name: 'static_layer_0'
-      static_layer:
-        envoy:
-          resource_limits:
-            listener:
-              example_listener_name:
-                connection_limit: 1000
 overload_manager:
   resource_monitors:
     - name: 'envoy.resource_monitors.global_downstream_max_connections'
