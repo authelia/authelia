@@ -20,21 +20,20 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
-* [ZTNET]
-  * [v0.8.4](https://github.com/sinamics/ztnet/releases/tag/v0.8.4)
-  
+- [Authelia]
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
+- [ZTNET]
+  - [v0.8.4](https://github.com/sinamics/ztnet/releases/tag/v0.8.4)
 {{% oidc-common %}}
 
 ## Assumptions
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://ztnet.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
-* __Client ID:__ `ztnet`
-* __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://ztnet.example.com`
+- **Authelia Root URL:** `https://auth.example.com`
+- **Client ID:** `ztnet`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -44,7 +43,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [ZTNET] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [ZTNET] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -115,16 +114,16 @@ NEXTAUTH_URL=https://ztnet.example.com
 
 Notes:
 
-* `OAUTH_SECRET` is the plaintext secret, not the digest used in the Authelia configuration.
-* `OAUTH_ALLOW_NEW_USERS` is required for users to be created on their first login via OpenID Connect.
-* `NEXTAUTH_URL` must be the external URL of ZTNET. This is especially important behind a reverse proxy, as the
+- `OAUTH_SECRET` is the plaintext secret, not the digest used in the Authelia configuration.
+- `OAUTH_ALLOW_NEW_USERS` is required for users to be created on their first login via OpenID Connect.
+- `NEXTAUTH_URL` must be the external URL of ZTNET. This is especially important behind a reverse proxy, as the
   redirect URI sent to Authelia is derived from it and must exactly match the registered `redirect_uris` value.
-* Optionally, `OAUTH_EXCLUSIVE_LOGIN=true` disables the local email and password login. It is recommended to only set
+- Optionally, `OAUTH_EXCLUSIVE_LOGIN=true` disables the local email and password login. It is recommended to only set
   this after the first administrator account exists and OpenID Connect login has been confirmed to work.
 
 ## See Also
 
-* [ZTNET OAuth Authentication Documentation](https://ztnet.network/authentication/oauth)
+- [ZTNET OAuth Authentication Documentation](https://ztnet.network/authentication/oauth)
 
 [Authelia]: https://www.authelia.com
 [ZTNET]: https://ztnet.network/
