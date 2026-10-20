@@ -116,7 +116,7 @@ func parseAuthzPortalURL(rawURL []byte) (portalURL *url.URL, err error) {
 }
 
 func getAuthzRedirectStatusCode(ctx AuthzContext, method string) (statusCode int) {
-	if ctx.IsXHR() || !ctx.AcceptsMIME("text/html") {
+	if !ctx.IsNavigation() {
 		return fasthttp.StatusUnauthorized
 	}
 

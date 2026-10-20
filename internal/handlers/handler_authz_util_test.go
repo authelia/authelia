@@ -98,6 +98,8 @@ func TestGetAuthzRedirectStatusCode(t *testing.T) {
 		Method   string
 		Accept   string
 		XHR      bool
+		Mode     string
+		Dest     string
 		Expected int
 	}{
 		{
@@ -179,6 +181,76 @@ func TestGetAuthzRedirectStatusCode(t *testing.T) {
 			Method:   fasthttp.MethodGet,
 			Expected: fasthttp.StatusUnauthorized,
 		},
+		{
+			Name:     "ShouldReturnFoundForNavigate",
+			Method:   fasthttp.MethodGet,
+			Accept:   "text/html",
+			Mode:     "navigate",
+			Dest:     "document",
+			Expected: fasthttp.StatusFound,
+		},
+		{
+			Name:     "ShouldReturnSeeOtherForNavigateWithPost",
+			Method:   fasthttp.MethodPost,
+			Accept:   "text/html",
+			Mode:     "navigate",
+			Dest:     "document",
+			Expected: fasthttp.StatusSeeOther,
+		},
+		{
+			Name:     "ShouldReturnFoundForNavigateWithoutDest",
+			Method:   fasthttp.MethodGet,
+			Mode:     "navigate",
+			Expected: fasthttp.StatusFound,
+		},
+		{
+			Name:     "ShouldReturnFoundForNavigateWhenHTMLNotAccepted",
+			Method:   fasthttp.MethodGet,
+			Accept:   "application/json",
+			Mode:     "navigate",
+			Dest:     "document",
+			Expected: fasthttp.StatusFound,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForFetchWithAcceptWildcard",
+			Method:   fasthttp.MethodGet,
+			Accept:   "*/*",
+			Mode:     "cors",
+			Dest:     "empty",
+			Expected: fasthttp.StatusUnauthorized,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForSameOriginFetch",
+			Method:   fasthttp.MethodGet,
+			Accept:   "text/html",
+			Mode:     "same-origin",
+			Dest:     "empty",
+			Expected: fasthttp.StatusUnauthorized,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForScript",
+			Method:   fasthttp.MethodGet,
+			Accept:   "*/*",
+			Mode:     "no-cors",
+			Dest:     "script",
+			Expected: fasthttp.StatusUnauthorized,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForWebSocket",
+			Method:   fasthttp.MethodGet,
+			Accept:   "*/*",
+			Mode:     "websocket",
+			Dest:     "websocket",
+			Expected: fasthttp.StatusUnauthorized,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForIFrameNavigate",
+			Method:   fasthttp.MethodGet,
+			Accept:   "text/html",
+			Mode:     "navigate",
+			Dest:     "iframe",
+			Expected: fasthttp.StatusUnauthorized,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -192,6 +264,14 @@ func TestGetAuthzRedirectStatusCode(t *testing.T) {
 
 			if tc.XHR {
 				mock.Ctx.Request.Header.Set("X-Requested-With", "XMLHttpRequest")
+			}
+
+			if tc.Mode != "" {
+				mock.Ctx.Request.Header.Set("Sec-Fetch-Mode", tc.Mode)
+			}
+
+			if tc.Dest != "" {
+				mock.Ctx.Request.Header.Set("Sec-Fetch-Dest", tc.Dest)
 			}
 
 			assert.Equal(t, tc.Expected, getAuthzRedirectStatusCode(mock.Ctx, tc.Method))

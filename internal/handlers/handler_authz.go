@@ -118,11 +118,8 @@ type AuthzContext interface {
 	// AuthzPath should return the path of the authorization request.
 	AuthzPath() (uri []byte)
 
-	// IsXHR should return true if the request is an XHR.
-	IsXHR() (xhr bool)
-
-	// AcceptsMIME should return true if the request accepts the given MIME type.
-	AcceptsMIME(mime string) (ok bool)
+	// IsNavigation should return true if the request is a top-level browser navigation.
+	IsNavigation() (navigation bool)
 
 	// ReplyStatusCode should reply with the given status code.
 	ReplyStatusCode(statusCode int)
