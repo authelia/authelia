@@ -12,7 +12,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "ztnet | OpenID Connect 1.0 | Integration"
+  title: "ZTNET| OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring ztnet with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: ""
   noindex: false
