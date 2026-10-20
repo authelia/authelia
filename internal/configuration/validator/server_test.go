@@ -58,6 +58,11 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 				},
 			},
 			expected: schema.ServerEndpointRateLimits{
+				Health: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 60},
+					},
+				},
 				ResetPasswordStart: schema.ServerEndpointRateLimit{
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 10 * time.Minute, Requests: 5},
@@ -82,6 +87,12 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 1 * time.Minute, Requests: 10},
 						{Period: 2 * time.Minute, Requests: 15},
+					},
+				},
+				SecondFactorPassword: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 5 * time.Minute, Requests: 30},
+						{Period: 60 * time.Minute, Requests: 40},
 					},
 				},
 				SessionElevationStart: schema.ServerEndpointRateLimit{
@@ -114,6 +125,30 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 						{Period: time.Hour, Requests: 100},
 					},
 				},
+				OpenIDConnectUserInfo: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+						{Period: time.Hour, Requests: 100},
+					},
+				},
+				OpenIDConnectIntrospection: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+						{Period: time.Hour, Requests: 100},
+					},
+				},
+				OpenIDConnectRevocation: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+						{Period: time.Hour, Requests: 100},
+					},
+				},
 			},
 		},
 	}
@@ -128,14 +163,7 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 			assert.Len(t, validator.Errors(), 0)
 			assert.Len(t, validator.Warnings(), 0)
 
-			assert.Equal(t, tc.expected.OpenIDConnectPushedAuthorizationRequest, tc.config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest)
-			assert.Equal(t, tc.expected.OpenIDConnectToken, tc.config.Server.Endpoints.RateLimits.OpenIDConnectToken)
-			assert.Equal(t, tc.expected.ResetPasswordStart, tc.config.Server.Endpoints.RateLimits.ResetPasswordStart)
-			assert.Equal(t, tc.expected.ResetPasswordFinish, tc.config.Server.Endpoints.RateLimits.ResetPasswordFinish)
-			assert.Equal(t, tc.expected.SecondFactorTOTP, tc.config.Server.Endpoints.RateLimits.SecondFactorTOTP)
-			assert.Equal(t, tc.expected.SecondFactorDuo, tc.config.Server.Endpoints.RateLimits.SecondFactorDuo)
-			assert.Equal(t, tc.expected.SessionElevationStart, tc.config.Server.Endpoints.RateLimits.SessionElevationStart)
-			assert.Equal(t, tc.expected.SessionElevationFinish, tc.config.Server.Endpoints.RateLimits.SessionElevationFinish)
+			assert.Equal(t, tc.expected, tc.config.Server.Endpoints.RateLimits)
 		})
 	}
 }

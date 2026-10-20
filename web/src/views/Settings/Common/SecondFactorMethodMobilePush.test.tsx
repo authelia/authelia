@@ -9,6 +9,7 @@ import {
     completePushNotificationSignIn,
     initiateDuoDeviceSelectionProcess,
 } from "@services/PushNotification";
+import { RateLimitedError } from "@services/RateLimit";
 import SecondFactorMethodMobilePush from "@views/Settings/Common/SecondFactorMethodMobilePush";
 
 const mocks = vi.hoisted(() => ({
@@ -53,13 +54,11 @@ const initiateSelectionMock = vi.mocked(initiateDuoDeviceSelectionProcess);
 const completeSelectionMock = vi.mocked(completeDuoDeviceSelectionProcess);
 
 const authResponse = {
-    data: {
-        devices: [
-            { capabilities: ["push", "sms"], device: "device-a", display_name: "Phone" },
-            { capabilities: ["push"], device: "device-b", display_name: "Tablet" },
-        ],
-        result: "auth",
-    },
+    devices: [
+        { capabilities: ["push", "sms"], device: "device-a", display_name: "Phone" },
+        { capabilities: ["push"], device: "device-b", display_name: "Tablet" },
+    ],
+    result: "auth",
 };
 
 function renderPush(onSecondFactorSuccess = vi.fn()) {
@@ -72,7 +71,7 @@ function renderPush(onSecondFactorSuccess = vi.fn()) {
 beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
-    completeSignInMock.mockResolvedValue(null as any);
+    completeSignInMock.mockRejectedValue(new Error("boom"));
     initiateSelectionMock.mockResolvedValue({} as any);
     completeSelectionMock.mockResolvedValue(undefined as any);
 });
@@ -103,7 +102,7 @@ describe("rendering", () => {
 
 describe("push response handling", () => {
     it("reports success and hides the device link", async () => {
-        completeSignInMock.mockResolvedValue({ data: { result: "allow" } } as any);
+        completeSignInMock.mockResolvedValue({ result: "allow" } as any);
 
         const { onSecondFactorSuccess } = renderPush();
 
@@ -128,7 +127,7 @@ describe("push response handling", () => {
     });
 
     it("fails when the response requires enrollment", async () => {
-        completeSignInMock.mockResolvedValue({ data: { result: "enroll" } } as any);
+        completeSignInMock.mockResolvedValue({ result: "enroll" } as any);
 
         renderPush();
 
@@ -137,7 +136,7 @@ describe("push response handling", () => {
     });
 
     it("fails when the Duo policy denies the request", async () => {
-        completeSignInMock.mockResolvedValue({ data: { result: "deny" } } as any);
+        completeSignInMock.mockResolvedValue({ result: "deny" } as any);
 
         renderPush();
 
@@ -147,26 +146,27 @@ describe("push response handling", () => {
         expect(screen.getByTestId("failure-icon")).toBeInTheDocument();
     });
 
-    it("fails when the response is missing", async () => {
-        completeSignInMock.mockResolvedValue(null as any);
+    it("reports success when the response carries no data", async () => {
+        completeSignInMock.mockResolvedValue(undefined);
 
-        renderPush();
+        const { onSecondFactorSuccess } = renderPush();
 
-        await waitFor(() =>
-            expect(mocks.createErrorNotification).toHaveBeenCalledWith("There was an issue completing sign in process"),
-        );
-        expect(screen.getByTestId("failure-icon")).toBeInTheDocument();
+        await waitFor(() => expect(onSecondFactorSuccess).toHaveBeenCalled());
+        expect(mocks.createErrorNotification).not.toHaveBeenCalled();
+        expect(screen.queryByTestId("failure-icon")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Select a Device" })).not.toBeInTheDocument();
     });
 
-    it("fails when the response carries no data", async () => {
+    it("fails when the response carries an empty payload", async () => {
         completeSignInMock.mockResolvedValue({} as any);
 
-        renderPush();
+        const { onSecondFactorSuccess } = renderPush();
 
         await waitFor(() =>
             expect(mocks.createErrorNotification).toHaveBeenCalledWith("There was an issue completing sign in process"),
         );
         expect(screen.getByTestId("failure-icon")).toBeInTheDocument();
+        expect(onSecondFactorSuccess).not.toHaveBeenCalled();
     });
 
     it("fails when the push request throws", async () => {
@@ -182,7 +182,7 @@ describe("push response handling", () => {
 
     it("reports rate limiting and recovers after the retry window", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 3 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(3));
 
         renderPush();
 
@@ -198,20 +198,8 @@ describe("push response handling", () => {
         expect(screen.getByTestId("failure-icon")).toBeInTheDocument();
     });
 
-    it("treats a limited response carrying data as rate limited", async () => {
-        vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ data: { result: "allow" }, limited: true, retryAfter: 1 } as any);
-
-        const { onSecondFactorSuccess } = renderPush();
-
-        await vi.waitFor(() =>
-            expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
-        );
-        expect(onSecondFactorSuccess).not.toHaveBeenCalled();
-    });
-
     it("retries the push from the failure state", async () => {
-        completeSignInMock.mockResolvedValue(null as any);
+        completeSignInMock.mockRejectedValue(new Error("boom"));
 
         renderPush();
 
@@ -314,6 +302,40 @@ describe("device selection", () => {
         await waitFor(() => expect(completeSignInMock).toHaveBeenCalledTimes(2));
     });
 
+    it("clears the rate limit when a device is selected during the retry window", async () => {
+        vi.useFakeTimers();
+        completeSignInMock.mockRejectedValueOnce(new RateLimitedError(3));
+        initiateSelectionMock.mockResolvedValue(authResponse as any);
+
+        const { onSecondFactorSuccess } = renderPush();
+
+        await vi.waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
+        );
+
+        completeSignInMock.mockResolvedValue({ result: "allow" } as any);
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "Select a Device" }));
+        });
+
+        await vi.waitFor(() => expect(screen.getByTestId("device-selection")).toBeInTheDocument());
+
+        await act(async () => {
+            fireEvent.click(screen.getByTestId("device-select"));
+        });
+
+        await vi.waitFor(() => expect(onSecondFactorSuccess).toHaveBeenCalled());
+        expect(document.getElementById("rate-limit-countdown")).not.toBeInTheDocument();
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(3000);
+        });
+
+        expect(screen.queryByTestId("failure-icon")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Select a Device" })).not.toBeInTheDocument();
+    });
+
     it("logs failures updating the preferred Duo device", async () => {
         completeSignInMock.mockResolvedValue(authResponse as any);
         completeSelectionMock.mockRejectedValue(new Error("boom"));
@@ -335,7 +357,7 @@ describe("device selection", () => {
 describe("cleanup", () => {
     it("clears the rate limit timer on unmount", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 3 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(3));
 
         const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
 
@@ -345,7 +367,6 @@ describe("cleanup", () => {
             expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
         );
 
-        // Identify the component's own rate limit timer rather than any timer React happens to clear.
         const index = setTimeoutSpy.mock.calls.findIndex(([, timeout]) => timeout === 3000);
 
         expect(index).toBeGreaterThanOrEqual(0);

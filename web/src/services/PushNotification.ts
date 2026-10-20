@@ -7,7 +7,7 @@ import {
     CompletePushNotificationSignInPath,
     InitiateDuoDeviceSelectionPath,
 } from "@services/Api";
-import { Get, PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client";
+import { Get, PostWithOptionalResponse } from "@services/Client";
 
 interface CompletePushSignInBody {
     targetURL?: string;
@@ -33,7 +33,7 @@ export function completePushNotificationSignIn(
         userCode,
     };
 
-    return PostWithOptionalResponseRateLimited<DuoSignInResponse>(CompletePushNotificationSignInPath, body, signal);
+    return PostWithOptionalResponse<DuoSignInResponse>(CompletePushNotificationSignInPath, body, signal);
 }
 
 export interface DuoSignInResponse {
