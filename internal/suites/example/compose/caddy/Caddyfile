@@ -68,12 +68,40 @@ mail.example.com:8080 {
 *.example.com:8080 {
 	tls /pki/public.crt /pki/private.pem
 	log
-	forward_auth authelia-backend:9091 {
-		uri /api/authz/caddy
-		copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
-		import tls-transport
-	}
+	route {
+		reverse_proxy authelia-backend:9091 {
+			method GET
+			rewrite /api/authz/caddy
 
-	reverse_proxy /headers httpbin:8080
-	reverse_proxy nginx-backend
+			header_up X-Forwarded-Method {method}
+			header_up X-Forwarded-URI {uri}
+
+			import tls-transport
+
+			@good status 2xx
+			handle_response @good {
+				route {
+					request_header -Remote-User
+					request_header -Remote-Groups
+					request_header -Remote-Email
+					request_header -Remote-Name
+
+					@remote_user not vars {http.reverse_proxy.header.Remote-User} ""
+					request_header @remote_user Remote-User {http.reverse_proxy.header.Remote-User}
+
+					@remote_groups not vars {http.reverse_proxy.header.Remote-Groups} ""
+					request_header @remote_groups Remote-Groups {http.reverse_proxy.header.Remote-Groups}
+
+					@remote_email not vars {http.reverse_proxy.header.Remote-Email} ""
+					request_header @remote_email Remote-Email {http.reverse_proxy.header.Remote-Email}
+
+					@remote_name not vars {http.reverse_proxy.header.Remote-Name} ""
+					request_header @remote_name Remote-Name {http.reverse_proxy.header.Remote-Name}
+				}
+			}
+		}
+
+		reverse_proxy /headers httpbin:8080
+		reverse_proxy nginx-backend
+	}
 }

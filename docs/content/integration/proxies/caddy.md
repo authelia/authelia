@@ -67,13 +67,18 @@ common with proxies with good security practices.
 You should read the [Caddy Trusted Proxies Documentation] as part of configuring this. It's important to ensure you take
 the time to configure this carefully and correctly.
 
-In the example, we have a commented [trusted_proxies] directive, which shows an example of adding the following networks
-to the trusted proxy list in [Caddy]:
+In the example, we have a commented [trusted_proxies] global option, which shows an example of adding the following
+networks to the trusted proxy list in [Caddy]:
 
 - 10.0.0.0/8
 - 172.16.0.0/12
 - 192.168.0.0/16
 - fc00::/7
+
+Any client within a trusted range can set the `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-For` headers
+which are used by **Authelia** to determine the domain, scheme, and remote IP of the request. A client that is trusted
+but is not actually a proxy can therefore have **Authelia** evaluate the access control rules for a different domain to
+the one [Caddy] routes the request to, effectively bypassing authorization.
 
 ## Assumptions and Adaptation
 
@@ -164,10 +169,14 @@ support to ensure the basic example covers your use case in a secure way.
 #### Subdomain
 
 ```caddyfile
-## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-## It is important to read the following document before enabling this section:
+## Uncomment & adjust the following global options block to configure specific ranges which should be considered as
+## trustworthy. It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
-# trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
+# {
+#         servers {
+#                 trusted_proxies static 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
+#         }
+# }
 
 # Authelia Portal.
 {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} {
@@ -196,10 +205,14 @@ _**Important:** In order to use a subpath, you must also update your Authelia
 {{< details "Caddyfile" >}}
 
 ```caddyfile
-## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-## It is important to read the following document before enabling this section:
+## Uncomment & adjust the following global options block to configure specific ranges which should be considered as
+## trustworthy. It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
-# trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
+# {
+#         servers {
+#                 trusted_proxies static 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
+#         }
+# }
 
 {{</* sitevar name="domain" nojs="example.com" */>}} {
         # Authelia Portal.
@@ -255,10 +268,14 @@ _**Important:** Making a mistake when configuring the advanced example could lea
 {{< details "Caddyfile" >}}
 
 ```caddyfile
-## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-## It is important to read the following document before enabling this section:
+## Uncomment & adjust the following global options block to configure specific ranges which should be considered as
+## trustworthy. It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
-# trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
+# {
+#         servers {
+#                 trusted_proxies static 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
+#         }
+# }
 
 # Authelia Portal.
 {{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}} {
@@ -278,13 +295,29 @@ nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
                 ##   1. Responds with a status code IN the 200-299 range.
                 ## Then:
                 ##   1. Proxy the request to the backend.
-                ##   2. Copy the relevant headers from the auth request and provide them to the backend.
+                ##   2. Remove the relevant headers from the original request so they can't be supplied by the client.
+                ##   3. Copy the relevant headers from the auth request and provide them to the backend, skipping any
+                ##      headers which are absent from the auth response.
                 @good status 2xx
                 handle_response @good {
-                        request_header Remote-User {http.reverse_proxy.header.Remote-User}
-                        request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
-                        request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
-                        request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
+                        route {
+                                request_header -Remote-User
+                                request_header -Remote-Groups
+                                request_header -Remote-Email
+                                request_header -Remote-Name
+
+                                @remote_user not vars {http.reverse_proxy.header.Remote-User} ""
+                                request_header @remote_user Remote-User {http.reverse_proxy.header.Remote-User}
+
+                                @remote_groups not vars {http.reverse_proxy.header.Remote-Groups} ""
+                                request_header @remote_groups Remote-Groups {http.reverse_proxy.header.Remote-Groups}
+
+                                @remote_email not vars {http.reverse_proxy.header.Remote-Email} ""
+                                request_header @remote_email Remote-Email {http.reverse_proxy.header.Remote-Email}
+
+                                @remote_name not vars {http.reverse_proxy.header.Remote-Name} ""
+                                request_header @remote_name Remote-Name {http.reverse_proxy.header.Remote-Name}
+                        }
                 }
         }
 
