@@ -38,12 +38,14 @@ bootstrapping _Authelia_.
 
 You need the following to run **Authelia** with [HAProxy]:
 
-- [HAProxy] 1.8.4+ (2.2.0+ recommended)
-  \-`USE_LUA=1` set at compile time
+- [HAProxy] 2.2.0+
+  - `USE_LUA=1` set at compile time
   - [haproxy-lua-http](https://github.com/haproxytech/haproxy-lua-http) must be available within the Lua path
     - A `json` library within the Lua path (dependency of haproxy-lua-http, usually found as OS package `lua-json`)
-    - With [HAProxy] 2.1.3+ you can use the `lua-prepend-path` configuration option to specify the search path
+    - The `lua-prepend-path` configuration option can be used to specify the search path
   - [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
+    - The examples use the `hdr_fail` argument of the `auth-intercept` action to return Authelia's response to the
+      client when access is denied, which requires [HAProxy] 2.2.0+
 
 ## Trusted Proxies and Integration Security
 
@@ -69,14 +71,28 @@ environment.
 
 [HAProxy] by default **does** trust all other proxies. This means it's essential that you configure this correctly.
 
-In the example we have a `trusted_proxies.src.acl` file which is used by one `http-request del-header X-Forwarded-For`
-line in the main configuration which shows an example of not trusting any proxies or alternatively an example on adding
-the following networks to the trusted proxy list in [HAProxy]:
+The examples by default do not trust any proxies. The `X-Forwarded-For` header sent by the client is removed and
+replaced with the source address of the connection, and the `X-Forwarded-Proto` header is replaced with the scheme of the
+connection to [HAProxy].
+
+The examples also include commented directives which use a `trusted_proxies.src.acl` file to trust the proxies within the
+following networks:
 
 - 10.0.0.0/8
 - 172.16.0.0/12
 - 192.168.0.0/16
 - fc00::/7
+
+When these directives are enabled the following applies to requests from a trusted proxy:
+
+- The `X-Forwarded-For` header is replaced with the last address in the header sent by the trusted proxy, which is the
+  address of the client that connected to the trusted proxy. Any addresses before it were sent by the client and can't
+  be trusted. This assumes there is a single trusted proxy in front of [HAProxy].
+- The `X-Forwarded-Proto` header sent by the trusted proxy is kept. This is required if the trusted proxy terminates TLS
+  and connects to [HAProxy] using plain HTTP, otherwise Authelia rejects the requests with a `400 Bad Request` status
+  code as the scheme is `http`.
+
+Requests from all other addresses are handled as if no proxies are trusted.
 
 ## Assumptions and Adaptation
 
@@ -160,11 +176,11 @@ Below you will find commented examples of the following configuration:
 
 With this configuration you can protect your virtual hosts with Authelia, by following the steps below:
 
-1. Add host(s) to the `protected-frontends` ACLs to support protection with Authelia. You can separate each subdomain
-   with a `|` in the regex, for example:
+1. Add host(s) to the `protected-frontends` ACL to support protection with Authelia. Each host is separated by a space
+   and must exactly match the `Host` header including the port if clients use a non-standard port, for example:
 
    ```text
-   acl protected-frontends hdr(host) -m reg -i ^(?i)(jenkins|nextcloud|phpmyadmin)\.example\.com
+   acl protected-frontends hdr(Host) -i jenkins.{{< sitevar name="domain" nojs="example.com" >}} nextcloud.{{< sitevar name="domain" nojs="example.com" >}} phpmyadmin.{{< sitevar name="domain" nojs="example.com" >}}
    ```
 
 2. Add host ACL(s) in the form of `host-service`, this will be utilized to route to the correct
@@ -222,31 +238,41 @@ defaults
     mode http
     log global
     option httplog
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
 
 frontend fe_http
     bind *:443 ssl crt {{< sitevar name="domain" nojs="example.com" >}}.pem
 
+    http-request set-var(req.scheme) str(https) if { ssl_fc }
+    http-request set-var(req.scheme) str(http) if !{ ssl_fc }
+    http-request set-var(req.questionmark) str(?) if { query -m found }
+
     ## Trusted Proxies.
     http-request del-header X-Forwarded-For
 
-    ## Comment the above directive and the two directives below to enable the trusted proxies ACL.
+    ## Comment the above directive and uncomment the four directives below to enable the trusted proxies ACL.
     # acl src-trusted_proxies src -f trusted_proxies.src.acl
     # http-request del-header X-Forwarded-For if !src-trusted_proxies
+    # http-request set-header X-Forwarded-For %[req.hdr_ip(X-Forwarded-For,-1)] if src-trusted_proxies { req.hdr(X-Forwarded-For) -m found }
+    # http-request set-var(req.scheme) req.hdr(X-Forwarded-Proto,-1) if src-trusted_proxies { req.hdr(X-Forwarded-Proto) -m found }
 
     ## Ensure X-Forwarded-For is set for the auth request.
     acl hdr-xff_exists req.hdr(X-Forwarded-For) -m found
     http-request set-header X-Forwarded-For %[src] if !hdr-xff_exists
-    option forwardfor
+
+    ## Remove the headers Authelia returns on successful authorization so the client can't forge them.
+    http-request del-header Remote-User
+    http-request del-header Remote-Groups
+    http-request del-header Remote-Name
+    http-request del-header Remote-Email
 
     # Host ACLs
-    acl protected-frontends hdr(Host) -m reg -i ^(?i)(nextcloud|heimdall)\.example\.com
+    acl protected-frontends hdr(Host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}} heimdall.{{< sitevar name="domain" nojs="example.com" >}}
     acl host-authelia hdr(Host) -i {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
     acl host-nextcloud hdr(Host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}}
     acl host-heimdall hdr(Host) -i heimdall.{{< sitevar name="domain" nojs="example.com" >}}
-
-    http-request set-var(req.scheme) str(https) if { ssl_fc }
-    http-request set-var(req.scheme) str(http) if !{ ssl_fc }
-    http-request set-var(req.questionmark) str(?) if { query -m found }
 
     # Required Headers
     http-request set-header X-Forwarded-Method %[method]
@@ -255,9 +281,11 @@ frontend fe_http
     http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-intercept be_authelia /api/authz/forward-auth HEAD * remote-user,remote-groups,remote-name,remote-email - if protected-frontends
-    http-request deny if protected-frontends !{ var(txn.auth_response_successful) -m bool } { var(txn.auth_response_code) -m int 403 }
-    http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    ## Requests which are not authorized receive Authelia's response including the body and the Content-Type, Location,
+    ## Set-Cookie, and WWW-Authenticate headers.
+    http-request lua.auth-intercept be_authelia /api/authz/forward-auth GET * remote-user,remote-groups,remote-name,remote-email content-type,location,set-cookie,www-authenticate if protected-frontends
+    ## Deny the request if the authorization could not be performed, for example if the backend has no available servers.
+    http-request deny deny_status 500 if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
     # Authelia backend route
     use_backend be_authelia if host-authelia
@@ -298,32 +326,41 @@ defaults
     mode http
     log global
     option httplog
-    option forwardfor
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
 
 frontend fe_http
     bind *:443 ssl crt /usr/local/etc/haproxy/haproxy.pem
 
+    http-request set-var(req.scheme) str(https) if { ssl_fc }
+    http-request set-var(req.scheme) str(http) if !{ ssl_fc }
+    http-request set-var(req.questionmark) str(?) if { query -m found }
+
     ## Trusted Proxies.
     http-request del-header X-Forwarded-For
 
-    ## Comment the above directive and the two directives below to enable the trusted proxies ACL.
+    ## Comment the above directive and uncomment the four directives below to enable the trusted proxies ACL.
     # acl src-trusted_proxies src -f trusted_proxies.src.acl
     # http-request del-header X-Forwarded-For if !src-trusted_proxies
+    # http-request set-header X-Forwarded-For %[req.hdr_ip(X-Forwarded-For,-1)] if src-trusted_proxies { req.hdr(X-Forwarded-For) -m found }
+    # http-request set-var(req.scheme) req.hdr(X-Forwarded-Proto,-1) if src-trusted_proxies { req.hdr(X-Forwarded-Proto) -m found }
 
     ## Ensure X-Forwarded-For is set for the auth request.
     acl hdr-xff_exists req.hdr(X-Forwarded-For) -m found
     http-request set-header X-Forwarded-For %[src] if !hdr-xff_exists
-    option forwardfor
+
+    ## Remove the headers Authelia returns on successful authorization so the client can't forge them.
+    http-request del-header Remote-User
+    http-request del-header Remote-Groups
+    http-request del-header Remote-Name
+    http-request del-header Remote-Email
 
     # Host ACLs
-    acl protected-frontends hdr(Host) -m reg -i ^(?i)(nextcloud|heimdall)\.example\.com
-    acl host-authelia hdr(Host) -i auth.{{< sitevar name="domain" nojs="example.com" >}}
+    acl protected-frontends hdr(Host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}} heimdall.{{< sitevar name="domain" nojs="example.com" >}}
+    acl host-authelia hdr(Host) -i {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
     acl host-nextcloud hdr(Host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}}
     acl host-heimdall hdr(Host) -i heimdall.{{< sitevar name="domain" nojs="example.com" >}}
-
-    http-request set-var(req.scheme) str(https) if { ssl_fc }
-    http-request set-var(req.scheme) str(http) if !{ ssl_fc }
-    http-request set-var(req.questionmark) str(?) if { query -m found }
 
     # Required Headers
     http-request set-header X-Forwarded-Method %[method]
@@ -332,9 +369,11 @@ frontend fe_http
     http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth HEAD * remote-user,remote-groups,remote-name,remote-email - if protected-frontends
-    http-request deny if protected-frontends !{ var(txn.auth_response_successful) -m bool } { var(txn.auth_response_code) -m int 403 }
-    http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    ## Requests which are not authorized receive Authelia's response including the body and the Content-Type, Location,
+    ## Set-Cookie, and WWW-Authenticate headers.
+    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth GET * remote-user,remote-groups,remote-name,remote-email content-type,location,set-cookie,www-authenticate if protected-frontends
+    ## Deny the request if the authorization could not be performed, for example if the backend has no available servers.
+    http-request deny deny_status 500 if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
     # Authelia backend route
     use_backend be_authelia if host-authelia
