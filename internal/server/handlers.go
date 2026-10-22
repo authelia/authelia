@@ -352,16 +352,20 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
 
+		// Duo's CA bundle is only pinned for Duo's own hostnames; a third-party implementation of the
+		// Duo Auth API is verified against the system trust store instead.
+		pinning := duoapi.SetCAPinning(duo.IsDuoHostname(config.DuoAPI.Hostname))
+
 		if utils.Dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				config.DuoAPI.IntegrationKey,
 				config.DuoAPI.SecretKey,
-				config.DuoAPI.Hostname, "", duoapi.SetInsecure()))
+				config.DuoAPI.Hostname, "", pinning, duoapi.SetInsecure()))
 		} else {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				config.DuoAPI.IntegrationKey,
 				config.DuoAPI.SecretKey,
-				config.DuoAPI.Hostname, ""))
+				config.DuoAPI.Hostname, "", pinning))
 		}
 
 		middlewareRateLimitDuo := middlewares.NewBridgeBuilder(*config, providers).

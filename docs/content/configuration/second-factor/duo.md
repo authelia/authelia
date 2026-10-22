@@ -61,6 +61,10 @@ true.
 
 The [Duo] API hostname. This is provided in the [Duo] dashboard.
 
+Connections to a [Duo] hostname (`duosecurity.com` or `duofederal.com`) are verified against the CA certificates
+pinned by the [Duo] client. Any other hostname is assumed to be a third-party implementation of the [Duo] Auth API and
+is verified against the system trust store instead.
+
 ### integration_key
 
 {{< confkey type="string" required="yes" >}}
