@@ -12,6 +12,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -273,7 +274,7 @@ func WebAuthnCredentialDELETE(ctx *middlewares.AutheliaCtx) {
 		Suffix: eventEmailAction2FARemovedSuffix,
 	}
 
-	ctxLogEvent(ctx, userSession.Username, eventLogAction2FARemoved, body, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryWebAuthnCredential, eventLogKeyDescription: credential.Description})
+	ctxLogEvent(ctx, events.TypeUserCredentialWebAuthnRemoved, userSession.Username, eventLogAction2FARemoved, body, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryWebAuthnCredential, eventLogKeyDescription: credential.Description})
 
 	ctx.ReplyOK()
 }
