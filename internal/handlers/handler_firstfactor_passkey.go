@@ -62,7 +62,13 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 		data      session.WebAuthn
 	)
 
-	if assertion, data.SessionData, err = w.BeginDiscoverableLogin(opts...); err != nil {
+	mediation := protocol.MediationDefault
+
+	if ctx.Configuration.WebAuthn.EnablePasskeyLoginConditionalMediation && bytes.Equal(ctx.QueryArgs().PeekBytes(qryArgMediation), qryValueConditional) {
+		mediation = protocol.MediationConditional
+	}
+
+	if assertion, data.SessionData, err = w.BeginDiscoverableMediatedLogin(mediation, opts...); err != nil {
 		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred starting the authentication session")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
