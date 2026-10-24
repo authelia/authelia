@@ -561,7 +561,7 @@ describe("conditional mediation", () => {
         expect(getOptionsMock).toHaveBeenCalledTimes(3);
     });
 
-    it("uses a minimum refresh interval for short timeouts", async () => {
+    it("refreshes at half the timeout for short timeouts", async () => {
         vi.useFakeTimers();
 
         getOptionsMock.mockResolvedValue({
@@ -575,7 +575,7 @@ describe("conditional mediation", () => {
         await flush();
 
         await act(async () => {
-            await vi.advanceTimersByTimeAsync(14999);
+            await vi.advanceTimersByTimeAsync(499);
         });
         expect(getOptionsMock).toHaveBeenCalledTimes(1);
 
