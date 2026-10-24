@@ -69,7 +69,14 @@ const PasskeyForm = function (props: Props) {
     // it is the active ceremony, and never cancels a modal ceremony started by the sign in button.
     const conditionalPendingRef = useRef(false);
 
+    // Tracks the conditional mediation refresh or retry timer so it is cleared whenever conditional mediation is
+    // cancelled, including when no ceremony is pending, as it would otherwise replace the challenge of a modal ceremony.
+    const conditionalTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
     const cancelConditionalMediation = useCallback(() => {
+        clearTimeout(conditionalTimerRef.current);
+        conditionalTimerRef.current = undefined;
+
         if (!conditionalPendingRef.current) return;
 
         conditionalPendingRef.current = false;
@@ -207,7 +214,6 @@ const PasskeyForm = function (props: Props) {
 
         let cancelled = false;
         let generation = 0;
-        let timer: ReturnType<typeof setTimeout> | undefined;
 
         const start = async () => {
             const current = ++generation;
@@ -241,7 +247,7 @@ const PasskeyForm = function (props: Props) {
                     ),
                 );
 
-                timer = refresh;
+                conditionalTimerRef.current = refresh;
                 conditionalPendingRef.current = true;
 
                 const result = await getWebAuthnResult(optionsStatus.options, true);
@@ -259,7 +265,7 @@ const PasskeyForm = function (props: Props) {
                 if (result.result !== AssertionResult.Success || result.response == null) {
                     if (result.result === AssertionResult.FailureUserConsent) {
                         // The user dismissed the request, quietly start a new one so the Passkey is still offered.
-                        timer = setTimeout(() => void start(), ConditionalMediationRetryDelay);
+                        conditionalTimerRef.current = setTimeout(() => void start(), ConditionalMediationRetryDelay);
                     }
 
                     return;
@@ -276,7 +282,7 @@ const PasskeyForm = function (props: Props) {
 
         return () => {
             cancelled = true;
-            clearTimeout(timer);
+            clearTimeout(conditionalTimerRef.current);
             cancelConditionalMediation();
         };
     }, [props.conditionalMediation, props.disabled, getSignal, cancelConditionalMediation]);

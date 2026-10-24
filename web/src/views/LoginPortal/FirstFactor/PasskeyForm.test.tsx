@@ -660,4 +660,45 @@ describe("conditional mediation", () => {
         expect(props.onAuthenticationError).not.toHaveBeenCalled();
         expect(postResponseMock).toHaveBeenCalledTimes(1);
     });
+
+    it("does not start a new conditional request when the button is clicked after the user declined", async () => {
+        vi.useFakeTimers();
+
+        const modal: { resolve: (_value: unknown) => void }[] = [];
+
+        getResultMock.mockImplementation((_options: any, useBrowserAutofill?: boolean) => {
+            if (!useBrowserAutofill) {
+                return new Promise((resolve) => modal.push({ resolve })) as any;
+            }
+
+            return new Promise((resolve) => pending.push({ resolve })) as any;
+        });
+
+        const { props } = renderForm({ conditionalMediation: true });
+
+        await flush();
+        expect(pending).toHaveLength(1);
+
+        await act(async () => {
+            pending.shift()?.resolve({ result: AssertionResult.FailureUserConsent });
+        });
+
+        fireEvent.click(getButton());
+        await flush();
+        expect(modal).toHaveLength(1);
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(120000);
+        });
+
+        expect(getOptionsMock).toHaveBeenCalledTimes(2);
+        expect(getOptionsMock).toHaveBeenLastCalledWith(expect.any(AbortSignal));
+        expect(pending).toHaveLength(0);
+
+        await act(async () => {
+            modal[0].resolve({ response: assertionResponse, result: AssertionResult.Success });
+        });
+
+        expect(props.onAuthenticationSuccess).toHaveBeenCalledWith("https://example.com");
+    });
 });
