@@ -83,6 +83,7 @@ identity_providers:
     discovery_signed_response_alg: 'none'
     discovery_signed_response_key_id: ''
     require_pushed_authorization_requests: false
+    require_signed_request_object: false
     authorization_policies:
       policy_name:
         default_policy: 'two_factor'
@@ -389,6 +390,24 @@ Web Token is stored in the `signed_metadata` value using the compact encoding.
 {{< confkey type="boolean" default="false" required="no" >}}
 
 When enabled all authorization requests must use the [Pushed Authorization Requests] flow.
+
+### require_signed_request_object
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+A majority of clients will not support this option as it requires every client to sign its authorization requests.
+{{< /callout >}}
+
+When enabled all authorization requests for all clients must be provided as a signed
+[Request Object](../../../integration/openid-connect/introduction.md#request-object) via either the `request` or
+`request_uri` parameter as described in [JWT-Secured Authorization Request]. Unsigned Request Objects (i.e. those using
+the `none` algorithm) do not satisfy this requirement, and as such no client may be configured with a
+[request_object_signing_alg](clients.md#request_object_signing_alg) of `none` when this option is enabled.
+
+This applies to requests made to the [Pushed Authorization Requests] endpoint in addition to the Authorization Endpoint.
+To enforce it for individual clients see the client [require_signed_request_object](clients.md#require_signed_request_object)
+configuration option.
 
 ### authorization_policies
 
@@ -774,5 +793,6 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[JWT-Secured Authorization Request]: https://datatracker.ietf.org/doc/html/rfc9101
 [OpenID Certified™]: https://openid.net/certification/
 [OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/
