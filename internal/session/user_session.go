@@ -78,19 +78,19 @@ func (s *UserSession) SetOneFactorReauthenticate(now time.Time, details *authent
 
 // SetTwoFactorTOTP sets the relevant TOTP AMR's and sets the factor to 2FA.
 func (s *UserSession) SetTwoFactorTOTP(now time.Time) {
-	s.setTwoFactor(now)
+	s.setTwoFactorPossession(now)
 	s.AuthenticationMethodRefs.TOTP = true
 }
 
 // SetTwoFactorDuo sets the relevant Duo AMR's and sets the factor to 2FA.
 func (s *UserSession) SetTwoFactorDuo(now time.Time) {
-	s.setTwoFactor(now)
+	s.setTwoFactorPossession(now)
 	s.AuthenticationMethodRefs.Duo = true
 }
 
 // SetTwoFactorWebAuthn sets the relevant WebAuthn AMR's and sets the factor to 2FA.
 func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, hardware, userPresence, userVerified bool) {
-	s.setTwoFactor(now)
+	s.setTwoFactorPossession(now)
 
 	s.setWebAuthn(hardware, userPresence, userVerified)
 }
@@ -106,6 +106,12 @@ func (s *UserSession) SetTwoFactorPassword(now time.Time) {
 func (s *UserSession) setTwoFactor(now time.Time) {
 	s.SecondFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
+}
+
+func (s *UserSession) setTwoFactorPossession(now time.Time) {
+	s.setTwoFactor(now)
+
+	s.SecondFactorPossessionAuthnTimestamp = now.Unix()
 }
 
 func (s *UserSession) setWebAuthn(hardware, userPresence, userVerified bool) {
