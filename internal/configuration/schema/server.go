@@ -75,7 +75,8 @@ type ServerTLS struct {
 
 // ServerHeaders represents the customization of the http server headers.
 type ServerHeaders struct {
-	CSPTemplate CSPTemplate `koanf:"csp_template" yaml:"csp_template,omitempty" toml:"csp_template,omitempty" json:"csp_template,omitempty" jsonschema:"title=CSP Template" jsonschema_description:"The Content Security Policy template."`
+	AllowedHosts []string    `koanf:"allowed_hosts" yaml:"allowed_hosts,omitempty" toml:"allowed_hosts,omitempty" json:"allowed_hosts,omitempty" jsonschema:"uniqueItems,title=Allowed Hosts" jsonschema_description:"The list of allowed Host header values. Requests with any other Host header receive a 404 Not Found response."`
+	CSPTemplate  CSPTemplate `koanf:"csp_template" yaml:"csp_template,omitempty" toml:"csp_template,omitempty" json:"csp_template,omitempty" jsonschema:"title=CSP Template" jsonschema_description:"The Content Security Policy template."`
 }
 
 // ServerEndpointRateLimits represents the rate limiter configuration for each endpoint.
