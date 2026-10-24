@@ -235,7 +235,10 @@ const PasskeyForm = function (props: Props) {
                         cancelConditionalMediation();
                         void start();
                     },
-                    Math.max(timeout - ConditionalMediationRefreshMargin, ConditionalMediationRefreshMinimum),
+                    Math.max(
+                        timeout - ConditionalMediationRefreshMargin,
+                        Math.min(timeout / 2, ConditionalMediationRefreshMinimum),
+                    ),
                 );
 
                 timer = refresh;
