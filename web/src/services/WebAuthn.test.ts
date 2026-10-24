@@ -2,13 +2,20 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import {
+    WebAuthnAbortService,
+    browserSupportsWebAuthnAutofill,
+    startAuthentication,
+    startRegistration,
+} from "@simplewebauthn/browser";
 import axios from "axios";
 
 import { AssertionResult, AttestationResult } from "@models/WebAuthn";
 import {
+    cancelWebAuthnCeremony,
     deleteUserWebAuthnCredential,
     finishWebAuthnRegistration,
+    getWebAuthnAutofillSupported,
     getWebAuthnOptions,
     getWebAuthnPasskeyOptions,
     getWebAuthnRegistrationOptions,
@@ -21,8 +28,10 @@ import {
 
 vi.mock("axios");
 vi.mock("@simplewebauthn/browser", () => ({
+    browserSupportsWebAuthnAutofill: vi.fn(),
     startAuthentication: vi.fn(),
     startRegistration: vi.fn(),
+    WebAuthnAbortService: { cancelCeremony: vi.fn() },
 }));
 beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -66,6 +75,63 @@ it("handles webauthn result with AbortError dom exception", async () => {
 
     const result = await getWebAuthnResult({} as any);
     expect(result.result).toBe(AssertionResult.FailureUserConsent);
+});
+
+it("requests browser autofill when using conditional mediation", async () => {
+    (startAuthentication as any).mockResolvedValue("response");
+
+    const result = await getWebAuthnResult({ challenge: "abc" } as any, true);
+    expect(startAuthentication).toHaveBeenLastCalledWith({
+        optionsJSON: { challenge: "abc" },
+        useBrowserAutofill: true,
+    });
+    expect(result.result).toBe(AssertionResult.Success);
+    expect(result.response).toBe("response");
+});
+
+it("does not request browser autofill by default", async () => {
+    (startAuthentication as any).mockResolvedValue("response");
+
+    await getWebAuthnResult({ challenge: "abc" } as any);
+    expect(startAuthentication).toHaveBeenLastCalledWith({
+        optionsJSON: { challenge: "abc" },
+        useBrowserAutofill: false,
+    });
+});
+
+it("handles conditional mediation webauthn result with AbortError as aborted without logging", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const abortError = new Error("Cancelling existing WebAuthn API call for new one");
+    abortError.name = "AbortError";
+    (startAuthentication as any).mockRejectedValue(abortError);
+
+    const result = await getWebAuthnResult({} as any, true);
+    expect(result.result).toBe(AssertionResult.FailureAborted);
+    expect(result.response).toBeUndefined();
+    expect(consoleError).not.toHaveBeenCalled();
+});
+
+it("handles conditional mediation webauthn result with NotAllowedError as user consent failure", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "NotAllowedError"));
+
+    const result = await getWebAuthnResult({} as any, true);
+    expect(result.result).toBe(AssertionResult.FailureUserConsent);
+});
+
+it("reports webauthn autofill support from the browser", async () => {
+    (browserSupportsWebAuthnAutofill as any).mockResolvedValue(true);
+
+    await expect(getWebAuthnAutofillSupported()).resolves.toBe(true);
+
+    (browserSupportsWebAuthnAutofill as any).mockResolvedValue(false);
+
+    await expect(getWebAuthnAutofillSupported()).resolves.toBe(false);
+});
+
+it("cancels the active webauthn ceremony", () => {
+    cancelWebAuthnCeremony();
+
+    expect(WebAuthnAbortService.cancelCeremony).toHaveBeenCalled();
 });
 
 it("handles webauthn result with UnknownError dom exception", async () => {
@@ -135,6 +201,18 @@ it("handles successful webauthn passkey options", async () => {
 
     const result = await getWebAuthnPasskeyOptions();
     expect(result).toEqual({ options: "options", status: 200 });
+});
+
+it("handles successful webauthn passkey options with conditional mediation", async () => {
+    const mockRes = { data: { data: { mediation: "conditional", publicKey: "options" }, status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+
+    const result = await getWebAuthnPasskeyOptions(undefined, "conditional");
+    expect(axios.get).toHaveBeenLastCalledWith("/firstfactor/passkey", {
+        params: { mediation: "conditional" },
+        signal: undefined,
+    });
+    expect(result).toEqual({ mediation: "conditional", options: "options", status: 200 });
 });
 
 it("handles webauthn passkey options with no data", async () => {

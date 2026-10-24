@@ -20,11 +20,13 @@ export interface CredentialCreation {
 
 export interface PublicKeyCredentialRequestOptionsStatus {
     options?: PublicKeyCredentialRequestOptionsJSON;
+    mediation?: string;
     status: number;
 }
 
 export interface CredentialRequest {
     publicKey: PublicKeyCredentialRequestOptionsJSON;
+    mediation?: string;
 }
 
 export enum AttestationResult {
@@ -56,11 +58,13 @@ export enum AssertionResult {
     FailureWebAuthnNotSupported,
     FailureChallenge,
     FailureUnrecognized,
+    FailureAborted,
 }
 
 export function AssertionResultFailureString(result: AssertionResult) {
     switch (result) {
         case AssertionResult.Success:
+        case AssertionResult.FailureAborted:
             return "";
         case AssertionResult.FailureUserConsent:
             return "You cancelled the assertion request";

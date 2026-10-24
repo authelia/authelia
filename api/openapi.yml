@@ -563,6 +563,17 @@ paths:
       description: >
         The WebAuthn endpoint starts the first factor authentication process with the
         FIDO2 WebAuthn credential.
+      parameters:
+        - in: query
+          name: mediation
+          required: false
+          description: >
+            The credential mediation requirement for the assertion ceremony. The value is only honored when
+            Passkey Login Conditional Mediation is enabled, otherwise the default mediation is used.
+          schema:
+            type: string
+            enum:
+              - 'conditional'
       responses:
         "200":
           description: Successful Operation
@@ -3647,6 +3658,10 @@ components:
                           type: string
                           examples:
                             - '{{ .BaseURL | default "https://auth.example.com/" }}'
+            mediation:
+              type: string
+              examples:
+                - 'conditional'
     webauthn.Transports:
       type: object
       properties:

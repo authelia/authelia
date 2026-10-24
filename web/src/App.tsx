@@ -28,6 +28,7 @@ import {
     getCSPNonce,
     getDuoSelfEnrollment,
     getPasskeyLogin,
+    getPasskeyLoginConditionalMediation,
     getRegistrationURL,
     getRememberMe,
     getResetPassword,
@@ -73,6 +74,7 @@ function App() {
                                                     <LoginPortal
                                                         duoSelfEnrollment={getDuoSelfEnrollment()}
                                                         passkeyLogin={getPasskeyLogin()}
+                                                        passkeyLoginConditionalMediation={getPasskeyLoginConditionalMediation()}
                                                         rememberMe={getRememberMe()}
                                                         resetPassword={getResetPassword()}
                                                         resetPasswordCustomURL={getResetPasswordCustomURL()}

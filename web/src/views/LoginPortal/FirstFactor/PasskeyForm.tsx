@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Fragment, useCallback, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
+import { AuthenticationResponseJSON } from "@simplewebauthn/browser";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
@@ -16,11 +17,25 @@ import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
 import { useQueryParam } from "@hooks/QueryParam";
 import { AssertionResult, AssertionResultFailureString } from "@models/WebAuthn";
-import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
+import {
+    cancelWebAuthnCeremony,
+    getWebAuthnAutofillSupported,
+    getWebAuthnPasskeyOptions,
+    getWebAuthnResult,
+    postWebAuthnPasskeyResponse,
+} from "@services/WebAuthn";
+
+// The conditional mediation challenge is refreshed this long before the server side challenge expires, as browsers
+// ignore the timeout for conditional mediation requests but the server enforces it.
+const ConditionalMediationRefreshMargin = 5000;
+const ConditionalMediationRefreshMinimum = 15000;
+const ConditionalMediationDefaultTimeout = 60000;
+const ConditionalMediationRetryDelay = 1000;
 
 export interface Props {
     disabled: boolean;
     rememberMe: boolean;
+    conditionalMediation: boolean;
 
     onAuthenticationStart: () => void;
     onAuthenticationStop: () => void;
@@ -50,10 +65,65 @@ const PasskeyForm = function (props: Props) {
         setLoading(false);
     }, [props]);
 
+    // Tracks if a conditional mediation ceremony is currently pending so it is only ever cancelled by this component when
+    // it is the active ceremony, and never cancels a modal ceremony started by the sign in button.
+    const conditionalPendingRef = useRef(false);
+
+    // Tracks the conditional mediation refresh or retry timer so it is cleared whenever conditional mediation is
+    // cancelled, including when no ceremony is pending, as it would otherwise replace the challenge of a modal ceremony.
+    const conditionalTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    const cancelConditionalMediation = useCallback(() => {
+        clearTimeout(conditionalTimerRef.current);
+        conditionalTimerRef.current = undefined;
+
+        if (!conditionalPendingRef.current) return;
+
+        conditionalPendingRef.current = false;
+        cancelWebAuthnCeremony();
+    }, []);
+
+    const handleAssertionResponse = useCallback(
+        async (assertion: AuthenticationResponseJSON, signal: AbortSignal) => {
+            const response = await postWebAuthnPasskeyResponse(
+                assertion,
+                props.rememberMe,
+                redirectionURL,
+                requestMethod,
+                flowID,
+                flow,
+                subflow,
+                signal,
+            );
+
+            handleAuthenticationStop();
+
+            if (response.data.status === "OK" && response.status === 200) {
+                props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
+                return;
+            }
+
+            onSignInErrorCallback(new Error(translate("The server rejected the security key")));
+        },
+        [
+            props,
+            redirectionURL,
+            requestMethod,
+            flowID,
+            flow,
+            subflow,
+            handleAuthenticationStop,
+            onSignInErrorCallback,
+            translate,
+        ],
+    );
+
     const handleSignIn = useCallback(async () => {
         if (loading) {
             return;
         }
+
+        cancelConditionalMediation();
 
         handleAuthenticationStart();
 
@@ -90,25 +160,7 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            const response = await postWebAuthnPasskeyResponse(
-                result.response,
-                props.rememberMe,
-                redirectionURL,
-                requestMethod,
-                flowID,
-                flow,
-                subflow,
-                signal,
-            );
-
-            handleAuthenticationStop();
-
-            if (response.data.status === "OK" && response.status === 200) {
-                props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
-                return;
-            }
-
-            onSignInErrorCallback(new Error(translate("The server rejected the security key")));
+            await handleAssertionResponse(result.response, signal);
         } catch (err) {
             handleAuthenticationStop();
 
@@ -119,17 +171,121 @@ const PasskeyForm = function (props: Props) {
     }, [
         getSignal,
         loading,
+        cancelConditionalMediation,
         handleAuthenticationStart,
-        props,
-        redirectionURL,
-        requestMethod,
-        flowID,
-        flow,
-        subflow,
+        handleAssertionResponse,
         handleAuthenticationStop,
         onSignInErrorCallback,
         translate,
     ]);
+
+    const handleConditionalAssertion = useCallback(
+        async (assertion: AuthenticationResponseJSON, signal: AbortSignal) => {
+            handleAuthenticationStart();
+
+            try {
+                await handleAssertionResponse(assertion, signal);
+            } catch (err) {
+                handleAuthenticationStop();
+
+                if (axios.isCancel(err)) return;
+                console.error(err);
+                onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+            }
+        },
+        [
+            handleAuthenticationStart,
+            handleAssertionResponse,
+            handleAuthenticationStop,
+            onSignInErrorCallback,
+            translate,
+        ],
+    );
+
+    // The latest handler is kept in a ref so the conditional mediation effect does not restart on every render.
+    const conditionalAssertionHandlerRef = useRef(handleConditionalAssertion);
+
+    useEffect(() => {
+        conditionalAssertionHandlerRef.current = handleConditionalAssertion;
+    }, [handleConditionalAssertion]);
+
+    useEffect(() => {
+        if (!props.conditionalMediation || props.disabled) return;
+
+        let cancelled = false;
+        let generation = 0;
+
+        const start = async () => {
+            const current = ++generation;
+            const stale = () => cancelled || current !== generation;
+
+            try {
+                if (!(await getWebAuthnAutofillSupported()) || stale()) return;
+
+                const signal = getSignal();
+
+                const optionsStatus = await getWebAuthnPasskeyOptions(signal, "conditional");
+
+                if (
+                    stale() ||
+                    optionsStatus.status !== 200 ||
+                    optionsStatus.options == null ||
+                    optionsStatus.mediation !== "conditional"
+                ) {
+                    return;
+                }
+
+                const timeout = optionsStatus.options.timeout ?? ConditionalMediationDefaultTimeout;
+                const refresh = setTimeout(
+                    () => {
+                        cancelConditionalMediation();
+                        void start();
+                    },
+                    Math.max(
+                        timeout - ConditionalMediationRefreshMargin,
+                        Math.min(timeout / 2, ConditionalMediationRefreshMinimum),
+                    ),
+                );
+
+                conditionalTimerRef.current = refresh;
+                conditionalPendingRef.current = true;
+
+                const result = await getWebAuthnResult(optionsStatus.options, true);
+
+                // Never refresh once the ceremony has finished, so the challenge in the session can't be replaced
+                // between the assertion and its validation.
+                clearTimeout(refresh);
+
+                if (current === generation) {
+                    conditionalPendingRef.current = false;
+                }
+
+                if (stale() || result.result === AssertionResult.FailureAborted) return;
+
+                if (result.result !== AssertionResult.Success || result.response == null) {
+                    if (result.result === AssertionResult.FailureUserConsent) {
+                        // The user dismissed the request, quietly start a new one so the Passkey is still offered.
+                        conditionalTimerRef.current = setTimeout(() => void start(), ConditionalMediationRetryDelay);
+                    }
+
+                    return;
+                }
+
+                await conditionalAssertionHandlerRef.current(result.response, signal);
+            } catch (err) {
+                // Failures before an assertion exists are not shown, the sign in button remains available.
+                if (!axios.isCancel(err)) console.error(err);
+            }
+        };
+
+        void start();
+
+        return () => {
+            cancelled = true;
+            clearTimeout(conditionalTimerRef.current);
+            cancelConditionalMediation();
+        };
+    }, [props.conditionalMediation, props.disabled, getSignal, cancelConditionalMediation]);
 
     return (
         <Fragment>

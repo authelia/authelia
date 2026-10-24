@@ -30,6 +30,10 @@ import (
 )
 
 func TestFirstFactorPasskeyGET(t *testing.T) {
+	configConditional := schema.DefaultWebAuthnConfiguration
+	configConditional.EnablePasskeyLogin = true
+	configConditional.EnablePasskeyLoginConditionalMediation = true
+
 	testCases := []struct {
 		name             string
 		config           *schema.WebAuthn
@@ -60,6 +64,78 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 
 				assert.Equal(t, "", us.WebAuthn.Description)
 				assert.Equal(t, []byte(nil), us.WebAuthn.UserID)
+			},
+		},
+		{
+			"ShouldSuccessConditionalMediation",
+			&configConditional,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				mock.Ctx.QueryArgs().Set(queryArgMediation, "conditional")
+			},
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com"},"mediation":"conditional"}}$`),
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NotNil(t, us.WebAuthn)
+				require.NotNil(t, us.WebAuthn.SessionData)
+
+				assert.Equal(t, "", us.WebAuthn.Description)
+				assert.Equal(t, []byte(nil), us.WebAuthn.UserID)
+			},
+		},
+		{
+			"ShouldSuccessConditionalMediationIgnoredWhenDisabled",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				mock.Ctx.QueryArgs().Set(queryArgMediation, "conditional")
+			},
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com"}}}$`),
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NotNil(t, us.WebAuthn)
+				require.NotNil(t, us.WebAuthn.SessionData)
+			},
+		},
+		{
+			"ShouldSuccessConditionalMediationIgnoredWhenUnknownValue",
+			&configConditional,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				mock.Ctx.QueryArgs().Set(queryArgMediation, "silent")
+			},
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com"}}}$`),
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NotNil(t, us.WebAuthn)
+				require.NotNil(t, us.WebAuthn.SessionData)
 			},
 		},
 		{

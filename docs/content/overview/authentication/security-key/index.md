@@ -64,6 +64,13 @@ Yes, as of v4.39.0 and above Authelia supports passwordless logins via Passkeys 
 
 {{< figure src="passkeys.png" caption="The Passkey Authentication Portal View" alt="The Passkey Authentication Portal View" sizes="50dvh" >}}
 
+### Can the browser offer my Passkey automatically?
+
+Yes, when the [enable_passkey_login_conditional_mediation](../../../configuration/second-factor/webauthn.md#enable_passkey_login_conditional_mediation)
+option is enabled, browsers which support Conditional Mediation (also known as Passkey autofill) offer your Passkeys in
+the autofill suggestions of the username field as soon as the sign in form loads. Selecting a Passkey signs you in
+without clicking the _Sign in with a passkey_ button first.
+
 ### Why does it ask me for my password after using a Passkey to login?
 
 This exists to ensure the `two_factor` policy is enforced. The Passkey itself is a single factor and we do have plans to

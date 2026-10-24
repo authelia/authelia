@@ -1335,6 +1335,11 @@
     "env": "AUTHELIA_WEBAUTHN_ENABLE_PASSKEY_LOGIN"
   },
   {
+    "path": "webauthn.enable_passkey_login_conditional_mediation",
+    "secret": false,
+    "env": "AUTHELIA_WEBAUTHN_ENABLE_PASSKEY_LOGIN_CONDITIONAL_MEDIATION"
+  },
+  {
     "path": "webauthn.experimental_enable_passkey_upgrade",
     "secret": false,
     "env": "AUTHELIA_WEBAUTHN_EXPERIMENTAL_ENABLE_PASSKEY_UPGRADE"

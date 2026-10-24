@@ -230,8 +230,9 @@ The period of time before the cookie expires and the session is destroyed when t
 this to `-1` disables this feature entirely for this session cookie domain.
 
 It should be noted that the Passkey Login Flow currently requires remembering sessions if enabled. This is because the
-WebAuthn dialog is disruptive to the UI control, and several future features including Conditional Mediation and
-essentially OpenID Connect 1.0 Relying Party logins feel clunky having to click the checkbox first.
+WebAuthn dialog is disruptive to the UI control, and several features such as
+[Conditional Mediation](../second-factor/webauthn.md#enable_passkey_login_conditional_mediation) and future features such
+as OpenID Connect 1.0 Relying Party logins feel clunky having to click the checkbox first.
 
 As such the ability to control the remembered state in these scenarios will come as a feature which changes how
 remember me operates today, where it will be a question asked of the user just after they complete any initial login.

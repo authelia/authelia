@@ -30,6 +30,7 @@ import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 export interface Props {
     disabled: boolean;
     passkeyLogin: boolean;
+    passkeyLoginConditionalMediation: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
     resetPasswordCustomURL: string;
@@ -98,6 +99,7 @@ const FirstFactorForm = function (props: Props) {
     }, [loginChannel, redirectionURL, props]);
 
     const disabled = props.disabled;
+    const conditionalMediation = props.passkeyLogin && props.passkeyLoginConditionalMediation;
 
     const handleRememberMeChange = () => {
         setRememberMe(!rememberMe);
@@ -268,7 +270,7 @@ const FirstFactorForm = function (props: Props) {
                             onChange={(v) => setUsername(v.target.value)}
                             onFocus={() => setUsernameError(false)}
                             autoCapitalize="none"
-                            autoComplete="username"
+                            autoComplete={conditionalMediation ? "username webauthn" : "username"}
                             onKeyDown={handleUsernameKeyDown}
                         />
                     </div>
@@ -338,6 +340,7 @@ const FirstFactorForm = function (props: Props) {
                         <PasskeyForm
                             disabled={disabled || loading}
                             rememberMe={props.rememberMe}
+                            conditionalMediation={conditionalMediation}
                             onAuthenticationError={(err) => createErrorNotification(err.message)}
                             onAuthenticationStart={() => {
                                 setUsername("");

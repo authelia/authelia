@@ -35,6 +35,10 @@ export function getPasskeyLogin() {
     return getEmbeddedVariable("passkeylogin") === "true";
 }
 
+export function getPasskeyLoginConditionalMediation() {
+    return getEmbeddedVariable("passkeyloginconditionalmediation") === "true";
+}
+
 export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
 }

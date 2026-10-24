@@ -53,6 +53,7 @@ const (
 	queryArgSubflow   = "subflow"
 	queryArgUserCode  = oidc.FormParameterUserCode
 	queryArgFlowID    = oidc.FormParameterFlowID
+	queryArgMediation = "mediation"
 )
 
 var (
@@ -61,10 +62,12 @@ var (
 	qryArgAuth      = []byte(queryArgAuth)
 	qryArgConsentID = []byte(queryArgConsentID)
 	qryArgUserCode  = []byte(oidc.FormParameterUserCode)
+	qryArgMediation = []byte(queryArgMediation)
 )
 
 var (
-	qryValueBasic = []byte("basic")
+	qryValueBasic       = []byte("basic")
+	qryValueConditional = []byte("conditional")
 )
 
 const (

@@ -42,6 +42,7 @@ vi.mock("@views/LoginPortal/LoginPortal", () => ({
             data-testid="login-portal"
             data-duo-self-enrollment={String(props.duoSelfEnrollment)}
             data-passkey-login={String(props.passkeyLogin)}
+            data-passkey-login-conditional-mediation={String(props.passkeyLoginConditionalMediation)}
             data-remember-me={String(props.rememberMe)}
             data-reset-password={String(props.resetPassword)}
             data-reset-password-custom-url={props.resetPasswordCustomURL}
@@ -82,6 +83,7 @@ it("passes the document configuration to the login portal", async () => {
     const portal = screen.getByTestId("login-portal");
     expect(portal).toHaveAttribute("data-duo-self-enrollment", "true");
     expect(portal).toHaveAttribute("data-passkey-login", "true");
+    expect(portal).toHaveAttribute("data-passkey-login-conditional-mediation", "false");
     expect(portal).toHaveAttribute("data-remember-me", "true");
     expect(portal).toHaveAttribute("data-reset-password", "true");
     expect(portal).toHaveAttribute("data-reset-password-custom-url", "");

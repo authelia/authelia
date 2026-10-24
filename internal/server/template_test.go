@@ -434,6 +434,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 		expectedPasswordChange string
 		expectedTheme          string
 		expectedPasskeyLogin   string
+		expectedConditional    string
 	}{
 		{
 			"ShouldReturnDefaultOptions",
@@ -441,6 +442,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"true",
 			"",
+			"false",
 			"false",
 		},
 		{
@@ -456,6 +458,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"",
 			"false",
+			"false",
 		},
 		{
 			"ShouldEnablePasskeyLogin",
@@ -468,6 +471,34 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"",
 			"true",
+			"false",
+		},
+		{
+			"ShouldEnablePasskeyLoginConditionalMediation",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					EnablePasskeyLogin:                     true,
+					EnablePasskeyLoginConditionalMediation: true,
+				},
+			},
+			"true",
+			"true",
+			"",
+			"true",
+			"true",
+		},
+		{
+			"ShouldNotEnablePasskeyLoginConditionalMediationWithoutPasskeyLogin",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					EnablePasskeyLoginConditionalMediation: true,
+				},
+			},
+			"true",
+			"true",
+			"",
+			"false",
+			"false",
 		},
 		{
 			"ShouldSetTheme",
@@ -477,6 +508,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"true",
 			"dark",
+			"false",
 			"false",
 		},
 		{
@@ -492,6 +524,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"false",
 			"",
 			"false",
+			"false",
 		},
 	}
 
@@ -504,6 +537,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			assert.Equal(t, tc.expectedPasswordChange, opts.PasswordChange)
 			assert.Equal(t, tc.expectedTheme, opts.Theme)
 			assert.Equal(t, tc.expectedPasskeyLogin, opts.PasskeyLogin)
+			assert.Equal(t, tc.expectedConditional, opts.ConditionalMediation)
 		})
 	}
 }
