@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/rfc8693"
 	"authelia.com/provider/oauth2/token/jose"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -2163,4 +2164,152 @@ func TestDecoratedUserinfoClient(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, tc.test)
 	}
+}
+
+func TestRegisteredClientGetTokenExchangePermitted(t *testing.T) {
+	accessTokenType := &rfc8693.DefaultTokenType{Name: oidc.TokenTypeAccessToken}
+	idTokenType := &rfc8693.DefaultTokenType{Name: oidc.TokenTypeIDToken}
+
+	testCases := []struct {
+		name      string
+		policies  []oidc.TokenExchangePolicy
+		client    oauthelia2.Client
+		tokenType oauthelia2.RFC8693TokenType
+		expected  bool
+	}{
+		{
+			"ShouldDenyNilClient",
+			[]oidc.TokenExchangePolicy{{ClientID: "app-b"}},
+			nil,
+			accessTokenType,
+			false,
+		},
+		{
+			"ShouldDenyUnlistedClient",
+			[]oidc.TokenExchangePolicy{{ClientID: "app-b"}},
+			&oidc.RegisteredClient{ID: "app-z"},
+			accessTokenType,
+			false,
+		},
+		{
+			"ShouldAllowListedClientWithNoTypeRestriction",
+			[]oidc.TokenExchangePolicy{{ClientID: "app-b"}},
+			&oidc.RegisteredClient{ID: "app-b"},
+			accessTokenType,
+			true,
+		},
+		{
+			"ShouldAllowListedClientWithMatchingType",
+			[]oidc.TokenExchangePolicy{{ClientID: "app-c", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken}}},
+			&oidc.RegisteredClient{ID: "app-c"},
+			accessTokenType,
+			true,
+		},
+		{
+			"ShouldDenyListedClientWithNonMatchingType",
+			[]oidc.TokenExchangePolicy{{ClientID: "app-c", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken}}},
+			&oidc.RegisteredClient{ID: "app-c"},
+			idTokenType,
+			false,
+		},
+		{
+			"ShouldDenyNilTokenTypeWhenTypesRestricted",
+			[]oidc.TokenExchangePolicy{{ClientID: "app-c", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken}}},
+			&oidc.RegisteredClient{ID: "app-c"},
+			nil,
+			false,
+		},
+		{
+			"ShouldAllowMultipleEntriesForSameClientUnionAccessToken",
+			[]oidc.TokenExchangePolicy{
+				{ClientID: "app-b", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken}},
+				{ClientID: "app-b", RequestedTokenTypes: []string{oidc.TokenTypeIDToken}},
+			},
+			&oidc.RegisteredClient{ID: "app-b"},
+			accessTokenType,
+			true,
+		},
+		{
+			"ShouldAllowMultipleEntriesForSameClientUnionIDToken",
+			[]oidc.TokenExchangePolicy{
+				{ClientID: "app-b", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken}},
+				{ClientID: "app-b", RequestedTokenTypes: []string{oidc.TokenTypeIDToken}},
+			},
+			&oidc.RegisteredClient{ID: "app-b"},
+			idTokenType,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := &oidc.RegisteredClient{SubjectTokenClientsSupported: tc.policies}
+
+			assert.Equal(t, tc.expected, client.GetTokenExchangePermitted(tc.client, tc.tokenType))
+		})
+	}
+}
+
+// TestNewClientTokenExchange covers the config to client mapping seam for the Token Exchange options, including
+// newTokenExchangePolicies which is only reachable via oidc.NewClient.
+func TestNewClientTokenExchange(t *testing.T) {
+	t.Run("ShouldMapEveryOption", func(t *testing.T) {
+		config := schema.IdentityProvidersOpenIDConnectClient{
+			ID:                             "api",
+			GrantTypes:                     []string{oidc.GrantTypeTokenExchange},
+			SubjectTokenTypesSupported:     []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken},
+			SubjectTokenIssuersSupported:   []string{"https://issuer.example.com"},
+			ActorTokenTypesSupported:       []string{oidc.TokenTypeIDToken},
+			ActorTokenIssuersSupported:     []string{"https://actor.example.com"},
+			ActorTokenWithoutMayActAllowed: true,
+			RequestTokenTypesSupported:     []string{oidc.TokenTypeAccessToken},
+			SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+				{ClientID: "app-b"},
+				{ClientID: "app-c", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeIDToken}},
+			},
+		}
+
+		client, ok := oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{}, nil).(*oidc.RegisteredClient)
+
+		require.True(t, ok)
+
+		assert.Equal(t, []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken}, client.SubjectTokenTypesSupported)
+		assert.Equal(t, []string{"https://issuer.example.com"}, client.SubjectTokenIssuersSupported)
+		assert.Equal(t, []string{oidc.TokenTypeIDToken}, client.ActorTokenTypesSupported)
+		assert.Equal(t, []string{"https://actor.example.com"}, client.ActorTokenIssuersSupported)
+		assert.True(t, client.ActorTokenWithoutMayActAllowed)
+		assert.Equal(t, []string{oidc.TokenTypeAccessToken}, client.RequestTokenTypesSupported)
+
+		assert.Equal(t, []oidc.TokenExchangePolicy{
+			{ClientID: "app-b"},
+			{ClientID: "app-c", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeIDToken}},
+		}, client.SubjectTokenClientsSupported)
+
+		// The mapped values must be visible through the rfc8693.Client interface the provider consumes.
+		assert.Equal(t, []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken}, client.GetSupportedSubjectTokenTypes())
+		assert.Equal(t, []string{"https://issuer.example.com"}, client.GetSupportedSubjectTokenIssuers())
+		assert.Equal(t, []string{oidc.TokenTypeIDToken}, client.GetSupportedActorTokenTypes())
+		assert.Equal(t, []string{"https://actor.example.com"}, client.GetSupportedActorTokenIssuers())
+		assert.Equal(t, []string{oidc.TokenTypeAccessToken}, client.GetSupportedRequestTokenTypes())
+		assert.True(t, client.GetAllowActorTokenWithoutMayAct())
+
+		assert.True(t, client.GetTokenExchangePermitted(&oidc.RegisteredClient{ID: "app-b"}, &rfc8693.DefaultTokenType{Name: oidc.TokenTypeRefreshToken}))
+		assert.True(t, client.GetTokenExchangePermitted(&oidc.RegisteredClient{ID: "app-c"}, &rfc8693.DefaultTokenType{Name: oidc.TokenTypeIDToken}))
+		assert.False(t, client.GetTokenExchangePermitted(&oidc.RegisteredClient{ID: "app-c"}, &rfc8693.DefaultTokenType{Name: oidc.TokenTypeRefreshToken}))
+		assert.False(t, client.GetTokenExchangePermitted(&oidc.RegisteredClient{ID: "app-z"}, &rfc8693.DefaultTokenType{Name: oidc.TokenTypeAccessToken}))
+	})
+
+	t.Run("ShouldNotMapUnconfiguredOptions", func(t *testing.T) {
+		client, ok := oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{ID: "api"}, &schema.IdentityProvidersOpenIDConnect{}, nil).(*oidc.RegisteredClient)
+
+		require.True(t, ok)
+
+		assert.Nil(t, client.SubjectTokenTypesSupported)
+		assert.Nil(t, client.SubjectTokenIssuersSupported)
+		assert.Nil(t, client.ActorTokenTypesSupported)
+		assert.Nil(t, client.ActorTokenIssuersSupported)
+		assert.False(t, client.ActorTokenWithoutMayActAllowed)
+		assert.Nil(t, client.RequestTokenTypesSupported)
+		assert.Nil(t, client.SubjectTokenClientsSupported)
+	})
 }
