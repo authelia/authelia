@@ -24,6 +24,7 @@ import {
 } from "@models/WebAuthn";
 import {
     AuthenticationOKResponse,
+    FirstFactorPasskeyConditionalPath,
     FirstFactorPasskeyPath,
     OptionalDataServiceResponse,
     ServiceResponse,
@@ -108,13 +109,16 @@ export async function getWebAuthnOptions(signal?: AbortSignal): Promise<PublicKe
     };
 }
 
-export async function getWebAuthnResult(options: PublicKeyCredentialRequestOptionsJSON) {
+export async function getWebAuthnResult(
+    options: PublicKeyCredentialRequestOptionsJSON,
+    useBrowserAutofill: boolean = false,
+) {
     const result: AuthenticationResult = {
         result: AssertionResult.Success,
     };
 
     try {
-        result.response = await startAuthentication({ optionsJSON: options });
+        result.response = await startAuthentication({ optionsJSON: options, useBrowserAutofill });
     } catch (e) {
         const exception = e as DOMException;
         if (exception) {
@@ -162,10 +166,11 @@ export async function postWebAuthnResponse(
 
 export async function getWebAuthnPasskeyOptions(
     signal?: AbortSignal,
+    conditionalMediation: boolean = false,
 ): Promise<PublicKeyCredentialRequestOptionsStatus> {
-    let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
+    const path = conditionalMediation ? FirstFactorPasskeyConditionalPath : FirstFactorPasskeyPath;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath, { signal });
+    const response = await axios.get<ServiceResponse<CredentialRequest>>(path, { signal });
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
