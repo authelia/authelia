@@ -43,7 +43,7 @@
     "postcss": "8.5.31",
     "postcss-cli": "12.0.0",
     "prettier": "3.9.10",
-    "vite": "8.3.4"
+    "vite": "8.3.5"
   },
   "optionalDependencies": {
     "hugo-extended": "0.168.0",
