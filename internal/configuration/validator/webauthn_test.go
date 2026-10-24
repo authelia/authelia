@@ -35,15 +35,17 @@ func TestWebAuthnShouldSetDefaultValues(t *testing.T) {
 
 func TestWebAuthnPasskeyBooleans(t *testing.T) {
 	testCases := []struct {
-		name     string
-		disable  bool
-		passkey  bool
-		mfa      bool
-		upgrade  bool
-		expected []string
+		name        string
+		disable     bool
+		passkey     bool
+		mfa         bool
+		upgrade     bool
+		conditional bool
+		expected    []string
 	}{
 		{
 			"ShouldNotErrorOnDefaultValues",
+			false,
 			false,
 			false,
 			false,
@@ -56,12 +58,14 @@ func TestWebAuthnPasskeyBooleans(t *testing.T) {
 			false,
 			false,
 			false,
+			false,
 			nil,
 		},
 		{
 			"ShouldNotErrorPasskeys",
 			false,
 			true,
+			false,
 			false,
 			false,
 			nil,
@@ -72,12 +76,14 @@ func TestWebAuthnPasskeyBooleans(t *testing.T) {
 			true,
 			true,
 			true,
+			true,
 			nil,
 		},
 		{
 			"ShouldErrorPasskeysWebAuthnDisabled",
 			true,
 			true,
+			false,
 			false,
 			false,
 			[]string{
@@ -90,6 +96,7 @@ func TestWebAuthnPasskeyBooleans(t *testing.T) {
 			false,
 			false,
 			true,
+			false,
 			[]string{
 				"webauthn: option 'experimental_enable_passkey_upgrade' is true but it must be false when 'enable_passkey_login' is false",
 			},
@@ -99,6 +106,7 @@ func TestWebAuthnPasskeyBooleans(t *testing.T) {
 			false,
 			false,
 			true,
+			false,
 			false,
 			[]string{
 				"webauthn: option 'experimental_enable_passkey_uv_two_factors' is true but it must be false when 'enable_passkey_login' is false",
@@ -110,9 +118,30 @@ func TestWebAuthnPasskeyBooleans(t *testing.T) {
 			false,
 			true,
 			true,
+			false,
 			[]string{
 				"webauthn: option 'experimental_enable_passkey_uv_two_factors' is true but it must be false when 'enable_passkey_login' is false",
 				"webauthn: option 'experimental_enable_passkey_upgrade' is true but it must be false when 'enable_passkey_login' is false",
+			},
+		},
+		{
+			"ShouldNotErrorPasskeysWithConditionalMediation",
+			false,
+			true,
+			false,
+			false,
+			true,
+			nil,
+		},
+		{
+			"ShouldErrorNoPasskeysWithConditionalMediation",
+			false,
+			false,
+			false,
+			false,
+			true,
+			[]string{
+				"webauthn: option 'enable_passkey_login_conditional_mediation' is true but it must be false when 'enable_passkey_login' is false",
 			},
 		},
 	}
@@ -121,10 +150,11 @@ func TestWebAuthnPasskeyBooleans(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			config := &schema.Configuration{
 				WebAuthn: schema.WebAuthn{
-					Disable:              tc.disable,
-					EnablePasskeyLogin:   tc.passkey,
-					EnablePasskey2FA:     tc.mfa,
-					EnablePasskeyUpgrade: tc.upgrade,
+					Disable:                                tc.disable,
+					EnablePasskeyLogin:                     tc.passkey,
+					EnablePasskey2FA:                       tc.mfa,
+					EnablePasskeyUpgrade:                   tc.upgrade,
+					EnablePasskeyLoginConditionalMediation: tc.conditional,
 				},
 			}
 

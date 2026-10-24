@@ -518,6 +518,7 @@ var Keys = []string{
 	"webauthn.disable",
 	"webauthn.display_name",
 	"webauthn.enable_passkey_login",
+	"webauthn.enable_passkey_login_conditional_mediation",
 	"webauthn.experimental_enable_passkey_upgrade",
 	"webauthn.experimental_enable_passkey_uv_two_factors",
 	"webauthn.filtering.permitted_aaguids",

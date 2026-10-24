@@ -39,6 +39,10 @@ func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructVali
 		if config.WebAuthn.EnablePasskeyUpgrade {
 			validator.Push(fmt.Errorf(errFmtWebAuthnBoolean, "experimental_enable_passkey_upgrade", config.WebAuthn.EnablePasskeyUpgrade, false, "enable_passkey_login", config.WebAuthn.EnablePasskeyLogin))
 		}
+
+		if config.WebAuthn.EnablePasskeyLoginConditionalMediation {
+			validator.Push(fmt.Errorf(errFmtWebAuthnBoolean, "enable_passkey_login_conditional_mediation", config.WebAuthn.EnablePasskeyLoginConditionalMediation, false, "enable_passkey_login", config.WebAuthn.EnablePasskeyLogin))
+		}
 	}
 
 	if config.WebAuthn.Metadata.Enabled {

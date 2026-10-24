@@ -4591,6 +4591,12 @@
           "description": "Allows users to sign in via Passkeys.",
           "default": false
         },
+        "enable_passkey_login_conditional_mediation": {
+          "type": "boolean",
+          "title": "Enable Passkey Login Conditional Mediation",
+          "description": "When enabled the login portal starts a WebAuthn Conditional Mediation (autofill) request on page load so browsers can offer a Passkey in the username autofill suggestions.",
+          "default": false
+        },
         "experimental_enable_passkey_uv_two_factors": {
           "type": "boolean",
           "title": "Experimental: Enable User Verified Passkey Second Factor",
