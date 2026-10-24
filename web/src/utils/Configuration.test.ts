@@ -7,6 +7,7 @@ import {
     getEmbeddedVariable,
     getLogoOverride,
     getPasskeyLogin,
+    getPasskeyLoginConditionalMediation,
     getPrivacyPolicyEnabled,
     getPrivacyPolicyRequireAccept,
     getPrivacyPolicyURL,
@@ -67,6 +68,21 @@ it("returns true when reset password is enabled", () => {
 it("returns true when passkey login is enabled", () => {
     document.body.dataset.passkeylogin = "true";
     expect(getPasskeyLogin()).toBe(true);
+});
+
+it("returns the passkey login conditional mediation state", () => {
+    document.body.dataset.passkeyloginconditionalmediation = "true";
+    expect(getPasskeyLoginConditionalMediation()).toBe(true);
+
+    document.body.dataset.passkeyloginconditionalmediation = "false";
+    expect(getPasskeyLoginConditionalMediation()).toBe(false);
+
+    delete document.body.dataset.passkeyloginconditionalmediation;
+    expect(() => getPasskeyLoginConditionalMediation()).toThrow(
+        "No passkeyloginconditionalmediation embedded variable detected",
+    );
+
+    document.body.dataset.passkeyloginconditionalmediation = "false";
 });
 
 it("returns the reset password custom URL", () => {

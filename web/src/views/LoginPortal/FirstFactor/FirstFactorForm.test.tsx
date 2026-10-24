@@ -75,6 +75,7 @@ vi.mock("@views/LoginPortal/FirstFactor/PasskeyForm", () => ({
             data-testid="passkey-form"
             data-disabled={String(props.disabled)}
             data-remember-me={String(props.rememberMe)}
+            data-conditional-mediation={String(props.conditionalMediation)}
         >
             <button data-testid="passkey-start" onClick={() => props.onAuthenticationStart()} />
             <button data-testid="passkey-stop" onClick={() => props.onAuthenticationStop()} />
@@ -99,6 +100,7 @@ const defaultProps = {
     onAuthenticationSuccess: vi.fn(),
     onChannelStateChange: vi.fn(),
     passkeyLogin: false,
+    passkeyLoginConditionalMediation: false,
     registrationURL: "",
     rememberMe: false,
     resetPassword: false,
@@ -698,5 +700,26 @@ describe("passkey integration", () => {
         renderForm({ passkeyLogin: true, rememberMe: true });
 
         expect(screen.getByTestId("passkey-form")).toHaveAttribute("data-remember-me", "true");
+    });
+
+    it("advertises webauthn autofill on the username when conditional mediation is enabled", () => {
+        renderForm({ passkeyLogin: true, passkeyLoginConditionalMediation: true });
+
+        expect(getUsername()).toHaveAttribute("autocomplete", "username webauthn");
+        expect(screen.getByTestId("passkey-form")).toHaveAttribute("data-conditional-mediation", "true");
+    });
+
+    it("does not advertise webauthn autofill on the username when conditional mediation is disabled", () => {
+        renderForm({ passkeyLogin: true });
+
+        expect(getUsername()).toHaveAttribute("autocomplete", "username");
+        expect(screen.getByTestId("passkey-form")).toHaveAttribute("data-conditional-mediation", "false");
+    });
+
+    it("does not advertise webauthn autofill on the username when passkey login is disabled", () => {
+        renderForm({ passkeyLoginConditionalMediation: true });
+
+        expect(getUsername()).toHaveAttribute("autocomplete", "username");
+        expect(screen.queryByTestId("passkey-form")).not.toBeInTheDocument();
     });
 });

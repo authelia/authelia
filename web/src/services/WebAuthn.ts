@@ -7,6 +7,8 @@ import {
     PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialRequestOptionsJSON,
     RegistrationResponseJSON,
+    WebAuthnAbortService,
+    browserSupportsWebAuthnAutofill,
     startAuthentication,
     startRegistration,
 } from "@simplewebauthn/browser";
@@ -108,16 +110,24 @@ export async function getWebAuthnOptions(signal?: AbortSignal): Promise<PublicKe
     };
 }
 
-export async function getWebAuthnResult(options: PublicKeyCredentialRequestOptionsJSON) {
+export async function getWebAuthnResult(options: PublicKeyCredentialRequestOptionsJSON, useBrowserAutofill = false) {
     const result: AuthenticationResult = {
         result: AssertionResult.Success,
     };
 
     try {
-        result.response = await startAuthentication({ optionsJSON: options });
+        result.response = await startAuthentication({ optionsJSON: options, useBrowserAutofill });
     } catch (e) {
         const exception = e as DOMException;
         if (exception) {
+            if (useBrowserAutofill && exception.name === "AbortError") {
+                // The conditional mediation request was cancelled by the portal itself i.e. a newer ceremony was
+                // started, the challenge was refreshed, or the form was unmounted; this is not a user decision.
+                result.result = AssertionResult.FailureAborted;
+
+                return result;
+            }
+
             result.result = getAssertionResultFromDOMException(exception, options);
 
             console.error(exception);
@@ -162,10 +172,14 @@ export async function postWebAuthnResponse(
 
 export async function getWebAuthnPasskeyOptions(
     signal?: AbortSignal,
+    mediation?: "conditional",
 ): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath, { signal });
+    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath, {
+        params: mediation ? { mediation } : undefined,
+        signal,
+    });
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -174,9 +188,18 @@ export async function getWebAuthnPasskeyOptions(
     }
 
     return {
+        mediation: response.data.data.mediation,
         options: response.data.data.publicKey,
         status: response.status,
     };
+}
+
+export async function getWebAuthnAutofillSupported() {
+    return browserSupportsWebAuthnAutofill();
+}
+
+export function cancelWebAuthnCeremony() {
+    WebAuthnAbortService.cancelCeremony();
 }
 
 interface PostFirstFactorPasskeyBody {
