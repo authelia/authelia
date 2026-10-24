@@ -29,6 +29,7 @@ seo:
 webauthn:
   disable: false
   enable_passkey_login: false
+  enable_passkey_login_conditional_mediation: false
   display_name: 'Authelia'
   attestation_conveyance_preference: 'indirect'
   timeout: '60 seconds'
@@ -74,6 +75,28 @@ Enables login via a Passkey instead of a username and password. This login only 
 be prompted for their password by default if the request requires multi-factor authentication.
 
 Please see the note about how this operates in relation to [remember_me](../session/introduction.md#remember_me-1)
+
+### enable_passkey_login_conditional_mediation
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables [Conditional Mediation](https://www.w3.org/TR/webauthn-3/#dom-credentialmediationrequirement-conditional) for
+Passkey logins, also known as Conditional UI or Passkey autofill. Requires [enable_passkey_login](#enable_passkey_login)
+to be enabled.
+
+When enabled the login portal starts a WebAuthn request as soon as the sign in form loads. Browsers which support
+Conditional Mediation then offer the user's Passkeys alongside saved usernames in the autofill suggestions of the
+username field. Selecting a Passkey from these suggestions and completing the user verification prompt signs the user in
+without clicking the _Sign in with a passkey_ button first. Browsers do not show any prompt until the user interacts with
+the username field.
+
+The _Sign in with a passkey_ button remains available for security keys, credentials which are not discoverable, and
+browsers which do not support Conditional Mediation. Most current desktop and mobile browsers support Conditional
+Mediation, notable exceptions include Firefox for Android.
+
+Browsers ignore the [timeout](#timeout) for Conditional Mediation requests, however Authelia still enforces it for the
+challenge. The login portal therefore automatically requests a new challenge shortly before the [timeout](#timeout)
+elapses while the sign in form remains open.
 
 ### experimental_enable_passkey_uv_two_factors
 

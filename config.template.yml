@@ -283,6 +283,10 @@
   ## Enables logins via a Passkey.
   # enable_passkey_login: false
 
+  ## Enables offering Passkeys in the browser autofill suggestions of the username field (Conditional Mediation).
+  ## Requires enable_passkey_login.
+  # enable_passkey_login_conditional_mediation: false
+
   ## The display name the browser should show the user for when using WebAuthn to login/register.
   # display_name: 'Authelia'
 
