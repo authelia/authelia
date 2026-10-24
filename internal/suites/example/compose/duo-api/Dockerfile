@@ -12,7 +12,7 @@ ENV \
 
 COPY --link package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-RUN wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/b7cf47fb3ca4411d8bae39a49f059f830582d3bc/install.sh && \
+RUN wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/615dd0d7443e4e85dfd01fe13a6e6ce81e0afcf8/install.sh && \
     ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
     pnpm install --frozen-lockfile --prod
 
