@@ -73,7 +73,14 @@ const PasskeyForm = function (props: Props) {
     // cancelled, including when no ceremony is pending, as it would otherwise replace the challenge of a modal ceremony.
     const conditionalTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+    // Tracks the generation of the current conditional mediation attempt so it is invalidated whenever conditional
+    // mediation is cancelled, as an attempt still awaiting its options would otherwise start a ceremony which aborts a
+    // modal ceremony started by the sign in button.
+    const conditionalGenerationRef = useRef(0);
+
     const cancelConditionalMediation = useCallback(() => {
+        conditionalGenerationRef.current++;
+
         clearTimeout(conditionalTimerRef.current);
         conditionalTimerRef.current = undefined;
 
@@ -213,11 +220,10 @@ const PasskeyForm = function (props: Props) {
         if (!props.conditionalMediation || props.disabled) return;
 
         let cancelled = false;
-        let generation = 0;
 
         const start = async () => {
-            const current = ++generation;
-            const stale = () => cancelled || current !== generation;
+            const current = ++conditionalGenerationRef.current;
+            const stale = () => cancelled || current !== conditionalGenerationRef.current;
 
             try {
                 if (!(await getWebAuthnAutofillSupported()) || stale()) return;
@@ -256,7 +262,7 @@ const PasskeyForm = function (props: Props) {
                 // between the assertion and its validation.
                 clearTimeout(refresh);
 
-                if (current === generation) {
+                if (current === conditionalGenerationRef.current) {
                     conditionalPendingRef.current = false;
                 }
 

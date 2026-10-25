@@ -661,6 +661,46 @@ describe("conditional mediation", () => {
         expect(postResponseMock).toHaveBeenCalledTimes(1);
     });
 
+    it("does not start the conditional ceremony when its options resolve after the button is clicked", async () => {
+        const modal: { resolve: (_value: unknown) => void }[] = [];
+        let resolveConditionalOptions: (_value: unknown) => void = () => {};
+
+        getOptionsMock.mockImplementation((_signal?: AbortSignal, mediation?: string) =>
+            mediation === "conditional"
+                ? (new Promise((r) => (resolveConditionalOptions = r)) as any)
+                : Promise.resolve({ options, status: 200 } as any),
+        );
+
+        // Starting any new ceremony aborts the active one, which the modal flow reports as a user consent failure.
+        getResultMock.mockImplementation((_options: any, useBrowserAutofill?: boolean) => {
+            modal.splice(0).forEach((m) => m.resolve({ result: AssertionResult.FailureUserConsent }));
+
+            return new Promise((resolve) => (useBrowserAutofill ? pending : modal).push({ resolve })) as any;
+        });
+
+        const { props } = renderForm({ conditionalMediation: true });
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledWith(expect.any(AbortSignal), "conditional"));
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(modal).toHaveLength(1));
+
+        await act(async () => {
+            resolveConditionalOptions({ mediation: "conditional", options: conditionalOptions, status: 200 });
+        });
+
+        expect(pending).toHaveLength(0);
+        expect(getResultMock).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            modal[0].resolve({ response: assertionResponse, result: AssertionResult.Success });
+        });
+
+        await waitFor(() => expect(props.onAuthenticationSuccess).toHaveBeenCalledWith("https://example.com"));
+        expect(props.onAuthenticationError).not.toHaveBeenCalled();
+    });
+
     it("does not start a new conditional request when the button is clicked after the user declined", async () => {
         vi.useFakeTimers();
 
