@@ -59,6 +59,46 @@ func RequireElevated(next RequestHandler) RequestHandler {
 	}
 }
 
+// RequireElevationSecondFactor requires one factor authentication, and second factor authentication as well where the
+// elevated session policy would require it of the user, without requiring an elevated session.
+func RequireElevationSecondFactor(next RequestHandler) RequestHandler {
+	return func(ctx *AutheliaCtx) {
+		var (
+			userSession session.UserSession
+			level       authentication.Level
+			err         error
+		)
+
+		if userSession, err = ctx.GetSession(); err != nil {
+			ctx.Logger.WithError(err).Error("Error occurred attempting to lookup user session during a second factor check.")
+
+			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{FirstFactor: true}}, fasthttp.StatusForbidden); err != nil {
+				ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during a second factor check.")
+			}
+
+			return
+		}
+
+		level = userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
+
+		if level < authentication.OneFactor {
+			ctx.Logger.Warn("An anonymous user attempted to access a second factor protected endpoint.")
+
+			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{FirstFactor: true}}, fasthttp.StatusForbidden); err != nil {
+				ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during a second factor check.")
+			}
+
+			return
+		}
+
+		if !handleRequireSecondFactorShouldDoNext(ctx, &userSession, level) {
+			return
+		}
+
+		next(ctx)
+	}
+}
+
 func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.UserSession) (doNext bool) {
 	var err error
 
