@@ -70,28 +70,8 @@ func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.Us
 		return true
 	}
 
-	if ctx.Configuration.IdentityValidation.ElevatedSession.RequireSecondFactor && level < authentication.TwoFactor {
-		var info model.UserInfo
-
-		if info, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username); err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred attempting to lookup user information during a elevation check.")
-
-			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {
-				ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
-			}
-
-			return
-		}
-
-		if info.HasTOTP || info.HasWebAuthn || info.HasDuo {
-			ctx.Logger.WithFields(map[string]any{"user": userSession.Username}).Info("The user session elevation was not checked as the user must have also performed second factor authentication.")
-
-			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {
-				ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
-			}
-
-			return
-		}
+	if !handleRequireSecondFactorShouldDoNext(ctx, userSession, level) {
+		return
 	}
 
 	if userSession.Elevations.User == nil {
@@ -103,6 +83,39 @@ func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.Us
 	}
 
 	return handleRequireElevatedShouldDoNextValidate(ctx, userSession)
+}
+
+func handleRequireSecondFactorShouldDoNext(ctx *AutheliaCtx, userSession *session.UserSession, level authentication.Level) (doNext bool) {
+	var (
+		info model.UserInfo
+		err  error
+	)
+
+	if !ctx.Configuration.IdentityValidation.ElevatedSession.RequireSecondFactor || level >= authentication.TwoFactor {
+		return true
+	}
+
+	if info, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred attempting to lookup user information during a elevation check.")
+
+		if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {
+			ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
+		}
+
+		return
+	}
+
+	if info.HasTOTP || info.HasWebAuthn || info.HasDuo {
+		ctx.Logger.WithFields(map[string]any{"user": userSession.Username}).Info("The user session elevation was not checked as the user must have also performed second factor authentication.")
+
+		if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {
+			ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
+		}
+
+		return
+	}
+
+	return true
 }
 
 func handleRequireElevatedShouldDoNextValidate(ctx *AutheliaCtx, userSession *session.UserSession) (doNext bool) {
