@@ -35,7 +35,7 @@ vi.mock("@constants/Routes", () => ({
 }));
 
 vi.mock("@layouts/SettingsLayout", () => ({
-    default: (props: any) => <div>{props.children}</div>,
+    default: (props: any) => <div data-testid="settings-layout">{props.children}</div>,
 }));
 
 vi.mock("@views/Settings/SettingsView", () => ({
@@ -161,6 +161,7 @@ it("one factor state renders the settings when a second factor is not required",
     expect(mockFetchElevation).toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.getByTestId("settings-view")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-layout")).toBeInTheDocument();
 });
 
 it("one factor state calls navigate to index route when a second factor is required", async () => {
@@ -175,6 +176,7 @@ it("one factor state calls navigate to index route when a second factor is requi
     await renderSettings();
     expect(mockNavigate).toHaveBeenCalledWith("/");
     expect(screen.queryByTestId("settings-view")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-layout")).not.toBeInTheDocument();
 });
 
 it("one factor state calls navigate to index route when the elevation can't be fetched", async () => {
@@ -189,6 +191,7 @@ it("one factor state calls navigate to index route when the elevation can't be f
     await renderSettings();
     expect(mockNavigate).toHaveBeenCalledWith("/");
     expect(screen.queryByTestId("settings-view")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-layout")).not.toBeInTheDocument();
 });
 
 it("one factor state renders nothing until the elevation is fetched", async () => {
@@ -203,6 +206,7 @@ it("one factor state renders nothing until the elevation is fetched", async () =
     await renderSettings();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.queryByTestId("settings-view")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-layout")).not.toBeInTheDocument();
 });
 
 it("two factor state renders the settings without checking the elevation", async () => {
@@ -218,4 +222,5 @@ it("two factor state renders the settings without checking the elevation", async
     expect(mockFetchElevation).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.getByTestId("settings-view")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-layout")).toBeInTheDocument();
 });

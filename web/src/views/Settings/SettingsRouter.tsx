@@ -45,15 +45,17 @@ const SettingsRouter = function () {
         }
     }, [state, fetchStateError, oneFactor, elevation, fetchElevationError, navigate]);
 
+    if (!allowed) {
+        return null;
+    }
+
     return (
         <SettingsLayout>
-            {allowed ? (
-                <Routes>
-                    <Route path={IndexRoute} element={<SettingsView />} />
-                    <Route path={SecuritySubRoute} element={<SecurityView />} />
-                    <Route path={SettingsTwoFactorAuthenticationSubRoute} element={<TwoFactorAuthenticationView />} />
-                </Routes>
-            ) : null}
+            <Routes>
+                <Route path={IndexRoute} element={<SettingsView />} />
+                <Route path={SecuritySubRoute} element={<SecurityView />} />
+                <Route path={SettingsTwoFactorAuthenticationSubRoute} element={<TwoFactorAuthenticationView />} />
+            </Routes>
         </SettingsLayout>
     );
 };
