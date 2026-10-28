@@ -48,7 +48,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.76.0
+	github.com/valyala/fasthttp v1.77.0
 	github.com/weppos/publicsuffix-go v0.50.3
 	github.com/wneessen/go-mail v0.8.1
 	github.com/ysmood/gson v0.7.3
