@@ -1,0 +1,189 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: SLSA Provenance Attestation
+on:
+  workflow_call:
+    secrets:
+      BUILDKITE_TOKEN:
+        required: true
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  buildkite:
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Fetch artifact metadata and prepare hashes
+        id: hash
+        shell: bash
+        env:
+          ORG: authelia
+          PIPELINE: authelia
+          COMMIT: ${{ github.sha }}
+          BUILDKITE_TOKEN: ${{ secrets.BUILDKITE_TOKEN }}
+        # yamllint disable rule:indentation
+        run: |
+          # Fetch artifact metadata and prepare hashes
+          initial=true
+
+          echo "Looking up Buildkite build for commit: ${COMMIT}"
+          build_url=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
+            "https://api.buildkite.com/v2/organizations/${ORG}/pipelines/${PIPELINE}/builds?commit=${COMMIT}" \
+            | jq -r '.[0].url')
+          echo "Found Buildkite Build URL: ${build_url}"
+
+          echo "Polling for artifact metadata..."
+          while true; do
+            state=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" "${build_url}?exclude_jobs=true" \
+              | jq -r '.state')
+            if [ "${state}" = "passed" ]; then
+              break
+            elif [ "${initial}" = "true" ]; then
+              sleep 600
+              initial=false
+            else
+              sleep 300
+            fi
+          done
+          echo "Artifact metadata retrieved"
+
+          passed_job_ids=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" "${build_url}" \
+            | jq -c '[.jobs[] | select(.state == "passed") | .id]')
+
+          hashes=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
+            "${build_url}/artifacts?per_page=100" | jq -r --argjson job_ids "${passed_job_ids}" '
+              ($job_ids | map({(.): true}) | add // {}) as $good
+              | .[]
+              | select(.filename | test("\\.(deb|tar\\.gz)$"))
+              | select($good[.job_id] // false)
+              | "\(.sha256sum)  \(.filename)"
+            ' | base64 -w0)
+
+          echo "hashes=${hashes}" >> "${GITHUB_OUTPUT}"
+        # yamllint enable rule:indentation
+
+  attest:
+    needs: [buildkite]
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Write the checksums file
+        shell: bash
+        env:
+          HASHES: ${{ needs.buildkite.outputs.hashes }}
+        run: echo "${HASHES}" | base64 -d > checksums.sha256
+
+      - name: Generate the build provenance attestation
+        id: attest
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-checksums: checksums.sha256
+
+      - name: Upload the attestation bundle to the release
+        shell: bash
+        env:
+          BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
+          GH_TOKEN: ${{ github.token }}
+        # yamllint disable rule:indentation
+        run: |
+          jq -c . "${BUNDLE_PATH}" > authelia.intoto.jsonl
+          gh release upload "${GITHUB_REF_NAME}" authelia.intoto.jsonl --repo "${GITHUB_REPOSITORY}" --clobber
+        # yamllint enable rule:indentation
+
+  attest-container:
+    needs: [buildkite]
+    permissions:
+      artifact-metadata: write
+      attestations: write
+      id-token: write
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6  # v4.7.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6  # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Resolve the image digests
+        id: digest
+        shell: bash
+        # yamllint disable rule:indentation
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest=$(docker buildx imagetools inspect "ghcr.io/authelia/authelia:${tag}" \
+            --format '{{json .Manifest}}')
+          digest=$(jq -r '.digest' <<< "${manifest}")
+          dockerhub=$(docker buildx imagetools inspect "docker.io/authelia/authelia:${tag}" \
+            --format '{{json .Manifest}}' | jq -r '.digest')
+
+          if [ "${digest}" != "${dockerhub}" ]; then
+            echo "Image digests differ: ghcr.io has ${digest} and docker.io has ${dockerhub}"
+            exit 1
+          fi
+
+          jq -r --arg tag "${tag}" '
+            .manifests[]
+            | select(.platform.os != "unknown")
+            | .platform as $p
+            | ([$p.os, $p.architecture, $p.variant // empty] | join("-")) as $platform
+            | "\(.digest | ltrimstr("sha256:"))  authelia/authelia:\($tag)-\($platform)"
+          ' <<< "${manifest}" > platforms.sha256
+
+          echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
+        # yamllint enable rule:indentation
+
+      - name: Generate the GitHub Container Registry image attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-name: ghcr.io/authelia/authelia
+          subject-digest: ${{ steps.digest.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generate the Docker Hub image attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-name: docker.io/authelia/authelia
+          subject-digest: ${{ steps.digest.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generate the platform image attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-checksums: platforms.sha256
+...
