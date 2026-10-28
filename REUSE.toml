@@ -14,7 +14,7 @@ path = [
 	".buildkite/annotations/bypass",
 	".buildkite/annotations/draft",
 	".buildkite/annotations/merge-queue",
-	".renovaterc",
+	".renovaterc.json",
 	"CITATION.cff",
 	"cmd/authelia-gen/templates/dot_commitlintrc.cjs.tmpl",
 	"cmd/dev/**",

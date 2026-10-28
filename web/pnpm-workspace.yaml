@@ -2,6 +2,7 @@ allowBuilds:
   lefthook: true
   unrs-resolver: true
 overrides:
+  body-parser: 2.4.0
   brace-expansion: 5.0.12
   fast-uri: 4.2.3
   js-yaml: 5.5.0
@@ -11,6 +12,7 @@ overrides:
   semver: 7.8.5
   source-map-js: 1.2.2
   vite: 8.3.5
+  zod: 4.6.7
 peerDependencyRules:
   allowedVersions:
     "@types/react": "19"
