@@ -13,76 +13,16 @@ permissions:
   contents: read
 
 jobs:
-  buildkite:
-    outputs:
-      hashes: ${{ steps.hash.outputs.hashes }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
-        with:
-          egress-policy: audit
-
-      - name: Fetch artifact metadata and prepare hashes
-        id: hash
-        shell: bash
-        env:
-          ORG: authelia
-          PIPELINE: authelia
-          COMMIT: ${{ github.sha }}
-          BUILDKITE_TOKEN: ${{ secrets.BUILDKITE_TOKEN }}
-        # yamllint disable rule:indentation
-        run: |
-          # Fetch artifact metadata and prepare hashes
-          initial=true
-
-          echo "Looking up Buildkite build for commit: ${COMMIT}"
-          build_url=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
-            "https://api.buildkite.com/v2/organizations/${ORG}/pipelines/${PIPELINE}/builds?commit=${COMMIT}" \
-            | jq -r '.[0].url')
-          echo "Found Buildkite Build URL: ${build_url}"
-
-          echo "Polling for artifact metadata..."
-          while true; do
-            state=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" "${build_url}?exclude_jobs=true" \
-              | jq -r '.state')
-            if [ "${state}" = "passed" ]; then
-              break
-            elif [ "${initial}" = "true" ]; then
-              sleep 600
-              initial=false
-            else
-              sleep 300
-            fi
-          done
-          echo "Artifact metadata retrieved"
-
-          passed_job_ids=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" "${build_url}" \
-            | jq -c '[.jobs[] | select(.state == "passed") | .id]')
-
-          hashes=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
-            "${build_url}/artifacts?per_page=100" | jq -r --argjson job_ids "${passed_job_ids}" '
-              ($job_ids | map({(.): true}) | add // {}) as $good
-              | .[]
-              | select(.filename | test("\\.(deb|tar\\.gz)$"))
-              | select($good[.job_id] // false)
-              | "\(.sha256sum) \(.filename)"
-            ' | base64 -w0)
-
-          echo "hashes=${hashes}" >> "${GITHUB_OUTPUT}"
-        # yamllint enable rule:indentation
-
   provenance:
-    needs: [buildkite]
     permissions:
-      actions: read
-      id-token: write
+      artifact-metadata: write
+      attestations: write
       contents: write
-    # yamllint disable-line rule:line-length
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a  # v2.1.0
-    with:
-      base64-subjects: "${{ needs.buildkite.outputs.hashes }}"
-      provenance-name: authelia.intoto.jsonl
-      upload-assets: true
-      compile-generator: true
+      id-token: write
+      packages: write
+    uses: $/.github/workflows/slsa-provenance.yml
+    secrets:
+      BUILDKITE_TOKEN: ${{ secrets.BUILDKITE_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 ...
