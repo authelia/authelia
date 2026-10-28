@@ -5,10 +5,10 @@ SPDX-License-Identifier: Apache-2.0
 Replaces the Google and GitLab logins of the OpenID Connect 1.0 conformance suite with a single Authelia login.
 
 diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
-index 21e2671..7a8e3e1 100644
+index bd5e6b0..381b43d 100644
 --- a/src/main/resources/application.properties
 +++ b/src/main/resources/application.properties
-@@ -46,7 +46,12 @@ oidc.admin.group=openid-conformance-suite-admins
+@@ -50,7 +50,12 @@ oidc.admin.group=openid-conformance-suite-admins
  # https://gitlab.com - use the cloud gitlab, set oidc.admin.group to the gitlab group your admins are members of
  # or you could use a local gitlab install & set oidc.admin.group
  # Other issuers that can return a 'groups' array in the userinfo or id_token can be used (e.g. azure)
@@ -22,7 +22,7 @@ index 21e2671..7a8e3e1 100644
  
  # 'login with gitlab' openid connect client credentials
  # setup on https://gitlab.com/oauth/applications/
-@@ -97,25 +102,15 @@ springdoc.swagger-ui.operations-sorter=alpha
+@@ -106,25 +111,15 @@ springdoc.swagger-ui.operations-sorter=alpha
  # collapse the Schemas section at the bottom of the page
  springdoc.swagger-ui.default-models-expand-depth=-1
  
@@ -58,7 +58,7 @@ index 21e2671..7a8e3e1 100644
  springdoc.show-actuator=false
  
 diff --git a/src/main/resources/static/components/cts-login-page.js b/src/main/resources/static/components/cts-login-page.js
-index b0ba2b6..ec72602 100644
+index aa33bd6..be207c8 100644
 --- a/src/main/resources/static/components/cts-login-page.js
 +++ b/src/main/resources/static/components/cts-login-page.js
 @@ -55,6 +55,45 @@ const GITLAB_BRAND_SVG = html`<svg
@@ -107,7 +107,7 @@ index b0ba2b6..ec72602 100644
  const STYLE_ID = "cts-login-page-styles";
  
  // Scoped styles for the login page. Two-pane layout at >=860px (warm-ink
-@@ -473,23 +512,16 @@ class CtsLoginPage extends LitElement {
+@@ -488,23 +527,16 @@ class CtsLoginPage extends LitElement {
              <header class="oidf-login-form__head">
                <h1 class="oidf-login-title">Sign in to continue</h1>
                <p class="oidf-login-subtitle">
@@ -120,14 +120,14 @@ index b0ba2b6..ec72602 100644
              <div class="oidf-login-providers">
                <a
                  class="oidf-btn oidf-btn-secondary oidf-btn-lg"
--                href="/oauth2/authorization/google"
+-                href=${this._providerHref("google")}
 -                role="button"
 -                >${GOOGLE_BRAND_SVG} Proceed with Google</a
 -              >
 -              <a
 -                class="oidf-btn oidf-btn-secondary oidf-btn-lg"
--                href="/oauth2/authorization/gitlab"
-+                href="/oauth2/authorization/authelia"
+-                href=${this._providerHref("gitlab")}
++                href=${this._providerHref("authelia")}
                  role="button"
 -                >${GITLAB_BRAND_SVG} Proceed with GitLab</a
 +                >${AUTHELIA_BRAND_SVG} Proceed with Authelia</a
