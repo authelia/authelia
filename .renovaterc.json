@@ -2,14 +2,13 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
+    ":prHourlyLimitNone",
     ":semanticCommitTypeAll(build)",
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
-  "branchPrefixOld": "renovate-",
   "rebaseWhen": "conflicted",
   "ignorePresets": [
-    ":prHourlyLimit2",
     ":semanticPrefixFixDepsChoreOthers",
     "workarounds:all"
   ],
@@ -86,7 +85,9 @@
       "matchDatasources": [
         "docker"
       ],
-      "matchPackageNames": "traefik",
+      "matchPackageNames": [
+        "traefik"
+      ],
       "matchFileNames": [
         "internal/suites/example/compose/traefik/compose.v2.yml"
       ],
