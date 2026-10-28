@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM caddy:2.11.7-builder@sha256:c2fc374fd352439d76e1777b28d97d9f6d9c1dd86116db9227460374d46097d5 AS builder
+FROM caddy:2.11.7-builder@sha256:711e55cac9db2de11db562ed3f8bb851273d4d8ae2cce6013f9e604bee7fa171 AS builder
 
 RUN xcaddy build fix-empty-copy-headers
 
