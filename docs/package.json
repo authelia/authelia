@@ -47,7 +47,7 @@
   },
   "optionalDependencies": {
     "hugo-extended": "0.168.0",
-    "sass-embedded": "1.105.2"
+    "sass-embedded": "1.106.1"
   },
   "engines": {
     "node": ">=24.13.0",
