@@ -8,7 +8,7 @@ overrides:
   js-yaml: 5.5.0
   minimatch: 10.2.6
   picomatch: 4.0.7
-  qs: 6.16.1
+  qs: 6.17.0
   semver: 7.8.5
   source-map-js: 1.2.2
   vite: 8.3.5
