@@ -42,16 +42,7 @@ func NewProviderConfig(config schema.SessionCookie, providerName string, seriali
 
 	c.Domain = config.Domain
 
-	switch config.SameSite {
-	case "strict":
-		c.CookieSameSite = fasthttp.CookieSameSiteStrictMode
-	case "none":
-		c.CookieSameSite = fasthttp.CookieSameSiteNoneMode
-	case "lax":
-		c.CookieSameSite = fasthttp.CookieSameSiteLaxMode
-	default:
-		c.CookieSameSite = fasthttp.CookieSameSiteLaxMode
-	}
+	c.CookieSameSite = cookieSameSite(config.SameSite)
 
 	c.Secure = true
 
@@ -70,6 +61,17 @@ func NewProviderConfig(config schema.SessionCookie, providerName string, seriali
 	return ProviderConfig{
 		c,
 		providerName,
+	}
+}
+
+func cookieSameSite(value string) fasthttp.CookieSameSite {
+	switch value {
+	case "strict":
+		return fasthttp.CookieSameSiteStrictMode
+	case "none":
+		return fasthttp.CookieSameSiteNoneMode
+	default:
+		return fasthttp.CookieSameSiteLaxMode
 	}
 }
 
