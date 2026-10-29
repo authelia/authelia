@@ -46,7 +46,7 @@
     "vite": "8.3.5"
   },
   "optionalDependencies": {
-    "hugo-extended": "0.168.0",
+    "hugo-extended": "0.169.0",
     "sass-embedded": "1.106.1"
   },
   "engines": {
