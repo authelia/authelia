@@ -87,8 +87,32 @@ func (p *Session) RegenerateSession(ctx *fasthttp.RequestCtx) error {
 }
 
 // DestroySession destroy a session ID and delete the cookie.
-func (p *Session) DestroySession(ctx *fasthttp.RequestCtx) error {
-	return p.sessionHolder.Destroy(ctx)
+func (p *Session) DestroySession(ctx *fasthttp.RequestCtx) (err error) {
+	if err = p.sessionHolder.Destroy(ctx); err != nil {
+		return err
+	}
+
+	// The cookie the library expires has no domain, so it names a host-only cookie on the request host and leaves the
+	// session cookie, which is set on the configured domain, in the browser. Replace it with one the browser will match.
+	if ctx.Response.Header.PeekCookie(p.Config.Name) == nil {
+		return nil
+	}
+
+	cookie := fasthttp.AcquireCookie()
+	defer fasthttp.ReleaseCookie(cookie)
+
+	cookie.SetKey(p.Config.Name)
+	cookie.SetValue("")
+	cookie.SetPath("/")
+	cookie.SetDomain(p.Config.Domain)
+	cookie.SetHTTPOnly(true)
+	cookie.SetSecure(true)
+	cookie.SetSameSite(cookieSameSite(p.Config.SameSite))
+	cookie.SetExpire(fasthttp.CookieExpireDelete)
+
+	ctx.Response.Header.SetCookie(cookie)
+
+	return nil
 }
 
 // UpdateExpiration update the expiration of the cookie and session.
