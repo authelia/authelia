@@ -28,6 +28,9 @@ type IdentityValidationElevatedSession struct {
 	Characters          int           `koanf:"characters" yaml:"characters" toml:"characters" json:"characters" jsonschema:"title=OTP Characters,minimum=6,maximum=12,default=8" jsonschema_description:"Number of characters in the generated OTP codes."`
 	RequireSecondFactor bool          `koanf:"require_second_factor" yaml:"require_second_factor" toml:"require_second_factor" json:"require_second_factor" jsonschema:"title=Require Second Factor,default=false" jsonschema_description:"Requires the user use a second factor if they have any known second factor methods."`
 	SkipSecondFactor    bool          `koanf:"skip_second_factor" yaml:"skip_second_factor" toml:"skip_second_factor" json:"skip_second_factor" jsonschema:"title=Skip Second Factor,default=false" jsonschema_description:"Skips the primary identity verification process if the user has authenticated with a second factor."`
+
+	RequireReauthentication  string        `koanf:"require_reauthentication" yaml:"require_reauthentication,omitempty" toml:"require_reauthentication,omitempty" json:"require_reauthentication,omitempty" jsonschema:"title=Require Reauthentication,default=disabled,enum=disabled,enum=password,enum=second_factor,enum=any" jsonschema_description:"Requires the user has recently authenticated using the specified method before an elevated session can be used."`
+	ReauthenticationLifespan time.Duration `koanf:"reauthentication_lifespan" yaml:"reauthentication_lifespan,omitempty" toml:"reauthentication_lifespan,omitempty" json:"reauthentication_lifespan,omitempty" jsonschema:"title=Reauthentication Lifespan,default=5 minutes" jsonschema_description:"The duration after an authentication during which it satisfies the reauthentication requirement."`
 }
 
 // DefaultIdentityValidation has the default values for the IdentityValidation configuration.
@@ -40,5 +43,8 @@ var DefaultIdentityValidation = IdentityValidation{
 		CodeLifespan:      time.Minute * 5,
 		ElevationLifespan: time.Minute * 10,
 		Characters:        8,
+
+		RequireReauthentication:  ElevatedSessionReauthenticationDisabled,
+		ReauthenticationLifespan: time.Minute * 5,
 	},
 }
