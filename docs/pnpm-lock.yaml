@@ -176,8 +176,8 @@ importers:
         specifier: 5.2.0
         version: 5.2.0
       '@docsearch/js':
-        specifier: 5.1.2
-        version: 5.1.2
+        specifier: 5.2.0
+        version: 5.2.0
       '@tabler/icons':
         specifier: 3.50.0
         version: 3.50.0
@@ -842,8 +842,8 @@ packages:
   '@docsearch/css@5.2.0':
     resolution: {integrity: sha512-KqJjLYMniiiKgZFdK+f7LTy3ZTL5r13buvxagNjDnYVGfa0NR+bb9BnjZq3FTl3VvsmkeW3aSr9AGIZsiQXY/A==}
 
-  '@docsearch/js@5.1.2':
-    resolution: {integrity: sha512-ZScgB1upT5i4Ob1EYfp964lc5Xx0w9VUMLTeH099LPAU7v01STDIgIMu31rhYcLRi4RHIr0UtfB2VvcRPKvNWQ==}
+  '@docsearch/js@5.2.0':
+    resolution: {integrity: sha512-5gIXOpG72MIptdCL40xPRDElWKzIM/gZpCLXN115cOOCWFbUUv+AkXhPPVZv5uRuIqIXygrT2ZpUgSxsD2xifA==}
 
   '@dual-bundle/import-meta-resolve@4.2.1':
     resolution: {integrity: sha512-id+7YRUgoUX6CgV0DtuhirQWodeeA7Lf4i2x71JS/vtA5pRb/hIGWlw+G6MeXvsM+MXrz0VAydTGElX1rAfgPg==}
@@ -3190,7 +3190,7 @@ snapshots:
 
   '@docsearch/css@5.2.0': {}
 
-  '@docsearch/js@5.1.2': {}
+  '@docsearch/js@5.2.0': {}
 
   '@dual-bundle/import-meta-resolve@4.2.1': {}
 
