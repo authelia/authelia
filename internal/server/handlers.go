@@ -215,6 +215,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		WithPostMiddlewares(middlewares.RequireElevated).
 		Build()
 
+	middlewareElevationSecondFactor := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPostMiddlewares(middlewares.RequireElevationSecondFactor).
+		Build()
+
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
@@ -339,7 +344,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 			r.POST("/api/secondfactor/password", middlewareRateLimitPassword(handlers.SecondFactorPasswordPOST(delayerPassword)))
 		}
 
-		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
+		r.GET("/api/secondfactor/webauthn/credentials", middlewareElevationSecondFactor(handlers.WebAuthnCredentialsGET))
 
 		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
 		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPOST))

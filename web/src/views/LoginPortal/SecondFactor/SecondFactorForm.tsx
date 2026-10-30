@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { lazy, useState } from "react";
+import { lazy, useEffect, useState } from "react";
 
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
@@ -23,6 +23,7 @@ import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContex
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlowPresent } from "@hooks/Flow";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
+import { useUserSessionElevation } from "@hooks/UserSessionElevation";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
@@ -57,6 +58,17 @@ const SecondFactorForm = function (props: Props) {
 
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const stateWebAuthnSupported = browserSupportsWebAuthn();
+    const [elevation, fetchElevation] = useUserSessionElevation();
+
+    const settingsAvailable = elevation !== undefined && !elevation.require_second_factor;
+
+    useEffect(() => {
+        fetchElevation();
+    }, [props.authenticationLevel, fetchElevation]);
+
+    const handleRegisterClick = () => {
+        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+    };
 
     const handleMethodSelectionClick = () => {
         setMethodSelectionOpen(true);
@@ -137,9 +149,7 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a TOTP secret registered already
                                     registered={props.userInfo.has_totp}
-                                    onRegisterClick={() => {
-                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
-                                    }}
+                                    onRegisterClick={settingsAvailable ? handleRegisterClick : undefined}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />
@@ -153,9 +163,7 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a WebAuthn device registered already
                                     registered={props.userInfo.has_webauthn}
-                                    onRegisterClick={() => {
-                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
-                                    }}
+                                    onRegisterClick={settingsAvailable ? handleRegisterClick : undefined}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />

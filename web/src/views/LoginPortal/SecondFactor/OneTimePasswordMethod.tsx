@@ -25,7 +25,7 @@ export interface Props {
     authenticationLevel: AuthenticationLevel;
     registered: boolean;
 
-    onRegisterClick: () => void;
+    onRegisterClick?: () => void;
     onSignInError: (_err: Error) => void;
     onSignInSuccess: (_redirectURL: string | undefined) => void;
 }
