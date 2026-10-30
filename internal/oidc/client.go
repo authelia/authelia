@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewClient creates a new Client.
@@ -86,6 +87,14 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		PushedAuthorizationRequestEndpointAuthMethod:     config.PushedAuthorizationRequestEndpointAuthMethod,
 		PushedAuthorizationRequestEndpointAuthSigningAlg: config.PushedAuthorizationRequestAuthSigningAlg,
 
+		SubjectTokenTypesSupported:     config.SubjectTokenTypesSupported,
+		SubjectTokenIssuersSupported:   config.SubjectTokenIssuersSupported,
+		ActorTokenTypesSupported:       config.ActorTokenTypesSupported,
+		ActorTokenIssuersSupported:     config.ActorTokenIssuersSupported,
+		ActorTokenWithoutMayActAllowed: config.ActorTokenWithoutMayActAllowed,
+		RequestTokenTypesSupported:     config.RequestTokenTypesSupported,
+		SubjectTokenClientsSupported:   newTokenExchangePolicies(config.SubjectTokenClientsSupported),
+
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewJSONWebKeySet(config.JSONWebKeys),
 	}
@@ -109,6 +118,23 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 	}
 
 	return registered
+}
+
+func newTokenExchangePolicies(policies []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy) (results []TokenExchangePolicy) {
+	if len(policies) == 0 {
+		return nil
+	}
+
+	results = make([]TokenExchangePolicy, len(policies))
+
+	for i, policy := range policies {
+		results[i] = TokenExchangePolicy{
+			ClientID:            policy.ClientID,
+			RequestedTokenTypes: policy.RequestedTokenTypes,
+		}
+	}
+
+	return results
 }
 
 // GetID returns the ID for the client.
@@ -822,6 +848,78 @@ func (c *RegisteredClient) getGrantTypeLifespan(gt oauthelia2.GrantType) (gtl sc
 	default:
 		return gtl
 	}
+}
+
+// GetSupportedSubjectTokenTypes indicates the token types allowed for subject_token.
+func (c *RegisteredClient) GetSupportedSubjectTokenTypes() (types []string) {
+	return c.SubjectTokenTypesSupported
+}
+
+// GetSupportedActorTokenTypes indicates the token types allowed for actor_token.
+func (c *RegisteredClient) GetSupportedActorTokenTypes() (types []string) {
+	return c.ActorTokenTypesSupported
+}
+
+// GetSupportedRequestTokenTypes indicates the token types allowed for requested_token_type.
+func (c *RegisteredClient) GetSupportedRequestTokenTypes() (types []string) {
+	return c.RequestTokenTypesSupported
+}
+
+// GetSupportedSubjectTokenIssuers indicates the JWT 'iss' claim values this client is permitted
+// to submit as subject_token. Returning an empty slice disables the per-client issuer check and
+// falls back to the token type's global Issuer setting (e.g. JWTType.Issuer).
+func (c *RegisteredClient) GetSupportedSubjectTokenIssuers() (issuers []string) {
+	return c.SubjectTokenIssuersSupported
+}
+
+// GetSupportedActorTokenIssuers indicates the JWT 'iss' claim values this client is permitted
+// to submit as actor_token. Returning an empty slice disables the per-client issuer check and
+// falls back to the token type's global Issuer setting (e.g. JWTType.Issuer).
+func (c *RegisteredClient) GetSupportedActorTokenIssuers() (issuers []string) {
+	return c.ActorTokenIssuersSupported
+}
+
+// GetTokenExchangePermitted reports whether the subject token's original client authorizes the given requesting client
+// to perform a Token Exchange targeting the supplied requestedTokenType.
+//
+// An entry with no 'requested_token_types' permits any token type the requesting client is itself permitted to
+// request; the requesting client's own 'request_token_types_supported' option is enforced separately by the handler.
+func (c *RegisteredClient) GetTokenExchangePermitted(client oauthelia2.Client, requestedTokenType oauthelia2.RFC8693TokenType) (allowed bool) {
+	if client == nil {
+		return false
+	}
+
+	// Config-level duplicate entries for the same client ID are rejected by the configuration validator
+	// (validateOIDCClientTokenExchangeClients in internal/configuration/validator/identity_providers.go).
+	// Composing duplicate entries here with union semantics is defense in depth for a RegisteredClient
+	// constructed programmatically, which bypasses that validator entirely.
+	for _, policy := range c.SubjectTokenClientsSupported {
+		if policy.ClientID != client.GetID() {
+			continue
+		}
+
+		if len(policy.RequestedTokenTypes) == 0 {
+			return true
+		}
+
+		if requestedTokenType == nil {
+			return false
+		}
+
+		if utils.IsStringInSlice(requestedTokenType.GetName(context.Background()), policy.RequestedTokenTypes) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// GetAllowActorTokenWithoutMayAct reports whether the client may perform delegation with an actor_token on
+// subject tokens that do not include a 'may_act' claim. Set to true only when an out-of-band authorization
+// mechanism (e.g. a policy database or external IGA system) verifies that the actor is permitted to act on
+// behalf of the subject.
+func (c *RegisteredClient) GetAllowActorTokenWithoutMayAct() (allow bool) {
+	return c.ActorTokenWithoutMayActAllowed
 }
 
 // NewUserinfoClient returns a jwt.Client which decorates the given client for the UserInfo endpoint.
