@@ -12,7 +12,7 @@
   NPM_VERSION = "11.8.0"
   HUGO_VERSION = "0.169.0"
   GO_VERSION = "1.26.1"
-  DART_SASS_VERSION = "1.106.1"
+  DART_SASS_VERSION = "1.107.0"
   PNPM_FLAGS = "--no-optional"
 
 [context.staging]
