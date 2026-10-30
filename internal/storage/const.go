@@ -118,6 +118,7 @@ const (
 const (
 	hmacNameOneTimeCode     = "otc"
 	hmacNameOneTimePassword = "otp"
+	hmacNameWebhookCallback = "whc"
 )
 
 const (

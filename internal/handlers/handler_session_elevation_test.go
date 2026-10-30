@@ -374,6 +374,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						OneTimeCode:        "ABC123ABC1",
 					}).
 						Return(nil),
+					mock.EventsMock.EXPECT().Emit(mock.Ctx, gomock.Cond(condSessionElevation(testUsername, "john@example.com", true))),
 				)
 			},
 			`{"status":"OK","data":{"delete_id":"AQIDBAUGRyKJEBESExQVAA"}}`,
@@ -424,6 +425,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						OneTimeCode:        "ABC123ABC1",
 					}).
 						Return(fmt.Errorf("rejected")),
+					mock.EventsMock.EXPECT().Emit(mock.Ctx, gomock.Cond(condSessionElevation(testUsername, "john@example.com", false))),
 				)
 			},
 			`{"status":"KO","message":"Operation failed."}`,
@@ -1497,6 +1499,8 @@ func TestUserSessionElevationPOSTShouldRegenerateSessionForPreventingSessionFixa
 		mock.NotifierMock.EXPECT().
 			Send(mock.Ctx, gomock.Any(), "Confirm your identity", gomock.Any(), gomock.Any()).
 			Return(nil),
+		mock.EventsMock.EXPECT().
+			Emit(mock.Ctx, gomock.Cond(condSessionElevation(testUsername, "john@example.com", true))),
 	)
 
 	before := string(mock.Ctx.Response.Header.PeekCookie("authelia_session"))

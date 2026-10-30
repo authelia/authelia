@@ -27,4 +27,5 @@ type Recorder interface {
 	RecordRequestOpenIDConnect(endpoint, statusCode string, elapsed time.Duration)
 	RecordAuthz(statusCode string)
 	RecordAuthenticationDuration(success bool, elapsed time.Duration)
+	RecordWebhookDelivery(destination, event, outcome string)
 }
