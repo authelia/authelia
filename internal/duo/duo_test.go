@@ -446,3 +446,26 @@ func (t *TestCtx) GetConfiguration() (config *schema.Configuration) {
 func (t *TestCtx) RemoteIP() (ip net.IP) {
 	return t.ip
 }
+
+func TestIsDuoHostname(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected bool
+	}{
+		{"ShouldMatchDuoSecurity", "api-123456789.duosecurity.com", true},
+		{"ShouldMatchDuoFederal", "api-123456789.duofederal.com", true},
+		{"ShouldMatchCaseInsensitive", "API-123456789.DuoSecurity.com", true},
+		{"ShouldMatchFullyQualified", "api-123456789.duosecurity.com.", true},
+		{"ShouldNotMatchThirdParty", "push.example.com", false},
+		{"ShouldNotMatchBareDomain", "duosecurity.com", false},
+		{"ShouldNotMatchLookalike", "duosecurity.com.example.com", false},
+		{"ShouldNotMatchEmpty", "", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsDuoHostname(tc.have))
+		})
+	}
+}
