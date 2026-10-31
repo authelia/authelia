@@ -1974,6 +1974,12 @@ func TestShouldLoadTrustedProxies(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldAcceptWalkXForwardedFor",
+			"server:\n  headers:\n    trusted_proxies:\n      enable: true\n      walk_x_forwarded_for: true\n",
+			true,
+			nil,
+		},
+		{
 			"ShouldDecodeSingle",
 			"server:\n  headers:\n    trusted_proxies:\n      enable: true\n      networks: '192.168.1.10'\n",
 			true,

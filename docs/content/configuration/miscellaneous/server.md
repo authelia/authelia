@@ -38,6 +38,7 @@ server:
     trusted_proxies:
       enable: false
       networks: []
+      walk_x_forwarded_for: false
   buffers:
     read: 4096
     write: 4096
@@ -188,8 +189,8 @@ with the nonce value of the Authelia react bundle.
 {{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
 This option is generally not recommended unless you very carefully consider your architecture. You should only configure
 this if you are certain you understand the implications of this option. In particular if you enable this option with
-an empty list of [networks](#networks) then Authelia will not trust any proxy and all requests will most likely be treated as if they were coming
-from the IP of the proxy.
+an empty list of [networks](#networks) then Authelia will not trust any proxy and all requests will most likely be
+treated as if they were coming from the IP of the proxy and it may entirely break forwarded authentication.
 
 You must manually ensure that this configuration is correctly configured if you choose to
 configure it and ensure all logged IP's report the correct IP address, this check must be done every time this option is
@@ -198,25 +199,33 @@ changed and you must verify every expected proxy to either proxy to Authelia or 
 
 Failure to action this notice, similar to not ensuring that your architecture itself is secure, will most likely result
 in a security issue.
+
+It is strongly recommended regardless of this option being configured that edge proxies overwrite and replace the
+`X-Forwarded-For` and all headers listed in this guide, and all additional service mesh proxies in the chain discard
+headers from unknown proxies.
+
+Simply enabling these options without ensuring they are correct for your architecture is not supported or advised.
 {{< /callout >}}
 
 This section allows configuring a list of trusted proxies. If this option is enabled then if the TCP remote IP of HTTP
 request is not in the list then the request will be treated as if it was not coming from a proxy.
 
 By default this option is entirely disabled as it requires conscious decision to be taken. It is a much safer option
-to not configure this option at all and instead ensure that the proxy architecture itself is secure. The rationale for this
-is that regardless of if you configure the trusted proxies option or not, the proxy architecture itself must still be
-secure; and in addition ensuring the proxy architecture is secure solves all of the same issues.
+to not configure this option at all in most instances and instead ensure that the proxy architecture itself is secure.
+The rationale for this is that regardless of if you configure the trusted proxies option or not, the proxy architecture
+itself must still be secure; and in addition ensuring the proxy architecture is secure solves all of the same issues
+entirely at the correct point. It is the responsibility of proxies to communicate these headers correctly.
 
 By default we do not walk any particular header i.e. `X-Forwarded-For`, and the remote IP is the left most value of this
 header. This is safe if every proxy overwrites the header. If a proxy instead appends to the header then the left most
-value can be spoofed by the client.
+value can be spoofed by the client, in which case you should enable [walk_x_forwarded_for](#walk_x_forwarded_for).
 
 A peer which is not connected via TCP, such as one connected via a `unix` socket, does not have an IP address and is
 always trusted as a proxy. This means access to the socket must be restricted to your proxy, for example by using the
 `umask` of the [address](#address) and appropriate file system permissions, as anything which can connect to it can set
 these headers. The proxy must also set the `X-Forwarded-For` header as otherwise the remote IP will be `0.0.0.0`, which
-affects both rate limiting and network based access control rules.
+affects both rate limiting and network based access control rules. All other values in the `X-Forwarded-For` header are
+still checked against the list when using [walk_x_forwarded_for](#walk_x_forwarded_for).
 
 If the TCP remote IP is not in the list then all headers which are a case-insensitive match for the rules below will be
 stripped from the request effectively ignoring them.
@@ -251,6 +260,29 @@ Enables the removal of proxy headers from requests that do not originate from a 
 {{< confkey type="list(string)" syntax="network" required="no" >}}
 
 The list of networks trusted as proxies. If [enable](#enable) is `true` and this list is empty then no proxy is trusted.
+
+##### walk_x_forwarded_for
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
+Every proxy between the client and Authelia must be included in [networks](#networks). Any proxy which is not included
+will be considered the client, which will likely result in many users sharing one remote IP and will affect both rate
+limiting and network based access control rules.
+{{< /callout >}}
+
+Determines the remote IP by walking the `X-Forwarded-For` header. This option requires [enable](#enable) to be `true`.
+
+All `X-Forwarded-For` headers are combined in order and walked from right to left starting from the TCP remote IP, as
+the right most values were added by the proxies closest to Authelia and the left most values may be set by the client.
+The remote IP is the first of these values which is not in [networks](#networks).
+
+If a value is not a valid IP address, which includes any value with a port, then the walk stops and the remote IP is the
+value to the right of it or the TCP remote IP if there isn't one. If all of the values are in [networks](#networks) then the
+remote IP is the left most value.
+
+The `X-Forwarded-For` header is replaced with the determined remote IP. The TCP remote IP not being in
+[networks](#networks) always results in the header being removed.
 
 ### buffers
 

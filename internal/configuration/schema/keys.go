@@ -408,6 +408,7 @@ var Keys = []string{
 	"server.headers.csp_template",
 	"server.headers.trusted_proxies.enable",
 	"server.headers.trusted_proxies.networks",
+	"server.headers.trusted_proxies.walk_x_forwarded_for",
 	"server.timeouts.idle",
 	"server.timeouts.read",
 	"server.timeouts.write",

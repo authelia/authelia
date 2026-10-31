@@ -79,6 +79,9 @@
       ## The networks trusted as proxies. If enabled and empty no proxy is trusted.
       # networks: []
 
+      ## Determines the remote IP by walking the X-Forwarded-For header from right to left. Read the docs.
+      # walk_x_forwarded_for: false
+
   ## Server Buffers configuration.
   # buffers:
 

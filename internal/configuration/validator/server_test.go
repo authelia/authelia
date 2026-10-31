@@ -1316,12 +1316,18 @@ func TestValidateServerTrustedProxies(t *testing.T) {
 	}{
 		{"ShouldAllowDisabled", schema.ServerHeadersTrustedProxies{}, nil},
 		{"ShouldAllowEnabled", schema.ServerHeadersTrustedProxies{Enable: true}, nil},
+		{"ShouldAllowWalkWhenEnabled", schema.ServerHeadersTrustedProxies{Enable: true, WalkXForwardedFor: true}, nil},
 		{"ShouldAllowNetworksWhenEnabled", schema.ServerHeadersTrustedProxies{Enable: true, Networks: []*net.IPNet{{IP: net.IPv4(10, 0, 0, 0), Mask: net.CIDRMask(8, 32)}}}, nil},
 		{"ShouldAllowEmptyNetworksWhenDisabled", schema.ServerHeadersTrustedProxies{Networks: []*net.IPNet{}}, nil},
 		{
 			"ShouldErrorNetworksWhenDisabled",
 			schema.ServerHeadersTrustedProxies{Networks: []*net.IPNet{{IP: net.IPv4(10, 0, 0, 0), Mask: net.CIDRMask(8, 32)}}},
 			[]string{"server: headers: trusted_proxies: option 'networks' must not be configured unless option 'enable' is also enabled"},
+		},
+		{
+			"ShouldErrorWalkWhenDisabled",
+			schema.ServerHeadersTrustedProxies{WalkXForwardedFor: true},
+			[]string{"server: headers: trusted_proxies: option 'walk_x_forwarded_for' must not be enabled unless option 'enable' is also enabled"},
 		},
 	}
 
