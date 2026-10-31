@@ -905,6 +905,11 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_START_ENABLE"
   },
   {
+    "path": "server.headers.allowed_hosts",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_HEADERS_ALLOWED_HOSTS"
+  },
+  {
     "path": "server.headers.csp_template",
     "secret": false,
     "env": "AUTHELIA_SERVER_HEADERS_CSP_TEMPLATE"
