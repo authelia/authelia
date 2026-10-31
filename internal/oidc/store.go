@@ -137,10 +137,20 @@ func (s *Store) Rollback(ctx context.Context) (err error) {
 	return errStorage(s.provider.Rollback(ctx))
 }
 
-// GetClient loads the client by its ID or returns an error if the client does not exist or another error occurred.
+// GetClient loads the client by its ID or returns an error if another error occurred. It returns the
+// oauthelia2.ErrNotFound error if the client does not exist, which includes the client of a stored session having been
+// removed from the configuration, so the token grants and revocation treat the session as an unknown token.
 // This implements a portion of oauthelia2.ClientManager.
 func (s *Store) GetClient(ctx context.Context, id string) (client oauthelia2.Client, err error) {
-	return s.GetRegisteredClient(ctx, id)
+	if client, err = s.GetRegisteredClient(ctx, id); err != nil {
+		if errors.Is(err, oauthelia2.ErrInvalidClient) {
+			return nil, oauthelia2.ErrNotFound.WithDebugf("Client with id '%s' does not appear to be a registered client.", id)
+		}
+
+		return nil, err
+	}
+
+	return client, nil
 }
 
 // ClientAssertionJWTValid returns an error if the JTI is known for the client or the DB check failed and nil if the

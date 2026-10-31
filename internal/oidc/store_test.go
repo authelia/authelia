@@ -50,7 +50,7 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	}, nil)
 
 	client, err := s.GetClient(context.Background(), "myinvalidclient")
-	assert.EqualError(t, err, "invalid_client")
+	assert.ErrorIs(t, err, oauthelia2.ErrNotFound)
 	assert.Nil(t, client)
 
 	client, err = s.GetClient(context.Background(), myclient)
@@ -963,7 +963,7 @@ func (s *StoreSuite) TestGetSessions() {
 
 	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_badclient", &oidc.Session{})
 	s.Nil(r)
-	s.EqualError(err, "error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: invalid_client")
+	s.EqualError(err, "error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: not_found")
 
 	r, err = s.store.GetAccessTokenSession(s.ctx, "at", &oidc.Session{})
 	s.NotNil(r)

@@ -141,6 +141,21 @@ func TestTokenRevocationOfRevokedTokens(t *testing.T) {
 	}
 }
 
+func TestTokensOfRemovedClient(t *testing.T) {
+	provider := newRefreshTokenReuseProvider(t)
+
+	grant := seedRefreshTokenGrantForClient(t, provider, &oidc.RegisteredClient{ID: "removed-client"})
+
+	for i := 0; i < 2; i++ {
+		_, err := doRefreshTokenGrant(provider, grant.refresh)
+		assert.ErrorIs(t, err, oauthelia2.ErrInvalidGrant)
+		assert.NotErrorIs(t, err, oauthelia2.ErrServerError)
+
+		assert.NoError(t, doTokenRevocation(provider, grant.refresh, "refresh_token"))
+		assert.NoError(t, doTokenRevocation(provider, grant.access, "access_token"))
+	}
+}
+
 func doTokenRevocation(provider *oidc.OpenIDConnectProvider, token, hint string) error {
 	form := url.Values{
 		"token":                    []string{token},
@@ -215,6 +230,14 @@ func seedRefreshTokenGrant(t *testing.T, provider *oidc.OpenIDConnectProvider) r
 
 	client, err := provider.GetClient(ctx, refreshReuseClientID)
 	require.NoError(t, err)
+
+	return seedRefreshTokenGrantForClient(t, provider, client)
+}
+
+func seedRefreshTokenGrantForClient(t *testing.T, provider *oidc.OpenIDConnectProvider, client oauthelia2.Client) refreshTokenGrant {
+	t.Helper()
+
+	ctx := context.Background()
 
 	session := oidc.NewSession()
 	session.Subject = refreshReuseSubject
