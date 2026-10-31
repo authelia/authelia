@@ -439,6 +439,7 @@ const (
 	errFmtServerTLSKey              = "server: tls: option 'certificate' must also be accompanied by option 'key'"
 	errFmtServerTLSClientAuthNoAuth = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
+	errServerHeadersTrustedProxiesWalkNotEnabled     = "server: headers: trusted_proxies: option 'walk_x_forwarded_for' must not be enabled unless option 'enable' is also enabled"
 	errServerHeadersTrustedProxiesNetworksNotEnabled = "server: headers: trusted_proxies: option 'networks' must not be configured unless option 'enable' is also enabled"
 
 	errFmtServerAddress = "server: option 'address' with value '%s' is invalid: %w"

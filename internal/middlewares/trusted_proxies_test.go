@@ -199,6 +199,73 @@ func TestNewTrustedProxiesShouldStripWhenEnabledWithoutNetworks(t *testing.T) {
 	assert.True(t, called)
 }
 
+func TestTrustedProxiesWalkXForwardedFor(t *testing.T) {
+	_, network, err := net.ParseCIDR("10.0.0.0/8")
+	require.NoError(t, err)
+
+	const (
+		trusted   = "10.0.0.1"
+		untrusted = "192.0.2.1"
+	)
+
+	testCases := []struct {
+		name     string
+		remote   string
+		walk     bool
+		values   []string
+		expected string
+	}{
+		{"ShouldReturnRightMostUntrusted", trusted, true, []string{"1.1.1.1, 203.0.113.9"}, "203.0.113.9"},
+		{"ShouldSkipTrustedHops", trusted, true, []string{"1.1.1.1, 203.0.113.9, 10.0.0.2, 10.0.0.3"}, "203.0.113.9"},
+		{"ShouldReturnLeftMostWhenAllTrusted", trusted, true, []string{"10.0.0.2, 10.0.0.3"}, "10.0.0.2"},
+		{"ShouldCombineHeaderLines", trusted, true, []string{"203.0.113.9, 10.0.0.2", "10.0.0.3"}, "203.0.113.9"},
+		{"ShouldNotUseEarlierLineOverLaterUntrusted", trusted, true, []string{"1.1.1.1", "203.0.113.9"}, "203.0.113.9"},
+		{"ShouldStopAtInvalid", trusted, true, []string{"1.1.1.1, invalid, 10.0.0.2"}, "10.0.0.2"},
+		{"ShouldReturnRemoteWhenRightMostInvalid", trusted, true, []string{"1.1.1.1, invalid"}, trusted},
+		{"ShouldReturnRemoteWhenEntryEmpty", trusted, true, []string{"1.1.1.1,"}, trusted},
+		{"ShouldTreatPortAsInvalid", trusted, true, []string{"1.1.1.1, 203.0.113.9:443"}, trusted},
+		{"ShouldHandleIPv6", trusted, true, []string{"1.1.1.1, 2001:db8::1, 10.0.0.2"}, "2001:db8::1"},
+		{"ShouldSkipIPv4MappedTrusted", trusted, true, []string{"203.0.113.9, ::ffff:10.0.0.2"}, "203.0.113.9"},
+		{"ShouldReturnRemoteWithoutHeader", trusted, true, nil, trusted},
+		{"ShouldReturnRemoteWhenUntrustedPeer", untrusted, true, []string{"1.1.1.1"}, untrusted},
+		{"ShouldReturnLeftMostWithoutWalk", trusted, false, []string{"1.1.1.1, 203.0.113.9"}, "1.1.1.1"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw := "GET / HTTP/1.1\r\nHost: example.com\r\n"
+
+			for _, value := range tc.values {
+				raw += "X-Forwarded-For: " + value + "\r\n"
+			}
+
+			config := schema.ServerHeadersTrustedProxies{Enable: true, Networks: []*net.IPNet{network}, WalkXForwardedFor: tc.walk}
+
+			ctx := &fasthttp.RequestCtx{}
+
+			ctx.Init(&fasthttp.Request{}, &net.TCPAddr{IP: net.ParseIP(tc.remote), Port: 1234}, nil)
+
+			require.NoError(t, ctx.Request.Read(bufio.NewReader(strings.NewReader(raw+"\r\n"))))
+
+			assert.Equal(t, tc.expected, TrustedProxiesRemoteIP(ctx, config).String())
+
+			var called bool
+
+			NewTrustedProxies(config)(func(ctx *fasthttp.RequestCtx) {
+				called = true
+
+				assert.Equal(t, tc.expected, RequestCtxRemoteIP(ctx).String())
+
+				if tc.walk && tc.remote == trusted && tc.values != nil {
+					assert.Equal(t, [][]byte{[]byte(tc.expected)}, ctx.Request.Header.PeekAll(fasthttp.HeaderXForwardedFor))
+				}
+			})(ctx)
+
+			assert.True(t, called)
+		})
+	}
+}
+
 func TestTrustedProxiesRemoteIPShouldUseHeaderWhenDisabled(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 
@@ -219,13 +286,17 @@ func TestTrustedProxiesShouldTrustNonTCPPeer(t *testing.T) {
 
 	assert.Equal(t, "1.1.1.1", TrustedProxiesRemoteIP(ctx, config).String())
 
+	config.WalkXForwardedFor = true
+
+	assert.Equal(t, "203.0.113.9", TrustedProxiesRemoteIP(ctx, config).String())
+
 	var called bool
 
 	NewTrustedProxies(config)(func(ctx *fasthttp.RequestCtx) {
 		called = true
 
 		assert.Equal(t, "https://example.com/", string(ctx.Request.Header.Peek("X-Original-URL")))
-		assert.Equal(t, "1.1.1.1", RequestCtxRemoteIP(ctx).String())
+		assert.Equal(t, "203.0.113.9", RequestCtxRemoteIP(ctx).String())
 	})(ctx)
 
 	assert.True(t, called)
@@ -262,7 +333,7 @@ func TestTrustedProxiesShouldTrustUnixSocketListener(t *testing.T) {
 
 	results := make(chan result, 1)
 
-	config := schema.ServerHeadersTrustedProxies{Enable: true}
+	config := schema.ServerHeadersTrustedProxies{Enable: true, WalkXForwardedFor: true}
 
 	server := &fasthttp.Server{Handler: NewTrustedProxies(config)(func(ctx *fasthttp.RequestCtx) {
 		results <- result{string(ctx.Request.Header.Peek("X-Original-URL")), RequestCtxRemoteIP(ctx).String()}
@@ -286,7 +357,7 @@ func TestTrustedProxiesShouldTrustUnixSocketListener(t *testing.T) {
 
 	select {
 	case actual := <-results:
-		assert.Equal(t, result{"https://example.com/", "1.1.1.1"}, actual)
+		assert.Equal(t, result{"https://example.com/", "203.0.113.9"}, actual)
 	case <-time.After(5 * time.Second):
 		t.Fatal("timed out waiting for the request")
 	}

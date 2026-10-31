@@ -22,9 +22,15 @@ func NewTrustedProxies(config schema.ServerHeadersTrustedProxies) Middleware {
 		}
 
 		return func(ctx *fasthttp.RequestCtx) {
-			if !isTrustedPeer(ctx, config.Networks) {
+			switch {
+			case !isTrustedPeer(ctx, config.Networks):
 				deleteProxyHeaders(&ctx.Request.Header, ctx.Request.Header.PeekKeys())
 				deleteProxyHeaders(&ctx.Request.Header, ctx.Request.Header.PeekTrailerKeys())
+			case config.WalkXForwardedFor && len(ctx.Request.Header.PeekBytes(headerXForwardedFor)) != 0:
+				ip := walkXForwardedFor(ctx, config.Networks)
+
+				ctx.Request.Header.DelBytes(headerXForwardedFor)
+				ctx.Request.Header.SetBytesKV(headerXForwardedFor, []byte(ip.String()))
 			}
 
 			next(ctx)
@@ -71,19 +77,47 @@ func TrustedProxiesRemoteIP(ctx *fasthttp.RequestCtx, config schema.ServerHeader
 		return RequestCtxRemoteIP(ctx)
 	case !isTrustedPeer(ctx, config.Networks):
 		return ctx.RemoteIP()
+	case config.WalkXForwardedFor:
+		return walkXForwardedFor(ctx, config.Networks)
 	default:
 		return RequestCtxRemoteIP(ctx)
 	}
 }
 
-// isTrustedPeer returns true if the peer of the connection is trusted as a proxy. A peer which isn't connected via TCP,
-// such as one connected via a unix socket, doesn't have an IP to check and access is instead controlled by the socket.
 func isTrustedPeer(ctx *fasthttp.RequestCtx, networks []*net.IPNet) bool {
 	if _, ok := ctx.RemoteAddr().(*net.TCPAddr); !ok {
 		return true
 	}
 
 	return containsIP(ctx.RemoteIP(), networks)
+}
+
+func walkXForwardedFor(ctx *fasthttp.RequestCtx, networks []*net.IPNet) (client net.IP) {
+	client = ctx.RemoteIP()
+
+	values := ctx.Request.Header.PeekAll(fasthttp.HeaderXForwardedFor)
+
+	if len(values) == 0 {
+		return client
+	}
+
+	entries := bytes.Split(bytes.Join(values, []byte(",")), []byte(","))
+
+	for i := len(entries) - 1; i >= 0; i-- {
+		ip := net.ParseIP(string(bytes.TrimSpace(entries[i])))
+
+		if ip == nil {
+			return client
+		}
+
+		client = ip
+
+		if !containsIP(ip, networks) {
+			return client
+		}
+	}
+
+	return client
 }
 
 func deleteProxyHeaders(header *fasthttp.RequestHeader, keys [][]byte) {
