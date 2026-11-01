@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package server
 
 import (
@@ -10,10 +14,6 @@ const (
 	assetsRoot = "public_html"
 
 	fileLogo = "logo.png"
-
-	extHTML = ".html"
-	extJSON = ".json"
-	extYML  = ".yml"
 )
 
 const (
@@ -30,6 +30,8 @@ const (
 	pathAuthz           = "/api/authz"
 	pathAuthzLegacy     = "/api/verify"
 	pathParamAuthzEnvoy = "{extauthz:*}"
+
+	authzExtAuthzMethodMaxLength = 32
 )
 
 var (

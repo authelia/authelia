@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -72,6 +76,18 @@ func validateBypass(rulePosition int, rule schema.AccessControlRule, validator *
 			return
 		}
 	}
+
+	for _, domain := range rule.Domains {
+		domain = strings.ToLower(domain)
+
+		for _, token := range authorization.IdentityDomainTokens {
+			if strings.HasPrefix(domain, token) {
+				validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomain, ruleDescriptor(rulePosition, rule)))
+
+				return
+			}
+		}
+	}
 }
 
 func validateDomains(rulePosition int, rule schema.AccessControlRule, validator *schema.StructValidator) {
@@ -82,6 +98,10 @@ func validateDomains(rulePosition int, rule schema.AccessControlRule, validator 
 	for i, domain := range rule.Domains {
 		if len(domain) > 1 && domain[0] == '*' && domain[1] != '.' {
 			validator.PushWarning(fmt.Errorf("access_control: rule #%d: domain #%d: domain '%s' is ineffective and should probably be '%s' instead", rulePosition, i+1, domain, fmt.Sprintf("*.%s", domain[1:])))
+		}
+
+		if pattern, ok := authorization.DomainTokenPattern(domain); ok {
+			validator.PushWarning(fmt.Errorf(errFmtAccessControlRuleDomainDeprecatedToken, rulePosition, i+1, domain, pattern))
 		}
 	}
 }
@@ -108,10 +128,10 @@ func validateSubjects(rulePosition int, rule schema.AccessControlRule, config *s
 }
 
 func validateMethods(rulePosition int, rule schema.AccessControlRule, validator *schema.StructValidator) {
-	invalid, duplicates := validateList(rule.Methods, validACLHTTPMethodVerbs, true)
+	invalid, duplicates := validateList(rule.Methods, schema.HTTPMethods, true)
 
 	if len(invalid) != 0 {
-		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", utils.StringJoinOr(validACLHTTPMethodVerbs), utils.StringJoinAnd(invalid)))
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", utils.StringJoinOr(schema.HTTPMethods), utils.StringJoinAnd(invalid)))
 	}
 
 	if len(duplicates) != 0 {

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -9,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/asaskevich/govalidator/v12"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
@@ -201,13 +205,18 @@ func (ctx *AutheliaCtx) QueryArgAutheliaURL() []byte {
 	return ctx.QueryArgs().PeekBytes(qryArgAutheliaURL)
 }
 
-// AuthzPath returns the 'authz_path' value.
+// AuthzPath returns the 'authz_path' value including the query string if one is present.
 func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
-	if uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath); uv != nil {
-		return []byte(uv.(string))
+	uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath)
+	if uv == nil {
+		return nil
 	}
 
-	return nil
+	if query := ctx.URI().QueryString(); len(query) != 0 {
+		return utils.BytesJoin([]byte(uv.(string)), []byte("?"), query)
+	}
+
+	return []byte(uv.(string))
 }
 
 // BasePath returns the base_url as per the path visited by the client.
@@ -607,6 +616,23 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	return issuerURL, nil
 }
 
+// IsNavigation returns true if the request is a top-level browser navigation. The Fetch Metadata request headers are
+// used when present, otherwise this falls back to the X-Requested-With and Accept headers. Navigations of nested
+// browsing contexts such as iframes are not considered top-level navigations.
+func (ctx *AutheliaCtx) IsNavigation() (navigation bool) {
+	if mode := ctx.Request.Header.PeekBytes(headerSecFetchMode); len(mode) != 0 {
+		if !strings.EqualFold(string(mode), headerValueSecFetchModeNavigate) {
+			return false
+		}
+
+		dest := ctx.Request.Header.PeekBytes(headerSecFetchDest)
+
+		return len(dest) == 0 || strings.EqualFold(string(dest), headerValueSecFetchDestDocument)
+	}
+
+	return !ctx.IsXHR() && ctx.AcceptsMIME("text/html")
+}
+
 // IsXHR returns true if the request is a XMLHttpRequest.
 func (ctx *AutheliaCtx) IsXHR() (xhr bool) {
 	if requestedWith := ctx.Request.Header.PeekBytes(headerXRequestedWith); requestedWith != nil && strings.EqualFold(string(requestedWith), headerValueXRequestedWithXHR) {
@@ -638,7 +664,7 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	u, statusCode = ctx.setSpecialRedirect(uri, statusCode)
 
 	ctx.SetContentTypeTextHTML()
-	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
+	ctx.SetBodyString(fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
 }
 
 // SpecialRedirectNoBody performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes
@@ -669,12 +695,12 @@ func (ctx *AutheliaCtx) setSpecialRedirect(uri string, statusCode int) ([]byte, 
 }
 
 // RecordAuthn records authentication metrics.
-func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
+func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, authType string) {
 	if ctx.Providers.Metrics == nil {
 		return
 	}
 
-	ctx.Providers.Metrics.RecordAuthn(success, regulated, method)
+	ctx.Providers.Metrics.RecordAuthn(success, regulated, authType)
 }
 
 // GetClock returns the clock. For use with interface fulfillment.

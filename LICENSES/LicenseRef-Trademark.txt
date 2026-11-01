@@ -1,0 +1,20 @@
+Trademark Notice
+
+The files covered by this notice are the trademarks, logos, service marks,
+brand assets, or certification marks of their respective owners. They are not
+works of Authelia and are not distributed under the Apache-2.0 license that
+covers the remainder of this repository.
+
+They are reproduced here nominatively, that is, solely to identify and refer to
+the products, services, and organizations they represent, in accordance with
+the fair and descriptive use permitted by trademark law and by the brand
+guidelines of the respective owners.
+
+No copyright license, trademark license, sponsorship, affiliation, or
+endorsement is claimed, granted, or implied by their inclusion. All rights in
+these marks remain with their respective owners. Use of these files outside the
+context of referring to the products, services, and organizations they
+represent may require permission from the owner of the mark.
+
+Requests to remove or replace a mark should be directed to the Authelia team
+at <team@authelia.com>.

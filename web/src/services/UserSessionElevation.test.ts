@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import axios from "axios";
 
 import { hasServiceError, toData, validateStatusOneTimeCode } from "@services/Api";
+import { PostWithOptionalResponse } from "@services/Client";
 import {
     deleteUserSessionElevation,
     generateUserSessionElevation,
@@ -14,6 +19,9 @@ vi.mock("@services/Api", () => ({
     toData: vi.fn(),
     UserSessionElevationPath: "/user/elevation",
     validateStatusOneTimeCode: vi.fn(),
+}));
+vi.mock("@services/Client", () => ({
+    PostWithOptionalResponse: vi.fn(),
 }));
 
 it("gets user session elevation successfully", async () => {
@@ -41,23 +49,18 @@ it("gets user session elevation with error", async () => {
 });
 
 it("generates user session elevation successfully", async () => {
-    const mockRes = { data: { data: "generate", status: "OK" }, status: 200 };
-    (axios as any).mockResolvedValue(mockRes);
-    (hasServiceError as any).mockReturnValue({ errored: false });
-    (toData as any).mockReturnValue("generate");
+    const mockResponse = { delete_id: "abc" };
+    (PostWithOptionalResponse as any).mockResolvedValue(mockResponse);
 
     const result = await generateUserSessionElevation();
-    expect(axios).toHaveBeenCalledWith({
-        method: "POST",
-        url: "/user/elevation",
-    });
-    expect(result).toBe("generate");
+    expect(PostWithOptionalResponse).toHaveBeenCalledWith("/user/elevation");
+    expect(result).toEqual(mockResponse);
 });
 
 it("generates user session elevation with error", async () => {
-    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
-    (axios as any).mockResolvedValue(mockRes);
-    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
+    (PostWithOptionalResponse as any).mockRejectedValue(
+        new Error("Failed POST to /user/elevation. Code: 400. Message: error"),
+    );
 
     await expect(generateUserSessionElevation()).rejects.toThrow(
         "Failed POST to /user/elevation. Code: 400. Message: error",

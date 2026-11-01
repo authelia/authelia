@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "WG-Portal"
 description: "Integrating WG-Portal with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [WG-Portal]
   - [v2.3.1](https://github.com/h44z/wg-portal/releases/tag/v2.3.1)
 

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -5,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/url"
 	"strings"
 	"text/tabwriter"
 
@@ -190,11 +193,6 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 		return subject, object, err
 	}
 
-	parsedURL, err := url.ParseRequestURI(requestURL)
-	if err != nil {
-		return subject, object, err
-	}
-
 	method, err := cmd.Flags().GetString("method")
 	if err != nil {
 		return subject, object, err
@@ -217,13 +215,17 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 
 	parsedIP := net.ParseIP(remoteIP)
 
+	var requestedObject *authorization.Object
+
+	if requestedObject, err = authorization.NewObjectMethodURL([]byte(method), []byte(requestURL)); err != nil {
+		return subject, object, err
+	}
+
 	subject = authorization.Subject{
 		Username: username,
 		Groups:   groups,
 		IP:       parsedIP,
 	}
 
-	object = authorization.NewObject(parsedURL, method)
-
-	return subject, object, nil
+	return subject, *requestedObject, nil
 }

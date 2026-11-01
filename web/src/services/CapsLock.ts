@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { KeyboardEvent } from "react";
 
 const safe = /^[0-9!@#$%^&*)(+=[{\]};:'",<.>/?\\|`~_-]$/i;

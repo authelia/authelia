@@ -1,14 +1,21 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
@@ -91,6 +98,8 @@ func TestGetAuthzRedirectStatusCode(t *testing.T) {
 		Method   string
 		Accept   string
 		XHR      bool
+		Mode     string
+		Dest     string
 		Expected int
 	}{
 		{
@@ -172,6 +181,76 @@ func TestGetAuthzRedirectStatusCode(t *testing.T) {
 			Method:   fasthttp.MethodGet,
 			Expected: fasthttp.StatusUnauthorized,
 		},
+		{
+			Name:     "ShouldReturnFoundForNavigate",
+			Method:   fasthttp.MethodGet,
+			Accept:   "text/html",
+			Mode:     "navigate",
+			Dest:     "document",
+			Expected: fasthttp.StatusFound,
+		},
+		{
+			Name:     "ShouldReturnSeeOtherForNavigateWithPost",
+			Method:   fasthttp.MethodPost,
+			Accept:   "text/html",
+			Mode:     "navigate",
+			Dest:     "document",
+			Expected: fasthttp.StatusSeeOther,
+		},
+		{
+			Name:     "ShouldReturnFoundForNavigateWithoutDest",
+			Method:   fasthttp.MethodGet,
+			Mode:     "navigate",
+			Expected: fasthttp.StatusFound,
+		},
+		{
+			Name:     "ShouldReturnFoundForNavigateWhenHTMLNotAccepted",
+			Method:   fasthttp.MethodGet,
+			Accept:   "application/json",
+			Mode:     "navigate",
+			Dest:     "document",
+			Expected: fasthttp.StatusFound,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForFetchWithAcceptWildcard",
+			Method:   fasthttp.MethodGet,
+			Accept:   "*/*",
+			Mode:     "cors",
+			Dest:     "empty",
+			Expected: fasthttp.StatusUnauthorized,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForSameOriginFetch",
+			Method:   fasthttp.MethodGet,
+			Accept:   "text/html",
+			Mode:     "same-origin",
+			Dest:     "empty",
+			Expected: fasthttp.StatusUnauthorized,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForScript",
+			Method:   fasthttp.MethodGet,
+			Accept:   "*/*",
+			Mode:     "no-cors",
+			Dest:     "script",
+			Expected: fasthttp.StatusUnauthorized,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForWebSocket",
+			Method:   fasthttp.MethodGet,
+			Accept:   "*/*",
+			Mode:     "websocket",
+			Dest:     "websocket",
+			Expected: fasthttp.StatusUnauthorized,
+		},
+		{
+			Name:     "ShouldReturnUnauthorizedForIFrameNavigate",
+			Method:   fasthttp.MethodGet,
+			Accept:   "text/html",
+			Mode:     "navigate",
+			Dest:     "iframe",
+			Expected: fasthttp.StatusUnauthorized,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -185,6 +264,14 @@ func TestGetAuthzRedirectStatusCode(t *testing.T) {
 
 			if tc.XHR {
 				mock.Ctx.Request.Header.Set("X-Requested-With", "XMLHttpRequest")
+			}
+
+			if tc.Mode != "" {
+				mock.Ctx.Request.Header.Set("Sec-Fetch-Mode", tc.Mode)
+			}
+
+			if tc.Dest != "" {
+				mock.Ctx.Request.Header.Set("Sec-Fetch-Dest", tc.Dest)
 			}
 
 			assert.Equal(t, tc.Expected, getAuthzRedirectStatusCode(mock.Ctx, tc.Method))
@@ -365,6 +452,151 @@ func TestGetSafeAutheliaURL(t *testing.T) {
 				assert.EqualError(t, err, tc.Error)
 				assert.Nil(t, actual)
 			}
+		})
+	}
+}
+
+func TestAuthzHeaderValue(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     any
+		Expected string
+	}{
+		{
+			Name:     "ShouldHandleNil",
+			Have:     nil,
+			Expected: "",
+		},
+		{
+			Name:     "ShouldHandleString",
+			Have:     "john",
+			Expected: "john",
+		},
+		{
+			Name:     "ShouldJoinStringSlice",
+			Have:     []string{"admins", "dev"},
+			Expected: "admins,dev",
+		},
+		{
+			Name:     "ShouldJoinEmptyStringSlice",
+			Have:     []string{},
+			Expected: "",
+		},
+		{
+			Name:     "ShouldJoinAnySliceOfStrings",
+			Have:     []any{"admins", "dev"},
+			Expected: "admins,dev",
+		},
+		{
+			Name:     "ShouldJoinAnySliceOfMixedValues",
+			Have:     []any{"admins", 5, true, nil, 1.5},
+			Expected: "admins,5,true,,1.5",
+		},
+		{
+			Name:     "ShouldHandleBool",
+			Have:     false,
+			Expected: "false",
+		},
+		{
+			Name:     "ShouldHandleInt",
+			Have:     10000000,
+			Expected: "10000000",
+		},
+		{
+			Name:     "ShouldHandleInt64",
+			Have:     int64(-5),
+			Expected: "-5",
+		},
+		{
+			Name:     "ShouldHandleUint",
+			Have:     uint(5),
+			Expected: "5",
+		},
+		{
+			Name:     "ShouldHandleFloat64WithoutScientificNotation",
+			Have:     float64(10000000),
+			Expected: "10000000",
+		},
+		{
+			Name:     "ShouldHandleFloat64WithFraction",
+			Have:     1.5,
+			Expected: "1.5",
+		},
+		{
+			Name:     "ShouldHandleFloat32",
+			Have:     float32(1.5),
+			Expected: "1.5",
+		},
+		{
+			Name:     "ShouldHandleTime",
+			Have:     time.Date(2026, 9, 12, 17, 0, 0, 0, time.UTC),
+			Expected: "2026-09-12T17:00:00Z",
+		},
+		{
+			Name:     "ShouldFallbackToDefaultFormatting",
+			Have:     map[string]string{"abc": "123"},
+			Expected: "map[abc:123]",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, authzHeaderValue(tc.Have))
+		})
+	}
+}
+
+func TestAuthzHeadersRequireExtendedUserDetails(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     []AuthzHeader
+		Expected bool
+	}{
+		{
+			Name:     "ShouldNotRequireExtendedForNoHeaders",
+			Have:     nil,
+			Expected: false,
+		},
+		{
+			Name: "ShouldNotRequireExtendedForDefaultHeaders",
+			Have: []AuthzHeader{
+				{Key: []byte(schema.HeaderRemoteUser), Attribute: expression.AttributeUserUsername},
+				{Key: []byte(schema.HeaderRemoteGroups), Attribute: expression.AttributeUserGroups},
+				{Key: []byte(schema.HeaderRemoteName), Attribute: expression.AttributeUserDisplayName},
+				{Key: []byte(schema.HeaderRemoteEmail), Attribute: expression.AttributeUserEmail},
+			},
+			Expected: false,
+		},
+		{
+			Name: "ShouldNotRequireExtendedForOtherSessionAttributes",
+			Have: []AuthzHeader{
+				{Key: []byte("Remote-Emails"), Attribute: expression.AttributeUserEmails},
+				{Key: []byte("Remote-Emails-Extra"), Attribute: expression.AttributeUserEmailsExtra},
+				{Key: []byte("Remote-Email-Verified"), Attribute: expression.AttributeUserEmailVerified},
+				{Key: []byte("Remote-Updated-At"), Attribute: expression.AttributeUserUpdatedAt},
+			},
+			Expected: false,
+		},
+		{
+			Name: "ShouldRequireExtendedForStandardExtendedAttribute",
+			Have: []AuthzHeader{
+				{Key: []byte(schema.HeaderRemoteUser), Attribute: expression.AttributeUserUsername},
+				{Key: []byte("Remote-Given-Name"), Attribute: expression.AttributeUserGivenName},
+			},
+			Expected: true,
+		},
+		{
+			Name: "ShouldRequireExtendedForCustomAttribute",
+			Have: []AuthzHeader{
+				{Key: []byte("Remote-Teams"), Attribute: "teams"},
+			},
+			Expected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, authzHeadersRequireExtendedUserDetails(tc.Have))
 		})
 	}
 }

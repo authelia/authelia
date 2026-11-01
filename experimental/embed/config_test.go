@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package embed
 
 import (
@@ -24,6 +28,7 @@ func TestNewConfiguration(t *testing.T) {
 			paths: []string{"../../internal/configuration/test_resources/config.webauthn.yml"},
 			keys: []string{
 				"regulation.max_retries",
+				"server.endpoints.rate_limits.health.enable",
 				"server.endpoints.rate_limits.openid_connect_introspection.enable",
 				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
 				"server.endpoints.rate_limits.openid_connect_revocation.enable",
@@ -101,6 +106,7 @@ func TestNewConfiguration(t *testing.T) {
 				"server.endpoints.authz.forward-auth.authn_strategies[].name",
 				"server.endpoints.authz.forward-auth.implementation",
 				"server.endpoints.authz.legacy.implementation",
+				"server.endpoints.rate_limits.health.enable",
 				"server.endpoints.rate_limits.openid_connect_introspection.enable",
 				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
 				"server.endpoints.rate_limits.openid_connect_revocation.enable",
@@ -200,11 +206,11 @@ func TestNewConfiguration(t *testing.T) {
 }
 
 func TestNewNamedConfigFileFilters(t *testing.T) {
-	filters, err := NewNamedConfigFileFilters("abc")
+	filters, err := NewNamedConfigFileFilters(nil, "", "", "abc")
 	assert.Nil(t, filters)
 	assert.EqualError(t, err, "error occurred loading filters: invalid filter named 'abc'")
 
-	filters, err = NewNamedConfigFileFilters("template")
+	filters, err = NewNamedConfigFileFilters(nil, "", "", "template")
 	assert.NotNil(t, filters)
 	assert.NoError(t, err)
 }

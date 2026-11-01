@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -363,6 +367,7 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 		ExpiresAt: sql.NullTime{Time: ctx.GetClock().Now().Add(client.GetConsentPolicy().Duration), Valid: true},
 		Scopes:    consent.GrantedScopes,
 		Audience:  consent.GrantedAudience,
+		Resource:  consent.GrantedResource,
 	}
 
 	var (

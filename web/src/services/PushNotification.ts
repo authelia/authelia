@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import {
     CompleteDuoDeviceSelectionPath,
     CompletePushNotificationSignInPath,
     InitiateDuoDeviceSelectionPath,
 } from "@services/Api";
-import { Get, PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client";
+import { Get, PostWithOptionalResponse } from "@services/Client";
 
 interface CompletePushSignInBody {
     targetURL?: string;
@@ -29,7 +33,7 @@ export function completePushNotificationSignIn(
         userCode,
     };
 
-    return PostWithOptionalResponseRateLimited<DuoSignInResponse>(CompletePushNotificationSignInPath, body, signal);
+    return PostWithOptionalResponse<DuoSignInResponse>(CompletePushNotificationSignInPath, body, signal);
 }
 
 export interface DuoSignInResponse {

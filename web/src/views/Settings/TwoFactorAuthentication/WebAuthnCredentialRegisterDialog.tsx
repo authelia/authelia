@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
@@ -130,7 +134,9 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         }
 
         (async function () {
-            if (description.length === 0 || description.length > 64) {
+            const trimmed = description.trim();
+
+            if (trimmed.length === 0 || trimmed.length > 64) {
                 setErrorDescription(true);
                 createErrorNotification(
                     translate("The Description must be more than 1 character and less than 64 characters"),
@@ -139,7 +145,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 return;
             }
 
-            const res = await getWebAuthnRegistrationOptions(description);
+            const res = await getWebAuthnRegistrationOptions(trimmed);
 
             switch (res.status) {
                 case 200:

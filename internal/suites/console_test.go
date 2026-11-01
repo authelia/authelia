@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 //go:build !externalsuites
 // +build !externalsuites
 
@@ -20,7 +24,7 @@ console.warn('a warning');
 console.error('an error');
 Promise.reject(new Error('a rejection'));
 setTimeout(() => { throw new Error('an exception') }, 0);
-</script></body></html>`
+</script><div id="reported"></div></body></html>`
 
 type consoleRecord struct {
 	Installed bool `json:"installed"`
@@ -66,7 +70,8 @@ func TestConsoleCollector(t *testing.T) {
 	t.Run("ShouldReportThatItWasNotInstalled", func(t *testing.T) {
 		page, err := session.WebDriver.Page(proto.TargetCreateTarget{URL: server.URL})
 		require.NoError(t, err)
-		require.NoError(t, page.WaitLoad())
+
+		session.WaitElementLocatedByID(t, page, "reported")
 
 		record := read(t, page)
 
@@ -81,7 +86,8 @@ func TestConsoleCollector(t *testing.T) {
 		session := newVisitSession(t)
 
 		page := session.doCreateTab(t, server.URL)
-		require.NoError(t, page.WaitLoad())
+
+		session.WaitElementLocatedByID(t, page, "reported")
 
 		record := read(t, page)
 
@@ -106,7 +112,8 @@ func TestConsoleCollector(t *testing.T) {
 		// Installed ahead of the navigation rather than on the document in front of it, which is how the
 		// suites install it: the load a test fails on is a later one than the tab was opened at.
 		require.NoError(t, page.Navigate(server.URL))
-		require.NoError(t, page.WaitLoad())
+
+		session.WaitElementLocatedByID(t, page, "reported")
 
 		record := read(t, page)
 

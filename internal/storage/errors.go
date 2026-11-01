@@ -1,7 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
 	"errors"
+
+	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -66,9 +74,64 @@ const (
 	logFmtMigrationFromTo   = "Storage schema migration from %s to %s is being attempted"
 	logFmtMigrationComplete = "Storage schema migration from %s to %s is complete"
 	logFmtErrClosingConn    = "Error occurred closing SQL connection: %v"
+
+	logFmtEncryptionChangeKeyTableComplete = "Finished re-encrypting %d row(s) in table '%s'"
 )
 
 const (
 	errFmtMigrationPre1                 = "schema migration %s pre1 is no longer supported: you must use an older version of authelia to perform this migration: %s"
 	errFmtMigrationPre1SuggestedVersion = "the suggested authelia version is 4.37.2"
 )
+
+// IsSerializationFailure returns true when the error indicates the database could not guarantee the serializable
+// execution of a transaction, which covers SQLite lock contention, MySQL deadlocks and lock wait timeouts, and
+// PostgreSQL serialization failures and deadlocks. Operations which fail this way have not been applied and may
+// succeed if they are attempted again.
+func IsSerializationFailure(err error) (failure bool) {
+	if err == nil {
+		return false
+	}
+
+	var (
+		errSQLite   sqlite3.Error
+		errMySQL    *mysql.MySQLError
+		errPostgres *pgconn.PgError
+	)
+
+	switch {
+	case errors.As(err, &errSQLite):
+		return errSQLite.Code == sqlite3.ErrBusy || errSQLite.Code == sqlite3.ErrLocked
+	case errors.As(err, &errMySQL):
+		return errMySQL.Number == codeMySQLLockDeadlock || errMySQL.Number == codeMySQLLockWaitTimeout
+	case errors.As(err, &errPostgres):
+		return errPostgres.Code == codePostgresSerializationFailure || errPostgres.Code == codePostgresDeadlockDetected
+	default:
+		return false
+	}
+}
+
+// IsUniqueConstraintViolation returns true when the error indicates a statement was rejected because it would have
+// duplicated a value in a column or set of columns with a unique constraint, which is what a concurrent insert of the
+// same row fails with. The statement has not been applied, and the row which it conflicted with exists.
+func IsUniqueConstraintViolation(err error) (violation bool) {
+	if err == nil {
+		return false
+	}
+
+	var (
+		errSQLite   sqlite3.Error
+		errMySQL    *mysql.MySQLError
+		errPostgres *pgconn.PgError
+	)
+
+	switch {
+	case errors.As(err, &errSQLite):
+		return errSQLite.ExtendedCode == sqlite3.ErrConstraintUnique
+	case errors.As(err, &errMySQL):
+		return errMySQL.Number == codeMySQLDuplicateEntry
+	case errors.As(err, &errPostgres):
+		return errPostgres.Code == codePostgresUniqueViolation
+	default:
+		return false
+	}
+}

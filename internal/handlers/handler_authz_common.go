@@ -1,13 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
-	"fmt"
 	"net/url"
 	"strings"
 
 	"github.com/valyala/fasthttp"
-
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func handleAuthzUnauthorizedCommon(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
@@ -34,19 +35,40 @@ func handleAuthzPortalURLFromQueryLegacy(ctx AuthzContext) (portalURL *url.URL, 
 	return parseAuthzPortalURL(ctx.GetRequestQueryArgValue(qryArgRD))
 }
 
-func handleAuthzAuthorizedStandard(ctx AuthzContext, authn *Authn) {
+func handleAuthzAuthorizedStandard(ctx AuthzContext, headers []AuthzHeader, authn *Authn) {
 	ctx.ReplyStatusCode(fasthttp.StatusOK)
 
-	if authn.Details.Username != "" {
-		ctx.SetResponseHeaderValue(headerRemoteUser, authn.Details.Username)
-		ctx.SetResponseHeaderValue(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
-		ctx.SetResponseHeaderValue(headerRemoteName, authn.Details.DisplayName)
+	if authn.Details.GetUsername() == "" {
+		return
+	}
 
-		switch len(authn.Details.Emails) {
+	resolver, updated := ctx.GetProviderUserAttributeResolver(), ctx.GetClock().Now()
+
+	for _, header := range headers {
+		object, ok := resolver.Resolve(header.Attribute, authn.Details, updated)
+		if !ok {
+			ctx.SetResponseHeaderValue(header.Key, "")
+
+			continue
+		}
+
+		ctx.SetResponseHeaderValue(header.Key, authzHeaderValue(object))
+	}
+}
+
+func handleAuthzAuthorizedLegacy(ctx AuthzContext, _ []AuthzHeader, authn *Authn) {
+	ctx.ReplyStatusCode(fasthttp.StatusOK)
+
+	if authn.Details.GetUsername() != "" {
+		ctx.SetResponseHeaderValue(headerRemoteUser, authn.Details.GetUsername())
+		ctx.SetResponseHeaderValue(headerRemoteGroups, strings.Join(authn.Details.GetGroups(), ","))
+		ctx.SetResponseHeaderValue(headerRemoteName, authn.Details.GetDisplayName())
+
+		switch emails := authn.Details.GetEmails(); len(emails) {
 		case 0:
 			ctx.SetResponseHeaderValue(headerRemoteEmail, "")
 		default:
-			ctx.SetResponseHeaderValue(headerRemoteEmail, authn.Details.Emails[0])
+			ctx.SetResponseHeaderValue(headerRemoteEmail, emails[0])
 		}
 	}
 }
@@ -57,34 +79,4 @@ func handleAuthzUnauthorizedAuthorizationBasic(ctx AuthzContext, authn *Authn) {
 	ctx.ReplyUnauthorized()
 
 	ctx.SetResponseHeaderValueBytes(headerWWWAuthenticate, headerValueAuthenticateBasic)
-}
-
-var protoHostSeparator = []byte("://")
-
-func getRequestURIFromForwardedHeaders(protocol, host, uri []byte) (requestURI *url.URL, err error) {
-	if len(protocol) == 0 {
-		return nil, fmt.Errorf("missing protocol value")
-	}
-
-	if len(host) == 0 {
-		return nil, fmt.Errorf("missing host value")
-	}
-
-	value := utils.BytesJoin(protocol, protoHostSeparator, host, uri)
-
-	if requestURI, err = url.ParseRequestURI(string(value)); err != nil {
-		return nil, fmt.Errorf("failed to parse forwarded headers: %w", err)
-	}
-
-	return requestURI, nil
-}
-
-func hasInvalidMethodCharacters(v []byte) bool {
-	for _, c := range v {
-		if c < 0x41 || c > 0x5A {
-			return true
-		}
-	}
-
-	return false
 }

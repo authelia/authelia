@@ -1,10 +1,20 @@
-FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+FROM node:26-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94
 
 WORKDIR /usr/app/src
 
-COPY --link package.json pnpm-lock.yaml ./
+ENV \
+    SHELL="/bin/sh" \
+    PNPM_HOME="/usr/local"
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile --prod
+COPY --link package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+RUN wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/7c26e549143daf5cf072a38c428170ad8eccaf2d/install.sh && \
+    ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
+    pnpm install --frozen-lockfile --prod
 
 EXPOSE 3000
 

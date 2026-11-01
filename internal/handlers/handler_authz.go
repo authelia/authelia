@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -68,8 +72,15 @@ type AuthzContext interface {
 	// XForwardedHost should return the X-Forwarded-Host header of the request.
 	XForwardedHost() (host []byte)
 
+	// GetXForwardedHost should return the X-Forwarded-Host header of the request falling back to the Host header.
+	GetXForwardedHost() (host []byte)
+
 	// XForwardedURI should return the X-Forwarded-URI header of the request.
 	XForwardedURI() (uri []byte)
+
+	// GetXForwardedURI should return the X-Forwarded-URI header of the request falling back to the start line request
+	// path.
+	GetXForwardedURI() (uri []byte)
 
 	// XOriginalMethod should return the X-Original-Method header of the request.
 	XOriginalMethod() (method []byte)
@@ -107,11 +118,8 @@ type AuthzContext interface {
 	// AuthzPath should return the path of the authorization request.
 	AuthzPath() (uri []byte)
 
-	// IsXHR should return true if the request is an XHR.
-	IsXHR() (xhr bool)
-
-	// AcceptsMIME should return true if the request accepts the given MIME type.
-	AcceptsMIME(mime string) (ok bool)
+	// IsNavigation should return true if the request is a top-level browser navigation.
+	IsNavigation() (navigation bool)
 
 	// ReplyStatusCode should reply with the given status code.
 	ReplyStatusCode(statusCode int)
@@ -195,8 +203,8 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 
 	ruleHasSubject, required := ctx.GetProviders().Authorizer.GetRequiredLevel(
 		authorization.Subject{
-			Username: authn.Details.Username,
-			Groups:   authn.Details.Groups,
+			Username: authn.Details.GetUsername(),
+			Groups:   authn.Details.GetGroups(),
 			ClientID: authn.ClientID,
 			IP:       ctx.RemoteIP(),
 		},
@@ -206,20 +214,23 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	if err != nil {
 		authn.Object = object
 
-		if !ruleHasSubject && required != authorization.Bypass {
-			switch {
-			case strategy == nil:
-				ctx.ReplyUnauthorized()
-			case strategy.HeaderStrategy():
-				ctx.GetLogger().WithError(err).Error("Error occurred while attempting to authenticate a request")
+		if !ruleHasSubject {
+			switch required {
+			case authorization.Bypass:
+				ctx.GetLogger().WithError(err).Debug("The matched rule was a bypass rule however an error occurred processing the authorization request")
+			default:
+				switch {
+				case strategy == nil:
+					ctx.ReplyUnauthorized()
+				case strategy.HeaderStrategy():
+					ctx.GetLogger().WithError(err).Error("Error occurred while attempting to authenticate a request")
 
-				strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
+					strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
 
-				return
+					return
+				}
 			}
 		}
-
-		ctx.GetLogger().WithError(err).Debug("Error occurred while attempting to authenticate a request but the matched rule was a bypass rule")
 	}
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
@@ -237,7 +248,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 
 		handler(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
 	case AuthzResultAuthorized:
-		authz.handleAuthorized(ctx, authn)
+		authz.handleAuthorized(ctx, authz.headers, authn)
 	}
 }
 
@@ -293,7 +304,7 @@ func (authz *Authz) authn(ctx AuthzContext, manager session.Manager, object *aut
 			authn.Level = authentication.NotAuthenticated
 			authn.Username = anonymous
 			authn.ClientID = ""
-			authn.Details = authentication.UserDetails{}
+			authn.Details = &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
 
 			if strategy.CanHandleUnauthorized() {
 				return authn, strategy, err
@@ -307,7 +318,7 @@ func (authz *Authz) authn(ctx AuthzContext, manager session.Manager, object *aut
 		}
 	}
 
-	if strategy.CanHandleUnauthorized() {
+	if strategy != nil && strategy.CanHandleUnauthorized() {
 		return authn, strategy, err
 	}
 

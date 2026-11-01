@@ -1,20 +1,28 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import PasswordMeter from "@components/PasswordMeter";
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import { Button } from "@components/UI/Button";
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
+import { useRateLimit } from "@hooks/RateLimit";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
+import { RateLimitedError } from "@services/RateLimit";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
 
 const uninitiated = Symbol("uninitiated");
@@ -29,7 +37,7 @@ const ResetPasswordStep2 = function () {
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createErrorNotification, createSuccessNotification } = useNotifications();
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
+    const { showPassword, toggleProps } = usePasswordVisibility();
 
     const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
         max_length: 0,
@@ -47,20 +55,27 @@ const ResetPasswordStep2 = function () {
     const processToken = useQueryParam(IdentityToken);
 
     const resetInitiatedRef = useRef<null | string | typeof uninitiated | undefined>(uninitiated);
+    const [attempt, setAttempt] = useState(0);
+    const attemptInitiatedRef = useRef(attempt);
+
+    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() => setAttempt((value) => value + 1));
 
     const handleRateLimited = useCallback(
-        (_retryAfter: number) => {
-            createErrorNotification(translate("You have made too many requests")); // TODO: Do we want to add the amount of seconds a user should retry in the message?
+        (retryAfter: number) => {
+            triggerRateLimit(retryAfter);
+
+            createErrorNotification(translate("You have made too many requests"));
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, triggerRateLimit],
     );
 
     useEffect(() => {
-        if (resetInitiatedRef.current === processToken) {
+        if (resetInitiatedRef.current === processToken && attemptInitiatedRef.current === attempt) {
             return;
         }
 
         resetInitiatedRef.current = processToken;
+        attemptInitiatedRef.current = attempt;
 
         const submitReset = async () => {
             if (!processToken) {
@@ -70,17 +85,17 @@ const ResetPasswordStep2 = function () {
             }
 
             try {
-                const response = await completeResetPasswordProcess(processToken);
-
-                if (response?.limited) {
-                    handleRateLimited(response.retryAfter);
-                    return;
-                }
+                await completeResetPasswordProcess(processToken);
 
                 const policy = await getPasswordPolicyConfiguration();
                 setPPolicy(policy);
                 setFormDisabled(false);
             } catch (err) {
+                if (err instanceof RateLimitedError) {
+                    handleRateLimited(err.retryAfter);
+                    return;
+                }
+
                 console.error(err);
                 createErrorNotification(
                     translate("There was an issue completing the process the verification token might have expired"),
@@ -90,11 +105,13 @@ const ResetPasswordStep2 = function () {
         };
 
         submitReset().catch(console.error);
-    }, [processToken, createErrorNotification, translate, handleRateLimited]);
+    }, [attempt, processToken, createErrorNotification, translate, handleRateLimited]);
 
     const doResetPassword = async () => {
         setPassword1("");
         setPassword2("");
+        setErrorPassword1(false);
+        setErrorPassword2(false);
 
         if (password1 === "" || password2 === "") {
             if (password1 === "") {
@@ -129,6 +146,8 @@ const ResetPasswordStep2 = function () {
             } else {
                 createErrorNotification(translate("There was an issue resetting the password"));
             }
+
+            setFormDisabled(false);
         }
     };
 
@@ -155,32 +174,11 @@ const ResetPasswordStep2 = function () {
                                 className="pr-10"
                                 autoComplete="new-password"
                             />
-                            <button
-                                type="button"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                                aria-label={translate("Toggle password visibility")}
-                                aria-pressed={showPassword}
-                                onMouseDown={() => setShowPassword(true)}
-                                onMouseUp={() => setShowPassword(false)}
-                                onMouseLeave={() => setShowPassword(false)}
-                                onTouchStart={() => setShowPassword(true)}
-                                onTouchEnd={() => setShowPassword(false)}
-                                onTouchCancel={() => setShowPassword(false)}
-                                onKeyDown={(e) => {
-                                    if (e.key === " " || e.key === "Enter") {
-                                        setShowPassword(true);
-                                        e.preventDefault();
-                                    }
-                                }}
-                                onKeyUp={(e) => {
-                                    if (e.key === " " || e.key === "Enter") {
-                                        setShowPassword(false);
-                                        e.preventDefault();
-                                    }
-                                }}
-                            >
-                                {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                            </button>
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle password visibility")}
+                                showPassword={showPassword}
+                                {...toggleProps}
+                            />
                         </div>
                         {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                             <PasswordMeter value={password1} policy={pPolicy} />
@@ -229,6 +227,7 @@ const ResetPasswordStep2 = function () {
                             </Button>
                         </div>
                     </div>
+                    <RateLimitCountdown secondsRemaining={secondsRemaining} />
                 </div>
             </div>
         </MinimalLayout>

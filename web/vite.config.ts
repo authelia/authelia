@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
@@ -107,8 +111,9 @@ export default defineConfig(({ mode }) => {
         },
         test: {
             coverage: {
-                include: ["src"],
+                include: ["src/**/*.{js,jsx,ts,tsx}"],
                 provider: "istanbul",
+                reporter: ["text", "html", "clover", "json", "lcovonly"],
             },
             environment: "happy-dom",
             globals: true,

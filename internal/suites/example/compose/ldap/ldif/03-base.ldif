@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 dn: cn=pwmanager,{{ LDAP_BASE_DN }}
 cn: Password Manager
 displayName: Password Manager

@@ -1,24 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 [build]
   publish = "public"
   functions = "functions"
-  command = "pnpm build"
+  command = "./tool/build"
 
 [build.environment]
   NODE_VERSION = "24.13.1"
   NPM_VERSION = "11.8.0"
-  HUGO_VERSION = "0.164.0"
+  HUGO_VERSION = "0.169.0"
   GO_VERSION = "1.26.1"
-  DART_SASS_VERSION = "1.97.3"
+  DART_SASS_VERSION = "1.107.1"
   PNPM_FLAGS = "--no-optional"
 
 [context.staging]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
+  command = "./tool/build -b $DEPLOY_PRIME_URL"
 
 [context.deploy-preview]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
+  command = "./tool/build -b $DEPLOY_PRIME_URL"
 
 [context.branch-deploy]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
+  command = "./tool/build -b $DEPLOY_PRIME_URL"
 
 [context.next.environment]
   HUGO_ENV = "next"
@@ -30,11 +34,6 @@
   port = 8888
   publish = "public"
   autoLaunch = false
-
-[[redirects]]
-	from = "/*"
-	to = "/404/"
-	status = 404
 
 [[redirects]]
   from = "/l/apt"
@@ -81,6 +80,11 @@
   to = "/configuration/security/access-control/#rule-matching-concept-2-subject-criteria-requires-authentication"
   status = 301
 
+[[redirects]]
+  from = "/*"
+  to = "/404/"
+  status = 404
+
 [[headers]]
   for = "/*"
   [headers.values]
@@ -94,3 +98,18 @@
     Permissions-Policy = "geolocation=(self), microphone=(), camera=()"
     Cache-Control = "no-cache"
     Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/client/*"
+  [headers.values]
+    Content-Type = "text/html; charset=UTF-8"
+
+[[headers]]
+  for = "/provider/*"
+  [headers.values]
+    Content-Type = "text/html; charset=UTF-8"
+
+[[headers]]
+  for = "/tools/*"
+  [headers.values]
+    Content-Type = "text/html; charset=UTF-8"

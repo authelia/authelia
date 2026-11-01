@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -92,6 +96,15 @@ const (
 	lifespanRFC8628CodeDefault                = time.Minute * 10
 	lifespanRFC8628PollingIntervalDefault     = time.Second * 10
 	lifespanVerifiableCredentialsNonceDefault = time.Hour
+	lifespanRequestObjectMaximumDefault       = time.Hour
+	jwtClockSkewDefault                       = time.Second * 10
+	jwtClockSkewMaximum                       = time.Minute
+	lifespanDPoPProofDefault                  = time.Second * 10
+	lifespanBackChannelLogoutDefault          = time.Minute * 5
+)
+
+const (
+	backChannelLogoutConcurrencyDefault = 10
 )
 
 // Redirect URI prefix strings.
@@ -165,6 +178,13 @@ const (
 	SigningAlgHMACUsingSHA256 = "HS256"
 	SigningAlgHMACUsingSHA384 = "HS384"
 	SigningAlgHMACUsingSHA512 = "HS512"
+
+	SigningAlgEd25519 = "Ed25519"
+	SigningAlgEdDSA   = "EdDSA"
+
+	SigningAlgMLDSA44 = "ML-DSA-44"
+	SigningAlgMLDSA65 = "ML-DSA-65"
+	SigningAlgMLDSA87 = "ML-DSA-87"
 )
 
 // JSON Web Encryption Algorithm strings.
@@ -205,6 +225,8 @@ const (
 	SigningAlgPrefixHMAC   = "HS"
 	SigningAlgPrefixRSAPSS = "PS"
 	SigningAlgPrefixECDSA  = "ES"
+	SigningAlgPrefixEdDSA  = "Ed"
+	SigningAlgPrefixMLDSA  = "ML"
 )
 
 // Key Use strings.

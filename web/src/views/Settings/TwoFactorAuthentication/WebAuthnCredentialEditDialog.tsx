@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
@@ -37,12 +41,16 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
     };
 
     const handleUpdate = () => {
-        if (credentialDescription.length === 0) {
+        const description = credentialDescription.trim();
+
+        if (description.length === 0) {
             setErrorDescription(true);
-        } else {
-            handleEdit(credentialDescription).catch(console.error);
-            props.handleClose();
+
+            return;
         }
+
+        handleEdit(description).catch(console.error);
+        props.handleClose();
         handleReset();
     };
 
@@ -146,7 +154,7 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                         id={"dialog-update"}
                         variant={"ghost"}
                         color={"primary"}
-                        disabled={credentialDescription.length === 0}
+                        disabled={credentialDescription.trim().length === 0}
                         onClick={handleUpdate}
                     >
                         {translate("Update")}

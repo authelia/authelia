@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 //go:build !externalsuites
 // +build !externalsuites
 
@@ -48,7 +52,6 @@ func TestWaitElementLocatedBySelector(t *testing.T) {
 	newPage := func(t *testing.T) *rod.Page {
 		page, err := session.WebDriver.Page(proto.TargetCreateTarget{URL: server.URL})
 		require.NoError(t, err)
-		require.NoError(t, page.WaitLoad())
 
 		return page
 	}

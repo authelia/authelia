@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "WebAuthn"
-description: "Configuring the WebAuthn Second Factor Method."
+description: "Configuring the Authelia WebAuthn second factor method including passkey login, attestation preferences, device filtering, and FIDO2 metadata service."
 summary: "WebAuthn is the modern browser security key specification that Authelia supports. This section describes configuring it."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -68,6 +72,8 @@ This disables WebAuthn if set to true.
 
 Enables login via a Passkey instead of a username and password. This login only counts as a single factor. The user will
 be prompted for their password by default if the request requires multi-factor authentication.
+
+Please see the note about how this operates in relation to [remember_me](../session/introduction.md#remember_me-1)
 
 ### experimental_enable_passkey_uv_two_factors
 

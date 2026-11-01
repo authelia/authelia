@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Jira"
-description: "Trusted Header SSO Integration for Jira"
+description: "A guide on integrating Authelia with Jira via the Trusted Header SSO authentication method including proxy configuration examples, tested versions, and caveats."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

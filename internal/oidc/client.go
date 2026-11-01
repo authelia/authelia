@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -5,9 +9,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
-
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/token/jose" // TODO: Review adjusting back to upstream if ML-DSA PR #282 is accepted, as well as pending significant fixes.
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
 
@@ -547,6 +550,7 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 	if session != nil {
 		body.Scopes = session.GetRequestedScopes()
 		body.Audience = session.GetRequestedAudience()
+		body.Resource = session.GetRequestedResource()
 
 		var (
 			claims *ClaimsRequests
@@ -675,10 +679,30 @@ func (c *RegisteredClient) GetRequestObjectSigningKeyID() (kid string) {
 	return ""
 }
 
+// GetRequireSignedRequestObject returns false as this implementation exposes no client metadata value which requires
+// an authorization request be provided as a Request Object.
+func (c *RegisteredClient) GetRequireSignedRequestObject() (require bool) {
+	return false
+}
+
 // GetRequestObjectSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
 // Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
 func (c *RegisteredClient) GetRequestObjectSigningAlg() (alg string) {
 	return c.RequestObjectSigningAlg
+}
+
+// GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType returns true when the client is registered to send
+// unsigned request objects, allowing one without a 'typ' header. Explicit typing guards a signed request object against
+// being confused with another JWT, which an unsigned one carries no signature to be, and OpenID Connect 1.0 does not
+// require the header of a request object.
+func (c *RegisteredClient) GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType() (allow bool) {
+	return c.RequestObjectSigningAlg == SigningAlgNone
+}
+
+// GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowTypes returns no types, which leaves the default 'typ'
+// header values a request object may have in place.
+func (c *RegisteredClient) GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowTypes() (types []string) {
+	return nil
 }
 
 // GetRequestObjectEncryptionKeyID returns the specific key identifier used to satisfy JWE requirements of the

@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 GITTAG=$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')
 
-echo "--- :linux: Deploy AUR package: ${PACKAGE}"
+echo "--- :arch: Deploy AUR package: ${PACKAGE}"
 git clone ssh://aur@aur.archlinux.org/"${PACKAGE}".git
 cd "${PACKAGE}" || exit
 

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -844,6 +848,10 @@ func GrantScopeAudienceConsent(r oauthelia2.Requester, consent *model.OAuth2Cons
 
 	for _, audience := range consent.GrantedAudience {
 		r.GrantAudience(audience)
+	}
+
+	for _, resource := range consent.GrantedResource {
+		r.GrantResource(resource)
 	}
 }
 

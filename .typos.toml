@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 [default]
 locale = "en-us"
 
@@ -58,6 +62,7 @@ ignore-hidden = false
 extend-exclude = [
     ".git/",
     ".claude/",
+    "_tmp_*",
     "*.svg",
     "go.sum",
     "*-lock.yaml",

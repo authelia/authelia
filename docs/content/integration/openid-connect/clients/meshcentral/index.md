@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "MeshCentral"
-description: "Integrating MeshCentral with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating MeshCentral with the Authelia OpenID Connect 1.0 Provider with example configuration for single sign-on (SSO) and available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [MeshCentral]
   - [v1.1.44](https://github.com/Ylianst/MeshCentral/releases/tag/1.1.44)
 

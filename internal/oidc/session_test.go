@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
@@ -27,6 +31,64 @@ func TestOpenIDSession(t *testing.T) {
 	session = nil
 
 	assert.Nil(t, session.Clone())
+}
+
+func TestSession_Clone(t *testing.T) {
+	session := &oidc.Session{
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Subject: "abc",
+				Extra:   map[string]any{"a": "b"},
+			},
+			Headers:  &jwt.Headers{Extra: map[string]any{"kid": "123"}},
+			Username: "john",
+		},
+		AccessToken: &oidc.AccessTokenSession{
+			Headers: map[string]any{"typ": "at+jwt"},
+			Claims:  map[string]any{"iss": "https://auth.example.com"},
+		},
+		ChallengeID:           uuid.NullUUID{UUID: uuid.MustParse("0b8a1b7e-1f1e-4c5c-9f4c-3c6f1f8b2d5a"), Valid: true},
+		ClientID:              "client",
+		ClientCredentials:     true,
+		ExcludeNotBeforeClaim: true,
+		AllowedTopLevelClaims: []string{"email"},
+		ClaimRequests: &oidc.ClaimsRequests{
+			IDToken:  map[string]*oidc.ClaimRequest{"email": {Essential: true, Values: []any{"a"}}, "nil": nil},
+			UserInfo: map[string]*oidc.ClaimRequest{"name": {Value: "john"}},
+		},
+		GrantedClaims: []string{"email"},
+		Extra:         map[string]any{"x": "y"},
+	}
+
+	clone, ok := session.Clone().(*oidc.Session)
+	require.True(t, ok)
+
+	assert.Equal(t, session, clone)
+
+	clone.Claims.Extra["a"] = "changed"
+	clone.Headers.Extra["kid"] = "changed"
+	clone.AccessToken.Headers["typ"] = "changed"
+	clone.AccessToken.Claims["iss"] = "changed"
+	clone.AllowedTopLevelClaims[0] = "changed"
+	clone.ClaimRequests.IDToken["email"].Values[0] = "changed"
+	clone.ClaimRequests.UserInfo["name"].Value = "changed"
+	clone.GrantedClaims[0] = "changed"
+	clone.Extra["x"] = "changed"
+
+	assert.Equal(t, "b", session.Claims.Extra["a"])
+	assert.Equal(t, "123", session.Headers.Extra["kid"])
+	assert.Equal(t, "at+jwt", session.AccessToken.Headers["typ"])
+	assert.Equal(t, "https://auth.example.com", session.AccessToken.Claims["iss"])
+	assert.Equal(t, "email", session.AllowedTopLevelClaims[0])
+	assert.Equal(t, "a", session.ClaimRequests.IDToken["email"].Values[0])
+	assert.Equal(t, "john", session.ClaimRequests.UserInfo["name"].Value)
+	assert.Equal(t, "email", session.GrantedClaims[0])
+	assert.Equal(t, "y", session.Extra["x"])
+
+	clone, ok = (&oidc.Session{}).Clone().(*oidc.Session)
+	require.True(t, ok)
+
+	assert.Equal(t, &oidc.Session{}, clone)
 }
 
 func TestSession_ValidIssuer(t *testing.T) {
@@ -445,12 +507,14 @@ func TestConsentGrant(t *testing.T) {
 			consent := &model.OAuth2ConsentSession{
 				RequestedScopes:   tc.requestedScopes,
 				RequestedAudience: model.StringSlicePipeDelimited{"https://example.com"},
+				RequestedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
 			}
 
 			oidc.ConsentGrant(consent, tc.explicit, tc.claims)
 
 			assert.Equal(t, model.StringSlicePipeDelimited(tc.expectedScopes), consent.GrantedScopes)
 			assert.Equal(t, model.StringSlicePipeDelimited{"https://example.com"}, consent.GrantedAudience)
+			assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, consent.GrantedResource)
 
 			if tc.expectedClaims != nil {
 				assert.Equal(t, model.StringSlicePipeDelimited(tc.expectedClaims), consent.GrantedClaims)
@@ -497,6 +561,41 @@ func TestConsentGrantImplicit(t *testing.T) {
 			assert.True(t, consent.Subject.Valid)
 			assert.Equal(t, subject, consent.Subject.UUID)
 			assert.True(t, consent.RespondedAt.Valid)
+		})
+	}
+}
+
+func TestSession_GetStorageSubject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.Session
+		expected string
+	}{
+		{
+			"ShouldReturnEmptyWhenSessionNil",
+			nil,
+			"",
+		},
+		{
+			"ShouldReturnEmptyWhenDefaultSessionNil",
+			&oidc.Session{},
+			"",
+		},
+		{
+			"ShouldReturnSubject",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Subject: "john"}},
+			"john",
+		},
+		{
+			"ShouldNotReturnClientIDForClientCredentials",
+			&oidc.Session{ClientID: "example", ClientCredentials: true, DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{Subject: "example"}}},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetStorageSubject())
 		})
 	}
 }

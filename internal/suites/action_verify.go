@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -15,10 +19,7 @@ func (rs *RodSession) isVerifyIdentityShowing(t *testing.T, page *rod.Page, othe
 
 	require.NoError(t, err)
 
-	has, _, err := page.Has("#dialog-verify-one-time-code")
-	require.NoError(t, err)
-
-	return has
+	return rs.CheckElementExistsLocatedByID(t, page, "dialog-verify-one-time-code")
 }
 
 func (rs *RodSession) doMaybeVerifyIdentity(t *testing.T, page *rod.Page, otherwise string) {

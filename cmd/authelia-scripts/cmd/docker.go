@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package cmd
 
 import (
@@ -11,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var container string
+var container, intermediateTag string
 
 var (
 	containers       = []string{"dev", "coverage"}
@@ -23,6 +27,7 @@ var (
 	dockerTags       = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 	ignoredSuffixes  = regexp.MustCompile("alpha|beta")
 	publicRepo       = regexp.MustCompile(`.*:.*`)
+	tagUnsafe        = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
 	tags             = dockerTags.FindStringSubmatch(ciTag)
 )
 
@@ -56,6 +61,7 @@ func newDockerBuildCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
+	cmd.PersistentFlags().StringVar(&intermediateTag, "tag", IntermediateDockerImageName, "local tag the image is built as")
 
 	return cmd
 }
@@ -86,7 +92,7 @@ func cmdDockerBuildRun(_ *cobra.Command, _ []string) {
 
 	docker := &Docker{}
 
-	err = docker.Tag(IntermediateDockerImageName, DockerImageName)
+	err = docker.Tag(intermediateTag, DockerImageName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -110,14 +116,15 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 				deployManifest(docker, cve, tags[1], tags[2], tags[3], "latest")
 			}
 
-			publishDockerReadme(docker)
+			// TODO: Reintroduce when shieldcn includes OpenSSF/SLSA icons.
+			// publishDockerReadme(docker).
 		} else {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
 	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
 		login(docker, dockerhub)
 		login(docker, ghcr)
-		deployManifest(docker, cve, ciBranch)
+		deployManifest(docker, cve, sanitizeTag(ciBranch))
 	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
 		login(docker, dockerhub)
 		login(docker, ghcr)
@@ -126,10 +133,15 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 		login(docker, dockerhub)
 		login(docker, ghcr)
 		deployManifest(docker, cve, masterTag)
-		publishDockerReadme(docker)
+		// TODO: Reintroduce when shieldcn includes OpenSSF/SLSA icons.
+		// publishDockerReadme(docker).
 	default:
 		log.Info("Docker manifest will not be published")
 	}
+}
+
+func sanitizeTag(tag string) string {
+	return tagUnsafe.ReplaceAllString(tag, "-")
 }
 
 func checkContainerIsSupported(container string) {
@@ -152,7 +164,7 @@ func dockerBuildOfficialImage(arch string) error {
 		log.Fatal(err)
 	}
 
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".", buildMetaData)
+	return docker.Build(intermediateTag, dockerfile, ".", buildMetaData)
 }
 
 func login(docker *Docker, registry string) {
@@ -205,10 +217,11 @@ func deployManifest(docker *Docker, cve bool, tag ...string) {
 	}
 }
 
-func publishDockerReadme(docker *Docker) {
-	log.Info("Docker pushing README.md to Docker Hub")
-
-	if err := docker.PublishReadme(); err != nil {
-		log.Fatal(err)
-	}
-}
+// TODO: Reintroduce when shieldcn includes OpenSSF/SLSA icons.
+// func publishDockerReadme(docker *Docker) {
+//	log.Info("Docker pushing README.md to Docker Hub")
+//
+//	if err := docker.PublishReadme(); err != nil {
+//		log.Fatal(err)
+//	}
+// }.

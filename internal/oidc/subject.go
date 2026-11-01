@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -31,7 +35,7 @@ func UserDetailerFromSubjectString(ctx Context, subjectRaw string) (detailer Use
 	return UserDetailerFromSubject(ctx, subject)
 }
 
-// UserDetailerFromSubject returns a UserDetailer using the subject uuid.UUID value.
+// UserDetailerFromSubject returns a [UserDetailer] using the subject [uuid.UUID] value.
 func UserDetailerFromSubject(ctx Context, subject uuid.UUID) (detailer UserDetailer, err error) {
 	var (
 		identifier *model.UserOpaqueIdentifier
@@ -49,7 +53,7 @@ func UserDetailerFromSubject(ctx Context, subject uuid.UUID) (detailer UserDetai
 	return details, nil
 }
 
-// SubjectUUIDFromClaims returns the subject uuid.UUID from a claims map.
+// SubjectUUIDFromClaims returns the subject [uuid.UUID] from a claims map.
 func SubjectUUIDFromClaims(claims map[string]any) (subject uuid.UUID, err error) {
 	var (
 		ok    bool
@@ -68,7 +72,7 @@ func SubjectUUIDFromClaims(claims map[string]any) (subject uuid.UUID, err error)
 	return SubjectUUIDFromSubjectString(claim)
 }
 
-// SubjectUUIDFromSubjectString returns the subject uuid.UUID from a raw string value.
+// SubjectUUIDFromSubjectString returns the subject [uuid.UUID] from a raw string value.
 func SubjectUUIDFromSubjectString(value string) (subject uuid.UUID, err error) {
 	if subject, err = uuid.Parse(value); err != nil {
 		return uuid.UUID{}, oauthelia2.ErrServerError.WithDebug(fmt.Sprintf("Failed to parse subject '%s' as a UUID.", value))

@@ -1,12 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
 	"maps"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mohae/deepcopy"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
@@ -74,7 +78,9 @@ type Session struct {
 	Extra                 map[string]any  `json:"extra"`
 }
 
-// GetSubject returns the subject, if set. This is optional and only used during token introspection.
+// GetSubject returns the subject, if set. This is optional and only used during token introspection and to determine
+// the 'sub' claim of tokens. It falls back to the client identifier for the Client Credentials Flow which has no
+// end-user. Use GetStorageSubject when persisting the subject of a session.
 func (s *Session) GetSubject() string {
 	if s == nil {
 		return ""
@@ -89,6 +95,19 @@ func (s *Session) GetSubject() string {
 	}
 
 	return ""
+}
+
+// GetStorageSubject returns the subject of the authenticated end-user, if any, for storage purposes.
+//
+// Unlike GetSubject this never falls back to the client identifier as the Client Credentials Flow does not have an
+// end-user. The storage layer records this value in columns which have a foreign key relationship with the
+// user_opaque_identifier table, so anything other than an opaque identifier of a known user must be NULL.
+func (s *Session) GetStorageSubject() (subject string) {
+	if s == nil {
+		return ""
+	}
+
+	return s.DefaultSession.GetSubject()
 }
 
 // ValidIssuer returns true if the issuer is valid for this session, false otherwise.
@@ -259,7 +278,59 @@ func (s *Session) Clone() oauthelia2.Session {
 		return nil
 	}
 
-	return deepcopy.Copy(s).(oauthelia2.Session)
+	clone := &Session{
+		ChallengeID:           s.ChallengeID,
+		ClientID:              s.ClientID,
+		ClientCredentials:     s.ClientCredentials,
+		ExcludeNotBeforeClaim: s.ExcludeNotBeforeClaim,
+		AllowedTopLevelClaims: slices.Clone(s.AllowedTopLevelClaims),
+		GrantedClaims:         slices.Clone(s.GrantedClaims),
+		Extra:                 maps.Clone(s.Extra),
+	}
+
+	if s.DefaultSession != nil {
+		clone.DefaultSession, _ = s.DefaultSession.Clone().(*openid.DefaultSession)
+	}
+
+	if s.AccessToken != nil {
+		clone.AccessToken = &AccessTokenSession{
+			Headers: maps.Clone(s.AccessToken.Headers),
+			Claims:  maps.Clone(s.AccessToken.Claims),
+		}
+	}
+
+	if s.ClaimRequests != nil {
+		clone.ClaimRequests = &ClaimsRequests{
+			IDToken:  cloneClaimRequests(s.ClaimRequests.IDToken),
+			UserInfo: cloneClaimRequests(s.ClaimRequests.UserInfo),
+		}
+	}
+
+	return clone
+}
+
+func cloneClaimRequests(requests map[string]*ClaimRequest) (clone map[string]*ClaimRequest) {
+	if requests == nil {
+		return nil
+	}
+
+	clone = make(map[string]*ClaimRequest, len(requests))
+
+	for claim, request := range requests {
+		if request == nil {
+			clone[claim] = nil
+
+			continue
+		}
+
+		clone[claim] = &ClaimRequest{
+			Essential: request.Essential,
+			Value:     request.Value,
+			Values:    slices.Clone(request.Values),
+		}
+	}
+
+	return clone
 }
 
 // ConsentGrantImplicit that handles the implicit consent flow assigning the subject and responded at values then
@@ -275,6 +346,7 @@ func ConsentGrantImplicit(consent *model.OAuth2ConsentSession, claims []string, 
 // requirements around consent like not allowing access to a refresh token unless the user has explicitly consented.
 func ConsentGrant(consent *model.OAuth2ConsentSession, explicit bool, claims []string) {
 	consent.GrantAudience()
+	consent.GrantResource()
 	consent.GrantClaims(claims)
 
 	if explicit {

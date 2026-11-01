@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -78,9 +82,9 @@ func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, user
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, targetURL)
 	rs.verifyIsSecondFactorPage(t, page)
 	rs.doValidateTOTP(t, page, username)
-	// timeout when targetURL is not defined to prevent a show stopping redirect when visiting a protected domain.
+	// wait for requests to settle when targetURL is not defined to prevent a show stopping redirect when visiting a protected domain.
 	if targetURL == "" {
-		require.NoError(t, page.WaitStable(time.Second))
+		page.WaitRequestIdle(time.Second, nil, nil, nil)()
 	}
 }
 

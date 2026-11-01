@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 writehosts(){
   sudo tee -a /etc/hosts > /dev/null <<EOF
 127.0.0.1  authelia.${DOMAIN}

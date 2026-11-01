@@ -1,4 +1,10 @@
 /*
+ * SPDX-FileCopyrightText: 2026 Authelia
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
  * Authelia theme definitions as CSS custom properties.
  * These are the source of truth for the palette and are consumed by
  * Tailwind CSS and shadcn/ui components. Colours are expressed in oklch

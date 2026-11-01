@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -83,6 +87,20 @@ const (
 
 const (
 	driverParameterFmtAppName = "authelia %s"
+)
+
+const (
+	dsnFmtSQLite = "%s?_txlock=immediate"
+)
+
+const (
+	codeMySQLLockWaitTimeout uint16 = 1205
+	codeMySQLLockDeadlock    uint16 = 1213
+	codeMySQLDuplicateEntry  uint16 = 1062
+
+	codePostgresSerializationFailure = "40001"
+	codePostgresDeadlockDetected     = "40P01"
+	codePostgresUniqueViolation      = "23505"
 )
 
 const (

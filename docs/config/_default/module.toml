@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Module Configuration File
 #
 # This file configures Hugo module settings, particularly module mounts which

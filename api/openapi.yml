@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 openapi: 3.2.0
 info:
@@ -710,9 +714,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password/identity/finish:
@@ -749,9 +753,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password:
@@ -787,9 +791,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -822,9 +826,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   {{- end }}
@@ -936,9 +940,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     put:
@@ -979,9 +983,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/user/session/elevation/{id}:
@@ -1207,9 +1211,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -1554,9 +1558,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/secondfactor/duo_devices:
@@ -2137,9 +2141,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
           content:
@@ -3830,6 +3834,11 @@ components:
                   - 'profile'
             audience:
               description: The list of the requested audiences for the user to provide consent for.
+              type: array
+              items:
+                type: string
+            resource:
+              description: The list of the requested resource indicators for the user to provide consent for.
               type: array
               items:
                 type: string

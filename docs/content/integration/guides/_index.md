@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Guides"
-description: "Guides"
+description: "A collection of integration guides for Authelia covering various use cases including securing applications with basic authentication and API access patterns."
 summary: ""
 date: 2025-03-14T06:00:14+11:00
 draft: false

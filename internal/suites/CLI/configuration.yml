@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 certificates_directory: '/certs/'
 
@@ -19,7 +23,7 @@ storage:
 
 notifier:
   filesystem:
-    filename: '/tmp/notification.txt'
+    filename: '/tmp/authelia/CLISuite/notification.fifo'
 
 identity_validation:
   reset_password:

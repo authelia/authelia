@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Protecting SSH and Console Logins with pam_authelia"
 description: "Install and configure pam_authelia to delegate PAM-based authentication (SSH, login, sudo) to Authelia, with 1FA, 2FA, and OAuth2 Device Authorization flows."
 summary: "End-to-end guide for installing the pam_authelia PAM module, wiring sshd through it, and configuring each supported flow: password only, TOTP, Duo push, and the RFC 8628 Device Authorization grant."

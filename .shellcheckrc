@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # ShellCheck configuration for Authelia.
 # Default checks are enabled; require-variable-braces is opted in to
 # enforce the ${VAR} style repo-wide alongside them.

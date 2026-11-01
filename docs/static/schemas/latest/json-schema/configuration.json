@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/configuration.json",
+  "$id": "https://www.authelia.com/schemas/v4.40/json-schema/configuration.json",
   "$ref": "#/$defs/Configuration",
   "$defs": {
     "AccessControl": {
@@ -90,7 +90,7 @@
           "description": "The literal domains to match the domain against that this rule applies to."
         },
         "domain_regex": {
-          "$ref": "#/$defs/AccessControlRuleRegex",
+          "$ref": "#/$defs/AccessControlRuleRegexCI",
           "title": "Domain Regex Patterns",
           "description": "The regex patterns to match the domain against that this rule applies to."
         },
@@ -266,6 +266,22 @@
         }
       ]
     },
+    "AccessControlRuleRegexCI": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "regex"
+        },
+        {
+          "items": {
+            "type": "string",
+            "format": "regex"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
     "AccessControlRuleSubjects": {
       "oneOf": [
         {
@@ -323,6 +339,11 @@
           "$ref": "#/$defs/AuthenticationBackendPasswordChange",
           "title": "Password Change",
           "description": "Allows configuration of the password change behavior."
+        },
+        "registration": {
+          "$ref": "#/$defs/AuthenticationBackendRegistration",
+          "title": "Registration",
+          "description": "Allows configuration of the registration behavior."
         },
         "refresh_interval": {
           "$ref": "#/$defs/RefreshIntervalDuration",
@@ -1058,6 +1079,19 @@
       "type": "object",
       "description": "AuthenticationBackendPasswordReset represents the configuration related to password reset functionality."
     },
+    "AuthenticationBackendRegistration": {
+      "properties": {
+        "custom_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "Custom URL",
+          "description": "Displays a registration link on the login page which directs users to this specified URL."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendRegistration represents the configuration related to registration functionality."
+    },
     "Configuration": {
       "properties": {
         "theme": {
@@ -1337,10 +1371,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Discovery Response Signing Algorithm",
-          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses.",
+          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "discovery_signed_response_key_id": {
@@ -1704,10 +1743,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Authorization Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "RS256"
         },
         "authorization_signed_response_key_id": {
@@ -1777,10 +1821,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "ID Token Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the ID Token objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the ID Token objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "RS256"
         },
         "id_token_signed_response_key_id": {
@@ -1851,10 +1900,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Access Token Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Access Token objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Access Token objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "access_token_signed_response_key_id": {
@@ -1925,10 +1979,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Userinfo Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Userinfo objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Userinfo objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "userinfo_signed_response_key_id": {
@@ -1999,10 +2058,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Introspection Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Introspection objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Introspection objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "introspection_signed_response_key_id": {
@@ -2070,10 +2134,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Request Object Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client must use to sign Request Objects that it uses. i.e. the JWS 'alg' value."
+          "description": "The JOSE signing algorithm (JWS) this client must use to sign Request Objects that it uses. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "request_object_encryption_alg": {
           "type": "string",
@@ -2146,10 +2215,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Token Endpoint Auth Signing Algorithm",
-          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "revocation_endpoint_auth_method": {
           "type": "string",
@@ -2180,10 +2254,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Revocation Endpoint Auth Signing Algorithm",
-          "description": "The Revocation Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Revocation Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "introspection_endpoint_auth_method": {
           "type": "string",
@@ -2214,10 +2293,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Introspection Endpoint Auth Signing Algorithm",
-          "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "pushed_authorization_request_endpoint_auth_method": {
           "type": "string",
@@ -2248,10 +2332,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Pushed Authorization Request Endpoint Auth Signing Algorithm",
-          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "allow_multiple_auth_methods": {
           "type": "boolean",
@@ -2823,10 +2912,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Algorithm",
-          "description": "The Algorithm of this JWK."
+          "description": "The Algorithm of this JWK. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "key": {
           "type": "string",
@@ -3335,6 +3429,56 @@
       "type": "object",
       "description": "ServerBuffers represents server buffer configurations."
     },
+    "ServerEndpointHealth": {
+      "properties": {
+        "verbose": {
+          "type": "boolean",
+          "title": "Verbose",
+          "description": "Enables the verbose health check endpoint which probes the configured providers.",
+          "default": false
+        },
+        "detailed": {
+          "type": "boolean",
+          "title": "Detailed",
+          "description": "Includes the provider error message in the verbose health check response which may disclose infrastructure information to unauthenticated clients.",
+          "default": false
+        },
+        "providers": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "storage",
+              "session",
+              "user",
+              "notification",
+              "ntp",
+              "expressions",
+              "webauthn-metadata"
+            ]
+          },
+          "type": "array",
+          "title": "Providers",
+          "description": "The providers probed by the verbose health check endpoint."
+        },
+        "cache": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Cache",
+          "description": "The duration a verbose health check result is reused for before the providers are probed again."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerEndpointHealth is the health check endpoint configuration for the HTTP server."
+    },
     "ServerEndpointRateLimit": {
       "properties": {
         "enable": {
@@ -3414,6 +3558,11 @@
           "title": "Session Elevation Start",
           "description": "Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."
         },
+        "health": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Health",
+          "description": "Configures the rate limiter which applies to the verbose health check endpoint."
+        },
         "session_elevation_finish": {
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "Session Elevation Finish",
@@ -3462,6 +3611,11 @@
           "title": "Enable ExpVars",
           "description": "Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes.",
           "default": false
+        },
+        "health": {
+          "$ref": "#/$defs/ServerEndpointHealth",
+          "title": "Health",
+          "description": "Configures the health check endpoints."
         },
         "rate_limits": {
           "$ref": "#/$defs/ServerEndpointRateLimits",
@@ -4313,11 +4467,52 @@
           "title": "Disable Reuse Security Policy",
           "description": "Disables the security policy that prevents reuse of a TOTP code.",
           "default": false
+        },
+        "apps": {
+          "$ref": "#/$defs/TOTPApps",
+          "title": "Apps",
+          "description": "The authenticator applications suggested to users when they register a TOTP credential."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "TOTP represents the configuration related to TOTP options."
+    },
+    "TOTPApps": {
+      "properties": {
+        "apple_store": {
+          "$ref": "#/$defs/TOTPAppsStore",
+          "title": "Apple App Store",
+          "description": "The Apple App Store listing for the authenticator application suggested to users."
+        },
+        "google_play": {
+          "$ref": "#/$defs/TOTPAppsStore",
+          "title": "Google Play",
+          "description": "The Google Play listing for the authenticator application suggested to users."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "TOTPApps represents the store links suggested to users registering a TOTP credential."
+    },
+    "TOTPAppsStore": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the badge for this store.",
+          "default": false
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "title": "URL",
+          "description": "The listing for the authenticator application suggested to users."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "TOTPAppsStore represents an individual store listing suggested to users registering a TOTP credential."
     },
     "Telemetry": {
       "properties": {

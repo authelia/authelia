@@ -1,7 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 services:
   nginx-cli:
-    image: nginx:1.31.4-alpine
+    image: nginx:1.31.8-alpine
     volumes:
       - ./example/compose/nginx/cli/nginx.conf:/etc/nginx/nginx.conf
       - ./common/pki:/pki

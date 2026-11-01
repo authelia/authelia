@@ -1,5 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { cn } from "cn";
+
 import { Progress } from "@components/UI/Progress";
-import { cn } from "@utils/Styles";
 
 export interface Props {
     value: number;

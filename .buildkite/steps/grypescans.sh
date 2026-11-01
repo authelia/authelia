@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set -e
 
-ciBranch="${BUILDKITE_BRANCH}"
-ciPullRequest="${BUILDKITE_PULL_REQUEST}"
+# shellcheck source=/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/../libs/common.sh"
+
 ciTag="${BUILDKITE_TAG}"
 dockerImageName="authelia/authelia"
 masterBranch="master"
-publicRepoRegex='.*:.*'
-grypeCmd=(grype -f low)
+grypeCmd=(grype -f low --only-fixed)
 
 if [[ "${CI_PRIVATE}" == "true" ]]; then
   dockerImageName="${dockerImageName}-cve"
@@ -17,12 +22,9 @@ IMAGE=""
 if [[ "${CI_MERGE_QUEUE}" != "true" ]]; then
   if [[ -n "${ciTag}" ]]; then
     IMAGE="${dockerImageName}:${ciTag/v}"
-  elif [[ "${ciBranch}" != "${masterBranch}" && ! "${ciBranch}" =~ ${publicRepoRegex} ]]; then
-    IMAGE="${dockerImageName}:${ciBranch}"
-  elif [[ "${ciBranch}" != "${masterBranch}" && "${ciBranch}" =~ ${publicRepoRegex} ]]; then
-    IMAGE="${dockerImageName}:PR${ciPullRequest}"
-  elif [[ "${ciBranch}" == "${masterBranch}" && "${ciPullRequest}" == "false" ]]; then
-    IMAGE="${dockerImageName}:${masterBranch}"
+  else
+    resolve_tag_suffix "${masterBranch}" "false"
+    [[ -n "${TAG_SUFFIX}" ]] && IMAGE="${dockerImageName}:${TAG_SUFFIX}"
   fi
 fi
 

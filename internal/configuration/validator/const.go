@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -5,7 +9,6 @@ import (
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -95,6 +98,8 @@ const (
 		"it must be either in duration common syntax or one of 'disable', or 'always': %w"
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
+	errFmtAuthBackendRegistrationCustomURLScheme = "authentication_backend: registration: option 'custom_url' is" +
+		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"
@@ -147,6 +152,8 @@ const (
 	errFmtTOTPInvalidDigits           = "totp: option 'digits' must be 6 or 8 but it's configured as '%d'"
 	errFmtTOTPInvalidAllowedDigit     = "totp: option 'allowed_digits' must only have the values 6 or 8 but one of the values is '%d'"
 	errFmtTOTPInvalidSecretSize       = "totp: option 'secret_size' must be %d or higher but it's configured as '%d'" //nolint:gosec
+	errFmtTOTPAppsInvalidScheme       = "totp: apps: %s: option 'url' is configured to '%s' which has the scheme '%s' but the scheme must be 'https'"
+	errFmtTOTPAppsMissingHost         = "totp: apps: %s: option 'url' is configured to '%s' which does not have a host but it must be an absolute URL with a host"
 )
 
 // Storage Error constants.
@@ -194,10 +201,12 @@ const (
 	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
 	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
 	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
-	errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' must be a RSA private key or ECDSA private key but it's type is %T"
+	errFmtOIDCProviderPrivateKeysKeyNotSupported         = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' must be an RSA private key, ECDSA private key, Ed25519 private key, or ML-DSA private key but it's type is %T"
 	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
 	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: jwks: keys: must at least have one key supporting the '%s' algorithm but only has %s"
+	errFmtOIDCProviderSigAlgDeprecated                   = "identity_providers: oidc: option '%s' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
+	errFmtOIDCProviderPrivateKeysSigAlgDeprecated        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderInvalidValue                       = "identity_providers: oidc: option " +
 		errFmtMustBeOneOf
 
@@ -214,9 +223,10 @@ const (
 	errFmtOIDCPolicyInvalidDefaultPolicy = "identity_providers: oidc: authorization_policies: policy '%s': option 'default_policy' must be one of %s but it's configured as '%s'"
 	errFmtOIDCPolicyRuleInvalidPolicy    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'policy' must be one of %s but it's configured as '%s'"
 
-	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values %s"
-	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
-	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
+	errFmtOIDCClientsDuplicateID     = "identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values %s"
+	errFmtOIDCClientsWithEmptyID     = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
+	errFmtOIDCClientSigAlgDeprecated = "identity_providers: oidc: clients: client '%s': option '%s' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
+	errFmtOIDCClientsDeprecated      = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
 
 	errFmtMustOnlyHaveValues                  = "'%s' must only have the values %s "
 	errFmtMustBeConfiguredAs                  = "'%s' must be configured as %s "
@@ -283,6 +293,11 @@ const (
 		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
 	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = errFmtOIDCClientOption +
 		"'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
+	errFmtOIDCClientAccessTokenJWTNoAudience = errFmtOIDCClientOption +
+		"'audience' should be configured when option 'access_token_signed_response_alg' is configured to '%s' as " +
+		"RFC9068 requires the 'aud' claim in a JWT Profile Access Token and it is otherwise absent, which will " +
+		"cause a resource server to reject the token; the audience must also be requested, either by the client " +
+		"via the 'audience' parameter or by configuring option 'requested_audience_mode' to 'implicit'"
 	errFmtOIDCClientInvalidSectorIdentifierAbsolute = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': should be an absolute URI"
 	errFmtOIDCClientInvalidSectorIdentifierScheme = errFmtOIDCClientOption +
@@ -331,10 +346,13 @@ const (
 		"configured as '%s'"
 	errFmtAccessControlDefaultPolicyWithoutRules = "access_control: 'default_policy' option '%s' is invalid: when " +
 		"no rules are specified it must be 'two_factor' or 'one_factor'"
-	errFmtAccessControlNetworkGroupIPCIDRInvalid = "access_control: networks: network group '%s' is invalid: the " +
-		"network '%s' is not a valid IP or CIDR notation"
 	errFmtAccessControlWarnNoRulesDefaultPolicy = "access_control: no rules have been specified so the " +
 		"'default_policy' of '%s' is going to be applied to all requests"
+	errFmtAccessControlRuleDomainDeprecatedToken = "access_control: rule #%d: domain #%d: domain '%s' uses a " +
+		"deprecated user or group wildcard which is translated into the regular expression '%s': it's strongly " +
+		"recommended to use the 'domain_regex' option instead as these wildcards only match characters which are " +
+		"valid in a hostname"
+
 	errFmtAccessControlRuleNoDomains                    = "access_control: rule %s: option 'domain' or 'domain_regex' must be present but are both absent"
 	errFmtAccessControlRuleNoPolicy                     = "access_control: rule %s: option 'policy' must be present but it's absent"
 	errFmtAccessControlRuleInvalidPolicy                = "access_control: rule %s: option 'policy' must be one of %s but it's configured as '%s'"
@@ -344,6 +362,9 @@ const (
 		"https://www.authelia.com/c/acl#bypass"
 	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = errAccessControlRuleBypassPolicyOptionBypassIs +
 		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
+		"https://www.authelia.com/c/acl-match-concept-2"
+	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomain = errAccessControlRuleBypassPolicyOptionBypassIs +
+		"not supported when 'domain' option contains the user or group tokens. For more information see: " +
 		"https://www.authelia.com/c/acl-match-concept-2"
 	errFmtAccessControlRuleNetworksInvalid = "access_control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
@@ -423,18 +444,28 @@ const (
 	errFmtServerPathNotEndForwardSlash = "server: option 'address' must be a single subpath (i.e. '%s'), but '%s' contains multiple segments"
 	errFmtServerPathAlphaNumeric       = "server: option 'address' must have a path with only alphanumeric characters but it's configured as '%s'"
 
-	errFmtServerEndpointsAuthzImplementation            = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
-	errFmtServerEndpointsAuthzStrategy                  = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"
-	errFmtServerEndpointsAuthzSchemes                   = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' must only include the values %s but has '%s'"
-	errFmtServerEndpointsAuthzSchemesInvalidForStrategy = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' is not valid for the strategy"
-	errFmtServerEndpointsAuthzStrategyNoName            = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option 'name' must be configured"
-	errFmtServerEndpointsAuthzStrategySchemeOnlyOption  = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option '%s' can't be configured unless the '%s' scheme is configured but only the %s schemes are configured"
-	errFmtServerEndpointsAuthzStrategyDuplicate         = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
-	errFmtServerEndpointsAuthzPrefixDuplicate           = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
-	errFmtServerEndpointsRateLimitsBucketPeriodZero     = "server: endpoints: rate_limits: %s: bucket %d: option 'period' must have a value"
-	errFmtServerEndpointsRateLimitsBucketPeriodTooLow   = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
-	errFmtServerEndpointsRateLimitsBucketRequestsZero   = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
-	errFmtServerEndpointsAuthzInvalidName               = "server: endpoints: authz: %s: contains invalid characters"
+	errFmtServerEndpointsAuthzOptionLegacy               = "server: endpoints: authz: %s: option '%s' must not be configured for the 'Legacy' implementation"
+	errFmtServerEndpointsAuthzHeaderInvalidName          = "server: endpoints: authz: %s: headers: %s: header name must only contain valid header name characters"
+	errFmtServerEndpointsAuthzHeaderReservedName         = "server: endpoints: authz: %s: headers: %s: header name must not be a standard or reserved header"
+	errFmtServerEndpointsAuthzHeaderDuplicateName        = "server: endpoints: authz: %s: headers: %s: header name duplicates the '%s' header as header names are case-insensitive"
+	errFmtServerEndpointsAuthzHeaderUserAttributeMissing = "server: endpoints: authz: %s: headers: %s: option 'user_attribute' is required"
+	errFmtServerEndpointsAuthzHeaderUserAttribute        = "server: endpoints: authz: %s: headers: %s: option 'user_attribute' must be a known user attribute but it's configured as '%s'"
+	errFmtServerEndpointsAuthzImplementation             = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
+	errFmtServerEndpointsAuthzStrategy                   = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"
+	errFmtServerEndpointsAuthzSchemes                    = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' must only include the values %s but has '%s'"
+	errFmtServerEndpointsAuthzSchemesInvalidForStrategy  = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' is not valid for the strategy"
+	errFmtServerEndpointsAuthzStrategyNoName             = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option 'name' must be configured"
+	errFmtServerEndpointsAuthzStrategySchemeOnlyOption   = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option '%s' can't be configured unless the '%s' scheme is configured but only the %s schemes are configured"
+	errFmtServerEndpointsAuthzStrategyDuplicate          = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
+	errFmtServerEndpointsAuthzPrefixDuplicate            = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
+	errFmtServerEndpointsHealthProviderUnknown           = "server: endpoints: health: option 'providers' must only include the values %s but it's configured as '%s'"
+	errFmtServerEndpointsHealthProviderDuplicate         = "server: endpoints: health: option 'providers' has a duplicate value '%s'"
+	errFmtServerEndpointsHealthCacheNegative             = "server: endpoints: health: option 'cache' must be greater than or equal to 0 but it's configured as '%s'"
+	errFmtServerEndpointsHealthDetailedNotVerbose        = "server: endpoints: health: option 'detailed' has no effect unless option 'verbose' is enabled"
+	errFmtServerEndpointsRateLimitsBucketPeriodZero      = "server: endpoints: rate_limits: %s: bucket %d: option 'period' must have a value"
+	errFmtServerEndpointsRateLimitsBucketPeriodTooLow    = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
+	errFmtServerEndpointsRateLimitsBucketRequestsZero    = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
+	errFmtServerEndpointsAuthzInvalidName                = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
 )
@@ -535,14 +566,11 @@ var (
 	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 	validWebAuthnAttachment                  = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
 	validWebAuthnDiscoverability             = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
-	validRFC7231HTTPMethodVerbs              = []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodDelete, fasthttp.MethodTrace, fasthttp.MethodConnect, fasthttp.MethodOptions}
-	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 )
 
 var (
-	validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
-	validACLRulePolicies    = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
-	validACLRuleOperators   = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
+	validACLRulePolicies  = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+	validACLRuleOperators = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
 )
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
@@ -558,6 +586,7 @@ const (
 	attrOIDCGrantTypes                  = "grant_types"
 	attrOIDCRedirectURIs                = "redirect_uris"
 	attrOIDCRequestURIs                 = "request_uris"
+	attrOIDCRequestObjectSigningAlg     = "request_object_signing_alg"
 	attrOIDCTokenAuthMethod             = "token_endpoint_auth_method"
 	attrOIDCTokenAuthSigningAlg         = "token_endpoint_auth_signing_alg"
 	attrOIDCRevocationAuthMethod        = "revocation_endpoint_auth_method"
@@ -603,7 +632,7 @@ var (
 	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
 	validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
-	validOIDCIssuerJWKSigningAlgs                          = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+	validOIDCIssuerJWKSigningAlgs                          = append([]string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgEd25519, oidc.SigningAlgEdDSA}, oidc.SigningAlgsMLDSA...)
 	validOIDCClientJWKEncryptionKeyAlgs                    = []string{oidc.EncryptionAlgNone, oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
 	validOIDCClientJWKContentEncryptionAlgs                = []string{oidc.EncryptionEncA128GCM, oidc.EncryptionEncA192GCM, oidc.EncryptionEncA256GCM, oidc.EncryptionEncA128CBCHS256, oidc.EncryptionEncA192CBCHS384, oidc.EncryptionEncA256CBCHS512}
 
@@ -616,15 +645,20 @@ var (
 )
 
 var (
-	reKeyReplacer       = regexp.MustCompile(`\[\d+]`)
-	reDomainCharacters  = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$`)
-	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/._-]*)([a-zA-Z]))?$`)
-	reOpenIDConnectKID  = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
-	reRFC3986Unreserved = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
+	reKeyReplacer             = regexp.MustCompile(`\[\d+]`)
+	reDomainCharacters        = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$`)
+	reAuthzEndpointName       = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/._-]*)([a-zA-Z]))?$`)
+	reAuthzEndpointHeaderName = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$")
+	reOpenIDConnectKID        = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
+	reRFC3986Unreserved       = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
 )
 
 const (
 	attributeUserUsername       = "username"
+	attributeUserEmailVerified  = "email_verified"
+	attributeUserEmailsExtra    = "emails_extra"
+	attributeUserUpdatedAt      = "updated_at"
+	attributeUserAddress        = "address"
 	attributeUserGroups         = "groups"
 	attributeUserDisplayName    = "display_name"
 	attributeUserEmail          = "email"
@@ -642,12 +676,46 @@ const (
 	attributeUserLocale         = "locale"
 	attributeUserPhoneNumber    = "phone_number"
 	attributeUserPhoneExtension = "phone_extension"
-	attributeUserStreetAddress  = "street_address"
-	attributeUserLocality       = "locality"
-	attributeUserRegion         = "region"
-	attributeUserPostalCode     = "postal_code"
-	attributeUserCountry        = "country"
+
+	attributeUserPhoneNumberRFC3966  = "phone_number_rfc3966"
+	attributeUserPhoneNumberVerified = "phone_number_verified"
+
+	attributeUserStreetAddress = "street_address"
+	attributeUserLocality      = "locality"
+	attributeUserRegion        = "region"
+	attributeUserPostalCode    = "postal_code"
+	attributeUserCountry       = "country"
 )
+
+var reservedAuthzEndpointHeaderNames = []string{
+	// Message framing, representation metadata, and hop-by-hop headers.
+	"connection", "content-disposition", "content-encoding", "content-language", "content-length",
+	"content-location", "content-md5", "content-range", "content-type", "date", "expect", "forwarded", "host",
+	"keep-alive", "max-forwards", "proxy-connection", "range", "referer", "server", "te", "trailer",
+	"transfer-encoding", "upgrade", "user-agent", "via", "warning",
+
+	// Authentication, authorization, and session headers.
+	"authorization", "cookie", "proxy-authenticate", "proxy-authorization", "session-username", "set-cookie",
+	"www-authenticate",
+
+	// Redirection, caching, and conditional headers.
+	"age", "cache-control", "etag", "expires", "last-modified", "location", "pragma", "refresh", "retry-after",
+	"vary",
+
+	// Security headers.
+	"alt-svc", "clear-site-data", "content-security-policy", "content-security-policy-report-only", "expect-ct",
+	"feature-policy", "nel", "origin", "origin-agent-cluster", "permissions-policy", "referrer-policy",
+	"report-to", "strict-transport-security", "timing-allow-origin", "x-content-type-options",
+	"x-dns-prefetch-control", "x-download-options", "x-frame-options", "x-permitted-cross-domain-policies",
+	"x-xss-protection",
+
+	// Headers utilized by Authelia and the proxies which integrate with it.
+	"x-authelia-url", "x-real-ip",
+}
+
+var reservedAuthzEndpointHeaderPrefixes = []string{
+	"access-control-", "if-", "sec-", "x-forwarded-", "x-original-",
+}
 
 var validUserAttributes = []string{
 	attributeUserUsername,

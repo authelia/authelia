@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  * @module RelativeTimeString
  * @description This module provides utilities for generating and updating relative time strings.
@@ -27,36 +31,36 @@ const ONEYEAR = 31536000;
  * // Returns "2 hours ago" if the date was 2 hours before the current time
  * const relativeTime = getRelativeTimeString(new Date(Date.now() - 2 * 60 * 60 * 1000));
  */
-export function getRelativeTimeString(date: Date): string {
+export function getRelativeTimeString(date: Date | null | undefined): string {
     const now = new Date();
-    const secondsSinceUse = (now.getTime() - date.getTime()) / 1000;
+    const secondsSinceUse = date === null || date === undefined ? -1 : (now.getTime() - date.getTime()) / 1000;
 
-    if (secondsSinceUse < ONEMINUTE) {
+    if (secondsSinceUse < ONEMINUTE && secondsSinceUse !== -1) {
         return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
             0 - Math.floor(secondsSinceUse / ONEMINUTE),
             "seconds",
         );
-    } else if (secondsSinceUse < ONEHOUR) {
+    } else if (secondsSinceUse < ONEHOUR && secondsSinceUse !== -1) {
         return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
             0 - Math.floor(secondsSinceUse / ONEMINUTE),
             "minutes",
         );
-    } else if (secondsSinceUse < ONEDAY) {
+    } else if (secondsSinceUse < ONEDAY && secondsSinceUse !== -1) {
         return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
             0 - Math.floor(secondsSinceUse / ONEHOUR),
             "hours",
         );
-    } else if (secondsSinceUse < ONEMONTH) {
+    } else if (secondsSinceUse < ONEMONTH && secondsSinceUse !== -1) {
         return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
             0 - Math.floor(secondsSinceUse / ONEDAY),
             "days",
         );
-    } else if (secondsSinceUse < ONEYEAR) {
+    } else if (secondsSinceUse < ONEYEAR && secondsSinceUse !== -1) {
         return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
             0 - Math.floor(secondsSinceUse / ONEMONTH),
             "months",
         );
-    } else if (secondsSinceUse > ONEYEAR) {
+    } else if (secondsSinceUse >= ONEYEAR && secondsSinceUse !== -1) {
         return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
             0 - Math.floor(secondsSinceUse / ONEYEAR),
             "years",
@@ -78,7 +82,7 @@ export function getRelativeTimeString(date: Date): string {
  *  return <span>Last Login: {relativeTime}</span>;
  * }
  */
-export function useRelativeTime(date: Date): string {
+export function useRelativeTime(date: Date | null | undefined): string {
     const [relativeTime, setRelativeTime] = useState<string>(() => getRelativeTimeString(date));
 
     useEffect(() => {

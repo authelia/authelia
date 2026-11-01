@@ -1,0 +1,5 @@
+# yamllint disable-file
+---
+Example:
+  Value: 'light'
+...

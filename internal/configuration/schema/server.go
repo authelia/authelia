@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 import (
@@ -24,16 +28,35 @@ type ServerEndpoints struct {
 	EnablePprof   bool `koanf:"enable_pprof" yaml:"enable_pprof" toml:"enable_pprof" json:"enable_pprof" jsonschema:"default=false,title=Enable PProf" jsonschema_description:"Enables the developer specific pprof endpoints which should not be used in production and only used for debugging purposes."`
 	EnableExpvars bool `koanf:"enable_expvars" yaml:"enable_expvars" toml:"enable_expvars" json:"enable_expvars" jsonschema:"default=false,title=Enable ExpVars" jsonschema_description:"Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes."`
 
+	Health ServerEndpointHealth `koanf:"health" yaml:"health,omitempty" toml:"health,omitempty" json:"health,omitempty" jsonschema:"title=Health" jsonschema_description:"Configures the health check endpoints."`
+
 	RateLimits ServerEndpointRateLimits `koanf:"rate_limits" yaml:"rate_limits,omitempty" toml:"rate_limits,omitempty" json:"rate_limits,omitempty" jsonschema:"title=Rate Limits" jsonschema_description:"Configure the endpoint rate limits."`
 
 	Authz map[string]ServerEndpointsAuthz `koanf:"authz" yaml:"authz,omitempty" toml:"authz,omitempty" json:"authz,omitempty" jsonschema:"title=Authz" jsonschema_description:"Configures the Authorization endpoints."`
+}
+
+// ServerEndpointHealth is the health check endpoint configuration for the HTTP server.
+type ServerEndpointHealth struct {
+	Verbose  bool `koanf:"verbose" yaml:"verbose" toml:"verbose" json:"verbose" jsonschema:"default=false,title=Verbose" jsonschema_description:"Enables the verbose health check endpoint which probes the configured providers."`
+	Detailed bool `koanf:"detailed" yaml:"detailed" toml:"detailed" json:"detailed" jsonschema:"default=false,title=Detailed" jsonschema_description:"Includes the provider error message in the verbose health check response which may disclose infrastructure information to unauthenticated clients."`
+
+	Providers []string `koanf:"providers" yaml:"providers,omitempty" toml:"providers,omitempty" json:"providers,omitempty" jsonschema:"title=Providers,enum=storage,enum=session,enum=user,enum=notification,enum=ntp,enum=expressions,enum=webauthn-metadata" jsonschema_description:"The providers probed by the verbose health check endpoint."`
+
+	Cache *time.Duration `koanf:"cache" yaml:"cache,omitempty" toml:"cache,omitempty" json:"cache,omitempty" jsonschema:"title=Cache,default=10 seconds" jsonschema_description:"The duration a verbose health check result is reused for before the providers are probed again."`
 }
 
 // ServerEndpointsAuthz is the Authz endpoints configuration for the HTTP server.
 type ServerEndpointsAuthz struct {
 	Implementation string `koanf:"implementation" yaml:"implementation,omitempty" toml:"implementation,omitempty" json:"implementation,omitempty" jsonschema:"enum=ForwardAuth,enum=AuthRequest,enum=ExtAuthz,enum=Legacy,title=Implementation" jsonschema_description:"The specific Authorization implementation to use for this endpoint."`
 
+	Headers map[string]ServerEndpointsAuthzHeader `koanf:"headers" yaml:"headers,omitempty" toml:"headers,omitempty" json:"headers,omitempty" jsonschema:"title=Headers" jsonschema_description:"The specific Authorization headers to use for this endpoint."`
+
 	AuthnStrategies []ServerEndpointsAuthzAuthnStrategy `koanf:"authn_strategies" yaml:"authn_strategies,omitempty" toml:"authn_strategies,omitempty" json:"authn_strategies,omitempty" jsonschema:"title=Authn Strategies" jsonschema_description:"The specific Authorization strategies to use for this endpoint."`
+}
+
+// ServerEndpointsAuthzHeader is the Authz endpoint response header configuration for the HTTP server.
+type ServerEndpointsAuthzHeader struct {
+	UserAttribute string `koanf:"user_attribute" yaml:"user_attribute,omitempty" toml:"user_attribute,omitempty" json:"user_attribute,omitempty" jsonschema:"required,title=User Attribute" jsonschema_description:"The user attribute to use for the header."`
 }
 
 // ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server.
@@ -63,12 +86,53 @@ type ServerEndpointRateLimits struct {
 	SecondFactorDuo                         ServerEndpointRateLimit `koanf:"second_factor_duo" yaml:"second_factor_duo,omitempty" toml:"second_factor_duo,omitempty" json:"second_factor_duo,omitempty" jsonschema:"title=Second Factor Duo" jsonschema_description:"Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."`
 	SecondFactorPassword                    ServerEndpointRateLimit `koanf:"second_factor_password" yaml:"second_factor_password,omitempty" toml:"second_factor_password,omitempty" json:"second_factor_password,omitempty" jsonschema:"title=Second Factor Password" jsonschema_description:"Configures the rate limiter which applies to the Password endpoint for the second factor flow."`
 	SessionElevationStart                   ServerEndpointRateLimit `koanf:"session_elevation_start" yaml:"session_elevation_start,omitempty" toml:"session_elevation_start,omitempty" json:"session_elevation_start,omitempty" jsonschema:"title=Session Elevation Start" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."`
+	Health                                  ServerEndpointRateLimit `koanf:"health" yaml:"health,omitempty" toml:"health,omitempty" json:"health,omitempty" jsonschema:"title=Health" jsonschema_description:"Configures the rate limiter which applies to the verbose health check endpoint."`
 	SessionElevationFinish                  ServerEndpointRateLimit `koanf:"session_elevation_finish" yaml:"session_elevation_finish,omitempty" toml:"session_elevation_finish,omitempty" json:"session_elevation_finish,omitempty" jsonschema:"title=Session Elevation Finish" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which consumes the code for the elevated session flow."`
 	OpenIDConnectToken                      ServerEndpointRateLimit `koanf:"openid_connect_token" yaml:"openid_connect_token,omitempty" toml:"openid_connect_token,omitempty" json:"openid_connect_token,omitempty" jsonschema:"title=OpenID Connect Token" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Token Endpoint."`
 	OpenIDConnectPushedAuthorizationRequest ServerEndpointRateLimit `koanf:"openid_connect_pushed_authorization_request" yaml:"openid_connect_pushed_authorization_request,omitempty" toml:"openid_connect_pushed_authorization_request,omitempty" json:"openid_connect_pushed_authorization_request,omitempty" jsonschema:"title=OpenID Connect Pushed Authorization Request" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Pushed Authorization Request Endpoint."`
 	OpenIDConnectUserInfo                   ServerEndpointRateLimit `koanf:"openid_connect_userinfo" yaml:"openid_connect_userinfo,omitempty" toml:"openid_connect_userinfo,omitempty" json:"openid_connect_userinfo,omitempty" jsonschema:"title=OpenID Connect UserInfo" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 UserInfo Endpoint."`
 	OpenIDConnectIntrospection              ServerEndpointRateLimit `koanf:"openid_connect_introspection" yaml:"openid_connect_introspection,omitempty" toml:"openid_connect_introspection,omitempty" json:"openid_connect_introspection,omitempty" jsonschema:"title=OpenID Connect Introspection" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Introspection Endpoint."`
 	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
+}
+
+// Endpoints returns a ServerEndpointRateLimitEndpoint for every configurable rate limiter in field order.
+func (r *ServerEndpointRateLimits) Endpoints() []ServerEndpointRateLimitEndpoint {
+	return []ServerEndpointRateLimitEndpoint{
+		{Name: "reset_password_start", Config: &r.ResetPasswordStart},
+		{Name: "reset_password_finish", Config: &r.ResetPasswordFinish},
+		{Name: "second_factor_totp", Config: &r.SecondFactorTOTP},
+		{Name: "second_factor_duo", Config: &r.SecondFactorDuo},
+		{Name: "second_factor_password", Config: &r.SecondFactorPassword},
+		{Name: "session_elevation_start", Config: &r.SessionElevationStart, Weight: weightElevatedSessionCodeLifespan},
+		{Name: "health", Config: &r.Health},
+		{Name: "session_elevation_finish", Config: &r.SessionElevationFinish, Weight: weightElevatedSessionElevationLifespan},
+		{Name: "openid_connect_token", Config: &r.OpenIDConnectToken},
+		{Name: "openid_connect_pushed_authorization_request", Config: &r.OpenIDConnectPushedAuthorizationRequest},
+		{Name: "openid_connect_userinfo", Config: &r.OpenIDConnectUserInfo},
+		{Name: "openid_connect_introspection", Config: &r.OpenIDConnectIntrospection},
+		{Name: "openid_connect_revocation", Config: &r.OpenIDConnectRevocation},
+	}
+}
+
+// ServerEndpointRateLimitEndpoint describes a single endpoint rate limit of ServerEndpointRateLimits.
+type ServerEndpointRateLimitEndpoint struct {
+	// Name is the configuration key of the endpoint rate limit.
+	Name string
+
+	// Config is the endpoint rate limit configuration.
+	Config *ServerEndpointRateLimit
+
+	// Weight returns the duration each default bucket period is multiplied by. A nil Weight means the default bucket
+	// periods are absolute durations.
+	Weight func(config *Configuration) time.Duration
+}
+
+func weightElevatedSessionCodeLifespan(config *Configuration) time.Duration {
+	return config.IdentityValidation.ElevatedSession.CodeLifespan
+}
+
+func weightElevatedSessionElevationLifespan(config *Configuration) time.Duration {
+	return config.IdentityValidation.ElevatedSession.ElevationLifespan
 }
 
 // ServerEndpointRateLimit represents the rate limiter configuration for a single endpoint.
@@ -82,6 +146,8 @@ type ServerEndpointRateLimitBucket struct {
 	Period   time.Duration `koanf:"period" yaml:"period,omitempty" toml:"period,omitempty" json:"period,omitempty" jsonschema:"title=Period" jsonschema_description:"The period of time this rate limit bucket applies to."`
 	Requests int           `koanf:"requests" yaml:"requests" toml:"requests" json:"requests" jsonschema:"title=Requests" jsonschema_description:"The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."`
 }
+
+var defaultServerEndpointHealthCache = 10 * time.Second
 
 // DefaultServerConfiguration represents the default values of the Server.
 var DefaultServerConfiguration = Server{
@@ -110,6 +176,20 @@ var DefaultServerConfiguration = Server{
 			},
 			AuthzEndpointNameAuthRequest: {
 				Implementation: AuthzImplementationAuthRequest,
+				Headers: map[string]ServerEndpointsAuthzHeader{
+					HeaderRemoteUser: {
+						UserAttribute: "username",
+					},
+					HeaderRemoteGroups: {
+						UserAttribute: "groups",
+					},
+					HeaderRemoteName: {
+						UserAttribute: "display_name",
+					},
+					HeaderRemoteEmail: {
+						UserAttribute: "email",
+					},
+				},
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
 						Name:    AuthzStrategyHeaderAuthorization,
@@ -122,6 +202,20 @@ var DefaultServerConfiguration = Server{
 			},
 			AuthzEndpointNameExtAuthz: {
 				Implementation: AuthzImplementationExtAuthz,
+				Headers: map[string]ServerEndpointsAuthzHeader{
+					HeaderRemoteUser: {
+						UserAttribute: "username",
+					},
+					HeaderRemoteGroups: {
+						UserAttribute: "groups",
+					},
+					HeaderRemoteName: {
+						UserAttribute: "display_name",
+					},
+					HeaderRemoteEmail: {
+						UserAttribute: "email",
+					},
+				},
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
 						Name:    AuthzStrategyHeaderAuthorization,
@@ -134,6 +228,20 @@ var DefaultServerConfiguration = Server{
 			},
 			AuthzEndpointNameForwardAuth: {
 				Implementation: AuthzImplementationForwardAuth,
+				Headers: map[string]ServerEndpointsAuthzHeader{
+					HeaderRemoteUser: {
+						UserAttribute: "username",
+					},
+					HeaderRemoteGroups: {
+						UserAttribute: "groups",
+					},
+					HeaderRemoteName: {
+						UserAttribute: "display_name",
+					},
+					HeaderRemoteEmail: {
+						UserAttribute: "email",
+					},
+				},
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
 						Name:    AuthzStrategyHeaderAuthorization,
@@ -145,7 +253,16 @@ var DefaultServerConfiguration = Server{
 				},
 			},
 		},
+		Health: ServerEndpointHealth{
+			Providers: []string{ProviderNameStorage, ProviderNameSession, ProviderNameUser},
+			Cache:     &defaultServerEndpointHealthCache,
+		},
 		RateLimits: ServerEndpointRateLimits{
+			Health: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 60},
+				},
+			},
 			ResetPasswordStart: ServerEndpointRateLimit{
 				Buckets: []ServerEndpointRateLimitBucket{
 					{Period: 10 * time.Minute, Requests: 5},

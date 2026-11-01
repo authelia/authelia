@@ -1,9 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
 	"errors"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 var (
@@ -17,6 +23,9 @@ var (
 	headerXForwardedHost  = []byte(fasthttp.HeaderXForwardedHost)
 	headerXForwardedFor   = []byte(fasthttp.HeaderXForwardedFor)
 	headerXRequestedWith  = []byte(fasthttp.HeaderXRequestedWith)
+
+	headerSecFetchMode = []byte("Sec-Fetch-Mode")
+	headerSecFetchDest = []byte("Sec-Fetch-Dest")
 
 	headerXForwardedURI    = []byte("X-Forwarded-URI")
 	headerXOriginalURL     = []byte("X-Original-URL")
@@ -120,13 +129,13 @@ const (
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
 
-	ProviderNameNTP              = "ntp"
-	ProviderNameStorage          = "storage"
-	ProviderNameUser             = "user"
-	ProviderNameSession          = "session"
-	ProviderNameNotification     = "notification"
-	ProviderNameExpressions      = "expressions"
-	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+	ProviderNameNTP              = schema.ProviderNameNTP
+	ProviderNameStorage          = schema.ProviderNameStorage
+	ProviderNameUser             = schema.ProviderNameUser
+	ProviderNameSession          = schema.ProviderNameSession
+	ProviderNameNotification     = schema.ProviderNameNotification
+	ProviderNameExpressions      = schema.ProviderNameExpressions
+	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData
 )
 
 // Content Type strings.
@@ -159,6 +168,9 @@ var (
 
 const (
 	headerValueXRequestedWithXHR = "XMLHttpRequest"
+
+	headerValueSecFetchModeNavigate = "navigate"
+	headerValueSecFetchDestDocument = "document"
 )
 
 var okMessageBytes = []byte("{\"status\":\"OK\"}")

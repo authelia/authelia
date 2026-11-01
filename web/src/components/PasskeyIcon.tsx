@@ -1,4 +1,8 @@
-import { cn } from "@utils/Styles";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { cn } from "cn";
 
 interface Props {
     className?: string;

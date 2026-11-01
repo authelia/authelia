@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authorization
 
 import (
@@ -88,9 +92,9 @@ func ruleAddDomain(domainRules []string, rule *AccessControlRule) {
 	}
 }
 
-func ruleAddDomainRegex(exps []regexp.Regexp, rule *AccessControlRule) {
-	for _, exp := range exps {
-		subjects, r := NewAccessControlDomainRegex(exp)
+func ruleAddDomainRegex(patterns []regexp.Regexp, rule *AccessControlRule) {
+	for _, p := range patterns {
+		subjects, r := NewAccessControlDomainRegex(p)
 
 		rule.Domains = append(rule.Domains, r)
 

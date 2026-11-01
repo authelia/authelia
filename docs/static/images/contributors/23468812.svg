@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100" role="img" aria-label="DCsunset">
+  <style>
+    svg { color-scheme: light dark }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,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" x="32.0" y="0" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="60.0" cy="28.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+  <text x="60.0" y="73" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">DCsunset</text>
+  <text x="60.0" y="91" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">💻⚠️</text>
+</svg>

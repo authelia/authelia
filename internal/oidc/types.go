@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -6,9 +10,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
-
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -306,6 +309,7 @@ type ConsentGetResponseBody struct {
 	ClientDescription string   `json:"client_description"`
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
+	Resource          []string `json:"resource"`
 	PreConfiguration  bool     `json:"pre_configuration"`
 	Claims            []string `json:"claims"`
 	EssentialClaims   []string `json:"essential_claims"`
@@ -1124,9 +1128,11 @@ type RequesterFormSession interface {
 
 	GetRequestedScopes() []string
 	GetRequestedAudience() []string
+	GetRequestedResource() []string
 
 	GetGrantedScopes() []string
 	GetGrantedAudience() []string
+	GetGrantedResource() []string
 }
 
 // Number is a constraint which permits any integer or floating point type.
@@ -1135,23 +1141,24 @@ type Number interface {
 }
 
 var (
-	_ Client                                                       = (*RegisteredClient)(nil)
-	_ oauthelia2.Client                                            = (*RegisteredClient)(nil)
-	_ oauthelia2.UserInfoClient                                    = (*RegisteredClient)(nil)
-	_ oauthelia2.RotatedClientSecretsClient                        = (*RegisteredClient)(nil)
-	_ oauthelia2.ProofKeyCodeExchangeClient                        = (*RegisteredClient)(nil)
-	_ oauthelia2.ClientAuthenticationPolicyClient                  = (*RegisteredClient)(nil)
-	_ oauthelia2.JARClient                                         = (*RegisteredClient)(nil)
-	_ oauthelia2.AuthenticationMethodClient                        = (*RegisteredClient)(nil)
-	_ oauthelia2.RefreshFlowScopeClient                            = (*RegisteredClient)(nil)
-	_ oauthelia2.RevokeFlowRevokeRefreshTokensExplicitClient       = (*RegisteredClient)(nil)
-	_ oauthelia2.JARMClient                                        = (*RegisteredClient)(nil)
-	_ oauthelia2.PushedAuthorizationRequestClient                  = (*RegisteredClient)(nil)
-	_ oauthelia2.ResponseModeClient                                = (*RegisteredClient)(nil)
-	_ oauthelia2.ClientCredentialsFlowRequestedScopeImplicitClient = (*RegisteredClient)(nil)
-	_ oauthelia2.RequestedAudienceImplicitClient                   = (*RegisteredClient)(nil)
-	_ oauthelia2.JWTProfileClient                                  = (*RegisteredClient)(nil)
-	_ oauthelia2.IntrospectionJWTResponseClient                    = (*RegisteredClient)(nil)
+	_ Client                                                              = (*RegisteredClient)(nil)
+	_ oauthelia2.Client                                                   = (*RegisteredClient)(nil)
+	_ oauthelia2.UserInfoClient                                           = (*RegisteredClient)(nil)
+	_ oauthelia2.RotatedClientSecretsClient                               = (*RegisteredClient)(nil)
+	_ oauthelia2.ProofKeyCodeExchangeClient                               = (*RegisteredClient)(nil)
+	_ oauthelia2.ClientAuthenticationPolicyClient                         = (*RegisteredClient)(nil)
+	_ oauthelia2.JARClient                                                = (*RegisteredClient)(nil)
+	_ oauthelia2.JWTSecuredAuthorizationRequestJWTValidationOptionsClient = (*RegisteredClient)(nil)
+	_ oauthelia2.AuthenticationMethodClient                               = (*RegisteredClient)(nil)
+	_ oauthelia2.RefreshFlowScopeClient                                   = (*RegisteredClient)(nil)
+	_ oauthelia2.RevokeFlowRevokeRefreshTokensExplicitClient              = (*RegisteredClient)(nil)
+	_ oauthelia2.JARMClient                                               = (*RegisteredClient)(nil)
+	_ oauthelia2.PushedAuthorizationRequestClient                         = (*RegisteredClient)(nil)
+	_ oauthelia2.ResponseModeClient                                       = (*RegisteredClient)(nil)
+	_ oauthelia2.ClientCredentialsFlowRequestedScopeImplicitClient        = (*RegisteredClient)(nil)
+	_ oauthelia2.RequestedAudienceImplicitClient                          = (*RegisteredClient)(nil)
+	_ oauthelia2.JWTProfileClient                                         = (*RegisteredClient)(nil)
+	_ oauthelia2.IntrospectionJWTResponseClient                           = (*RegisteredClient)(nil)
 
 	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
 	_ RequesterFormSession = (*model.OAuth2DeviceCodeSession)(nil)

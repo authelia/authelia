@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { House } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@components/UI/Button";
@@ -16,7 +21,8 @@ const HomeButton = function () {
     };
 
     return (
-        <Button id={"home-button"} variant={"ghost"} color={"secondary"} onClick={handleHomeClick}>
+        <Button id={"home-button"} variant={"outline"} color={"default"} onClick={handleHomeClick}>
+            <House />
             {translate("Home")}
         </Button>
     );

@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import axios from "axios";
 
-import { hasServiceError, toData, toDataRateLimited } from "@services/Api";
+import { hasServiceError, toData } from "@services/Api";
 import * as Client from "@services/Client";
 
 vi.mock("axios");
@@ -26,42 +30,12 @@ it("handles successful post with optional response", async () => {
     expect(result).toBe("test");
 });
 
-it("handles successful rate limited post", async () => {
-    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
-    (axios.post as any).mockResolvedValue(mockRes);
-    (hasServiceError as any).mockReturnValue({ errored: false });
-    (toDataRateLimited as any).mockReturnValue({ data: "test", limited: false, retryAfter: 0 });
-
-    const result = await Client.PostWithOptionalResponseRateLimited("/path", {});
-    expect(result).toEqual({ data: "test", limited: false, retryAfter: 0 });
-});
-
-it("handles rate limited post", async () => {
-    const mockRes = { data: { status: "KO" }, headers: { "retry-after": "30" }, status: 429 };
-    (axios.post as any).mockResolvedValue(mockRes);
-    (hasServiceError as any).mockReturnValue({ errored: true });
-    (toDataRateLimited as any).mockReturnValue({ limited: true, retryAfter: 30 });
-
-    const result = await Client.PostWithOptionalResponseRateLimited("/path", {});
-    expect(result).toEqual({ limited: true, retryAfter: 30 });
-});
-
 it("throws on post error", async () => {
     const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios.post as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
     await expect(Client.PostWithOptionalResponse("/path", {})).rejects.toThrow(
-        "Failed POST to /path. Code: 400. Message: error",
-    );
-});
-
-it("throws on rate limited post error", async () => {
-    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
-    (axios.post as any).mockResolvedValue(mockRes);
-    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
-
-    await expect(Client.PostWithOptionalResponseRateLimited("/path", {})).rejects.toThrow(
         "Failed POST to /path. Code: 400. Message: error",
     );
 });
@@ -207,7 +181,6 @@ it("forwards the abort signal to axios on every helper", async () => {
     (axios.delete as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
-    (toDataRateLimited as any).mockReturnValue({ data: "test", limited: false, retryAfter: 0 });
 
     await Client.Get("/path", signal);
     expect(axios.get).toHaveBeenLastCalledWith("/path", { signal });
@@ -220,9 +193,6 @@ it("forwards the abort signal to axios on every helper", async () => {
 
     await Client.PostWithOptionalResponse("/path", { body: 1 }, signal);
     expect(axios.post).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });
-
-    await Client.PostWithOptionalResponseRateLimited("/path", { body: 1 }, signal);
-    expect(axios.post).toHaveBeenLastCalledWith("/path", { body: 1 }, expect.objectContaining({ signal }));
 
     await Client.Put("/path", { body: 1 }, signal);
     expect(axios.put).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });

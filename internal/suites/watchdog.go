@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -9,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-rod/rod"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -100,15 +103,7 @@ func collectWatchdogArtifacts() {
 		base = "TIMEOUT-" + suite
 	}
 
-	sharedBrowsersMutex.Lock()
-
-	browsers := make([]*rod.Browser, 0, len(sharedBrowsers))
-
-	for _, shared := range sharedBrowsers {
-		browsers = append(browsers, shared.browser)
-	}
-
-	sharedBrowsersMutex.Unlock()
+	browsers := liveBrowsersSnapshot()
 
 	// The helpers below are addressed through a session only because that is where they are defined; none
 	// of them read the session itself.

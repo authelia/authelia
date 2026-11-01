@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Proxies"
-description: "An integration guide for Authelia and several supported reverse proxies"
+description: "An integration guide for Authelia and several supported reverse proxies covering required headers, configuration approaches, and deployment consideration tips."
 summary: "An introduction into integrating Authelia with a reverse proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -126,10 +130,10 @@ to authenticate with 1FA, or if they are already authenticated with only 1FA and
 redirected to the portal with:
 
 - A HTTP [401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) status if the original request
-  was an [XMLHTTPRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) provided Authelia is able to
-  detect it.
+  was not a top-level browser navigation as described in [Navigation Detection](#navigation-detection).
 - A HTTP [302 Found](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302) status if the original request had
-  the [GET](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET) or
+  the [GET](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET),
+  [HEAD](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD), or
   [OPTIONS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS) method verb.
 - A HTTP [303 See Other](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303) status if neither of the above
   conditions is met.
@@ -137,12 +141,50 @@ redirected to the portal with:
 When the user is denied either by a default policy, or by an explicit policy we respond with a HTTP
 [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
 
+#### Navigation Detection
+
+Redirecting a request which is not a top-level browser navigation, such as a request made by a web application using
+[fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) or
+[XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), results in the browser silently
+following the redirect and the web application receiving the authentication portal instead of the expected response.
+For this reason these requests receive a [401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+status which still includes the [Location](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location) header,
+allowing the web application to detect the status and redirect the user itself. This detection does not apply to the
+[AuthRequest](../../reference/guides/proxy-authorization.md#authrequest) implementation which always responds with a
+[401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) status.
+
+A request is considered a top-level browser navigation when:
+
+- The [Sec-Fetch-Mode](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Mode) header has the value
+  `navigate` and the [Sec-Fetch-Dest](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Dest) header
+  is either absent or has the value `document`. This means navigations within an `iframe` or similar element are not
+  considered top-level navigations, as the authentication portal can not be framed.
+- If the [Sec-Fetch-Mode](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Mode) header is absent,
+  the `X-Requested-With` header does not have the
+  value `XMLHttpRequest` and the [Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) header
+  accepts `text/html`.
+
+The proxy must forward the `Sec-Fetch-Mode`, `Sec-Fetch-Dest`, `X-Requested-With`, and `Accept` headers from the
+original request to Authelia for this detection to work as intended. Most proxies forward all headers by default, but
+some proxies such as [Envoy](envoy.md) require these headers are explicitly allowed, and some proxies such as
+[Traefik](traefik.md) can be configured to only forward specific headers (i.e. the `authRequestHeaders` option).
+
+Web applications which use a
+[Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) to handle navigations should
+forward the original navigation request (i.e. `event.request`) rather than constructing a new request, as a newly
+constructed request is not a navigation and will receive a
+[401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) status.
+
 ### Response Headers
 
 With the exception of the [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) and
 [200 OK](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200) status responses above,
 Authelia responds with a [Location](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location) header to
 redirect the user to the authentication portal.
+
+All responses include the [Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
+header with the value `no-store` and the [Pragma](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma)
+header with the value `no-cache` as the response varies depending on the session and the request headers.
 
 In the instance of a [200 OK](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200) status response Authelia
 also responds with various headers which can be forwarded by your reverse proxy to the backend application which are

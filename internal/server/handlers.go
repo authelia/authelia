@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package server
 
 import (
@@ -214,6 +218,15 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
+	if config.Server.Endpoints.Health.Verbose {
+		rateLimitHealth := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.Health), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
+
+		handlerHealthVerbose := handlers.HealthVerboseGET(config.Server.Endpoints.Health)
+
+		r.HEAD("/api/health/verbose", middlewareAPI(rateLimitHealth(handlerHealthVerbose)))
+		r.GET("/api/health/verbose", middlewareAPI(rateLimitHealth(handlerHealthVerbose)))
+	}
+
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
 
 	r.GET("/api/configuration", middleware1FA(handlers.ConfigurationGET))
@@ -227,19 +240,23 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		authz := handlers.NewAuthzBuilder().WithConfig(config).WithEndpointConfig(endpoint).Build()
 
-		handlerAuthz := middlewares.Wrap(metricsVRMW, bridge(func(ctx *middlewares.AutheliaCtx) {
+		handlerAuthz := middlewares.MultiWrap(bridge(func(ctx *middlewares.AutheliaCtx) {
 			authz.Handler(ctx)
-		}))
+		}), metricsVRMW, middlewares.SecurityHeadersNoStoreAfter)
 
 		switch name {
 		case "legacy":
-			r.ANY(pathAuthzLegacy, handlerAuthz)
-			r.ANY(path.Join(pathAuthzLegacy, pathParamAuthzEnvoy), handlerAuthz)
+			handlerLegacy := middlewares.Wrap(middlewares.NewMethodMaxLength(authzExtAuthzMethodMaxLength), handlerAuthz)
+
+			r.ANY(pathAuthzLegacy, handlerLegacy)
+			r.ANY(path.Join(pathAuthzLegacy, pathParamAuthzEnvoy), handlerLegacy)
 		default:
 			switch endpoint.Implementation {
 			case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
-				r.ANY(uri, handlerAuthz)
-				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handlerAuthz)
+				handlerExtAuthz := middlewares.Wrap(middlewares.NewMethodMaxLength(authzExtAuthzMethodMaxLength), handlerAuthz)
+
+				r.ANY(uri, handlerExtAuthz)
+				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handlerExtAuthz)
 			default:
 				r.GET(uri, handlerAuthz)
 				r.HEAD(uri, handlerAuthz)

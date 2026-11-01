@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -89,20 +93,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					ClientAuthMethodPrivateKeyJWT,
 					ClientAuthMethodNone,
 				},
-				TokenEndpointAuthSigningAlgValuesSupported: []string{
-					SigningAlgHMACUsingSHA256,
-					SigningAlgHMACUsingSHA384,
-					SigningAlgHMACUsingSHA512,
-					SigningAlgRSAUsingSHA256,
-					SigningAlgRSAUsingSHA384,
-					SigningAlgRSAUsingSHA512,
-					SigningAlgECDSAUsingP256AndSHA256,
-					SigningAlgECDSAUsingP384AndSHA384,
-					SigningAlgECDSAUsingP521AndSHA512,
-					SigningAlgRSAPSSUsingSHA256,
-					SigningAlgRSAPSSUsingSHA384,
-					SigningAlgRSAPSSUsingSHA512,
-				},
+				TokenEndpointAuthSigningAlgValuesSupported: SigningAlgValuesSupported(),
 			},
 			OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
 				CodeChallengeMethodsSupported: []string{
@@ -115,20 +106,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					ClientAuthMethodPrivateKeyJWT,
 					ClientAuthMethodNone,
 				},
-				RevocationEndpointAuthSigningAlgValuesSupported: []string{
-					SigningAlgHMACUsingSHA256,
-					SigningAlgHMACUsingSHA384,
-					SigningAlgHMACUsingSHA512,
-					SigningAlgRSAUsingSHA256,
-					SigningAlgRSAUsingSHA384,
-					SigningAlgRSAUsingSHA512,
-					SigningAlgECDSAUsingP256AndSHA256,
-					SigningAlgECDSAUsingP384AndSHA384,
-					SigningAlgECDSAUsingP521AndSHA512,
-					SigningAlgRSAPSSUsingSHA256,
-					SigningAlgRSAPSSUsingSHA384,
-					SigningAlgRSAPSSUsingSHA512,
-				},
+				RevocationEndpointAuthSigningAlgValuesSupported: SigningAlgValuesSupported(),
 				IntrospectionEndpointAuthMethodsSupported: []string{
 					ClientAuthMethodClientSecretBasic,
 					ClientAuthMethodClientSecretPost,
@@ -138,21 +116,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 			},
 			OAuth2DeviceAuthorizationGrantDiscoveryOptions: &OAuth2DeviceAuthorizationGrantDiscoveryOptions{},
 			OAuth2JWTIntrospectionResponseDiscoveryOptions: &OAuth2JWTIntrospectionResponseDiscoveryOptions{
-				IntrospectionSigningAlgValuesSupported: []string{
-					SigningAlgHMACUsingSHA256,
-					SigningAlgHMACUsingSHA384,
-					SigningAlgHMACUsingSHA512,
-					SigningAlgRSAUsingSHA256,
-					SigningAlgRSAUsingSHA384,
-					SigningAlgRSAUsingSHA512,
-					SigningAlgECDSAUsingP256AndSHA256,
-					SigningAlgECDSAUsingP384AndSHA384,
-					SigningAlgECDSAUsingP521AndSHA512,
-					SigningAlgRSAPSSUsingSHA256,
-					SigningAlgRSAPSSUsingSHA384,
-					SigningAlgRSAPSSUsingSHA512,
-					SigningAlgNone,
-				},
+				IntrospectionSigningAlgValuesSupported: SigningAlgValuesSupported(SigningAlgNone),
 				IntrospectionEncryptionAlgValuesSupported: []string{
 					EncryptionAlgRSA15,
 					EncryptionAlgRSAOAEP,
@@ -190,20 +154,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 		},
 
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
-			IDTokenSigningAlgValuesSupported: []string{
-				SigningAlgHMACUsingSHA256,
-				SigningAlgHMACUsingSHA384,
-				SigningAlgHMACUsingSHA512,
-				SigningAlgRSAUsingSHA256,
-				SigningAlgRSAUsingSHA384,
-				SigningAlgRSAUsingSHA512,
-				SigningAlgECDSAUsingP256AndSHA256,
-				SigningAlgECDSAUsingP384AndSHA384,
-				SigningAlgECDSAUsingP521AndSHA512,
-				SigningAlgRSAPSSUsingSHA256,
-				SigningAlgRSAPSSUsingSHA384,
-				SigningAlgRSAPSSUsingSHA512,
-			},
+			IDTokenSigningAlgValuesSupported: SigningAlgValuesSupported(),
 			IDTokenEncryptionAlgValuesSupported: []string{
 				EncryptionAlgRSA15,
 				EncryptionAlgRSAOAEP,
@@ -231,21 +182,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				EncryptionEncA192GCM,
 				EncryptionEncA256GCM,
 			},
-			UserinfoSigningAlgValuesSupported: []string{
-				SigningAlgHMACUsingSHA256,
-				SigningAlgHMACUsingSHA384,
-				SigningAlgHMACUsingSHA512,
-				SigningAlgRSAUsingSHA256,
-				SigningAlgRSAUsingSHA384,
-				SigningAlgRSAUsingSHA512,
-				SigningAlgECDSAUsingP256AndSHA256,
-				SigningAlgECDSAUsingP384AndSHA384,
-				SigningAlgECDSAUsingP521AndSHA512,
-				SigningAlgRSAPSSUsingSHA256,
-				SigningAlgRSAPSSUsingSHA384,
-				SigningAlgRSAPSSUsingSHA512,
-				SigningAlgNone,
-			},
+			UserinfoSigningAlgValuesSupported: SigningAlgValuesSupported(SigningAlgNone),
 			UserinfoEncryptionAlgValuesSupported: []string{
 				EncryptionAlgRSA15,
 				EncryptionAlgRSAOAEP,
@@ -273,21 +210,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				EncryptionEncA192GCM,
 				EncryptionEncA256GCM,
 			},
-			RequestObjectSigningAlgValuesSupported: []string{
-				SigningAlgHMACUsingSHA256,
-				SigningAlgHMACUsingSHA384,
-				SigningAlgHMACUsingSHA512,
-				SigningAlgRSAUsingSHA256,
-				SigningAlgRSAUsingSHA384,
-				SigningAlgRSAUsingSHA512,
-				SigningAlgECDSAUsingP256AndSHA256,
-				SigningAlgECDSAUsingP384AndSHA384,
-				SigningAlgECDSAUsingP521AndSHA512,
-				SigningAlgRSAPSSUsingSHA256,
-				SigningAlgRSAPSSUsingSHA384,
-				SigningAlgRSAPSSUsingSHA512,
-				SigningAlgNone,
-			},
+			RequestObjectSigningAlgValuesSupported: SigningAlgValuesSupported(SigningAlgNone),
 			RequestObjectEncryptionAlgValuesSupported: []string{
 				EncryptionAlgRSA15,
 				EncryptionAlgRSAOAEP,
@@ -332,20 +255,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 			},
 		},
 		OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions: &OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions{
-			AuthorizationSigningAlgValuesSupported: []string{
-				SigningAlgHMACUsingSHA256,
-				SigningAlgHMACUsingSHA384,
-				SigningAlgHMACUsingSHA512,
-				SigningAlgRSAUsingSHA256,
-				SigningAlgRSAUsingSHA384,
-				SigningAlgRSAUsingSHA512,
-				SigningAlgECDSAUsingP256AndSHA256,
-				SigningAlgECDSAUsingP384AndSHA384,
-				SigningAlgECDSAUsingP521AndSHA512,
-				SigningAlgRSAPSSUsingSHA256,
-				SigningAlgRSAPSSUsingSHA384,
-				SigningAlgRSAPSSUsingSHA512,
-			},
+			AuthorizationSigningAlgValuesSupported: SigningAlgValuesSupported(),
 			AuthorizationEncryptionAlgValuesSupported: []string{
 				EncryptionAlgRSA15,
 				EncryptionAlgRSAOAEP,
@@ -381,6 +291,33 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 	}
 
 	return config
+}
+
+// SigningAlgValuesSupported returns the JWS algorithms this Authorization Server can produce or verify a signature
+// with, followed by any extra values a particular metadata member also permits such as SigningAlgNone. The ML-DSA
+// algorithms are appended from SigningAlgsMLDSA rather than named here, so a build whose toolchain has no
+// crypto/mldsa advertises only what it can actually perform.
+func SigningAlgValuesSupported(extra ...string) (algs []string) {
+	algs = []string{
+		SigningAlgHMACUsingSHA256,
+		SigningAlgHMACUsingSHA384,
+		SigningAlgHMACUsingSHA512,
+		SigningAlgRSAUsingSHA256,
+		SigningAlgRSAUsingSHA384,
+		SigningAlgRSAUsingSHA512,
+		SigningAlgECDSAUsingP256AndSHA256,
+		SigningAlgECDSAUsingP384AndSHA384,
+		SigningAlgECDSAUsingP521AndSHA512,
+		SigningAlgRSAPSSUsingSHA256,
+		SigningAlgRSAPSSUsingSHA384,
+		SigningAlgRSAPSSUsingSHA512,
+		SigningAlgEd25519,
+		SigningAlgEdDSA,
+	}
+
+	algs = append(algs, SigningAlgsMLDSA...)
+
+	return append(algs, extra...)
 }
 
 // Copy the values of the OAuth2WellKnownConfiguration and return it as a new struct.

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage_test
 
 import (
@@ -1657,7 +1661,8 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 					gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
@@ -1674,7 +1679,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), 5,
+					gomock.Any(), gomock.Any(), gomock.Any(), 5,
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
@@ -1691,7 +1696,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
 					"sig", "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
@@ -1705,7 +1710,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
 					"sig", "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), 9,
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), 9,
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
@@ -1722,6 +1727,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 				).Return(nil, errors.New("boom"))
 			},
@@ -1736,7 +1742,8 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
 					gomock.Any(), "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "sig",
 				).Return(nil, errors.New("boom"))
 			},
@@ -1751,7 +1758,8 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), "sig",
 				).Return(nil, errors.New("boom"))
 			},
@@ -1941,7 +1949,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
 					"client", uuid.Nil, gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(),
 				).Return(nil, errors.New("boom"))
 			},

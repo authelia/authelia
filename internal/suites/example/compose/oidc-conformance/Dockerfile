@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+FROM --platform=${BUILDPLATFORM} maven:3.10.0-eclipse-temurin-21@sha256:d49bca545509b98965a808175862337dfdd24e1a8a4b11005cc8ce0578e52e8c AS builder
+
+ARG CONFORMANCE_SUITE_REPO=https://gitlab.com/openid/conformance-suite.git
+ARG CONFORMANCE_SUITE_REF=release-v5.3.4
+ARG CONFORMANCE_SUITE_COMMIT=23353b36957d6466010de767c812d2c91ed37638
+
+WORKDIR /src
+
+COPY --link example/compose/oidc-conformance/authelia-login.patch /tmp/authelia-login.patch
+
+RUN --mount=type=cache,target=/root/.m2 <<EOF
+set -eu
+git clone --depth 1 --branch "${CONFORMANCE_SUITE_REF}" "${CONFORMANCE_SUITE_REPO}" .
+test "$(git rev-parse HEAD)" = "${CONFORMANCE_SUITE_COMMIT}"
+git apply /tmp/authelia-login.patch
+mvn -B package -DskipTests=true
+EOF
+
+FROM registry.gitlab.com/openid/conformance-suite:release-v5.3.4@sha256:dcc4bd1fb7e9c00f048a67373fe2bec5ecf9feb45a6b5d55e237e5c30e5312c6
+
+COPY --link --from=builder /src/target/fapi-test-suite.jar /server/fapi-test-suite.jar
+
+# The conformance server fetches Authelia's discovery document, JWKS, token endpoint and userinfo endpoint over TLS
+# signed by the suite development CA, which no public root vouches for. Importing into the JDK's own cacerts adds that
+# CA while leaving the public roots in place, which a -Djavax.net.ssl.trustStore override would not.
+COPY --link common/pki/ca.public.crt /tmp/authelia-ca.crt
+
+RUN keytool -importcert -noprompt -alias authelia-development-ca -file /tmp/authelia-ca.crt -cacerts -storepass changeit

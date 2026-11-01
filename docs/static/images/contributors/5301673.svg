@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100" role="img" aria-label="FrozenDragoon">
+  <style>
+    svg { color-scheme: light dark }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,/9j/2wCEAAoHCAkIBgoJCAkMCwoMDxoRDw4ODx8WGBMaJSEnJiQhJCMpLjsyKSw4LCMkM0Y0OD0/QkNCKDFITUhATTtBQj8BCwwMDw0PHhERHj8qJCo/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/P//AABEIAHAAcAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APWqKKKACiiigAooooAKKKKACiiigAooooAKKKKACiis2bVPKmePyc7TjO7/AOtUynGG5MpKO5pUVlf2x/0w/wDH/wD61H9sf9MP/H//AK1R7an3I9rDuatFZX9sf9MP/H//AK1H9sf9MP8Ax/8A+tR7an3D2sO5q0Vlf2x/0w/8f/8ArUf2x/0w/wDH/wD61HtqfcPaw7mrRWV/bH/TD/x//wCtR/bH/TD/AMf/APrUe2p9w9rDuatFZX9sf9MP/H//AK1H9sf9MP8Ax/8A+tR7an3D2sO5q0VmRar5kyJ5ONzAZ39M/hWnVxnGexcZKWwVzl5/x+zf75ro6wLu3ma7lKwyEFjghTWGITcVYyrq6RUoqX7Ncf8APCT/AL4NNeKSPHmIyZ6bhjNcdmjlsxlFFKAWIABJPAApCEoqX7Ncf88JP++DR9muP+eEn/fBquV9h8r7EVFKwKsQwII6g0lSIKKckckmfLRmx12jNP8As1x/zwk/74NOzY7MLX/j7h/31/nXS1z9tbzrdREwyABwSSp9a6CuzDppO51UFZMKKKK6TcKytb/5Yf8AAv6Vq1la3/yw/wCBf0rKt/DZlV+BmVUtr/x9w/76/wA6iqW1/wCPuH/fX+dcEd0ccd0dLRRRXqHonOXn/H7N/vmoKnvP+P2b/fNQV5cviZ50t2ami/fm+g/rWtWTov35voP61rV3UP4aOyj8CCiiitjUKKKKACsrW/8Alh/wL+latZWt/wDLD/gX9Kyrfw2ZVfgZlUqkqwZTgg5BpKK844if7Xcf89n/AO+qPtdx/wA9n/76qCiq5pdx8z7isxZizEknqTSUUVIjU0X7830H9a1qydF+/N9B/WtavQofw0dtH4EFFFFbGoUUUUAFVL6zN15eHC7c9s9cVbopSipKzE0pKzMn+yG/57D/AL5qObTGiheTzQdozjbW1UF7/wAeU3+6axlRgk3YydKCWxzlFFFcBxmhBpjTQpIJQNwzjbUn9kN/z2H/AHzV6w/48Yv92rFd8aMGk7HZGlBpaFOxszas5Lht2O2KuUUVrGKirI1SUVZBRRRVDCiiigAooooAKgvFLWkqqCSVOAKnopNXVhNXVjmvs1x/zwk/74NH2a4/54Sf98Gulorm+rLuYewXcgslK2cSsCCF5BFT0UV0pWVjdKysFFFFMYUUUUAf/9k=" x="32.0" y="0" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="60.0" cy="28.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+  <text x="60.0" y="73" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">FrozenDragoon</text>
+  <text x="60.0" y="91" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">💻</text>
+</svg>

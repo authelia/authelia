@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package configuration
 
 import (
 	"errors"
 	"math"
+	"regexp"
 	"time"
 )
 
@@ -18,15 +23,13 @@ const (
 	constDelimiter = "."
 
 	constWindows = "windows"
-
-	extYML  = ".yml"
-	extYAML = ".yaml"
 )
 
 const (
-	filterField     = "filter"
-	filterTemplate  = "template"
-	filterExpandEnv = "expand-env"
+	filterField    = "filter"
+	filterTemplate = "template"
+
+	filterRemovedExpandEnv = "expand-env"
 )
 
 var (
@@ -80,6 +83,10 @@ var (
 	secretSuffix          = []string{"key", "secret", "password", "token", "certificate_chain"}
 	secretExclusionPrefix = []string{"identity_providers.oidc.lifespans."}
 	secretExclusionExact  = []string{"server.tls.key", "authentication_backend.disable_reset_password", "tls_key"}
+)
+
+var (
+	rePatternFLags = regexp.MustCompile(`^\((?P<Pattern>\?[imsU-]+\))`)
 )
 
 var (

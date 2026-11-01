@@ -1,5 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
+import { cn } from "cn";
 import { LayoutDashboard, Menu, Shield, ShieldCheck, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -14,7 +19,6 @@ import {
     SettingsTwoFactorAuthenticationSubRoute,
 } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
-import { cn } from "@utils/Styles";
 
 export interface Props {
     children?: ReactNode;

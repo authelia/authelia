@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { CircleUserRound, Home, Lock, Mail, Phone, RefreshCw, Shield, Terminal, UserRound, Users } from "lucide-react";
 
 import {

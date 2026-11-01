@@ -1,12 +1,18 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -85,7 +91,10 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 		page2.MustClose()
 	}()
 
-	page2.MustWaitStable()
+	// The second tab has to have arrived at the portal before the first one logs in, since what this test
+	// asserts is that the login on the first tab redirects it. Waiting for the page it is expected to be
+	// showing says that; waiting for it to stop changing does not distinguish it from one still in flight.
+	s.verifyIsFirstFactorPage(s.T(), page2.Context(ctx))
 
 	s.MustActivate()
 	s.verifyIsHome(s.T(), s.Context(ctx))
@@ -286,6 +295,123 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
 	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+}
+
+func (s *StandaloneSuite) doAuthzBasicRequest(endpoint, username, password string) *http.Response {
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/authz/%s", AutheliaBaseURL, endpoint), nil)
+	s.Require().NoError(err)
+
+	req.Header.Set("X-Forwarded-Method", fasthttp.MethodGet)
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("singlefactor.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-URI", "/")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
+
+	if username != "" {
+		req.SetBasicAuth(username, password)
+	}
+
+	res, err := NewHTTPClient().Do(req)
+	s.Require().NoError(err)
+
+	s.T().Cleanup(func() {
+		_ = res.Body.Close()
+	})
+
+	return res
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithDefaultAuthzHeaders() {
+	res := s.doAuthzBasicRequest("forward-auth", "john", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("john", res.Header.Get("Remote-User"))
+	s.Assert().ElementsMatch([]string{"admins", "dev"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
+	s.Assert().Equal("John Doe", res.Header.Get("Remote-Name"))
+	s.Assert().Equal("john.doe@authelia.com", res.Header.Get("Remote-Email"))
+
+	s.Assert().Empty(res.Header.Values("Remote-Given-Name"))
+	s.Assert().Empty(res.Header.Values("Remote-Employee-Id"))
+	s.Assert().Empty(res.Header.Values("Remote-Is-Admin"))
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeaders() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "john", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("john", res.Header.Get("Remote-User"))
+	s.Assert().ElementsMatch([]string{"admins", "dev"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
+	s.Assert().Equal("John", res.Header.Get("Remote-Given-Name"))
+	s.Assert().Equal("1001", res.Header.Get("Remote-Employee-Id"))
+	s.Assert().Equal("true", res.Header.Get("Remote-Is-Admin"))
+
+	s.Assert().Empty(res.Header.Values("Remote-Name"))
+	s.Assert().Empty(res.Header.Values("Remote-Email"))
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeadersForUserWithoutAttributes() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "harry", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("harry", res.Header.Get("Remote-User"))
+	s.Assert().Equal("", res.Header.Get("Remote-Groups"))
+	s.Assert().Equal("", res.Header.Get("Remote-Given-Name"))
+	s.Assert().Equal("", res.Header.Get("Remote-Employee-Id"))
+	s.Assert().Equal("false", res.Header.Get("Remote-Is-Admin"))
+}
+
+func (s *StandaloneSuite) TestShouldNotRespondWithConfiguredAuthzHeadersWhenUnauthenticated() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "", "")
+
+	s.Assert().Equal(fasthttp.StatusFound, res.StatusCode)
+
+	for _, header := range []string{"Remote-User", "Remote-Groups", "Remote-Given-Name", "Remote-Employee-Id", "Remote-Is-Admin"} {
+		s.Assert().Empty(res.Header.Values(header), header)
+	}
+}
+
+func (s *StandaloneSuite) TestShouldServeVerboseHealthCheck() {
+	client := NewHTTPClient()
+
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/health/verbose", LoginBaseURL), nil)
+	s.Require().NoError(err)
+
+	res, err := client.Do(req)
+	s.Require().NoError(err)
+
+	defer res.Body.Close()
+
+	s.Assert().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	body, err := io.ReadAll(res.Body)
+	s.Require().NoError(err)
+
+	health := struct {
+		Status    string `json:"status"`
+		Cached    bool   `json:"cached"`
+		Providers map[string]struct {
+			Status string `json:"status"`
+			Took   string `json:"took"`
+			Error  string `json:"error"`
+		} `json:"providers"`
+	}{}
+
+	s.Require().NoError(json.Unmarshal(body, &health))
+
+	s.Assert().Equal("ok", health.Status)
+
+	// the suite configures these three, and each must have genuinely been probed.
+	for _, name := range []string{"storage", "session", "user"} {
+		s.Require().Contains(health.Providers, name)
+		s.Assert().Equal("ok", health.Providers[name].Status)
+		s.Assert().NotEmpty(health.Providers[name].Took)
+
+		// detailed is not enabled, so no provider message may be disclosed.
+		s.Assert().Empty(health.Providers[name].Error)
+	}
 }
 
 func (s *StandaloneSuite) TestShouldRecordMetrics() {

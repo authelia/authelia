@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-label="somebody-somewhere-over-the-rainbow">
+  <style>
+    svg { color-scheme: light dark }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,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" x="0" y="0" width="40" height="40" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="20.0" cy="20.0" r="19.5" fill="none" class="ring" stroke-width="1" />
+</svg>

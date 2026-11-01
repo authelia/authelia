@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Command authelia is the Authelia daemon which provides authentication and authorization for your applications.
 package main
 

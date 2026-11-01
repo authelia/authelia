@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Configuration } from "@models/Configuration";
 import { ConfigurationPath } from "@services/Api";
 import { Get } from "@services/Client";

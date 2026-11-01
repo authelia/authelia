@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -218,6 +222,7 @@ func (s *OIDCClientCredentialsScenario) TestShouldIssueClientCredentialsJWTAcces
 	assert.Equal(s.T(), clientID, claims[oidc.ClaimClientIdentifier])
 	assert.Equal(s.T(), clientID, claims[oidc.ClaimSubject])
 	assert.Equal(s.T(), issuer, claims[oidc.ClaimIssuer])
+	assert.Equal(s.T(), []any{"https://app.example.com"}, claims[oidc.ClaimAudience])
 
 	data := url.Values{}
 	data.Set("client_id", clientID)

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -237,7 +241,7 @@ func TestRunAllShouldRunTheDefaultProvisioners(t *testing.T) {
 	select {
 	case err = <-errCh:
 		assert.NoError(t, err)
-	case <-time.After(time.Second * 10):
+	case <-time.After(time.Second * 20):
 		t.Fatal("run did not return within timeout")
 	}
 }

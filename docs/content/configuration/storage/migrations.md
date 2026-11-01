@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Migrations"
-description: "Storage Migrations"
+description: "Reference documentation for Authelia storage schema migrations including the schema version history, automatic upgrades, and manual downgrade procedures."
 summary: "A migration ."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -57,5 +61,9 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       24       |     4.39.20      |          WebAuthn adjustments, rename attestation_type to attestation_format, add attestation_type.          |
 |       25       |     4.39.21      |    Adjusted storage encryption implementation to include HKDF for key derivation and column-specific AADs    |
 |       26       |     4.39.21      | Adjusted storage encryption AADs to be specific to the individual column and row rather than just the column |
+|       27       |     4.39.21      |                    Included Access Token Session Signature in Refresh Token Session Table                    |
+|       28       |     4.39.22      |           Fix the Access Token Session Signature column length in the Refresh Token Session Table            |
+|       29       |     4.39.23      |                       OAuth 2.0 Resource Indicators recorded separately from Audience                        |
+|       30       |      4.40.0      |                    Fix the Request Method column length in the Authentication Logs Table                     |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068

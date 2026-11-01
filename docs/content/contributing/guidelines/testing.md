@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Testing"
-description: "Authelia Development Testing Guidelines"
+description: "Authelia development testing guidelines covering coverage expectations, test naming conventions, and requirements for bug fix and feature contributions."
 summary: "This section covers the testing guidelines."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -65,3 +69,4 @@ consistency. These linters generally run via [lefthook](https://lefthook.dev/) w
 |          [commitlint](https://commitlint.js.org/)           |            Git            |     Ensure Conformant Commit Messages      |
 | [TruffleHog](https://github.com/trufflesecurity/trufflehog) |            All            |     Preventing Secret Commit Accidents     |
 |         [typos](https://github.com/crate-ci/typos)          |            All            |   Preventing Spelling and General Typos    |
+|              [REUSE](https://reuse.software/)               |            All            |     Licensing and Copyright Compliance     |

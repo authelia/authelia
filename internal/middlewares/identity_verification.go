@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -180,13 +184,6 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		if err = ctx.RegenerateSession(); err != nil {
-			ctx.GetLogger().WithError(err).Error("Unable to regenerate session during identity verification")
-			ctx.SetJSONError(messageOperationFailed)
-
-			return
-		}
-
 		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
 			func(token *jwt.Token) (any, error) {
 				return []byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret), nil
@@ -269,6 +266,13 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 
 		if args.IsTokenUserValidFunc != nil && !args.IsTokenUserValidFunc(ctx, claims.Username) {
 			ctx.GetLogger().Errorf("Error occurred handling the identity verification token, the user is not allowed to use this token")
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+
+		if err = ctx.RegenerateSession(); err != nil {
+			ctx.GetLogger().WithError(err).Error("Unable to regenerate session during identity verification")
 			ctx.SetJSONError(messageOperationFailed)
 
 			return

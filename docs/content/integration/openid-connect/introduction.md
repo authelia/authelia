@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OpenID Connect 1.0"
-description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
+description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party including key implementation specifics."
 summary: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -41,6 +45,12 @@ actively perform the tests on each version of Authelia to maintain the latest co
 
 You can view our published conformance tests at [Certified OpenID Providers & Profiles] and
 [Certified OpenID Providers for Logout Profiles].
+
+In addition to the published conformance tests, all commits that change any part of the code run integration tests
+against every module of the conformance plans that Authelia is certified for or is planning to get certified for. These
+plans and modules are all of the tests required for an implementation to become certified. This is both done as a
+quality assurance measure to ensure confidence in Authelia's implementation and also to thoroughly test the
+implementation against normal use cases.
 
 ### OpenID Connect Protocol Suite
 
@@ -169,6 +179,11 @@ parameter):
 |       PS256        |      RSA       |  SHA-256 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|      Ed25519       |      OKP       |      SHA-512      | `sig` |                     N/A                      |                        N/A                         |
+|     EdDSA [^5]     |      OKP       |      SHA-512      | `sig` |                     N/A                      |               Deprecated by RFC 9864               |
+|     ML-DSA-44      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
+|     ML-DSA-65      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
+|     ML-DSA-87      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |      RSA-OAEP      |      RSA       |   SHA-1 (MGF1)    | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |    RSA-OAEP-256    |      RSA       |  SHA-256 (MGF1)   | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
@@ -210,6 +225,11 @@ parameter):
 |       PS256        |      RSA       |  SHA-256 (MGF1)   | `sig` |       `private_key_jwt`        |
 |       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |       `private_key_jwt`        |
 |       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |       `private_key_jwt`        |
+|      Ed25519       |      OKP       |      SHA-512      | `sig` |       `private_key_jwt`        |
+|     EdDSA [^5]     |      OKP       |      SHA-512      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-44      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-65      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-87      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |       `private_key_jwt`        |
 |      RSA-OAEP      |      RSA       |   SHA-1 (MGF1)    | `enc` |       `private_key_jwt`        |
 |    RSA-OAEP-256    |      RSA       |  SHA-256 (MGF1)   | `enc` |       `private_key_jwt`        |
@@ -228,7 +248,12 @@ parameter):
 | PBES2-HS384+A192KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS512+A256KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 
+A signed request object must have a `typ` header value of `oauth-authz-req+jwt` or `JWT`. An unsigned request object,
+which is only accepted from a client registered with a [request_object_signing_alg] of `none`, may omit the `typ`
+header.
+
 [Client Authentication Method]: #client-authentication-method
+[request_object_signing_alg]: ../../configuration/identity-providers/openid-connect/clients.md#request_object_signing_alg
 
 ## Encryption Algorithms
 
@@ -391,6 +416,11 @@ When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` head
 |      `ES256`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |      `ES384`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |      `ES512`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|     `Ed25519`     | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|   `EdDSA` [^5]    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-44`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-65`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-87`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 
 ## User Information Signing Algorithm
 
@@ -409,6 +439,11 @@ The following table describes the response from the [UserInfo Endpoint] dependin
 |      `ES256`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |      `ES384`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |      `ES512`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|     `Ed25519`     | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|   `EdDSA` [^5]    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-44`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-65`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-87`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 
 ## Endpoint Implementations
 
@@ -617,6 +652,12 @@ either implemented, have our eye on, or are refusing to implement.
     and being removed in [OAuth 2.1](https://oauth.net/2.1/) due to the poor security qualities it has. For these
     reasons Authelia has very intentionally decided not to implement this Grant Type.
 
+[^5]:
+    The `EdDSA` identifier from [RFC8037] does not identify which Edwards curve is in use and [RFC9864] Section 4.1.2
+    has consequently deprecated it in the IANA registry in favor of the fully specified `Ed25519` identifier. Authelia
+    accepts and advertises both identifiers for compatibility, and a key configured with either identifier satisfies a
+    request for the other, however we recommend configuring `Ed25519`.
+
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
 [Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
@@ -711,6 +752,8 @@ either implemented, have our eye on, or are refusing to implement.
 [RFC7522]: https://datatracker.ietf.org/doc/html/rfc7522
 [RFC9470]: https://datatracker.ietf.org/doc/html/rfc9470
 [RFC9728]: https://datatracker.ietf.org/doc/html/rfc9728
+[RFC8037]: https://datatracker.ietf.org/doc/html/rfc8037
+[RFC9864]: https://datatracker.ietf.org/doc/html/rfc9864
 [Certified OpenID Providers & Profiles]: https://openid.net/certification/#OPENID-OP-P
 [Certified OpenID Providers for Logout Profiles]: https://openid.net/certification/#OPENID-OP-LP
 [OpenID Certified™]: https://openid.net/certification/

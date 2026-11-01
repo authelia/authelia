@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/mattn/go-sqlite3"
 
@@ -18,7 +23,7 @@ type SQLiteProvider struct {
 func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider, err error) {
 	var p SQLProvider
 
-	if p, err = NewSQLProvider(config, providerSQLite, "sqlite3e", config.Storage.Local.Path); err != nil {
+	if p, err = NewSQLProvider(config, providerSQLite, "sqlite3e", fmt.Sprintf(dsnFmtSQLite, config.Storage.Local.Path)); err != nil {
 		return nil, err
 	}
 

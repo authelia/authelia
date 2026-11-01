@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares_test
 
 import (
@@ -122,16 +126,31 @@ func TestAutheliaCtx_AuthzPath(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     any
+		query    string
 		expected []byte
 	}{
 		{
 			"ShouldReturnValue",
 			"exy",
+			"",
 			[]byte("exy"),
 		},
 		{
-			"ShouldReturnValue",
+			"ShouldReturnValueWithQuery",
+			"/exy",
+			"abc=123&xyz=%20",
+			[]byte("/exy?abc=123&xyz=%20"),
+		},
+		{
+			"ShouldReturnNil",
 			nil,
+			"",
+			[]byte(nil),
+		},
+		{
+			"ShouldReturnNilWithQuery",
+			nil,
+			"abc=123",
 			[]byte(nil),
 		},
 	}
@@ -141,6 +160,7 @@ func TestAutheliaCtx_AuthzPath(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 			defer mock.Close()
 
+			mock.Ctx.Request.URI().SetQueryString(tc.query)
 			mock.Ctx.SetUserValue(middlewares.UserValueRouterKeyExtAuthzPath, tc.have)
 
 			assert.Equal(t, tc.expected, mock.Ctx.AuthzPath())
@@ -1099,6 +1119,41 @@ func TestShouldDetectNonXHR(t *testing.T) {
 	defer mock.Close()
 
 	assert.False(t, mock.Ctx.IsXHR())
+}
+
+func TestAutheliaCtx_IsNavigation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		headers  map[string]string
+		expected bool
+	}{
+		{"ShouldDetectNavigateDocument", map[string]string{"Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "document"}, true},
+		{"ShouldDetectNavigateWithoutDest", map[string]string{"Sec-Fetch-Mode": "navigate"}, true},
+		{"ShouldDetectNavigateOverXHRAndAccept", map[string]string{"Sec-Fetch-Mode": "navigate", "Accept": "application/json", "X-Requested-With": "XMLHttpRequest"}, true},
+		{"ShouldNotDetectNavigateIFrame", map[string]string{"Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "iframe"}, false},
+		{"ShouldNotDetectNavigateFrame", map[string]string{"Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "frame"}, false},
+		{"ShouldNotDetectCORS", map[string]string{"Sec-Fetch-Mode": "cors", "Accept": "*/*"}, false},
+		{"ShouldNotDetectNoCORS", map[string]string{"Sec-Fetch-Mode": "no-cors", "Accept": "text/html"}, false},
+		{"ShouldNotDetectWebSocket", map[string]string{"Sec-Fetch-Mode": "websocket"}, false},
+		{"ShouldFallbackToAcceptHTML", map[string]string{"Accept": "text/html"}, true},
+		{"ShouldFallbackToAcceptWildcard", map[string]string{"Accept": "*/*"}, true},
+		{"ShouldFallbackToXHR", map[string]string{"Accept": "text/html", "X-Requested-With": "XMLHttpRequest"}, false},
+		{"ShouldFallbackToAcceptJSON", map[string]string{"Accept": "application/json"}, false},
+		{"ShouldFallbackToNoHeaders", nil, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			for k, v := range tc.headers {
+				mock.Ctx.Request.Header.Set(k, v)
+			}
+
+			assert.Equal(t, tc.expected, mock.Ctx.IsNavigation())
+		})
+	}
 }
 
 func TestAutheliaCtxMisc(t *testing.T) {

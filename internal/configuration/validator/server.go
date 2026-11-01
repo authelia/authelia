@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -119,6 +123,7 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 // ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.
 func ValidateServerEndpoints(config *schema.Configuration, validator *schema.StructValidator) {
 	validateServerEndpointsRateLimits(config, validator)
+	validateServerEndpointsHealth(config, validator)
 
 	if config.Server.Endpoints.EnableExpvars {
 		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_expvars' should not be enabled in production"))
@@ -210,7 +215,7 @@ func validateServerAssets(config *schema.Configuration, validator *schema.Struct
 		}
 
 		for _, namespaceEntry := range namespaceEntries {
-			if namespaceEntry.IsDir() || !strings.HasSuffix(namespaceEntry.Name(), ".json") {
+			if namespaceEntry.IsDir() || !strings.HasSuffix(namespaceEntry.Name(), utils.ExtJSON) {
 				continue
 			}
 
@@ -277,48 +282,71 @@ func validateServerAssetsIterate(keyRoot, path string, translations map[string]a
 	}
 }
 
-func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
-	validateServerEndpointsRateLimitDefault("openid_connect_pushed_authorization_request", &config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest, validator)
-	validateServerEndpointsRateLimitDefault("openid_connect_token", &config.Server.Endpoints.RateLimits.OpenIDConnectToken, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectToken, validator)
+func validateServerEndpointsHealth(config *schema.Configuration, validator *schema.StructValidator) {
+	health := &config.Server.Endpoints.Health
 
-	validateServerEndpointsRateLimitDefault("reset_password_start", &config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
-	validateServerEndpointsRateLimitDefault("reset_password_finish", &config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
+	if len(health.Providers) == 0 {
+		health.Providers = make([]string, len(schema.DefaultServerConfiguration.Endpoints.Health.Providers))
 
-	validateServerEndpointsRateLimitDefault("second_factor_totp", &config.Server.Endpoints.RateLimits.SecondFactorTOTP, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorTOTP, validator)
-	validateServerEndpointsRateLimitDefault("second_factor_duo", &config.Server.Endpoints.RateLimits.SecondFactorDuo, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorDuo, validator)
-	validateServerEndpointsRateLimitDefault("second_factor_password", &config.Server.Endpoints.RateLimits.SecondFactorPassword, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorPassword, validator)
+		copy(health.Providers, schema.DefaultServerConfiguration.Endpoints.Health.Providers)
+	} else {
+		seen := make(map[string]bool, len(health.Providers))
 
-	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_start", &config.Server.Endpoints.RateLimits.SessionElevationStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationStart, config.IdentityValidation.ElevatedSession.CodeLifespan, validator)
-	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_finish", &config.Server.Endpoints.RateLimits.SessionElevationFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationFinish, config.IdentityValidation.ElevatedSession.ElevationLifespan, validator)
-}
+		for _, provider := range health.Providers {
+			if !utils.IsStringInSlice(provider, schema.ProviderNames) {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsHealthProviderUnknown, utils.StringJoinOr(schema.ProviderNames), provider))
 
-func validateServerEndpointsRateLimitDefault(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
-	if len(config.Buckets) == 0 {
-		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+				continue
+			}
 
-		copy(config.Buckets, defaults.Buckets)
+			if seen[provider] {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsHealthProviderDuplicate, provider))
+			}
 
-		return
+			seen[provider] = true
+		}
 	}
 
-	validateServerEndpointsRateLimitBuckets(name, config, validator)
+	switch {
+	case health.Cache == nil:
+		cache := *schema.DefaultServerConfiguration.Endpoints.Health.Cache
+
+		health.Cache = &cache
+	case *health.Cache < 0:
+		validator.Push(fmt.Errorf(errFmtServerEndpointsHealthCacheNegative, *health.Cache))
+	}
+
+	if health.Detailed && !health.Verbose {
+		validator.PushWarning(errors.New(errFmtServerEndpointsHealthDetailedNotVerbose))
+	}
 }
 
-func validateServerEndpointsRateLimitDefaultWeighted(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, weight time.Duration, validator *schema.StructValidator) {
-	if len(config.Buckets) == 0 {
-		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
+	defaults := schema.DefaultServerConfiguration.Endpoints.RateLimits.Endpoints()
 
-		for i := range defaults.Buckets {
-			config.Buckets[i] = schema.ServerEndpointRateLimitBucket{
-				Period:   weight * defaults.Buckets[i].Period,
-				Requests: defaults.Buckets[i].Requests,
+	for i, endpoint := range config.Server.Endpoints.RateLimits.Endpoints() {
+		validateServerEndpointsRateLimitDefault(config, endpoint, defaults[i].Config.Buckets, validator)
+	}
+}
+
+func validateServerEndpointsRateLimitDefault(config *schema.Configuration, endpoint schema.ServerEndpointRateLimitEndpoint, defaults []schema.ServerEndpointRateLimitBucket, validator *schema.StructValidator) {
+	if len(endpoint.Config.Buckets) == 0 {
+		endpoint.Config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults))
+
+		copy(endpoint.Config.Buckets, defaults)
+
+		if endpoint.Weight != nil {
+			weight := endpoint.Weight(config)
+
+			for i := range endpoint.Config.Buckets {
+				endpoint.Config.Buckets[i].Period *= weight
 			}
 		}
 
 		return
 	}
 
-	validateServerEndpointsRateLimitBuckets(name, config, validator)
+	validateServerEndpointsRateLimitBuckets(endpoint.Name, endpoint.Config, validator)
 }
 
 func validateServerEndpointsRateLimitBuckets(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
@@ -344,8 +372,6 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 			break
 		case "":
 			endpoint.Implementation = schema.AuthzImplementationLegacy
-
-			config.Server.Endpoints.Authz[name] = endpoint
 		default:
 			if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
 				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, utils.StringJoinOr(validAuthzImplementations), endpoint.Implementation))
@@ -359,6 +385,104 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 
 	if !reAuthzEndpointName.MatchString(name) {
 		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzInvalidName, name))
+	}
+
+	// NOTE: With exclusion of the implementation set any options below this line.
+	if endpoint.Implementation == schema.AuthzImplementationLegacy && endpoint.Headers != nil {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzOptionLegacy, name, "headers"))
+	}
+
+	if endpoint.Headers == nil {
+		switch endpoint.Implementation {
+		case schema.AuthzImplementationLegacy:
+			break
+		case schema.AuthzImplementationAuthRequest:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameAuthRequest].Headers
+		case schema.AuthzImplementationExtAuthz:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameExtAuthz].Headers
+		case schema.AuthzImplementationForwardAuth:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers
+		}
+	} else {
+		validateServerEndpointsAuthzEndpointHeaders(config, name, endpoint, validator)
+	}
+
+	config.Server.Endpoints.Authz[name] = endpoint
+}
+
+func validateServerEndpointsAuthzEndpointHeaders(config *schema.Configuration, name string, endpoint schema.ServerEndpointsAuthz, validator *schema.StructValidator) {
+	headers := make([]string, 0, len(endpoint.Headers))
+
+	for header := range endpoint.Headers {
+		headers = append(headers, header)
+	}
+
+	sort.Strings(headers)
+
+	seen := make(map[string]string, len(headers))
+
+	for _, header := range headers {
+		validateServerEndpointsAuthzEndpointHeaderName(name, header, seen, validator)
+
+		switch attribute := endpoint.Headers[header].UserAttribute; {
+		case attribute == "":
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderUserAttributeMissing, name, header))
+		case !isUserAttributeValidAuthz(attribute, config):
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderUserAttribute, name, header, attribute))
+		}
+	}
+}
+
+func validateServerEndpointsAuthzEndpointHeaderName(name, header string, seen map[string]string, validator *schema.StructValidator) {
+	if !reAuthzEndpointHeaderName.MatchString(header) {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderInvalidName, name, header))
+
+		return
+	}
+
+	key := strings.ToLower(header)
+
+	if first, ok := seen[key]; ok {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderDuplicateName, name, header, first))
+
+		return
+	}
+
+	seen[key] = header
+
+	if utils.IsStringInSlice(key, reservedAuthzEndpointHeaderNames) {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderReservedName, name, header))
+
+		return
+	}
+
+	for _, prefix := range reservedAuthzEndpointHeaderPrefixes {
+		if strings.HasPrefix(key, prefix) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzHeaderReservedName, name, header))
+
+			return
+		}
+	}
+}
+
+func isUserAttributeValidAuthz(name string, config *schema.Configuration) (valid bool) {
+	if _, ok := config.Definitions.UserAttributes[name]; ok {
+		return true
+	}
+
+	switch name {
+	case attributeUserEmailVerified, attributeUserEmailsExtra, attributeUserUpdatedAt:
+		return true
+	case attributeUserPhoneNumberRFC3966, attributeUserPhoneNumberVerified:
+		return isUserAttributeValid(attributeUserPhoneNumber, config)
+	case attributeUserAddress:
+		return isUserAttributeValid(attributeUserStreetAddress, config) ||
+			isUserAttributeValid(attributeUserLocality, config) ||
+			isUserAttributeValid(attributeUserRegion, config) ||
+			isUserAttributeValid(attributeUserPostalCode, config) ||
+			isUserAttributeValid(attributeUserCountry, config)
+	default:
+		return isUserAttributeValid(name, config)
 	}
 }
 

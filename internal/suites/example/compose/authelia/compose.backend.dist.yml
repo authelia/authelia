@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 services:
   authelia-backend:
@@ -6,6 +10,8 @@ services:
     mem_limit: 1g
     environment:
       GOMAXPROCS: '2'
+      PUID: '${USER_ID:-0}'
+      PGID: '${GROUP_ID:-0}'
     labels:
       traefik.enable: 'true'
       traefik.http.routers.authelia_backend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/`)'  # yamllint disable-line rule:line-length

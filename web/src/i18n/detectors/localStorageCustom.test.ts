@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import LocalStorageCustomDetector from "@i18n/detectors/localStorageCustom";
 import { getLocalStorage, localStorageAvailable } from "@services/LocalStorage";
 

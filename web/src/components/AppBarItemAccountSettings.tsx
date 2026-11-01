@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { LogOut, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

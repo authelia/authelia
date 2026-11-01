@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 import "net"
@@ -23,12 +27,12 @@ type AccessControlNetwork struct {
 // AccessControlRule represents one ACL rule entry.
 type AccessControlRule struct {
 	Domains      AccessControlRuleDomains   `koanf:"domain" yaml:"domain,omitempty" toml:"domain,omitempty" json:"domain,omitempty" jsonschema:"oneof_required=Domain,uniqueItems,title=Domain Literals" jsonschema_description:"The literal domains to match the domain against that this rule applies to."`
-	DomainsRegex AccessControlRuleRegex     `koanf:"domain_regex" yaml:"domain_regex,omitempty" toml:"domain_regex,omitempty" json:"domain_regex,omitempty" jsonschema:"oneof_required=Domain Regex,title=Domain Regex Patterns" jsonschema_description:"The regex patterns to match the domain against that this rule applies to."`
+	DomainsRegex AccessControlRuleRegexCI   `koanf:"domain_regex" yaml:"domain_regex,omitempty" toml:"domain_regex,omitempty" json:"domain_regex,omitempty" jsonschema:"oneof_required=Domain Regex,title=Domain Regex Patterns" jsonschema_description:"The regex patterns to match the domain against that this rule applies to."`
 	Policy       string                     `koanf:"policy" yaml:"policy,omitempty" toml:"policy,omitempty" json:"policy,omitempty" jsonschema:"required,enum=bypass,enum=deny,enum=one_factor,enum=two_factor,title=Rule Policy" jsonschema_description:"The policy this rule applies when all criteria match."`
 	Subjects     AccessControlRuleSubjects  `koanf:"subject" yaml:"subject,omitempty" toml:"subject,omitempty" json:"subject,omitempty" jsonschema:"title=AccessControlRuleSubjects" jsonschema_description:"The users or groups that this rule applies to."`
 	Networks     []*net.IPNet               `koanf:"networks" yaml:"networks,omitempty" toml:"networks,omitempty" json:"networks,omitempty" jsonschema:"title=Networks" jsonschema_description:"The remote IP's, network ranges in CIDR notation, or network definition names that this rule applies to."`
 	Resources    AccessControlRuleRegex     `koanf:"resources" yaml:"resources,omitempty" toml:"resources,omitempty" json:"resources,omitempty" jsonschema:"title=Resources or Paths" jsonschema_description:"The regex patterns to match the resource paths that this rule applies to."`
-	Methods      AccessControlRuleMethods   `koanf:"methods" yaml:"methods,omitempty" toml:"methods,omitempty" json:"methods,omitempty" jsonschema:"enum=GET,enum=HEAD,enum=POST,enum=PUT,enum=DELETE,enum=CONNECT,enum=OPTIONS,enum=TRACE,enum=PATCH,enum=PROPFIND,enum=PROPPATCH,enum=MKCOL,enum=COPY,enum=MOVE,enum=LOCK,enum=UNLOCK,title=Methods" jsonschema_description:"The list of request methods this rule applies to."`
+	Methods      AccessControlRuleMethods   `koanf:"methods" yaml:"methods,omitempty" toml:"methods,omitempty" json:"methods,omitempty" jsonschema:"enum=GET,enum=HEAD,enum=POST,enum=PUT,enum=DELETE,enum=CONNECT,enum=OPTIONS,enum=TRACE,enum=PATCH,enum=PROPFIND,enum=PROPPATCH,enum=MKCOL,enum=COPY,enum=MOVE,enum=LOCK,enum=UNLOCK,enum=ACL,enum=BASELINE-CONTROL,enum=BIND,enum=CHECKIN,enum=CHECKOUT,enum=LABEL,enum=LINK,enum=MERGE,enum=MKACTIVITY,enum=MKCALENDAR,enum=MKREDIRECTREF,enum=MKWORKSPACE,enum=ORDERPATCH,enum=PRI,enum=QUERY,enum=REBIND,enum=REPORT,enum=SEARCH,enum=UNBIND,enum=UNCHECKOUT,enum=UNLINK,enum=UPDATE,enum=UPDATEREDIRECTREF,enum=VERSION-CONTROL,title=Methods" jsonschema_description:"The list of request methods this rule applies to."`
 	Query        [][]AccessControlRuleQuery `koanf:"query" yaml:"query,omitempty" toml:"query,omitempty" json:"query,omitempty" jsonschema:"title=Query Rules" jsonschema_description:"The list of query parameter rules this rule applies to."`
 }
 

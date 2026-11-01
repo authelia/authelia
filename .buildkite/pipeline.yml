@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 # This represents the hardcoded pipeline set in Buildkite interface which executes the repo provided dynamic pipeline.
 # It is used to ensure that insecure code from external PR cannot be executed before a maintainers approval, to avoid
@@ -10,8 +14,4 @@ steps:
   # Pipeline for all others (tagged commits/local branches/PRs).
   - label: ":pipeline: Setup Pipeline"
     command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
-
-notify:
-  - webhook: "<REDACTED WEBHOOK_URL>"
-    if: build.state == "blocked"
 ...

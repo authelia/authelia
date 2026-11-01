@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 dn: cn=module{0},cn=config
 changetype: modify
 add: olcModuleLoad

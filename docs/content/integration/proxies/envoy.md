@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Envoy"
-description: "An integration guide for Authelia and the Envoy reverse proxy"
+description: "An integration guide for Authelia and the Envoy reverse proxy including external authorization filter configuration examples, deployment tips, and key caveats."
 summary: "A guide on integrating Authelia with the Envoy reverse proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -247,6 +251,9 @@ static_resources:
                           - exact: 'authorization'
                           - exact: 'proxy-authorization'
                           - exact: 'accept'
+                          - exact: 'sec-fetch-mode'
+                          - exact: 'sec-fetch-dest'
+                          - exact: 'x-requested-with'
                           - exact: 'cookie'
                           - exact: 'location'
                       http_service:
@@ -261,6 +268,9 @@ static_resources:
                               - exact: 'authorization'
                               - exact: 'proxy-authorization'
                               - exact: 'accept'
+                              - exact: 'sec-fetch-mode'
+                              - exact: 'sec-fetch-dest'
+                              - exact: 'x-requested-with'
                               - exact: 'cookie'
                               - exact: 'location'
                           headers_to_add:

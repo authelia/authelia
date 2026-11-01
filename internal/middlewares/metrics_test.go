@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -9,6 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestNewMetricsRequest(t *testing.T) {
@@ -16,11 +22,16 @@ func TestNewMetricsRequest(t *testing.T) {
 		name       string
 		method     string
 		statusCode int
+		expected   string
 	}{
-		{"ShouldRecordGET200", fasthttp.MethodGet, fasthttp.StatusOK},
-		{"ShouldRecordPOST401", fasthttp.MethodPost, fasthttp.StatusUnauthorized},
-		{"ShouldRecordDELETE404", fasthttp.MethodDelete, fasthttp.StatusNotFound},
-		{"ShouldRecordPUT500", fasthttp.MethodPut, fasthttp.StatusInternalServerError},
+		{"ShouldRecordGET200", fasthttp.MethodGet, fasthttp.StatusOK, fasthttp.MethodGet},
+		{"ShouldRecordPOST401", fasthttp.MethodPost, fasthttp.StatusUnauthorized, fasthttp.MethodPost},
+		{"ShouldRecordDELETE404", fasthttp.MethodDelete, fasthttp.StatusNotFound, fasthttp.MethodDelete},
+		{"ShouldRecordPUT500", fasthttp.MethodPut, fasthttp.StatusInternalServerError, fasthttp.MethodPut},
+		{"ShouldRecordRFC4918Method", schema.MethodPropFind, fasthttp.StatusMultiStatus, schema.MethodPropFind},
+		{"ShouldRecordIANAMethod", schema.MethodQuery, fasthttp.StatusOK, schema.MethodQuery},
+		{"ShouldRecordLowercaseMethodUppercased", "get", fasthttp.StatusOK, fasthttp.MethodGet},
+		{"ShouldRecordUnknownMethodAsUNKNOWN", "FOO", fasthttp.StatusMethodNotAllowed, "UNKNOWN"},
 	}
 
 	t.Run("ShouldReturnNilWhenRecorderNil", func(t *testing.T) {
@@ -49,7 +60,7 @@ func TestNewMetricsRequest(t *testing.T) {
 			assert.True(t, nextCalled)
 			require.Len(t, recorder.requestCalls, 1)
 			assert.Equal(t, strconv.Itoa(tc.statusCode), recorder.requestCalls[0].statusCode)
-			assert.Equal(t, tc.method, recorder.requestCalls[0].requestMethod)
+			assert.Equal(t, tc.expected, recorder.requestCalls[0].requestMethod)
 			assert.True(t, recorder.requestCalls[0].elapsed >= 0)
 		})
 	}

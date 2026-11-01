@@ -1,19 +1,27 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
-import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import { Alert, AlertTitle } from "@components/UI/Alert";
 import { Button } from "@components/UI/Button";
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
 import { Spinner } from "@components/UI/Spinner";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
+import { useRateLimit } from "@hooks/RateLimit";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postSecondFactor } from "@services/Password";
+import { RateLimitedError } from "@services/RateLimit";
 
 export interface Props {
     onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
@@ -25,13 +33,14 @@ const PasswordForm = function (props: Props) {
 
     const redirectionURL = useQueryParam(RedirectionURL);
     const { flow, id: flowID, subflow } = useFlow();
+    const { showPassword, toggleProps } = usePasswordVisibility();
 
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+    const { limited: rateLimited, secondsRemaining, trigger: triggerRateLimit } = useRateLimit();
 
     const passwordRef = useRef<HTMLInputElement | null>(null);
 
@@ -46,7 +55,28 @@ const PasswordForm = function (props: Props) {
         return () => clearTimeout(timeout);
     }, [focusPassword]);
 
+    const wasRateLimitedRef = useRef(rateLimited);
+
+    useEffect(() => {
+        if (wasRateLimitedRef.current && !rateLimited) focusPassword();
+
+        wasRateLimitedRef.current = rateLimited;
+    }, [focusPassword, rateLimited]);
+
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            triggerRateLimit(retryAfter);
+            setPassword("");
+            setLoading(false);
+
+            createErrorNotification(translate("You have made too many requests"));
+        },
+        [createErrorNotification, translate, triggerRateLimit],
+    );
+
     const handleSignIn = useCallback(async () => {
+        if (rateLimited) return;
+
         if (password === "") {
             setPasswordError(true);
 
@@ -57,15 +87,34 @@ const PasswordForm = function (props: Props) {
 
         try {
             const res = await postSecondFactor(password, redirectionURL, flowID, flow, subflow);
-            props.onAuthenticationSuccess(res ? res.redirect : undefined);
+
+            props.onAuthenticationSuccess(res?.redirect);
         } catch (err) {
+            if (err instanceof RateLimitedError) {
+                handleRateLimited(err.retryAfter);
+
+                return;
+            }
+
             console.error(err);
             createErrorNotification(translate("Incorrect password"));
             setPassword("");
             setLoading(false);
             focusPassword();
         }
-    }, [createErrorNotification, focusPassword, password, props, redirectionURL, translate, flowID, flow, subflow]);
+    }, [
+        createErrorNotification,
+        focusPassword,
+        handleRateLimited,
+        password,
+        props,
+        rateLimited,
+        redirectionURL,
+        translate,
+        flowID,
+        flow,
+        subflow,
+    ]);
 
     const handlePasswordKeyDown = useCallback(
         (event: KeyboardEvent<HTMLInputElement>) => {
@@ -114,7 +163,7 @@ const PasswordForm = function (props: Props) {
                             ref={passwordRef}
                             id="password-textfield"
                             required
-                            disabled={loading}
+                            disabled={loading || rateLimited}
                             value={password}
                             className="pr-10"
                             error={passwordError}
@@ -125,32 +174,11 @@ const PasswordForm = function (props: Props) {
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
                         />
-                        <button
-                            type="button"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                            aria-label={translate("Toggle password visibility")}
-                            aria-pressed={showPassword}
-                            onMouseDown={() => setShowPassword(true)}
-                            onMouseUp={() => setShowPassword(false)}
-                            onMouseLeave={() => setShowPassword(false)}
-                            onTouchStart={() => setShowPassword(true)}
-                            onTouchEnd={() => setShowPassword(false)}
-                            onTouchCancel={() => setShowPassword(false)}
-                            onKeyDown={(e) => {
-                                if (e.key === " " || e.key === "Enter") {
-                                    setShowPassword(true);
-                                    e.preventDefault();
-                                }
-                            }}
-                            onKeyUp={(e) => {
-                                if (e.key === " " || e.key === "Enter") {
-                                    setShowPassword(false);
-                                    e.preventDefault();
-                                }
-                            }}
-                        >
-                            {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                        </button>
+                        <PasswordVisibilityToggle
+                            label={translate("Toggle password visibility")}
+                            showPassword={showPassword}
+                            {...toggleProps}
+                        />
                     </div>
                 </div>
                 {passwordCapsLock ? (
@@ -168,13 +196,14 @@ const PasswordForm = function (props: Props) {
                         id="sign-in-button"
                         variant="default"
                         className="w-full"
-                        disabled={loading}
+                        disabled={loading || rateLimited}
                         onClick={handleSignIn}
                     >
                         {translate("Authenticate", { ns: "settings" })}
                         {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
                     </Button>
                 </div>
+                <RateLimitCountdown secondsRemaining={secondsRemaining} />
             </div>
         </form>
     );

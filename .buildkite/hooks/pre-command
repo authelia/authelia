@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set +u
 
+# shellcheck source=/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/../libs/common.sh"
+
 INTEGRATION() {
-  if [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:renovate/" "${FILE}"
-  elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:${BUILDKITE_BRANCH}/" "${FILE}"
-  elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:PR${BUILDKITE_PULL_REQUEST}/" "${FILE}"
+  resolve_tag_suffix
+
+  if [[ -n "${TAG_SUFFIX}" ]]; then
+    sed -i "s/${CONTAINER}/${CONTAINER}:${TAG_SUFFIX}/" "${FILE}"
+    echo "Integration container tag: ${CONTAINER}:${TAG_SUFFIX}"
+  else
+    echo "Integration container tag: ${CONTAINER} (no suffix applied)"
   fi
 }
 
@@ -40,7 +48,7 @@ if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
   fi
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ :chrome: ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
 
@@ -90,6 +98,11 @@ if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
       BUILD_FLAG="${BUILD_SAMBA}"
       CONTAINER="integration-samba"
       FILE="internal/suites/example/compose/samba/compose.yml"
+      ;;
+    OIDCConformance)
+      BUILD_FLAG="${BUILD_OIDCCONFORMANCE}"
+      CONTAINER="integration-oidcconformance"
+      FILE="internal/suites/OIDCConformance/compose.yml"
       ;;
   esac
   [[ "${BUILD_FLAG}" == "true" ]] && INTEGRATION

@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/valyala/fasthttp"
@@ -11,25 +14,19 @@ import (
 
 func handleAuthzGetObjectLegacy(ctx AuthzContext) (object authorization.Object, err error) {
 	var (
-		targetURL *url.URL
-		method    []byte
+		method          []byte
+		requestedObject *authorization.Object
 	)
 
-	if targetURL, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
-		return object, fmt.Errorf("failed to get target URL: %w", err)
-	}
-
-	descriptor := "header 'X-Forwarded-Method'"
-
 	if method = ctx.XForwardedMethod(); len(method) == 0 {
-		method, descriptor = ctx.Method(), "start line value 'Method'"
+		method = ctx.Method()
 	}
 
-	if hasInvalidMethodCharacters(method) {
-		return object, fmt.Errorf("%s with value '%s' has invalid characters", descriptor, method)
+	if requestedObject, err = authorization.NewObjectMethodURLOrSchemeHostPath(method, ctx.XOriginalURL(), ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.GetXForwardedURI()); err != nil {
+		return object, err
 	}
 
-	return authorization.NewObjectRaw(targetURL, method), nil
+	return *requestedObject, nil
 }
 
 func handleAuthzUnauthorizedLegacy(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {

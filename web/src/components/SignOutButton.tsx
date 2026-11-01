@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useCallback } from "react";
 
 import { useTranslation } from "react-i18next";
@@ -37,7 +41,7 @@ const SignOutButton = function (props: Props) {
                     </Button>
                 }
             />
-            <TooltipContent>{translate(props.tooltip)}</TooltipContent>
+            <TooltipContent sideOffset={8}>{translate(props.tooltip)}</TooltipContent>
         </Tooltip>
     ) : (
         <Button

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -68,7 +72,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 
 		ns := strings.Replace(nameLower, ext, "", 1)
 
-		if ext != extJSON {
+		if ext != ExtJSON {
 			return nil
 		}
 

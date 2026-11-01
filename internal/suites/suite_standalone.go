@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -47,12 +51,12 @@ func init() {
 
 	GlobalRegistry.Register(standaloneSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
-		OnError:         displayAutheliaLogs,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
-		TearDown:        teardown,
+		OnError:         displayAutheliaLogs,
 		TestTimeout:     5 * time.Minute,
-		TearDownTimeout: 2 * time.Minute,
+		TearDown:        teardown,
+		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite is used to test Authelia in a standalone
 configuration with in-memory sessions and a local sqlite db stored on disk`,
 	})

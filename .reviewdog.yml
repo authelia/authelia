@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 runner:
   docs:
@@ -27,13 +31,28 @@ runner:
     level: error
 
   typos:
-    cmd: typos --format brief .
+    cmd: .buildkite/steps/lint.sh typos .
     errorformat:
-      - '%f:%l:%c: %m'
+      - '%E%f:%l:%c: %m'
+      - '%C%.%#'
     level: error
 
   yamllint:
     cmd: yamllint -f parsable .
+    errorformat:
+      - '%f:%l:%c: %m'
+    level: error
+
+  scorecard:
+    cmd: .buildkite/steps/lint.sh scorecard
+    errorformat:
+      - '%E%f:%l:%c: %m'
+      - '%C%.%#'
+    level: error
+
+  reuse:
+    # reuse reports 'path: message' with no position, so a 1:1 position is added for reviewdog.
+    cmd: reuse lint --lines | sed -e 's|^\([^:]*\):|\1:1:1:|'
     errorformat:
       - '%f:%l:%c: %m'
     level: error

@@ -1,20 +1,22 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
 	"testing"
-	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/stretchr/testify/require"
 )
 
 func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
 	rs.ClickElementLocatedByID(t, page, "reset-password-button")
 
-	require.NoError(t, page.WaitStable(time.Millisecond*100))
+	rs.WaitElementLocatedByID(t, page, "reset-password-step1-stage")
 
-	err := rs.WaitElementLocatedByID(t, page, "username-textfield").Input(username)
-	require.NoError(t, err)
+	rs.TypeElementLocatedByID(t, page, "username-textfield", username)
+
 	rs.ClickElementLocatedByID(t, page, "reset-button")
 }
 
@@ -22,26 +24,8 @@ func (rs *RodSession) doCompletePasswordReset(t *testing.T, page *rod.Page, newP
 	link := doGetResetPasswordJWTLinkFromLastEmail(t)
 	rs.doVisit(t, page, link)
 
-	password1 := rs.WaitElementLocatedByID(t, page, "password1-textfield")
-	password2 := rs.WaitElementLocatedByID(t, page, "password2-textfield")
-
-password1:
-	err := password1.MustSelectAllText().Input(newPassword1)
-
-	require.NoError(t, err)
-
-	if password1.MustText() != newPassword1 {
-		goto password1
-	}
-
-password2:
-	err = password2.MustSelectAllText().Input(newPassword2)
-
-	require.NoError(t, err)
-
-	if password2.MustText() != newPassword2 {
-		goto password2
-	}
+	rs.TypeElementLocatedByID(t, page, "password1-textfield", newPassword1)
+	rs.TypeElementLocatedByID(t, page, "password2-textfield", newPassword2)
 
 	rs.ClickElementLocatedByID(t, page, "reset-button")
 }

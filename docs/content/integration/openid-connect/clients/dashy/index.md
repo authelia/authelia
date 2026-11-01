@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Dashy"
-description: "Integrating Dashy with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Dashy with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-06-13T14:12:09+00:00
 draft: false
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Dashy]
   - [v3.1.1](https://github.com/Lissy93/dashy/releases/tag/3.1.1)
 

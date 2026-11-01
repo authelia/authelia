@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { CompletePasswordSignInPath, FirstFactorPath, FirstFactorReauthenticatePath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 import { SignInResponse } from "@services/SignIn";
@@ -97,6 +101,5 @@ export async function postSecondFactor(
         targetURL,
     };
 
-    const res = await PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);
-    return res ?? ({} as SignInResponse);
+    return PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);
 }

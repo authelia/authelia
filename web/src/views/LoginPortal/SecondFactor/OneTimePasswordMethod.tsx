@@ -1,13 +1,20 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
+import { useRateLimit } from "@hooks/RateLimit";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
+import { RateLimitedError } from "@services/RateLimit";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
@@ -43,7 +50,7 @@ const OneTimePasswordMethod = function (props: Props) {
     const { onSignInError, onSignInSuccess } = props;
     const onSignInErrorCallbackRef = useRef(onSignInError);
     const onSignInSuccessCallbackRef = useRef(onSignInSuccess);
-    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() => dispatch({ type: State.Idle }));
 
     useEffect(() => {
         onSignInErrorCallbackRef.current = onSignInError;
@@ -52,15 +59,6 @@ const OneTimePasswordMethod = function (props: Props) {
     useEffect(() => {
         onSignInSuccessCallbackRef.current = onSignInSuccess;
     }, [onSignInSuccess]);
-
-    useEffect(() => {
-        return () => {
-            if (timeoutRateLimitRef.current !== null) {
-                clearTimeout(timeoutRateLimitRef.current);
-                timeoutRateLimitRef.current = null;
-            }
-        };
-    }, []);
 
     useEffect(() => {
         if (err) {
@@ -78,20 +76,13 @@ const OneTimePasswordMethod = function (props: Props) {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimitRef.current) {
-                clearTimeout(timeoutRateLimitRef.current);
-            }
-
             dispatch({ type: State.RateLimited });
 
             onSignInErrorCallbackRef.current(new Error(translate("You have made too many requests")));
 
-            timeoutRateLimitRef.current = setTimeout(() => {
-                dispatch({ type: State.Idle });
-                timeoutRateLimitRef.current = null;
-            }, retryAfter * 1000);
+            triggerRateLimit(retryAfter);
         },
-        [onSignInErrorCallbackRef, translate],
+        [onSignInErrorCallbackRef, translate, triggerRateLimit],
     );
 
     useEffect(() => {
@@ -116,19 +107,16 @@ const OneTimePasswordMethod = function (props: Props) {
                 dispatch({ type: State.InProgress });
                 const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow, userCode);
 
-                if (!res) {
+                dispatch({ type: State.Success });
+                onSignInSuccessCallbackRef.current(res?.redirect);
+            } catch (err) {
+                if (err instanceof RateLimitedError) {
+                    handleRateLimited(err.retryAfter);
+                } else {
+                    console.error(err);
                     onSignInErrorCallbackRef.current(new Error(translate("The One-Time Password might be wrong")));
                     dispatch({ type: State.Failure });
-                } else if (res.limited) {
-                    handleRateLimited(res.retryAfter);
-                } else {
-                    dispatch({ type: State.Success });
-                    onSignInSuccessCallbackRef.current(res?.data?.redirect);
                 }
-            } catch (err) {
-                console.error(err);
-                onSignInErrorCallbackRef.current(new Error(translate("The One-Time Password might be wrong")));
-                dispatch({ type: State.Failure });
             }
             setPasscode("");
         };
@@ -179,6 +167,7 @@ const OneTimePasswordMethod = function (props: Props) {
                 ) : (
                     <LoadingPage />
                 )}
+                <RateLimitCountdown secondsRemaining={secondsRemaining} />
             </div>
         </MethodContainer>
     );

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
@@ -602,8 +606,8 @@ func TestPooledLDAPClientFactoryCloseShouldWaitForCheckedOutClients(t *testing.T
 	time.Sleep(time.Millisecond * 100)
 
 	select {
-	case <-closed:
-		t.Fatal("close returned before the checked out clients were released")
+	case err = <-closed:
+		t.Fatalf("close returned before the checked out clients were released: %v", err)
 	default:
 	}
 
@@ -612,8 +616,8 @@ func TestPooledLDAPClientFactoryCloseShouldWaitForCheckedOutClients(t *testing.T
 	time.Sleep(time.Millisecond * 100)
 
 	select {
-	case <-closed:
-		t.Fatal("close returned before all checked out clients were released")
+	case err = <-closed:
+		t.Fatalf("close returned before all checked out clients were released: %v", err)
 	default:
 	}
 
@@ -842,8 +846,8 @@ func TestPooledLDAPClientFactoryCloseShouldNotStallWhenGrowingFails(t *testing.T
 	time.Sleep(time.Millisecond * 100)
 
 	select {
-	case <-closed:
-		t.Fatal("close returned before the growing client was accounted for")
+	case err = <-closed:
+		t.Fatalf("close returned before the growing client was accounted for: %v", err)
 	default:
 	}
 

@@ -1,10 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Builds the pam_authelia Go binary and the pam_authelia.so C shim by cloning
 # https://github.com/authelia/pam at the specified ref. Override at build time
 # to pin a branch, tag, or commit for local testing:
 #   docker build --build-arg AUTHELIA_PAM_REF=feat-foo \
 #                --build-arg AUTHELIA_PAM_REPO=https://github.com/authelia/pam.git
 
-FROM golang:1.27.0-alpine@sha256:4c9fe60190a2a3350ddc51de80d0224b8a6698d12bdfc999fee45ea9d6c46dbc AS builder
+FROM golang:1.27.3-alpine@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb AS builder
 
 RUN <<EOF
 set -eu
@@ -32,7 +36,7 @@ set -eu
 make -C shim
 EOF
 
-FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 
 RUN <<EOF
 set -eu

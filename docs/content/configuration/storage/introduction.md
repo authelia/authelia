@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Storage"
-description: "Storage Configuration"
+description: "An introduction to configuring the Authelia storage backend including the encryption key, available database providers, and shared configuration options."
 summary: "Configuring the SQL Storage."
 date: 2024-03-14T06:00:14+11:00
 draft: false

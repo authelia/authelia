@@ -3,9 +3,8 @@
 import { type ComponentProps, type ReactNode } from "react";
 
 import { Toast as ToastPrimitive } from "@base-ui/react/toast";
+import { cn } from "cn";
 import { CircleCheckIcon, InfoIcon, OctagonXIcon, TriangleAlertIcon } from "lucide-react";
-
-import { cn } from "@utils/Styles";
 
 const icons: Record<string, ReactNode> = {
     error: <OctagonXIcon className="size-4" />,

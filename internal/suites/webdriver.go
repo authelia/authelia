@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -66,6 +70,8 @@ type sharedBrowser struct {
 }
 
 var (
+	liveBrowsersMutex   sync.Mutex
+	liveBrowsers        = map[*rod.Browser]struct{}{}
 	sharedBrowsersMutex sync.Mutex
 	sharedBrowsers      = map[string]*sharedBrowser{}
 )
@@ -190,6 +196,11 @@ func newBrowser(opts *RodSessionOpts) (shared *sharedBrowser, err error) {
 	// proxy hostnames the NetworkACL suite dials are resolved the same way.
 	l.Set("host-resolver-rules", HostResolverRules())
 
+	// Chrome asks Google for the time at startup and rebuilds its certificate verifier with the answer, which closes
+	// every open connection and fails the requests in flight with ERR_CERT_VERIFIER_CHANGED. Lazily loaded modules
+	// that fail this way stay failed for the life of the page.
+	l.Append("disable-features", "NetworkTimeServiceQuerying")
+
 	if opts.disableDevtools {
 		l.Set("font-render-hinting", "none")
 		l.Set("disable-lcd-text")
@@ -207,7 +218,36 @@ func newBrowser(opts *RodSessionOpts) (shared *sharedBrowser, err error) {
 
 	browser.MustIgnoreCertErrors(true)
 
+	registerLiveBrowser(browser)
+
 	return &sharedBrowser{launcher: l, browser: browser}, nil
+}
+
+func registerLiveBrowser(browser *rod.Browser) {
+	liveBrowsersMutex.Lock()
+	defer liveBrowsersMutex.Unlock()
+
+	liveBrowsers[browser] = struct{}{}
+}
+
+func forgetLiveBrowser(browser *rod.Browser) {
+	liveBrowsersMutex.Lock()
+	defer liveBrowsersMutex.Unlock()
+
+	delete(liveBrowsers, browser)
+}
+
+func liveBrowsersSnapshot() []*rod.Browser {
+	liveBrowsersMutex.Lock()
+	defer liveBrowsersMutex.Unlock()
+
+	browsers := make([]*rod.Browser, 0, len(liveBrowsers))
+
+	for browser := range liveBrowsers {
+		browsers = append(browsers, browser)
+	}
+
+	return browsers
 }
 
 func closeSharedBrowsers() {
@@ -215,6 +255,8 @@ func closeSharedBrowsers() {
 	defer sharedBrowsersMutex.Unlock()
 
 	for key, shared := range sharedBrowsers {
+		forgetLiveBrowser(shared.browser)
+
 		if err := shared.browser.Close(); err != nil {
 			log.Warnf("Error closing the shared browser: %v", err)
 		}
@@ -243,6 +285,8 @@ func (rs *RodSession) Stop() error {
 	if rs.shared {
 		return nil
 	}
+
+	forgetLiveBrowser(rs.WebDriver)
 
 	if err := rs.WebDriver.Close(); err != nil {
 		return err
@@ -593,9 +637,8 @@ func (rs *RodSession) SetColorScheme(t *testing.T, page *rod.Page, scheme string
 	require.NoError(t, err)
 }
 
-// FullPageScreenshot captures a PNG of the full scrollable page with scrollbars hidden
-// so width deltas don't flap between runs.
-func (rs *RodSession) FullPageScreenshot(t *testing.T, page *rod.Page) []byte {
+// doHideScrollbars suppresses the scrollbars so width deltas don't flap between runs.
+func (rs *RodSession) doHideScrollbars(t *testing.T, page *rod.Page) {
 	_, err := page.Eval(`() => new Promise(resolve => {
 		const style = document.createElement('style');
 		style.textContent = 'html { scrollbar-width: none; } html::-webkit-scrollbar { display: none; }';
@@ -603,8 +646,28 @@ func (rs *RodSession) FullPageScreenshot(t *testing.T, page *rod.Page) []byte {
 		requestAnimationFrame(() => resolve(true));
 	})`)
 	require.NoError(t, err)
+}
+
+// FullPageScreenshot captures a PNG of the full scrollable page with scrollbars hidden
+// so width deltas don't flap between runs.
+func (rs *RodSession) FullPageScreenshot(t *testing.T, page *rod.Page) []byte {
+	rs.doHideScrollbars(t, page)
 
 	screenshot, err := page.Screenshot(true, &proto.PageCaptureScreenshot{
+		Format: proto.PageCaptureScreenshotFormatPng,
+	})
+	require.NoError(t, err)
+
+	return screenshot
+}
+
+// ViewportScreenshot captures a PNG of the visible viewport with scrollbars hidden. The
+// capture is emitted at the viewport scale factor, so a 450x600 viewport set to a scale of
+// 3 yields a 1350x1800 image.
+func (rs *RodSession) ViewportScreenshot(t *testing.T, page *rod.Page) []byte {
+	rs.doHideScrollbars(t, page)
+
+	screenshot, err := page.Screenshot(false, &proto.PageCaptureScreenshot{
 		Format: proto.PageCaptureScreenshotFormatPng,
 	})
 	require.NoError(t, err)
