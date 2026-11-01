@@ -12,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 const (
@@ -32,14 +33,51 @@ const (
 	eventEmailActionPasswordChange       = "Password Change"
 	eventEmailActionPasswordModifySuffix = "was successful."
 
+	eventLogActionPasswordResetFailure = "Password reset was unsuccessful"
+
+	eventEmailReasonPasswordPolicy   = "was unsuccessful because the new password does not meet the password policy."
+	eventEmailReasonPasswordBackend  = "was unsuccessful because the new password does not meet the requirements of the authentication backend."
+	eventEmailReasonPasswordReuse    = "was unsuccessful because the new password must be different to the password currently set on your account."
+	eventEmailReasonPasswordTooYoung = "was unsuccessful because your password was changed too recently to be changed again."
+
 	eventLogCategoryOneTimePassword    = "One-Time Password"
 	eventLogCategoryWebAuthnCredential = "WebAuthn Credential" //nolint:gosec
 )
+
+func passwordResetFailureReason(err error) string {
+	if err == nil {
+		return ""
+	}
+
+	switch msg := err.Error(); {
+	case utils.IsStringInSliceContains(msg, ldapPasswordReuseErrors):
+		return eventEmailReasonPasswordReuse
+	case utils.IsStringInSliceContains(msg, ldapPasswordTooYoungErrors):
+		return eventEmailReasonPasswordTooYoung
+	case utils.IsStringInSliceContains(msg, ldapPasswordComplexityCodes),
+		utils.IsStringInSliceContains(msg, ldapPasswordComplexityErrors):
+		return eventEmailReasonPasswordBackend
+	default:
+		return ""
+	}
+}
 
 type emailEventBody struct {
 	Prefix string
 	Body   string
 	Suffix string
+}
+
+func ctxLogEventPasswordResetFailure(ctx *middlewares.AutheliaCtx, username, reason string) {
+	if reason == "" {
+		return
+	}
+
+	ctxLogEvent(ctx, username, eventLogActionPasswordResetFailure, emailEventBody{
+		Prefix: eventEmailActionPasswordModifyPrefix,
+		Body:   eventEmailActionPasswordReset,
+		Suffix: reason,
+	}, map[string]any{eventLogKeyAction: eventEmailActionPasswordReset})
 }
 
 func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, body emailEventBody, eventDetails map[string]any) {
