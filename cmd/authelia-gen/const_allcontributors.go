@@ -17,9 +17,6 @@ const (
 
 	contributorsContributionDoc = "doc"
 
-	schemeHTTP  = "http"
-	schemeHTTPS = "https"
-
 	contributorsEmojiKey  = "https://allcontributors.org/en/reference/emoji-key/"
 	contributorsImageURL  = "https://www.authelia.com/images/contributors"
 	contributorsFont      = "'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"

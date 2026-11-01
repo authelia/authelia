@@ -153,6 +153,9 @@ const (
 
 const (
 	windows = "windows"
+
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
 )
 
 var (
