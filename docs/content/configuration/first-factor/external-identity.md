@@ -73,6 +73,7 @@ authentication_backend:
           trust: false
           default: []
           override: false
+        claims_mapping: {}
         discovery:
           disable: false
         endpoints:
@@ -355,6 +356,52 @@ _This option only applies to `openid_connect` providers._
 
 Adopts the [default](#default) values in place of the values of the provider's `amr` claim, even when the provider
 asserts one. When enabled, [default](#default) is required.
+
+### claims_mapping
+
+{{< confkey type="dictionary(string, string)" required="no" >}}
+
+Remaps the claims the provider returned to the claims Authelia uses, with a
+[Common Expression Language](https://cel.dev/) expression for each claim. Only the configured claims are overridden.
+The expressions are checked at startup, and a sign in fails when an expression can't be evaluated, for example when it
+references a claim the provider did not return. Use `has(claims.userinfo.example)` for a claim which may be absent.
+
+The claims which can be configured are `preferred_username`, `name`, and `email`, which must evaluate to a string, and
+`amr`, which must evaluate to a list of strings. The `iss` and `sub` claims identify the [link](#linking) to an account
+and can't be configured.
+
+The `disabled` option is an expression which must evaluate to a boolean. When it evaluates to `true` the sign in is
+refused, including when linking an account, and the reason is logged. It doesn't end sessions which already exist.
+
+The expressions have access to the following variables:
+
+- `claims.id_token`: the claims of the ID Token. This is empty for a provider which does not issue an ID Token.
+- `claims.userinfo`: the claims of the UserInfo Response, or the user the provider returned for a provider which is not
+  `openid_connect`. This is empty when the provider has no UserInfo Endpoint.
+- `amr`: the values decided by [authentication_methods_reference](#authentication_methods_reference), which are the
+  values adopted when the `amr` claim is not configured.
+
+```yaml {title="configuration.yml"}
+authentication_backend:
+  external_identity:
+    providers:
+      - id: 'example'
+        claims_mapping:
+          email: 'has(claims.userinfo.contact_email) ? claims.userinfo.contact_email : claims.id_token.email'
+          # Add to the values.
+          amr: 'claims.id_token.example_mfa == true ? amr + ["otp"] : amr'
+          # Or replace the values.
+          # amr: '["pwd", "otp"]'
+          # Refuse the sign in.
+          disabled: 'has(claims.id_token.locked) && claims.id_token.locked == true'
+```
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Adding to the `amr` claim changes the [Authentication Level](#authentication-level) of a session in the same way as
+[default](#default). Only add values you trust the provider's claims to justify. The `mfa` value alone does not satisfy
+the `two_factor` policy, which requires values which represent both a knowledge and a possession factor such as `pwd`
+and `otp`.
+{{< /callout >}}
 
 ### discovery
 

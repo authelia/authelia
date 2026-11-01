@@ -34,6 +34,8 @@ var Keys = []string{
 	"authentication_backend.external_identity.providers[].authentication_methods_reference.override",
 	"authentication_backend.external_identity.providers[].authentication_methods_reference.trust",
 	"authentication_backend.external_identity.providers[].authorization_response_iss_parameter_supported",
+	"authentication_backend.external_identity.providers[].claims_mapping",
+	"authentication_backend.external_identity.providers[].claims_mapping.*",
 	"authentication_backend.external_identity.providers[].client_id",
 	"authentication_backend.external_identity.providers[].client_secret",
 	"authentication_backend.external_identity.providers[].discovery",
