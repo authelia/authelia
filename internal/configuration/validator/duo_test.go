@@ -14,6 +14,37 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+func TestValidateDuoShouldRejectDisableCAPinningForDuoHostnames(t *testing.T) {
+	testCases := []struct {
+		name     string
+		hostname string
+	}{
+		{"ShouldRejectPort", "api-123456789.duosecurity.com:443"},
+		{"ShouldRejectFullyQualifiedPort", "api-123456789.duosecurity.com.:8443"},
+		{"ShouldRejectUserInfo", "user@api-123456789.duofederal.com"},
+		{"ShouldRejectSurroundingWhitespace", " api-123456789.duosecurity.com "},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{DuoAPI: schema.DuoAPI{
+				Hostname:         tc.hostname,
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			}}
+
+			validator := schema.NewStructValidator()
+
+			ValidateDuo(config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			require.Len(t, validator.Errors(), 1)
+			assert.EqualError(t, validator.Errors()[0], fmt.Sprintf("duo_api: option 'experimental_disable_ca_pinning' must be false when the option 'hostname' is a Duo hostname but it's configured as '%s'", tc.hostname))
+		})
+	}
+}
+
 func TestValidateDuo(t *testing.T) {
 	testCases := []struct {
 		desc     string

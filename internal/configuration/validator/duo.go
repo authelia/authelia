@@ -7,6 +7,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -51,7 +52,15 @@ func ValidateDuo(config *schema.Configuration, validator *schema.StructValidator
 var duoDomains = []string{"duosecurity.com", "duofederal.com"}
 
 func isDuoHostname(hostname string) bool {
-	hostname = strings.ToLower(strings.TrimSuffix(strings.TrimSpace(hostname), "."))
+	hostname = strings.TrimSpace(hostname)
+
+	// The Duo client uses the configured value verbatim as the URL host, so a port or userinfo must not
+	// let a Duo hostname slip past the domain match.
+	if u, err := url.Parse("https://" + hostname); err == nil {
+		hostname = u.Hostname()
+	}
+
+	hostname = strings.ToLower(strings.TrimSuffix(hostname, "."))
 
 	for _, domain := range duoDomains {
 		if hostname == domain || strings.HasSuffix(hostname, "."+domain) {
