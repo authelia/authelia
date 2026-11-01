@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ---
-openapi: 3.2.0
+openapi: 3.1.1
 info:
   title: Authelia API
   description: >
@@ -122,6 +122,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+  /api/webhooks/confirm:
+    get:
+      operationId: getWebhooksConfirm
+      tags:
+        - State
+      summary: Webhook Destination Confirmation
+      description: >
+        The callback of the CloudEvents abuse protection handshake. A webhook destination which withheld its
+        confirmation during the handshake requests this endpoint, using the URL it was given in the
+        WebHook-Request-Callback header, to grant Authelia permission to deliver events to it. The endpoint only
+        exists when at least one webhook destination is configured.
+      parameters:
+        - $ref: '#/components/parameters/webhookConfirmID'
+        - $ref: '#/components/parameters/webhookConfirmKey'
+        - $ref: '#/components/parameters/webhookAllowedRate'
+      responses:
+        "200":
+          description: Permission was granted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "404":
+          description: The destination is unknown, the key is incorrect, or the destination was refused.
+    post:
+      operationId: postWebhooksConfirm
+      tags:
+        - State
+      summary: Webhook Destination Confirmation
+      description: >
+        The callback of the CloudEvents abuse protection handshake. It behaves identically to the GET method.
+      parameters:
+        - $ref: '#/components/parameters/webhookConfirmID'
+        - $ref: '#/components/parameters/webhookConfirmKey'
+        - $ref: '#/components/parameters/webhookAllowedRate'
+      responses:
+        "200":
+          description: Permission was granted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "404":
+          description: The destination is unknown, the key is incorrect, or the destination was refused.
   /api/state:
     get:
       operationId: getState
@@ -2421,8 +2465,966 @@ paths:
       security:
         - authelia_auth: []
   {{- end }}
+webhooks:
+  validation:
+    options:
+      summary: validation
+      description: >
+        The CloudEvents abuse protection handshake. Before any event is delivered Authelia sends this OPTIONS request
+        to the destination address and requires the receiver to confirm that it accepts deliveries from the stated
+        origin. A receiver which does not confirm receives no events at all, so implementing this is mandatory unless
+        the destination sets its validation disable option.
+
+        The receiver confirms by answering 2xx with WebHook-Allowed-Origin set either to the value of
+        WebHook-Request-Origin or to an asterisk. A receiver which answers 2xx without that header is held rather than
+        refused, and receives no events until it requests the URL given in WebHook-Request-Callback. It may also answer with WebHook-Allowed-Rate to cap the delivery
+        rate in requests per minute, which Authelia then paces its requests to; an asterisk or an absent header means
+        unrestricted. Note that a batched destination sends many events per request, so a rate caps requests rather
+        than events.
+
+        The destination's configured authentication and static headers are sent with this request, so a receiver which
+        authorizes deliveries can authorize the handshake the same way. X-Authelia-Delivery-Attempt is present, but no
+        event is carried, so none of the ce- headers are present.
+
+        A failure which produces no status code at all, such as a connection or TLS error, is treated like a 5xx and
+        retried with backoff.
+      operationId: webhook.validation
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#abuse-protection
+      parameters:
+        - $ref: '#/components/parameters/webhookRequestOrigin'
+        - $ref: '#/components/parameters/webhookRequestRate'
+        - $ref: '#/components/parameters/webhookRequestCallback'
+      responses:
+        "2XX":
+          description: >
+            The handshake succeeded, provided WebHook-Allowed-Origin permits the stated origin. A 2xx without that
+            header withholds confirmation, and the destination receives no events until it requests the callback.
+          headers:
+            WebHook-Allowed-Origin:
+              required: false
+              description: >
+                The permitted origin, either the value of WebHook-Request-Origin or an asterisk for any origin.
+              schema:
+                type: string
+            WebHook-Allowed-Rate:
+              required: false
+              description: >
+                The permitted delivery rate in requests per minute, or an asterisk for unrestricted. It is required
+                when the request carried WebHook-Request-Rate, and its absence is then a refusal. When no rate was
+                requested its absence means unrestricted. A value which is neither an asterisk nor a positive integer
+                is a refusal.
+              schema:
+                type: string
+        "429":
+          description: >
+            The receiver is rate limiting the handshake. It is retried, honoring the Retry-After header when it is
+            present. A Retry-After which exceeds the handshake budget refuses the destination, so that it cannot hold
+            startup open.
+        "4XX":
+          description: >
+            The handshake was not answered and is not retried. Unless the response carries a permitting
+            WebHook-Allowed-Origin, which confirms the destination whatever the status, the destination receives no
+            events until it requests the callback, and this is logged. Authelia still starts, because webhook
+            availability must never prevent it running. This does not include 429, which is retried.
+        "5XX":
+          description: >
+            The handshake failed transiently and is retried with backoff under the destination retry policy, the same
+            as a delivery. If every attempt fails the destination is refused and receives no events.
+  batch:
+    post:
+      summary: batch
+      description: >
+        A batch of events, sent instead of the individual deliveries below when the destination configures batching.
+        The body is a CloudEvents batched content mode array of the same envelopes, so each member carries its own
+        type, id and dataschema, and the per event ce- headers are not sent. Event types listed in the destination's
+        batch immediate option are excluded from the batch and arrive as individual deliveries instead, which means they
+        may overtake batched events which occurred before them. The array is written in the order the events were
+        emitted, but CloudEvents defines a batch as unordered, so order events by the envelope time attribute and not by
+        their position in the array.
+      operationId: webhook.batch
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#batched-deliveries
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookEventCount'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 batched content mode array. Never empty.
+        content:
+          application/cloudevents-batch+json:
+            schema:
+              $ref: '#/components/schemas/events.EnvelopeBatch'
+      responses:
+        "2XX":
+          description: >
+            The batch was accepted in its entirety. Any 2xx status is treated as a successful delivery of every event
+            it carried.
+        "429":
+          description: >
+            The receiver is rate limiting. The whole batch is retried, honoring the Retry-After header in full when
+            it is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and every event in the batch is dropped without a retry. A batch is one
+            request, so partial acceptance cannot be expressed.
+        "5XX":
+          description: >
+            The delivery failed and the whole batch is retried until the destination attempts limit is reached.
+  com.authelia.user.password.changed:
+    post:
+      summary: com.authelia.user.password.changed
+      description: >
+        A user changed their own password from the settings area.
+      operationId: webhook.com.authelia.user.password.changed
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.user.password.changed
+                    data:
+                      $ref: '#/components/schemas/events.DataUserPassword'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.user.password.reset:
+    post:
+      summary: com.authelia.user.password.reset
+      description: >
+        A user completed a password reset.
+      operationId: webhook.com.authelia.user.password.reset
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.user.password.reset
+                    data:
+                      $ref: '#/components/schemas/events.DataUserPassword'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.system.startup_check:
+    post:
+      summary: com.authelia.system.startup_check
+      description: >
+        A connectivity probe, sent to each destination at startup when the webhooks startup_check option is enabled.
+        It does not describe an occurrence: no user did anything, and a receiver must not treat it as an
+        authentication, a security signal, or an audit record. The data member always carries probe set to true.
+        Acknowledge it and discard it.
+      operationId: webhook.com.authelia.system.startup_check
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#the-startup-check-probe
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope carrying the probe payload.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.system.startup_check
+                    data:
+                      $ref: '#/components/schemas/events.DataStartupCheck'
+      responses:
+        "2XX":
+          description: >
+            The probe was accepted. The startup check reports success and startup continues.
+        "4XX":
+          description: >
+            The probe was rejected. The failure is logged and startup continues regardless, because webhook
+            availability must never prevent Authelia from starting.
+        "5XX":
+          description: >
+            The probe failed. The failure is logged and startup continues regardless.
+  com.authelia.user.credential.totp.added:
+    post:
+      summary: com.authelia.user.credential.totp.added
+      description: >
+        A user registered a One-Time Password configuration.
+      operationId: webhook.com.authelia.user.credential.totp.added
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.user.credential.totp.added
+                    data:
+                      $ref: '#/components/schemas/events.DataUserCredential'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.user.credential.totp.removed:
+    post:
+      summary: com.authelia.user.credential.totp.removed
+      description: >
+        A user removed a One-Time Password configuration.
+      operationId: webhook.com.authelia.user.credential.totp.removed
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.user.credential.totp.removed
+                    data:
+                      $ref: '#/components/schemas/events.DataUserCredential'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.user.credential.webauthn.added:
+    post:
+      summary: com.authelia.user.credential.webauthn.added
+      description: >
+        A user registered a WebAuthn credential.
+      operationId: webhook.com.authelia.user.credential.webauthn.added
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.user.credential.webauthn.added
+                    data:
+                      $ref: '#/components/schemas/events.DataUserCredential'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.user.credential.webauthn.removed:
+    post:
+      summary: com.authelia.user.credential.webauthn.removed
+      description: >
+        A user removed a WebAuthn credential.
+      operationId: webhook.com.authelia.user.credential.webauthn.removed
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.user.credential.webauthn.removed
+                    data:
+                      $ref: '#/components/schemas/events.DataUserCredential'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.user.identity_verification.started:
+    post:
+      summary: com.authelia.user.identity_verification.started
+      description: >
+        An identity verification was started and its email was sent.
+      operationId: webhook.com.authelia.user.identity_verification.started
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.user.identity_verification.started
+                    data:
+                      $ref: '#/components/schemas/events.DataIdentityVerification'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.user.session.elevation.requested:
+    post:
+      summary: com.authelia.user.session.elevation.requested
+      description: >
+        A session elevation was requested and its One-Time Code was sent.
+      operationId: webhook.com.authelia.user.session.elevation.requested
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.user.session.elevation.requested
+                    data:
+                      $ref: '#/components/schemas/events.DataSessionElevation'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.security.authentication.succeeded:
+    post:
+      summary: com.authelia.security.authentication.succeeded
+      description: >
+        An authentication attempt succeeded. This is emitted for every non-cached authorization request which authenticates, so it is high volume on a busy deployment.
+      operationId: webhook.com.authelia.security.authentication.succeeded
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.security.authentication.succeeded
+                    data:
+                      $ref: '#/components/schemas/events.DataAuthentication'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.security.authentication.failed:
+    post:
+      summary: com.authelia.security.authentication.failed
+      description: >
+        An authentication attempt failed.
+      operationId: webhook.com.authelia.security.authentication.failed
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.security.authentication.failed
+                    data:
+                      $ref: '#/components/schemas/events.DataAuthentication'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.security.ban.applied:
+    post:
+      summary: com.authelia.security.ban.applied
+      description: >
+        Regulation banned a user or an address.
+      operationId: webhook.com.authelia.security.ban.applied
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.security.ban.applied
+                    data:
+                      $ref: '#/components/schemas/events.DataBan'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
+  com.authelia.security.ban.expired:
+    post:
+      summary: com.authelia.security.ban.expired
+      description: >
+        Reserved. Authelia does not currently emit this type: bans expire passively rather than through a code path.
+        Derive expiry from the 'expires' field of com.authelia.security.ban.applied.
+      operationId: webhook.com.authelia.security.ban.expired
+      externalDocs:
+        url: https://www.authelia.com/reference/guides/webhook-events/#event-catalogue
+      parameters:
+        - $ref: '#/components/parameters/webhookVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSpecVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsID'
+        - $ref: '#/components/parameters/webhookCloudEventsType'
+        - $ref: '#/components/parameters/webhookCloudEventsSource'
+        - $ref: '#/components/parameters/webhookCloudEventsTime'
+        - $ref: '#/components/parameters/webhookCloudEventsDataSchema'
+        - $ref: '#/components/parameters/webhookCloudEventsAutheliaVersion'
+        - $ref: '#/components/parameters/webhookCloudEventsSubject'
+        - $ref: '#/components/parameters/webhookDeliveryAttempt'
+        - $ref: '#/components/parameters/webhookSignature'
+      requestBody:
+        required: true
+        description: >
+          The CloudEvents 1.0 structured mode envelope. The data member carries the payload for this type. A
+          destination which configures batching delivers this inside a batch instead, unless the type is listed in
+          its batch immediate option.
+        content:
+          application/cloudevents+json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/events.Envelope'
+                - type: object
+                  properties:
+                    type:
+                      const: com.authelia.security.ban.expired
+                    data:
+                      $ref: '#/components/schemas/events.DataBan'
+      responses:
+        "2XX":
+          description: >
+            The event was accepted. Any 2xx status is treated as a successful delivery and the event is not resent.
+        "429":
+          description: >
+            The receiver is rate limiting. The delivery is retried, honoring the Retry-After header in full when it
+            is present. No request is sent to the destination until it has elapsed.
+        "4XX":
+          description: >
+            The delivery failed permanently and the event is dropped without a retry. This includes redirects,
+            which are never followed so that credentials are not resent to another host.
+        "5XX":
+          description: >
+            The delivery failed and is retried until the destination attempts limit is reached.
 components:
   parameters:
+    webhookVersion:
+      in: header
+      name: X-Authelia-Webhook-Version
+      required: true
+      description: The webhook contract version. Currently always '1'.
+      schema:
+        type: string
+        const: '1'
+    webhookCloudEventsSpecVersion:
+      in: header
+      name: ce-specversion
+      required: true
+      description: >
+        The CloudEvents specification version, matching the 'specversion' member of the envelope. Sent on a single event
+        delivery only. Header names are case insensitive under RFC 9110, and the value is percent-encoded as the
+        CloudEvents HTTP protocol binding requires, so percent-decode it once.
+      schema:
+        type: string
+        const: '1.0'
+    webhookCloudEventsID:
+      in: header
+      name: ce-id
+      required: true
+      description: >
+        The event identifier, matching the 'id' member of the envelope. Stable across delivery retries, so a receiver
+        may deduplicate on it before parsing the body. Sent on a single event delivery only. Header names are case
+        insensitive under RFC 9110, and the value is percent-encoded as the CloudEvents HTTP protocol binding requires,
+        so percent-decode it once.
+      schema:
+        type: string
+        format: uuid
+    webhookCloudEventsType:
+      in: header
+      name: ce-type
+      required: true
+      description: >
+        The event type, matching the 'type' member of the envelope. Sent on a single event delivery only. Header names
+        are case insensitive under RFC 9110, and the value is percent-encoded as the CloudEvents HTTP protocol binding
+        requires, so percent-decode it once.
+      schema:
+        type: string
+    webhookCloudEventsSource:
+      in: header
+      name: ce-source
+      required: true
+      description: >
+        The issuer URL of the Authelia instance, matching the 'source' member of the envelope. Sent on a single event
+        delivery only. Header names are case insensitive under RFC 9110, and the value is percent-encoded as the
+        CloudEvents HTTP protocol binding requires, so percent-decode it once.
+      schema:
+        type: string
+        format: uri
+    webhookCloudEventsTime:
+      in: header
+      name: ce-time
+      required: true
+      description: >
+        The RFC 3339 time of the occurrence, matching the 'time' member of the envelope. Sent on a single event delivery
+        only. Header names are case insensitive under RFC 9110, and the value is percent-encoded as the CloudEvents HTTP
+        protocol binding requires, so percent-decode it once.
+      schema:
+        type: string
+        format: date-time
+    webhookCloudEventsDataSchema:
+      in: header
+      name: ce-dataschema
+      required: true
+      description: >
+        The schema URI of the payload, matching the 'dataschema' member of the envelope. Sent on a single event delivery
+        only. Header names are case insensitive under RFC 9110, and the value is percent-encoded as the CloudEvents HTTP
+        protocol binding requires, so percent-decode it once.
+      schema:
+        type: string
+        format: uri
+    webhookCloudEventsSubject:
+      in: header
+      name: ce-subject
+      required: false
+      description: >
+        What the occurrence concerns, matching the 'subject' member of the envelope: the username, or the banned value
+        for a ban. Absent when the envelope has no subject. Sent on a single event delivery only. The value is
+        percent-encoded as the CloudEvents HTTP protocol binding requires, so percent-decode it once.
+      schema:
+        type: string
+    webhookCloudEventsAutheliaVersion:
+      in: header
+      name: ce-autheliaversion
+      required: true
+      description: >
+        The Authelia version, matching the 'autheliaversion' member of the envelope. Sent on a single event delivery
+        only. Header names are case insensitive under RFC 9110, and the value is percent-encoded as the CloudEvents HTTP
+        protocol binding requires, so percent-decode it once.
+      schema:
+        type: string
+    webhookDeliveryAttempt:
+      in: header
+      name: X-Authelia-Delivery-Attempt
+      required: true
+      description: The 1 based attempt number for this delivery.
+      schema:
+        type: integer
+        minimum: 1
+    webhookRequestOrigin:
+      in: header
+      name: WebHook-Request-Origin
+      required: true
+      description: >
+        The DNS name of the Authelia instance sending the events. Derived from the configured Authelia URL unless the
+        destination overrides it. Note that Go canonicalises the name to 'Webhook-Request-Origin' on the wire; header
+        names are case insensitive under RFC 9110, so match it case insensitively.
+      schema:
+        type: string
+    webhookRequestCallback:
+      in: header
+      name: WebHook-Request-Callback
+      required: false
+      description: >
+        The URL the receiver requests, with GET or POST, to confirm asynchronously that it accepts deliveries. It
+        carries a key unique to the destination and must be treated as a secret. It is omitted when the destination
+        disables validation.
+      schema:
+        type: string
+        format: uri
+    webhookConfirmID:
+      in: query
+      name: id
+      required: true
+      description: The name of the webhook destination.
+      schema:
+        type: string
+    webhookConfirmKey:
+      in: query
+      name: key
+      required: true
+      description: The key from the callback URL the destination was given.
+      schema:
+        type: string
+    webhookAllowedRate:
+      in: header
+      name: WebHook-Allowed-Rate
+      required: false
+      description: >
+        The permitted delivery rate in requests per minute, or an asterisk for unrestricted. The requested rate applies
+        when it is absent.
+      schema:
+        type: string
+    webhookRequestRate:
+      in: header
+      name: WebHook-Request-Rate
+      required: false
+      description: >
+        The delivery rate Authelia requests, in requests per minute. It is omitted when the destination configures no
+        rate.
+      schema:
+        type: string
+    webhookEventCount:
+      in: header
+      name: X-Authelia-Event-Count
+      required: true
+      description: >
+        The number of events in the batch. Sent only on a batched delivery, in place of the per event type and
+        identifier headers.
+      schema:
+        type: integer
+        minimum: 1
+    webhookSignature:
+      in: header
+      name: X-Authelia-Signature
+      required: false
+      description: >
+        The HMAC signature, formatted as 't=<unix timestamp>,v1=<hex digest>'. The signed input is the timestamp, a
+        full stop, then the raw body bytes exactly as transmitted. Present only when the destination configures a
+        signature secret.
+      schema:
+        type: string
     credentialID:
       in: path
       name: credentialID
@@ -2573,6 +3575,397 @@ components:
         examples:
           - 'XGQWWFMM'
   schemas:
+    # The webhook event schemas below describe the same contract as the published JSON Schema documents, and are
+    # reflected from the Go types in internal/events. Run `go run ./cmd/authelia-gen docs api openapi` to regenerate them.
+    # Code generated by go generate. DO NOT EDIT.
+    events.DataAuthentication:
+      properties:
+        username:
+          type: string
+          title: Username
+          description: The username the occurrence concerns.
+        display_name:
+          type: string
+          title: Display Name
+          description: The display name recorded in the authentication backend.
+        emails:
+          items:
+            type: string
+          type: array
+          title: Emails
+          description: The email addresses recorded in the authentication backend.
+        remote_ip:
+          type: string
+          title: Remote IP
+          description: The client address which caused the occurrence.
+        stage:
+          type: string
+          enum:
+            - first_factor
+            - second_factor
+          title: Stage
+        method:
+          type: string
+          enum:
+            - password
+            - totp
+            - webauthn
+            - duo
+          title: Method
+        reason:
+          type: string
+          enum:
+            - invalid_credentials
+            - user_not_found
+            - banned
+            - internal_error
+          title: Reason
+          description: The failure classification. Present on failures only.
+      type: object
+      required:
+        - username
+        - stage
+        - method
+      description: DataAuthentication is the payload for the com.authelia.security.authentication.*
+        events.
+    events.DataBan:
+      properties:
+        username:
+          type: string
+          title: Username
+          description: The username the occurrence concerns.
+        display_name:
+          type: string
+          title: Display Name
+          description: The display name recorded in the authentication backend.
+        emails:
+          items:
+            type: string
+          type: array
+          title: Emails
+          description: The email addresses recorded in the authentication backend.
+        remote_ip:
+          type: string
+          title: Remote IP
+          description: The client address which caused the occurrence.
+        target:
+          type: string
+          title: Target
+          description: The banned value, a username or an IP address.
+        target_type:
+          type: string
+          enum:
+            - user
+            - ip
+          title: Target Type
+        expires:
+          type: string
+          format: date-time
+          title: Expires
+          description: When the ban expires. Present on applied only.
+      type: object
+      required:
+        - username
+        - target
+        - target_type
+      description: DataBan is the payload for the com.authelia.security.ban.* events.
+    events.DataIdentityVerification:
+      properties:
+        username:
+          type: string
+          title: Username
+          description: The username the occurrence concerns.
+        display_name:
+          type: string
+          title: Display Name
+          description: The display name recorded in the authentication backend.
+        emails:
+          items:
+            type: string
+          type: array
+          title: Emails
+          description: The email addresses recorded in the authentication backend.
+        remote_ip:
+          type: string
+          title: Remote IP
+          description: The client address which caused the occurrence.
+        action:
+          type: string
+          title: Action
+          description: The action the verification authorizes.
+        notification:
+          $ref: '#/components/schemas/events.Notification'
+          title: Notification
+      type: object
+      required:
+        - username
+      description: DataIdentityVerification is the payload for the com.authelia.user.identity_verification.started
+        event.
+    events.DataSessionElevation:
+      properties:
+        username:
+          type: string
+          title: Username
+          description: The username the occurrence concerns.
+        display_name:
+          type: string
+          title: Display Name
+          description: The display name recorded in the authentication backend.
+        emails:
+          items:
+            type: string
+          type: array
+          title: Emails
+          description: The email addresses recorded in the authentication backend.
+        remote_ip:
+          type: string
+          title: Remote IP
+          description: The client address which caused the occurrence.
+        notification:
+          $ref: '#/components/schemas/events.Notification'
+          title: Notification
+      type: object
+      required:
+        - username
+      description: DataSessionElevation is the payload for the com.authelia.user.session.elevation.requested
+        event.
+    events.DataStartupCheck:
+      properties:
+        username:
+          type: string
+          title: Username
+          description: The username the occurrence concerns.
+        display_name:
+          type: string
+          title: Display Name
+          description: The display name recorded in the authentication backend.
+        emails:
+          items:
+            type: string
+          type: array
+          title: Emails
+          description: The email addresses recorded in the authentication backend.
+        remote_ip:
+          type: string
+          title: Remote IP
+          description: The client address which caused the occurrence.
+        probe:
+          type: boolean
+          title: Probe
+          description: Always true. Marks this as a connectivity probe rather than an
+            occurrence, so a receiver can discard it.
+      type: object
+      required:
+        - username
+        - probe
+      description: DataStartupCheck is the payload for the com.authelia.system.startup_check
+        event.
+    events.DataUserCredential:
+      properties:
+        username:
+          type: string
+          title: Username
+          description: The username the occurrence concerns.
+        display_name:
+          type: string
+          title: Display Name
+          description: The display name recorded in the authentication backend.
+        emails:
+          items:
+            type: string
+          type: array
+          title: Emails
+          description: The email addresses recorded in the authentication backend.
+        remote_ip:
+          type: string
+          title: Remote IP
+          description: The client address which caused the occurrence.
+        description:
+          type: string
+          title: Description
+          description: The description of the credential.
+        notification:
+          $ref: '#/components/schemas/events.Notification'
+          title: Notification
+      type: object
+      required:
+        - username
+      description: DataUserCredential is the payload for the com.authelia.user.credential.*
+        events.
+    events.DataUserPassword:
+      properties:
+        username:
+          type: string
+          title: Username
+          description: The username the occurrence concerns.
+        display_name:
+          type: string
+          title: Display Name
+          description: The display name recorded in the authentication backend.
+        emails:
+          items:
+            type: string
+          type: array
+          title: Emails
+          description: The email addresses recorded in the authentication backend.
+        remote_ip:
+          type: string
+          title: Remote IP
+          description: The client address which caused the occurrence.
+        notification:
+          $ref: '#/components/schemas/events.Notification'
+          title: Notification
+      type: object
+      required:
+        - username
+      description: DataUserPassword is the payload for the com.authelia.user.password.changed
+        and com.authelia.user.password.reset events.
+    events.Envelope:
+      properties:
+        specversion:
+          type: string
+          title: Spec Version
+        id:
+          type: string
+          format: uuid
+          title: ID
+          description: A UUIDv7. Unique per occurrence and stable across delivery retries.
+        type:
+          type: string
+          title: Type
+        source:
+          type: string
+          format: uri
+          title: Source
+          description: The issuer URL of the Authelia instance.
+        time:
+          type: string
+          format: date-time
+          title: Time
+        datacontenttype:
+          type: string
+          title: Data Content Type
+        dataschema:
+          type: string
+          format: uri
+          title: Data Schema
+          description: Always an https://www.authelia.com/schemas/webhooks/ URI. Mandatory
+            in this profile.
+        autheliaversion:
+          type: string
+          title: Authelia Version
+        subject:
+          type: string
+          title: Subject
+          description: 'What the occurrence concerns within the source: the username,
+            or the banned value for a ban. Omitted when there is none.'
+        data:
+          title: Data
+      type: object
+      required:
+        - specversion
+        - id
+        - type
+        - source
+        - time
+        - datacontenttype
+        - dataschema
+        - autheliaversion
+        - data
+      description: Envelope is the CloudEvents 1.0 structured mode representation of an
+        Event.
+    events.EnvelopeBatch:
+      items:
+        $ref: '#/components/schemas/events.Envelope'
+      type: array
+      description: EnvelopeBatch is the CloudEvents 1.0 batched content mode representation,
+        which is a JSON array of envelopes.
+    events.Notification:
+      properties:
+        sent:
+          type: boolean
+          title: Sent
+          description: Whether the notification was successfully handed to the notifier.
+        suppressed:
+          type: boolean
+          title: Suppressed
+          description: Whether the notification was never handed to a notifier because
+            the notifier is disabled. Sent is false and error is empty in that case.
+        recipients:
+          items:
+            $ref: '#/components/schemas/events.Recipient'
+          type: array
+          title: Recipients
+        title:
+          type: string
+          title: Title
+        error:
+          type: string
+          title: Error
+          description: The delivery error when sent is false.
+        values:
+          $ref: '#/components/schemas/events.NotificationValues'
+          title: Values
+      type: object
+      required:
+        - sent
+      description: Notification describes a notification produced by an occurrence.
+    events.NotificationValues:
+      properties:
+        body_prefix:
+          type: string
+          title: Body Prefix
+        body_event:
+          type: string
+          title: Body Event
+        body_suffix:
+          type: string
+          title: Body Suffix
+        domain:
+          type: string
+          title: Domain
+        details:
+          type: object
+          title: Details
+        link_url:
+          type: string
+          title: Link URL
+          description: Credential equivalent. Omitted unless the destination disables
+            redaction.
+        link_text:
+          type: string
+          title: Link Text
+        revocation_link_url:
+          type: string
+          title: Revocation Link URL
+          description: Credential equivalent. Omitted unless the destination disables
+            redaction.
+        one_time_code:
+          type: string
+          title: One Time Code
+          description: Credential equivalent. Omitted unless the destination disables
+            redaction.
+      type: object
+      description: NotificationValues are the template attribute values of a notification.
+    events.Recipient:
+      properties:
+        email:
+          type: string
+          title: Email
+          description: The address the notification was addressed to.
+        username:
+          type: string
+          title: Username
+          description: The username the address belongs to when known.
+        display_name:
+          type: string
+          title: Display Name
+          description: The display name recorded in the authentication backend.
+      type: object
+      required:
+        - email
+      description: Recipient describes one addressee of a notification.
+    # End of the generated webhook event schemas.
     handlers.checkURIWithinDomainRequestBody:
       type: object
       properties:

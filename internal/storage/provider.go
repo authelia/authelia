@@ -331,6 +331,10 @@ type Provider interface {
 	// immediately and irrevocably invalid.
 	SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error)
 
+	// WebhookCallbackSignature returns the signature of the values under the webhook callback HMAC key. It returns an
+	// empty string when the key has not been loaded.
+	WebhookCallbackSignature(values ...[]byte) (signature string)
+
 	// SchemaEncryptionChangeKey uses the currently configured key to decrypt values in the storage provider and the key
 	// provided by this command to encrypt the values again and update them using a transaction.
 	SchemaEncryptionChangeKey(ctx context.Context, key string) (err error)
