@@ -491,6 +491,9 @@ func TestValidateIDToken(t *testing.T) {
 			}
 
 			require.NoError(t, err)
+
+			claims.RawIDToken, claims.RawUserInfo = nil, nil
+
 			assert.Equal(t, tc.Expected, claims)
 		})
 	}
@@ -582,6 +585,9 @@ func TestValidateIDTokenResolvesRotatedKey(t *testing.T) {
 	})
 
 	require.NoError(t, err)
+
+	claims.RawIDToken, claims.RawUserInfo = nil, nil
+
 	assert.Equal(t, &IdentityClaims{Issuer: "https://op.example.com", Subject: "abc123"}, claims)
 	assert.Equal(t, 2, keys.resolved)
 }
@@ -655,6 +661,9 @@ func TestValidateIDTokenAbsentKeyID(t *testing.T) {
 			}
 
 			require.NoError(t, err)
+
+			claims.RawIDToken, claims.RawUserInfo = nil, nil
+
 			assert.Equal(t, &IdentityClaims{Issuer: "https://op.example.com", Subject: "abc123"}, claims)
 		})
 	}
