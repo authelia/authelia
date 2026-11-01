@@ -145,6 +145,7 @@ func validateClaims(mapped map[string]any, opts ValidateOptions) (claims *Identi
 		Name:                           name,
 		Email:                          email,
 		AuthenticationMethodsReference: stringsClaim(mapped[claimAuthnMethodRefs]),
+		RawIDToken:                     mapped,
 	}, nil
 }
 

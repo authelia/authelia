@@ -46,6 +46,11 @@ const (
 const providerErrorValueLimit = 256
 
 const (
+	claimsMappingSourceIDToken  = "id_token"
+	claimsMappingSourceUserInfo = "userinfo"
+)
+
+const (
 	parameterClientID     = "client_id"
 	parameterClientSecret = "client_secret"
 	parameterRequestURI   = "request_uri"
@@ -64,6 +69,9 @@ const (
 )
 
 var (
+	// ErrIdentityDisabled is returned when the claims mapping of a provider refused the sign in.
+	ErrIdentityDisabled = errors.New("the claims mapping disabled the sign in")
+
 	// ErrDiscoveryIssuerMismatch is returned when the discovery document issuer does not match the configured issuer.
 	ErrDiscoveryIssuerMismatch = errors.New("the discovery document issuer does not match the configured issuer")
 

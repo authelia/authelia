@@ -26,7 +26,7 @@ func NewProviders(config *schema.AuthenticationBackendExternalIdentity, caCertPo
 	all := make([]Provider, 0, len(config.Providers))
 
 	for i := range config.Providers {
-		all = append(all, newOpenIDConnectProvider(&config.Providers[i], newProviderClient(caCertPool)))
+		all = append(all, newClaimsMappedProvider(newOpenIDConnectProvider(&config.Providers[i], newProviderClient(caCertPool)), config.Providers[i].ClaimsMapping))
 	}
 
 	return NewProvidersWith(all...)
