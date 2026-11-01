@@ -20,6 +20,7 @@ func TestValidateDuo(t *testing.T) {
 		have     *schema.Configuration
 		expected schema.DuoAPI
 		errs     []string
+		warns    []string
 	}{
 		{
 			desc:     "ShouldDisableDuo",
@@ -86,6 +87,96 @@ func TestValidateDuo(t *testing.T) {
 				"duo_api: option 'hostname' is required when duo is enabled but it's absent",
 			},
 		},
+		{
+			desc: "ShouldWarnDisableCAPinningThirdPartyHostname",
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
+				Hostname:         "push.example.com",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			}},
+			expected: schema.DuoAPI{
+				Hostname:         "push.example.com",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			},
+			warns: []string{
+				"duo_api: option 'experimental_disable_ca_pinning' is enabled: this option is experimental, insecure, not recommended, and may be removed at any time",
+			},
+		},
+		{
+			desc: "ShouldErrorDisableCAPinningDuoSecurityHostname",
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
+				Hostname:         "api-123456789.duosecurity.com",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			}},
+			expected: schema.DuoAPI{
+				Hostname:         "api-123456789.duosecurity.com",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			},
+			errs: []string{
+				"duo_api: option 'experimental_disable_ca_pinning' must be false when the option 'hostname' is a Duo hostname but it's configured as 'api-123456789.duosecurity.com'",
+			},
+		},
+		{
+			desc: "ShouldErrorDisableCAPinningDuoFederalHostnameMixedCaseFQDN",
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
+				Hostname:         "API-123456789.DuoFederal.com.",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			}},
+			expected: schema.DuoAPI{
+				Hostname:         "API-123456789.DuoFederal.com.",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			},
+			errs: []string{
+				"duo_api: option 'experimental_disable_ca_pinning' must be false when the option 'hostname' is a Duo hostname but it's configured as 'API-123456789.DuoFederal.com.'",
+			},
+		},
+		{
+			desc: "ShouldErrorDisableCAPinningDuoApexHostname",
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
+				Hostname:         "duosecurity.com",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			}},
+			expected: schema.DuoAPI{
+				Hostname:         "duosecurity.com",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			},
+			errs: []string{
+				"duo_api: option 'experimental_disable_ca_pinning' must be false when the option 'hostname' is a Duo hostname but it's configured as 'duosecurity.com'",
+			},
+		},
+		{
+			desc: "ShouldWarnDisableCAPinningLookalikeHostname",
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
+				Hostname:         "duosecurity.com.example.com",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			}},
+			expected: schema.DuoAPI{
+				Hostname:         "duosecurity.com.example.com",
+				IntegrationKey:   "test",
+				SecretKey:        "test",
+				DisableCAPinning: true,
+			},
+			warns: []string{
+				"duo_api: option 'experimental_disable_ca_pinning' is enabled: this option is experimental, insecure, not recommended, and may be removed at any time",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -99,6 +190,13 @@ func TestValidateDuo(t *testing.T) {
 			assert.Equal(t, tc.expected.IntegrationKey, tc.have.DuoAPI.IntegrationKey)
 			assert.Equal(t, tc.expected.SecretKey, tc.have.DuoAPI.SecretKey)
 			assert.Equal(t, tc.expected.EnableSelfEnrollment, tc.have.DuoAPI.EnableSelfEnrollment)
+			assert.Equal(t, tc.expected.DisableCAPinning, tc.have.DuoAPI.DisableCAPinning)
+
+			require.Len(t, validator.Warnings(), len(tc.warns))
+
+			for i, warn := range tc.warns {
+				assert.EqualError(t, validator.Warnings()[i], warn)
+			}
 
 			require.Len(t, validator.Errors(), len(tc.errs))
 

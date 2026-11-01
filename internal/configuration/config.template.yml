@@ -365,6 +365,10 @@
   ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
   # secret_key: '1234567890abcdefghifjkl'
   # enable_self_enrollment: false
+  ## Experimental, insecure, and not recommended. Disables the Duo CA pinning so a third-party implementation of the
+  ## Duo Auth API can be used. Can't be enabled for a Duo hostname. See:
+  ## https://www.authelia.com/configuration/second-factor/duo/#experimental_disable_ca_pinning
+  # experimental_disable_ca_pinning: false
 
 ##
 ## Identity Validation Configuration

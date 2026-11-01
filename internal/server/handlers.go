@@ -352,9 +352,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
 
-		// Duo's CA bundle is only pinned for Duo's own hostnames; a third-party implementation of the
-		// Duo Auth API is verified against the system trust store instead.
-		pinning := duoapi.SetCAPinning(duo.IsDuoHostname(config.DuoAPI.Hostname))
+		pinning := duoapi.SetCAPinning(!config.DuoAPI.DisableCAPinning)
 
 		if utils.Dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
