@@ -226,6 +226,8 @@ func TestTrustedProxiesWalkXForwardedFor(t *testing.T) {
 		{"ShouldTreatPortAsInvalid", trusted, true, []string{"1.1.1.1, 203.0.113.9:443"}, trusted},
 		{"ShouldHandleIPv6", trusted, true, []string{"1.1.1.1, 2001:db8::1, 10.0.0.2"}, "2001:db8::1"},
 		{"ShouldSkipIPv4MappedTrusted", trusted, true, []string{"203.0.113.9, ::ffff:10.0.0.2"}, "203.0.113.9"},
+		{"ShouldWalkWhenFirstLineEmpty", trusted, true, []string{"", "1.1.1.1, 203.0.113.9, 10.0.0.2"}, "203.0.113.9"},
+		{"ShouldReturnRemoteWhenOnlyLineEmpty", trusted, true, []string{""}, trusted},
 		{"ShouldReturnRemoteWithoutHeader", trusted, true, nil, trusted},
 		{"ShouldReturnRemoteWhenUntrustedPeer", untrusted, true, []string{"1.1.1.1"}, untrusted},
 		{"ShouldReturnLeftMostWithoutWalk", trusted, false, []string{"1.1.1.1, 203.0.113.9"}, "1.1.1.1"},

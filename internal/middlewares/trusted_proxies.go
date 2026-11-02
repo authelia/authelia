@@ -26,7 +26,7 @@ func NewTrustedProxies(config schema.ServerHeadersTrustedProxies) Middleware {
 			case !isTrustedPeer(ctx, config.Networks):
 				deleteProxyHeaders(&ctx.Request.Header, ctx.Request.Header.PeekKeys())
 				deleteProxyHeaders(&ctx.Request.Header, ctx.Request.Header.PeekTrailerKeys())
-			case config.WalkXForwardedFor && len(ctx.Request.Header.PeekBytes(headerXForwardedFor)) != 0:
+			case config.WalkXForwardedFor && len(ctx.Request.Header.PeekAll(fasthttp.HeaderXForwardedFor)) != 0:
 				ip := walkXForwardedFor(ctx, config.Networks)
 
 				ctx.Request.Header.DelBytes(headerXForwardedFor)
