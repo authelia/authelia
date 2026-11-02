@@ -90,3 +90,36 @@ func TestMustGetUserDetailsExtendedSafe(t *testing.T) {
 		})
 	}
 }
+
+func TestMustGetUserDetailsCachedSafe(t *testing.T) {
+	testCases := []struct {
+		name        string
+		username    string
+		details     *UserDetails
+		err         error
+		expected    UserDetails
+		expectedErr string
+		calls       int
+	}{
+		{"ShouldNotConsultTheProviderWhenAnonymous", "", &UserDetails{Username: "john"}, nil, UserDetails{}, "", 0},
+		{"ShouldReturnEmptyDetailsOnError", "john", nil, errors.New("an error"), UserDetails{}, "an error", 1},
+		{"ShouldReturnDetails", "john", &UserDetails{Username: "john"}, nil, UserDetails{Username: "john"}, "", 1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := &mockCachedUserProvider{details: tc.details, detailsErr: tc.err}
+
+			actual, err := MustGetUserDetailsCachedSafe(tc.username, provider)
+
+			if tc.expectedErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.expectedErr)
+			}
+
+			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.calls, provider.detailsCalls)
+		})
+	}
+}

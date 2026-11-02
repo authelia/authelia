@@ -65,7 +65,7 @@ func TestCookieSessionAuthnStrategyShouldReturnErrorWhenUserDetailsFail(t *testi
 	require.NoError(t, manager.SaveSession(&userSession))
 
 	mock.UserProviderMock.EXPECT().
-		GetDetailsExtendedCached(gomock.Eq(testUsername)).
+		GetDetailsCached(gomock.Eq(testUsername)).
 		Return(nil, fmt.Errorf("failed to lookup user"))
 
 	_, err = strategy.Get(mock.Ctx, manager, nil)
@@ -117,7 +117,7 @@ func TestHandleGetBasicShouldRejectEmptyCredentialsWithDelay(t *testing.T) {
 
 			object := authorization.NewObject(targetURL, fasthttp.MethodGet)
 
-			details, level, err := handleGetBasic(mock.Ctx, delayer, authn, &object, headerProxyAuthorization, DefaultBasicAuthHandler)
+			details, level, err := handleGetBasic(mock.Ctx, delayer, authn, &object, headerProxyAuthorization, DefaultBasicAuthHandler, true)
 
 			require.EqualError(t, err, tc.ExpectError)
 			assert.Nil(t, details)
@@ -204,7 +204,7 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 				tc.Setup(mock)
 			}
 
-			details, clientID, ccs, level, err := handleVerifyGETAuthorizationBearerResolveUser(mock.Ctx, tc.Username, tc.ClientID, tc.CCS, tc.Level)
+			details, clientID, ccs, level, err := handleVerifyGETAuthorizationBearerResolveUser(mock.Ctx, tc.Username, tc.ClientID, tc.CCS, tc.Level, true)
 
 			if tc.ExpectError != "" {
 				require.EqualError(t, err, tc.ExpectError)
@@ -289,4 +289,110 @@ type mismatchedCookieDomainManager struct {
 
 func (m *mismatchedCookieDomainManager) GetSession() (userSession session.UserSession, err error) {
 	return m.userSession, nil
+}
+
+func TestHandleGetUserDetailsShouldOnlyRetrieveExtendedDetailsWhenRequired(t *testing.T) {
+	basic := &authentication.UserDetails{Username: testUsername, Groups: []string{"basic"}}
+	extended := &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Username: testUsername, Groups: []string{"extended"}}}
+
+	testCases := []struct {
+		name     string
+		extended bool
+		setup    func(mock *mocks.MockAutheliaCtx)
+		groups   []string
+		nilValue bool
+		err      string
+	}{
+		{
+			"ShouldUseBasicDetails",
+			false,
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().GetDetailsCached(testUsername).Return(basic, nil)
+			},
+			[]string{"basic"}, false, "",
+		},
+		{
+			"ShouldUseExtendedDetails",
+			true,
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().GetDetailsExtendedCached(testUsername).Return(extended, nil)
+			},
+			[]string{"extended"}, false, "",
+		},
+		{
+			"ShouldHandleNoBasicDetails",
+			false,
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().GetDetailsCached(testUsername).Return(nil, nil)
+			},
+			nil, true, "",
+		},
+		{
+			"ShouldReturnBasicError",
+			false,
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.UserProviderMock.EXPECT().GetDetailsCached(testUsername).Return(nil, fmt.Errorf("backend failure"))
+			},
+			nil, true, "backend failure",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			tc.setup(mock)
+
+			details, err := handleGetUserDetails(mock.Ctx, testUsername, tc.extended)
+
+			if tc.err != "" {
+				require.EqualError(t, err, tc.err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			if tc.nilValue {
+				assert.Nil(t, details)
+
+				return
+			}
+
+			require.NotNil(t, details)
+			assert.Equal(t, tc.groups, details.GetGroups())
+		})
+	}
+}
+
+func TestHandleGetSessionUserDetailsShouldNotContactBackendForAnonymousSession(t *testing.T) {
+	for _, extended := range []bool{false, true} {
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		details, err := handleGetSessionUserDetails(mock.Ctx, "", extended)
+
+		require.NoError(t, err)
+		assert.Equal(t, "", details.GetUsername())
+
+		mock.Close()
+	}
+}
+
+func TestHandleGetSessionUserDetailsShouldHonorExtendedFlag(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().GetDetailsCached(testUsername).Return(&authentication.UserDetails{Username: testUsername}, nil),
+		mock.UserProviderMock.EXPECT().GetDetailsExtendedCached(testUsername).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Username: testUsername}}, nil),
+	)
+
+	details, err := handleGetSessionUserDetails(mock.Ctx, testUsername, false)
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, details.GetUsername())
+
+	details, err = handleGetSessionUserDetails(mock.Ctx, testUsername, true)
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, details.GetUsername())
 }

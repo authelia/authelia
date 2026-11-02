@@ -61,3 +61,21 @@ func MustGetUserDetailsSafe(username string, provider UserProvider) (details Use
 
 	return *d, err
 }
+
+// MustGetUserDetailsCachedSafe is the cached equivalent of MustGetUserDetailsSafe. An anonymous session has no username,
+// so the backend is not consulted and empty details are returned.
+func MustGetUserDetailsCachedSafe(username string, provider UserProvider) (details UserDetails, err error) {
+	if username == "" {
+		return details, nil
+	}
+
+	var d *UserDetails
+
+	d, err = provider.GetDetailsCached(username)
+
+	if d == nil {
+		return details, err
+	}
+
+	return *d, err
+}

@@ -641,13 +641,11 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() {
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetailsExtendedCached(gomock.Eq("john")).
-			Return(&authentication.UserDetailsExtended{
-				UserDetails: &authentication.UserDetails{
-					Username: "john",
-					Emails:   []string{"john@example.com"},
-					Groups:   []string{"dev", "admins"},
-				},
+			GetDetailsCached(gomock.Eq("john")).
+			Return(&authentication.UserDetails{
+				Username: "john",
+				Emails:   []string{"john@example.com"},
+				Groups:   []string{"dev", "admins"},
 			}, nil),
 		mock.StorageMock.
 			EXPECT().
@@ -702,7 +700,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
-						GetDetailsExtendedCached(gomock.Eq("john")).
+						GetDetailsCached(gomock.Eq("john")).
 						Return(nil, authentication.ErrUserNotFound),
 					mock.StorageMock.
 						EXPECT().
@@ -719,7 +717,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 				mock.UserProviderMock.EXPECT().
-					GetDetailsExtendedCached(gomock.Eq("john")).
+					GetDetailsCached(gomock.Eq("john")).
 					Return(nil, fmt.Errorf("backend unreachable"))
 			},
 		},
@@ -730,7 +728,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
-						GetDetailsExtendedCached(gomock.Eq("john")).
+						GetDetailsCached(gomock.Eq("john")).
 						Return(nil, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -759,10 +757,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
-						GetDetailsExtendedCached(gomock.Eq("john")).
-						Return(&authentication.UserDetailsExtended{
-							UserDetails: &authentication.UserDetails{Username: "john"},
-						}, nil),
+						GetDetailsCached(gomock.Eq("john")).
+						Return(&authentication.UserDetails{Username: "john"}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
@@ -797,13 +793,11 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
-						GetDetailsExtendedCached(gomock.Eq("john")).
-						Return(&authentication.UserDetailsExtended{
-							UserDetails: &authentication.UserDetails{
-								Username: "john",
-								Emails:   []string{"john@example.com"},
-								Groups:   []string{"dev", "admin"},
-							},
+						GetDetailsCached(gomock.Eq("john")).
+						Return(&authentication.UserDetails{
+							Username: "john",
+							Emails:   []string{"john@example.com"},
+							Groups:   []string{"dev", "admin"},
 						}, nil),
 					mock.StorageMock.
 						EXPECT().
