@@ -6,6 +6,7 @@ package middlewares
 
 import (
 	"errors"
+	"net"
 
 	"github.com/valyala/fasthttp"
 
@@ -186,3 +187,5 @@ const (
 var protoHostSeparator = []byte("://")
 
 var errPasswordPolicyNoMet = errors.New("the supplied password does not met the security policy")
+
+var ipv6TranslationPrefix = &net.IPNet{IP: net.ParseIP("64:ff9b::"), Mask: net.CIDRMask(96, net.IPv6len*8)}

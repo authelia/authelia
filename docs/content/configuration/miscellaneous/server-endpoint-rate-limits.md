@@ -173,6 +173,10 @@ As a single IPv6 subscriber is typically allocated at least a `/64` it's trivial
 uses within that allocation, which is why the default is `64`. Lowering this value to `56` or `48` can prevent clients
 from rotating addresses within larger allocations at the cost of potentially grouping more unrelated clients together.
 
+IPv4 addresses translated using the well-known `64:ff9b::/96` prefix are rate limited individually using the embedded
+IPv4 address. If a translator presents IPv4 clients using any other prefix then this value should be set to `128`,
+otherwise those clients may all be counted against the same rate limit.
+
 ### buckets
 
 {{< confkey type="list(object)" required="no" >}}

@@ -162,7 +162,8 @@ general.
 Authelia implements a tokenized bucket rate limiter on specific endpoints which greatly reduces the chances these
 endpoints can be brute-forced for various outcomes including guessing secret values, or inundating an inbox with emails.
 
-These rate limiters are applied on a per-IP basis and can be
+These rate limiters are applied per IPv4 address and per IPv6 prefix, which is a `/64` by default as a single IPv6
+subscriber can typically rotate between all of the addresses in their allocation. They can be
 [configured](../../configuration/miscellaneous/server-endpoint-rate-limits.md) depending on a particular use case.
 
 ## Protections against password brute-force attacks

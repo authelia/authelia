@@ -381,11 +381,13 @@ func (l *IPRateLimitBucket) FetchCtx(ctx *AutheliaCtx) (limiter *BucketLimiter) 
 	return l.Fetch(l.key(ctx.RemoteIP()))
 }
 
-// key returns the bucket key for an IP. IPv4 and IPv4-mapped IPv6 addresses use the full address, whereas all other
-// IPv6 addresses are masked to the configured prefix length.
 func (l *IPRateLimitBucket) key(ip net.IP) string {
 	if ip.To4() != nil || len(ip) != net.IPv6len || l.mask == nil {
 		return ip.String()
+	}
+
+	if ipv6TranslationPrefix.Contains(ip) {
+		return ip[net.IPv6len-net.IPv4len:].String()
 	}
 
 	return ip.Mask(l.mask).String()
