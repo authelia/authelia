@@ -76,8 +76,8 @@ func validateCacheRedis(config *schema.RedisCache, validator *schema.StructValid
 		config.PoolMaximumIdleConnections = schema.DefaultRedisCacheConfiguration.PoolMaximumIdleConnections
 	}
 
-	if config.PoolMaximumConnections <= 0 {
-		config.PoolMaximumConnections = schema.DefaultRedisCacheConfiguration.PoolMaximumConnections
+	if config.PoolMaximumConnections < 0 {
+		config.PoolMaximumConnections = 0
 	}
 
 	setDefault(&config.DialerRetryTimeout, schema.DefaultRedisCacheConfiguration.DialerRetryTimeout)
@@ -169,8 +169,8 @@ func validateCacheRedisSentinel(config *schema.RedisSentinelCache, validator *sc
 		config.PoolMaximumIdleConnections = schema.DefaultRedisSentinelCacheConfiguration.PoolMaximumIdleConnections
 	}
 
-	if config.PoolMaximumConnections <= 0 {
-		config.PoolMaximumConnections = schema.DefaultRedisSentinelCacheConfiguration.PoolMaximumConnections
+	if config.PoolMaximumConnections < 0 {
+		config.PoolMaximumConnections = 0
 	}
 
 	setDefault(&config.DialerRetryTimeout, schema.DefaultRedisSentinelCacheConfiguration.DialerRetryTimeout)
@@ -233,8 +233,8 @@ func validateCacheRedisCluster(config *schema.RedisClusterCache, validator *sche
 		config.PoolMaximumIdleConnections = schema.DefaultRedisClusterCacheConfiguration.PoolMaximumIdleConnections
 	}
 
-	if config.PoolMaximumConnections <= 0 {
-		config.PoolMaximumConnections = schema.DefaultRedisClusterCacheConfiguration.PoolMaximumConnections
+	if config.PoolMaximumConnections < 0 {
+		config.PoolMaximumConnections = 0
 	}
 
 	setDefault(&config.DialerRetryTimeout, schema.DefaultRedisClusterCacheConfiguration.DialerRetryTimeout)

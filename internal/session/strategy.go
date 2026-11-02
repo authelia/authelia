@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -86,7 +87,9 @@ func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 // Save persists the session. The userSession is a pointer as a session which has no public identifier has one generated
 // for it, and the caller must observe it to avoid orphaning the generated identifier on a subsequent save. An anonymous
 // session which holds no state isn't persisted, and the record and cookie of any previously persisted session for the
-// request are discarded instead, as the absence of a session is equivalent to it.
+// request are discarded instead, as the absence of a session is equivalent to it. A save which was superseded is dropped
+// so a stale request can't restore a session, except for a new anonymous session whose cookie refers to a destroyed
+// session, which is given a new identifier so its state isn't lost.
 func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	if session == nil {
 		return fmt.Errorf("error occurred saving session: it is nil")
@@ -103,7 +106,11 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		return p.discard(ctx, session)
 	}
 
-	var id, data []byte
+	// A session which has neither a user nor a public identifier was not loaded from a record, so being superseded means
+	// the cookie refers to a destroyed session rather than the save having lost a race with a login or regeneration.
+	abandoned := session.Username == "" && session.PublicID == ""
+
+	var id []byte
 
 	if id = p.getCookieID(ctx); len(id) == 0 {
 		if id, err = p.codec.GenerateSessionID(); err != nil {
@@ -117,6 +124,24 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		}
 	}
 
+	if err = p.persist(ctx, id, session); !errors.Is(err, ErrSessionSuperseded) {
+		return err
+	}
+
+	if !abandoned {
+		return nil
+	}
+
+	if id, err = p.codec.GenerateSessionID(); err != nil {
+		return fmt.Errorf("error occurred generating session ID: %w", err)
+	}
+
+	return p.persist(ctx, id, session)
+}
+
+func (p *DefaultStrategy) persist(ctx Context, id []byte, session *UserSession) (err error) {
+	var data []byte
+
 	sid := p.codec.Sign(id)
 
 	if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
@@ -125,19 +150,13 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 
 	expiration := p.getExpiration(*session)
 
-	cookie := p.newCookie(id, p.getExpires(expiration))
-
 	if err = p.repository.Save(ctx, p.issuer, sid, session.PublicID, session.Username, expiration, data); err != nil {
-		if errors.Is(err, ErrSessionSuperseded) {
-			return nil
-		}
-
 		return fmt.Errorf("error occurred saving session to registry: %w", err)
 	}
 
 	p.setCached(ctx, session)
 
-	ctx.SetCookie(cookie)
+	ctx.SetCookie(p.newCookie(id, p.getExpires(expiration)))
 
 	return nil
 }
@@ -359,7 +378,7 @@ func encodeCookieID(id []byte) string {
 
 func newDomain(value string, samSite http.SameSite) string {
 	switch {
-	case strings.HasPrefix(value, "."), samSite == http.SameSiteStrictMode:
+	case strings.HasPrefix(value, "."), samSite == http.SameSiteStrictMode, net.ParseIP(value) != nil:
 		return value
 	default:
 		return "." + value

@@ -253,6 +253,8 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 }
 
 // UserSessionElevationPUT validates an elevation session and puts it into effect.
+//
+//nolint:gocyclo
 func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 	bodyJSON := bodyPUTUserSessionElevate{}
 
@@ -355,6 +357,15 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 
 	if subtle.ConstantTimeCompare(code.Code, []byte(bodyJSON.OneTimeCode)) != 1 {
 		ctx.GetLogger().WithError(fmt.Errorf("the code does not match the code stored in the challenge")).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s'", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if _, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s': error occurred retrieving the user details", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)

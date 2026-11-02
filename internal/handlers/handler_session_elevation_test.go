@@ -699,6 +699,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 						EXPECT().
 						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
 						ConsumeOneTimeCode(mock.Ctx, code).
@@ -739,6 +743,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 						EXPECT().
 						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
 						ConsumeOneTimeCode(mock.Ctx, code).
@@ -879,6 +887,10 @@ func TestUserSessionElevationPUT(t *testing.T) {
 						EXPECT().
 						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
 						ConsumeOneTimeCode(mock.Ctx, code).
@@ -1563,6 +1575,9 @@ func TestUserSessionElevationPUTShouldRegenerateSessionForPreventingSessionFixat
 		mock.StorageMock.EXPECT().
 			LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 			Return(code, nil),
+		mock.UserProviderMock.EXPECT().
+			GetDetails(testUsername).
+			Return(&authentication.UserDetails{Username: testUsername}, nil),
 		mock.StorageMock.EXPECT().
 			ConsumeOneTimeCode(mock.Ctx, code).
 			Return(nil),
@@ -1585,4 +1600,53 @@ func TestUserSessionElevationPUTShouldRegenerateSessionForPreventingSessionFixat
 	require.NoError(t, err)
 	require.NotNil(t, after.Elevations.User)
 	assert.Equal(t, mock.Clock.Now().Add(time.Minute), after.Elevations.User.Expires)
+}
+
+func TestUserSessionElevationPUTShouldFailWithoutConsumingCodeWhenUserDetailsRefreshFails(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Characters = 10
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
+
+	mock.Ctx.Providers.Clock = &mock.Clock
+	mock.Ctx.Providers.Random = mock.RandomMock
+
+	us, err := mock.Ctx.GetSession()
+
+	require.NoError(t, err)
+
+	us.Username = testUsername
+
+	us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+	require.NoError(t, mock.Ctx.SaveSession(&us))
+
+	code := &model.OneTimeCode{
+		ID:        1,
+		PublicID:  uuid.Must(uuid.Parse("01020304-0506-4722-8910-111213141500")),
+		IssuedAt:  mock.Clock.Now(),
+		IssuedIP:  model.NewIP(mock.Ctx.RemoteIP()),
+		ExpiresAt: mock.Clock.Now().Add(time.Minute),
+		Username:  testUsername,
+		Intent:    model.OTCIntentUserSessionElevation,
+		Code:      []byte("ABC123ABC1"),
+	}
+
+	gomock.InOrder(
+		mock.StorageMock.EXPECT().
+			LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
+			Return(code, nil),
+		mock.UserProviderMock.EXPECT().
+			GetDetails(testUsername).
+			Return(nil, fmt.Errorf("backend unavailable")),
+	)
+
+	mock.Ctx.Request.SetBodyString(`{"otc":"ABC123ABC1"}`)
+
+	UserSessionElevationPUT(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 }

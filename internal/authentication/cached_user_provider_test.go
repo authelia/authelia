@@ -695,3 +695,30 @@ func (m *mockCachedUserProvider) GetDetailsExtended(username string) (*UserDetai
 func (m *mockCachedUserProvider) GetDetailsExtendedCached(username string) (*UserDetailsExtended, error) {
 	return m.GetDetailsExtended(username)
 }
+
+func TestCachedUserProviderShouldRefreshCanonicalEntryForAlternateIdentifier(t *testing.T) {
+	mock := &mockCachedUserProvider{
+		details:         &UserDetails{Username: "john", Groups: []string{"users"}},
+		detailsExtended: &UserDetailsExtended{UserDetails: &UserDetails{Username: "john", Groups: []string{"admins"}}},
+	}
+
+	provider := NewCachedUserProvider(mock, schema.NewRefreshIntervalDuration(5*time.Minute)).(*CachedUserProvider)
+
+	_, err := provider.GetDetailsExtendedCached("john")
+	require.NoError(t, err)
+	require.Equal(t, 1, mock.detailsExtendedCalls)
+
+	_, err = provider.GetDetails("JOHN")
+	require.NoError(t, err)
+
+	assert.NotContains(t, provider.details.values, "JOHN")
+
+	details, err := provider.GetDetailsCached("john")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"users"}, details.Groups)
+	assert.Equal(t, 1, mock.detailsCalls)
+
+	_, err = provider.GetDetailsExtendedCached("john")
+	require.NoError(t, err)
+	assert.Equal(t, 2, mock.detailsExtendedCalls)
+}

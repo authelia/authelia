@@ -918,3 +918,25 @@ func assertNewSessionCookie(t *testing.T, ctx *testContext, presented string, ex
 	require.NoError(t, err)
 	assert.Len(t, id, sessionIDLength)
 }
+
+func TestNewDomain(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    string
+		sameSite http.SameSite
+		expected string
+	}{
+		{"ShouldPrefixHostnameWithLax", "example.com", http.SameSiteLaxMode, ".example.com"},
+		{"ShouldNotPrefixHostnameWithStrict", "example.com", http.SameSiteStrictMode, "example.com"},
+		{"ShouldNotPrefixPrefixedHostname", ".example.com", http.SameSiteLaxMode, ".example.com"},
+		{"ShouldNotPrefixIPv4", "192.168.1.10", http.SameSiteLaxMode, "192.168.1.10"},
+		{"ShouldNotPrefixIPv4WithNone", "192.168.1.10", http.SameSiteNoneMode, "192.168.1.10"},
+		{"ShouldNotPrefixIPv6", "2001:db8::1", http.SameSiteLaxMode, "2001:db8::1"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, newDomain(tc.value, tc.sameSite))
+		})
+	}
+}

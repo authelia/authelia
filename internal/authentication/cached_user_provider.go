@@ -52,13 +52,15 @@ func (p *CachedUserProvider) GetDetails(username string) (details *UserDetails, 
 		return nil, err
 	}
 
+	key := canonicalUsername(username, details)
+
 	p.details.Lock()
 
-	p.details.values[username] = CachedUserDetailsItem{UserDetails: details, expires: time.Now().Add(p.lifespan.Value())}
+	p.details.values[key] = CachedUserDetailsItem{UserDetails: details, expires: time.Now().Add(p.lifespan.Value())}
 
 	p.details.Unlock()
 
-	p.invalidateExtended(username)
+	p.invalidateExtended(key)
 
 	return details, nil
 }
@@ -107,7 +109,7 @@ func (p *CachedUserProvider) doGetDetailsCached(username string) func() (result 
 
 		p.details.Lock()
 
-		p.details.values[username] = CachedUserDetailsItem{UserDetails: details, expires: now.Add(p.lifespan.Value())}
+		p.details.values[canonicalUsername(username, details)] = CachedUserDetailsItem{UserDetails: details, expires: now.Add(p.lifespan.Value())}
 
 		p.details.Unlock()
 
@@ -126,17 +128,18 @@ func (p *CachedUserProvider) GetDetailsExtended(username string) (details *UserD
 	}
 
 	expires := time.Now().Add(p.lifespan.Value())
+	key := canonicalUsername(username, details.UserDetails)
 
 	p.extended.Lock()
 
-	p.extended.values[username] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: expires}
+	p.extended.values[key] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: expires}
 
 	p.extended.Unlock()
 
 	if details.UserDetails != nil {
 		p.details.Lock()
 
-		p.details.values[username] = CachedUserDetailsItem{UserDetails: details.UserDetails, expires: expires}
+		p.details.values[key] = CachedUserDetailsItem{UserDetails: details.UserDetails, expires: expires}
 
 		p.details.Unlock()
 	}
@@ -188,7 +191,7 @@ func (p *CachedUserProvider) doGetDetailsExtendedCached(username string) func() 
 
 		p.extended.Lock()
 
-		p.extended.values[username] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: now.Add(p.lifespan.Value())}
+		p.extended.values[canonicalUsername(username, details.UserDetails)] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: now.Add(p.lifespan.Value())}
 
 		p.extended.Unlock()
 
@@ -212,4 +215,15 @@ func (p *CachedUserProvider) invalidateExtended(username string) {
 	delete(p.extended.values, username)
 
 	p.extended.Unlock()
+}
+
+// canonicalUsername returns the username reported by the backend, which is the key the cache must use as the input may
+// be an alternate identifier such as an email address or a username in a different case. The input is returned when the
+// backend did not report a username.
+func canonicalUsername(input string, details *UserDetails) string {
+	if details == nil || details.Username == "" {
+		return input
+	}
+
+	return details.Username
 }

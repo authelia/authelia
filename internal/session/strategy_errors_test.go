@@ -285,6 +285,94 @@ var (
 	_ Repository = (*erroringRepository)(nil)
 )
 
+func TestDefaultStrategy_SaveShouldIssueNewIdentifierWhenNewAnonymousSessionIsSuperseded(t *testing.T) {
+	repository := &tombstoneRepository{testRepository: newTestRepository()}
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	ctx := newTestCachingContext()
+	ctx.cookies[testName] = encodeCookieID(make([]byte, sessionIDLength))
+
+	dead := ctx.cookies[testName]
+
+	repository.tombstoned = func(id string) bool {
+		return id == strategy.(*DefaultStrategy).codec.Sign(make([]byte, sessionIDLength))
+	}
+
+	loaded, err := strategy.Get(ctx)
+	require.NoError(t, err)
+
+	loaded.TOTP = &TOTP{}
+
+	require.NoError(t, strategy.Save(ctx, loaded))
+
+	assert.Equal(t, 1, ctx.set)
+	assert.NotEqual(t, dead, ctx.cookies[testName])
+
+	next := newTestContext()
+	next.cookies[testName] = ctx.cookies[testName]
+
+	reloaded, err := strategy.Get(next)
+	require.NoError(t, err)
+	assert.NotNil(t, reloaded.TOTP)
+	assert.Equal(t, loaded.PublicID, reloaded.PublicID)
+}
+
+func TestDefaultStrategy_SaveShouldErrorWhenNewAnonymousSessionIsSupersededTwice(t *testing.T) {
+	repository := &tombstoneRepository{testRepository: newTestRepository(), tombstoned: func(string) bool { return true }}
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	ctx := newTestCachingContext()
+	ctx.cookies[testName] = encodeCookieID(make([]byte, sessionIDLength))
+
+	loaded, err := strategy.Get(ctx)
+	require.NoError(t, err)
+
+	loaded.TOTP = &TOTP{}
+
+	assert.ErrorIs(t, strategy.Save(ctx, loaded), ErrSessionSuperseded)
+	assert.Equal(t, 0, ctx.set)
+}
+
+func TestDefaultStrategy_SaveShouldDiscardStaleAnonymousSessionLoadedFromRecord(t *testing.T) {
+	repository := &erroringRepository{testRepository: newTestRepository()}
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	previous := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.TOTP = &TOTP{}
+
+	require.NoError(t, strategy.Save(previous, &userSession))
+
+	ctx := newTestCachingContext()
+	ctx.cookies[testName] = previous.cookies[testName]
+
+	loaded, err := strategy.Get(ctx)
+	require.NoError(t, err)
+	require.NotEmpty(t, loaded.PublicID)
+
+	repository.errSave = ErrSessionSuperseded
+
+	require.NoError(t, strategy.Save(ctx, loaded))
+
+	assert.Equal(t, 0, ctx.set)
+	assert.Equal(t, previous.cookies[testName], ctx.cookies[testName])
+}
+
+type tombstoneRepository struct {
+	*testRepository
+
+	tombstoned func(id string) bool
+}
+
+func (r *tombstoneRepository) Save(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	if r.tombstoned(id) {
+		return ErrSessionSuperseded
+	}
+
+	return r.testRepository.Save(ctx, issuer, id, pid, username, expiration, data)
+}
+
 type failingCodec struct {
 	Codec
 

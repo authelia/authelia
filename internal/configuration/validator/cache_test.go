@@ -49,7 +49,7 @@ func TestValidateCache(t *testing.T) {
 				assert.Equal(t, time.Millisecond*512, have.Redis.MaximumRetryBackoff)
 				assert.Equal(t, 0, have.Redis.PoolMinimumIdleConnections)
 				assert.Equal(t, 10, have.Redis.PoolMaximumIdleConnections)
-				assert.Equal(t, 10, have.Redis.PoolMaximumConnections)
+				assert.Equal(t, 0, have.Redis.PoolMaximumConnections)
 			},
 			nil,
 		},

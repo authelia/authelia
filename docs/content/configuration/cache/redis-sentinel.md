@@ -60,7 +60,7 @@ cache:
     pool_size: 0
     pool_minimum_idle_connections: 0
     pool_maximum_idle_connections: 10
-    pool_maximum_connections: 10
+    pool_maximum_connections: 0
     dialer_retries: 5
     dialer_retry_timeout: '100 milliseconds'
     maximum_concurrent_dials: 0
@@ -287,10 +287,11 @@ less is replaced with the default.
 
 ### pool_maximum_connections
 
-{{< confkey type="integer" default="10" required="no" >}}
+{{< confkey type="integer" default="0" required="no" >}}
 
-The maximum number of connections allocated by the pool at any given time. When the limit is reached, further commands
-block until a connection is released back into the pool. A value of 0 or less is replaced with the default.
+The hard limit on the number of connections allocated by the pool at any given time. A value of 0 or less means there
+is no limit. When this value is lower than [pool_size](#pool_size), commands fail with a connection pool exhausted error
+once the limit is reached instead of waiting for a connection to be released.
 
 ### dialer_retries
 

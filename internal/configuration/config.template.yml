@@ -1010,7 +1010,7 @@ session:
     # pool_maximum_idle_connections: 10
 
     ## The maximum number of connections the pool may have open at any one time.
-    # pool_maximum_connections: 10
+    # pool_maximum_connections: 0
 
     ## The maximum number of retry attempts when dialing a connection fails.
     # dialer_retries: 5
@@ -1137,7 +1137,7 @@ session:
     # pool_maximum_idle_connections: 10
 
     ## The maximum number of connections the pool may have open at any one time.
-    # pool_maximum_connections: 10
+    # pool_maximum_connections: 0
 
     ## The maximum number of retry attempts when dialing a connection fails.
     # dialer_retries: 5
@@ -1252,7 +1252,7 @@ session:
     # pool_maximum_idle_connections: 10
 
     ## The maximum number of connections the pool may have open at any one time.
-    # pool_maximum_connections: 10
+    # pool_maximum_connections: 0
 
     ## The maximum number of retry attempts when dialing a connection fails.
     # dialer_retries: 5
