@@ -268,11 +268,11 @@ describe("credential creation", () => {
         expect(setClosed).toHaveBeenCalled();
     });
 
-    it("reports a failing finish response", async () => {
+    it("reports a failing finish response by code", async () => {
         finishRegistrationMock.mockResolvedValue({
-            message: "server rejected the credential",
+            code: "webauthn_register_failed",
             status: AttestationResult.Failure,
-        } as any);
+        });
 
         renderDialog();
 
@@ -280,7 +280,22 @@ describe("credential creation", () => {
         clickNext();
 
         await waitFor(() =>
-            expect(mocks.createErrorNotification).toHaveBeenCalledWith("server rejected the credential"),
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith("Unable to register your security key"),
+        );
+    });
+
+    it("reports a failing finish response without a code", async () => {
+        finishRegistrationMock.mockResolvedValue({ status: AttestationResult.Failure });
+
+        renderDialog();
+
+        fireEvent.change(getDescription(), { target: { value: "My Key" } });
+        clickNext();
+
+        await waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
+                "Failed to register your credential, the identity verification process might have timed out",
+            ),
         );
     });
 
@@ -294,7 +309,7 @@ describe("credential creation", () => {
 
         await waitFor(() =>
             expect(mocks.createErrorNotification).toHaveBeenCalledWith(
-                "Credential Creation Request succeeded but Registration Response is empty.",
+                "Credential Creation Request succeeded but Registration Response is empty",
             ),
         );
         expect(finishRegistrationMock).not.toHaveBeenCalled();

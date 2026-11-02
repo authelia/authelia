@@ -76,7 +76,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -94,7 +94,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "123")
 				mock.Ctx.Request.Header.Set("X-Forwarded-Host", "____")
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn passkey authentication challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain: failed to parse X-Original-URL header: parse \"123\": invalid URI for request")
@@ -112,7 +112,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "____")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "____")
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -729,7 +729,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				)
 			},
 			have:           dataReqGoodFlow,
-			expected:       `{"status":"KO","message":"Authentication failed. Check your credentials."}`,
+			expected:       `{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
 			expectedStatus: fasthttp.StatusOK,
 			expectedf: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to find flow handler for the given flow parameters", nil)

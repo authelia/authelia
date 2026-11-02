@@ -50,7 +50,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
 
 	DuoDevicesGET(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred performing the Duo PreAuth API call", "Connection error")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -150,7 +150,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnInvalidMethod() {
 
 	DuoDevicePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -159,7 +159,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyMethod() {
 
 	DuoDevicePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the preferred Duo device request body", "unable to validate body: method: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -169,7 +169,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyDevice() {
 
 	DuoDevicePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the preferred Duo device request body", "unable to validate body: device: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -240,7 +240,7 @@ func TestDuoDeviceDELETE(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Authentication failed, please retry later."}`,
+			`{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -254,7 +254,7 @@ func TestDuoDeviceDELETE(t *testing.T) {
 					DeletePreferredDuoDevice(mock.Ctx, "").
 					Return(fmt.Errorf("failed to delete"))
 			},
-			`{"status":"KO","message":"Authentication failed, please retry later."}`,
+			`{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting the preferred Duo device and method", "failed to delete")

@@ -42,7 +42,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 		{
 			"ShouldHandleBodyParseError",
 			nil,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing reset password delete body", "unable to parse body: unexpected end of JSON input")
@@ -54,7 +54,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 				mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 				mock.Ctx.Request.SetBodyString(`{"token":"abc"}`)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred determining the issuer", "missing required X-Forwarded-Host header")
@@ -65,7 +65,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.SetBodyString(`{"token":"abc"}`)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating the identity verification token as it appears to be malformed, this potentially can occur if you've not copied the full link", "token is malformed: token contains an invalid number of segments")
@@ -79,7 +79,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 
 				setTestIdentityVerificationTokenBody(t, mock, claims, jwt.SigningMethodHS256, testJWTSecret)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating the identity verification token validity period as it appears to be expired", "token has invalid claims: token is expired")
@@ -93,7 +93,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 
 				setTestIdentityVerificationTokenBody(t, mock, claims, jwt.SigningMethodHS256, testJWTSecret)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating the identity verification token validity period as it appears to only be valid in the future", "token has invalid claims: token is not valid yet")
@@ -106,7 +106,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 
 				setTestIdentityVerificationTokenBody(t, mock, claims, jwt.SigningMethodHS256, "not-the-configured-secret")
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating the identity verification token signature", "token signature is invalid: signature is invalid")
@@ -119,7 +119,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 
 				setTestIdentityVerificationTokenBody(t, mock, claims, jwt.SigningMethodHS512, testJWTSecret)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating the identity verification token signature", "token signature is invalid: signing method HS512 is invalid")
@@ -133,7 +133,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 
 				setTestIdentityVerificationTokenBody(t, mock, claims, jwt.SigningMethodHS256, testJWTSecret)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating the identity verification token", "token has invalid claims: token has invalid issuer")
@@ -147,7 +147,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 
 				setTestIdentityVerificationTokenBody(t, mock, claims, jwt.SigningMethodHS256, testJWTSecret)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating the identity verification token claims as they appear to be malformed", "invalid UUID length: 10")
@@ -160,7 +160,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 
 				setTestIdentityVerificationTokenBody(t, mock, claims, jwt.SigningMethodHS256, testJWTSecret)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking the identity verification token, the token action 'OtherAction' does not match the endpoint action 'ResetPassword' which is not allowed", nil)
@@ -178,7 +178,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 					LoadIdentityVerification(mock.Ctx, jti.String()).
 					Return(nil, fmt.Errorf("failed to load"))
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up identity verification during the revocation phase", "failed to load")
@@ -201,7 +201,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 						RevokedAt: sql.NullTime{Valid: true, Time: time.Now()},
 					}, nil)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking identity verification token as it's already revoked", nil)
@@ -225,7 +225,7 @@ func TestResetPasswordDELETE(t *testing.T) {
 						Return(fmt.Errorf("failed to revoke")),
 				)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking identity verification when attempting to save the revocation status to the database", "failed to revoke")
@@ -291,7 +291,7 @@ func TestResetPasswordPOST(t *testing.T) {
 		{
 			"ShouldHandleNoIdentityVerification",
 			nil,
-			`{"status":"KO","message":"Unable to reset your password."}`,
+			`{"status":"KO","code":"password_reset_failed","message":"Unable to reset your password."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred resetting the password as no identity verification process has been initiated", nil)
@@ -302,7 +302,7 @@ func TestResetPasswordPOST(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				setTestPasswordResetUsername(t, mock)
 			},
-			`{"status":"KO","message":"Unable to reset your password."}`,
+			`{"status":"KO","code":"password_reset_failed","message":"Unable to reset your password."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the reset password request body", "unable to parse body: unexpected end of JSON input")
@@ -319,7 +319,7 @@ func TestResetPasswordPOST(t *testing.T) {
 
 				mock.Ctx.Request.SetBodyString(`{"password":"abc"}`)
 			},
-			`{"status":"KO","message":"Your supplied password does not meet the password policy requirements."}`,
+			`{"status":"KO","code":"password_policy","message":"Your supplied password does not meet the password policy requirements."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred checking the new password against the password policy", "the supplied password does not met the security policy")
@@ -337,7 +337,7 @@ func TestResetPasswordPOST(t *testing.T) {
 					UpdatePassword(testUsername, "password123").
 					Return(fmt.Errorf("LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy"))
 			},
-			`{"status":"KO","message":"0000052D."}`,
+			`{"status":"KO","code":"password_backend_complexity","message":"0000052D."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred updating the user password as it does not meet the complexity requirements of the backend", "LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy")
@@ -355,7 +355,7 @@ func TestResetPasswordPOST(t *testing.T) {
 					UpdatePassword(testUsername, "password123").
 					Return(fmt.Errorf("failed to update"))
 			},
-			`{"status":"KO","message":"Unable to reset your password."}`,
+			`{"status":"KO","code":"password_reset_failed","message":"Unable to reset your password."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred updating the user password", "failed to update")
@@ -486,7 +486,7 @@ func TestResetPasswordPOST(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Unable to reset your password."}`,
+			`{"status":"KO","code":"password_reset_failed","message":"Unable to reset your password."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), errStrUserSessionData, "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")

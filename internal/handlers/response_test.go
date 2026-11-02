@@ -71,7 +71,7 @@ func TestHandle1FAResponse(t *testing.T) {
 			"ShouldHandleInvalidRequestMethod",
 			"https://app.example.com/",
 			"GET1",
-			`{"status":"KO","message":"Authentication failed. Check your credentials."}`,
+			`{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the target URL 'https://app.example.com/'", "method header with value 'GET1' has invalid characters")
 			},
@@ -80,7 +80,7 @@ func TestHandle1FAResponse(t *testing.T) {
 			"ShouldHandleInvalidTargetURI",
 			"notaurl",
 			fasthttp.MethodGet,
-			`{"status":"KO","message":"Authentication failed. Check your credentials."}`,
+			`{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the target URL 'notaurl'", "error occurred parsing object url: parse \"notaurl\": invalid URI for request")
 			},

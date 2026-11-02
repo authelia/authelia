@@ -105,7 +105,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 		{
 			"ShouldHandleAnonymous",
 			nil,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials", "user is anonymous")
@@ -125,7 +125,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials for user 'john': error occurred attempting to retrieve origin", "failed to parse X-Forwarded Headers: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK://login.example.com:8080/\": invalid URI for request")
@@ -145,7 +145,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 
 				mock.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).Return(nil, fmt.Errorf("bad block"))
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials for user 'john': error occurred loading credentials from the storage backend", "bad block")
@@ -174,7 +174,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -301,7 +301,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				)
 			},
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusConflict,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred ensuring the credentials had unique descriptions", "credential with id '2' also has the description 'abc'")
@@ -331,7 +331,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				)
 			},
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred looking up existing credentials", "oops")
@@ -359,7 +359,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "##!@#!@")
 			},
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred determining the origin for the request", "failed to parse X-Forwarded Headers: parse \"##!@#!@://login.example.com:8080/\": invalid URI for request")
@@ -385,7 +385,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				)
 			},
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john'", "user 'anotheruser' owns the credential with id '1'")
@@ -419,7 +419,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				)
 			},
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred while attempting to update the modified credential in the storage backend", "gremlin")
@@ -440,7 +440,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				mock.StorageMock.EXPECT().LoadWebAuthnCredentialByID(mock.Ctx, 1).Return(nil, fmt.Errorf("deleted"))
 			},
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred loading the credential from the storage backend", "deleted")
@@ -459,7 +459,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
 			`{"description:"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error parsing the request body", "invalid character 'a' after object key")
@@ -478,7 +478,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
 			`{"description":""}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john", "description is empty")
@@ -488,7 +488,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 			"ShouldHandleAnonymous",
 			nil,
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential", "user is anonymous")
@@ -509,7 +509,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				mock.Ctx.SetUserValue("credentialID", "a")
 			},
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred trying to determine the credential ID", "error occurred retrieving WebAuthn Credential ID from context: failed to parse 'a' as an integer: strconv.Atoi: parsing \"a\": invalid syntax")
@@ -521,7 +521,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
 			`{"description":"abc"}`,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -677,7 +677,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 						Return(fmt.Errorf("bad pipe")),
 				)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred delete WebAuthn credential for user 'john': error occurred while attempting to delete the credential from the storage backend", "bad pipe")
@@ -701,7 +701,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 						Return(nil, fmt.Errorf("bad sql password")),
 				)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john': error occurred trying to load the credential from the storage backend", "bad sql password")
@@ -725,7 +725,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 						Return(&model.WebAuthnCredential{ID: 1, Username: "baduser", KID: model.NewBase64([]byte("abc"))}, nil),
 				)
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john'", "user 'baduser' owns the credential with id '1'")
@@ -745,7 +745,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 
 				mock.Ctx.SetUserValue("credentialID", "a")
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john': error occurred trying to determine the credential ID", "error occurred retrieving WebAuthn Credential ID from context: failed to parse 'a' as an integer: strconv.Atoi: parsing \"a\": invalid syntax")
@@ -754,7 +754,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 		{
 			"ShouldHandleAnonymous",
 			nil,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential", "user is anonymous")
@@ -765,7 +765,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")

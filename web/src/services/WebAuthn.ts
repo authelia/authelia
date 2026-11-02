@@ -33,6 +33,7 @@ import {
     validateStatusAuthentication,
     validateStatusWebAuthnCreation,
 } from "@services/Api";
+import { ErrorCode } from "@services/ErrorCode";
 import { SignInResponse } from "@services/SignIn";
 
 function getAttestationResultFromDOMException(exception: DOMException): AttestationResult {
@@ -268,27 +269,25 @@ async function postWebAuthnRegistrationResponse(
     return axios.post<OptionalDataServiceResponse<any>>(WebAuthnRegistrationPath, response);
 }
 
-export async function finishWebAuthnRegistration(response: RegistrationResponseJSON) {
-    let result = {
-        message: "Device registration failed.",
-        status: AttestationResult.Failure,
-    };
-
+export async function finishWebAuthnRegistration(
+    response: RegistrationResponseJSON,
+): Promise<{ code?: ErrorCode; status: AttestationResult }> {
     try {
         const resp = await postWebAuthnRegistrationResponse(response);
         if (resp.data.status === "OK" && (resp.status === 200 || resp.status === 201)) {
-            return {
-                message: "",
-                status: AttestationResult.Success,
-            };
+            return { status: AttestationResult.Success };
+        }
+
+        if (resp.data.status === "KO") {
+            return { code: resp.data.code, status: AttestationResult.Failure };
         }
     } catch (error) {
         if (error instanceof AxiosError && error.response !== undefined) {
-            result.message = error.response.data.message;
+            return { code: error.response.data?.code, status: AttestationResult.Failure };
         }
     }
 
-    return result;
+    return { status: AttestationResult.Failure };
 }
 
 export async function deleteUserWebAuthnCredential(credentialID: string) {
