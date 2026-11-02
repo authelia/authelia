@@ -59,7 +59,7 @@ will operate with the application example:
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
-    ## See: https://www.authelia.com/c/oidc  
+    ## See: https://www.authelia.com/c/oidc
     claims_policies:
       dreeve:
         id_token: ['email', 'email_verified', 'preferred_username', 'name']
@@ -77,7 +77,7 @@ identity_providers:
         scopes: ['openid', 'email', 'profile']
         response_types: ['code']
         grant_types: ['authorization_code']
-        token_endpoint_auth_method: 'client_secret_basic'        
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
