@@ -117,8 +117,8 @@
       # detailed: false
 
       ## The providers probed by the verbose endpoint. Probing 'notification' opens a connection to the SMTP
-      ## server and probing 'ntp' contacts an external server, so neither is included by default.
-      ## Options are 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', and 'webauthn-metadata'.
+      ## server, and probing 'ntp' or 'duo' contacts an external server, so none of them are included by default.
+      ## Options are 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', 'duo', and 'webauthn-metadata'.
       # providers:
       #   - 'storage'
       #   - 'session'
