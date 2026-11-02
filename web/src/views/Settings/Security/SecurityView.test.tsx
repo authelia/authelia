@@ -67,6 +67,19 @@ vi.mock("@views/Settings/Common/SecondFactorDialog", () => ({
     ),
 }));
 
+vi.mock("@views/Settings/Common/ReauthenticationDialog", () => ({
+    default: (props: any) => (
+        <div
+            data-testid="reauthentication-dialog"
+            data-opening={String(props.opening)}
+            data-elevation={JSON.stringify(props.elevation ?? null)}
+        >
+            <button data-testid="ra-closed-ok-unchanged" onClick={() => props.handleClosed(true, false)} />
+            <button data-testid="ra-closed-cancel" onClick={() => props.handleClosed(false, false)} />
+        </div>
+    ),
+}));
+
 vi.mock("@views/Settings/Security/ChangePasswordDialog", () => ({
     default: (props: any) => (
         <div data-testid="change-password-dialog" data-open={String(props.open)} data-username={props.username}>
@@ -83,6 +96,11 @@ const skipSecondFactor = { elevated: false, skip_second_factor: true } as any;
 
 function getChangePasswordButton() {
     return document.getElementById("change-password-button") as HTMLButtonElement;
+}
+
+async function passReauthentication() {
+    await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByTestId("ra-closed-ok-unchanged"));
 }
 
 beforeEach(() => {
@@ -215,7 +233,7 @@ describe("password change flow", () => {
         fireEvent.click(getChangePasswordButton());
 
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
-        expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute("data-opening", "true");
+        expect(screen.getByTestId("reauthentication-dialog")).toHaveAttribute("data-opening", "true");
     });
 
     it("logs elevation lookup failures", async () => {
@@ -232,6 +250,7 @@ describe("password change flow", () => {
         render(<SecurityView />);
 
         fireEvent.click(getChangePasswordButton());
+        await passReauthentication();
         await waitFor(() =>
             expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute(
                 "data-elevation",
@@ -250,6 +269,7 @@ describe("password change flow", () => {
         render(<SecurityView />);
 
         fireEvent.click(getChangePasswordButton());
+        await passReauthentication();
         await waitFor(() =>
             expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute(
                 "data-elevation",
@@ -268,7 +288,7 @@ describe("password change flow", () => {
         render(<SecurityView />);
 
         fireEvent.click(getChangePasswordButton());
-        await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
 
@@ -282,6 +302,7 @@ describe("password change flow", () => {
 
         fireEvent.click(getChangePasswordButton());
         await waitFor(() => expect(getElevationMock).toHaveBeenCalledTimes(1));
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-changed"));
 
@@ -296,6 +317,7 @@ describe("password change flow", () => {
 
         fireEvent.click(getChangePasswordButton());
         await waitFor(() => expect(getElevationMock).toHaveBeenCalledTimes(1));
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-changed"));
 
@@ -309,6 +331,7 @@ describe("password change flow", () => {
 
         fireEvent.click(getChangePasswordButton());
         await waitFor(() => expect(getElevationMock).toHaveBeenCalledTimes(1));
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-ok-changed"));
 
@@ -322,6 +345,7 @@ describe("password change flow", () => {
 
         fireEvent.click(getChangePasswordButton());
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
 
         fireEvent.click(screen.getByTestId("sf-closed-cancel"));
 
@@ -336,6 +360,7 @@ describe("password change flow", () => {
         render(<SecurityView />);
 
         fireEvent.click(getChangePasswordButton());
+        await passReauthentication();
         await waitFor(() => expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute("data-opening", "true"));
 
         fireEvent.click(screen.getByTestId("sf-opened"));
@@ -352,6 +377,7 @@ describe("password change flow", () => {
 
         fireEvent.click(getChangePasswordButton());
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "true"));
 
@@ -367,6 +393,7 @@ describe("password change flow", () => {
 
         fireEvent.click(getChangePasswordButton());
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "true"));
 
@@ -383,6 +410,7 @@ describe("password change flow", () => {
 
         fireEvent.click(getChangePasswordButton());
         await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+        await passReauthentication();
         fireEvent.click(screen.getByTestId("sf-closed-ok-unchanged"));
         await waitFor(() => expect(screen.getByTestId("identity-dialog")).toHaveAttribute("data-opening", "true"));
 
@@ -395,6 +423,7 @@ describe("password change flow", () => {
         render(<SecurityView />);
 
         fireEvent.click(getChangePasswordButton());
+        await passReauthentication();
         await waitFor(() =>
             expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute(
                 "data-elevation",
@@ -407,5 +436,31 @@ describe("password change flow", () => {
         fireEvent.click(screen.getByTestId("pw-close"));
 
         await waitFor(() => expect(screen.getByTestId("change-password-dialog")).toHaveAttribute("data-open", "false"));
+    });
+
+    it("resets the state when reauthentication is cancelled", async () => {
+        render(<SecurityView />);
+
+        fireEvent.click(getChangePasswordButton());
+        await waitFor(() => expect(getElevationMock).toHaveBeenCalled());
+
+        fireEvent.click(screen.getByTestId("ra-closed-cancel"));
+
+        expect(screen.getByTestId("reauthentication-dialog")).toHaveAttribute("data-opening", "false");
+        expect(screen.getByTestId("second-factor-dialog")).toHaveAttribute("data-opening", "false");
+        expect(screen.getByTestId("change-password-dialog")).toHaveAttribute("data-open", "false");
+    });
+
+    it("passes the elevation to the reauthentication dialog", async () => {
+        render(<SecurityView />);
+
+        fireEvent.click(getChangePasswordButton());
+
+        await waitFor(() =>
+            expect(screen.getByTestId("reauthentication-dialog")).toHaveAttribute(
+                "data-elevation",
+                JSON.stringify(elevated),
+            ),
+        );
     });
 });

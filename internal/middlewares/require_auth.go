@@ -64,6 +64,16 @@ func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.Us
 
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
+	if state := GetReauthenticationState(ctx, userSession); state.Required {
+		ctx.Logger.WithFields(map[string]any{"user": userSession.Username, "methods": state.Methods}).Info("The user session elevation was not checked as the user must reauthenticate.")
+
+		if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{Reauthentication: true}}, fasthttp.StatusForbidden); err != nil {
+			ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
+		}
+
+		return
+	}
+
 	if ctx.Configuration.IdentityValidation.ElevatedSession.SkipSecondFactor && level >= authentication.TwoFactor {
 		ctx.Logger.WithFields(map[string]any{"user": userSession.Username}).Trace("The user session elevation was not checked as the user has performed second factor authentication and the policy to skip this is enabled.")
 
