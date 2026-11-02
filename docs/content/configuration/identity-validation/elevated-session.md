@@ -76,6 +76,9 @@ The One-Time Code process is still required in addition to second factor authent
 This option only affects users who have at least one second factor method configured; users without any configured
 second factor method perform the One-Time Code process as normal.
 
+Such users must also perform second factor authentication before the user settings list their registered WebAuthn
+credentials, so a session which has only performed first factor authentication can't see which credentials a user has.
+
 Enabling this option also makes the second factor methods available for registration in the user settings even when
 no [access control](../security/access-control.md) rule uses the `two_factor` policy. Without that, an instance which
 elevates sessions with a second factor would give users no way to register the method it asks them for.
