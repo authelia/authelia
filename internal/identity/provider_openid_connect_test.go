@@ -595,7 +595,7 @@ func TestProviderShouldExchangeAndRequestUserInfoWithTheTrustedCertificatePool(t
 	assert.Nil(t, token)
 	require.ErrorContains(t, err, "certificate signed by unknown authority")
 
-	claims := &IdentityClaims{Subject: "abc123"}
+	claims := &IdentityClaims{Subject: "abc123", RawIDToken: map[string]any{"name": "ID Token"}}
 
 	require.ErrorContains(t, untrusted.UserInfo(context.Background(), "at", claims), "certificate signed by unknown authority")
 
@@ -614,6 +614,8 @@ func TestProviderShouldExchangeAndRequestUserInfoWithTheTrustedCertificatePool(t
 
 	require.NoError(t, trusted.UserInfo(context.Background(), token.AccessToken, claims))
 	assert.Equal(t, "John Smith", claims.Name)
+	assert.Equal(t, "John Smith", claims.RawUserInfo["name"])
+	assert.Equal(t, "ID Token", claims.RawIDToken["name"])
 }
 
 func newTestCertPool(server *httptest.Server) *x509.CertPool {

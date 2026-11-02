@@ -129,6 +129,7 @@ const (
 	errFmtExternalIdentityProviderEndpointScheme  = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' must have the 'https' scheme but it's configured as '%s'"
 	errFmtExternalIdentityProviderEndpointParse   = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' must be a valid URL but it could not be parsed: %w"
 	errFmtExternalIdentityProviderSecretRequired  = "authentication_backend: external_identity: providers: provider '%s': option 'client_secret' is required when the 'token_endpoint_auth_method' is '%s' but it's not configured"
+	errFmtExternalIdentityProviderClaimsMapping   = "authentication_backend: external_identity: providers: provider '%s': claims_mapping: %w"
 	errFmtExternalIdentityProviderAMROverride     = "authentication_backend: external_identity: providers: provider '%s': authentication_methods_reference: option 'default' is required when 'override' is enabled but it's not configured"
 	errFmtExternalIdentityProviderAMRDefaultEmpty = "authentication_backend: external_identity: providers: provider '%s': authentication_methods_reference: option 'default' must not contain empty values"
 

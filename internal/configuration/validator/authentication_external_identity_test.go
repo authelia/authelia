@@ -510,3 +510,41 @@ func TestValidateAuthenticationBackendExternalIdentityAuthenticationMethodsRefer
 		})
 	}
 }
+
+func TestValidateExternalIdentityProviderClaimsMapping(t *testing.T) {
+	testCases := []struct {
+		name     string
+		mapping  map[string]string
+		expected string
+	}{
+		{"ShouldAllowUnset", nil, ""},
+		{"ShouldAllowValid", map[string]string{"email": "claims.alt", "amr": `amr + ["mfa"]`, "disabled": "claims.locked == true"}, ""},
+		{
+			"ShouldRejectSubject",
+			map[string]string{"sub": "claims.id"},
+			"authentication_backend: external_identity: providers: provider 'example': claims_mapping: the claim 'sub' can't be mapped: it must be one of 'amr', 'disabled', 'email', 'name', or 'preferred_username'",
+		},
+		{
+			"ShouldRejectInvalidType",
+			map[string]string{"amr": `"mfa"`},
+			"authentication_backend: external_identity: providers: provider 'example': claims_mapping: the claim 'amr' has an invalid expression: the result type must be 'list(string)' but it is 'string'",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			validateAuthenticationBackendExternalIdentityProviderClaimsMapping(&schema.AuthenticationBackendExternalIdentityProvider{ID: "example", ClaimsMapping: tc.mapping}, validator)
+
+			if tc.expected == "" {
+				assert.Empty(t, validator.Errors())
+
+				return
+			}
+
+			require.Len(t, validator.Errors(), 1)
+			assert.EqualError(t, validator.Errors()[0], tc.expected)
+		})
+	}
+}
