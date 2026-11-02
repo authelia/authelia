@@ -187,3 +187,43 @@ type discoveryCheck struct {
 	values []string
 	value  string
 }
+
+type plexPIN struct {
+	ID        int64   `json:"id"`
+	Code      string  `json:"code"`
+	AuthToken *string `json:"authToken"`
+}
+
+type plexUser struct {
+	UUID     string `json:"uuid"`
+	Username string `json:"username"`
+	Title    string `json:"title"`
+	Email    string `json:"email"`
+
+	raw map[string]any
+}
+
+// UnmarshalJSON retains the raw claims of the user alongside the values Authelia consumes, except for the tokens of the
+// user which must never be available to the claims mapping.
+func (u *plexUser) UnmarshalJSON(data []byte) (err error) {
+	type alias plexUser
+
+	if err = json.Unmarshal(data, (*alias)(u)); err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &u.raw); err != nil {
+		return err
+	}
+
+	delete(u.raw, "authToken")
+	delete(u.raw, "authentication_token")
+
+	return nil
+}
+
+type plexDevice struct {
+	name     string
+	version  string
+	language string
+}

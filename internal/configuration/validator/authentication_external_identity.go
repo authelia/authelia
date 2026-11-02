@@ -48,7 +48,7 @@ func validateAuthenticationBackendExternalIdentityProvidersUnique(config *schema
 		seen[provider.ID] = true
 
 		switch provider.Type {
-		case externalIdentityTypeDiscord, externalIdentityTypeGitHub:
+		case externalIdentityTypeDiscord, externalIdentityTypePlex, externalIdentityTypeGitHub:
 			types[provider.Type] = append(types[provider.Type], provider.ID)
 		case externalIdentityTypeOpenIDConnect:
 			if provider.Issuer == "" {
@@ -63,7 +63,7 @@ func validateAuthenticationBackendExternalIdentityProvidersUnique(config *schema
 		}
 	}
 
-	for _, providerType := range []string{externalIdentityTypeDiscord, externalIdentityTypeGitHub} {
+	for _, providerType := range []string{externalIdentityTypeDiscord, externalIdentityTypePlex, externalIdentityTypeGitHub} {
 		if len(types[providerType]) > 1 {
 			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderTypeDuplicate, providerType, utils.StringJoinAnd(types[providerType])))
 		}
@@ -112,6 +112,8 @@ func validateAuthenticationBackendExternalIdentityProvider(i int, config *schema
 		validateAuthenticationBackendExternalIdentityProviderOpenIDConnect(config, validator)
 	case externalIdentityTypeDiscord:
 		validateAuthenticationBackendExternalIdentityProviderDiscord(config, validator)
+	case externalIdentityTypePlex:
+		validateAuthenticationBackendExternalIdentityProviderPlex(config, validator)
 	case externalIdentityTypeGitHub:
 		validateAuthenticationBackendExternalIdentityProviderGitHub(config, validator)
 	default:
@@ -185,6 +187,22 @@ func validateAuthenticationBackendExternalIdentityProviderGitHub(config *schema.
 	validateAuthenticationBackendExternalIdentityProviderResponseMode(config, validExternalIdentityQueryResponseModes, validator)
 	validateAuthenticationBackendExternalIdentityProviderAuthMethod(config, validExternalIdentityConfidentialMethods, validator)
 	validateAuthenticationBackendExternalIdentityProviderPKCE(config, validator)
+	validateAuthenticationBackendExternalIdentityProviderAMRDefault(config, validator)
+	validateAuthenticationBackendExternalIdentityProviderClaimsMapping(config, validator)
+}
+
+func validateAuthenticationBackendExternalIdentityProviderPlex(config *schema.AuthenticationBackendExternalIdentityProvider, validator *schema.StructValidator) {
+	unsupported := append([]externalIdentityOption{
+		{"client_secret", config.ClientSecret != ""},
+		{"scopes", len(config.Scopes) != 0},
+		{"token_endpoint_auth_method", config.TokenEndpointAuthMethod != ""},
+		{"pkce.challenge_method", config.PKCE.ChallengeMethod != ""},
+		{"shared_redirect_uri", config.SharedRedirectURI},
+	}, externalIdentityOpenIDConnectOnlyOptions(config)...)
+
+	validateAuthenticationBackendExternalIdentityProviderUnsupported(config, unsupported, validator)
+
+	validateAuthenticationBackendExternalIdentityProviderResponseMode(config, validExternalIdentityQueryResponseModes, validator)
 	validateAuthenticationBackendExternalIdentityProviderAMRDefault(config, validator)
 	validateAuthenticationBackendExternalIdentityProviderClaimsMapping(config, validator)
 }
