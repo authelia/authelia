@@ -54,6 +54,10 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 	disable = !ctx.GetConfiguration().WebAuthn.Metadata.Enabled || ctx.GetProviders().MetaDataService == nil
 	doStartupCheck(ctx, ProviderNameWebAuthnMetaData, provider, []string{ProviderNameStorage}, disable, log, e.errors)
 
+	provider = ctx.GetProviders().Duo
+	disable = ctx.GetConfiguration().DuoAPI.Disable || provider == nil
+	doStartupCheck(ctx, ProviderNameDuo, provider, nil, disable, log, e.errors)
+
 	var filters []string
 
 	if ctx.GetConfiguration().NTP.DisableFailure {
