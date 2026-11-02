@@ -2,41 +2,19 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { cn } from "cn";
+import { AnimatedLogo } from "./AnimatedLogo";
 
 export interface Props {
     message: string;
 }
 
-const delays = [
-    "[animation-delay:0.1s]",
-    "[animation-delay:0.2s]",
-    "[animation-delay:0.3s]",
-    "[animation-delay:0.4s]",
-    "[animation-delay:0.5s]",
-];
-
-const BaseLoadingPage = function (props: Props) {
+const BaseLoadingPage = function ({ message }: Props) {
     return (
         <div className="grid min-h-screen items-center justify-center">
             <div className="inline-block text-center">
-                <div className="p-4">
-                    <span className="inline-flex">
-                        {delays.map((delay) => (
-                            <span
-                                key={delay}
-                                className={cn(
-                                    "mx-0.5 inline-block h-[35px] w-1 rounded-[2px]",
-                                    "bg-[var(--custom-loading-bar)] animate-scale-loader",
-                                    delay,
-                                )}
-                            />
-                        ))}
-                    </span>
-                </div>
-                <div className="p-4">
-                    <p>{props.message}...</p>
-                </div>
+                <AnimatedLogo />
+
+                <p className="m-4 font-bold text-lg">{message}...</p>
             </div>
         </div>
     );
