@@ -7,10 +7,19 @@ package embed
 import (
 	"fmt"
 
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/service"
 )
 
-// ProvidersStartupCheck performs the startup checks for all providers given a context.
+// ProvidersRetainer is implemented by a Context which can retain the providers completed by ProvidersStartupCheck. The
+// session providers don't exist until then, so a Context returned by NewContext implements it, and a custom Context must
+// as well.
+type ProvidersRetainer interface {
+	SetProviders(providers middlewares.Providers)
+}
+
+// ProvidersStartupCheck performs the startup checks for all providers given a context, then completes the providers
+// which depend on the others and retains them in the context. It must be called before ServiceRunAll.
 func ProvidersStartupCheck(ctx Context, log bool) (err error) {
 	providers := ctx.GetProviders()
 
@@ -18,7 +27,18 @@ func ProvidersStartupCheck(ctx Context, log bool) (err error) {
 		return err
 	}
 
-	return providers.Finalize(ctx)
+	retainer, ok := ctx.(ProvidersRetainer)
+	if !ok {
+		return fmt.Errorf("the context does not support retaining the finalized providers as it does not implement SetProviders")
+	}
+
+	if err = providers.Finalize(ctx); err != nil {
+		return err
+	}
+
+	retainer.SetProviders(providers)
+
+	return nil
 }
 
 // ServiceRunAll runs all services given a context.

@@ -162,7 +162,9 @@ func (p *DefaultStrategy) persist(ctx Context, id []byte, session *UserSession) 
 }
 
 // Regenerate issues a new session identifier for the current session, preserving the session data and public
-// identifier, which mitigates session fixation across an authentication level change.
+// identifier, which mitigates session fixation across an authentication level change. A session which can't be read is
+// deleted and replaced with an anonymous session as none of its data can be reused, whereas a failure to retrieve it from
+// the Repository is returned as the session may be valid.
 func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 	var (
 		oldSID  string
@@ -171,7 +173,19 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 	)
 
 	if oldSID, session, err = p.get(ctx); err != nil {
-		return err
+		if errors.Is(err, ErrRepositoryGet) {
+			return err
+		}
+
+		if err = p.repository.Delete(ctx, p.issuer, oldSID, "", ""); err != nil {
+			return fmt.Errorf("error occurred deleting unreadable session from backend: %w", err)
+		}
+
+		p.setCached(ctx, nil)
+
+		anonymous := p.NewDefault()
+
+		oldSID, session = "", &anonymous
 	}
 
 	if id, err = p.codec.GenerateSessionID(); err != nil {

@@ -359,6 +359,88 @@ func TestDefaultStrategy_SaveShouldDiscardStaleAnonymousSessionLoadedFromRecord(
 	assert.Equal(t, previous.cookies[testName], ctx.cookies[testName])
 }
 
+func TestDefaultStrategy_RegenerateShouldReplaceUnreadableSession(t *testing.T) {
+	repository := &deleteRecordingRepository{erroringRepository: erroringRepository{testRepository: newTestRepository()}}
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	previous := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	require.NoError(t, strategy.Save(previous, &userSession))
+
+	for key := range repository.data {
+		repository.data[key] = []byte("unreadable")
+	}
+
+	ctx := newTestCachingContext()
+	ctx.cookies[testName] = previous.cookies[testName]
+
+	_, err := strategy.Get(ctx)
+	require.Error(t, err)
+	require.NotErrorIs(t, err, ErrRepositoryGet)
+
+	require.NoError(t, strategy.Regenerate(ctx))
+
+	assert.Equal(t, 1, repository.deleted)
+	assert.Equal(t, 1, ctx.set)
+	assert.NotEqual(t, previous.cookies[testName], ctx.cookies[testName])
+
+	current, err := strategy.Get(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, current.Username)
+}
+
+func TestDefaultStrategy_RegenerateShouldErrorWhenUnreadableSessionCannotBeDeleted(t *testing.T) {
+	repository := &deleteRecordingRepository{erroringRepository: erroringRepository{testRepository: newTestRepository()}}
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	previous := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	require.NoError(t, strategy.Save(previous, &userSession))
+
+	for key := range repository.data {
+		repository.data[key] = []byte("unreadable")
+	}
+
+	repository.errDelete = errTestFailure
+
+	ctx := newTestCachingContext()
+	ctx.cookies[testName] = previous.cookies[testName]
+
+	assert.ErrorIs(t, strategy.Regenerate(ctx), errTestFailure)
+	assert.Equal(t, 0, ctx.set)
+	assert.Equal(t, previous.cookies[testName], ctx.cookies[testName])
+}
+
+func TestDefaultStrategy_RegenerateShouldErrorWhenRepositoryIsUnavailable(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, &failingRepository{testRepository: repository}, nil)
+
+	ctx := newTestCachingContext()
+	ctx.cookies[testName] = encodeCookieID(make([]byte, sessionIDLength))
+
+	cookie := ctx.cookies[testName]
+
+	assert.ErrorIs(t, strategy.Regenerate(ctx), ErrRepositoryGet)
+	assert.Equal(t, 0, ctx.set)
+	assert.Equal(t, cookie, ctx.cookies[testName])
+}
+
+type deleteRecordingRepository struct {
+	erroringRepository
+
+	deleted int
+}
+
+func (r *deleteRecordingRepository) Delete(ctx context.Context, issuer, id, pid, username string) (err error) {
+	r.deleted++
+
+	return r.erroringRepository.Delete(ctx, issuer, id, pid, username)
+}
+
 type tombstoneRepository struct {
 	*testRepository
 
