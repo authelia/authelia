@@ -341,6 +341,43 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel(false))
 }
 
+func TestShouldDestroySessionAndExpireCookieOnDomain(t *testing.T) {
+	ctx := &fasthttp.RequestCtx{}
+	domainSession, err := newTestSession()
+	assert.NoError(t, err)
+
+	session, err := domainSession.GetSession(ctx)
+	assert.NoError(t, err)
+
+	session.Username = testUsername
+
+	assert.NoError(t, domainSession.SaveSession(ctx, session))
+	assert.NoError(t, domainSession.DestroySession(ctx))
+
+	cookie := fasthttp.AcquireCookie()
+	defer fasthttp.ReleaseCookie(cookie)
+
+	cookie.SetKey(testName)
+
+	assert.True(t, ctx.Response.Header.Cookie(cookie))
+	assert.Equal(t, "", string(cookie.Value()))
+	assert.Equal(t, testDomain, string(cookie.Domain()))
+	assert.Equal(t, "/", string(cookie.Path()))
+	assert.True(t, cookie.HTTPOnly())
+	assert.True(t, cookie.Secure())
+	assert.Equal(t, fasthttp.CookieSameSiteLaxMode, cookie.SameSite())
+	assert.True(t, cookie.Expire().Before(time.Now()))
+}
+
+func TestShouldNotSetCookieWhenDestroyingWithoutSession(t *testing.T) {
+	ctx := &fasthttp.RequestCtx{}
+	domainSession, err := newTestSession()
+	assert.NoError(t, err)
+
+	assert.NoError(t, domainSession.DestroySession(ctx))
+	assert.Nil(t, ctx.Response.Header.PeekCookie(testName))
+}
+
 func TestStartupCheckShouldSucceedForMemoryBackend(t *testing.T) {
 	config := schema.Session{}
 	config.Cookies = []schema.SessionCookie{

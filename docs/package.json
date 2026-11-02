@@ -13,9 +13,9 @@
     "preview": "vite preview --outDir public"
   },
   "dependencies": {
-    "@docsearch/css": "5.1.2",
-    "@docsearch/js": "5.1.2",
-    "@tabler/icons": "3.49.0",
+    "@docsearch/css": "5.2.0",
+    "@docsearch/js": "5.2.0",
+    "@tabler/icons": "3.50.0",
     "@thulite/core": "2.0.4",
     "@thulite/doks-core": "1.9.4",
     "@thulite/images": "3.3.4",
@@ -31,29 +31,29 @@
     "@eslint/json": "2.1.1",
     "@eslint/markdown": "8.0.3",
     "@fullhuman/postcss-purgecss": "8.0.0",
-    "autoprefixer": "10.6.1",
+    "autoprefixer": "10.6.2",
     "basiclightbox": "5.0.4",
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
-    "eslint": "10.13.0",
+    "eslint": "10.14.0",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",
     "eslint-plugin-prettier": "5.5.7",
     "flexsearch": "0.8.212",
-    "postcss": "8.5.31",
+    "postcss": "8.5.32",
     "postcss-cli": "12.0.0",
     "prettier": "3.9.10",
-    "vite": "8.3.4"
+    "vite": "8.3.5"
   },
   "optionalDependencies": {
-    "hugo-extended": "0.168.0",
-    "sass-embedded": "1.105.2"
+    "hugo-extended": "0.169.0",
+    "sass-embedded": "1.107.1"
   },
   "engines": {
     "node": ">=24.13.0",
     "pnpm": "12"
   },
-  "packageManager": "pnpm@12.14.0",
+  "packageManager": "pnpm@12.16.1",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
