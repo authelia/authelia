@@ -74,7 +74,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://dreeve.{{< sitevar name="domain" nojs="example.com" >}}/openid/callback'
+          - 'https://dreeve.{{< sitevar name="domain" nojs="example.com" >}}/admin/login/oidc/callback'
         scopes: ['openid', 'email', 'profile']
         response_types: ['code']
         grant_types: ['authorization_code']
