@@ -29,4 +29,26 @@ const (
 
 	// NameImplicitFormPost is the builder name of the Implicit OP profile using the form post response mode.
 	NameImplicitFormPost = "implicit-form-post"
+
+	// NameRelyingPartyBasic is the builder name of the Basic RP profile.
+	NameRelyingPartyBasic = "rp-basic"
+
+	// NameRelyingPartyBasicFormPost is the builder name of the Basic RP profile using the form post response mode.
+	NameRelyingPartyBasicFormPost = "rp-basic-form-post"
+
+	// NameRelyingPartyConfig is the prefix of the builder names of the Config RP profile, which has a builder for each
+	// of its modules.
+	NameRelyingPartyConfig = "rp-config"
+)
+
+var (
+	// RelyingPartyConfigModules are the modules of the Config RP profile in the order of its plan.
+	RelyingPartyConfigModules = []RelyingPartyModule{
+		{Suffix: "discovery", Name: "oidcc-client-test-discovery-openid-config"},
+		{Suffix: "jwks", Name: "oidcc-client-test-discovery-jwks-uri-keys"},
+		{Suffix: "issuer", Name: "oidcc-client-test-discovery-issuer-mismatch"},
+		{Suffix: "sig-none", Name: "oidcc-client-test-idtoken-sig-none"},
+		{Suffix: "signing", Name: "oidcc-client-test-signing-key-rotation-just-before-signing"},
+		{Suffix: "rotation", Name: "oidcc-client-test-signing-key-rotation"},
+	}
 )

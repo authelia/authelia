@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/identity"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
@@ -46,6 +47,7 @@ type Providers struct {
 	SessionProvider       *session.Provider
 	Regulator             *regulation.Regulator
 	OpenIDConnect         *oidc.OpenIDConnectProvider
+	ExternalIdentity      *identity.Providers
 	Metrics               metrics.Provider
 	NTP                   *ntp.Provider
 	UserProvider          authentication.UserProvider

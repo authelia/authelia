@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -22,6 +23,59 @@ import (
 
 // MethodList is the list of available methods.
 type MethodList = []string
+
+type bodyGETExternalIdentityProviders struct {
+	Providers []bodyExternalIdentityProvider `json:"providers"`
+}
+
+type bodyExternalIdentityProvider struct {
+	ID      string `json:"id"`
+	Type    string `json:"type"`
+	Name    string `json:"name"`
+	LogoURI string `json:"logo_uri,omitempty"`
+}
+
+type bodyPOSTExternalIdentityStart struct {
+	TargetURL      string `json:"targetURL"`
+	RequestMethod  string `json:"requestMethod"`
+	KeepMeLoggedIn bool   `json:"keepMeLoggedIn"`
+	Language       string `json:"language"`
+	FlowID         string `json:"flowID"`
+	Flow           string `json:"flow"`
+	SubFlow        string `json:"subflow"`
+	UserCode       string `json:"userCode"`
+}
+
+type bodyPOSTExternalIdentityStartResponse struct {
+	AuthorizationURL string `json:"authorization_url"`
+}
+
+type bodyGETExternalIdentityLinks struct {
+	Links   []bodyExternalIdentityLink   `json:"links"`
+	Pending *bodyExternalIdentityPending `json:"pending,omitempty"`
+}
+
+type bodyExternalIdentityLink struct {
+	ID             int        `json:"id"`
+	CreatedAt      time.Time  `json:"created_at"`
+	LastUsedAt     *time.Time `json:"last_used_at,omitempty"`
+	Provider       string     `json:"provider"`
+	ProviderName   string     `json:"provider_name"`
+	Issuer         string     `json:"issuer"`
+	Subject        string     `json:"subject"`
+	RemoteUsername string     `json:"remote_username,omitempty"`
+	Invalid        bool       `json:"invalid,omitempty"`
+}
+
+type bodyExternalIdentityPending struct {
+	Provider       string `json:"provider"`
+	ProviderName   string `json:"provider_name"`
+	Issuer         string `json:"issuer"`
+	Subject        string `json:"subject"`
+	RemoteUsername string `json:"remote_username,omitempty"`
+	DisplayName    string `json:"display_name,omitempty"`
+	Email          string `json:"email,omitempty"`
+}
 
 type configurationBody struct {
 	AvailableMethods       MethodList `json:"available_methods"`
