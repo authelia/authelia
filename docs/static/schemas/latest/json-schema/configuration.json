@@ -3459,6 +3459,7 @@
               "notification",
               "ntp",
               "expressions",
+              "duo",
               "webauthn-metadata"
             ]
           },
