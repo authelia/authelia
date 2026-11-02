@@ -352,16 +352,18 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
 
+		pinning := duoapi.SetCAPinning(!config.DuoAPI.DisableCAPinning)
+
 		if utils.Dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				config.DuoAPI.IntegrationKey,
 				config.DuoAPI.SecretKey,
-				config.DuoAPI.Hostname, "", duoapi.SetInsecure()))
+				config.DuoAPI.Hostname, "", pinning, duoapi.SetInsecure()))
 		} else {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				config.DuoAPI.IntegrationKey,
 				config.DuoAPI.SecretKey,
-				config.DuoAPI.Hostname, ""))
+				config.DuoAPI.Hostname, "", pinning))
 		}
 
 		middlewareRateLimitDuo := middlewares.NewBridgeBuilder(*config, providers).

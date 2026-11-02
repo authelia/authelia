@@ -482,7 +482,9 @@ const (
 )
 
 const (
-	errFmtDuoMissingOption = "duo_api: option '%s' is required when duo is enabled but it's absent"
+	errFmtDuoMissingOption               = "duo_api: option '%s' is required when duo is enabled but it's absent"
+	errFmtDuoDisableCAPinningDuoHostname = "duo_api: option 'experimental_disable_ca_pinning' must be false when the option 'hostname' is a Duo hostname but it's configured as '%s'"
+	errDuoDisableCAPinningWarning        = "duo_api: option 'experimental_disable_ca_pinning' is enabled: this option is experimental, insecure, not recommended, and may be removed at any time"
 )
 
 // Error constants.

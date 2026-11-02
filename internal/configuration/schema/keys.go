@@ -130,6 +130,7 @@ var Keys = []string{
 	"definitions.user_attributes.*.expression",
 	"duo_api.disable",
 	"duo_api.enable_self_enrollment",
+	"duo_api.experimental_disable_ca_pinning",
 	"duo_api.hostname",
 	"duo_api.integration_key",
 	"duo_api.secret_key",
