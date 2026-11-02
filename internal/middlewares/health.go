@@ -90,11 +90,11 @@ func (p *Providers) healthCheckProvider(name string) (provider model.StartupChec
 
 		return p.UserAttributeResolver, nil
 	case schema.ProviderNameWebAuthnMetaData:
-		if p.MetaDataService == nil {
+		if p.WebAuthnMetaData == nil {
 			return nil, ErrHealthCheckProviderNotConfigured
 		}
 
-		return p.MetaDataService, nil
+		return p.WebAuthnMetaData, nil
 	default:
 		return nil, ErrHealthCheckProviderUnknown
 	}
