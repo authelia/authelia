@@ -59,12 +59,12 @@ func (p *Providers) healthCheckProvider(name string) (provider model.StartupChec
 		}
 
 		return p.StorageProvider, nil
-	case schema.ProviderNameSession:
-		if p.SessionProvider == nil {
+	case schema.ProviderNameCache:
+		if p.Cache == nil {
 			return nil, ErrHealthCheckProviderNotConfigured
 		}
 
-		return p.SessionProvider, nil
+		return p.Cache, nil
 	case schema.ProviderNameUser:
 		if p.UserProvider == nil {
 			return nil, ErrHealthCheckProviderNotConfigured
