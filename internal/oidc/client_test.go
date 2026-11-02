@@ -16,6 +16,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -2021,6 +2022,65 @@ func TestGetAllowMultipleAuthenticationMethods(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c := &oidc.RegisteredClient{AllowMultipleAuthenticationMethods: tc.allow}
 			assert.Equal(t, tc.allow, c.GetAllowMultipleAuthenticationMethods())
+		})
+	}
+}
+
+func TestGetClientAssertionJWTValidationHeaderAllowEmptyType(t *testing.T) {
+	testCases := []struct {
+		name  string
+		allow bool
+	}{
+		{
+			name:  "ShouldReturnTrueWhenAllowed",
+			allow: true,
+		},
+		{
+			name:  "ShouldReturnFalseWhenNotAllowed",
+			allow: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClientAssertionJWTValidationHeaderAllowEmptyType: tc.allow}
+			assert.Equal(t, tc.allow, c.GetClientAssertionJWTValidationHeaderAllowEmptyType())
+		})
+	}
+}
+
+func TestGetClientAssertionJWTValidationHeaderAllowTypes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected []string
+	}{
+		{
+			name:     "ShouldReturnExplicitTypeWhenUnconfigured",
+			have:     nil,
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication},
+		},
+		{
+			name:     "ShouldReturnExplicitTypeWhenEmpty",
+			have:     []string{},
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication},
+		},
+		{
+			name:     "ShouldReturnConfiguredTypes",
+			have:     []string{jwt.JSONWebTokenTypeClientAuthentication, jwt.JSONWebTokenTypeJWT},
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication, jwt.JSONWebTokenTypeJWT},
+		},
+		{
+			name:     "ShouldReturnConfiguredTypesWhenOnlyGeneric",
+			have:     []string{jwt.JSONWebTokenTypeJWT},
+			expected: []string{jwt.JSONWebTokenTypeJWT},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClientAssertionJWTValidationHeaderAllowTypes: tc.have}
+			assert.Equal(t, tc.expected, c.GetClientAssertionJWTValidationHeaderAllowTypes())
 		})
 	}
 }
