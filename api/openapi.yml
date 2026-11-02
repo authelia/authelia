@@ -604,6 +604,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+  /api/firstfactor/passkey/conditional:
+    get:
+      operationId: getFirstFactorPasskeyConditional
+      tags:
+        - First Factor
+        - Authentication
+      summary: First Factor Authentication - Passkey (Conditional Mediation)
+      description: >
+        The WebAuthn endpoint starts the first factor authentication process with the
+        FIDO2 WebAuthn credential using the conditional mediation requirement, which instructs
+        the browser to surface discoverable credentials via autofill rather than a modal prompt.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webauthn.PublicKeyCredentialRequestOptions'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
   {{- end }}
   /api/checks/safe-redirection:
     post:
