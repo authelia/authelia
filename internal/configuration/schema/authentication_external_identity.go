@@ -12,10 +12,10 @@ type AuthenticationBackendExternalIdentity struct {
 // AuthenticationBackendExternalIdentityProvider represents a single external identity provider.
 type AuthenticationBackendExternalIdentityProvider struct {
 	ID      string `koanf:"id" yaml:"id,omitempty" toml:"id,omitempty" json:"id,omitempty" jsonschema:"required,title=ID" jsonschema_description:"The unique identifier for this provider which appears in URLs and stored links."`
-	Type    string `koanf:"type" yaml:"type,omitempty" toml:"type,omitempty" json:"type,omitempty" jsonschema:"default=openid_connect,enum=openid_connect,title=Type" jsonschema_description:"The type of the external identity provider."`
+	Type    string `koanf:"type" yaml:"type,omitempty" toml:"type,omitempty" json:"type,omitempty" jsonschema:"default=openid_connect,enum=openid_connect,enum=discord,title=Type" jsonschema_description:"The type of the external identity provider."`
 	Name    string `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"required,title=Name" jsonschema_description:"The display name for this provider shown on the login page."`
 	LogoURI string `koanf:"logo_uri" yaml:"logo_uri,omitempty" toml:"logo_uri,omitempty" json:"logo_uri,omitempty" jsonschema:"format=uri,title=Logo URI" jsonschema_description:"The URL of a logo for this provider which is displayed on its sign in button."`
-	Issuer  string `koanf:"issuer" yaml:"issuer,omitempty" toml:"issuer,omitempty" json:"issuer,omitempty" jsonschema:"required,format=uri,title=Issuer" jsonschema_description:"The issuer identifier of the external provider."`
+	Issuer  string `koanf:"issuer" yaml:"issuer,omitempty" toml:"issuer,omitempty" json:"issuer,omitempty" jsonschema:"format=uri,title=Issuer" jsonschema_description:"The issuer identifier of the external provider."`
 
 	ClientID     string `koanf:"client_id" yaml:"client_id,omitempty" toml:"client_id,omitempty" json:"client_id,omitempty" jsonschema:"required,title=Client ID" jsonschema_description:"The client identifier issued to Authelia by the external provider."`
 	ClientSecret string `koanf:"client_secret" yaml:"client_secret,omitempty" toml:"client_secret,omitempty" json:"client_secret,omitempty" jsonschema:"title=Client Secret" jsonschema_description:"The client secret issued to Authelia by the external provider."`

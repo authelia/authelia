@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { IdCardLanyard } from "lucide-react";
 
+import DiscordSvg from "@assets/images/identity/discord.svg?react";
 import OpenIDSvg from "@assets/images/identity/openid.svg?react";
 
 export interface Props {
@@ -15,7 +16,8 @@ export interface Props {
     logoURI?: string;
 }
 
-const marks: { [type: string]: typeof OpenIDSvg } = {
+const marks: { [type: string]: typeof DiscordSvg } = {
+    discord: DiscordSvg,
     openid_connect: OpenIDSvg,
 };
 
