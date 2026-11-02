@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
@@ -2389,6 +2390,72 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() {
 	s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+}
+
+func (s *AuthzSuite) TestShouldLogSessionUserDetailsFailureAndKeepSession() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	testCases := []struct {
+		name    string
+		target  string
+		level   logrus.Level
+		message string
+	}{
+		{"ShouldLogErrorForOneFactorRule", "https://one-factor.example.com", logrus.ErrorLevel, "Error occurred while attempting to authenticate a request"},
+		{"ShouldLogErrorForSubjectRule", "https://admin.example.com", logrus.ErrorLevel, "Error occurred while attempting to authenticate a request"},
+		{"ShouldLogDebugForBypassRule", "https://bypass.example.com", logrus.DebugLevel, "The matched rule was a bypass rule however an error occurred processing the authorization request"},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			authz := s.Builder().Build()
+
+			mock := mocks.NewMockAutheliaCtx(s.T())
+
+			defer mock.Close()
+
+			setUpMockClock(mock)
+
+			mock.Hook.Reset()
+
+			mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
+
+			s.setRequest(mock.Ctx, fasthttp.MethodGet, s.RequireParseRequestURI(tc.target), true, false)
+
+			userSession, err := mock.Ctx.GetSession()
+			s.Require().NoError(err)
+
+			userSession.Username = testUsername
+			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+			s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+			mock.UserProviderMock.EXPECT().
+				GetDetailsCached(gomock.Eq(testUsername)).
+				Return(nil, fmt.Errorf("backend unreachable"))
+
+			authz.Handler(mock.Ctx)
+
+			var entries []*logrus.Entry
+
+			for _, entry := range mock.Hook.AllEntries() {
+				if entry.Message == tc.message {
+					entries = append(entries, entry)
+				}
+			}
+
+			s.Require().Len(entries, 1)
+			s.Equal(tc.level, entries[0].Level)
+			s.EqualError(entries[0].Data["error"].(error), "failed to retrieve user details: backend unreachable")
+
+			current, err := mock.Ctx.GetSession()
+			s.Require().NoError(err)
+			s.Equal(testUsername, current.Username)
+		})
+	}
 }
 
 func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
