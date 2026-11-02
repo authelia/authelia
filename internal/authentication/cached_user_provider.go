@@ -7,6 +7,7 @@ package authentication
 import (
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -40,6 +41,8 @@ type CachedUserProvider struct {
 
 	details  CachedUserDetails
 	extended CachedUserDetailsExtended
+
+	generation atomic.Uint64
 }
 
 // GetDetails retrieves the user's information skipping the cache but ensuring the cache is updated.
@@ -53,6 +56,8 @@ func (p *CachedUserProvider) GetDetails(username string) (details *UserDetails, 
 	}
 
 	key := canonicalUsername(username, details)
+
+	p.retire(username, key)
 
 	p.details.Lock()
 
@@ -86,6 +91,7 @@ func (p *CachedUserProvider) GetDetailsCached(username string) (details *UserDet
 func (p *CachedUserProvider) doGetDetailsCached(username string) func() (result any, err error) {
 	return func() (result any, err error) {
 		now := time.Now()
+		generation := p.generation.Load()
 
 		p.details.Lock()
 
@@ -109,7 +115,9 @@ func (p *CachedUserProvider) doGetDetailsCached(username string) func() (result 
 
 		p.details.Lock()
 
-		p.details.values[canonicalUsername(username, details)] = CachedUserDetailsItem{UserDetails: details, expires: now.Add(p.lifespan.Value())}
+		if p.generation.Load() == generation {
+			p.details.values[canonicalUsername(username, details)] = CachedUserDetailsItem{UserDetails: details, expires: now.Add(p.lifespan.Value())}
+		}
 
 		p.details.Unlock()
 
@@ -129,6 +137,8 @@ func (p *CachedUserProvider) GetDetailsExtended(username string) (details *UserD
 
 	expires := time.Now().Add(p.lifespan.Value())
 	key := canonicalUsername(username, details.UserDetails)
+
+	p.retire(username, key)
 
 	p.extended.Lock()
 
@@ -168,6 +178,7 @@ func (p *CachedUserProvider) GetDetailsExtendedCached(username string) (details 
 func (p *CachedUserProvider) doGetDetailsExtendedCached(username string) func() (result any, err error) {
 	return func() (result any, err error) {
 		now := time.Now()
+		generation := p.generation.Load()
 
 		p.extended.Lock()
 
@@ -191,7 +202,9 @@ func (p *CachedUserProvider) doGetDetailsExtendedCached(username string) func() 
 
 		p.extended.Lock()
 
-		p.extended.values[canonicalUsername(username, details.UserDetails)] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: now.Add(p.lifespan.Value())}
+		if p.generation.Load() == generation {
+			p.extended.values[canonicalUsername(username, details.UserDetails)] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: now.Add(p.lifespan.Value())}
+		}
 
 		p.extended.Unlock()
 
@@ -199,7 +212,18 @@ func (p *CachedUserProvider) doGetDetailsExtendedCached(username string) func() 
 	}
 }
 
+func (p *CachedUserProvider) retire(usernames ...string) {
+	p.generation.Add(1)
+
+	for _, username := range usernames {
+		p.details.Forget(username)
+		p.extended.Forget(username)
+	}
+}
+
 func (p *CachedUserProvider) invalidate(username string) {
+	p.retire(username)
+
 	p.details.Lock()
 
 	delete(p.details.values, username)
@@ -217,9 +241,6 @@ func (p *CachedUserProvider) invalidateExtended(username string) {
 	p.extended.Unlock()
 }
 
-// canonicalUsername returns the username reported by the backend, which is the key the cache must use as the input may
-// be an alternate identifier such as an email address or a username in a different case. The input is returned when the
-// backend did not report a username.
 func canonicalUsername(input string, details *UserDetails) string {
 	if details == nil || details.Username == "" {
 		return input
