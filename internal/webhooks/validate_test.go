@@ -1245,3 +1245,191 @@ func (s *testStore) grants() (names []string) {
 
 	return names
 }
+
+func TestDispatcherShouldRepeatTheHandshakeUntilAnUnansweredDestinationAnswers(t *testing.T) {
+	var (
+		requests   atomic.Int32
+		deliveries atomic.Int32
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodOptions {
+			deliveries.Add(1)
+
+			rw.WriteHeader(http.StatusOK)
+
+			return
+		}
+
+		if requests.Add(1) <= 2 {
+			rw.WriteHeader(http.StatusServiceUnavailable)
+
+			return
+		}
+
+		rw.Header().Set(events.HeaderWebhookAllowedOrigin, r.Header.Get(events.HeaderWebhookRequestOrigin))
+		rw.Header().Set(events.HeaderWebhookAllowedRate, "120")
+		rw.WriteHeader(http.StatusOK)
+	}))
+
+	defer server.Close()
+
+	dispatcher := newValidationDispatcher(t, server.URL, nil)
+	dispatcher.unanswered = time.Millisecond * 20
+
+	defer dispatcher.Shutdown()
+
+	require.Error(t, dispatcher.Validate())
+
+	dispatcher.Start()
+
+	d := dispatcher.destinations[0]
+
+	require.Eventually(t, func() bool {
+		dispatcher.mutex.RLock()
+		defer dispatcher.mutex.RUnlock()
+
+		return !d.pending && !d.unanswered && d.pace == time.Millisecond*500
+	}, time.Second*5, time.Millisecond*10)
+
+	dispatcher.Emit(context.Background(), testEvent())
+
+	assert.Eventually(t, func() bool { return deliveries.Load() == 1 }, time.Second*5, time.Millisecond*10)
+	assert.Equal(t, int32(3), requests.Load())
+}
+
+func TestDispatcherShouldNotRepeatTheHandshakeForAnAnsweredDestination(t *testing.T) {
+	testCases := []struct {
+		name   string
+		status int
+	}{
+		{"ShouldNotRepeatWhenWithheld", http.StatusOK},
+		{"ShouldNotRepeatWhenOptionsIsNotSupported", http.StatusMethodNotAllowed},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var requests atomic.Int32
+
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+				requests.Add(1)
+
+				rw.WriteHeader(tc.status)
+			}))
+
+			defer server.Close()
+
+			dispatcher := newValidationDispatcher(t, server.URL, nil)
+			dispatcher.unanswered = time.Millisecond * 5
+
+			defer dispatcher.Shutdown()
+
+			_ = dispatcher.Validate()
+
+			dispatcher.Start()
+
+			time.Sleep(time.Millisecond * 100)
+
+			assert.Equal(t, int32(1), requests.Load())
+			assert.True(t, dispatcher.destinations[0].pending)
+		})
+	}
+}
+
+func TestDispatcherShouldStopRepeatingTheHandshakeAfterTheCallback(t *testing.T) {
+	var requests atomic.Int32
+
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		requests.Add(1)
+
+		rw.WriteHeader(http.StatusServiceUnavailable)
+	}))
+
+	defer server.Close()
+
+	dispatcher := newValidationDispatcher(t, server.URL, nil)
+	dispatcher.unanswered = time.Millisecond * 5
+
+	defer dispatcher.Shutdown()
+
+	require.Error(t, dispatcher.Validate())
+
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+
+	dispatcher.Start()
+
+	time.Sleep(time.Millisecond * 100)
+
+	assert.Equal(t, int32(1), requests.Load())
+}
+
+func TestDispatcherShouldRefuseWhenARepeatedHandshakeNamesAnotherOrigin(t *testing.T) {
+	var requests atomic.Int32
+
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		if requests.Add(1) == 1 {
+			rw.WriteHeader(http.StatusServiceUnavailable)
+
+			return
+		}
+
+		rw.Header().Set(events.HeaderWebhookAllowedOrigin, "other.example.com")
+		rw.WriteHeader(http.StatusOK)
+	}))
+
+	defer server.Close()
+
+	dispatcher := newValidationDispatcher(t, server.URL, nil)
+	dispatcher.unanswered = time.Millisecond * 5
+
+	defer dispatcher.Shutdown()
+
+	require.Error(t, dispatcher.Validate())
+
+	dispatcher.Start()
+
+	assert.Eventually(t, func() bool {
+		dispatcher.mutex.RLock()
+		defer dispatcher.mutex.RUnlock()
+
+		return dispatcher.destinations[0].refused
+	}, time.Second*5, time.Millisecond*5)
+}
+
+func TestDispatcherShouldHonorRetryAfterBeforeRepeatingTheHandshake(t *testing.T) {
+	var (
+		requests atomic.Int32
+		second   atomic.Int64
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		if requests.Add(1) == 1 {
+			rw.Header().Set("Retry-After", "1")
+			rw.WriteHeader(http.StatusTooManyRequests)
+
+			return
+		}
+
+		second.CompareAndSwap(0, time.Now().UnixNano())
+
+		rw.Header().Set(events.HeaderWebhookAllowedOrigin, r.Header.Get(events.HeaderWebhookRequestOrigin))
+		rw.WriteHeader(http.StatusOK)
+	}))
+
+	defer server.Close()
+
+	dispatcher := newValidationDispatcher(t, server.URL, nil)
+	dispatcher.unanswered = time.Millisecond * 5
+
+	defer dispatcher.Shutdown()
+
+	start := time.Now()
+
+	require.Error(t, dispatcher.Validate())
+
+	dispatcher.Start()
+
+	require.Eventually(t, func() bool { return second.Load() != 0 }, time.Second*5, time.Millisecond*5)
+
+	assert.GreaterOrEqual(t, time.Unix(0, second.Load()).Sub(start), time.Second)
+}

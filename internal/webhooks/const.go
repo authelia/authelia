@@ -28,7 +28,13 @@ const (
 
 	pendingRecheckInterval = time.Minute
 
+	unansweredRecheckInterval = time.Minute * 5
+
 	goneRecheckInterval = time.Hour
+
+	// retryAfterLimit is the longest wait a Retry-After header can impose, so a single response cannot silence a
+	// destination for longer than this.
+	retryAfterLimit = time.Hour
 
 	grantNamePrefix = "wh-"
 	grantNameLength = 20

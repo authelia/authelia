@@ -169,8 +169,10 @@ Consent is carried by the headers, so a 2xx alone confirms nothing. A refusal is
 refused destination receives no events until Authelia is restarted. In every case Authelia itself still starts.
 
 The handshake is performed once per start. It is limited to thirty seconds per destination, including retries, and
-destinations are validated concurrently. It is repeated only to recheck a destination
-[suspended by a `410`](#retries-and-failures).
+destinations are validated concurrently. It is repeated to recheck a destination
+[suspended by a `410`](#retries-and-failures), and every five minutes for a destination whose handshake got no answer,
+or only `429`, `503`, or other `5xx` responses, until the receiver answers it. Those repeats wait for any `Retry-After`,
+and their answer is treated as the original would have been. The events which occur before then are not delivered.
 
 When a receiver answers with a numeric `WebHook-Allowed-Rate`, Authelia paces its requests to that limit. The limit
 applies to requests, not events: a retry counts against it and a [batch](#batched-deliveries) counts once.
@@ -181,7 +183,8 @@ A receiver which cannot decide immediately answers the handshake with a 2xx and 
 destination is then held. It receives no events, including the [startup check probe](#the-startup-check-probe).
 
 A destination is also held when the handshake gets no usable answer, for example a receiver which does not implement
-`OPTIONS` and answers `405`. This is logged as an error, since the receiver may never have seen the callback URL.
+`OPTIONS` and answers `405`. This is logged as an error, since the receiver may never have seen the callback URL. A
+receiver which has answered in this way is not sent the handshake again until Authelia is restarted.
 
 The receiver grants permission by requesting the URL from `WebHook-Request-Callback` with a `GET` or a `POST`. An
 administrator who finds the URL in the receiver's logs can therefore open it in a browser. The destination receives
@@ -409,9 +412,15 @@ repeat, so its suspension is lifted after an hour and the next event is delivere
 `Retry-After` is honored as either a number of seconds or an HTTP date. A date in the past, a negative number, and any
 other value are ignored and the backoff interval is used.
 
-The wait is not capped at [maximum_interval](../../configuration/miscellaneous/webhooks.md#maximum_interval), so a
-receiver asking to be left alone for a day receives no deliveries for a day. That includes later events, which are held
-in the destination's buffer and dropped once it is full. A `Retry-After` does not add attempts.
+A `Retry-After` applies to every request Authelia sends to the destination, whether it was returned for a delivery or
+for the [handshake](#abuse-protection). No delivery, handshake, or [startup check probe](#the-startup-check-probe) is
+sent until it elapses, and a startup check which falls within it is skipped and logged as a warning.
+
+The wait is not capped at [maximum_interval](../../configuration/miscellaneous/webhooks.md#maximum_interval), but it
+is limited to one hour, so a misbehaving response cannot silence a destination indefinitely. A receiver asking to be left
+alone for a day is therefore sent the next request after an hour, which departs from the CloudEvents HTTP webhook
+specification for values above that limit, and each such response is logged as a warning. The wait includes later
+events, which are held in the destination's buffer and dropped once it is full. A `Retry-After` does not add attempts.
 
 ### Backoff
 

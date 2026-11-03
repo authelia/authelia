@@ -330,8 +330,13 @@ Configuring a reserved header, or an invalid header name or value, is a startup 
 
 - `Authorization`
 - `Cache-Control`
+- `Connection`
+- `Content-Length`
 - `Content-Type`
+- `Host`
+- `Transfer-Encoding`
 - `User-Agent`
+- Any header beginning with `WebHook-`, in any letter case
 - Any header beginning with `X-Authelia-`
 - Any header beginning with `ce-`, in any letter case
 
@@ -364,14 +369,16 @@ The outcome of the handshake is one of:
   restarted.
 - **Held.** Any other outcome, including a response with no `WebHook-Allowed-Origin` and a handshake which exhausts its
   retries. The destination receives no events until it confirms by callback. A destination which confirmed by callback
-  on an earlier start is not held, as the confirmation is kept in storage.
+  on an earlier start is not held, as the confirmation is kept in storage. A handshake which got no answer, or only
+  `429`, `503`, or other `5xx` responses, is repeated every five minutes until the receiver answers it.
 
 A `429`, `503`, or other `5xx` response, or a failure which produced no response, is retried under the destination's
 [retry](#retry) policy before the outcome is decided.
 
 Startup continues whatever the outcome. The handshake for each destination is limited to thirty seconds in total and
-destinations are validated concurrently. It is performed once per start, and repeated hourly only for a destination
-which was suspended by answering a delivery with `410`, as described in
+destinations are validated concurrently. Other than the repeats for a receiver which did not answer, it is performed
+once per start, and repeated hourly for a destination which was suspended by answering a delivery with `410`, as
+described in
 [Retries and failures](../../reference/guides/webhook-events.md#retries-and-failures).
 
 ##### disable
@@ -496,8 +503,8 @@ random amount of up to twenty percent so that destinations recovering from the s
 
 The ceiling applied to the doubling wait.
 
-It does not limit a `Retry-After` header returned with a `429` or `503` response, which is honored in full. That wait
-applies to the destination as a whole, so later events wait as well.
+It does not limit a `Retry-After` header returned with a `429` or `503` response, which is honored for up to one hour.
+That wait applies to the destination as a whole, so later events wait as well.
 
 #### tls
 

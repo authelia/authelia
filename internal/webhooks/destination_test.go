@@ -600,11 +600,17 @@ func TestShouldParseRetryAfter(t *testing.T) {
 		{"ShouldHandleIMFFixdate", time.Now().Add(time.Minute).UTC().Format(http.TimeFormat), time.Minute, time.Second * 5},
 		{"ShouldHandleANSICDate", time.Now().Add(time.Minute).UTC().Format(time.ANSIC), time.Minute, time.Second * 5},
 		{"ShouldHandleAPastDate", time.Now().Add(-time.Hour).UTC().Format(http.TimeFormat), 0, 0},
+		{"ShouldHonorTheLimit", "3600", retryAfterLimit, 0},
+		{"ShouldLimitLongDeltaSeconds", "86400", retryAfterLimit, 0},
+		{"ShouldLimitDeltaSecondsWhichOverflowADuration", "99999999999", retryAfterLimit, 0},
+		{"ShouldLimitADistantDate", time.Now().Add(time.Hour * 24 * 365).UTC().Format(http.TimeFormat), retryAfterLimit, 0},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.InDelta(t, tc.expected, parseRetryAfter(tc.have), float64(tc.delta))
+			after, _ := parseRetryAfter(tc.have)
+
+			assert.InDelta(t, tc.expected, after, float64(tc.delta))
 		})
 	}
 }

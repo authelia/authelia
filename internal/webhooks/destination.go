@@ -58,13 +58,16 @@ type destination struct {
 
 	refused bool
 	pending bool
-	settled bool
-	granted bool
-	allowed string
-	gone    atomic.Bool
-	recheck time.Duration
-	revival *time.Timer
-	revoke  func()
+	// unanswered is true while a pending destination has never answered the handshake, so it may not have seen the
+	// callback and the handshake has to be repeated.
+	unanswered bool
+	settled    bool
+	granted    bool
+	allowed    string
+	gone       atomic.Bool
+	recheck    time.Duration
+	revival    *time.Timer
+	revoke     func()
 
 	pace   time.Duration
 	last   time.Time
@@ -383,6 +386,12 @@ func (d *destination) revive() {
 		return
 	}
 
+	if d.paused() > 0 {
+		d.scheduleRevival()
+
+		return
+	}
+
 	if !d.config.Validation.Disable {
 		if _, err := d.validate(d.origin); err != nil {
 			if !d.stopping() {
@@ -442,10 +451,6 @@ func (d *destination) send(dl delivery) {
 			d.abandonAll(dl)
 
 			return
-		}
-
-		if after, ok := retryAfterOf(err); ok {
-			d.postpone(after)
 		}
 
 		var permanent *permanentError
@@ -639,13 +644,15 @@ func (d *destination) attempt(dl delivery, attempt int) (err error) {
 
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, responseBodyLimit))
 
-	after, retryable := retryableStatus(resp)
+	if failure := retryableStatus(resp); failure != nil {
+		d.observe(failure)
+
+		return failure
+	}
 
 	switch {
 	case resp.StatusCode >= 200 && resp.StatusCode < 300:
 		return nil
-	case retryable:
-		return &retryableError{status: resp.StatusCode, after: after}
 	case resp.StatusCode == http.StatusGone:
 		d.retire()
 
@@ -656,17 +663,42 @@ func (d *destination) attempt(dl delivery, attempt int) (err error) {
 }
 
 func (d *destination) deliver(event *events.Event) (err error) {
-	err = d.attempt(delivery{events: []*events.Event{event}}, 1)
-
-	if after, ok := retryAfterOf(err); ok {
-		d.postpone(after)
-	}
-
-	return err
+	return d.attempt(delivery{events: []*events.Event{event}}, 1)
 }
 
+// observe records the Retry-After of a retryable response, so every later request to the destination waits for it
+// whichever path sends that request. It is called wherever a response is read, rather than by the callers, so no path
+// can accept or contact a destination while forgetting a wait it was asked to observe.
+func (d *destination) observe(failure *retryableError) {
+	if failure.after <= 0 {
+		return
+	}
+
+	d.postpone(failure.after)
+
+	if failure.limited {
+		d.log.WithFields(map[string]any{"retry_after": failure.header, "limit": retryAfterLimit.String()}).
+			Warn("Webhook destination asked for a Retry-After longer than the limit and will be contacted again once the limit elapses")
+	}
+}
+
+// postpone pauses every request to the destination for the duration. A pause already in force which ends later is
+// kept, because concurrent requests may return their Retry-After headers in any order.
 func (d *destination) postpone(after time.Duration) {
-	d.resume.Store(time.Now().Add(after).UnixNano())
+	until := time.Now().Add(after).UnixNano()
+
+	for {
+		current := d.resume.Load()
+
+		if current >= until || d.resume.CompareAndSwap(current, until) {
+			return
+		}
+	}
+}
+
+// paused returns how much longer the destination has asked not to be contacted.
+func (d *destination) paused() (remaining time.Duration) {
+	return max(time.Until(time.Unix(0, d.resume.Load())), 0)
 }
 
 type permanentError struct {
@@ -682,22 +714,28 @@ func (e *permanentError) Unwrap() error {
 }
 
 type retryableError struct {
-	status int
-	after  time.Duration
+	status  int
+	after   time.Duration
+	limited bool
+	header  string
 }
 
 func (e *retryableError) Error() string {
 	return fmt.Sprintf("received status code %d", e.status)
 }
 
-func retryableStatus(resp *http.Response) (after time.Duration, retryable bool) {
+// retryableStatus returns the error for a response which is retried, or nil for any other response.
+func retryableStatus(resp *http.Response) (failure *retryableError) {
 	switch {
 	case resp.StatusCode == http.StatusTooManyRequests, resp.StatusCode == http.StatusServiceUnavailable:
-		return parseRetryAfter(resp.Header.Get("Retry-After")), true
+		header := resp.Header.Get("Retry-After")
+		after, limited := parseRetryAfter(header)
+
+		return &retryableError{status: resp.StatusCode, after: after, limited: limited, header: header}
 	case resp.StatusCode >= 500:
-		return 0, true
+		return &retryableError{status: resp.StatusCode}
 	default:
-		return 0, false
+		return nil
 	}
 }
 
@@ -721,29 +759,38 @@ func retryAfterOf(err error) (after time.Duration, ok bool) {
 	return 0, false
 }
 
-func parseRetryAfter(value string) (after time.Duration) {
+// parseRetryAfter returns the wait a Retry-After header asks for, and whether it was reduced to retryAfterLimit.
+func parseRetryAfter(value string) (after time.Duration, limited bool) {
 	if value == "" {
-		return 0
+		return 0, false
 	}
 
 	if seconds, err := strconv.Atoi(value); err == nil {
 		if seconds < 0 {
-			return 0
+			return 0, false
 		}
 
-		return time.Duration(seconds) * time.Second
+		if seconds > int(retryAfterLimit/time.Second) {
+			return retryAfterLimit, true
+		}
+
+		return time.Duration(seconds) * time.Second, false
 	}
 
 	date, err := http.ParseTime(value)
 	if err != nil {
-		return 0
+		return 0, false
 	}
 
 	if after = time.Until(date); after < 0 {
-		return 0
+		return 0, false
 	}
 
-	return after
+	if after > retryAfterLimit {
+		return retryAfterLimit, true
+	}
+
+	return after, false
 }
 
 func retryWait(interval, maximum time.Duration, err error) (wait time.Duration) {

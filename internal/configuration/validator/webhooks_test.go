@@ -225,6 +225,35 @@ func (suite *WebhooksSuite) TestShouldRejectReservedHeader() {
 	suite.EqualError(suite.validator.Errors()[0], "webhooks: destinations: destination 'admin-api': option 'headers' must not contain the reserved header 'Content-Type'")
 }
 
+func (suite *WebhooksSuite) TestShouldRejectHeadersWhichAlterTheProtocol() {
+	testCases := []struct {
+		have     string
+		expected string
+	}{
+		{"WebHook-Request-Origin", "Webhook-Request-Origin"},
+		{"webhook-request-rate", "Webhook-Request-Rate"},
+		{"WEBHOOK-REQUEST-CALLBACK", "Webhook-Request-Callback"},
+		{"WebHook-Allowed-Origin", "Webhook-Allowed-Origin"},
+		{"host", "Host"},
+		{"Content-Length", "Content-Length"},
+		{"Transfer-Encoding", "Transfer-Encoding"},
+		{"Connection", "Connection"},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.have, func() {
+			suite.validator.Clear()
+
+			suite.config.Destinations[0].Headers = map[string]string{tc.have: "value"}
+
+			ValidateWebhooks(&suite.config, suite.validator)
+
+			suite.Require().Len(suite.validator.Errors(), 1)
+			suite.EqualError(suite.validator.Errors()[0], "webhooks: destinations: destination 'admin-api': option 'headers' must not contain the reserved header '"+tc.expected+"'")
+		})
+	}
+}
+
 func (suite *WebhooksSuite) TestShouldRejectCloudEventsHeaders() {
 	testCases := []struct {
 		name     string

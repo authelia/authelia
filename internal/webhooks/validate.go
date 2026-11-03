@@ -138,8 +138,10 @@ func (d *destination) validateAttempt(origin string, attempt int) (rate int, err
 
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, responseBodyLimit))
 
-	if after, retryable := retryableStatus(resp); retryable {
-		return 0, &retryableError{status: resp.StatusCode, after: after}
+	if failure := retryableStatus(resp); failure != nil {
+		d.observe(failure)
+
+		return 0, failure
 	}
 
 	return d.validatePermission(resp, origin, requested, send)

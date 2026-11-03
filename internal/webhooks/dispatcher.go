@@ -38,6 +38,7 @@ type Dispatcher struct {
 	store        Store
 	fallback     []byte
 	recheck      time.Duration
+	unanswered   time.Duration
 	done         chan struct{}
 
 	mutex     sync.RWMutex
@@ -57,6 +58,8 @@ func NewDispatcher(config *schema.Configuration, caCertPool *x509.CertPool, log 
 		log:     log,
 		recheck: pendingRecheckInterval,
 		done:    make(chan struct{}),
+
+		unanswered: unansweredRecheckInterval,
 	}
 
 	dispatcher.fallback = make([]byte, callbackSecretLength)
@@ -231,11 +234,19 @@ func (dispatcher *Dispatcher) hold(d *destination, origin string, err error) (he
 		return true, nil
 	}
 
+	var permanent *permanentError
+
 	switch {
 	case !dispatcher.pend(d, origin):
 		dispatcher.log.WithFields(fields).Debug("Webhook destination confirmed it accepts deliveries from this origin using the callback")
 	case errors.Is(err, errHandshakePending):
 		dispatcher.log.WithFields(fields).Warn("Webhook destination withheld its confirmation and will receive no events until it confirms using the callback it was given")
+	case !errors.As(err, &permanent):
+		dispatcher.markUnanswered(d)
+
+		dispatcher.log.WithError(err).WithFields(fields).WithField("recheck_in", dispatcher.unanswered.String()).Error("Webhook destination did not answer the handshake and will receive no events until it answers a repeated handshake or confirms using the callback")
+
+		return true, fmt.Errorf("destination '%s': %w", d.config.Name, err)
 	default:
 		dispatcher.log.WithError(err).WithFields(fields).Error("Webhook destination did not answer the handshake and will receive no events until it confirms using the callback it was given")
 
@@ -423,6 +434,16 @@ func (dispatcher *Dispatcher) Start() {
 
 			d.run()
 		}(d)
+
+		if d.unanswered {
+			dispatcher.wg.Add(1)
+
+			go func(d *destination) {
+				defer dispatcher.wg.Done()
+
+				dispatcher.watchUnanswered(d)
+			}(d)
+		}
 	}
 
 	if watch && dispatcher.store != nil {
@@ -454,6 +475,99 @@ func (dispatcher *Dispatcher) watch() {
 		if !dispatcher.promote() {
 			return
 		}
+	}
+}
+
+func (dispatcher *Dispatcher) markUnanswered(d *destination) {
+	dispatcher.mutex.Lock()
+
+	d.unanswered = true
+
+	dispatcher.mutex.Unlock()
+}
+
+// watchUnanswered repeats the handshake for a destination which never answered it, which is the only way out for a
+// receiver that was unavailable when Authelia started because it never saw the callback.
+func (dispatcher *Dispatcher) watchUnanswered(d *destination) {
+	ticker := time.NewTicker(dispatcher.unanswered)
+
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-dispatcher.done:
+			return
+		case <-ticker.C:
+		}
+
+		if !dispatcher.repeatHandshake(d) {
+			return
+		}
+	}
+}
+
+func (dispatcher *Dispatcher) repeatHandshake(d *destination) (again bool) {
+	dispatcher.mutex.RLock()
+
+	waiting, origin := d.pending && d.unanswered, d.origin
+
+	dispatcher.mutex.RUnlock()
+
+	if !waiting {
+		return false
+	}
+
+	if d.paused() > 0 {
+		return true
+	}
+
+	rate, err := d.validate(origin)
+	if err == nil {
+		dispatcher.mutex.Lock()
+
+		d.unanswered = false
+
+		if d.pending {
+			d.pending, d.pace = false, interval(rate)
+		}
+
+		dispatcher.mutex.Unlock()
+
+		d.log.Info("Webhook destination answered a repeated handshake and will now receive events")
+
+		return false
+	}
+
+	if d.stopping() {
+		return false
+	}
+
+	var (
+		refusal   *refusalError
+		permanent *permanentError
+	)
+
+	switch {
+	case errors.As(err, &refusal):
+		dispatcher.refuse(d)
+
+		d.log.WithError(err).Error("Webhook destination did not confirm it accepts deliveries from this origin and will receive no events")
+
+		return false
+	case errors.As(err, &permanent):
+		dispatcher.mutex.Lock()
+
+		d.unanswered = false
+
+		dispatcher.mutex.Unlock()
+
+		d.log.WithError(err).Warn("Webhook destination answered a repeated handshake without confirming and will receive no events until it confirms using the callback it was given")
+
+		return false
+	default:
+		d.log.WithError(err).WithField("recheck_in", dispatcher.unanswered.String()).Warn("Webhook destination still did not answer the handshake")
+
+		return true
 	}
 }
 
@@ -646,6 +760,13 @@ func (dispatcher *Dispatcher) StartupCheck() (err error) {
 		dispatcher.mutex.RUnlock()
 
 		if skip {
+			continue
+		}
+
+		if remaining := d.paused(); remaining > 0 {
+			dispatcher.log.WithFields(map[string]any{"destination": d.config.Name, "retry_in": remaining.String()}).
+				Warn("Webhook destination startup check was skipped because the destination asked not to be contacted until its Retry-After elapses")
+
 			continue
 		}
 

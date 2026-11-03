@@ -1716,7 +1716,7 @@ session:
         # initial_interval: '1 second'
 
         ## The ceiling applied to the backoff interval in the duration common syntax. It is not applied to a
-        ## Retry-After header, which is always honored in full.
+        ## Retry-After header, which is honored for up to one hour.
         # maximum_interval: '1 minute'
 
       # tls:

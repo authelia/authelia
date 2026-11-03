@@ -185,10 +185,14 @@ func validateWebhookDestinationHeaders(config *schema.WebhookDestination, valida
 	}
 
 	reserved := map[string]struct{}{
-		"Authorization": {},
-		"Cache-Control": {},
-		"Content-Type":  {},
-		"User-Agent":    {},
+		"Authorization":     {},
+		"Cache-Control":     {},
+		"Connection":        {},
+		"Content-Length":    {},
+		"Content-Type":      {},
+		"Host":              {},
+		"Transfer-Encoding": {},
+		"User-Agent":        {},
 	}
 
 	for name, value := range config.Headers {
@@ -212,7 +216,7 @@ func validateWebhookDestinationHeaders(config *schema.WebhookDestination, valida
 
 		lower := strings.ToLower(canonical)
 
-		if strings.HasPrefix(lower, "x-authelia-") || strings.HasPrefix(lower, events.HeaderPrefixCloudEvents) {
+		if strings.HasPrefix(lower, "x-authelia-") || strings.HasPrefix(lower, "webhook-") || strings.HasPrefix(lower, events.HeaderPrefixCloudEvents) {
 			validator.Push(fmt.Errorf(errFmtWebhooksDestinationHeaderReserved, config.Name, canonical))
 		}
 	}
