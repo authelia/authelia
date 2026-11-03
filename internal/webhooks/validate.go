@@ -153,6 +153,8 @@ func (d *destination) validatePermission(resp *http.Response, origin, requested 
 	switch {
 	case allowed != "":
 		break
+	case resp.StatusCode == http.StatusGone:
+		return 0, &permanentError{err: errHandshakeRetired}
 	case resp.StatusCode < 200 || resp.StatusCode >= 300:
 		return 0, &permanentError{err: fmt.Errorf("received status code %d", resp.StatusCode)}
 	case d.callback != "":

@@ -68,6 +68,7 @@ type destination struct {
 	recheck    time.Duration
 	revival    *time.Timer
 	revoke     func()
+	regrant    func() bool
 
 	pace   time.Duration
 	last   time.Time
@@ -382,7 +383,7 @@ func (d *destination) scheduleRevival() {
 }
 
 func (d *destination) revive() {
-	if d.stopping() {
+	if d.stopping() || !d.gone.Load() {
 		return
 	}
 
@@ -393,7 +394,7 @@ func (d *destination) revive() {
 	}
 
 	if !d.config.Validation.Disable {
-		if _, err := d.validate(d.origin); err != nil {
+		if _, err := d.validate(d.origin); err != nil && !d.reconfirmed(err) {
 			if !d.stopping() {
 				d.log.WithError(err).WithField("recheck_in", d.recheck.String()).
 					Warn("Webhook destination which was retired did not confirm it accepts deliveries and will still receive no events")
@@ -405,9 +406,39 @@ func (d *destination) revive() {
 		}
 	}
 
-	d.gone.Store(false)
+	if d.gone.CompareAndSwap(true, false) {
+		d.log.Info("Webhook destination which was retired will receive events again")
+	}
+}
 
-	d.log.Info("Webhook destination which was retired will receive events again")
+// reconfirmed reports whether a retired destination whose handshake did not confirm it has since confirmed using the
+// callback, which may have been received by another instance sharing the storage backend. The 410 which retired the
+// destination removed its earlier confirmation, so any confirmation found was given afterwards. A handshake which is
+// itself answered with 410 withdraws that confirmation again.
+func (d *destination) reconfirmed(err error) bool {
+	if errors.Is(err, errHandshakeRetired) {
+		if d.revoke != nil {
+			d.revoke()
+		}
+
+		return false
+	}
+
+	return d.regrant != nil && d.regrant()
+}
+
+// reinstate resumes deliveries to a retired destination which confirmed using the callback, and cancels the handshake
+// which was scheduled to recheck it. It reports whether the destination was retired.
+func (d *destination) reinstate() (reinstated bool) {
+	d.mutex.Lock()
+
+	if d.revival != nil {
+		d.revival.Stop()
+	}
+
+	d.mutex.Unlock()
+
+	return d.gone.CompareAndSwap(true, false)
 }
 
 func (d *destination) discard() {

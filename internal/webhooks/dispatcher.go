@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -114,6 +115,18 @@ func (dispatcher *Dispatcher) SetStore(store Store) {
 	for _, d := range dispatcher.destinations {
 		d.revoke = func() {
 			dispatcher.forget(d)
+		}
+
+		d.regrant = func() bool {
+			dispatcher.mutex.RLock()
+
+			origin := d.origin
+
+			dispatcher.mutex.RUnlock()
+
+			_, ok := dispatcher.recall(d, origin)
+
+			return ok
 		}
 	}
 }
@@ -226,10 +239,18 @@ func (dispatcher *Dispatcher) hold(d *destination, origin string, err error) (he
 
 	fields := map[string]any{"destination": d.config.Name, "origin": origin}
 
-	if rate, ok := dispatcher.recall(d); ok {
-		dispatcher.accept(d, origin, rate)
+	// A 410 withdraws a confirmation recorded from the callback. Every other answer without a WebHook-Allowed-Origin
+	// header leaves it standing, because the receivers which confirm by callback are often those which do not implement
+	// the handshake at all, and the specification says the handshake cannot rely on status codes.
+	retired := errors.Is(err, errHandshakeRetired)
 
-		dispatcher.log.WithFields(fields).Info("Webhook destination previously confirmed it accepts deliveries using the callback and will receive events")
+	if retired {
+		dispatcher.withdraw(d)
+	} else if saved, ok := dispatcher.recall(d, origin); ok {
+		dispatcher.accept(d, origin, saved.Rate)
+
+		dispatcher.log.WithFields(fields).WithField("confirmed", saved.Confirmed.Format(time.RFC3339)).
+			Info("Webhook destination previously confirmed it accepts deliveries using the callback and will receive events")
 
 		return true, nil
 	}
@@ -239,6 +260,10 @@ func (dispatcher *Dispatcher) hold(d *destination, origin string, err error) (he
 	switch {
 	case !dispatcher.pend(d, origin):
 		dispatcher.log.WithFields(fields).Debug("Webhook destination confirmed it accepts deliveries from this origin using the callback")
+	case retired:
+		dispatcher.log.WithFields(fields).Error("Webhook destination answered the handshake with the status code 410 which indicates it has been retired and it will receive no events until it confirms using the callback it was given")
+
+		return true, fmt.Errorf("destination '%s': %w", d.config.Name, err)
 	case errors.Is(err, errHandshakePending):
 		dispatcher.log.WithFields(fields).Warn("Webhook destination withheld its confirmation and will receive no events until it confirms using the callback it was given")
 	case !errors.As(err, &permanent):
@@ -256,12 +281,26 @@ func (dispatcher *Dispatcher) hold(d *destination, origin string, err error) (he
 	return true, nil
 }
 
-func (dispatcher *Dispatcher) remember(d *destination, rate int) {
+// withdraw forgets the recorded confirmation of a destination which answered the handshake with 410, unless the
+// callback confirmed it while the handshake was in flight, which is the more recent statement of consent.
+func (dispatcher *Dispatcher) withdraw(d *destination) {
+	dispatcher.mutex.RLock()
+
+	granted := d.granted
+
+	dispatcher.mutex.RUnlock()
+
+	if !granted {
+		dispatcher.forget(d)
+	}
+}
+
+func (dispatcher *Dispatcher) remember(d *destination, origin string, rate int) {
 	if dispatcher.store == nil {
 		return
 	}
 
-	value, err := json.Marshal(grant{Name: d.config.Name, Address: d.config.Address.String(), Rate: rate, Confirmed: time.Now().UTC()})
+	value, err := json.Marshal(grant{Name: d.config.Name, Address: d.config.Address.String(), Origin: origin, Rate: rate, Confirmed: time.Now().UTC()})
 	if err != nil {
 		return
 	}
@@ -276,9 +315,11 @@ func (dispatcher *Dispatcher) remember(d *destination, rate int) {
 	}
 }
 
-func (dispatcher *Dispatcher) recall(d *destination) (rate int, ok bool) {
+// recall loads the recorded confirmation of a destination. A confirmation only applies to the name, address, and origin
+// it was given for, since consent is given to one sender for one target.
+func (dispatcher *Dispatcher) recall(d *destination, origin string) (saved grant, ok bool) {
 	if dispatcher.store == nil {
-		return 0, false
+		return saved, false
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), grantTimeout)
@@ -290,24 +331,24 @@ func (dispatcher *Dispatcher) recall(d *destination) (rate int, ok bool) {
 		dispatcher.log.WithError(err).WithField("destination", d.config.Name).
 			Warn("Webhook destination confirmation could not be loaded")
 
-		return 0, false
+		return grant{}, false
 	}
 
 	if data == nil {
-		return 0, false
+		return grant{}, false
 	}
-
-	saved := grant{}
 
 	if err = json.Unmarshal(data.Value, &saved); err != nil {
-		return 0, false
+		return grant{}, false
 	}
 
-	if saved.Name != d.config.Name || saved.Address != d.config.Address.String() {
-		return 0, false
+	if saved.Name != d.config.Name || saved.Address != d.config.Address.String() || saved.Origin == "" || !strings.EqualFold(saved.Origin, origin) {
+		return grant{}, false
 	}
 
-	return max(saved.Rate, 0), true
+	saved.Rate = max(saved.Rate, 0)
+
+	return saved, true
 }
 
 func (dispatcher *Dispatcher) forget(d *destination) {
@@ -372,7 +413,7 @@ func (dispatcher *Dispatcher) Confirm(name, key, rate string) (confirmed bool) {
 
 	dispatcher.mutex.Lock()
 
-	refused, granted := d.refused, d.pending || !d.settled
+	refused, origin, retired := d.refused, d.origin, false
 
 	switch {
 	case refused:
@@ -384,6 +425,8 @@ func (dispatcher *Dispatcher) Confirm(name, key, rate string) (confirmed bool) {
 			Info("Webhook destination confirmed it accepts deliveries using the callback and will now receive events")
 	case !d.settled:
 		d.granted, d.allowed = true, rate
+	case d.gone.Load():
+		retired, d.pace = true, interval(permitted)
 	}
 
 	dispatcher.mutex.Unlock()
@@ -392,9 +435,14 @@ func (dispatcher *Dispatcher) Confirm(name, key, rate string) (confirmed bool) {
 		return false
 	}
 
-	if granted {
-		dispatcher.remember(d, permitted)
+	if retired && d.reinstate() {
+		dispatcher.log.WithField("destination", d.config.Name).
+			Info("Webhook destination which was retired confirmed it accepts deliveries using the callback and will receive events again")
 	}
+
+	// The confirmation is recorded even for a destination which is already receiving events, so the other instances
+	// sharing the storage backend can reinstate it if they have retired it.
+	dispatcher.remember(d, origin, permitted)
 
 	return true
 }
@@ -575,9 +623,17 @@ func (dispatcher *Dispatcher) prepare() {
 	dispatcher.mutex.Lock()
 	defer dispatcher.mutex.Unlock()
 
+	derived := originFromSource(dispatcher.source)
+
 	for _, d := range dispatcher.destinations {
 		d.key = dispatcher.callbackKey(d)
 		d.callback = callbackOf(dispatcher.source, d.config.Name, d.key)
+
+		// The origin is known before the handshake so a callback which arrives during it records the grant against the
+		// origin it was given for.
+		if origin, err := originOf(d.config.Validation, derived); err == nil {
+			d.origin = origin
+		}
 	}
 }
 
@@ -616,18 +672,21 @@ func (dispatcher *Dispatcher) verify(d *destination, key string) (verified bool)
 func (dispatcher *Dispatcher) promote() (remaining bool) {
 	dispatcher.mutex.RLock()
 
-	var pending []*destination
+	var (
+		pending []*destination
+		origins []string
+	)
 
 	for _, d := range dispatcher.destinations {
 		if d.pending {
-			pending = append(pending, d)
+			pending, origins = append(pending, d), append(origins, d.origin)
 		}
 	}
 
 	dispatcher.mutex.RUnlock()
 
-	for _, d := range pending {
-		rate, ok := dispatcher.recall(d)
+	for i, d := range pending {
+		saved, ok := dispatcher.recall(d, origins[i])
 		if !ok {
 			remaining = true
 
@@ -639,7 +698,7 @@ func (dispatcher *Dispatcher) promote() (remaining bool) {
 		promoted := d.pending
 
 		if promoted {
-			d.pending, d.pace = false, interval(rate)
+			d.pending, d.pace = false, interval(saved.Rate)
 		}
 
 		dispatcher.mutex.Unlock()

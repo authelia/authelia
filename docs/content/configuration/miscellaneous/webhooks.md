@@ -369,7 +369,8 @@ The outcome of the handshake is one of:
   restarted.
 - **Held.** Any other outcome, including a response with no `WebHook-Allowed-Origin` and a handshake which exhausts its
   retries. The destination receives no events until it confirms by callback. A destination which confirmed by callback
-  on an earlier start is not held, as the confirmation is kept in storage. A handshake which got no answer, or only
+  on an earlier start is not held, as the confirmation is kept in storage, unless it answers the handshake with `410`,
+  which withdraws the confirmation. A handshake which got no answer, or only
   `429`, `503`, or other `5xx` responses, is repeated every five minutes until the receiver answers it.
 
 A `429`, `503`, or other `5xx` response, or a failure which produced no response, is retried under the destination's

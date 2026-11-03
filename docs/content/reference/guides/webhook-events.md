@@ -212,12 +212,18 @@ storage. It is therefore:
 
 Changing a destination's name or [address](../../configuration/miscellaneous/webhooks.md#address) changes its `key`.
 
-A confirmation is recorded in storage against the destination's name and address, so a destination which has confirmed
-stays confirmed when Authelia restarts. It no longer applies when:
+A confirmation is recorded in storage against the destination's name, address, and
+[origin](../../configuration/miscellaneous/webhooks.md#origin), so a destination which has confirmed stays confirmed
+when Authelia restarts. It no longer applies when:
 
-- the destination's name or address is changed,
-- the destination refuses the handshake, or
-- the destination answers a delivery with `410`.
+- the destination's name, address, or origin is changed,
+- the destination refuses the handshake by answering with a `WebHook-Allowed-Origin` which names another origin, or
+- the destination answers the handshake or a delivery with `410`.
+
+Any other answer to the handshake leaves the confirmation in place, including a `2xx`, `403`, or `405` without a
+`WebHook-Allowed-Origin`. A receiver which confirms by callback often does not implement the handshake at all, so these
+answers cannot be taken as a change of mind. A receiver withdraws its confirmation with a `410`. When Authelia uses a
+recorded confirmation it logs the time it was given.
 
 Where several Authelia instances share one storage backend, a callback confirms the instance which receives it
 immediately. The others check storage once a minute while a destination is held.
@@ -400,9 +406,11 @@ redelivered after a restart.
 A `410` means the receiver has been retired. The destination is suspended, its recorded confirmation is removed, and
 events which occur while it is suspended are dropped.
 
-A suspended destination is rechecked once an hour by repeating the [abuse protection](#abuse-protection) handshake. It
-receives events again when a recheck is answered with a permitting `WebHook-Allowed-Origin`. Requesting the callback
-URL does not resume a suspended destination.
+A suspended destination receives events again when the receiver requests the callback URL, or when the hourly recheck,
+which repeats the [abuse protection](#abuse-protection) handshake, is answered with a permitting
+`WebHook-Allowed-Origin`. Where several Authelia instances share one storage backend, the others resume at their next
+recheck once any of them has received the callback. A recheck answered with `410` withdraws a confirmation given by
+callback since the suspension.
 
 A destination which [disables validation](../../configuration/miscellaneous/webhooks.md#disable) has no handshake to
 repeat, so its suspension is lifted after an hour and the next event is delivered to it.
