@@ -68,6 +68,10 @@
   ## Server headers configuration/customization.
   # headers:
 
+    ## The allowed Host header values Authelia responds to. Any other Host header receives a 404 Not Found response.
+    ## Should not be confused with the external hostname. Read the docs for more details.
+    # allowed_hosts: []
+
     ## The CSP Template. Read the docs.
     # csp_template: ''
 

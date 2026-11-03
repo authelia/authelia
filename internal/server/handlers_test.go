@@ -368,6 +368,60 @@ func TestHandlerMainWithOptionalFeatures(t *testing.T) {
 	}
 }
 
+func TestHandlerMainAllowedHosts(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	testCases := []struct {
+		name     string
+		allowed  []string
+		have     string
+		expected int
+	}{
+		{"ShouldAllowAnyHostWhenNotConfigured", nil, "auth.phishingdomain.com", fasthttp.StatusOK},
+		{"ShouldAllowConfiguredHost", []string{"authelia:9091"}, "authelia:9091", fasthttp.StatusOK},
+		{"ShouldRejectOtherHost", []string{"authelia:9091"}, "auth.phishingdomain.com", fasthttp.StatusNotFound},
+		{"ShouldRejectConfiguredHostWithoutPort", []string{"authelia:9091"}, "authelia", fasthttp.StatusNotFound},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{
+				Server: schema.Server{
+					Address:   schema.DefaultServerConfiguration.Address,
+					Endpoints: schema.DefaultServerConfiguration.Endpoints,
+					Headers:   schema.ServerHeaders{AllowedHosts: tc.allowed},
+				},
+			}
+
+			providers := middlewares.NewProvidersBasic()
+			providers.Random = random.NewMathematical()
+			providers.Templates = provider
+
+			handler, err := handlerMain(config, providers)
+
+			require.NoError(t, err)
+			require.NotNil(t, handler)
+
+			ctx := &fasthttp.RequestCtx{}
+
+			ctx.Request.Header.SetMethod(fasthttp.MethodGet)
+			ctx.Request.SetRequestURI("/api/health")
+			ctx.Request.SetHost(tc.have)
+
+			handler(ctx)
+
+			assert.Equal(t, tc.expected, ctx.Response.StatusCode())
+
+			if tc.expected == fasthttp.StatusNotFound {
+				assert.Equal(t, "404 Not Found", string(ctx.Response.Body()))
+			}
+		})
+	}
+}
+
 type timeoutError struct{}
 
 func (e *timeoutError) Error() string { return "i/o timeout" }
