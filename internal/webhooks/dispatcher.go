@@ -117,16 +117,16 @@ func (dispatcher *Dispatcher) SetStore(store Store) {
 			dispatcher.forget(d)
 		}
 
-		d.regrant = func() bool {
+		d.regrant = func() (rate int, ok bool) {
 			dispatcher.mutex.RLock()
 
 			origin := d.origin
 
 			dispatcher.mutex.RUnlock()
 
-			_, ok := dispatcher.recall(d, origin)
+			saved, ok := dispatcher.recall(d, origin)
 
-			return ok
+			return saved.Rate, ok
 		}
 	}
 }
@@ -137,9 +137,10 @@ func (dispatcher *Dispatcher) SetStore(store Store) {
 // refused and receives no events, while every other destination is unaffected. Failures are returned so the caller may
 // log them and never prevent startup, because webhook availability must not stop Authelia running.
 //
-// Events are accepted from the moment the handshakes begin and are held in the destination buffers until Start, so the
-// events which occur while a slow receiver is still answering are delivered rather than lost. It is a no-op once the
-// dispatcher has been shut down.
+// Events are accepted from the moment the handshakes begin and are held in the destination buffers until the worker of
+// the destination starts, so the events which occur while a slow receiver is still answering are delivered rather than
+// lost. Each worker starts as soon as the handshake of its own destination settles, so one slow receiver does not delay
+// deliveries to the others. It is a no-op once the dispatcher has been shut down.
 func (dispatcher *Dispatcher) Validate() (err error) {
 	dispatcher.mutex.Lock()
 
@@ -165,9 +166,7 @@ func (dispatcher *Dispatcher) Validate() (err error) {
 
 	for _, d := range dispatcher.destinations {
 		if d.config.Validation.Disable {
-			if origin, e := originOf(d.config.Validation, derived); e == nil {
-				d.origin = origin
-			}
+			dispatcher.launch(d)
 
 			continue
 		}
@@ -176,6 +175,8 @@ func (dispatcher *Dispatcher) Validate() (err error) {
 
 		go func(d *destination) {
 			defer wg.Done()
+
+			defer dispatcher.launch(d)
 
 			origin, e := originOf(d.config.Validation, derived)
 			if e == nil {
@@ -227,7 +228,9 @@ func (dispatcher *Dispatcher) accept(d *destination, origin string, rate int) {
 	dispatcher.mutex.Lock()
 	defer dispatcher.mutex.Unlock()
 
-	d.origin, d.pace, d.settled = origin, interval(rate), true
+	d.origin, d.settled = origin, true
+
+	d.setRate(rate)
 }
 
 func (dispatcher *Dispatcher) hold(d *destination, origin string, err error) (held bool, report error) {
@@ -300,7 +303,7 @@ func (dispatcher *Dispatcher) remember(d *destination, origin string, rate int) 
 		return
 	}
 
-	value, err := json.Marshal(grant{Name: d.config.Name, Address: d.config.Address.String(), Origin: origin, Rate: rate, Confirmed: time.Now().UTC()})
+	value, err := json.Marshal(grant{Name: d.config.Name, Address: grantAddress(d), Origin: origin, Rate: rate, Confirmed: time.Now().UTC()})
 	if err != nil {
 		return
 	}
@@ -309,7 +312,7 @@ func (dispatcher *Dispatcher) remember(d *destination, origin string, rate int) 
 
 	defer cancel()
 
-	if err = dispatcher.store.SaveCachedData(ctx, model.CachedData{Name: grantName(d.config.Name), Value: value}); err != nil {
+	if err = dispatcher.store.SaveCachedData(ctx, model.CachedData{Name: grantName(d.config.Name), Encrypted: true, Value: value}); err != nil {
 		dispatcher.log.WithError(err).WithField("destination", d.config.Name).
 			Warn("Webhook destination confirmation could not be saved and will have to be repeated after a restart")
 	}
@@ -342,7 +345,7 @@ func (dispatcher *Dispatcher) recall(d *destination, origin string) (saved grant
 		return grant{}, false
 	}
 
-	if saved.Name != d.config.Name || saved.Address != d.config.Address.String() || saved.Origin == "" || !strings.EqualFold(saved.Origin, origin) {
+	if saved.Name != d.config.Name || saved.Address != grantAddress(d) || saved.Origin == "" || !strings.EqualFold(saved.Origin, origin) {
 		return grant{}, false
 	}
 
@@ -366,6 +369,12 @@ func (dispatcher *Dispatcher) forget(d *destination) {
 	}
 }
 
+func grantAddress(d *destination) string {
+	sum := sha256.Sum256([]byte(d.config.Address.String()))
+
+	return hex.EncodeToString(sum[:])
+}
+
 func grantName(destination string) string {
 	sum := sha256.Sum256([]byte(destination))
 
@@ -379,7 +388,7 @@ func (dispatcher *Dispatcher) pend(d *destination, origin string) (pending bool)
 	d.origin, d.settled = origin, true
 
 	if d.granted {
-		d.pace = interval(callbackRate(d.allowed, d.config.Validation))
+		d.setRate(callbackRate(d.allowed, d.config.Validation))
 
 		return false
 	}
@@ -419,14 +428,18 @@ func (dispatcher *Dispatcher) Confirm(name, key, rate string) (confirmed bool) {
 	case refused:
 		break
 	case d.pending:
-		d.pending, d.pace = false, interval(permitted)
+		d.pending = false
+
+		d.setRate(permitted)
 
 		dispatcher.log.WithField("destination", d.config.Name).
 			Info("Webhook destination confirmed it accepts deliveries using the callback and will now receive events")
 	case !d.settled:
 		d.granted, d.allowed = true, rate
 	case d.gone.Load():
-		retired, d.pace = true, interval(permitted)
+		retired = true
+
+		d.setRate(permitted)
 	}
 
 	dispatcher.mutex.Unlock()
@@ -475,23 +488,7 @@ func (dispatcher *Dispatcher) Start() {
 	for _, d := range dispatcher.destinations {
 		watch = watch || d.pending
 
-		dispatcher.wg.Add(1)
-
-		go func(d *destination) {
-			defer dispatcher.wg.Done()
-
-			d.run()
-		}(d)
-
-		if d.unanswered {
-			dispatcher.wg.Add(1)
-
-			go func(d *destination) {
-				defer dispatcher.wg.Done()
-
-				dispatcher.watchUnanswered(d)
-			}(d)
-		}
+		dispatcher.launchLocked(d)
 	}
 
 	if watch && dispatcher.store != nil {
@@ -523,6 +520,41 @@ func (dispatcher *Dispatcher) watch() {
 		if !dispatcher.promote() {
 			return
 		}
+	}
+}
+
+// launch starts the worker of a destination whose handshake has settled, along with the repeated handshake of a
+// destination which did not answer it. It does nothing once the dispatcher has been shut down or the worker is running.
+func (dispatcher *Dispatcher) launch(d *destination) {
+	dispatcher.mutex.Lock()
+	defer dispatcher.mutex.Unlock()
+
+	dispatcher.launchLocked(d)
+}
+
+func (dispatcher *Dispatcher) launchLocked(d *destination) {
+	if dispatcher.stopped || d.launched {
+		return
+	}
+
+	d.launched = true
+
+	dispatcher.wg.Add(1)
+
+	go func() {
+		defer dispatcher.wg.Done()
+
+		d.run()
+	}()
+
+	if d.unanswered {
+		dispatcher.wg.Add(1)
+
+		go func() {
+			defer dispatcher.wg.Done()
+
+			dispatcher.watchUnanswered(d)
+		}()
 	}
 }
 
@@ -576,7 +608,9 @@ func (dispatcher *Dispatcher) repeatHandshake(d *destination) (again bool) {
 		d.unanswered = false
 
 		if d.pending {
-			d.pending, d.pace = false, interval(rate)
+			d.pending = false
+
+			d.setRate(rate)
 		}
 
 		dispatcher.mutex.Unlock()
@@ -630,7 +664,12 @@ func (dispatcher *Dispatcher) prepare() {
 		d.callback = callbackOf(dispatcher.source, d.config.Name, d.key)
 
 		// The origin is known before the handshake so a callback which arrives during it records the grant against the
-		// origin it was given for.
+		// origin it was given for. A destination which disables validation has no handshake for the origin to match, so
+		// it is not sent one, and its origin options are neither checked nor used.
+		if d.config.Validation.Disable {
+			continue
+		}
+
 		if origin, err := originOf(d.config.Validation, derived); err == nil {
 			d.origin = origin
 		}
@@ -698,7 +737,9 @@ func (dispatcher *Dispatcher) promote() (remaining bool) {
 		promoted := d.pending
 
 		if promoted {
-			d.pending, d.pace = false, interval(saved.Rate)
+			d.pending = false
+
+			d.setRate(saved.Rate)
 		}
 
 		dispatcher.mutex.Unlock()

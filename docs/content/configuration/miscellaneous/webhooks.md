@@ -144,6 +144,8 @@ parameter. Use the [authentication](#authentication) options to present credenti
 Redirects are never followed, as a redirect would resend the destination's credentials to another host. A `3xx`
 response is a permanent delivery failure and the event is dropped.
 
+Requests use the proxy named by the `HTTPS_PROXY` environment variable, unless the address matches `NO_PROXY`.
+
 #### events
 
 {{< confkey type="list(string)" required="yes" >}}
@@ -376,8 +378,9 @@ The outcome of the handshake is one of:
 A `429`, `503`, or other `5xx` response, or a failure which produced no response, is retried under the destination's
 [retry](#retry) policy before the outcome is decided.
 
-Startup continues whatever the outcome. The handshake for each destination is limited to thirty seconds in total and
-destinations are validated concurrently. Other than the repeats for a receiver which did not answer, it is performed
+Startup continues whatever the outcome. The handshake for each destination is limited to thirty seconds in total,
+including a request in flight, and destinations are validated concurrently. Each destination receives events as soon as
+its own handshake completes, without waiting for the others. Other than the repeats for a receiver which did not answer, it is performed
 once per start, and repeated hourly for a destination which was suspended by answering a delivery with `410`, as
 described in
 [Retries and failures](../../reference/guides/webhook-events.md#retries-and-failures).

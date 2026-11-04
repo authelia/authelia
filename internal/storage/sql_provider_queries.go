@@ -456,6 +456,10 @@ const (
 		DELETE FROM %s
 		WHERE name = ?;`
 
+	queryFmtDeleteCachedDataPrefix = `
+		DELETE FROM %s
+		WHERE name LIKE ?;`
+
 	queryFmtSelectCachedDataValueEncrypted = `
 		SELECT id, name, value
 		FROM %s

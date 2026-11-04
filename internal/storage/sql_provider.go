@@ -97,6 +97,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateSessionSignature:            fmt.Sprintf(queryFmtUpdateSessionSignature, tableSession),
 		sqlUpdateSessionDestroyed:            fmt.Sprintf(queryFmtUpdateSessionDestroyed, tableSession),
 		sqlDeleteSessionExpired:              fmt.Sprintf(queryFmtDeleteSessionExpired, tableSession),
+		sqlDeleteCachedDataPrefix:            fmt.Sprintf(queryFmtDeleteCachedDataPrefix, tableCachedData),
 
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
@@ -278,6 +279,7 @@ type SQLProvider struct {
 	sqlUpdateSessionSignature            string
 	sqlUpdateSessionDestroyed            string
 	sqlDeleteSessionExpired              string
+	sqlDeleteCachedDataPrefix            string
 
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string

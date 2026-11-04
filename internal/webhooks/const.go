@@ -7,6 +7,8 @@ package webhooks
 import (
 	"errors"
 	"time"
+
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 const (
@@ -36,7 +38,7 @@ const (
 	// destination for longer than this.
 	retryAfterLimit = time.Hour
 
-	grantNamePrefix = "wh-"
+	grantNamePrefix = storage.CachedDataNamePrefixWebhookConfirmation
 	grantNameLength = 20
 	grantTimeout    = time.Second * 5
 )

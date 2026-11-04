@@ -558,7 +558,7 @@ func doGetAuthenticationEventReason(successful bool, ban *regulation.Ban, errAut
 		return ""
 	case ban.IsBanned():
 		return events.ReasonBanned
-	case errors.As(errAuth, &rejected):
+	case errors.As(errAuth, &rejected), errors.Is(errAuth, authentication.ErrIncorrectPassword):
 		return events.ReasonInvalidCredentials
 	case errors.Is(errAuth, authentication.ErrUserNotFound):
 		return events.ReasonUserNotFound

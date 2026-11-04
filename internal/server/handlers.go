@@ -213,8 +213,10 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if len(config.Webhooks.Destinations) != 0 {
-		r.GET(webhooks.PathConfirm, middlewareAPI(handlers.WebhookConfirm))
-		r.POST(webhooks.PathConfirm, middlewareAPI(handlers.WebhookConfirm))
+		rateLimitWebhookConfirm := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.WebhookConfirm), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
+
+		r.GET(webhooks.PathConfirm, middlewareAPI(rateLimitWebhookConfirm(handlers.WebhookConfirm)))
+		r.POST(webhooks.PathConfirm, middlewareAPI(rateLimitWebhookConfirm(handlers.WebhookConfirm)))
 	}
 
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))

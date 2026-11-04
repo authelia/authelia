@@ -86,7 +86,7 @@ func TestDestinationHandshakeShouldRecordRetryAfter(t *testing.T) {
 
 	d := newTestDestination(t, server.URL, nil)
 
-	_, err := d.validateAttempt("auth.example.com", 1)
+	_, err := d.validateAttempt(context.Background(), "auth.example.com", 1)
 
 	require.Error(t, err)
 	assert.InDelta(t, time.Second*30, d.paused(), float64(time.Second*2))

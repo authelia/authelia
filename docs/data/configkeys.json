@@ -1520,6 +1520,16 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_START_IPV6_MASK"
   },
   {
+    "path": "server.endpoints.rate_limits.webhook_confirm.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_WEBHOOK_CONFIRM_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.webhook_confirm.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_WEBHOOK_CONFIRM_IPV6_MASK"
+  },
+  {
     "path": "server.headers.csp_template",
     "secret": false,
     "env": "AUTHELIA_SERVER_HEADERS_CSP_TEMPLATE"

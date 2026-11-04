@@ -24,7 +24,7 @@ type Store interface {
 
 type grant struct {
 	Name      string    `json:"name"`
-	Address   string    `json:"address"`
+	Address   string    `json:"address_sha256"`
 	Origin    string    `json:"origin"`
 	Rate      int       `json:"rate"`
 	Confirmed time.Time `json:"confirmed"`

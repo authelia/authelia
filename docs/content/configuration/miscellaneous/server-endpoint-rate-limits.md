@@ -151,6 +151,13 @@ server:
             requests: 50
           - period: '1 hour'
             requests: 100
+      webhook_confirm:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 10
+          - period: '10 minutes'
+            requests: 30
 ```
 
 ## Common Options
@@ -273,5 +280,13 @@ See [Common Options](#common-options) for the individual options for this sectio
 
 Configures the rate limiter which applies to the
 [OpenID Connect 1.0 Revocation Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### webhook_confirm
+
+Configures the rate limiter which applies to the endpoint a [webhook](webhooks.md) destination requests to
+[confirm by callback](../../reference/guides/webhook-events.md#confirming-by-callback) that it accepts deliveries. The
+endpoint only exists when at least one webhook destination is configured.
 
 See [Common Options](#common-options) for the individual options for this section.

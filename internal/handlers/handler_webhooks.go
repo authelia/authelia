@@ -25,7 +25,7 @@ func WebhookConfirm(ctx *middlewares.AutheliaCtx) {
 	name := string(ctx.QueryArgs().Peek(webhooks.QueryConfirmID))
 
 	if !confirmer.Confirm(name, string(ctx.QueryArgs().Peek(webhooks.QueryConfirmKey)), string(ctx.Request.Header.Peek(events.HeaderWebhookAllowedRate))) {
-		ctx.Logger.WithField("destination", name).Error("Webhook destination confirmation was rejected because the destination is unknown, was refused, or the key is incorrect")
+		ctx.Logger.WithField("destination", name).Warn("Webhook destination confirmation was rejected because the destination is unknown, was refused, or the key is incorrect")
 
 		ctx.ReplyStatusCode(fasthttp.StatusNotFound)
 

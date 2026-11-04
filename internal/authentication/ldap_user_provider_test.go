@@ -6770,6 +6770,84 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 	require.EqualError(t, err, "authentication failed. Cause: error occurred performing bind: invalid username or password")
 }
 
+func TestShouldCheckInvalidUserPasswordAsIncorrectPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	config := &schema.AuthenticationBackendLDAP{
+		Address:  testLDAPAddress,
+		User:     "cn=admin,dc=example,dc=com",
+		Password: "password",
+		Attributes: schema.AuthenticationBackendLDAPAttributes{
+			Username:    "uid",
+			Mail:        "mail",
+			DisplayName: "displayName",
+			MemberOf:    "memberOf",
+		},
+		UsersFilter:       "uid={input}",
+		AdditionalUsersDN: "ou=users",
+		BaseDN:            "dc=example,dc=com",
+	}
+
+	mockDialer := NewMockLDAPClientDialer(ctrl)
+
+	mockClient := NewMockLDAPClient(ctrl)
+
+	mockUserClient := NewMockLDAPClient(ctrl)
+
+	dseSearch := NewRootDSESearchRequest(mockClient, nil)
+
+	dseUserSearch := NewRootDSESearchRequest(mockUserClient, nil)
+
+	provider := NewLDAPUserProviderWithFactory(config, false, NewStandardLDAPClientFactory(config, nil, mockDialer))
+
+	gomock.InOrder(
+		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil),
+		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
+		dseSearch,
+		mockClient.EXPECT().
+			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+			Return(nil),
+		mockClient.EXPECT().
+			Search(gomock.Any()).
+			Return(&ldap.SearchResult{
+				Entries: []*ldap.Entry{
+					{
+						DN: "uid=test,dc=example,dc=com",
+						Attributes: []*ldap.EntryAttribute{
+							{
+								Name:   "displayName",
+								Values: []string{"John Doe"},
+							},
+							{
+								Name:   "mail",
+								Values: []string{"test@example.com"},
+							},
+							{
+								Name:   "uid",
+								Values: []string{"John"},
+							},
+						},
+					},
+				},
+			}, nil),
+		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockUserClient, nil),
+		mockUserClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
+		dseUserSearch,
+		mockUserClient.EXPECT().
+			Bind(gomock.Eq("uid=test,dc=example,dc=com"), gomock.Eq("password")).
+			Return(ldap.NewError(ldap.LDAPResultInvalidCredentials, errors.New("invalid credentials"))),
+		mockUserClient.EXPECT().Close(),
+		mockClient.EXPECT().Close(),
+	)
+
+	valid, err := provider.CheckUserPassword("john", "password")
+
+	assert.False(t, valid)
+	require.ErrorIs(t, err, ErrIncorrectPassword)
+	assert.Equal(t, int(ldap.LDAPResultInvalidCredentials), getLDAPResultCode(err))
+}
+
 func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

@@ -149,3 +149,7 @@ var (
 const (
 	na = "N/A"
 )
+
+// CachedDataNamePrefixWebhookConfirmation is the prefix of the cached data which records the webhook destinations that
+// confirmed using the callback. Rotating the webhook callback HMAC key deletes the cached data with this prefix.
+const CachedDataNamePrefixWebhookConfirmation = "wh-"

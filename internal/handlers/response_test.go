@@ -446,6 +446,7 @@ func TestAuthenticationEventReason(t *testing.T) {
 		{"ShouldUnwrapAWrappedNotFoundUser", false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), fmt.Errorf("failed to retrieve user details for user john: %w", authentication.ErrUserNotFound), events.ReasonUserNotFound},
 		{"ShouldPreferTheBanOverTheNotFoundUser", false, regulation.NewBan(regulation.BanTypeIP, "127.0.0.1", nil), authentication.ErrUserNotFound, events.ReasonBanned},
 		{"ShouldPreferTheRejectionOverTheNotFoundUser", false, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), newErrAuthenticationRejected(authentication.ErrUserNotFound), events.ReasonInvalidCredentials},
+		{"ShouldClassifyAnIncorrectPasswordAsInvalidCredentials", false, regulation.NewBan(regulation.BanTypeNone, testUsername, nil), fmt.Errorf("authentication failed. Cause: %w: %w", authentication.ErrIncorrectPassword, fmt.Errorf("LDAP Result Code 49")), events.ReasonInvalidCredentials},
 		{"ShouldNotClassifyAnUnreachableBackendAsNotFound", false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), fmt.Errorf("failed to connect: connection refused"), events.ReasonInternalError},
 	}
 

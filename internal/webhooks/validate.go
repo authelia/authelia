@@ -5,6 +5,7 @@
 package webhooks
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -60,12 +61,22 @@ func requestedRate(config schema.WebhookValidation) (rate string, send bool) {
 }
 
 func (d *destination) validate(origin string) (rate int, err error) {
-	deadline := time.Now().Add(validateTimeout)
+	deadline := time.Now().Add(d.budget)
 	interval := d.config.Retry.InitialInterval
 
+	// The budget also bounds a request in flight, which a per request timeout longer than the budget would otherwise
+	// let run past it.
+	ctx, cancel := context.WithDeadline(d.ctx, deadline)
+
+	defer cancel()
+
 	for attempt := 1; attempt <= d.config.Retry.Attempts; attempt++ {
-		if rate, err = d.validateAttempt(origin, attempt); err == nil {
+		if rate, err = d.validateAttempt(ctx, origin, attempt); err == nil {
 			return rate, nil
+		}
+
+		if ctx.Err() != nil && d.ctx.Err() == nil {
+			return 0, fmt.Errorf("%w: the handshake budget of %s elapsed", err, d.budget)
 		}
 
 		var permanent *permanentError
@@ -81,7 +92,7 @@ func (d *destination) validate(origin string) (rate int, err error) {
 		wait := retryWait(interval, d.config.Retry.MaximumInterval, err)
 
 		if time.Now().Add(wait).After(deadline) {
-			return 0, fmt.Errorf("%w: the handshake budget of %s elapsed before it could be retried", err, validateTimeout)
+			return 0, fmt.Errorf("%w: the handshake budget of %s elapsed before it could be retried", err, d.budget)
 		}
 
 		d.log.WithError(err).WithFields(map[string]any{"attempt": attempt, "retry_in": wait.String()}).
@@ -107,8 +118,8 @@ func (d *destination) validate(origin string) (rate int, err error) {
 	return 0, err
 }
 
-func (d *destination) validateAttempt(origin string, attempt int) (rate int, err error) {
-	req, err := http.NewRequestWithContext(d.ctx, http.MethodOptions, d.address, nil)
+func (d *destination) validateAttempt(ctx context.Context, origin string, attempt int) (rate int, err error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodOptions, d.address, nil)
 	if err != nil {
 		return 0, &permanentError{err: fmt.Errorf("error building request: %w", err)}
 	}

@@ -65,6 +65,13 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 						{Period: 1 * time.Minute, Requests: 60},
 					},
 				},
+				WebhookConfirm: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 10 * time.Minute, Requests: 30},
+					},
+				},
 				ResetPasswordStart: schema.ServerEndpointRateLimit{
 					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{

@@ -168,8 +168,9 @@ The response is handled as follows:
 Consent is carried by the headers, so a 2xx alone confirms nothing. A refusal is logged and is never retried, and a
 refused destination receives no events until Authelia is restarted. In every case Authelia itself still starts.
 
-The handshake is performed once per start. It is limited to thirty seconds per destination, including retries, and
-destinations are validated concurrently. It is repeated to recheck a destination
+The handshake is performed once per start. It is limited to thirty seconds per destination, including retries and any
+request in flight, and destinations are validated concurrently. A destination receives events as soon as its own
+handshake completes, without waiting for the others. It is repeated to recheck a destination
 [suspended by a `410`](#retries-and-failures), and every five minutes for a destination whose handshake got no answer,
 or only `429`, `503`, or other `5xx` responses, until the receiver answers it. Those repeats wait for any `Retry-After`,
 and their answer is treated as the original would have been. The events which occur before then are not delivered.
@@ -201,7 +202,9 @@ applies. Authelia answers `200` when permission is granted or was already grante
 unknown, the key is wrong, the destination refused the handshake, or the destination disables validation.
 
 The URL is built from the [source](#source), names the destination in `id`, and carries a `key`. Treat it as a secret,
-as anyone who holds it can grant the destination permission.
+as anyone who holds it can grant the destination permission. Requests to it are
+[rate limited](../../configuration/miscellaneous/server-endpoint-rate-limits.md#webhook_confirm), and a rejected request
+is logged as a warning.
 
 The `key` is an HMAC of the destination's name and address, under a key which Authelia generates once and keeps in its
 storage. It is therefore:
@@ -211,10 +214,15 @@ storage. It is therefore:
 - the same on every Authelia instance which shares the storage backend.
 
 Changing a destination's name or [address](../../configuration/miscellaneous/webhooks.md#address) changes its `key`.
+If a callback URL may have leaked, rotate the key with
+[authelia storage encryption rotate hmac whc](../cli/authelia/authelia_storage_encryption_rotate_hmac_whc.md) and
+restart Authelia. This changes the `key` of every destination and withdraws every recorded confirmation, so each
+destination which confirmed by callback has to confirm again using its new URL.
 
 A confirmation is recorded in storage against the destination's name, address, and
 [origin](../../configuration/miscellaneous/webhooks.md#origin), so a destination which has confirmed stays confirmed
-when Authelia restarts. It no longer applies when:
+when Authelia restarts. The record is encrypted, and keeps only a digest of the address, which may carry a secret in its
+query. It no longer applies when:
 
 - the destination's name, address, or origin is changed,
 - the destination refuses the handshake by answering with a `WebHook-Allowed-Origin` which names another origin, or
@@ -239,7 +247,7 @@ Each delivery is an HTTP `POST` of the envelope to the destination address.
 | `X-Authelia-Webhook-Version`  | The contract version, currently `1`. Matches the `/v1/` segment of the schema URIs. |
 | `X-Authelia-Delivery-Attempt` | The attempt number of this request, starting at `1`.                                |
 |    `X-Authelia-Signature`     | The HMAC signature. Present only when a signature secret is configured.             |
-|   `WebHook-Request-Origin`    | The origin presented in the handshake. Present when an origin is known.             |
+|   `WebHook-Request-Origin`    | The origin presented in the handshake. Absent when validation is disabled.          |
 |       `ce-specversion`        | The envelope `specversion`.                                                         |
 |            `ce-id`            | The envelope `id`.                                                                  |
 |           `ce-type`           | The envelope `type`.                                                                |

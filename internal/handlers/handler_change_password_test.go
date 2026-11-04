@@ -551,3 +551,44 @@ func TestChangePasswordPOST_ShouldRecordASuppressedNotificationWhenTheNotifierIs
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
+
+func TestChangePasswordPOST_ShouldNotifyWhenTheSessionCannotBeSaved(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	repository := setupTestFailingSessionRepository(t, mock)
+
+	userSession, err := mock.Ctx.GetSession()
+	assert.NoError(t, err)
+
+	userSession.Username = testUsername
+
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+	repository.errSave = []error{errTestSessionBackend}
+
+	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
+	assert.NoError(t, err)
+	mock.Ctx.Request.SetBody(bodyBytes)
+
+	mock.Ctx.Providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(schema.PasswordPolicy{})
+
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().
+			ChangePassword(testUsername, testPasswordOld, testPasswordNew).
+			Return(nil),
+		mock.UserProviderMock.EXPECT().
+			GetDetails(testUsername).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
+		mock.NotifierMock.EXPECT().
+			Send(mock.Ctx, gomock.Any(), "Password changed successfully", gomock.Any(), gomock.Any()).
+			Return(nil),
+		mock.EventsMock.EXPECT().
+			Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordChanged, true))),
+	)
+
+	ChangePasswordPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.JSONEq(t, `{"status":"KO","code":"operation_failed","message":"Operation failed."}`, string(mock.Ctx.Response.Body()))
+}

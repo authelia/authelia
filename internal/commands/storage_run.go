@@ -385,21 +385,23 @@ func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []
 		return err
 	}
 
-	var table string
+	var removal, removed string
 
 	switch cmd.Use {
 	case "otc":
-		table = "one_time_code"
+		removal, removed = "truncate the 'one_time_code' table", "cleanly truncated the 'one_time_code' table"
 	case "otp":
-		table = "totp_history"
+		removal, removed = "truncate the 'totp_history' table", "cleanly truncated the 'totp_history' table"
 	case "session":
-		table = "session"
+		removal, removed = "truncate the 'session' table", "cleanly truncated the 'session' table"
+	case "whc":
+		removal, removed = "delete the webhook callback confirmations", "deleted the webhook callback confirmations"
 	}
 
-	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, table, cmd.Use, force)
+	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, removal, removed, cmd.Use, force)
 }
 
-func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store storage.Provider, table, name string, force bool) (err error) {
+func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store storage.Provider, removal, removed, name string, force bool) (err error) {
 	var version int
 	if version, err = store.SchemaVersion(ctx); err != nil {
 		return err
@@ -412,7 +414,7 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 	if !force {
 		var confirmed bool
 
-		if confirmed, err = termReadConfirmation(fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table), "ROTATE"); err != nil {
+		if confirmed, err = termReadConfirmation(fmt.Sprintf("This will rotate the HMAC key and %s, this is not reversible, type 'ROTATE' and press return to continue: ", removal), "ROTATE"); err != nil {
 			return err
 		}
 
@@ -425,7 +427,7 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 		return err
 	}
 
-	_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and cleanly truncated the '%s' table.\n", name, table)
+	_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and %s.\n", name, removed)
 
 	return nil
 }

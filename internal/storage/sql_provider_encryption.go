@@ -21,7 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// SchemaEncryptionRotateHMACKey rotates the HMAC key with the given name, truncating the table it protects.
+// SchemaEncryptionRotateHMACKey rotates the HMAC key with the given name, removing the data it protects.
 func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error) {
 	var (
 		size  int
@@ -36,6 +36,8 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		size, table, desc = sha256.BlockSize, tableTOTPHistory, "totp history"
 	case hmacNameSession:
 		size, table, desc = sha256.BlockSize, tableSession, "sessions"
+	case hmacNameWebhookCallback:
+		size, desc = sha256.BlockSize, "webhook callback confirmations"
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
 	}
@@ -54,9 +56,22 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		return fmt.Errorf("error setting the hmac key: %w", err)
 	}
 
-	if err = p.truncate(ctx, tx, table); err != nil {
+	// The webhook callback key derives the callback addresses, so a confirmation given using an address which may have
+	// leaked is withdrawn along with it. The confirmations share their table with other data, so they are deleted
+	// rather than the table truncated.
+	if table == "" {
+		_, err = tx.ExecContext(ctx, p.sqlDeleteCachedDataPrefix, CachedDataNamePrefixWebhookConfirmation+"%")
+	} else {
+		err = p.truncate(ctx, tx, table)
+	}
+
+	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+		}
+
+		if table == "" {
+			return fmt.Errorf("error deleting %s: %w", desc, err)
 		}
 
 		return fmt.Errorf("error truncating %s: %w", desc, err)

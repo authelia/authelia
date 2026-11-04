@@ -80,32 +80,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.Providers.UserProvider.ChangePassword(username, requestBody.OldPassword, requestBody.NewPassword); err != nil {
-		switch {
-		case errors.Is(err, authentication.ErrIncorrectPassword):
-			ctx.GetLogger().WithError(err).
-				WithFields(map[string]any{"username": username}).
-				Debug("Unable to change password for user as their old password was incorrect")
-			ctx.SetJSONError(messageIncorrectPassword)
-			ctx.SetStatusCode(http.StatusUnauthorized)
-		case errors.Is(err, authentication.ErrPasswordWeak):
-			ctx.GetLogger().WithError(err).
-				WithFields(map[string]any{"username": username}).
-				Debug("Unable to change password for user as their new password was weak or empty")
-			ctx.SetJSONError(messagePasswordWeak)
-			ctx.SetStatusCode(http.StatusBadRequest)
-		case errors.Is(err, authentication.ErrAuthenticationFailed):
-			ctx.GetLogger().WithError(err).
-				WithFields(map[string]any{"username": username}).
-				Error("Unable to change password for user as authentication failed for the user")
-			ctx.SetJSONError(messageOperationFailed)
-			ctx.SetStatusCode(http.StatusUnauthorized)
-		default:
-			ctx.GetLogger().WithError(err).
-				WithFields(map[string]any{"username": username}).
-				Error("Unable to change password for user for an unknown reason")
-			ctx.SetJSONError(messageOperationFailed)
-			ctx.SetStatusCode(http.StatusInternalServerError)
-		}
+		respondChangePasswordError(ctx, username, err)
 
 		return
 	}
@@ -114,19 +89,26 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		WithFields(map[string]any{"username": username}).
 		Debug("User has changed their password")
 
+	// The password has changed whether or not the session is saved, so the user is still notified of it. The failure
+	// is reported once the notification has been attempted.
+	failed := false
+
 	if err = provider.Save(ctx, &userSession); err != nil {
 		ctx.GetLogger().WithError(err).
 			WithFields(map[string]any{"username": username}).
 			Error("Unable to update password change state")
-		ctx.SetJSONError(messageOperationFailed)
 
-		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserPassword{
-			Type:     events.TypeUserPasswordChanged,
-			Username: username,
-			RemoteIP: ctx.RemoteIP().String(),
-		}))
+		failed = true
+	}
 
-		return
+	reply := func() {
+		if failed {
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+
+		ctx.ReplyOK()
 	}
 
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
@@ -140,7 +122,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 			Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, "Password changed successfully", nil, nil),
 		}))
 
-		ctx.ReplyOK()
+		reply()
 
 		return
 	}
@@ -193,7 +175,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}))
 
 	if !notified {
-		ctx.ReplyOK()
+		reply()
 
 		return
 	}
@@ -205,8 +187,41 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 				"email":    addresses[0].String(),
 			}).
 			Debug("Unable to notify user of password change")
-		ctx.ReplyOK()
+		reply()
 
 		return
+	}
+
+	if failed {
+		reply()
+	}
+}
+
+func respondChangePasswordError(ctx *middlewares.AutheliaCtx, username string, err error) {
+	switch {
+	case errors.Is(err, authentication.ErrIncorrectPassword):
+		ctx.GetLogger().WithError(err).
+			WithFields(map[string]any{"username": username}).
+			Debug("Unable to change password for user as their old password was incorrect")
+		ctx.SetJSONError(messageIncorrectPassword)
+		ctx.SetStatusCode(http.StatusUnauthorized)
+	case errors.Is(err, authentication.ErrPasswordWeak):
+		ctx.GetLogger().WithError(err).
+			WithFields(map[string]any{"username": username}).
+			Debug("Unable to change password for user as their new password was weak or empty")
+		ctx.SetJSONError(messagePasswordWeak)
+		ctx.SetStatusCode(http.StatusBadRequest)
+	case errors.Is(err, authentication.ErrAuthenticationFailed):
+		ctx.GetLogger().WithError(err).
+			WithFields(map[string]any{"username": username}).
+			Error("Unable to change password for user as authentication failed for the user")
+		ctx.SetJSONError(messageOperationFailed)
+		ctx.SetStatusCode(http.StatusUnauthorized)
+	default:
+		ctx.GetLogger().WithError(err).
+			WithFields(map[string]any{"username": username}).
+			Error("Unable to change password for user for an unknown reason")
+		ctx.SetJSONError(messageOperationFailed)
+		ctx.SetStatusCode(http.StatusInternalServerError)
 	}
 }

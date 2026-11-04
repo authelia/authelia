@@ -572,7 +572,7 @@ func TestDispatcherShouldHoldADestinationWhichWithholdsConfirmationUntilTheCallb
 
 	assert.True(t, dispatcher.Confirm("admin-api", target.Query().Get(QueryConfirmKey), "120"))
 	assert.False(t, dispatcher.destinations[0].pending)
-	assert.Equal(t, time.Minute/120, dispatcher.destinations[0].pace)
+	assert.Equal(t, time.Minute/120, dispatcher.destinations[0].spacing())
 
 	assert.True(t, dispatcher.Confirm("admin-api", target.Query().Get(QueryConfirmKey), ""), "a repeated confirmation is accepted")
 
@@ -659,7 +659,7 @@ func TestDispatcherShouldRememberACallbackConfirmationAcrossRestarts(t *testing.
 
 	assert.False(t, second.destinations[0].pending)
 	assert.False(t, second.destinations[0].refused)
-	assert.Equal(t, time.Minute/120, second.destinations[0].pace)
+	assert.Equal(t, time.Minute/120, second.destinations[0].spacing())
 	assert.Equal(t, first.destinations[0].key, second.destinations[0].key)
 
 	second.Start()
@@ -831,7 +831,7 @@ func TestDispatcherConfirmShouldFallBackToTheRequestedRate(t *testing.T) {
 	require.True(t, dispatcher.destinations[0].pending)
 
 	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
-	assert.Equal(t, time.Second, dispatcher.destinations[0].pace)
+	assert.Equal(t, time.Second, dispatcher.destinations[0].spacing())
 }
 
 func TestDispatcherShouldAcceptACallbackWhichArrivesDuringTheHandshake(t *testing.T) {
@@ -1289,7 +1289,7 @@ func TestDispatcherShouldRepeatTheHandshakeUntilAnUnansweredDestinationAnswers(t
 		dispatcher.mutex.RLock()
 		defer dispatcher.mutex.RUnlock()
 
-		return !d.pending && !d.unanswered && d.pace == time.Millisecond*500
+		return !d.pending && !d.unanswered && d.spacing() == time.Millisecond*500
 	}, time.Second*5, time.Millisecond*10)
 
 	dispatcher.Emit(context.Background(), testEvent())

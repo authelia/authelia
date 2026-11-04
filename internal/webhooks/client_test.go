@@ -68,3 +68,12 @@ func TestNewClientShouldUseTheConfiguredTLSMinimumVersion(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, uint16(0x0304), transport.TLSClientConfig.MinVersion)
 }
+
+func TestNewClientShouldUseTheProxyFromTheEnvironment(t *testing.T) {
+	transport, ok := NewClient(&schema.WebhookDestination{}, nil).Transport.(*http.Transport)
+
+	require.True(t, ok)
+
+	// The environment is read once per process by net/http, so the function is checked rather than its result.
+	assert.NotNil(t, transport.Proxy)
+}

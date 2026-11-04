@@ -194,7 +194,7 @@ func TestDispatcherShouldNotReuseAConfirmationWithoutAnOrigin(t *testing.T) {
 
 	defer dispatcher.Shutdown()
 
-	value, err := json.Marshal(grant{Name: "admin-api", Address: dispatcher.destinations[0].config.Address.String(), Confirmed: time.Now()})
+	value, err := json.Marshal(grant{Name: "admin-api", Address: grantAddress(dispatcher.destinations[0]), Confirmed: time.Now()})
 
 	require.NoError(t, err)
 
@@ -357,4 +357,50 @@ func TestDestinationReviveShouldWithdrawAConfirmationWhenTheHandshakeIsAnsweredW
 
 	assert.True(t, d.gone.Load())
 	assert.Empty(t, store.grants())
+}
+
+type encryptionStore struct {
+	*testStore
+
+	encrypted atomic.Bool
+}
+
+func (s *encryptionStore) SaveCachedData(ctx context.Context, data model.CachedData) error {
+	s.encrypted.Store(data.Encrypted)
+
+	return s.testStore.SaveCachedData(ctx, data)
+}
+
+func TestDispatcherShouldNotRecordTheAddressOfAConfirmation(t *testing.T) {
+	_, server := newGrantServer(t)
+
+	store := &encryptionStore{testStore: newTestStore()}
+
+	address := server.URL + "/hooks?secret=very-secret-value"
+
+	dispatcher := newValidationDispatcher(t, address, nil)
+	dispatcher.SetStore(store)
+
+	defer dispatcher.Shutdown()
+
+	require.NoError(t, dispatcher.Validate())
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+
+	data, err := store.LoadCachedData(context.Background(), grantName("admin-api"))
+
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	assert.True(t, store.encrypted.Load(), "the confirmation must be encrypted at rest")
+	assert.NotContains(t, string(data.Value), "very-secret-value")
+	assert.NotContains(t, string(data.Value), server.URL)
+
+	second := newValidationDispatcher(t, address, nil)
+	second.SetStore(store)
+
+	defer second.Shutdown()
+
+	require.NoError(t, second.Validate())
+
+	assert.False(t, second.destinations[0].pending, "the digest must still match the address it was recorded for")
 }

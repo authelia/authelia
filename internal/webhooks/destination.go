@@ -61,16 +61,20 @@ type destination struct {
 	// unanswered is true while a pending destination has never answered the handshake, so it may not have seen the
 	// callback and the handshake has to be repeated.
 	unanswered bool
-	settled    bool
-	granted    bool
-	allowed    string
-	gone       atomic.Bool
-	recheck    time.Duration
-	revival    *time.Timer
-	revoke     func()
-	regrant    func() bool
+	// launched is true once the worker has been started, which happens as soon as the handshake settles.
+	launched bool
+	settled  bool
+	granted  bool
+	allowed  string
+	gone     atomic.Bool
+	recheck  time.Duration
+	// budget limits each handshake, including its retries and any request in flight.
+	budget  time.Duration
+	revival *time.Timer
+	revoke  func()
+	regrant func() (rate int, ok bool)
 
-	pace   time.Duration
+	pace   atomic.Int64
 	last   time.Time
 	resume atomic.Int64
 
@@ -97,6 +101,7 @@ func newDestination(config schema.WebhookDestination, source, version string, ca
 
 		immediates: immediatesOf(config),
 		recheck:    goneRecheckInterval,
+		budget:     validateTimeout,
 	}
 }
 
@@ -174,12 +179,14 @@ func (d *destination) throttle() (proceed bool) {
 		return false
 	}
 
-	if d.pace <= 0 {
+	pace := d.spacing()
+
+	if pace <= 0 {
 		return !d.stopping()
 	}
 
 	if !d.last.IsZero() {
-		if wait := d.pace - time.Since(d.last); wait > 0 && !d.backoff(wait) {
+		if wait := pace - time.Since(d.last); wait > 0 && !d.backoff(wait) {
 			return false
 		}
 	}
@@ -187,6 +194,16 @@ func (d *destination) throttle() (proceed bool) {
 	d.last = time.Now()
 
 	return true
+}
+
+// setRate sets the interval between requests from the permitted rate in requests per minute. It is atomic because a
+// confirmation or a recheck changes it while the worker is delivering.
+func (d *destination) setRate(rate int) {
+	d.pace.Store(int64(interval(rate)))
+}
+
+func (d *destination) spacing() time.Duration {
+	return time.Duration(d.pace.Load())
 }
 
 func (d *destination) run() {
@@ -394,16 +411,24 @@ func (d *destination) revive() {
 	}
 
 	if !d.config.Validation.Disable {
-		if _, err := d.validate(d.origin); err != nil && !d.reconfirmed(err) {
-			if !d.stopping() {
-				d.log.WithError(err).WithField("recheck_in", d.recheck.String()).
-					Warn("Webhook destination which was retired did not confirm it accepts deliveries and will still receive no events")
+		rate, err := d.validate(d.origin)
+		if err != nil {
+			var ok bool
+
+			if rate, ok = d.reconfirmed(err); !ok {
+				if !d.stopping() {
+					d.log.WithError(err).WithField("recheck_in", d.recheck.String()).
+						Warn("Webhook destination which was retired did not confirm it accepts deliveries and will still receive no events")
+				}
+
+				d.scheduleRevival()
+
+				return
 			}
-
-			d.scheduleRevival()
-
-			return
 		}
+
+		// The receiver may permit a different rate than it did before it was retired.
+		d.setRate(rate)
 	}
 
 	if d.gone.CompareAndSwap(true, false) {
@@ -412,19 +437,23 @@ func (d *destination) revive() {
 }
 
 // reconfirmed reports whether a retired destination whose handshake did not confirm it has since confirmed using the
-// callback, which may have been received by another instance sharing the storage backend. The 410 which retired the
-// destination removed its earlier confirmation, so any confirmation found was given afterwards. A handshake which is
-// itself answered with 410 withdraws that confirmation again.
-func (d *destination) reconfirmed(err error) bool {
+// callback, and the rate that confirmation permits. The callback may have been received by another instance sharing
+// the storage backend. The 410 which retired the destination removed its earlier confirmation, so any confirmation found
+// was given afterwards. A handshake which is itself answered with 410 withdraws that confirmation again.
+func (d *destination) reconfirmed(err error) (rate int, ok bool) {
 	if errors.Is(err, errHandshakeRetired) {
 		if d.revoke != nil {
 			d.revoke()
 		}
 
-		return false
+		return 0, false
 	}
 
-	return d.regrant != nil && d.regrant()
+	if d.regrant == nil {
+		return 0, false
+	}
+
+	return d.regrant()
 }
 
 // reinstate resumes deliveries to a retired destination which confirmed using the callback, and cancels the handshake
