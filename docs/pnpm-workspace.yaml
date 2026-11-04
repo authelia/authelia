@@ -6,6 +6,7 @@ nodeLinker: hoisted
 overrides:
   adm-zip: 0.6.1
   brace-expansion: 5.0.12
+  launch-editor: 2.14.2
   picomatch: 4.0.7
   semver: 7.8.6
 minimumReleaseAgeExclude:
