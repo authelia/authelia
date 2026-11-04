@@ -1290,6 +1290,12 @@
           "title": "Enable Self Enrollment",
           "description": "Enable the Self Enrollment flow.",
           "default": false
+        },
+        "experimental_disable_ca_pinning": {
+          "type": "boolean",
+          "title": "Experimental: Disable CA Pinning",
+          "description": "This option is experimental, insecure, not recommended, and may be removed at any time. When true the Duo CA certificate pinning is disabled and the API hostname is verified against the system trust store, allowing a third-party implementation of the Duo Auth API. It can't be used with a Duo hostname.",
+          "default": false
         }
       },
       "additionalProperties": false,
