@@ -415,6 +415,11 @@
     "env": "AUTHELIA_DUO_API_ENABLE_SELF_ENROLLMENT"
   },
   {
+    "path": "duo_api.experimental_disable_ca_pinning",
+    "secret": false,
+    "env": "AUTHELIA_DUO_API_EXPERIMENTAL_DISABLE_CA_PINNING"
+  },
+  {
     "path": "duo_api.hostname",
     "secret": false,
     "env": "AUTHELIA_DUO_API_HOSTNAME"
