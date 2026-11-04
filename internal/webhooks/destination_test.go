@@ -474,13 +474,11 @@ func TestDestinationShouldStayGoneWhileTheHandshakeFails(t *testing.T) {
 	assert.LessOrEqual(t, handshakes.Load(), settled+1, "a halted destination must stop rechecking")
 }
 
-func TestDestinationShouldReviveAfterGoneWithoutAHandshakeWhenValidationIsDisabled(t *testing.T) {
-	var handshakes atomic.Int32
+func TestDestinationShouldStaySuspendedAfterGoneWhenValidationIsDisabled(t *testing.T) {
+	var requests atomic.Int32
 
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodOptions {
-			handshakes.Add(1)
-		}
+		requests.Add(1)
 
 		rw.WriteHeader(http.StatusGone)
 	}))
@@ -491,15 +489,28 @@ func TestDestinationShouldReviveAfterGoneWithoutAHandshakeWhenValidationIsDisabl
 		config.Validation.Disable = true
 	})
 
+	defer d.halt()
+
 	d.recheck = time.Millisecond * 20
 
 	d.send(single(testEvent()))
 
-	require.Eventually(t, func() bool { return !d.gone.Load() }, time.Second*5, time.Millisecond*5)
+	require.True(t, d.gone.Load())
 
-	assert.Equal(t, int32(0), handshakes.Load())
+	time.Sleep(time.Millisecond * 200)
 
-	d.halt()
+	assert.True(t, d.gone.Load(), "a receiver which cannot agree to receive events again must not be resumed by a timer")
+	assert.Equal(t, int32(1), requests.Load(), "nothing may be sent to the receiver after the 410")
+
+	d.mutex.Lock()
+	scheduled := d.revival != nil
+	d.mutex.Unlock()
+
+	assert.False(t, scheduled, "no recheck may be scheduled")
+
+	d.send(single(testEvent()))
+
+	assert.Equal(t, int32(1), requests.Load(), "a later event must be dropped rather than sent")
 }
 
 func TestDestinationShouldHonorRetryAfterFromTheStartupCheckBeforeTheFirstEvent(t *testing.T) {

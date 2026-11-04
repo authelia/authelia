@@ -393,6 +393,9 @@ Skips the handshake and delivers events without asking the destination to confir
 control which implements neither `OPTIONS` nor the callback. The other `validation` options are neither checked nor
 used when this is enabled.
 
+Without a handshake the receiver has no way to agree to receive events again after answering a delivery with `410`, so
+such a destination stays [suspended](../../reference/guides/webhook-events.md#suspension) until Authelia is restarted.
+
 ##### origin
 
 {{< confkey type="string" required="no" >}}

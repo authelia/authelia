@@ -378,6 +378,12 @@ func (d *destination) retire() {
 		return
 	}
 
+	if d.config.Validation.Disable {
+		d.log.Error("Webhook destination responded with the status code 410 which indicates it has been retired and it will receive no events until Authelia is restarted")
+
+		return
+	}
+
 	d.log.WithField("recheck_in", d.recheck.String()).
 		Error("Webhook destination responded with the status code 410 which indicates it has been retired and it will receive no events until it confirms it accepts deliveries again")
 

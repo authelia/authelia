@@ -420,8 +420,9 @@ which repeats the [abuse protection](#abuse-protection) handshake, is answered w
 recheck once any of them has received the callback. A recheck answered with `410` withdraws a confirmation given by
 callback since the suspension.
 
-A destination which [disables validation](../../configuration/miscellaneous/webhooks.md#disable) has no handshake to
-repeat, so its suspension is lifted after an hour and the next event is delivered to it.
+A destination which [disables validation](../../configuration/miscellaneous/webhooks.md#disable) has neither a
+handshake nor a callback through which the receiver could agree to receive events again, so it is not rechecked. It
+stays suspended until Authelia is restarted, which is logged as an error when the `410` is received.
 
 ### Retry-After
 
