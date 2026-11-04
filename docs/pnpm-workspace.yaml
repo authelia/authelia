@@ -7,6 +7,7 @@ overrides:
   adm-zip: 0.6.1
   brace-expansion: 5.0.12
   glob: 14.0.3
+  katex: 0.19.1
   picomatch: 4.0.7
   postcss-selector-parser: 7.1.7
   semver: 7.8.6
