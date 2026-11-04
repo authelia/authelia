@@ -34,8 +34,6 @@ const (
 
 	goneRecheckInterval = time.Hour
 
-	// retryAfterLimit is the longest wait a Retry-After header can impose, so a single response cannot silence a
-	// destination for longer than this.
 	retryAfterLimit = time.Hour
 
 	grantNamePrefix = storage.CachedDataNamePrefixWebhookConfirmation
@@ -45,9 +43,6 @@ const (
 
 var errHandshakePending = errors.New("the destination withheld its confirmation and may grant it using the callback")
 
-// errHandshakeRetired is the handshake answered with 410 Gone, the one status code the webhook specification gives a
-// receiver to withdraw from deliveries. Unlike every other answer without a WebHook-Allowed-Origin header, it cancels a
-// confirmation recorded from the callback.
 var errHandshakeRetired = errors.New("received status code 410")
 
 const (

@@ -152,9 +152,6 @@ func TestDispatcherStartupCheckShouldSkipAPausedDestination(t *testing.T) {
 	assert.Equal(t, int32(0), requests.Load())
 }
 
-// A receiver which confirmed by callback on an earlier start, and which answers this start's handshake with a
-// Retry-After, is accepted from its stored grant. Neither the startup check probe nor an event may reach it before the
-// Retry-After elapses.
 func TestDispatcherShouldHonorAHandshakeRetryAfterForADestinationAcceptedFromItsGrant(t *testing.T) {
 	var (
 		limited    atomic.Bool

@@ -23,9 +23,10 @@ seo:
 Authelia can deliver events to one or more external receivers as HTTPS requests. Each event is a [CloudEvents] 1.0
 structured mode JSON document describing one occurrence, such as a password change or a failed authentication.
 
-This page covers configuration. The payloads, request headers, signature verification, and the behavior of each event
-type are documented in the [Webhook Events](../../reference/guides/webhook-events.md) reference guide, which anyone
-writing a receiver should read.
+This page covers the configuration options. How events are delivered, the handshake, retries, delivery guarantees,
+metrics, the payloads, and signature verification are documented in the [Webhook
+Events](../../reference/guides/webhook-events.md) reference guide, which anyone operating a destination or writing a
+receiver should read.
 
 Webhooks are disabled when no destinations are configured. Delivery is best effort: an unhealthy or unreachable
 receiver never blocks, delays, or fails an authentication or self-service operation.
@@ -106,11 +107,8 @@ This section describes the individual configuration options.
 {{< confkey type="boolean" default="false" required="no" >}}
 
 Sends one [com.authelia.system.startup_check](../../reference/guides/webhook-events.md#the-startup-check-probe) event to
-each destination during startup, so that a misconfigured receiver is discovered before the first real event.
-
-The probe is sent regardless of the destination's [events](#events) selectors. It is not sent to a destination which
-refused the [validation](#validation) handshake or has not yet confirmed it. A failed check is logged as a warning and
-never prevents startup.
+each destination during startup, so that a misconfigured receiver is discovered before the first real event. A failed
+check is logged as a warning and never prevents startup.
 
 ### destinations
 
@@ -121,8 +119,8 @@ receiver does not affect the others.
 
 {{< confkey type="string" required="yes" >}}
 
-The unique name of this destination. It labels log entries, validation errors, and the [metrics](#metrics) counter, and
-is never included in a payload.
+The unique name of this destination. It labels log entries, validation errors, and the
+[metrics](../../reference/guides/webhook-events.md#metrics) counter, and is never included in a payload.
 
 #### address
 
@@ -141,10 +139,8 @@ For a receiver with a private or self-signed certificate authority use the [tls]
 The address must not contain user information (a `username:password@` prefix), a fragment, or an `access_token` query
 parameter. Use the [authentication](#authentication) options to present credentials.
 
-Redirects are never followed, as a redirect would resend the destination's credentials to another host. A `3xx`
-response is a permanent delivery failure and the event is dropped.
-
-Requests use the proxy named by the `HTTPS_PROXY` environment variable, unless the address matches `NO_PROXY`.
+Redirects are never followed and the proxy environment variables are honored. See
+[Request](../../reference/guides/webhook-events.md#request).
 
 #### events
 
@@ -165,20 +161,8 @@ webhooks:
 
 A selector which matches no event type is a startup error, as it is almost always a typo.
 
-{{< callout context="caution" title="Event Volume" icon="outline/alert-triangle" >}}
-Every authorization request which authenticates with basic credentials, and whose credential check is not served from
-the authentication backend's password cache, emits a `com.authelia.security.authentication.succeeded` event. Where
-proxies present basic credentials on each request this can be one event per HTTP request to every protected
-application.
-
-Select only the types the receiver acts on. For a security feed
-`com.authelia.security.authentication.failed` and `com.authelia.security.ban.applied` are usually sufficient.
-{{< /callout >}}
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The `com.authelia.security.ban.expired` type is accepted by this option but is
-[never emitted](../../reference/guides/webhook-events.md#comautheliasecuritybanexpired-is-never-emitted).
-{{< /callout >}}
+Select only the types the receiver acts on, as some can be
+[very high volume](../../reference/guides/webhook-events.md#event-volume).
 
 #### timeout
 
@@ -192,14 +176,8 @@ response. A value of zero or less applies the default.
 {{< confkey type="integer" default="256" required="no" >}}
 
 The number of events which may be queued for this destination. A value of `0` applies the default and a negative value
-is a startup error.
-
-Enqueuing never blocks. When the queue is full the event is dropped, an error is logged, and the [metrics](#metrics)
-counter records a `dropped` outcome.
-
-A destination delivers serially and waits during retry backoff, so a failing receiver is not consuming its queue. Size
-the buffer with that in mind, or reduce [attempts](#attempts) and [maximum_interval](#maximum_interval) for a high
-volume destination.
+is a startup error. Events are dropped when the queue is full, as described in
+[Delivery guarantees](../../reference/guides/webhook-events.md#delivery-guarantees).
 
 #### disable_redaction
 
@@ -254,8 +232,8 @@ to carry a token, so exactly one of these options must be configured. Configurin
 - [basic](#basic) presents HTTP Basic credentials, for a receiver which requires them. Basic credentials are not a
   token and do not satisfy that requirement.
 
-These credentials identify Authelia to the receiver. They do not prove a payload is genuine, because anything which can
-read a request can replay them. Use [signature](#signature) for that.
+These credentials identify Authelia to the receiver but do not prove a payload is genuine. Use [signature](#signature)
+for that.
 
 [CloudEvents HTTP webhook specification]: https://github.com/cloudevents/spec/blob/main/cloudevents/http-webhook.md#3-authorization
 
@@ -283,10 +261,9 @@ webhooks:
 With the `header` method the token is sent in the `Authorization` header, prefixed by `scheme`. The combined value must
 be a valid HTTP header value.
 
-With the `query` method the token is added to the request address as the `access_token` query parameter, after any
-query parameters the [address](#address) already has, and `Cache-Control: no-store` is sent with every request. The
-`scheme` option must not be configured. An address is more likely to be logged than a header, by a proxy or by the
-receiver's access log, so only use this method when the receiver cannot read the `Authorization` header.
+With the `query` method the token is added to the request address as the `access_token` query parameter, and the
+`scheme` option must not be configured. An address is more likely to be logged than a header, so only use this method
+when the receiver cannot read the `Authorization` header.
 
 ##### basic
 
@@ -307,12 +284,6 @@ webhooks:
 | :--------: | :------: | :------: | :-------: | :------------ |
 | `username` | `string` |   yes    |    no     | The username. |
 | `password` | `string` |   yes    |    yes    | The password. |
-
-{{< callout context="note" title="Note" icon="outline/info-circle" >}}
-The [CloudEvents HTTP webhook specification] requires a token, and HTTP Basic credentials are not one. A destination
-which uses this option does not satisfy that requirement. Use the [bearer](#bearer) option where conformance with the
-specification matters.
-{{< /callout >}}
 
 #### headers
 
@@ -344,57 +315,23 @@ Configuring a reserved header, or an invalid header name or value, is a startup 
 
 #### validation
 
-Before any event is delivered Authelia performs the [CloudEvents abuse protection] handshake: an `OPTIONS` request to
-the destination's address carrying `WebHook-Request-Origin` and, when a [rate](#rate) is configured,
-`WebHook-Request-Rate`. The receiver confirms by answering with a `WebHook-Allowed-Origin` header which is either the
-same origin or an asterisk.
-
-A receiver may instead answer with a 2xx and no `WebHook-Allowed-Origin`, and confirm later by requesting the URL
-Authelia sends in `WebHook-Request-Callback`. See
-[Confirming by callback](../../reference/guides/webhook-events.md#confirming-by-callback).
-
-[CloudEvents abuse protection]: https://github.com/cloudevents/spec/blob/main/cloudevents/http-webhook.md#4-abuse-protection
+Before any event is delivered Authelia performs the CloudEvents abuse protection handshake, and the receiver confirms
+either in its answer or later by requesting a callback URL. The handshake, its outcomes, and the callback are documented
+in [Abuse protection](../../reference/guides/webhook-events.md#abuse-protection).
 
 {{< callout context="danger" title="Required" icon="outline/alert-octagon" >}}
-A destination which has not confirmed receives no events at all, and events which occur in the meantime are not
-recorded in the [metrics](#metrics). A receiver must implement the `OPTIONS` response or the callback, or the
-destination must set [disable](#disable).
+A destination which has not confirmed receives no events at all. A receiver must implement the `OPTIONS` response or the
+callback, or the destination must set [disable](#disable).
 {{< /callout >}}
-
-The destination's [authentication](#authentication) and [headers](#headers) are sent with the handshake.
-
-The outcome of the handshake is one of:
-
-- **Confirmed.** The destination receives events.
-- **Refused.** The response permits a different origin, or its `WebHook-Allowed-Rate` is invalid or missing when a rate
-  was requested. The refusal is logged, is not retried, and the destination receives no events until Authelia is
-  restarted.
-- **Held.** Any other outcome, including a response with no `WebHook-Allowed-Origin` and a handshake which exhausts its
-  retries. The destination receives no events until it confirms by callback. A destination which confirmed by callback
-  on an earlier start is not held, as the confirmation is kept in storage, unless it answers the handshake with `410`,
-  which withdraws the confirmation. A handshake which got no answer, or only
-  `429`, `503`, or other `5xx` responses, is repeated every five minutes until the receiver answers it.
-
-A `429`, `503`, or other `5xx` response, or a failure which produced no response, is retried under the destination's
-[retry](#retry) policy before the outcome is decided.
-
-Startup continues whatever the outcome. The handshake for each destination is limited to thirty seconds in total,
-including a request in flight, and destinations are validated concurrently. Each destination receives events as soon as
-its own handshake completes, without waiting for the others. Other than the repeats for a receiver which did not answer, it is performed
-once per start, and repeated hourly for a destination which was suspended by answering a delivery with `410`, as
-described in
-[Retries and failures](../../reference/guides/webhook-events.md#retries-and-failures).
 
 ##### disable
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
 Skips the handshake and delivers events without asking the destination to confirm. Use this only for a receiver you
-control which implements neither `OPTIONS` nor the callback. The other `validation` options are neither checked nor
-used when this is enabled.
-
-Without a handshake the receiver has no way to agree to receive events again after answering a delivery with `410`, so
-such a destination stays [suspended](../../reference/guides/webhook-events.md#suspension) until Authelia is restarted.
+control which implements neither `OPTIONS` nor the callback. The other `validation` options are neither checked nor used
+when this is enabled, and a destination [suspended](../../reference/guides/webhook-events.md#suspension) by a `410`
+stays suspended until Authelia is restarted.
 
 ##### origin
 
@@ -422,27 +359,14 @@ for example behind a gateway. Enabling it without an `origin` is a startup error
 {{< confkey type="integer" required="no" >}}
 
 The delivery rate requested in `WebHook-Request-Rate`, in requests per minute. When this is absent or `0` the header is
-not sent. A negative value is a startup error.
-
-When a rate is requested the receiver must answer with `WebHook-Allowed-Rate`, either a positive integer or an
-asterisk for no limit. A response which omits it is a refusal. Authelia paces its requests to the rate the receiver
-allows, which may differ from the one requested, and a receiver may send the header even when no rate was requested.
-
-The limit applies to requests, not events. Retries count against it, and a [batch](#batch) counts as one request.
+not sent. A negative value is a startup error. Authelia paces its requests to the rate the receiver allows, as described
+in [Abuse protection](../../reference/guides/webhook-events.md#abuse-protection).
 
 #### batch
 
-Batching delivers several events in one request. It is disabled unless [size](#size) is configured.
-
-A batch is sent in the CloudEvents batched content mode: the media type is `application/cloudevents-batch+json` and the
-body is a JSON array of envelopes, even when it holds one event. The per event `ce-` headers are not sent and
-`X-Authelia-Event-Count` carries the number of events.
-
-A batching destination still receives single event requests for the types listed in [immediate](#immediate) and for
-the [startup_check](#startup_check) probe, so its receiver must handle both formats.
-
-A batch succeeds or fails as a unit. A permanent failure drops every event in it and a retry resends all of them. A
-receiver should order events by the envelope `time` attribute, not by their position in the array.
+Batching delivers several events in one request. It is disabled unless [size](#size) is configured. The request format,
+failure handling, and ordering are documented in [Batched
+deliveries](../../reference/guides/webhook-events.md#batched-deliveries).
 
 ##### size
 
@@ -480,15 +404,10 @@ webhooks:
           - 'com.authelia.security.*'
 ```
 
-{{< callout context="caution" title="Ordering" icon="outline/alert-triangle" >}}
-An immediate event can arrive before batched events which occurred earlier. A receiver which needs events in order
-must sort on the envelope `time` attribute.
-{{< /callout >}}
-
 #### retry
 
-The retry policy for a failed delivery attempt. Which responses are retried, and the handling of `Retry-After`, are
-documented in [Retries and failures](../../reference/guides/webhook-events.md#retries-and-failures).
+The retry policy for a failed delivery attempt. Which responses are retried, the backoff, and the handling of
+`Retry-After` are documented in [Retries and failures](../../reference/guides/webhook-events.md#retries-and-failures).
 
 ##### attempts
 
@@ -501,17 +420,15 @@ the default, and a negative value is a startup error.
 
 {{< confkey type="string,integer" syntax="duration" default="1 second" required="no" >}}
 
-The wait before the second attempt. The wait doubles before each subsequent attempt, and each wait is shortened by a
-random amount of up to twenty percent so that destinations recovering from the same outage do not retry together.
+The wait before the second attempt, which doubles before each subsequent attempt. See
+[Backoff](../../reference/guides/webhook-events.md#backoff).
 
 ##### maximum_interval
 
 {{< confkey type="string,integer" syntax="duration" default="1 minute" required="no" >}}
 
-The ceiling applied to the doubling wait.
-
-It does not limit a `Retry-After` header returned with a `429` or `503` response, which is honored for up to one hour.
-That wait applies to the destination as a whole, so later events wait as well.
+The ceiling applied to the doubling wait. It does not limit a
+[Retry-After](../../reference/guides/webhook-events.md#retry-after).
 
 #### tls
 
@@ -548,46 +465,5 @@ webhooks:
 
 The `trim` is required because `fileContent` does not strip a trailing newline, and a secret with a trailing newline
 produces a signature the receiver cannot reproduce.
-
-## Security
-
-| Concern                    | Behavior                                                                                       |
-| :------------------------- | :--------------------------------------------------------------------------------------------- |
-| Transport                  | HTTPS only. TLS 1.2 minimum by default.                                                        |
-| Redirects                  | Never followed, so credentials are not resent to another host. A `3xx` is a permanent failure. |
-| Payload authenticity       | Only the HMAC [signature](#signature) proves a payload came from Authelia.                     |
-| Receiver authenticity      | The [tls](#tls) verification parameters. `skip_verify` disables this.                          |
-| Credential equivalent data | Omitted unless [disable_redaction](#disable_redaction) is enabled.                             |
-| Response bodies            | At most 4096 bytes are read and discarded. The body is never parsed.                           |
-
-## Delivery guarantees
-
-Delivery is best effort with retries, and queues are held in memory only. An event is dropped when:
-
-- the destination's buffer is full,
-- it fails every attempt,
-- it receives a permanent failure response, or
-- Authelia stops or crashes before it is delivered.
-
-On shutdown the queued events have five seconds to drain. That period is shared by every destination, and when it
-elapses the delivery in progress is cancelled and the remainder are dropped with an error logged.
-
-A receiver may see the same event twice, so deduplicate on the envelope `id`, which is the same on every attempt. See
-[Idempotency](../../reference/guides/webhook-events.md#idempotency). A destination which does not batch is sent its
-events in the order they were emitted.
-
-Do not use webhooks as the system of record for anything you cannot afford to lose. They are a notification and
-automation mechanism, not an audit log.
-
-## Metrics
-
-When [telemetry](../../reference/guides/metrics.md) is enabled, delivery outcomes are recorded against the
-`authelia_webhook_delivery` counter with the labels `destination`, `event`, and `outcome`. The `outcome` label is one of
-`delivered`, `retried`, or `dropped`.
-
-An attempt which fails and will be retried records `retried`, so one event may record several `retried` outcomes before
-it records `delivered` or `dropped`.
-
-Events which occur while a destination is refused, held, or suspended are not queued and are not counted.
 
 [CloudEvents]: https://cloudevents.io/

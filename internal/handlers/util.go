@@ -168,8 +168,6 @@ func isRegulatorSkippedErr(err error) bool {
 	return false
 }
 
-// replyPasswordModified replies to a password change or reset which has taken effect, reporting the failure to save the
-// session afterwards when there was one.
 func replyPasswordModified(ctx *middlewares.AutheliaCtx, failed bool) {
 	if failed {
 		ctx.SetJSONError(messageOperationFailed)

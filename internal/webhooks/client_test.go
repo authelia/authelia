@@ -74,6 +74,5 @@ func TestNewClientShouldUseTheProxyFromTheEnvironment(t *testing.T) {
 
 	require.True(t, ok)
 
-	// The environment is read once per process by net/http, so the function is checked rather than its result.
 	assert.NotNil(t, transport.Proxy)
 }

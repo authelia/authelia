@@ -20,8 +20,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
-// grantServer answers the handshake with a configurable status and no WebHook-Allowed-Origin header, as a receiver which
-// confirms by callback does, and answers deliveries with a configurable status.
 type grantServer struct {
 	handshake atomic.Int32
 	delivery  atomic.Int32
@@ -57,7 +55,6 @@ func newGrantServer(t *testing.T) (*grantServer, *httptest.Server) {
 	return gs, server
 }
 
-// confirmOnce runs a first start which the receiver confirms using the callback, leaving the grant in the store.
 func confirmOnce(t *testing.T, store *testStore, address string) {
 	t.Helper()
 

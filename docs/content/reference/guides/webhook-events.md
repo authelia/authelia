@@ -18,9 +18,9 @@ seo:
   noindex: false # false (default) or true
 ---
 
-This guide is for people writing a receiver. It documents the envelope, the request, how to verify a payload, and what
-each event type contains. The sending side is documented in the
-[webhooks](../../configuration/miscellaneous/webhooks.md) configuration reference.
+This guide is for people operating a webhook destination or writing a receiver. It documents how Authelia delivers
+events, the envelope, the request, how to verify a payload, and what each event type contains. The options themselves
+are documented in the [webhooks](../../configuration/miscellaneous/webhooks.md) configuration reference.
 
 ## Before you build a receiver
 
@@ -30,7 +30,7 @@ Several behaviors are easy to get wrong. Each is documented in full below:
 - [`com.authelia.security.ban.expired` is never emitted](#comautheliasecuritybanexpired-is-never-emitted).
 - [`com.authelia.security.authentication.failed` often carries an empty
   `username`](#an-empty-username-on-a-failure-is-normal), including for attempts against users which do not exist.
-- [`internal_error` is broad](#internal_error-is-broad). With the LDAP backend it includes a wrong password.
+- [`internal_error` is broad](#internal_error-is-broad).
 - [`user_not_found`](#reason) is only set where the authentication backend reports it.
 - [An attempt refused because the address is banned names the
   user](#an-attempt-from-a-banned-address-still-names-the-user), not the address.
@@ -282,6 +282,9 @@ options:
 A receiver should respond with a `2xx` as soon as it has durably accepted the event, and do its own processing
 afterwards. Authelia reads at most 4096 bytes of a response body and discards them.
 
+Redirects are never followed, as a redirect would resend the destination's credentials to another host. Requests use
+the proxy named by the `HTTPS_PROXY` environment variable, unless the address matches `NO_PROXY`.
+
 ### Batched deliveries
 
 A destination which configures [batching](../../configuration/miscellaneous/webhooks.md#batch) is sent several events
@@ -433,8 +436,8 @@ A `Retry-After` applies to every request Authelia sends to the destination, whet
 for the [handshake](#abuse-protection). No delivery, handshake, or [startup check probe](#the-startup-check-probe) is
 sent until it elapses, and a startup check which falls within it is skipped and logged as a warning.
 
-The wait is not capped at [maximum_interval](../../configuration/miscellaneous/webhooks.md#maximum_interval), but it
-is limited to one hour, so a misbehaving response cannot silence a destination indefinitely. A receiver asking to be left
+The wait is not capped at [maximum_interval](../../configuration/miscellaneous/webhooks.md#maximum_interval), but it is
+limited to one hour, so a misbehaving response cannot silence a destination indefinitely. A receiver asking to be left
 alone for a day is therefore sent the next request after an hour, which departs from the CloudEvents HTTP webhook
 specification for values above that limit, and each such response is logged as a warning. The wait includes later
 events, which are held in the destination's buffer and dropped once it is full. A `Retry-After` does not add attempts.
@@ -445,6 +448,52 @@ The backoff interval starts at [initial_interval](../../configuration/miscellane
 doubles before each subsequent attempt, and is capped at
 [maximum_interval](../../configuration/miscellaneous/webhooks.md#maximum_interval). Each wait is shortened by a random
 amount of up to twenty percent.
+
+## Delivery guarantees
+
+Delivery is best effort with retries, and queues are held in memory only. Enqueuing never blocks. An event is dropped,
+and an error logged, when:
+
+- the destination's [buffer](../../configuration/miscellaneous/webhooks.md#buffer_size) is full,
+- it fails every attempt,
+- it receives a permanent failure response, or
+- Authelia stops or crashes before it is delivered.
+
+A destination delivers serially and waits during retry backoff and any `Retry-After`, so a failing receiver is not
+consuming its queue. Size the buffer with that in mind, or reduce
+[attempts](../../configuration/miscellaneous/webhooks.md#attempts) and
+[maximum_interval](../../configuration/miscellaneous/webhooks.md#maximum_interval) for a high volume destination.
+
+On shutdown the queued events have five seconds to drain. That period is shared by every destination, and when it
+elapses the delivery in progress is cancelled and the remainder are dropped with an error logged.
+
+A receiver may see the same event twice, so deduplicate on the envelope `id`. See [Idempotency](#idempotency). A
+destination which does not batch is sent its events in the order they were emitted.
+
+Do not use webhooks as the system of record for anything you cannot afford to lose. They are a notification and
+automation mechanism, not an audit log.
+
+## Metrics
+
+When [telemetry](metrics.md) is enabled, delivery outcomes are recorded against the `authelia_webhook_delivery` counter
+with the labels `destination`, `event`, and `outcome`. The `outcome` label is one of `delivered`, `retried`, or
+`dropped`.
+
+An attempt which fails and will be retried records `retried`, so one event may record several `retried` outcomes before
+it records `delivered` or `dropped`.
+
+Events which occur while a destination is refused, held, or suspended are not queued and are not counted.
+
+## Security
+
+| Concern                    | Behavior                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------- |
+| Transport                  | HTTPS only. TLS 1.2 minimum by default.                                                        |
+| Redirects                  | Never followed, so credentials are not resent to another host. A `3xx` is a permanent failure. |
+| Payload authenticity       | Only the HMAC [signature](#verifying-the-signature) proves a payload came from Authelia.       |
+| Receiver authenticity      | The destination's TLS verification. `skip_verify` disables this.                               |
+| Credential equivalent data | Omitted unless redaction is disabled. See [Redaction](#redaction).                             |
+| Response bodies            | At most 4096 bytes are read and discarded. The body is never parsed.                           |
 
 ## Event volume
 
@@ -642,13 +691,13 @@ A success always carries a username.
 
 The first matching row applies.
 
-|         Value         | Meaning                                                                                                    |
-| :-------------------: | :--------------------------------------------------------------------------------------------------------- |
-|       `banned`        | The user or the address was already banned by regulation.                                                  |
-| `invalid_credentials` | The user's authenticator rejected the attempt: a declined push or a failed WebAuthn assertion.             |
-|   `user_not_found`    | The authentication backend reported that the user does not exist or is disabled.                           |
-|   `internal_error`    | Any other error. See [internal_error is broad](#internal_error-is-broad).                                  |
-| `invalid_credentials` | The attempt failed without an error: a wrong One-Time Password, or a wrong password with the file backend. |
+|         Value         | Meaning                                                                                                                   |
+| :-------------------: | :------------------------------------------------------------------------------------------------------------------------ |
+|       `banned`        | The user or the address was already banned by regulation.                                                                 |
+| `invalid_credentials` | The attempt was rejected: a wrong password reported by the LDAP backend, a declined push, or a failed WebAuthn assertion. |
+|   `user_not_found`    | The authentication backend reported that the user does not exist or is disabled.                                          |
+|   `internal_error`    | Any other error. See [internal_error is broad](#internal_error-is-broad).                                                 |
+| `invalid_credentials` | The attempt failed without an error: a wrong One-Time Password, or a wrong password with the file backend.                |
 
 `user_not_found` is set only when the authentication backend returns its "user not found" error, which it also returns
 for a disabled user. It occurs:
@@ -668,11 +717,6 @@ The absence of `user_not_found` does not show that the username exists.
 `internal_error` is given to any failure with an error which was not classified as a rejection or as a missing user. It
 covers system faults, such as an unreachable authentication backend or a failing storage or session operation, but it
 is not limited to them.
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-With the LDAP backend a wrong password is reported as `internal_error`, because the backend returns the rejected bind
-as an error. Only the file backend reports a wrong password as `invalid_credentials`.
-{{< /callout >}}
 
 Some faults produce no event at all: a failed regulation lookup, a connection pool timeout in the authentication
 backend, and on the proxy authorization path any failure to look up the user other than the user not being found.
@@ -745,7 +789,9 @@ A destination which does not batch is sent its events in the order they were emi
 
 When [startup_check](../../configuration/miscellaneous/webhooks.md#startup_check) is enabled, each confirmed
 destination is sent one `com.authelia.system.startup_check` event at startup to check that it is reachable and accepts
-the credentials. It is always sent as a single event request.
+the credentials. It is always sent as a single event request, regardless of the destination's
+[events](../../configuration/miscellaneous/webhooks.md#events) selectors. It is not sent to a destination which refused
+the handshake or has not confirmed it. A failed check is logged as a warning and never prevents startup.
 
 It does not describe an occurrence, so a receiver must not record it as an authentication, a security signal, or an
 audit entry. Its `data` object carries `probe` set to `true`. Acknowledge it with a `2xx` and discard it.

@@ -242,9 +242,6 @@ func (dispatcher *Dispatcher) hold(d *destination, origin string, err error) (he
 
 	fields := map[string]any{"destination": d.config.Name, "origin": origin}
 
-	// A 410 withdraws a confirmation recorded from the callback. Every other answer without a WebHook-Allowed-Origin
-	// header leaves it standing, because the receivers which confirm by callback are often those which do not implement
-	// the handshake at all, and the specification says the handshake cannot rely on status codes.
 	retired := errors.Is(err, errHandshakeRetired)
 
 	if retired {
@@ -284,8 +281,6 @@ func (dispatcher *Dispatcher) hold(d *destination, origin string, err error) (he
 	return true, nil
 }
 
-// withdraw forgets the recorded confirmation of a destination which answered the handshake with 410, unless the
-// callback confirmed it while the handshake was in flight, which is the more recent statement of consent.
 func (dispatcher *Dispatcher) withdraw(d *destination) {
 	dispatcher.mutex.RLock()
 
@@ -318,8 +313,6 @@ func (dispatcher *Dispatcher) remember(d *destination, origin string, rate int) 
 	}
 }
 
-// recall loads the recorded confirmation of a destination. A confirmation only applies to the name, address, and origin
-// it was given for, since consent is given to one sender for one target.
 func (dispatcher *Dispatcher) recall(d *destination, origin string) (saved grant, ok bool) {
 	if dispatcher.store == nil {
 		return saved, false
@@ -523,8 +516,6 @@ func (dispatcher *Dispatcher) watch() {
 	}
 }
 
-// launch starts the worker of a destination whose handshake has settled, along with the repeated handshake of a
-// destination which did not answer it. It does nothing once the dispatcher has been shut down or the worker is running.
 func (dispatcher *Dispatcher) launch(d *destination) {
 	dispatcher.mutex.Lock()
 	defer dispatcher.mutex.Unlock()
@@ -566,8 +557,6 @@ func (dispatcher *Dispatcher) markUnanswered(d *destination) {
 	dispatcher.mutex.Unlock()
 }
 
-// watchUnanswered repeats the handshake for a destination which never answered it, which is the only way out for a
-// receiver that was unavailable when Authelia started because it never saw the callback.
 func (dispatcher *Dispatcher) watchUnanswered(d *destination) {
 	ticker := time.NewTicker(dispatcher.unanswered)
 
@@ -662,9 +651,6 @@ func (dispatcher *Dispatcher) prepare() {
 	for _, d := range dispatcher.destinations {
 		d.callback = callbackOf(dispatcher.source, d.config.Name, dispatcher.callbackKey(d))
 
-		// The origin is known before the handshake so a callback which arrives during it records the grant against the
-		// origin it was given for. A destination which disables validation has no handshake for the origin to match, so
-		// it is not sent one, and its origin options are neither checked nor used.
 		if d.config.Validation.Disable {
 			continue
 		}

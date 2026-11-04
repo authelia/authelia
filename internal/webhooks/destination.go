@@ -191,8 +191,6 @@ func (d *destination) throttle() (proceed bool) {
 	return true
 }
 
-// setRate sets the interval between requests from the permitted rate in requests per minute. It is atomic because a
-// confirmation or a recheck changes it while the worker is delivering.
 func (d *destination) setRate(rate int) {
 	d.pace.Store(int64(interval(rate)))
 }
@@ -428,7 +426,6 @@ func (d *destination) revive() {
 			}
 		}
 
-		// The receiver may permit a different rate than it did before it was retired.
 		d.setRate(rate)
 	}
 
@@ -437,10 +434,6 @@ func (d *destination) revive() {
 	}
 }
 
-// reconfirmed reports whether a retired destination whose handshake did not confirm it has since confirmed using the
-// callback, and the rate that confirmation permits. The callback may have been received by another instance sharing
-// the storage backend. The 410 which retired the destination removed its earlier confirmation, so any confirmation found
-// was given afterwards. A handshake which is itself answered with 410 withdraws that confirmation again.
 func (d *destination) reconfirmed(err error) (rate int, ok bool) {
 	if errors.Is(err, errHandshakeRetired) {
 		if d.revoke != nil {

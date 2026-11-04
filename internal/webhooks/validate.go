@@ -64,8 +64,6 @@ func (d *destination) validate(origin string) (rate int, err error) {
 	deadline := time.Now().Add(d.budget)
 	interval := d.config.Retry.InitialInterval
 
-	// The budget also bounds a request in flight, which a per request timeout longer than the budget would otherwise
-	// let run past it.
 	ctx, cancel := context.WithDeadline(d.ctx, deadline)
 
 	defer cancel()
