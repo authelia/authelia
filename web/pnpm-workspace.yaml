@@ -7,7 +7,7 @@ overrides:
   fast-uri: 4.2.3
   glob: 14.0.3
   js-yaml: 5.5.0
-  minimatch: 11.0.3
+  minimatch: 11.0.4
   picomatch: 4.0.7
   qs: 6.17.1
   semver: 7.8.6
