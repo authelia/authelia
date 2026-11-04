@@ -42,6 +42,7 @@ duo_api:
   integration_key: 'ABCDEF'
   secret_key: '1234567890abcdefghifjkl'
   enable_self_enrollment: false
+  experimental_disable_ca_pinning: false
 ```
 
 ## Options
@@ -78,5 +79,28 @@ The secret [Duo] key used to verify your application is valid. This is provided 
 {{< confkey type="boolean" default="false" required="no" >}}
 
 Enables [Duo] device self-enrollment from within the Authelia portal.
+
+### experimental_disable_ca_pinning
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Stability and Security Notice" icon="outline/alert-octagon" >}}
+This option is not recommended and is not considered supported:
+
+1. It is experimental and may be removed at any time without notice.
+2. It is insecure. It removes an active and intentional protection implemented by [Duo]: the [Duo] client only trusts
+   the CA certificates [Duo] pins, rather than every CA in the system trust store. This pinning is what prevented the
+   eMudhra Intermediate CA Certificates Compromise from affecting the [Duo] client.
+3. It may in the future be considered as not satisfying the `two_factor` policy. There is no way to sufficiently
+   determine the validation steps a third-party provider implements; for example a provider could simply ask for the
+   user's password again.
+{{< /callout >}}
+
+Disables the [Duo] CA certificate pinning so the [hostname](#hostname) is verified against the system trust store
+instead. This allows the use of a third-party implementation of the [Duo] Auth API. TLS certificate verification is
+still performed.
+
+This option can't be enabled when the [hostname](#hostname) is a [Duo] hostname (`duosecurity.com`, `duofederal.com`,
+or any subdomain of either); doing so is a configuration error.
 
 [Duo]: https://duo.com/
