@@ -54,25 +54,20 @@ type destination struct {
 	immediates []string
 
 	callback string
-	key      string
 
-	refused bool
-	pending bool
-	// unanswered is true while a pending destination has never answered the handshake, so it may not have seen the
-	// callback and the handshake has to be repeated.
+	refused    bool
+	pending    bool
 	unanswered bool
-	// launched is true once the worker has been started, which happens as soon as the handshake settles.
-	launched bool
-	settled  bool
-	granted  bool
-	allowed  string
-	gone     atomic.Bool
-	recheck  time.Duration
-	// budget limits each handshake, including its retries and any request in flight.
-	budget  time.Duration
-	revival *time.Timer
-	revoke  func()
-	regrant func() (rate int, ok bool)
+	launched   bool
+	settled    bool
+	granted    bool
+	allowed    string
+	gone       atomic.Bool
+	recheck    time.Duration
+	budget     time.Duration
+	revival    *time.Timer
+	revoke     func()
+	regrant    func() (rate int, ok bool)
 
 	pace   atomic.Int64
 	last   time.Time
@@ -462,8 +457,6 @@ func (d *destination) reconfirmed(err error) (rate int, ok bool) {
 	return d.regrant()
 }
 
-// reinstate resumes deliveries to a retired destination which confirmed using the callback, and cancels the handshake
-// which was scheduled to recheck it. It reports whether the destination was retired.
 func (d *destination) reinstate() (reinstated bool) {
 	d.mutex.Lock()
 
@@ -492,6 +485,14 @@ func (d *destination) batching() bool {
 
 func (d *destination) send(dl delivery) {
 	interval := d.config.Retry.InitialInterval
+
+	if err := d.encode(&dl); err != nil {
+		d.recordAll(dl, outcomeDropped)
+
+		d.log.WithError(err).WithFields(d.fields(dl)).Error("Webhook delivery failed permanently and the event was dropped")
+
+		return
+	}
 
 	for attempt := 1; attempt <= d.config.Retry.Attempts; attempt++ {
 		if d.gone.Load() {
@@ -653,23 +654,32 @@ func (d *destination) record(event *events.Event, outcome string) {
 	recorder.RecordWebhookDelivery(d.config.Name, event.Type, outcome)
 }
 
-func (d *destination) attempt(dl delivery, attempt int) (err error) {
-	var (
-		body    []byte
-		headers map[string]string
-	)
+func (d *destination) encode(dl *delivery) (err error) {
+	if dl.body != nil {
+		return nil
+	}
 
 	if dl.batched {
-		body, err = events.MarshalBatch(dl.events, d.source, d.version, !d.config.DisableRedaction)
+		dl.body, err = events.MarshalBatch(dl.events, d.source, d.version, !d.config.DisableRedaction)
 	} else {
-		body, headers, err = events.MarshalWithHeaders(dl.events[0], d.source, d.version, !d.config.DisableRedaction)
+		dl.body, dl.headers, err = events.MarshalWithHeaders(dl.events[0], d.source, d.version, !d.config.DisableRedaction)
 	}
 
 	if err != nil {
+		dl.body, dl.headers = nil, nil
+
 		return &permanentError{err: fmt.Errorf("error marshaling event: %w", err)}
 	}
 
-	req, err := http.NewRequestWithContext(d.ctx, http.MethodPost, d.address, bytes.NewReader(body))
+	return nil
+}
+
+func (d *destination) attempt(dl delivery, attempt int) (err error) {
+	if err = d.encode(&dl); err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(d.ctx, http.MethodPost, d.address, bytes.NewReader(dl.body))
 	if err != nil {
 		return &permanentError{err: fmt.Errorf("error building request: %w", err)}
 	}
@@ -690,12 +700,12 @@ func (d *destination) attempt(dl delivery, attempt int) (err error) {
 	} else {
 		req.Header.Set("Content-Type", events.ContentTypeHeader)
 
-		for name, value := range headers {
+		for name, value := range dl.headers {
 			req.Header.Set(name, value)
 		}
 	}
 
-	if signature := Sign(d.config.Signature.Secret, d.config.Signature.Algorithm, signedAt, body); signature != "" {
+	if signature := Sign(d.config.Signature.Secret, d.config.Signature.Algorithm, signedAt, dl.body); signature != "" {
 		req.Header.Set(events.HeaderSignature, signature)
 	}
 
@@ -732,9 +742,6 @@ func (d *destination) deliver(event *events.Event) (err error) {
 	return d.attempt(delivery{events: []*events.Event{event}}, 1)
 }
 
-// observe records the Retry-After of a retryable response, so every later request to the destination waits for it
-// whichever path sends that request. It is called wherever a response is read, rather than by the callers, so no path
-// can accept or contact a destination while forgetting a wait it was asked to observe.
 func (d *destination) observe(failure *retryableError) {
 	if failure.after <= 0 {
 		return
@@ -748,8 +755,6 @@ func (d *destination) observe(failure *retryableError) {
 	}
 }
 
-// postpone pauses every request to the destination for the duration. A pause already in force which ends later is
-// kept, because concurrent requests may return their Retry-After headers in any order.
 func (d *destination) postpone(after time.Duration) {
 	until := time.Now().Add(after).UnixNano()
 
@@ -762,7 +767,6 @@ func (d *destination) postpone(after time.Duration) {
 	}
 }
 
-// paused returns how much longer the destination has asked not to be contacted.
 func (d *destination) paused() (remaining time.Duration) {
 	return max(time.Until(time.Unix(0, d.resume.Load())), 0)
 }
@@ -790,7 +794,6 @@ func (e *retryableError) Error() string {
 	return fmt.Sprintf("received status code %d", e.status)
 }
 
-// retryableStatus returns the error for a response which is retried, or nil for any other response.
 func retryableStatus(resp *http.Response) (failure *retryableError) {
 	switch {
 	case resp.StatusCode == http.StatusTooManyRequests, resp.StatusCode == http.StatusServiceUnavailable:
@@ -825,7 +828,6 @@ func retryAfterOf(err error) (after time.Duration, ok bool) {
 	return 0, false
 }
 
-// parseRetryAfter returns the wait a Retry-After header asks for, and whether it was reduced to retryAfterLimit.
 func parseRetryAfter(value string) (after time.Duration, limited bool) {
 	if value == "" {
 		return 0, false

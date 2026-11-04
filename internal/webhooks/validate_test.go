@@ -614,7 +614,7 @@ func TestDispatcherShouldHoldADestinationWhichDoesNotSupportTheHandshake(t *test
 
 	assert.Equal(t, int32(0), deliveries.Load())
 
-	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 
 	dispatcher.Emit(context.Background(), testEvent())
 
@@ -645,7 +645,7 @@ func TestDispatcherShouldRememberACallbackConfirmationAcrossRestarts(t *testing.
 	require.NoError(t, first.Validate())
 	require.True(t, first.destinations[0].pending)
 
-	require.True(t, first.Confirm("admin-api", first.destinations[0].key, "120"))
+	require.True(t, first.Confirm("admin-api", first.callbackKey(first.destinations[0]), "120"))
 	require.Len(t, store.grants(), 1)
 	assert.LessOrEqual(t, len(store.grants()[0]), 20)
 
@@ -660,7 +660,7 @@ func TestDispatcherShouldRememberACallbackConfirmationAcrossRestarts(t *testing.
 	assert.False(t, second.destinations[0].pending)
 	assert.False(t, second.destinations[0].refused)
 	assert.Equal(t, time.Minute/120, second.destinations[0].spacing())
-	assert.Equal(t, first.destinations[0].key, second.destinations[0].key)
+	assert.Equal(t, first.callbackKey(first.destinations[0]), second.callbackKey(second.destinations[0]))
 
 	second.Start()
 
@@ -688,7 +688,7 @@ func TestDispatcherShouldNotReuseAConfirmationForAnotherAddress(t *testing.T) {
 	first.SetStore(store)
 
 	require.NoError(t, first.Validate())
-	require.True(t, first.Confirm("admin-api", first.destinations[0].key, ""))
+	require.True(t, first.Confirm("admin-api", first.callbackKey(first.destinations[0]), ""))
 
 	second := newValidationDispatcher(t, moved.URL, nil)
 
@@ -719,7 +719,7 @@ func TestDispatcherShouldForgetAConfirmationWhenTheDestinationRefuses(t *testing
 	first.SetStore(store)
 
 	require.NoError(t, first.Validate())
-	require.True(t, first.Confirm("admin-api", first.destinations[0].key, ""))
+	require.True(t, first.Confirm("admin-api", first.callbackKey(first.destinations[0]), ""))
 	require.Len(t, store.grants(), 1)
 
 	refuse.Store(true)
@@ -754,7 +754,7 @@ func TestDispatcherShouldForgetAConfirmationWhenTheDestinationIsGone(t *testing.
 	dispatcher.SetStore(store)
 
 	require.NoError(t, dispatcher.Validate())
-	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 	require.Len(t, store.grants(), 1)
 
 	dispatcher.Start()
@@ -785,7 +785,7 @@ func TestDispatcherShouldTolerateAStoreWhichFails(t *testing.T) {
 	require.NoError(t, dispatcher.Validate())
 	require.True(t, dispatcher.destinations[0].pending)
 
-	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 	assert.False(t, dispatcher.destinations[0].pending)
 }
 
@@ -830,7 +830,7 @@ func TestDispatcherConfirmShouldFallBackToTheRequestedRate(t *testing.T) {
 	require.NoError(t, dispatcher.Validate())
 	require.True(t, dispatcher.destinations[0].pending)
 
-	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 	assert.Equal(t, time.Second, dispatcher.destinations[0].spacing())
 }
 
@@ -857,7 +857,7 @@ func TestDispatcherShouldAcceptACallbackWhichArrivesDuringTheHandshake(t *testin
 
 	<-entered
 
-	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	assert.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 
 	close(release)
 
@@ -877,7 +877,7 @@ func TestDispatcherConfirmShouldNotGrantARefusedDestination(t *testing.T) {
 
 	require.Error(t, dispatcher.Validate())
 
-	assert.False(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	assert.False(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 	assert.True(t, dispatcher.destinations[0].refused)
 }
 
@@ -890,7 +890,7 @@ func TestDispatcherShouldNotOfferACallbackWhenValidationIsDisabled(t *testing.T)
 
 	require.NoError(t, dispatcher.Validate())
 
-	assert.Empty(t, dispatcher.destinations[0].key)
+	assert.Empty(t, dispatcher.callbackKey(dispatcher.destinations[0]))
 	assert.Empty(t, dispatcher.destinations[0].callback)
 	assert.False(t, dispatcher.Confirm("admin-api", "", ""))
 }
@@ -912,11 +912,11 @@ func TestDispatcherShouldShareTheCallbackKeyBetweenInstances(t *testing.T) {
 	require.NoError(t, first.Validate())
 	require.NoError(t, second.Validate())
 
-	require.NotEmpty(t, first.destinations[0].key)
-	assert.Equal(t, first.destinations[0].key, second.destinations[0].key)
+	require.NotEmpty(t, first.callbackKey(first.destinations[0]))
+	assert.Equal(t, first.callbackKey(first.destinations[0]), second.callbackKey(second.destinations[0]))
 	assert.Equal(t, first.destinations[0].callback, second.destinations[0].callback)
 
-	assert.True(t, second.Confirm("admin-api", first.destinations[0].key, ""))
+	assert.True(t, second.Confirm("admin-api", first.callbackKey(first.destinations[0]), ""))
 	assert.False(t, second.destinations[0].pending)
 }
 
@@ -947,7 +947,7 @@ func TestDispatcherShouldPickUpAConfirmationMadeOnAnotherInstance(t *testing.T) 
 
 	second.Start()
 
-	require.True(t, first.Confirm("admin-api", first.destinations[0].key, "120"))
+	require.True(t, first.Confirm("admin-api", first.callbackKey(first.destinations[0]), "120"))
 
 	require.Eventually(t, func() bool {
 		second.mutex.RLock()
@@ -975,8 +975,8 @@ func TestDispatcherShouldUseDifferentCallbackKeysWithoutAStore(t *testing.T) {
 	require.NoError(t, first.Validate())
 	require.NoError(t, second.Validate())
 
-	assert.NotEqual(t, first.destinations[0].key, second.destinations[0].key)
-	assert.False(t, second.Confirm("admin-api", first.destinations[0].key, ""))
+	assert.NotEqual(t, first.callbackKey(first.destinations[0]), second.callbackKey(second.destinations[0]))
+	assert.False(t, second.Confirm("admin-api", first.callbackKey(first.destinations[0]), ""))
 }
 
 func TestDispatcherCallbackKeyShouldBeUniqueToTheDestinationAndAddress(t *testing.T) {
@@ -1354,7 +1354,7 @@ func TestDispatcherShouldStopRepeatingTheHandshakeAfterTheCallback(t *testing.T)
 
 	require.Error(t, dispatcher.Validate())
 
-	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 
 	dispatcher.Start()
 

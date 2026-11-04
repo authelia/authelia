@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -76,19 +77,45 @@ func docsAPIOpenAPIRunE(cmd *cobra.Command, _ []string) (err error) {
 		return fmt.Errorf("failed to update '%s': %w", path, err)
 	}
 
-	var f *os.File
+	return writeFileReplace(path, out)
+}
 
-	if f, err = os.Create(path); err != nil {
+func writeFileReplace(path string, data []byte) (err error) {
+	var info os.FileInfo
+
+	if info, err = os.Stat(path); err != nil {
 		return err
 	}
 
-	if _, err = f.Write(out); err != nil {
+	var f *os.File
+
+	if f, err = os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".*"); err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			_ = os.Remove(f.Name())
+		}
+	}()
+
+	if _, err = f.Write(data); err != nil {
 		_ = f.Close()
 
 		return err
 	}
 
-	return f.Close()
+	if err = f.Chmod(info.Mode().Perm()); err != nil {
+		_ = f.Close()
+
+		return err
+	}
+
+	if err = f.Close(); err != nil {
+		return err
+	}
+
+	return os.Rename(f.Name(), path)
 }
 
 func openAPIWebhookSchemas(dir string) (block string, err error) {

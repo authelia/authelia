@@ -234,12 +234,12 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 
 	err = ctx.Providers.Notifier.Send(ctx, details.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data)
 
-	ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataSessionElevation{
+	ctx.EmitEvent(events.NewEvent(&events.DataSessionElevation{
 		Username:    details.Username,
 		DisplayName: details.DisplayName,
 		Emails:      details.Emails,
 		RemoteIP:    ctx.RemoteIP().String(),
-		Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, data.Title, []events.Recipient{
+		Notification: ctx.NewNotification(err, data.Title, []events.Recipient{
 			{Email: details.Emails[0], Username: details.Username, DisplayName: details.DisplayName},
 		}, &events.NotificationValues{
 			Domain:            data.Domain,

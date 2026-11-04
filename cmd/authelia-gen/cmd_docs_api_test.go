@@ -6,6 +6,7 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -140,4 +141,48 @@ func openAPIWebhookSchemasBlock(t *testing.T, data string) string {
 	require.NotEqual(t, -1, end)
 
 	return strings.Join(lines[start+1:end], "\n")
+}
+
+func TestWriteFileReplaceShouldReplaceTheContentAndKeepTheMode(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "openapi.yml")
+
+	require.NoError(t, os.WriteFile(path, []byte("original"), 0o400))
+
+	require.NoError(t, writeFileReplace(path, []byte("replaced")))
+
+	data, err := os.ReadFile(path)
+
+	require.NoError(t, err)
+	assert.Equal(t, "replaced", string(data))
+
+	info, err := os.Stat(path)
+
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0o400), info.Mode().Perm(), "the mode of the original must be kept rather than that of the temporary file")
+
+	entries, err := os.ReadDir(filepath.Dir(path))
+
+	require.NoError(t, err)
+	assert.Len(t, entries, 1, "no temporary file may be left behind")
+}
+
+func TestWriteFileReplaceShouldLeaveTheOriginalWhenItCannotWrite(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("directory permissions do not restrict the root user")
+	}
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "openapi.yml")
+
+	require.NoError(t, os.WriteFile(path, []byte("original"), 0o400))
+	require.NoError(t, os.Chmod(dir, 0o500))
+
+	t.Cleanup(func() { _ = os.Chmod(dir, 0o700) })
+
+	assert.Error(t, writeFileReplace(path, []byte("replaced")))
+
+	data, err := os.ReadFile(path)
+
+	require.NoError(t, err)
+	assert.Equal(t, "original", string(data))
 }

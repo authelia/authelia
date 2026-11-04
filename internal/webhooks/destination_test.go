@@ -1052,3 +1052,37 @@ func (c *batchCapture) snapshot() (requests int, bodies [][]byte, types, counts 
 
 	return c.requests, append([][]byte{}, c.bodies...), append([]string{}, c.types...), append([]string{}, c.counts...)
 }
+
+func TestDestinationShouldEncodeADeliveryOnceForEveryAttempt(t *testing.T) {
+	var bodies []string
+
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+
+		bodies = append(bodies, string(body))
+
+		if len(bodies) == 1 {
+			rw.WriteHeader(http.StatusServiceUnavailable)
+
+			return
+		}
+
+		rw.WriteHeader(http.StatusOK)
+	}))
+
+	defer server.Close()
+
+	d := newTestDestination(t, server.URL, nil)
+
+	defer d.halt()
+
+	d.send(single(testEvent()))
+
+	require.Len(t, bodies, 2)
+	assert.Equal(t, bodies[0], bodies[1], "a retry must send the bytes the first attempt sent")
+
+	dl := delivery{events: []*events.Event{testEvent()}, body: []byte(`already encoded`)}
+
+	require.NoError(t, d.encode(&dl))
+	assert.Equal(t, `already encoded`, string(dl.body), "an encoded delivery must not be encoded again")
+}

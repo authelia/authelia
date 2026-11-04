@@ -54,11 +54,11 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, eventType, username, description 
 	if details, err = ctx.Providers.UserProvider.GetDetailsCached(username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred looking up user details for user '%s' while attempting to alert them of an important event", username)
 
-		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserCredential{
+		ctx.EmitEvent(events.NewEvent(&events.DataUserCredential{
 			Type:         eventType,
 			Subject:      events.Subject{Username: username, RemoteIP: ctx.RemoteIP().String()},
 			Description:  eventCredentialDescription(eventDetails),
-			Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, description, nil, nil),
+			Notification: ctx.NewNotification(err, description, nil, nil),
 		}))
 
 		return
@@ -90,14 +90,14 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, eventType, username, description 
 		err = ctx.Providers.Notifier.Send(ctx, addresses[0], description, ctx.Providers.Templates.GetEventEmailTemplate(), data)
 	}
 
-	ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserCredential{
+	ctx.EmitEvent(events.NewEvent(&events.DataUserCredential{
 		Type:        eventType,
 		Username:    username,
 		DisplayName: details.DisplayName,
 		Emails:      details.Emails,
 		RemoteIP:    ctx.RemoteIP().String(),
 		Description: eventCredentialDescription(eventDetails),
-		Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, description, recipientsFromDetails(username, details), &events.NotificationValues{
+		Notification: ctx.NewNotification(err, description, recipientsFromDetails(username, details), &events.NotificationValues{
 			BodyPrefix: body.Prefix,
 			BodyEvent:  body.Body,
 			BodySuffix: body.Suffix,
@@ -166,4 +166,16 @@ func isRegulatorSkippedErr(err error) bool {
 	}
 
 	return false
+}
+
+// replyPasswordModified replies to a password change or reset which has taken effect, reporting the failure to save the
+// session afterwards when there was one.
+func replyPasswordModified(ctx *middlewares.AutheliaCtx, failed bool) {
+	if failed {
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	ctx.ReplyOK()
 }

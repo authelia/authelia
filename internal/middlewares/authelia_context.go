@@ -705,9 +705,16 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, authType string) {
 	ctx.Providers.Metrics.RecordAuthn(success, regulated, authType)
 }
 
-// EmitEvent emits an event using the request as the context. For use with interface fulfillment.
+// EmitEvent emits an event using the request as the context. It is the one way handlers emit events, and it fulfills
+// the interfaces of the packages which cannot reach the providers.
 func (ctx *AutheliaCtx) EmitEvent(event *events.Event) {
 	ctx.Providers.Events.Emit(ctx, event)
+}
+
+// NewNotification returns the notification object of an event for an occurrence which notified a user, recording it
+// as suppressed when the notifier is disabled.
+func (ctx *AutheliaCtx) NewNotification(err error, title string, recipients []events.Recipient, values *events.NotificationValues) *events.Notification {
+	return events.NewNotification(err, ctx.Configuration.Notifier.Disable, title, recipients, values)
 }
 
 // GetClock returns the clock. For use with interface fulfillment.

@@ -217,27 +217,17 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		failed = true
 	}
 
-	reply := func() {
-		if failed {
-			ctx.SetJSONError(messageOperationFailed)
-
-			return
-		}
-
-		ctx.ReplyOK()
-	}
-
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
 		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details")
 
-		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserPassword{
+		ctx.EmitEvent(events.NewEvent(&events.DataUserPassword{
 			Type:         events.TypeUserPasswordReset,
 			Subject:      events.Subject{Username: username, RemoteIP: ctx.RemoteIP().String()},
-			Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, "Password changed successfully", nil, nil),
+			Notification: ctx.NewNotification(err, "Password changed successfully", nil, nil),
 		}))
 
-		reply()
+		replyPasswordModified(ctx, failed)
 
 		return
 	}
@@ -269,13 +259,13 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data)
 	}
 
-	ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataUserPassword{
+	ctx.EmitEvent(events.NewEvent(&events.DataUserPassword{
 		Type:        events.TypeUserPasswordReset,
 		Username:    username,
 		DisplayName: userInfo.DisplayName,
 		Emails:      userInfo.Emails,
 		RemoteIP:    ctx.RemoteIP().String(),
-		Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, data.Title, recipientsFromDetails(username, userInfo), &events.NotificationValues{
+		Notification: ctx.NewNotification(err, data.Title, recipientsFromDetails(username, userInfo), &events.NotificationValues{
 			BodyPrefix: data.BodyPrefix,
 			BodyEvent:  data.BodyEvent,
 			BodySuffix: data.BodySuffix,
@@ -284,7 +274,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}))
 
 	if !notified {
-		reply()
+		replyPasswordModified(ctx, failed)
 
 		return
 	}
@@ -292,13 +282,13 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	if err != nil {
 		ctx.GetLogger().Error(err)
 
-		reply()
+		replyPasswordModified(ctx, failed)
 
 		return
 	}
 
 	if failed {
-		reply()
+		replyPasswordModified(ctx, failed)
 	}
 }
 

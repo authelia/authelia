@@ -660,8 +660,7 @@ func (dispatcher *Dispatcher) prepare() {
 	derived := originFromSource(dispatcher.source)
 
 	for _, d := range dispatcher.destinations {
-		d.key = dispatcher.callbackKey(d)
-		d.callback = callbackOf(dispatcher.source, d.config.Name, d.key)
+		d.callback = callbackOf(dispatcher.source, d.config.Name, dispatcher.callbackKey(d))
 
 		// The origin is known before the handshake so a callback which arrives during it records the grant against the
 		// origin it was given for. A destination which disables validation has no handshake for the origin to match, so

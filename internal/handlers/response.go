@@ -500,7 +500,7 @@ func doMarkAuthenticationAttemptWithRequest(ctx markContext, successful bool, ba
 
 	stage, method := doGetAuthenticationEventStageAndMethod(authType)
 
-	ctx.GetProviders().Events.Emit(ctx, events.NewEvent(&events.DataAuthentication{
+	ctx.EmitEvent(events.NewEvent(&events.DataAuthentication{
 		Type:     doGetAuthenticationEventType(successful),
 		Username: username,
 		RemoteIP: ctx.RemoteIP().String(),

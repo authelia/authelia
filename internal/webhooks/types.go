@@ -33,4 +33,6 @@ type grant struct {
 type delivery struct {
 	events  []*events.Event
 	batched bool
+	body    []byte
+	headers map[string]string
 }

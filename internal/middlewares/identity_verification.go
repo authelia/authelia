@@ -148,13 +148,13 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delay
 
 		err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data)
 
-		ctx.Providers.Events.Emit(ctx, events.NewEvent(&events.DataIdentityVerification{
+		ctx.EmitEvent(events.NewEvent(&events.DataIdentityVerification{
 			Action:      args.ActionClaim,
 			Username:    identity.Username,
 			DisplayName: identity.DisplayName,
 			Emails:      []string{identity.Email},
 			RemoteIP:    ctx.RemoteIP().String(),
-			Notification: events.NewNotification(err, ctx.GetConfiguration().Notifier.Disable, args.MailTitle, []events.Recipient{
+			Notification: ctx.NewNotification(err, args.MailTitle, []events.Recipient{
 				{Email: identity.Email, Username: identity.Username, DisplayName: identity.DisplayName},
 			}, &events.NotificationValues{
 				Domain:            data.Domain,

@@ -66,7 +66,7 @@ func confirmOnce(t *testing.T, store *testStore, address string) {
 
 	require.NoError(t, first.Validate())
 	require.True(t, first.destinations[0].pending)
-	require.True(t, first.Confirm("admin-api", first.destinations[0].key, ""))
+	require.True(t, first.Confirm("admin-api", first.callbackKey(first.destinations[0]), ""))
 	require.Len(t, store.grants(), 1)
 
 	first.Shutdown()
@@ -100,7 +100,7 @@ func TestDispatcherShouldForgetAConfirmationWhenTheHandshakeIsAnsweredWithGone(t
 
 	assert.Equal(t, int32(0), gs.delivered.Load())
 
-	require.True(t, second.Confirm("admin-api", second.destinations[0].key, ""))
+	require.True(t, second.Confirm("admin-api", second.callbackKey(second.destinations[0]), ""))
 	assert.Len(t, store.grants(), 1)
 }
 
@@ -237,7 +237,7 @@ func TestDispatcherShouldKeepAConfirmationGivenDuringAHandshakeAnsweredWithGone(
 
 	<-entered
 
-	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 
 	close(release)
 
@@ -258,7 +258,7 @@ func TestDispatcherConfirmShouldReinstateARetiredDestination(t *testing.T) {
 	defer dispatcher.Shutdown()
 
 	require.NoError(t, dispatcher.Validate())
-	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 
 	dispatcher.Start()
 
@@ -271,7 +271,7 @@ func TestDispatcherConfirmShouldReinstateARetiredDestination(t *testing.T) {
 
 	gs.delivery.Store(http.StatusOK)
 
-	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, "60"))
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), "60"))
 
 	assert.False(t, dispatcher.destinations[0].gone.Load())
 	assert.Len(t, store.grants(), 1)
@@ -306,8 +306,8 @@ func TestDispatcherShouldReinstateARetiredDestinationConfirmedOnAnotherInstance(
 
 	require.NoError(t, retired.Validate())
 	require.NoError(t, other.Validate())
-	require.True(t, retired.Confirm("admin-api", retired.destinations[0].key, ""))
-	require.True(t, other.Confirm("admin-api", other.destinations[0].key, ""))
+	require.True(t, retired.Confirm("admin-api", retired.callbackKey(retired.destinations[0]), ""))
+	require.True(t, other.Confirm("admin-api", other.callbackKey(other.destinations[0]), ""))
 
 	retired.Start()
 
@@ -326,7 +326,7 @@ func TestDispatcherShouldReinstateARetiredDestinationConfirmedOnAnotherInstance(
 
 	gs.delivery.Store(http.StatusOK)
 
-	require.True(t, other.Confirm("admin-api", other.destinations[0].key, ""))
+	require.True(t, other.Confirm("admin-api", other.callbackKey(other.destinations[0]), ""))
 	require.Len(t, store.grants(), 1)
 
 	d.revive()
@@ -345,7 +345,7 @@ func TestDestinationReviveShouldWithdrawAConfirmationWhenTheHandshakeIsAnsweredW
 	defer dispatcher.Shutdown()
 
 	require.NoError(t, dispatcher.Validate())
-	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 
 	d := dispatcher.destinations[0]
 
@@ -384,7 +384,7 @@ func TestDispatcherShouldNotRecordTheAddressOfAConfirmation(t *testing.T) {
 	defer dispatcher.Shutdown()
 
 	require.NoError(t, dispatcher.Validate())
-	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, ""))
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), ""))
 
 	data, err := store.LoadCachedData(context.Background(), grantName("admin-api"))
 

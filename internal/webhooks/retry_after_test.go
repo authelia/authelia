@@ -193,7 +193,7 @@ func TestDispatcherShouldHonorAHandshakeRetryAfterForADestinationAcceptedFromIts
 	first.SetStore(store)
 
 	require.NoError(t, first.Validate())
-	require.True(t, first.Confirm("admin-api", first.destinations[0].key, ""))
+	require.True(t, first.Confirm("admin-api", first.callbackKey(first.destinations[0]), ""))
 
 	first.Shutdown()
 

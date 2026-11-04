@@ -55,7 +55,7 @@ func TestDestinationReviveShouldApplyTheRateOfAConfirmationFromAnotherInstance(t
 	defer dispatcher.Shutdown()
 
 	require.NoError(t, dispatcher.Validate())
-	require.True(t, dispatcher.Confirm("admin-api", dispatcher.destinations[0].key, "120"))
+	require.True(t, dispatcher.Confirm("admin-api", dispatcher.callbackKey(dispatcher.destinations[0]), "120"))
 
 	d := dispatcher.destinations[0]
 
