@@ -168,6 +168,7 @@ overrides:
   glob: 14.0.3
   picomatch: 4.0.7
   semver: 7.8.6
+  shell-quote: 1.12.0
 
 importers:
 
