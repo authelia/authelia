@@ -17,7 +17,7 @@
     "i18next": "26.7.1",
     "i18next-browser-languagedetector": "8.3.0",
     "i18next-http-backend": "4.0.10",
-    "lucide-react": "1.67.0",
+    "lucide-react": "1.69.0",
     "qrcode.react": "4.2.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",

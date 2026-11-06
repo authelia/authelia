@@ -5,7 +5,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:26-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS builder-frontend
+FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -24,7 +24,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.27.3-bookworm@sha256:d9b6a1beb9474adc2a1ce842573639b44b2a0dd49b6669f51d3821baf9ec37c9 AS builder-backend
+FROM golang:1.27.3-bookworm@sha256:dc0963f32053e4bc451d24d87e3892d42d01021b61f093e98eb95c0352bb84b0 AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -50,7 +50,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:42dcc0af3dd9a926c7002e705aa06e5b44f60f6ed36af2d97f06c85e6c7ef02c
+FROM authelia/base:latest@sha256:d873be2a0a4e03c96d696d262ecc505c83a2dd5161c6b7de4eaa69437ad08ee5
 
 WORKDIR /app
 
