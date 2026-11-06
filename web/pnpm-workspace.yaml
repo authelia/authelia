@@ -12,7 +12,7 @@ overrides:
   qs: 6.17.1
   semver: 7.8.6
   source-map-js: 1.2.2
-  vite: 8.3.5
+  vite: 8.3.6
   zod: 4.6.7
 peerDependencyRules:
   allowedVersions:
