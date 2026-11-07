@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+import { useEffect } from "react";
+
 import { LogOut, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +20,7 @@ import { SettingsRoute } from "@constants/Routes";
 import { useFlowPresent } from "@hooks/Flow";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useSignOut } from "@hooks/SignOut";
+import { useUserSessionElevation } from "@hooks/UserSessionElevation";
 import { UserInfo } from "@models/UserInfo";
 
 export interface Props {
@@ -30,6 +33,15 @@ const AppBarItemAccountSettings = function (props: Props) {
     const navigate = useRouterNavigate();
     const doSignOut = useSignOut();
     const flowPresent = useFlowPresent();
+    const [elevation, fetchElevation] = useUserSessionElevation();
+
+    const settingsAvailable = elevation !== undefined && !elevation.require_second_factor;
+
+    useEffect(() => {
+        if (props.userInfo) {
+            fetchElevation();
+        }
+    }, [props.userInfo, fetchElevation]);
 
     const handleSettingsClick = () => {
         navigate(SettingsRoute);
@@ -70,11 +82,15 @@ const AppBarItemAccountSettings = function (props: Props) {
                     </Tooltip>
                 </TooltipProvider>
                 <DropdownMenuContent align="end" sideOffset={8}>
-                    <DropdownMenuItem id="account-menu-settings" onClick={handleSettingsClick}>
-                        <Settings className="size-4" />
-                        {translate("Settings")}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
+                    {settingsAvailable ? (
+                        <>
+                            <DropdownMenuItem id="account-menu-settings" onClick={handleSettingsClick}>
+                                <Settings className="size-4" />
+                                {translate("Settings")}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                        </>
+                    ) : null}
                     {flowPresent ? (
                         <DropdownMenuItem id="account-menu-switch-user" onClick={handleSwitchUserClick}>
                             <LogOut className="size-4" />

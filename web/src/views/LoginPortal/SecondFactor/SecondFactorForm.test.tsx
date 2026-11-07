@@ -12,6 +12,8 @@ import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
 
 const mocks = vi.hoisted(() => ({
     createErrorNotification: vi.fn(),
+    elevation: undefined as any,
+    fetchElevation: vi.fn(),
     flowPresent: false,
     localStorageMethodAvailable: false,
     navigate: vi.fn(),
@@ -91,10 +93,16 @@ vi.mock("@views/LoginPortal/SecondFactor/MethodSelectionDialog", () => ({
     ),
 }));
 
+vi.mock("@hooks/UserSessionElevation", () => ({
+    useUserSessionElevation: () => [mocks.elevation, mocks.fetchElevation, false, undefined],
+}));
+
 vi.mock("@views/LoginPortal/SecondFactor/OneTimePasswordMethod", () => ({
     default: (props: any) => (
         <div data-testid="otp-method" data-registered={String(props.registered)}>
-            <button data-testid="otp-register" onClick={() => props.onRegisterClick()} />
+            {props.onRegisterClick ? (
+                <button data-testid="otp-register" onClick={() => props.onRegisterClick()} />
+            ) : null}
             <button data-testid="otp-error" onClick={() => props.onSignInError(new Error("otp failed"))} />
             <button data-testid="otp-success" onClick={() => props.onSignInSuccess("https://example.com")} />
         </div>
@@ -104,7 +112,9 @@ vi.mock("@views/LoginPortal/SecondFactor/OneTimePasswordMethod", () => ({
 vi.mock("@views/LoginPortal/SecondFactor/WebAuthnMethod", () => ({
     default: (props: any) => (
         <div data-testid="webauthn-method" data-registered={String(props.registered)}>
-            <button data-testid="webauthn-register" onClick={() => props.onRegisterClick()} />
+            {props.onRegisterClick ? (
+                <button data-testid="webauthn-register" onClick={() => props.onRegisterClick()} />
+            ) : null}
             <button data-testid="webauthn-error" onClick={() => props.onSignInError(new Error("key failed"))} />
             <button data-testid="webauthn-success" onClick={() => props.onSignInSuccess("https://example.com")} />
         </div>
@@ -171,6 +181,7 @@ beforeEach(() => {
     mocks.flowPresent = false;
     mocks.localStorageMethodAvailable = false;
     mocks.supportsWebAuthn = true;
+    mocks.elevation = { require_second_factor: false };
     setPreferredMock.mockResolvedValue(undefined as any);
 });
 
@@ -263,6 +274,43 @@ describe("method callbacks", () => {
         fireEvent.click(screen.getByTestId("webauthn-register"));
 
         expect(mocks.navigate).toHaveBeenCalledWith("/settings/2fa");
+    });
+
+    it("fetches the elevation", async () => {
+        renderForm({}, "/totp");
+        await screen.findByTestId("otp-method");
+
+        expect(mocks.fetchElevation).toHaveBeenCalled();
+    });
+
+    it("fetches the elevation again when the authentication level changes", async () => {
+        const { rerender } = renderForm({}, "/totp");
+        await screen.findByTestId("otp-method");
+        expect(mocks.fetchElevation).toHaveBeenCalledTimes(1);
+
+        rerender(
+            <MemoryRouter initialEntries={["/totp"]}>
+                <SecondFactorForm {...defaultProps} authenticationLevel={AuthenticationLevel.TwoFactor} />
+            </MemoryRouter>,
+        );
+
+        expect(mocks.fetchElevation).toHaveBeenCalledTimes(2);
+    });
+
+    it("hides the register links when a second factor is required", async () => {
+        mocks.elevation = { require_second_factor: true };
+        renderForm({}, "/totp");
+        await screen.findByTestId("otp-method");
+
+        expect(screen.queryByTestId("otp-register")).not.toBeInTheDocument();
+    });
+
+    it("hides the register links until the elevation is fetched", async () => {
+        mocks.elevation = undefined;
+        renderForm({}, "/webauthn");
+        await screen.findByTestId("webauthn-method");
+
+        expect(screen.queryByTestId("webauthn-register")).not.toBeInTheDocument();
     });
 
     it("surfaces one-time password errors as notifications", async () => {
