@@ -524,7 +524,9 @@ func (s *Store) revokeSessionBySignature(ctx context.Context, sessionType storag
 func (s *Store) revokeSessionByRequestID(ctx context.Context, sessionType storage.OAuth2SessionType, requestID string) (err error) {
 	if err = s.provider.RevokeOAuth2SessionByRequestID(ctx, sessionType, requestID); err != nil {
 		switch {
-		case errors.Is(err, sql.ErrNoRows):
+		case errors.Is(err, sql.ErrNoRows), errors.Is(err, storage.ErrNoRowsAffected):
+			// No unrevoked session for the request ID, e.g. the grant was already revoked by refresh token reuse
+			// detection. The caller treats ErrNotFound as already revoked rather than a server error.
 			return oauthelia2.ErrNotFound
 		default:
 			return errStorage(err)
