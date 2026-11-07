@@ -327,7 +327,7 @@ func TestConfigEnsureExistsRunE(t *testing.T) {
 	ctx.log = log.WithField("test", "test")
 
 	cmd := &cobra.Command{}
-	assert.EqualError(t, ctx.ConfigEnsureExistsRunE(cmd, nil), "flag accessed but not defined: config")
+	assert.EqualError(t, ctx.ConfigEnsureExistsRunE(cmd, nil), "flag \"config\" does not exist")
 
 	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{filepath.Join(dir, "dir", "file.yml")}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
 	cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")

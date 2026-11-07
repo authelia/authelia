@@ -2579,7 +2579,7 @@ func TestStorageUserWebAuthnVerifyRunE(t *testing.T) {
 			"ShouldErrorNoFlag",
 			false,
 			false,
-			"flag accessed but not defined: verbose",
+			"flag \"verbose\" does not exist",
 			"",
 		},
 	}

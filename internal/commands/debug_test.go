@@ -67,7 +67,7 @@ func TestDebugNotificationRunE(t *testing.T) {
 
 				return flags, &schema.Configuration{}
 			},
-			"flag accessed but not defined: recipient",
+			"flag \"recipient\" does not exist",
 			nil,
 		},
 		{
@@ -78,7 +78,7 @@ func TestDebugNotificationRunE(t *testing.T) {
 
 				return flags, &schema.Configuration{}
 			},
-			"flag accessed but not defined: subject",
+			"flag \"subject\" does not exist",
 			nil,
 		},
 		{
