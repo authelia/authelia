@@ -5,6 +5,7 @@
 package schema
 
 import (
+	"net"
 	"net/url"
 	"time"
 )
@@ -76,6 +77,16 @@ type ServerTLS struct {
 // ServerHeaders represents the customization of the http server headers.
 type ServerHeaders struct {
 	CSPTemplate CSPTemplate `koanf:"csp_template" yaml:"csp_template,omitempty" toml:"csp_template,omitempty" json:"csp_template,omitempty" jsonschema:"title=CSP Template" jsonschema_description:"The Content Security Policy template."`
+
+	TrustedProxies ServerHeadersTrustedProxies `koanf:"trusted_proxies" yaml:"trusted_proxies,omitempty" toml:"trusted_proxies,omitempty" json:"trusted_proxies,omitempty" jsonschema:"title=Trusted Proxies" jsonschema_description:"Configures the removal of proxy headers from requests that do not originate from a trusted proxy."`
+}
+
+// ServerHeadersTrustedProxies represents the trusted proxies configuration of the http server.
+type ServerHeadersTrustedProxies struct {
+	Enable   bool         `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=false,title=Enable" jsonschema_description:"Enables the removal of proxy headers from requests that do not originate from a trusted proxy."`
+	Networks []*net.IPNet `koanf:"networks" yaml:"networks,omitempty" toml:"networks,omitempty" json:"networks,omitempty" jsonschema:"title=Networks" jsonschema_description:"The remote IP's, network ranges in CIDR notation, or network definition names that are trusted as proxies, allowing proxy headers (X-Forwarded-*, X-Real-*, X-Original-*) from these sources."`
+
+	WalkXForwardedFor bool `koanf:"walk_x_forwarded_for" yaml:"walk_x_forwarded_for" toml:"walk_x_forwarded_for" json:"walk_x_forwarded_for" jsonschema:"default=false,title=Walk X-Forwarded-For" jsonschema_description:"Determines the remote IP by walking the X-Forwarded-For header from right to left and using the first IP which is not trusted as a proxy."`
 }
 
 // ServerEndpointRateLimits represents the rate limiter configuration for each endpoint.
