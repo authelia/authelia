@@ -60,8 +60,6 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 	var writers []io.Writer
 
-	// Close any log file opened by a previous invocation, otherwise the file descriptor is leaked as the writer is
-	// replaced below. This occurs when the application is reloaded.
 	if logFile != nil {
 		if err = logFile.Close(); err != nil {
 			return err
