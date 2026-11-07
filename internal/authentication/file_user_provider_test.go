@@ -1380,7 +1380,6 @@ func TestShouldNotStartReloadCooldownWhenContentUnchanged(t *testing.T) {
 
 	require.NoError(t, provider.StartupCheck())
 
-	// An event which doesn't change the content, such as a projected volume swap of an unrelated key.
 	reloaded, err := provider.Reload()
 
 	assert.False(t, reloaded)
@@ -1392,7 +1391,6 @@ func TestShouldNotStartReloadCooldownWhenContentUnchanged(t *testing.T) {
 
 	require.NoError(t, os.WriteFile(path, bytes.Replace(UserDatabaseContent, []byte("harry:"), []byte("harold:"), 1), 0600))
 
-	// A genuine change immediately afterwards must still be reloaded.
 	reloaded, err = provider.Reload()
 
 	assert.True(t, reloaded)
@@ -1401,7 +1399,6 @@ func TestShouldNotStartReloadCooldownWhenContentUnchanged(t *testing.T) {
 	_, err = provider.GetDetails("harold")
 	assert.NoError(t, err)
 
-	// A self-write is still suppressed by the cooldown.
 	require.NoError(t, provider.UpdatePassword("john", "apple123"))
 
 	reloaded, err = provider.Reload()
