@@ -21,13 +21,14 @@ const (
 	ProviderNameSession          = "session"
 	ProviderNameNotification     = "notification"
 	ProviderNameExpressions      = "expressions"
+	ProviderNameDuo              = "duo"
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"
 )
 
 // ProviderNames are every provider which can be probed by name.
 var ProviderNames = []string{
 	ProviderNameStorage, ProviderNameSession, ProviderNameUser, ProviderNameNotification,
-	ProviderNameNTP, ProviderNameExpressions, ProviderNameWebAuthnMetaData,
+	ProviderNameNTP, ProviderNameExpressions, ProviderNameDuo, ProviderNameWebAuthnMetaData,
 }
 
 const (
