@@ -203,6 +203,36 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptNone)
 }
 
+func TestNewOpenIDConnectWellKnownConfiguration_RequireSignedRequestObject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     bool
+		expected bool
+	}{
+		{"ShouldNotRequireSignedRequestObject", false, false},
+		{"ShouldRequireSignedRequestObject", true, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			disco := oidc.NewOpenIDConnectWellKnownConfiguration(&schema.IdentityProvidersOpenIDConnect{
+				RequireSignedRequestObject: tc.have,
+			})
+
+			require.NotNil(t, disco.OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions)
+			assert.Equal(t, tc.expected, disco.RequireSignedRequestObject)
+
+			data, err := json.Marshal(disco)
+			require.NoError(t, err)
+
+			var raw map[string]any
+
+			require.NoError(t, json.Unmarshal(data, &raw))
+			assert.Equal(t, tc.expected, raw["require_signed_request_object"])
+		})
+	}
+}
+
 func TestNewOpenIDConnectWellKnownConfiguration_Copy(t *testing.T) {
 	config := &oidc.OpenIDConnectWellKnownConfiguration{
 		OAuth2WellKnownConfiguration: oidc.OAuth2WellKnownConfiguration{
