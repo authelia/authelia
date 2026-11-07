@@ -173,6 +173,8 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.GetLogger().WithError(err).Error("Error occurred checking the new password against the password policy")
 		ctx.SetJSONError(messagePasswordWeak)
 
+		ctxLogEventPasswordResetFailure(ctx, username, eventEmailReasonPasswordPolicy)
+
 		return
 	}
 
@@ -186,6 +188,8 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 			ctx.GetLogger().WithError(err).Error("Error occurred updating the user password")
 			ctx.SetJSONError(messageUnableToResetPassword)
 		}
+
+		ctxLogEventPasswordResetFailure(ctx, username, passwordResetFailureReason(err))
 
 		return
 	}
