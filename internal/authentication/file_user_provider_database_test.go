@@ -52,7 +52,7 @@ func TestDatabaseModel_Read(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.EqualError(t, model.Read(f), "could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token")
+	assert.EqualError(t, model.Read(f), "could not parse the YAML database: yaml: line 2: found character that cannot start any token")
 }
 
 func TestFileUserDatabaseGetUserDetails(t *testing.T) {
@@ -391,7 +391,7 @@ func TestDatabaseModel_ReadFormats(t *testing.T) {
 			"users.txt",
 			"users:\n\tjohn: {}",
 			"",
-			"could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token",
+			"could not parse the YAML database: yaml: line 2: found character that cannot start any token",
 		},
 		{
 			"ShouldErrorOnSchemaValidationWhenUsersMissing",

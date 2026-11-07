@@ -628,7 +628,7 @@ func TestWebAuthnCredential_UnmarshalYAML_Errors(t *testing.T) {
 		{
 			"ShouldErrOnInvalidYAML",
 			"rpid: [[[",
-			"go-yaml load error in parser (while parsing a flow node) at L2.C1: did not find expected node content",
+			"yaml: line 2: did not find expected node content",
 		},
 		{
 			"ShouldErrOnInvalidPublicKeyBase64",
