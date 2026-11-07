@@ -85,7 +85,7 @@ identity_providers:
 
 ### Application
 
-To configure [Immich] there is one method, using the [Web GUI](#web-gui).
+To configure [Immich] there are two methods, using the [Web GUI](#web-gui) or using a [configuration file](#configuration-file).
 
 #### Web GUI
 
@@ -103,9 +103,29 @@ To configure [Immich] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
    - Auto Register: Enable if desired.
 4. Press `Save` at the bottom
 
+#### Configuration File
+
+[Immich] supports configuration via a configuration file. Refer to the [Immich documentation](https://docs.immich.app/install/config-file/) to learn more about all the available configuration options. To configure [Immich] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration file:
+
+```yaml {title="immich-config.json"}
+{
+  "oauth": {
+    "autoRegister": true,
+    "buttonText": "Login with Authelia",
+    "clientId": "immich",
+    "clientSecret": "insecure_secret",
+    "enabled": true,
+    "issuerUrl": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/",
+    "scope": "openid email profile",
+    "tokenEndpointAuthMethod": "client_secret_basic"
+  }
+}
+```
+
 ## See Also
 
 - [Immich OAuth Authentication Guide](https://immich.app/docs/administration/oauth)
+- [Immich Configuration File Guide](https://docs.immich.app/install/config-file/)
 
 [Immich]: https://immich.app/
 [Authelia]: https://www.authelia.com
