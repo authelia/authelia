@@ -26,6 +26,11 @@ This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Que
 information.
 {{< /callout >}}
 
+{{< callout context="tip" title="Hot reload" icon="outline/bulb" >}}
+The access control rules can be placed in separate files which are reloaded without restarting Authelia. See the
+[Dynamic Configuration](../methods/dynamic.md) documentation.
+{{< /callout >}}
+
 ## Variables
 
 Some of the values within this page can automatically be replaced with documentation variables.

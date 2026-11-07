@@ -753,6 +753,21 @@ identity_validation:
   # policy_url: ''
 
 ##
+## Dynamic Configuration
+##
+## The 'access_control' section and the 'definitions.network' section can be moved out of this file and into separate
+## files or directories which Authelia validates and reloads without restarting. If a reload has any errors the
+## previous configuration remains in use. When 'paths' is configured those sections must be removed from this file.
+##
+# dynamic_configuration:
+  ## The files or directories which contain the dynamic configuration.
+  # paths: []
+
+  ## Automatically reload when the files change. The 'SIGHUP' signal also reloads the dynamic configuration, and
+  ## when 'paths' is configured it no longer restarts the application.
+  # watch: false
+
+##
 ## Access Control Configuration
 ##
 ## Access control is a list of rules defining the authorizations applied for one resource to users or group of users.

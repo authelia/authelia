@@ -134,6 +134,8 @@ var Keys = []string{
 	"duo_api.hostname",
 	"duo_api.integration_key",
 	"duo_api.secret_key",
+	"dynamic_configuration.paths",
+	"dynamic_configuration.watch",
 	"identity_providers.oidc",
 	"identity_providers.oidc.authorization_policies",
 	"identity_providers.oidc.authorization_policies.*",

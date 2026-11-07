@@ -342,6 +342,10 @@ const (
 
 // Access Control error constants.
 const (
+	errFmtDynamicConfigurationPathEmpty      = "dynamic_configuration: option 'paths' entry #%d must not be empty"
+	errFmtDynamicConfigurationStaticConflict = "dynamic_configuration: the '%s' section is configured in the dynamic configuration files so it must be removed from the static configuration"
+	errFmtDynamicConfigurationUnsupportedKey = "dynamic_configuration: configuration key '%s' is not supported in the dynamic configuration files, only the access_control and definitions.network sections can be used"
+
 	errFmtAccessControlDefaultPolicyValue = "access_control: option 'default_policy' must be one of %s but it's " +
 		"configured as '%s'"
 	errFmtAccessControlDefaultPolicyWithoutRules = "access_control: 'default_policy' option '%s' is invalid: when " +

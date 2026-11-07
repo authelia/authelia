@@ -67,9 +67,20 @@ func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err e
 		return err
 	}
 
-	validator.ValidateAccessControl(ctx.config, ctx.cconfig.validator)
+	if len(ctx.config.DynamicConfiguration.Paths) != 0 {
+		// The access control rules are in the dynamic configuration files, which also validates them.
+		if err = ctx.helperConfigLoadDynamic(); err != nil {
+			return err
+		}
+	} else {
+		validator.ValidateAccessControl(ctx.config, ctx.cconfig.validator)
+	}
 
 	if ctx.cconfig.validator.HasErrors() {
+		for _, e := range ctx.cconfig.validator.Errors() {
+			ctx.log.Error(e)
+		}
+
 		return errors.New("failed to execute command due to errors in the configuration")
 	}
 

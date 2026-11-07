@@ -55,9 +55,14 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateDefinitions(config, validator)
 
-	ValidateAccessControl(config, validator)
+	if len(config.DynamicConfiguration.Paths) != 0 {
+		// The access control rules are validated as part of loading the dynamic configuration.
+		ValidateDynamicConfigurationSource(config, validator)
+	} else {
+		ValidateAccessControl(config, validator)
 
-	ValidateRules(config, validator)
+		ValidateRules(config, validator)
+	}
 
 	ValidateSession(config, validator)
 

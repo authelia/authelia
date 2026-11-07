@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/authelia/authelia/v4/internal/dynamic"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/service"
@@ -105,6 +106,15 @@ func (ctx *CmdCtx) RootRunE(cmd *cobra.Command, _ []string) (err error) {
 		} else {
 			ctx.log.Fatal("Errors occurred performing startup checks")
 		}
+	}
+
+	if ctx.dynamic != nil {
+		ctx.dynamic.manager.AddConsumer(dynamic.NewAuthorizerConsumer(ctx.providers.Authorizer))
+		ctx.dynamic.manager.SetCurrent(ctx.dynamic.config)
+
+		ctx.providers.DynamicConfiguration = ctx.dynamic.manager
+
+		ctx.log.WithFields(map[string]any{"paths": ctx.dynamic.manager.Paths(), "watch": ctx.config.DynamicConfiguration.Watch}).Info("Dynamic configuration loaded")
 	}
 
 	ctx.cconfig = nil

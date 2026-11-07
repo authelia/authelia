@@ -67,7 +67,15 @@ func (b *BridgeBuilder) Build() Bridge {
 		}
 
 		bridge := func(requestCtx *fasthttp.RequestCtx) {
-			next(NewAutheliaCtx(requestCtx, b.config, b.providers))
+			providers := b.providers
+
+			// Pin the access control rules for the lifetime of the request so a hot reload part way through can never
+			// cause a single request to observe two different generations.
+			if providers.Authorizer != nil {
+				providers.Authorizer = providers.Authorizer.Snapshot()
+			}
+
+			next(NewAutheliaCtx(requestCtx, b.config, providers))
 		}
 
 		for i := len(b.preMiddlewares) - 1; i >= 0; i-- {

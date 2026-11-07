@@ -16,30 +16,40 @@ import (
 
 // ValidateAccessControl validates access control configuration.
 func ValidateAccessControl(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.AccessControl.DefaultPolicy == "" {
-		config.AccessControl.DefaultPolicy = policyDeny
-	}
-
-	if !IsPolicyValid(config.AccessControl.DefaultPolicy) {
-		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, utils.StringJoinOr(validACLRulePolicies), config.AccessControl.DefaultPolicy))
-	}
+	validateAccessControlDefaultPolicy(&config.AccessControl, validator)
 }
 
 // ValidateRules validates an ACL Rule configuration.
 func ValidateRules(config *schema.Configuration, validator *schema.StructValidator) {
-	if len(config.AccessControl.Rules) == 0 {
-		if config.AccessControl.DefaultPolicy != policyOneFactor && config.AccessControl.DefaultPolicy != policyTwoFactor {
-			validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyWithoutRules, config.AccessControl.DefaultPolicy))
+	validateAccessControlRules(&config.AccessControl, func(id string) bool { return IsSubjectValidOAuth20(config, id) }, validator)
+}
+
+func validateAccessControlDefaultPolicy(config *schema.AccessControl, validator *schema.StructValidator) {
+	if config.DefaultPolicy == "" {
+		config.DefaultPolicy = policyDeny
+	}
+
+	if !IsPolicyValid(config.DefaultPolicy) {
+		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, utils.StringJoinOr(validACLRulePolicies), config.DefaultPolicy))
+	}
+}
+
+// validateAccessControlRules validates the ACL rules. The isOAuth2Client func reports whether an OAuth 2.0 client ID
+// referenced by a rule subject exists.
+func validateAccessControlRules(config *schema.AccessControl, isOAuth2Client func(id string) bool, validator *schema.StructValidator) {
+	if len(config.Rules) == 0 {
+		if config.DefaultPolicy != policyOneFactor && config.DefaultPolicy != policyTwoFactor {
+			validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyWithoutRules, config.DefaultPolicy))
 
 			return
 		}
 
-		validator.PushWarning(fmt.Errorf(errFmtAccessControlWarnNoRulesDefaultPolicy, config.AccessControl.DefaultPolicy))
+		validator.PushWarning(fmt.Errorf(errFmtAccessControlWarnNoRulesDefaultPolicy, config.DefaultPolicy))
 
 		return
 	}
 
-	for i, rule := range config.AccessControl.Rules {
+	for i, rule := range config.Rules {
 		rulePosition := i + 1
 
 		validateDomains(rulePosition, rule, validator)
@@ -53,7 +63,7 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 			}
 		}
 
-		validateSubjects(rulePosition, rule, config, validator)
+		validateSubjects(rulePosition, rule, isOAuth2Client, validator)
 
 		validateMethods(rulePosition, rule, validator)
 
@@ -106,7 +116,7 @@ func validateDomains(rulePosition int, rule schema.AccessControlRule, validator 
 	}
 }
 
-func validateSubjects(rulePosition int, rule schema.AccessControlRule, config *schema.Configuration, validator *schema.StructValidator) {
+func validateSubjects(rulePosition int, rule schema.AccessControlRule, isOAuth2Client func(id string) bool, validator *schema.StructValidator) {
 	var (
 		id      string
 		isValid bool
@@ -120,7 +130,7 @@ func validateSubjects(rulePosition int, rule schema.AccessControlRule, config *s
 				continue
 			}
 
-			if len(id) != 0 && !IsSubjectValidOAuth20(config, id) {
+			if len(id) != 0 && !isOAuth2Client(id) {
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleOAuth2ClientSubjectInvalid, ruleDescriptor(rulePosition, rule), subject, id))
 			}
 		}
@@ -140,33 +150,33 @@ func validateMethods(rulePosition int, rule schema.AccessControlRule, validator 
 }
 
 //nolint:gocyclo
-func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configuration, validator *schema.StructValidator) {
-	for j := 0; j < len(config.AccessControl.Rules[i].Query); j++ {
-		for k := 0; k < len(config.AccessControl.Rules[i].Query[j]); k++ {
-			if config.AccessControl.Rules[i].Query[j][k].Operator == "" {
-				if config.AccessControl.Rules[i].Query[j][k].Key != "" {
-					switch config.AccessControl.Rules[i].Query[j][k].Value {
+func validateQuery(i int, rule schema.AccessControlRule, config *schema.AccessControl, validator *schema.StructValidator) {
+	for j := 0; j < len(config.Rules[i].Query); j++ {
+		for k := 0; k < len(config.Rules[i].Query[j]); k++ {
+			if config.Rules[i].Query[j][k].Operator == "" {
+				if config.Rules[i].Query[j][k].Key != "" {
+					switch config.Rules[i].Query[j][k].Value {
 					case "", nil:
-						config.AccessControl.Rules[i].Query[j][k].Operator = operatorPresent
+						config.Rules[i].Query[j][k].Operator = operatorPresent
 					default:
-						config.AccessControl.Rules[i].Query[j][k].Operator = operatorEqual
+						config.Rules[i].Query[j][k].Operator = operatorEqual
 					}
 				}
-			} else if !utils.IsStringInSliceFold(config.AccessControl.Rules[i].Query[j][k].Operator, validACLRuleOperators) {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), utils.StringJoinOr(validACLRuleOperators), config.AccessControl.Rules[i].Query[j][k].Operator))
+			} else if !utils.IsStringInSliceFold(config.Rules[i].Query[j][k].Operator, validACLRuleOperators) {
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), utils.StringJoinOr(validACLRuleOperators), config.Rules[i].Query[j][k].Operator))
 			}
 
-			if config.AccessControl.Rules[i].Query[j][k].Key == "" {
+			if config.Rules[i].Query[j][k].Key == "" {
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValue, ruleDescriptor(i+1, rule), "key"))
 			}
 
-			op := config.AccessControl.Rules[i].Query[j][k].Operator
+			op := config.Rules[i].Query[j][k].Operator
 
 			if op == "" {
 				continue
 			}
 
-			switch v := config.AccessControl.Rules[i].Query[j][k].Value.(type) {
+			switch v := config.Rules[i].Query[j][k].Value.(type) {
 			case nil:
 				if op != operatorAbsent && op != operatorPresent {
 					validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValueOperator, ruleDescriptor(i+1, rule), "value", op))
@@ -185,7 +195,7 @@ func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configur
 					if pattern, err = regexp.Compile(v); err != nil {
 						validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidValueParse, ruleDescriptor(i+1, rule), "value", err))
 					} else {
-						config.AccessControl.Rules[i].Query[j][k].Value = pattern
+						config.Rules[i].Query[j][k].Value = pattern
 					}
 				}
 			default:

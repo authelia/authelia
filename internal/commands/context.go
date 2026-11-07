@@ -8,8 +8,10 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"os/user"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -22,6 +24,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/dynamic"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -54,6 +57,8 @@ type CmdCtx struct {
 	cconfig *CmdCtxConfig
 	cpaths  []string
 
+	dynamic *dynamicState
+
 	factoryX509SystemCertPool utils.X509SystemCertPoolFactory
 }
 
@@ -67,10 +72,16 @@ func NewCmdCtxConfig() *CmdCtxConfig {
 
 // CmdCtxConfig is the configuration for the CmdCtx.
 type CmdCtxConfig struct {
-	files     []string
-	filters   []string
-	defaults  []configuration.Source
-	sources   []configuration.Source
+	files    []string
+	filters  []string
+	defaults []configuration.Source
+	sources  []configuration.Source
+
+	// additional and filterFuncs are retained so the sources can be rebuilt from scratch, which is required to load
+	// the static configuration references again when the dynamic configuration is reloaded.
+	additional  []configuration.Source
+	filterFuncs []configuration.BytesFilter
+
 	keys      []string
 	validator *schema.StructValidator
 }
@@ -267,7 +278,83 @@ func (ctx *CmdCtx) HelperConfigValidateRunE(_ *cobra.Command, _ []string) (err e
 
 	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator, validator.WithTLSConfig(tc))
 
+	return ctx.helperConfigLoadDynamic()
+}
+
+// dynamicState is the state for the dynamic configuration which is carried from loading to the services running.
+type dynamicState struct {
+	manager *dynamic.Manager
+	config  *schema.DynamicConfiguration
+}
+
+// helperConfigLoadDynamic loads and validates the dynamic configuration if it's configured, and adds the sections it
+// provides to the configuration. Any problems are pushed to the validator in the same way as the static validation.
+func (ctx *CmdCtx) helperConfigLoadDynamic() (err error) {
+	if ctx.cconfig == nil {
+		return fmt.Errorf("helperConfigLoadDynamic must be used with HelperConfigLoadRunE")
+	}
+
+	if len(ctx.config.DynamicConfiguration.Paths) == 0 || ctx.cconfig.validator.HasErrors() {
+		return nil
+	}
+
+	manager := dynamic.NewManager(ctx.config.DynamicConfiguration.Paths, ctx.cconfig.filterFuncs, ctx.newStaticReferencesLoader(), ctx.log)
+
+	config, warnings, err := manager.Load()
+
+	for _, warning := range warnings {
+		ctx.cconfig.validator.PushWarning(warning)
+	}
+
+	if err != nil {
+		var multi interface{ Unwrap() []error }
+
+		if errors.As(err, &multi) {
+			for _, e := range multi.Unwrap() {
+				ctx.cconfig.validator.Push(e)
+			}
+		} else {
+			ctx.cconfig.validator.Push(err)
+		}
+
+		return nil
+	}
+
+	ctx.config.AccessControl = config.AccessControl
+
+	ctx.dynamic = &dynamicState{manager: manager, config: config}
+
 	return nil
+}
+
+// newStaticReferencesLoader returns a dynamic.ReferencesLoader which loads the static configuration from scratch each
+// time it's called, so that changes to it which the dynamic configuration may reference are observed on reload.
+func (ctx *CmdCtx) newStaticReferencesLoader() dynamic.ReferencesLoader {
+	files, filters, defaults, additional := ctx.cconfig.files, ctx.cconfig.filterFuncs, ctx.cconfig.defaults, ctx.cconfig.additional
+
+	return func() (refs validator.DynamicReferences, err error) {
+		val := schema.NewStructValidator()
+
+		sources := configuration.NewDefaultSourcesWithDefaults(files, filters, configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter, defaults, additional...)
+
+		var definitions *schema.Definitions
+
+		if definitions, err = configuration.LoadDefinitions(val, sources...); err != nil {
+			return refs, err
+		}
+
+		config := &schema.Configuration{}
+
+		if _, err = configuration.LoadAdvanced(val, "", config, definitions, sources...); err != nil {
+			return refs, err
+		}
+
+		if val.HasErrors() {
+			return refs, fmt.Errorf("the static configuration could not be loaded: %w", errors.Join(val.Errors()...))
+		}
+
+		return validator.NewDynamicReferences(config), nil
+	}
 }
 
 // LogConfigure configures the logger from the loaded configuration.
@@ -448,6 +535,9 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 	for i, filter := range filters {
 		ctx.cconfig.filters[i] = filter.Name()
 	}
+
+	ctx.cconfig.additional = slices.Clone(ctx.cconfig.sources)
+	ctx.cconfig.filterFuncs = filters
 
 	ctx.cconfig.sources = configuration.NewDefaultSourcesWithDefaults(
 		ctx.cconfig.files,

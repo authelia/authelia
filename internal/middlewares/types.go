@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/dynamic"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
@@ -60,6 +61,10 @@ type Providers struct {
 	Duo                   duo.Provider
 
 	GarbageCollector *GarbageCollector
+
+	// DynamicConfiguration is the manager for the dynamic configuration, it is nil unless dynamic_configuration paths
+	// have been configured.
+	DynamicConfiguration *dynamic.Manager
 
 	Random random.Provider
 	Clock  clock.Provider

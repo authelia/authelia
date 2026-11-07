@@ -36,8 +36,24 @@ func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
 }
 
 // ProvisionApplicationReloadSignal returns a Provider which performs an effective application reload when the relevant
-// signal is received.
+// signal is received. When the dynamic configuration is in use the signal instead only hot reloads the dynamic
+// configuration, and a failure to do so is logged and leaves the previous dynamic configuration in effect.
 func ProvisionApplicationReloadSignal(ctx Context) (service Provider, err error) {
+	if manager := ctx.GetProviders().DynamicConfiguration; manager != nil {
+		return &Signal{
+			name:    "application-reload",
+			signals: []os.Signal{syscall.SIGHUP},
+			action: func() (bubble bool, err error) {
+				_, err = manager.Reload()
+
+				return false, err
+			},
+			log:    ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "application-reload"}),
+			notify: make(chan os.Signal, 1),
+			quit:   make(chan struct{}),
+		}, nil
+	}
+
 	return &Signal{
 		name:    "application-reload",
 		signals: []os.Signal{syscall.SIGHUP},
