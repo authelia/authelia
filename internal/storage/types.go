@@ -265,3 +265,8 @@ func (s OAuth2SessionType) Table() string {
 		return ""
 	}
 }
+
+type sessionRow struct {
+	Signature string `db:"signature"`
+	Data      []byte `db:"data"`
+}

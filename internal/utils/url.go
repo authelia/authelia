@@ -5,6 +5,7 @@
 package utils
 
 import (
+	"net"
 	"net/url"
 	"path"
 	"strings"
@@ -72,6 +73,46 @@ func HasDomainSuffix(domain, domainSuffix string) bool {
 	}
 
 	return false
+}
+
+// IsHostnameValid returns true if the hostname is either an IP address or a valid DNS hostname consisting of labels of
+// 1 to 63 alphanumeric or hyphen characters which do not start or end with a hyphen, with a total length of no more
+// than 253 characters.
+func IsHostnameValid(hostname string) (valid bool) {
+	if net.ParseIP(hostname) != nil {
+		return true
+	}
+
+	if len(hostname) == 0 || len(hostname) > 253 {
+		return false
+	}
+
+	for label := range strings.SplitSeq(hostname, period) {
+		if !isHostnameLabelValid(label) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isHostnameLabelValid(label string) (valid bool) {
+	n := len(label)
+
+	if n == 0 || n > 63 || label[0] == '-' || label[n-1] == '-' {
+		return false
+	}
+
+	for i := 0; i < n; i++ {
+		switch c := label[i]; {
+		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9', c == '-':
+			continue
+		default:
+			return false
+		}
+	}
+
+	return true
 }
 
 // EqualURLs returns true if the two *[url.URL] values are effectively equal taking into consideration web normalization.

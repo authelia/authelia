@@ -214,6 +214,17 @@ This subcommand allows rotation of the HMAC key used for one-time codes. In addi
 	cmdAutheliaStorageEncryptionRotateHMACOTCExample = `authelia storage encryption rotate hmac otc --config config.yml
 authelia storage encryption rotate hmac otc --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageEncryptionRotateHMACSessionShort = "Rotate the session HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionLong = `Rotate the session HMAC key.
+
+This subcommand allows rotation of the HMAC key used to sign session identifiers. In addition it truncates the 'session' table.
+
+Every user is signed out by this rotation as the session cookies they hold no longer resolve to a session. Sessions held by a cache provider are not truncated by this subcommand, however they are equally unreadable after it and are discarded when they expire.`
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionExample = `authelia storage encryption rotate hmac session --config config.yml
+authelia storage encryption rotate hmac session --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 
 	cmdAutheliaStorageBansLong = `Manages user and ip bans.

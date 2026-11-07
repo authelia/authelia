@@ -11,9 +11,12 @@ import (
 	"net/mail"
 	"net/url"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/singleflight"
 	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -47,6 +50,18 @@ func (d *UserDetails) Addresses() (addresses []mail.Address) {
 	}
 
 	return addresses
+}
+
+// Address returns the first email as a [mail.Address] formatted with DisplayName as the Name attribute.
+func (d *UserDetails) Address() mail.Address {
+	if len(d.Emails) == 0 {
+		return mail.Address{}
+	}
+
+	return mail.Address{
+		Name:    d.DisplayName,
+		Address: d.Emails[0],
+	}
 }
 
 // GetUsername returns the username.
@@ -598,4 +613,46 @@ type LDAPExtendedClient interface {
 	LDAPBaseClient
 
 	Discovery() (features LDAPDiscovery)
+}
+
+// CredentialCacheHMACFlightResult is the result of a credential check shared between duplicate in-flight checks.
+type CredentialCacheHMACFlightResult struct {
+	Valid  bool
+	Cached bool
+}
+
+// CachedCredential is a cached credential which has an expiration and checksum value.
+type CachedCredential struct {
+	expires time.Time
+	value   []byte
+}
+
+// CachedUserDetails is the cache of *UserDetails values keyed by username.
+type CachedUserDetails struct {
+	singleflight.Group
+	sync.Mutex
+
+	values map[string]CachedUserDetailsItem
+}
+
+// CachedUserDetailsExtended is the cache of *UserDetailsExtended values keyed by username.
+type CachedUserDetailsExtended struct {
+	singleflight.Group
+	sync.Mutex
+
+	values map[string]CachedUserDetailsExtendedItem
+}
+
+// CachedUserDetailsItem is a cached *UserDetails value and the time it expires at.
+type CachedUserDetailsItem struct {
+	*UserDetails
+
+	expires time.Time
+}
+
+// CachedUserDetailsExtendedItem is a cached *UserDetailsExtended value and the time it expires at.
+type CachedUserDetailsExtendedItem struct {
+	*UserDetailsExtended
+
+	expires time.Time
 }

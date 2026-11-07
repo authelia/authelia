@@ -147,7 +147,7 @@ type AuthzContext interface {
 	RemoteIP() net.IP
 
 	// GetSessionProviderByTargetURI should return the session provider for the target URL.
-	GetSessionProviderByTargetURI(targetURL *url.URL) (provider *session.Session, err error)
+	GetSessionProviderByTargetURI(targetURL *url.URL) (provider session.Strategy, err error)
 }
 
 // Handler is the middlewares.RequestHandler for Authz.
@@ -211,26 +211,8 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 		object,
 	)
 
-	if err != nil {
-		authn.Object = object
-
-		if !ruleHasSubject {
-			switch required {
-			case authorization.Bypass:
-				ctx.GetLogger().WithError(err).Debug("The matched rule was a bypass rule however an error occurred processing the authorization request")
-			default:
-				switch {
-				case strategy == nil:
-					ctx.ReplyUnauthorized()
-				case strategy.HeaderStrategy():
-					ctx.GetLogger().WithError(err).Error("Error occurred while attempting to authenticate a request")
-
-					strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
-
-					return
-				}
-			}
-		}
+	if err != nil && authz.handleAuthnError(ctx, authn, strategy, &object, autheliaURL, err, ruleHasSubject, required) {
+		return
 	}
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
@@ -250,6 +232,33 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	case AuthzResultAuthorized:
 		authz.handleAuthorized(ctx, authz.headers, authn)
 	}
+}
+
+func (authz *Authz) handleAuthnError(ctx AuthzContext, authn *Authn, strategy AuthnStrategy, object *authorization.Object, autheliaURL *url.URL, err error, ruleHasSubject bool, required authorization.Level) (handled bool) {
+	authn.Object = *object
+
+	bypass := !ruleHasSubject && required == authorization.Bypass
+
+	if bypass {
+		ctx.GetLogger().WithError(err).Debug("The matched rule was a bypass rule however an error occurred processing the authorization request")
+	} else {
+		ctx.GetLogger().WithError(err).Error("Error occurred while attempting to authenticate a request")
+	}
+
+	if ruleHasSubject || bypass {
+		return false
+	}
+
+	switch {
+	case strategy == nil:
+		ctx.ReplyUnauthorized()
+	case strategy.HeaderStrategy():
+		strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(object, autheliaURL))
+
+		return true
+	}
+
+	return false
 }
 
 func (authz *Authz) getAutheliaURL(ctx AuthzContext, manager session.Manager) (autheliaURL *url.URL, err error) {
@@ -304,7 +313,7 @@ func (authz *Authz) authn(ctx AuthzContext, manager session.Manager, object *aut
 			authn.Level = authentication.NotAuthenticated
 			authn.Username = anonymous
 			authn.ClientID = ""
-			authn.Details = &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
+			authn.Details = authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
 
 			if strategy.CanHandleUnauthorized() {
 				return authn, strategy, err
