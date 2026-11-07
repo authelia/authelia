@@ -5,6 +5,7 @@
 package authentication
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -1367,4 +1368,44 @@ func WithDatabase(t *testing.T, content []byte, f func(path string)) {
 	f(db.Name())
 
 	require.NoError(t, db.Close())
+}
+
+func TestShouldNotStartReloadCooldownWhenContentUnchanged(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "users.yml")
+
+	require.NoError(t, os.WriteFile(path, UserDatabaseContent, 0600))
+
+	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: path, Password: schema.DefaultPasswordConfig})
+
+	require.NoError(t, provider.StartupCheck())
+
+	// An event which doesn't change the content, such as a projected volume swap of an unrelated key.
+	reloaded, err := provider.Reload()
+
+	assert.False(t, reloaded)
+	assert.NoError(t, err)
+	assert.False(t, time.Now().Before(provider.timeoutReload))
+
+	_, err = provider.GetDetails("harry")
+	require.NoError(t, err)
+
+	require.NoError(t, os.WriteFile(path, bytes.Replace(UserDatabaseContent, []byte("harry:"), []byte("harold:"), 1), 0600))
+
+	// A genuine change immediately afterwards must still be reloaded.
+	reloaded, err = provider.Reload()
+
+	assert.True(t, reloaded)
+	assert.NoError(t, err)
+
+	_, err = provider.GetDetails("harold")
+	assert.NoError(t, err)
+
+	// A self-write is still suppressed by the cooldown.
+	require.NoError(t, provider.UpdatePassword("john", "apple123"))
+
+	reloaded, err = provider.Reload()
+
+	assert.False(t, reloaded)
+	assert.EqualError(t, err, "watcher on cooldown")
 }
