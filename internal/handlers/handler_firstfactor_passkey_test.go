@@ -37,6 +37,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 		expected         *regexp.Regexp
 		expectedStatus   int
 		validateResponse func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		conditional      bool
 	}{
 		{
 			"ShouldSuccess",
@@ -61,6 +62,32 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				assert.Equal(t, "", us.WebAuthn.Description)
 				assert.Equal(t, []byte(nil), us.WebAuthn.UserID)
 			},
+			false,
+		},
+		{
+			"ShouldSuccessConditionalMediation",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+			},
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com"},"mediation":"conditional"}}$`),
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NotNil(t, us.WebAuthn)
+				require.NotNil(t, us.WebAuthn.SessionData)
+
+				assert.Equal(t, "", us.WebAuthn.Description)
+				assert.Equal(t, []byte(nil), us.WebAuthn.UserID)
+			},
+			true,
 		},
 		{
 			"ShouldFailAlreadyLoggedIn",
@@ -86,6 +113,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn passkey authentication challenge: error occurred retrieving the user session data", "user is already authenticated")
 			},
+			false,
 		},
 		{
 			"ShouldFailGetSession",
@@ -99,6 +127,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn passkey authentication challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain: failed to parse X-Original-URL header: parse \"123\": invalid URI for request")
 			},
+			false,
 		},
 		{
 			"ShouldFailCantGetProvider",
@@ -122,6 +151,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"____://____/\": invalid URI for request")
 			},
+			false,
 		},
 	}
 
@@ -141,7 +171,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			FirstFactorPasskeyGET(mock.Ctx)
+			FirstFactorPasskeyGET(tc.conditional)(mock.Ctx)
 
 			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
 			assert.Regexp(t, tc.expected, string(mock.Ctx.Response.Body()))
