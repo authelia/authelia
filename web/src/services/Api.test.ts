@@ -22,6 +22,11 @@ it("reports error for ko response", () => {
     expect(hasServiceError(resp)).toEqual({ errored: true, message: "bad request" });
 });
 
+it("reports the code for ko response", () => {
+    const resp = { data: { code: "password_policy", message: "bad", status: "KO" }, status: 200 } as AxiosResponse;
+    expect(hasServiceError(resp)).toEqual({ code: "password_policy", errored: true, message: "bad" });
+});
+
 it("validates status for authentication", () => {
     expect(validateStatusAuthentication(200)).toBe(true);
     expect(validateStatusAuthentication(401)).toBe(true);

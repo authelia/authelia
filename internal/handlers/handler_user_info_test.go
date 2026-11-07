@@ -346,7 +346,7 @@ func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 
 	UserInfoGET(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred loading the user information", "failure")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -363,7 +363,7 @@ func (s *FetchSuite) TestShouldLogErrorWhenPreferredMethodLookupFails() {
 
 	UserInfoPOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
 	assert.Equal(s.T(), "Error occurred looking up the user preferred second factor method while loading the user information", s.mock.Hook.Entries[0].Message)
 }
 
@@ -382,7 +382,7 @@ func (s *FetchSuite) TestShouldLogErrorWhenDefaultPreferredMethodCannotBeSaved()
 
 	UserInfoPOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
 	assert.Equal(s.T(), "Error occurred saving the user preferred second factor method while loading the user information", s.mock.Hook.Entries[0].Message)
 }
 
@@ -413,7 +413,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
 	s.mock.Ctx.Request.SetBody(nil)
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to parse body: unexpected end of JSON input")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -422,7 +422,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"abc\""))
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to parse body: unexpected end of JSON input")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -431,7 +431,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"weird_key\":\"abc\"}"))
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to validate body: method: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -440,7 +440,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"abc\"}"))
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred setting the second factor method preference as the method 'abc' is unknown or unavailable, it should be one of totp, webauthn, mobile_push", "")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -453,7 +453,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred saving the new preferred second factor method", "Failure")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -507,7 +507,7 @@ func TestUserInfoShouldHandleGetSessionError(t *testing.T) {
 			tc.handler(mock.Ctx)
 
 			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
-			assert.Equal(t, `{"status":"KO","message":"Operation failed."}`, string(mock.Ctx.Response.Body()))
+			assert.Equal(t, `{"status":"KO","code":"operation_failed","message":"Operation failed."}`, string(mock.Ctx.Response.Body()))
 
 			mock.AssertLastLogMessage(t, "Error occurred retrieving user session", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 		})

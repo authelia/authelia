@@ -177,7 +177,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert401KO(s.T(), messageMFAValidationFailed)
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
@@ -405,7 +405,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert401KO(s.T(), messageMFAValidationFailed)
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
@@ -488,7 +488,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert401KO(s.T(), messageMFAValidationFailed)
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
@@ -761,7 +761,7 @@ func TestDuoGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Authentication failed, please retry later."}`,
+			`{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")

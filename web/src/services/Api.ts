@@ -4,6 +4,7 @@
 
 import { AxiosResponse } from "axios";
 
+import { ErrorCode } from "@services/ErrorCode";
 import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
@@ -56,6 +57,7 @@ export interface AuthenticationErrorResponse extends ErrorResponse {
 
 export interface ErrorResponse {
     status: "KO";
+    code?: ErrorCode;
     message: string;
 }
 
@@ -94,7 +96,7 @@ export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefine
 
 function hasError(err: ErrorResponse | undefined) {
     if (err?.status === "KO") {
-        return { errored: true, message: err.message };
+        return { code: err.code, errored: true, message: err.message };
     }
 
     return { errored: false, message: null };
