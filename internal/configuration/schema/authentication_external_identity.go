@@ -37,6 +37,8 @@ type AuthenticationBackendExternalIdentityProvider struct {
 	Discovery                      AuthenticationBackendExternalIdentityProviderDiscovery `koanf:"discovery" yaml:"discovery,omitempty" toml:"discovery,omitempty" json:"discovery,omitempty" jsonschema:"title=Discovery" jsonschema_description:"Configures OpenID Connect Discovery 1.0 behavior for this provider."`
 	Endpoints                      AuthenticationBackendExternalIdentityProviderEndpoints `koanf:"endpoints" yaml:"endpoints,omitempty" toml:"endpoints,omitempty" json:"endpoints,omitempty" jsonschema:"title=Endpoints" jsonschema_description:"Explicit endpoints which override or replace discovery."`
 
+	ClaimsMapping map[string]string `koanf:"claims_mapping" yaml:"claims_mapping,omitempty" toml:"claims_mapping,omitempty" json:"claims_mapping,omitempty" jsonschema:"title=Claims Mapping" jsonschema_description:"Common Expression Language expressions which remap the upstream claims to the result claims 'preferred_username', 'name', 'email', and 'amr', or which refuse the sign in with 'disabled'. Only configured claims are overridden."`
+
 	JSONWebKeys []JWK `koanf:"jwks" yaml:"jwks,omitempty" toml:"jwks,omitempty" json:"jwks,omitempty" jsonschema:"title=JSON Web Keys" jsonschema_description:"Inline JSON Web Keys used to verify ID Tokens instead of fetching them."`
 }
 
