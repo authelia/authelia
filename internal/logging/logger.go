@@ -82,7 +82,6 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 			return err
 		}
 
-		// Only assigned once open so logFile is never non-nil while closed.
 		logFile = file
 
 		if config.Format != FormatJSON {
