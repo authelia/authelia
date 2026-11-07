@@ -28,6 +28,10 @@ const (
 	environmentVariableConfigReloadPaths = "X_AUTHELIA_CONFIG_RELOAD_PATHS"
 )
 
+const (
+	kubernetesAtomicWriterDataDir = "..data"
+)
+
 var (
 	// ErrApplicationReload is emitted when the application is being reloaded. This effectively starts Authelia again
 	// instead of doing a full exit.

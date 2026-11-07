@@ -25,7 +25,6 @@ func ProvisionConfigFileWatcher(ctx Context) (service Provider, err error) {
 		return nil, nil
 	}
 
-	// The context paths are copied as they must not be mutated by the append below.
 	paths := slices.Clone(ctx.GetConfigurationPaths())
 
 	if additional := utils.StringSplitClean(os.Getenv(environmentVariableConfigReloadPaths), ","); len(additional) != 0 {
@@ -151,7 +150,7 @@ func (fwp FileWatcherPaths) IsMatch(event fsnotify.Event) (match bool) {
 			continue
 		}
 
-		if path.Info.IsDir() || file == path.File {
+		if path.Info.IsDir() || file == path.File || file == kubernetesAtomicWriterDataDir {
 			return true
 		}
 	}

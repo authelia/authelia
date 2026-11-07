@@ -170,7 +170,7 @@ func newFileWatcherPaths(in []string) (paths FileWatcherPaths, err error) {
 
 		var info os.FileInfo
 
-		if info, err = os.Stat(path); err != nil {
+		if info, err = os.Stat(path); err != nil { //nolint:gosec // Paths are supplied by the administrator via configuration or environment, not by end users.
 			switch {
 			case os.IsNotExist(err):
 				return nil, fmt.Errorf("error stating file '%s': file does not exist", path)

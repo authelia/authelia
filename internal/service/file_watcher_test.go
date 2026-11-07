@@ -626,6 +626,10 @@ func TestFileWatcherPathsIsMatch(t *testing.T) {
 		{"ShouldNotMatchTheSameFileInAnotherDirectory", "/etc/other/configuration.yml", false},
 		{"ShouldMatchAnyFileInTheWatchedDirectory", "/etc/authelia.d/anything.yml", true},
 		{"ShouldNotMatchASubdirectoryOfTheWatchedDirectory", "/etc/authelia.d/nested/anything.yml", false},
+		{"ShouldMatchTheKubernetesDataSymlinkSwapForAWatchedFile", "/etc/authelia/..data", true},
+		{"ShouldNotMatchTheKubernetesTemporaryDataSymlink", "/etc/authelia/..data_tmp", false},
+		{"ShouldNotMatchTheKubernetesTimestampedDataDirectory", "/etc/authelia/..2026_11_07_10_00_00.123456789", false},
+		{"ShouldNotMatchTheKubernetesDataSymlinkSwapInAnotherDirectory", "/etc/other/..data", false},
 	}
 
 	for _, tc := range testCases {
