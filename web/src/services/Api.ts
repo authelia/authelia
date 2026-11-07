@@ -52,6 +52,7 @@ export const LocaleInformationPath = basePath + "/locales";
 export interface AuthenticationErrorResponse extends ErrorResponse {
     authentication: boolean;
     elevation: boolean;
+    reauthentication?: boolean;
 }
 
 export interface ErrorResponse {

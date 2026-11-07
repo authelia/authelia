@@ -36,6 +36,8 @@ type UserSession struct {
 	FirstFactorAuthnTimestamp  int64
 	SecondFactorAuthnTimestamp int64
 
+	SecondFactorPossessionAuthnTimestamp int64
+
 	AuthenticationMethodRefs authorization.AuthenticationMethodsReferences
 
 	// WebAuthn holds the session registration data for this session.

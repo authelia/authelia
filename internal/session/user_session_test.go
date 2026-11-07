@@ -65,13 +65,14 @@ func TestUserSession_SetFactors(t *testing.T) {
 				session.SetTwoFactorPassword(time.Unix(20000, 0))
 			},
 			&UserSession{
-				Username:                   "john",
-				Groups:                     []string{"abc", "123"},
-				Emails:                     []string{"john@example.com"},
-				KeepMeLoggedIn:             true,
-				LastActivity:               20000,
-				FirstFactorAuthnTimestamp:  10000,
-				SecondFactorAuthnTimestamp: 20000,
+				Username:                             "john",
+				Groups:                               []string{"abc", "123"},
+				Emails:                               []string{"john@example.com"},
+				KeepMeLoggedIn:                       true,
+				LastActivity:                         20000,
+				FirstFactorAuthnTimestamp:            10000,
+				SecondFactorAuthnTimestamp:           20000,
+				SecondFactorPossessionAuthnTimestamp: 0,
 				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
 					KnowledgeBasedAuthentication: true,
 					UsernameAndPassword:          true,
@@ -89,17 +90,65 @@ func TestUserSession_SetFactors(t *testing.T) {
 				session.SetTwoFactorDuo(time.Unix(20000, 0))
 			},
 			&UserSession{
-				Username:                   "john",
-				Groups:                     []string{"abc", "123"},
-				Emails:                     []string{"john@example.com"},
-				KeepMeLoggedIn:             true,
-				LastActivity:               20000,
-				FirstFactorAuthnTimestamp:  10000,
-				SecondFactorAuthnTimestamp: 20000,
+				Username:                             "john",
+				Groups:                               []string{"abc", "123"},
+				Emails:                               []string{"john@example.com"},
+				KeepMeLoggedIn:                       true,
+				LastActivity:                         20000,
+				FirstFactorAuthnTimestamp:            10000,
+				SecondFactorAuthnTimestamp:           20000,
+				SecondFactorPossessionAuthnTimestamp: 20000,
 				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
 					KnowledgeBasedAuthentication: true,
 					UsernameAndPassword:          true,
 					Duo:                          true,
+				},
+			},
+		},
+		{
+			"ShouldSetOneFactorPasswordAndTwoFactorTOTP",
+			func(session *UserSession) {
+				session.SetOneFactorPassword(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true)
+				session.SetTwoFactorTOTP(time.Unix(20000, 0))
+			},
+			&UserSession{
+				Username:                             "john",
+				Groups:                               []string{"abc", "123"},
+				Emails:                               []string{"john@example.com"},
+				KeepMeLoggedIn:                       true,
+				LastActivity:                         20000,
+				FirstFactorAuthnTimestamp:            10000,
+				SecondFactorAuthnTimestamp:           20000,
+				SecondFactorPossessionAuthnTimestamp: 20000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					KnowledgeBasedAuthentication: true,
+					UsernameAndPassword:          true,
+					TOTP:                         true,
+				},
+			},
+		},
+		{
+			"ShouldSetOneFactorPasswordAndTwoFactorWebAuthn",
+			func(session *UserSession) {
+				session.SetOneFactorPassword(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true)
+				session.SetTwoFactorWebAuthn(time.Unix(20000, 0), true, true, true)
+			},
+			&UserSession{
+				Username:                             "john",
+				Groups:                               []string{"abc", "123"},
+				Emails:                               []string{"john@example.com"},
+				KeepMeLoggedIn:                       true,
+				LastActivity:                         20000,
+				FirstFactorAuthnTimestamp:            10000,
+				SecondFactorAuthnTimestamp:           20000,
+				SecondFactorPossessionAuthnTimestamp: 20000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					KnowledgeBasedAuthentication: true,
+					UsernameAndPassword:          true,
+					WebAuthn:                     true,
+					WebAuthnHardware:             true,
+					WebAuthnUserVerified:         true,
+					WebAuthnUserPresence:         true,
 				},
 			},
 		},
