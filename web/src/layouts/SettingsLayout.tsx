@@ -5,7 +5,7 @@
 import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
 import { cn } from "cn";
-import { LayoutDashboard, Menu, Shield, ShieldCheck, X } from "lucide-react";
+import { LayoutDashboard, Link2, Menu, Shield, ShieldCheck, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@components/UI/Button";
@@ -15,10 +15,12 @@ import { EncodedName } from "@constants/constants";
 import {
     IndexRoute,
     SecuritySubRoute,
+    SettingsExternalIdentitySubRoute,
     SettingsRoute,
     SettingsTwoFactorAuthenticationSubRoute,
 } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
+import { getExternalIdentityLogin } from "@utils/Configuration";
 
 export interface Props {
     children?: ReactNode;
@@ -36,6 +38,10 @@ const SettingsLayout = function (props: Props) {
     }, [translate]);
 
     const drawerWidth = props.drawerWidth ?? defaultDrawerWidth;
+
+    const navItemsEnabled = navItems.filter(
+        (item) => item.keyname !== "external-identity" || getExternalIdentityLogin(),
+    );
 
     const handleToggleDrawer = (event: SyntheticEvent) => {
         if (
@@ -72,7 +78,7 @@ const SettingsLayout = function (props: Props) {
                         <SheetTitle className="my-4 text-lg font-medium">{translate("Settings")}</SheetTitle>
                         <Separator />
                         <ul className="list-none p-0">
-                            {navItems.map((item) => (
+                            {navItemsEnabled.map((item) => (
                                 <DrawerNavItem
                                     key={item.keyname}
                                     keyname={item.keyname}
@@ -116,6 +122,12 @@ const navItems: NavItem[] = [
         keyname: "twofactor",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         text: "Two-Factor Authentication",
+    },
+    {
+        icon: <Link2 className="size-5 text-primary" />,
+        keyname: "external-identity",
+        pathname: `${SettingsRoute}${SettingsExternalIdentitySubRoute}`,
+        text: "Linked Accounts",
     },
     { icon: <X className="size-5 text-destructive" />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];

@@ -10,9 +10,25 @@ import (
 
 // Suite represents a single OpenID Connect conformance suite.
 type Suite struct {
-	Name    string
-	Plan    Plan
-	Clients []schema.IdentityProvidersOpenIDConnectClient
+	Name      string
+	Plan      Plan
+	Clients   []schema.IdentityProvidersOpenIDConnectClient
+	Providers []schema.AuthenticationBackendExternalIdentityProvider
+}
+
+// RelyingPartyModule represents a module of a Relying Party profile which is run in a plan of its own.
+type RelyingPartyModule struct {
+	// Suffix distinguishes the builder of the module from the builders of the other modules of its profile. The
+	// provider id is derived from it, so it must be short enough for the id to remain valid.
+	Suffix string
+
+	// Name is the conformance suite's name for the module.
+	Name string
+}
+
+// BuilderName returns the builder name of the Config RP profile module.
+func (m RelyingPartyModule) BuilderName() string {
+	return NameRelyingPartyConfig + "-" + m.Suffix
 }
 
 // Plan represents the test plan for a Suite.
@@ -48,6 +64,7 @@ type PlanVariant struct {
 	SenderConstrain          string `json:"sender_constrain,omitempty"`
 	AuthorizationRequestType string `json:"authorization_request_type,omitempty"`
 	OpenID                   string `json:"openid,omitempty"`
+	RequestType              string `json:"request_type,omitempty"`
 }
 
 // PlanServer represents the server details of a Plan.
@@ -66,6 +83,7 @@ type PlanServer struct {
 type PlanClient struct {
 	ID                   string `json:"client_id,omitempty"`
 	Secret               string `json:"client_secret,omitempty"`
+	RedirectURI          string `json:"redirect_uri,omitempty"`
 	Name                 string `json:"client_name,omitempty"`
 	Scope                string `json:"scope,omitempty"`
 	SecretJWTAlgorithm   string `json:"client_secret_jwt_alg,omitempty"`
