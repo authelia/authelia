@@ -201,8 +201,6 @@ func (service *FileWatcher) Run() (err error) {
 	}
 }
 
-// handleEvent handles a single fsnotify.Event. A non-nil error indicates the FileWatcher should terminate and the
-// error should be returned to the caller.
 func (service *FileWatcher) handleEvent(event fsnotify.Event) (err error) {
 	log := service.log.WithFields(map[string]any{logFieldFile: event.Name, logFieldOP: event.Op})
 

@@ -24,10 +24,7 @@ const (
 )
 
 const (
-	// environmentVariableConfigReload enables reloading the application when the configuration changes.
-	environmentVariableConfigReload = "X_AUTHELIA_CONFIG_RELOAD"
-
-	// environmentVariableConfigReloadPaths is a comma delimited list of additional paths to watch for changes.
+	environmentVariableConfigReload      = "X_AUTHELIA_CONFIG_RELOAD"
 	environmentVariableConfigReloadPaths = "X_AUTHELIA_CONFIG_RELOAD_PATHS"
 )
 
