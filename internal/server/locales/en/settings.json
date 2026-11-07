@@ -27,6 +27,7 @@
 	"Close": "Close",
 	"Closing this dialog or selecting cancel will invalidate the One-Time Code": "Closing this dialog or selecting cancel will invalidate the One-Time Code",
 	"Confirm": "Confirm",
+	"Continue": "Continue",
 	"Completed": "Completed",
 	"Copied": "Copied",
 	"Credential Creation Options Request succeeded but Credential Creation Options is empty": "Credential Creation Options Request succeeded but Credential Creation Options is empty",
@@ -165,5 +166,6 @@
 	"Your browser does not appear to support the configuration": "Your browser does not appear to support the configuration",
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements",
+	"Your two-factor authentication method is ready, continue to sign in": "Your two-factor authentication method is ready, continue to sign in",
 	"Your device does not support user verification or resident keys but this was required": "Your device does not support user verification or resident keys but this was required"
 }
