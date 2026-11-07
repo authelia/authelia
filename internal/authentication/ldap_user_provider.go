@@ -293,44 +293,75 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 		return fmt.Errorf("unable to update password for user '%s'. Cause: %w", username, err)
 	}
 
-	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
-	if err != nil {
-		errorCode := getLDAPResultCode(err)
-		if errorCode == ldap.LDAPResultInvalidCredentials {
+	// Binding as the user verifies their old password. Some LDAP
+	// implementations which enforce password policies (for example Synology's
+	// directory server) only accept the Password Modify Extended Operation
+	// with old password verification when it is issued over a connection
+	// bound as the target user, responding with LDAPResultUnwillingToPerform
+	// otherwise. We therefore keep the user-bound connection and prefer it
+	// for the modification, falling back to the service client for
+	// implementations where this is not permitted.
+	uclient, uerr := p.factory.GetClient(WithUsername(profile.DN), WithPassword(oldPassword))
+	if uerr != nil {
+		if errorCode := getLDAPResultCode(uerr); errorCode == ldap.LDAPResultInvalidCredentials {
 			return ErrIncorrectPassword
-		} else {
-			return err
 		}
+
+		return fmt.Errorf("authentication failed. Cause: %w", uerr)
 	}
 
-	if !userPasswordOk {
-		return ErrIncorrectPassword
-	}
+	defer func() {
+		if err := p.factory.ReleaseClient(uclient); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	if oldPassword == newPassword {
 		return ErrPasswordWeak
 	}
 
-	if err = p.setPassword(client, profile, username, oldPassword, newPassword); err != nil {
-		if errorCode := getLDAPResultCode(err); errorCode != -1 {
-			switch errorCode {
-			case ldap.LDAPResultInvalidCredentials,
-				ldap.LDAPResultInappropriateAuthentication:
-				return fmt.Errorf("%w: %v", ErrIncorrectPassword, err)
-			case ldap.LDAPResultConstraintViolation,
-				ldap.LDAPResultObjectClassViolation,
-				ldap.ErrorEmptyPassword,
-				ldap.LDAPResultUnwillingToPerform:
-				return fmt.Errorf("%w: %v", ErrPasswordWeak, err)
-			default:
-				return fmt.Errorf("%w: %v", ErrOperationFailed, err)
-			}
-		}
+	if err = p.setPassword(uclient, profile, username, oldPassword, newPassword); err == nil {
+		return nil
+	}
 
-		return fmt.Errorf("%w: %v", ErrOperationFailed, err)
+	switch errorCode := getLDAPResultCode(err); errorCode {
+	case ldap.LDAPResultInvalidCredentials,
+		ldap.LDAPResultInappropriateAuthentication:
+		// The directory explicitly rejected the old password.
+		return fmt.Errorf("%w: %v", ErrIncorrectPassword, err)
+	case -1:
+		// Not an LDAP result error (i.e. a transport or encoding error): fall
+		// back to the service client.
+	default:
+		// The directory refused the user-bound modification (e.g. ACLs or
+		// policy): fall back to the service client which retains the prior
+		// behaviour for implementations that only accept it that way.
+	}
+
+	if err = p.setPassword(client, profile, username, oldPassword, newPassword); err != nil {
+		return mapPasswordModifyError(err)
 	}
 
 	return nil
+}
+
+func mapPasswordModifyError(err error) error {
+	if errorCode := getLDAPResultCode(err); errorCode != -1 {
+		switch errorCode {
+		case ldap.LDAPResultInvalidCredentials,
+			ldap.LDAPResultInappropriateAuthentication:
+			return fmt.Errorf("%w: %v", ErrIncorrectPassword, err)
+		case ldap.LDAPResultConstraintViolation,
+			ldap.LDAPResultObjectClassViolation,
+			ldap.ErrorEmptyPassword,
+			ldap.LDAPResultUnwillingToPerform:
+			return fmt.Errorf("%w: %v", ErrPasswordWeak, err)
+		default:
+			return fmt.Errorf("%w: %v", ErrOperationFailed, err)
+		}
+	}
+
+	return fmt.Errorf("%w: %v", ErrOperationFailed, err)
 }
 
 func (p *LDAPUserProvider) setPassword(client LDAPExtendedClient, profile *ldapUserProfile, username, oldPassword, newPassword string) (err error) {
