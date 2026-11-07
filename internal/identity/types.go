@@ -6,6 +6,7 @@ package identity
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"authelia.com/provider/oauth2/token/jose"
@@ -160,6 +161,25 @@ type discordUser struct {
 	Verified   *bool   `json:"verified"`
 
 	raw map[string]any
+}
+
+type githubUser struct {
+	ID    int64   `json:"id"`
+	Login string  `json:"login"`
+	Name  *string `json:"name"`
+
+	raw map[string]any
+}
+
+// UnmarshalJSON retains the raw claims of the user alongside the values Authelia consumes.
+func (u *githubUser) UnmarshalJSON(data []byte) (err error) {
+	type alias githubUser
+
+	if err = json.Unmarshal(data, (*alias)(u)); err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, &u.raw)
 }
 
 type discoveryCheck struct {
