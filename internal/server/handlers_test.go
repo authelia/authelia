@@ -7,6 +7,8 @@ package server
 import (
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -375,3 +377,75 @@ func (e *timeoutError) Error() string { return "i/o timeout" }
 func (e *timeoutError) Timeout() bool { return true }
 
 func (e *timeoutError) Temporary() bool { return true }
+
+func TestHandlerMainShouldRegisterCustomAssetsConditionally(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	testCases := []struct {
+		name               string
+		assetPath          func(t *testing.T) string
+		expectedStatusCode int
+	}{
+		{
+			"ShouldNotRegisterWithoutAssetPath",
+			func(t *testing.T) string { return "" },
+			fasthttp.StatusNotFound,
+		},
+		{
+			"ShouldNotRegisterWithoutCustomDirectory",
+			func(t *testing.T) string { return t.TempDir() },
+			fasthttp.StatusNotFound,
+		},
+		{
+			"ShouldRegisterWithCustomDirectory",
+			func(t *testing.T) string {
+				root := newCustomAssetsDir(t, map[string]string{"theme.css": "body { color: red; }"})
+
+				require.NoError(t, os.WriteFile(filepath.Join(root, dirCustomAssetsParent, "sibling.css"), []byte("body { color: blue; }"), 0o600))
+
+				return root
+			},
+			fasthttp.StatusOK,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{
+				Server: schema.Server{
+					Address:   schema.DefaultServerConfiguration.Address,
+					Endpoints: schema.DefaultServerConfiguration.Endpoints,
+					AssetPath: tc.assetPath(t),
+				},
+			}
+
+			providers := middlewares.NewProvidersBasic()
+			providers.Random = random.NewMathematical()
+			providers.Templates = provider
+
+			handler, err := handlerMain(config, providers)
+
+			require.NoError(t, err)
+
+			ctx := newAssetRequestCtx(fasthttp.MethodGet, "/static/custom/theme.css", "")
+
+			handler(ctx)
+
+			assert.Equal(t, tc.expectedStatusCode, ctx.Response.StatusCode())
+
+			if tc.expectedStatusCode == fasthttp.StatusOK {
+				assert.Equal(t, "body { color: red; }", string(ctx.Response.Body()))
+			}
+
+			// Only the custom subtree is exposed, the catch-all static route must never serve the asset path.
+			ctx = newAssetRequestCtx(fasthttp.MethodGet, "/static/sibling.css", "")
+
+			handler(ctx)
+
+			assert.Equal(t, fasthttp.StatusNotFound, ctx.Response.StatusCode())
+		})
+	}
+}
