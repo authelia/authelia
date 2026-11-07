@@ -93,7 +93,7 @@ Below are Terraform code snippets that describe how to configure the OIDC auth b
 Terraform Vault Provider v5.11 was used with this example.
 
 ```hcl {title="vault_jwt_auth_backend resource"}
-resource "vault_jwt_auth_backend" "anthelia" {
+resource "vault_jwt_auth_backend" "authelia" {
   description                   = ""
   path                          = "oidc"
   type                          = "oidc"
@@ -108,7 +108,7 @@ resource "vault_jwt_auth_backend" "anthelia" {
 ```
 
 ```hcl {title="vault_jwt_auth_backend_role resource"}
-resource "vault_jwt_auth_backend_role" "anthelia" {
+resource "vault_jwt_auth_backend_role" "authelia" {
   backend    = vault_jwt_auth_backend.authelia.path
   role_name  = "authelia"
   role_type  = "oidc"
