@@ -50,7 +50,7 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.77.0
 	github.com/weppos/publicsuffix-go v0.50.3
-	github.com/wneessen/go-mail v0.8.1
+	github.com/wneessen/go-mail v0.8.2
 	github.com/ysmood/gson v0.7.3
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.6
