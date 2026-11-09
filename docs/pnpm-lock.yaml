@@ -224,8 +224,8 @@ importers:
         specifier: 8.0.3
         version: 8.0.3(supports-color@8.1.1)
       '@fullhuman/postcss-purgecss':
-        specifier: 9.0.0
-        version: 9.0.0(postcss@8.5.32)
+        specifier: 9.1.0
+        version: 9.1.0(postcss@8.5.32)
       autoprefixer:
         specifier: 10.6.2
         version: 10.6.2(postcss@8.5.32)
@@ -904,8 +904,8 @@ packages:
     peerDependencies:
       postcss: ^8.0.0
 
-  '@fullhuman/postcss-purgecss@9.0.0':
-    resolution: {integrity: sha512-huH2MUJD9R+V8vWkfCctSEwksQGQqM+u2ilJqG08W2I7KBev/047i8DSjrWDVUQb+w1ws6s8D1oZkEVsrf77/w==}
+  '@fullhuman/postcss-purgecss@9.1.0':
+    resolution: {integrity: sha512-x3LtKP0P0CDrrENkcdCkMt8DsIjRd4YIT1hNdJgyCt/qTv1Ay0a8uWNWnrrwv+EAw9KBEKwbU4uumSy3BL0DyA==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       postcss: ^8.0.0
@@ -2070,8 +2070,8 @@ packages:
     resolution: {integrity: sha512-QFJyps9y5oHeXnNA3Ql1EaAqWBivNwQn19Pw1lt9RxfB+4e+bIyqCyuombk79D6Fxe+lPXggVfI1WtRGEBwgbQ==}
     hasBin: true
 
-  purgecss@9.0.0:
-    resolution: {integrity: sha512-4kDEmPhq2ZjjZu381uN0I25NGLv6ZbAkQ13e7AU4BuVS09A6Genn4SHtD/SVwhdWRadicnzrnWSLrVhTuesKRA==}
+  purgecss@9.1.0:
+    resolution: {integrity: sha512-KUuJWwloltnB1NhRFAjpkC9URvAenZWpKwUjpg/+cYPQGtVj65Iw7XpiF9NkPGBEPhJu9Rw5DbCn7NFlIAg8OQ==}
     engines: {node: '>=22.12.0'}
     hasBin: true
 
@@ -3281,10 +3281,11 @@ snapshots:
       postcss: 8.5.32
       purgecss: 8.0.0
 
-  '@fullhuman/postcss-purgecss@9.0.0(postcss@8.5.32)':
+  '@fullhuman/postcss-purgecss@9.1.0(postcss@8.5.32)':
     dependencies:
+      fast-glob: 3.3.3
       postcss: 8.5.32
-      purgecss: 9.0.0
+      purgecss: 9.1.0
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -4473,7 +4474,7 @@ snapshots:
       postcss: 8.5.32
       postcss-selector-parser: 7.1.7
 
-  purgecss@9.0.0:
+  purgecss@9.1.0:
     dependencies:
       commander: 15.0.0
       fast-glob: 3.3.3

@@ -30,7 +30,7 @@
     "@eslint/css": "2.0.1",
     "@eslint/json": "2.1.1",
     "@eslint/markdown": "8.0.3",
-    "@fullhuman/postcss-purgecss": "9.0.0",
+    "@fullhuman/postcss-purgecss": "9.1.0",
     "autoprefixer": "10.6.2",
     "basiclightbox": "5.0.4",
     "bootstrap": "5.3.8",
