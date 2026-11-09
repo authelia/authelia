@@ -915,6 +915,16 @@
     "env": "AUTHELIA_SERVER_HEADERS_CSP_TEMPLATE"
   },
   {
+    "path": "server.headers.trusted_proxies.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_HEADERS_TRUSTED_PROXIES_ENABLE"
+  },
+  {
+    "path": "server.headers.trusted_proxies.walk_x_forwarded_for",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_HEADERS_TRUSTED_PROXIES_WALK_X_FORWARDED_FOR"
+  },
+  {
     "path": "server.timeouts.idle",
     "secret": false,
     "env": "AUTHELIA_SERVER_TIMEOUTS_IDLE"

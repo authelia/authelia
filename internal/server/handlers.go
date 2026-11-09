@@ -32,21 +32,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
-	headerXForwardedFor := []byte(fasthttp.HeaderXForwardedFor)
-
-	getRemoteIP := func(ctx *fasthttp.RequestCtx) string {
-		if hdr := ctx.Request.Header.PeekBytes(headerXForwardedFor); hdr != nil {
-			ips := strings.Split(string(hdr), ",")
-
-			if len(ips) > 0 {
-				return strings.Trim(ips[0], " ")
-			}
-		}
-
-		return ctx.RemoteIP().String()
-	}
-
+func handleError(cpath string, trustedProxies schema.ServerHeadersTrustedProxies) func(ctx *fasthttp.RequestCtx, err error) {
 	return func(ctx *fasthttp.RequestCtx, err error) {
 		var (
 			statusCode int
@@ -90,7 +76,7 @@ func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 		logging.Logger().WithFields(logrus.Fields{
 			logging.FieldMethod:     string(ctx.Method()),
 			logging.FieldPath:       string(ctx.Path()),
-			logging.FieldRemoteIP:   getRemoteIP(ctx),
+			logging.FieldRemoteIP:   middlewares.TrustedProxiesRemoteIP(ctx, trustedProxies).String(),
 			logging.FieldStatusCode: statusCode,
 		}).WithError(err).Error(message)
 
@@ -242,7 +228,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		handlerAuthz := middlewares.MultiWrap(bridge(func(ctx *middlewares.AutheliaCtx) {
 			authz.Handler(ctx)
-		}), metricsVRMW, middlewares.SecurityHeadersNoStoreAfter)
+		}), middlewares.NewTrustedProxiesAuthz(config.Server.Headers.TrustedProxies, endpoint.Implementation), metricsVRMW, middlewares.SecurityHeadersNoStoreAfter)
 
 		switch name {
 		case "legacy":
@@ -398,7 +384,9 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	handler = middlewares.MultiWrap(handler, middlewares.RecoverPanic, middlewares.NewMetricsRequest(providers.Metrics))
 
-	return handler, nil
+	middleware := middlewares.NewTrustedProxies(config.Server.Headers.TrustedProxies)
+
+	return middleware(handler), nil
 }
 
 // RegisterOpenIDConnectRoutes handles registration of OpenID Connect 1.0 routes.
