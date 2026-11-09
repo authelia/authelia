@@ -1252,8 +1252,9 @@ purpose.
 Permits this client to send [Client Assertions] which omit the JWT `typ` header entirely. By default Authelia requires
 the header to be present.
 
-This is an escape hatch for clients which do not implement
-[RFC7523bis: Section 4](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4).
+This is an escape hatch for clients which do not send the explicit type recommended by
+[RFC7523bis: Section 4](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4). While the draft
+recommends rather than requires explicit typing, Authelia requires it by default.
 
 ### client_assertion_jwt_validation_header_allow_types
 
@@ -1282,7 +1283,8 @@ identity_providers:
 ```
 
 Note that configuring this option replaces the default rather than adding to it, so the explicit
-`client-authentication+jwt` type must be listed if it should remain permitted.
+`client-authentication+jwt` type must be listed if it should remain permitted. An empty list is treated as unconfigured
+and uses the default.
 
 ### jwks_uri
 
