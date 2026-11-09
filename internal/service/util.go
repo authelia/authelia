@@ -18,6 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/systemd"
 )
 
@@ -91,29 +92,11 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 
 	cancel()
 
-	if reloading {
-		log.Info("Reload initiated")
-
-		if err = notifier.Reloading(); err != nil {
-			log.WithError(err).Error("Error occurred notifying the service manager a reload has been initiated")
-		}
-	} else {
-		log.Info("Shutdown initiated")
-
-		if err = notifier.Stopping(statusStopping); err != nil {
-			log.WithError(err).Error("Error occurred notifying the service manager shutdown has been initiated")
-		}
-	}
+	notifyShutdown(log, notifier, reloading)
 
 	shutdown(log, services)
 
-	if err = ctx.GetProviders().UserProvider.Close(); err != nil {
-		ctx.GetLogger().WithError(err).Error("Error occurred closing authentication connections")
-	}
-
-	if err = ctx.GetProviders().StorageProvider.Close(); err != nil {
-		log.WithError(err).Error("Error occurred closing database connections")
-	}
+	closeProviders(log, ctx.GetProviders())
 
 	var reload bool
 
@@ -132,6 +115,34 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	}
 
 	return nil
+}
+
+func notifyShutdown(log *logrus.Entry, notifier *systemd.Notifier, reloading bool) {
+	if reloading {
+		log.Info("Reload initiated")
+
+		if err := notifier.Reloading(); err != nil {
+			log.WithError(err).Error("Error occurred notifying the service manager a reload has been initiated")
+		}
+
+		return
+	}
+
+	log.Info("Shutdown initiated")
+
+	if err := notifier.Stopping(statusStopping); err != nil {
+		log.WithError(err).Error("Error occurred notifying the service manager shutdown has been initiated")
+	}
+}
+
+func closeProviders(log *logrus.Entry, providers middlewares.Providers) {
+	if err := providers.UserProvider.Close(); err != nil {
+		log.WithError(err).Error("Error occurred closing authentication connections")
+	}
+
+	if err := providers.StorageProvider.Close(); err != nil {
+		log.WithError(err).Error("Error occurred closing database connections")
+	}
 }
 
 func shutdown(log *logrus.Entry, services []Provider) {
