@@ -51,11 +51,12 @@ export function isErrorCode(code: unknown): code is ErrorCode {
     return typeof code === "string" && Object.keys(ErrorCodeTranslationKeys).includes(code);
 }
 
-export function translateErrorCode(
-    translate: (_key: string, _options?: any) => string,
-    code: string | undefined,
-    fallback: string,
-): string {
+export interface Translate {
+    (key: string): string;
+    (key: string, options: Record<string, unknown>): string;
+}
+
+export function translateErrorCode(translate: Translate, code: string | undefined, fallback: string): string {
     if (!isErrorCode(code)) {
         return fallback;
     }
