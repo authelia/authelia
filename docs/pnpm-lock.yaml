@@ -169,7 +169,7 @@ overrides:
   katex: 0.19.1
   minimatch: 11.0.5
   picomatch: 4.0.7
-  postcss-selector-parser: 7.1.8
+  postcss-selector-parser: 7.2.0
   semver: 7.8.6
   shell-quote: 1.12.0
 
@@ -2029,8 +2029,8 @@ packages:
     peerDependencies:
       postcss: ^8.1.0
 
-  postcss-selector-parser@7.1.8:
-    resolution: {integrity: sha512-4CrD1SdKVx3bWOXG6Mh5YI9s/NTEgMq4T+O0T4wj2JqGhxbi8BAPc8BJYDVrVOqXBbWGX7YMO3f3ldOSscdCew==}
+  postcss-selector-parser@7.2.0:
+    resolution: {integrity: sha512-Khh/tERVBn0I1499dvBSHY0pWJloMJWUxDsOBM0CCDPAcVZ10Jl2L1qy1f19uEX22spa8Mv7DCdEQJc0cGwBhQ==}
     engines: {node: '>=4'}
 
   postcss-value-parser@4.2.0:
@@ -4435,7 +4435,7 @@ snapshots:
       postcss: 8.5.32
       thenby: 1.4.1
 
-  postcss-selector-parser@7.1.8:
+  postcss-selector-parser@7.2.0:
     dependencies:
       util-deprecate: 1.0.2
 
@@ -4464,14 +4464,14 @@ snapshots:
       commander: 12.1.0
       fast-glob: 3.3.3
       postcss: 8.5.32
-      postcss-selector-parser: 7.1.8
+      postcss-selector-parser: 7.2.0
 
   purgecss@9.1.0:
     dependencies:
       commander: 15.0.0
       fast-glob: 3.3.3
       postcss: 8.5.32
-      postcss-selector-parser: 7.1.8
+      postcss-selector-parser: 7.2.0
 
   qified@0.10.1:
     dependencies:
