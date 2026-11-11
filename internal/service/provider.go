@@ -61,5 +61,6 @@ func GetProvisioners() []Provisioner {
 		ProvisionApplicationReloadSignal,
 		ProvisionGarbageCollector,
 		ProvisionSessionCollector,
+		ProvisionSystemdWatchdog,
 	}
 }
