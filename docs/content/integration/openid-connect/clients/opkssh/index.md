@@ -60,6 +60,7 @@ identity_providers:
       - client_id: 'opkssh'
         client_name: 'opkssh'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

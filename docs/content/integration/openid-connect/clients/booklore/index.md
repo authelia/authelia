@@ -60,6 +60,7 @@ identity_providers:
       - client_id: 'booklore'
         client_name: 'BookLore'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

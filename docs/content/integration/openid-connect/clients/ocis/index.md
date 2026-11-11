@@ -70,7 +70,6 @@ identity_providers:
           refresh_token: '3 days'
     cors:
       endpoints:
-        - 'authorization'
         - 'token'
         - 'revocation'
         - 'introspection'
@@ -80,6 +79,7 @@ identity_providers:
         client_name: 'ownCloud Infinite Scale'
         lifespan: 'ocis'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -106,6 +106,7 @@ identity_providers:
         client_name: 'ownCloud Infinite Scale (Desktop Client)'
         client_secret: 'UBntmLjC2yYCeHwsyj73Uwo9TAaecAetRwMw0xYcvNL9yRdLSUi0hUAHfvCHFeFh'
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -130,6 +131,7 @@ identity_providers:
         client_name: 'ownCloud Infinite Scale (Android)'
         client_secret: 'dInFYGV33xKzhbRmpqQltYNdfLdJIfJ9L5ISoKhNoT9qZftpdWSP71VrpGR9pmoD'
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -153,6 +155,7 @@ identity_providers:
         client_name: 'ownCloud Infinite Scale (iOS)'
         client_secret: 'KFeFWWEZO9TkisIQzR3fo7hfiMXlOpaqP8CFuTbSHzV1TUuGECglPxpiVKJfOXIx'
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

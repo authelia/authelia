@@ -133,6 +133,7 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		var (
 			baseURL  string
 			domain   string
+			cookie   string
 			provider session.Strategy
 			err      error
 		)
@@ -140,11 +141,13 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		baseURL = ctx.TemplateRootURL().String()
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
-			domain = provider.GetConfig().Domain
+			config := provider.GetConfig()
+
+			domain, cookie = config.Domain, config.Name
 		}
 
 		data := &bytes.Buffer{}
-		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, nonce)); err != nil {
+		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, cookie, nonce)); err != nil {
 			ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
@@ -237,6 +240,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		EndpointsTOTP:           !config.TOTP.Disable,
 		EndpointsDuo:            !config.DuoAPI.Disable,
 		EndpointsOpenIDConnect:  config.IdentityProviders.OIDC != nil,
+		EndpointsHealthVerbose:  config.Server.Endpoints.Health.Verbose,
 		EndpointsAuthz:          config.Server.Endpoints.Authz,
 	}
 
@@ -285,6 +289,7 @@ type TemplatedFileOptions struct {
 	EndpointsTOTP           bool
 	EndpointsDuo            bool
 	EndpointsOpenIDConnect  bool
+	EndpointsHealthVerbose  bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
@@ -341,14 +346,19 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 	}
 }
 
-// OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options.
-func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce string) TemplatedFileOpenAPIData {
+// OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options. The cookie is the name of the session cookie
+// for the domain of the request, and the default session cookie name is used when it's empty.
+func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, cookie, nonce string) TemplatedFileOpenAPIData {
+	if cookie == "" {
+		cookie = schema.DefaultSessionConfiguration.Name
+	}
+
 	return TemplatedFileOpenAPIData{
 		Base:           base,
 		BaseURL:        baseURL,
 		Domain:         domain,
 		CSPNonce:       nonce,
-		Session:        options.Session,
+		Session:        cookie,
 		PasswordReset:  options.EndpointsPasswordReset,
 		PasswordChange: options.EndpointsPasswordChange,
 		WebAuthn:       options.EndpointsWebAuthn,
@@ -356,6 +366,7 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce st
 		TOTP:           options.EndpointsTOTP,
 		Duo:            options.EndpointsDuo,
 		OpenIDConnect:  options.EndpointsOpenIDConnect,
+		HealthVerbose:  options.EndpointsHealthVerbose,
 		EndpointsAuthz: options.EndpointsAuthz,
 	}
 }
@@ -396,6 +407,7 @@ type TemplatedFileOpenAPIData struct {
 	TOTP           bool
 	Duo            bool
 	OpenIDConnect  bool
+	HealthVerbose  bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }

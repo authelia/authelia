@@ -63,6 +63,7 @@ identity_providers:
         client_name: '2FAuth'
         client_secret: '$pbkdf2-sha512$310000$yTn6OQHuQRyif.WYB6/eJw$Plhbt5sn5800fNj4lMr5/gRAjtbur6nue6tbavbgJ4IyxISw.4i6py409653cv35gbvzWA'
         public: false
+        application_type: 'web'
         authorization_policy: 'one_factor'
         require_pkce: false
         redirect_uris:

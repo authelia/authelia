@@ -59,6 +59,7 @@ identity_providers:
       - client_id: 'dashy'
         client_name: 'Dashy'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

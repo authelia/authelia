@@ -67,6 +67,7 @@ identity_providers:
         client_name: 'Gitea'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -107,8 +108,8 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
 6. For group mapping, configure the following options:
    - Additional Scopes: groups
    - Claim name providing group names for this source. (Optional): groups
-   - Group Claim value for administrator users. (Optional — requires claim name above)
-   - Group Claim value for restricted users. (Optional — requires claim name above)
+   - Group Claim value for administrator users. (Optional; requires claim name above)
+   - Group Claim value for restricted users. (Optional; requires claim name above)
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 

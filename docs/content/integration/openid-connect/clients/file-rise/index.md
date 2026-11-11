@@ -61,6 +61,7 @@ identity_providers:
       - client_id: 'filerise'
         client_name: 'FileRise'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

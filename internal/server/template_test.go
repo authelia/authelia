@@ -59,6 +59,8 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 
 	assert.NotEqual(t, "", body)
 	assert.Contains(t, body, "example: 'https://auth.example.com/?rd=https%3A%2F%2Fexample.com%2F&rm=GET'")
+	assert.Contains(t, body, "name: 'authelia_session'")
+	assert.NotContains(t, body, "/api/health/verbose:")
 }
 
 func TestServeTemplatedFile(t *testing.T) {
@@ -532,20 +534,25 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 
 func TestTemplatedFileOptionsOpenAPIData(t *testing.T) {
 	testCases := []struct {
-		name string
+		name     string
+		cookie   string
+		expected string
 	}{
-		{"ShouldReturnOpenAPIData"},
+		{"ShouldReturnOpenAPIData", "example_session", "example_session"},
+		{"ShouldReturnOpenAPIDataWithDefaultSessionCookieName", "", "authelia_session"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			opts := NewTemplatedFileOptions(&schema.Configuration{})
 
-			data := opts.OpenAPIData("/", "/api", "example.com", "nonce123")
+			data := opts.OpenAPIData("/", "/api", "example.com", tc.cookie, "nonce123")
 
 			assert.Equal(t, "/", data.Base)
 			assert.Equal(t, "/api", data.BaseURL)
 			assert.Equal(t, "example.com", data.Domain)
+			assert.Equal(t, tc.expected, data.Session)
+			assert.False(t, data.HealthVerbose)
 			assert.Equal(t, "nonce123", data.CSPNonce)
 		})
 	}

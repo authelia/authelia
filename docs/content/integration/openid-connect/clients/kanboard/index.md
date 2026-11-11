@@ -61,6 +61,7 @@ identity_providers:
       - client_id: 'kanboard'
         client_name: 'Kanboard'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
