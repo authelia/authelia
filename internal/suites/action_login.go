@@ -76,9 +76,6 @@ func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedI
 	rs.doAnswerPasskeyRememberMe(t, page, keepMeLoggedIn)
 }
 
-// doAnswerPasskeyRememberMe answers the prompt shown after a passkey assertion completes. The choice is made after the
-// assertion rather than before it so that it works the same way for a conditionally mediated sign in, where the user
-// never touches the form before the ceremony starts.
 func (rs *RodSession) doAnswerPasskeyRememberMe(t *testing.T, page *rod.Page, keepMeLoggedIn bool) {
 	id := "dialog-remember-me-no"
 
