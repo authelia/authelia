@@ -270,6 +270,39 @@ func TestUserSessionElevationGET(t *testing.T) {
 			},
 		},
 		{
+			"ShouldHandleElevationBadIPWhenRemoteIPCheckDisabled",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.DisableRemoteIPCheck = true
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
+				us.Elevations.User = &session.Elevation{
+					ID:       1,
+					RemoteIP: net.ParseIP("2001:db8::1"),
+					Expires:  mock.Clock.Now().Add(10 * time.Minute),
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+			},
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600}}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				require.NotNil(t, us.Elevations.User)
+				assert.Equal(t, net.ParseIP("2001:db8::1"), us.Elevations.User.RemoteIP)
+
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "The user session elevation was created from a different remote IP but it has been kept as the remote IP check is disabled", "")
+			},
+		},
+		{
 			"ShouldHandleElevationExpired",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()

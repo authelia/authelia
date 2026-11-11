@@ -90,10 +90,15 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		}
 
 		if !userSession.Elevations.User.RemoteIP.Equal(ctx.RemoteIP()) {
-			ctx.GetLogger().WithFields(map[string]any{"username": userSession.Username, "elevation_ip": userSession.Elevations.User.RemoteIP.String()}).
-				Warn("The user session elevation was created from a different remote IP so it has been destroyed")
+			if ctx.Configuration.IdentityValidation.ElevatedSession.DisableRemoteIPCheck {
+				ctx.GetLogger().WithFields(map[string]any{"username": userSession.Username, "elevation_ip": userSession.Elevations.User.RemoteIP.String()}).
+					Info("The user session elevation was created from a different remote IP but it has been kept as the remote IP check is disabled")
+			} else {
+				ctx.GetLogger().WithFields(map[string]any{"username": userSession.Username, "elevation_ip": userSession.Elevations.User.RemoteIP.String()}).
+					Warn("The user session elevation was created from a different remote IP so it has been destroyed")
 
-			response.Expires, response.Elevated, deleted = 0, false, true
+				response.Expires, response.Elevated, deleted = 0, false, true
+			}
 		}
 
 		if deleted {

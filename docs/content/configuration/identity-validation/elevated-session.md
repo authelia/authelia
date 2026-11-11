@@ -23,7 +23,8 @@ security characteristics of their account without first ensuring the user is ade
 therefore can affect the level of security Authelia provides to your users so they should be carefully considered.
 
 Elevated Sessions are initiated by generating a One-Time Code, this One-Time Code is then exchanged for a special status
-stored in the session which allows the privileged actions. The elevation itself is anchored to the users Remote IP and
+stored in the session which allows the privileged actions. The elevation itself is anchored to the users Remote IP (see
+[disable_remote_ip_check](#disable_remote_ip_check)) and
 only lasts for a finite amount of time. Users at this time may not revoke the elevated session manually, but may revoke
 the One-Time Code so that it cannot be used to create a new elevated session.
 
@@ -39,6 +40,7 @@ identity_validation:
     characters: 8
     require_second_factor: false
     skip_second_factor: false
+    disable_remote_ip_check: false
 ```
 
 ## Options
@@ -106,3 +108,27 @@ options:
 |  `skip_second_factor` enabled   | One-Time Code _or_ Second Factor Authentication  |            One-Time Code            |
 | `require_second_factor` enabled | Second Factor Authentication _and_ One-Time Code |            One-Time Code            |
 |      both options enabled       |           Second Factor Authentication           |            One-Time Code            |
+
+### disable_remote_ip_check
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Enabling this option removes a defense in depth measure. It should only be enabled if your users regularly fail the
+check because their Remote IP changes during the elevated session.
+{{< /callout >}}
+
+By default the elevation is anchored to the Remote IP of the request which validated the One-Time Code. Any later
+request which uses the elevation from a different Remote IP destroys the elevation and is forbidden. This limits what an
+attacker who obtains the session cookie during the elevation can do from another network.
+
+Some clients legitimately change their Remote IP between requests during a single elevated session. Examples include
+dual-stack clients which open some connections over IPv4 and others over IPv6, and privacy relays such as iCloud
+Private Relay which may use a different egress address for each connection. These users can't complete the credential
+management flows.
+
+Enabling this option keeps the elevation when the Remote IP does not match, and logs the mismatch at the `info` level
+instead. The elevation remains bound to the session, still requires the One-Time Code (or second factor
+authentication, see [skip_second_factor](#skip_second_factor)), and still expires after the
+[elevation_lifespan](#elevation_lifespan). Consider reducing the [elevation_lifespan](#elevation_lifespan) if you enable
+this option.

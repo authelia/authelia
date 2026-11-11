@@ -421,6 +421,11 @@ identity_validation:
     ## authentication.
     # skip_second_factor: false
 
+    ## Keeps the elevation when a request comes from a different Remote IP than the one the elevation was created with.
+    ## Only enable this if your users have source addresses which change between requests, i.e. dual-stack clients or
+    ## privacy relays.
+    # disable_remote_ip_check: false
+
 ##
 ## NTP Configuration
 ##
