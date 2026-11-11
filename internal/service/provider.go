@@ -8,6 +8,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,6 +43,10 @@ type GarbageCollectorProvider interface {
 	GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration)
 }
 
+// FileWatcherAction represents an action to perform when a FileWatcher is triggered. A bubble return value of true
+// causes the returned error to terminate the service and be returned to the caller rather than just being logged.
+type FileWatcherAction func(log *logrus.Entry, event fsnotify.Event) (bubble bool, err error)
+
 // Provisioner is a function which provisions a Provider.
 type Provisioner func(ctx Context) (provider Provider, err error)
 
@@ -51,7 +56,9 @@ func GetProvisioners() []Provisioner {
 		ProvisionServer,
 		ProvisionServerMetrics,
 		ProvisionUsersFileWatcher,
+		ProvisionConfigFileWatcher,
 		ProvisionLoggingSignal,
+		ProvisionApplicationReloadSignal,
 		ProvisionGarbageCollector,
 		ProvisionSessionCollector,
 	}

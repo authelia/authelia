@@ -60,6 +60,14 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 	var writers []io.Writer
 
+	if logFile != nil {
+		if err = logFile.Close(); err != nil {
+			return err
+		}
+
+		logFile = nil
+	}
+
 	switch {
 	case config.FilePath != "":
 		writers = []io.Writer{}
@@ -68,11 +76,13 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 			writers = append(writers, os.Stdout)
 		}
 
-		logFile = NewFile(config.FilePath)
+		file := NewFile(config.FilePath)
 
-		if err = logFile.Open(); err != nil {
+		if err = file.Open(); err != nil {
 			return err
 		}
+
+		logFile = file
 
 		if config.Format != FormatJSON {
 			logrus.SetFormatter(&logrus.TextFormatter{

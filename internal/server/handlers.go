@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -23,7 +22,6 @@ import (
 	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/metrics"
@@ -32,21 +30,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
-	headerXForwardedFor := []byte(fasthttp.HeaderXForwardedFor)
-
-	getRemoteIP := func(ctx *fasthttp.RequestCtx) string {
-		if hdr := ctx.Request.Header.PeekBytes(headerXForwardedFor); hdr != nil {
-			ips := strings.Split(string(hdr), ",")
-
-			if len(ips) > 0 {
-				return strings.Trim(ips[0], " ")
-			}
-		}
-
-		return ctx.RemoteIP().String()
-	}
-
+func handleError(cpath string, trustedProxies schema.ServerHeadersTrustedProxies) func(ctx *fasthttp.RequestCtx, err error) {
 	return func(ctx *fasthttp.RequestCtx, err error) {
 		var (
 			statusCode int
@@ -90,7 +74,7 @@ func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 		logging.Logger().WithFields(logrus.Fields{
 			logging.FieldMethod:     string(ctx.Method()),
 			logging.FieldPath:       string(ctx.Path()),
-			logging.FieldRemoteIP:   getRemoteIP(ctx),
+			logging.FieldRemoteIP:   middlewares.TrustedProxiesRemoteIP(ctx, trustedProxies).String(),
 			logging.FieldStatusCode: statusCode,
 		}).WithError(err).Error(message)
 
@@ -242,7 +226,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		handlerAuthz := middlewares.MultiWrap(bridge(func(ctx *middlewares.AutheliaCtx) {
 			authz.Handler(ctx)
-		}), metricsVRMW, middlewares.SecurityHeadersNoStoreAfter)
+		}), middlewares.NewTrustedProxiesAuthz(config.Server.Headers.TrustedProxies, endpoint.Implementation), metricsVRMW, middlewares.SecurityHeadersNoStoreAfter)
 
 		switch name {
 		case "legacy":
@@ -350,28 +334,14 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if !config.DuoAPI.Disable {
-		var duoAPI duo.Provider
-
-		if utils.Dev {
-			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
-				config.DuoAPI.IntegrationKey,
-				config.DuoAPI.SecretKey,
-				config.DuoAPI.Hostname, "", duoapi.SetInsecure()))
-		} else {
-			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
-				config.DuoAPI.IntegrationKey,
-				config.DuoAPI.SecretKey,
-				config.DuoAPI.Hostname, ""))
-		}
-
 		middlewareRateLimitDuo := middlewares.NewBridgeBuilder(*config, providers).
 			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorDuo), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
 			Build()
 
 		r.GET("/api/secondfactor/duo", middleware1FA(handlers.DuoGET))
-		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET(duoAPI)))
-		r.POST("/api/secondfactor/duo", middlewareRateLimitDuo(handlers.DuoPOST(duoAPI)))
+		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET))
+		r.POST("/api/secondfactor/duo", middlewareRateLimitDuo(handlers.DuoPOST))
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
@@ -398,7 +368,9 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	handler = middlewares.MultiWrap(handler, middlewares.RecoverPanic, middlewares.NewMetricsRequest(providers.Metrics))
 
-	return handler, nil
+	middleware := middlewares.NewTrustedProxies(config.Server.Headers.TrustedProxies)
+
+	return middleware(handler), nil
 }
 
 // RegisterOpenIDConnectRoutes handles registration of OpenID Connect 1.0 routes.

@@ -6,6 +6,7 @@ package middlewares
 
 import (
 	"errors"
+	"net"
 
 	"github.com/valyala/fasthttp"
 
@@ -57,6 +58,15 @@ var (
 	headerCrossOriginEmbedderPolicy = []byte("Cross-Origin-Embedder-Policy")
 	headerCrossOriginResourcePolicy = []byte("Cross-Origin-Resource-Policy")
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
+
+	headerForwarded = []byte(fasthttp.HeaderForwarded)
+	headerVia       = []byte(fasthttp.HeaderVia)
+)
+
+var (
+	headerPrefixXForwarded = []byte("X-Forwarded-")
+	headerPrefixXOriginal  = []byte("X-Original-")
+	headerPrefixXReal      = []byte("X-Real-")
 )
 
 // Header value strings.
@@ -135,6 +145,7 @@ const (
 	ProviderNameUser             = schema.ProviderNameUser
 	ProviderNameNotification     = schema.ProviderNameNotification
 	ProviderNameExpressions      = schema.ProviderNameExpressions
+	ProviderNameDuo              = schema.ProviderNameDuo
 	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData
 )
 
@@ -175,14 +186,16 @@ const (
 
 var okMessageBytes = []byte("{\"status\":\"OK\"}")
 
-const (
-	messageOperationFailed                      = "Operation failed"
-	messageIdentityVerificationTokenAlreadyUsed = "The identity verification token has already been used"
-	messageIdentityVerificationTokenHasExpired  = "The identity verification token has expired"
-	messageIdentityVerificationTokenNotValidYet = "The identity verification token is only valid in the future"
-	messageIdentityVerificationTokenSig         = "The identity verification token has an invalid signature"
+var (
+	messageOperationFailed                      = ErrorMessageOperationFailed
+	messageIdentityVerificationTokenAlreadyUsed = ErrorMessageIdentityTokenUsed
+	messageIdentityVerificationTokenHasExpired  = ErrorMessageIdentityTokenExpired
+	messageIdentityVerificationTokenNotValidYet = ErrorMessageIdentityTokenNotYetValid
+	messageIdentityVerificationTokenSig         = ErrorMessageIdentityTokenInvalidSignature
 )
 
 var protoHostSeparator = []byte("://")
 
 var errPasswordPolicyNoMet = errors.New("the supplied password does not met the security policy")
+
+var ipv6TranslationPrefix = &net.IPNet{IP: net.ParseIP("64:ff9b::"), Mask: net.CIDRMask(96, net.IPv6len*8)}

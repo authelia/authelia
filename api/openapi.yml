@@ -3025,6 +3025,32 @@ components:
           type: string
           examples:
             - 'KO'
+        code:
+          type: string
+          description: 'A stable machine readable code identifying the error.'
+          enum:
+            - 'authentication_failed'
+            - 'identity_token_expired'
+            - 'identity_token_invalid_signature'
+            - 'identity_token_not_yet_valid'
+            - 'identity_token_used'
+            - 'mfa_validation_failed'
+            - 'operation_failed'
+            - 'password_backend_complexity'
+            - 'password_change_failed'
+            - 'password_incorrect'
+            - 'password_policy'
+            - 'password_reset_failed'
+            - 'rate_limited'
+            - 'totp_configuration_not_found'
+            - 'totp_delete_failed'
+            - 'totp_options_failed'
+            - 'totp_register_failed'
+            - 'totp_register_session_delete_failed'
+            - 'webauthn_duplicate_name'
+            - 'webauthn_register_failed'
+          examples:
+            - 'operation_failed'
         message:
           type: string
           examples:
@@ -4120,6 +4146,13 @@ components:
           type: boolean
           examples:
             - false
+        require_signed_request_object:
+          description: >
+            Indicates where authorization request needs to be protected as Request Object and provided through either
+            request or request_uri parameter. If omitted, the default value is "false".
+          type: boolean
+          examples:
+            - false
         response_modes_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
@@ -4719,6 +4752,13 @@ components:
           description: >
             Boolean parameter indicating whether the authorization server accepts authorization request data only via
             PAR. If omitted, the default value is "false".
+          type: boolean
+          examples:
+            - false
+        require_signed_request_object:
+          description: >
+            Indicates where authorization request needs to be protected as Request Object and provided through either
+            request or request_uri parameter. If omitted, the default value is "false".
           type: boolean
           examples:
             - false

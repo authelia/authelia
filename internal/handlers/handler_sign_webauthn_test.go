@@ -128,7 +128,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 						Return(nil, fmt.Errorf("failed")),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}`),
+			regexp.MustCompile(`^\{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -158,7 +158,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 					GetDetails(testUsername).
 					Return(nil, fmt.Errorf("failed to lookup user"))
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}`),
+			regexp.MustCompile(`^\{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred loading user details", "failed to lookup user")
@@ -168,7 +168,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 			"ShouldHandleAnonymous",
 			&schema.DefaultWebAuthnConfiguration,
 			nil,
-			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}`),
+			regexp.MustCompile(`^\{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge", "user is anonymous")
@@ -180,7 +180,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}`),
+			regexp.MustCompile(`^\{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
@@ -201,7 +201,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!@NJK#N!@#IKJ!@NJK")
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}`),
+			regexp.MustCompile(`^\{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -1003,7 +1003,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				)
 			},
 			dataReqGoodFlow,
-			`{"status":"KO","message":"Authentication failed. Check your credentials."}`,
+			`{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to find flow handler for the given flow parameters", nil)

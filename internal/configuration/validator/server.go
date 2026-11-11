@@ -63,6 +63,14 @@ func validateServerTLSFileExists(name, path string, validator *schema.StructVali
 
 // ValidateServer checks the server configuration is correct.
 func ValidateServer(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Server.Headers.TrustedProxies.WalkXForwardedFor && !config.Server.Headers.TrustedProxies.Enable {
+		validator.Push(errors.New(errServerHeadersTrustedProxiesWalkNotEnabled))
+	}
+
+	if len(config.Server.Headers.TrustedProxies.Networks) != 0 && !config.Server.Headers.TrustedProxies.Enable {
+		validator.Push(errors.New(errServerHeadersTrustedProxiesNetworksNotEnabled))
+	}
+
 	ValidateServerAddress(config, validator)
 	ValidateServerTLS(config, validator)
 	validateServerAssets(config, validator)
@@ -330,6 +338,8 @@ func validateServerEndpointsRateLimits(config *schema.Configuration, validator *
 }
 
 func validateServerEndpointsRateLimitDefault(config *schema.Configuration, endpoint schema.ServerEndpointRateLimitEndpoint, defaults []schema.ServerEndpointRateLimitBucket, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimitIPv6Mask(endpoint.Name, endpoint.Config, validator)
+
 	if len(endpoint.Config.Buckets) == 0 {
 		endpoint.Config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults))
 
@@ -347,6 +357,15 @@ func validateServerEndpointsRateLimitDefault(config *schema.Configuration, endpo
 	}
 
 	validateServerEndpointsRateLimitBuckets(endpoint.Name, endpoint.Config, validator)
+}
+
+func validateServerEndpointsRateLimitIPv6Mask(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	switch {
+	case config.IPv6Mask == 0:
+		config.IPv6Mask = schema.DefaultServerEndpointRateLimitIPv6Mask
+	case config.IPv6Mask < schema.MinimumServerEndpointRateLimitIPv6Mask, config.IPv6Mask > schema.MaximumServerEndpointRateLimitIPv6Mask:
+		validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsIPv6Mask, name, config.IPv6Mask, schema.MinimumServerEndpointRateLimitIPv6Mask, schema.MaximumServerEndpointRateLimitIPv6Mask))
+	}
 }
 
 func validateServerEndpointsRateLimitBuckets(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {

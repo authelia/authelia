@@ -276,8 +276,18 @@ const (
 	errFmtOIDCClientOptionMustScopeClientType       = errFmtOIDCClientOption + errFmtMustBeConfiguredAs + errFmtOIDCWhenScope + " and the '%s' client type but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntriesClientCredentials = errFmtOIDCClientOption + "'scopes' has the values " +
 		"%s however when utilizing the 'client_credentials' value for the 'grant_types' the values %s are not allowed"
-	errFmtOIDCClientInvalidEntryDuplicates = errFmtOIDCClientOption + "'%s' must have unique values but the values %s are duplicated"
-	errFmtOIDCClientInvalidValue           = errFmtOIDCClientOption +
+	errFmtOIDCClientInvalidEntryDuplicates           = errFmtOIDCClientOption + "'%s' must have unique values but the values %s are duplicated"
+	errFmtOIDCClientClientAssertionInsecureEmptyType = errFmtOIDCClientOption +
+		"'%s' is enabled which permits client assertions that omit the JWT 'typ' header, this is insecure as explicit " +
+		"typing guards an assertion against being confused with another JWT and should only be used when the client " +
+		"cannot be configured to send the 'typ' header"
+	errFmtOIDCClientClientAssertionInsecureTypes = errFmtOIDCClientOption +
+		"'%s' includes the type %s which is insecure as it does not distinguish a client assertion from another JWT, " +
+		"the explicit type '%s' should be preferred and another type should only be permitted when the client cannot " +
+		"be configured to send it"
+	errFmtOIDCClientClientAssertionEmptyTypeEntry = errFmtOIDCClientOption +
+		"'%s' must not have empty values but an empty value was present at index %d"
+	errFmtOIDCClientInvalidValue = errFmtOIDCClientOption +
 		errFmtMustBeOneOf
 	errFmtOIDCClientInvalidLifespan = errFmtOIDCClientOption +
 		"'lifespan' must not be configured when no custom lifespans are configured but it's configured as '%s'"
@@ -328,6 +338,7 @@ const (
 	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
 	errFmtOIDCClientPublicKeysCertificateChainInvalid         = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCClientPublicKeysROSAMissingAlgorithm            = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'jwks'"
+	errFmtOIDCClientRequireSignedRequestObjectAlgNone         = errFmtOIDCClientOption + "'request_object_signing_alg' must not be configured as 'none' when the %s option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"
 )
 
 // WebAuthn Error constants.
@@ -447,6 +458,9 @@ const (
 	errFmtServerTLSKey              = "server: tls: option 'certificate' must also be accompanied by option 'key'"
 	errFmtServerTLSClientAuthNoAuth = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
+	errServerHeadersTrustedProxiesWalkNotEnabled     = "server: headers: trusted_proxies: option 'walk_x_forwarded_for' must not be enabled unless option 'enable' is also enabled"
+	errServerHeadersTrustedProxiesNetworksNotEnabled = "server: headers: trusted_proxies: option 'networks' must not be configured unless option 'enable' is also enabled"
+
 	errFmtServerAddress = "server: option 'address' with value '%s' is invalid: %w"
 
 	errFmtServerPathNotEndForwardSlash = "server: option 'address' must be a single subpath (i.e. '%s'), but '%s' contains multiple segments"
@@ -473,6 +487,7 @@ const (
 	errFmtServerEndpointsRateLimitsBucketPeriodZero      = "server: endpoints: rate_limits: %s: bucket %d: option 'period' must have a value"
 	errFmtServerEndpointsRateLimitsBucketPeriodTooLow    = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
 	errFmtServerEndpointsRateLimitsBucketRequestsZero    = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
+	errFmtServerEndpointsRateLimitsIPv6Mask              = "server: endpoints: rate_limits: %s: option 'ipv6_mask' has a value of '%d' but it must be between %d and %d"
 	errFmtServerEndpointsAuthzInvalidName                = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
@@ -490,7 +505,9 @@ const (
 )
 
 const (
-	errFmtDuoMissingOption = "duo_api: option '%s' is required when duo is enabled but it's absent"
+	errFmtDuoMissingOption               = "duo_api: option '%s' is required when duo is enabled but it's absent"
+	errFmtDuoDisableCAPinningDuoHostname = "duo_api: option 'experimental_disable_ca_pinning' must be false when the option 'hostname' is a Duo hostname but it's configured as '%s'"
+	errDuoDisableCAPinningWarning        = "duo_api: option 'experimental_disable_ca_pinning' is enabled: this option is experimental, insecure, not recommended, and may be removed at any time"
 )
 
 // Error constants.
@@ -586,37 +603,39 @@ var (
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 const (
-	attrOIDCKey                         = "key"
-	attrOIDCKeyID                       = "key_id"
-	attrOIDCKeyUse                      = "use"
-	attrOIDCAlgorithm                   = "algorithm"
-	attrOIDCScopes                      = "scopes"
-	attrOIDCResponseTypes               = "response_types"
-	attrOIDCResponseModes               = "response_modes"
-	attrOIDCGrantTypes                  = "grant_types"
-	attrOIDCRedirectURIs                = "redirect_uris"
-	attrOIDCRequestURIs                 = "request_uris"
-	attrOIDCRequestObjectSigningAlg     = "request_object_signing_alg"
-	attrOIDCTokenAuthMethod             = "token_endpoint_auth_method"
-	attrOIDCTokenAuthSigningAlg         = "token_endpoint_auth_signing_alg"
-	attrOIDCRevocationAuthMethod        = "revocation_endpoint_auth_method"
-	attrOIDCRevocationAuthSigningAlg    = "revocation_endpoint_auth_signing_alg"
-	attrOIDCIntrospectionAuthMethod     = "introspection_endpoint_auth_method"
-	attrOIDCIntrospectionAuthSigningAlg = "introspection_endpoint_auth_signing_alg"
-	attrOIDCPARAuthMethod               = "pushed_authorization_request_endpoint_auth_method"
-	attrOIDCPARAuthSigningAlg           = "pushed_authorization_request_endpoint_auth_signing_alg"
-	attrOIDCDiscoSigAlg                 = "discovery_signed_response_alg"
-	attrOIDCDiscoSigKID                 = "discovery_signed_response_key_id"
-	attrOIDCAuthorizationPrefix         = "authorization"
-	attrOIDCIDTokenPrefix               = "id_token"
-	attrOIDCAccessTokenPrefix           = "access_token"
-	attrOIDCUserinfoPrefix              = "userinfo"
-	attrOIDCIntrospectionPrefix         = "introspection"
-	attrOIDCPKCEChallengeMethod         = "pkce_challenge_method"
-	attrOIDCRequestedAudienceMode       = "requested_audience_mode"
-	attrSessionAutheliaURL              = "authelia_url"
-	attrSessionDomain                   = "domain"
-	attrDefaultRedirectionURL           = "default_redirection_url"
+	attrOIDCKey                           = "key"
+	attrOIDCKeyID                         = "key_id"
+	attrOIDCKeyUse                        = "use"
+	attrOIDCAlgorithm                     = "algorithm"
+	attrOIDCScopes                        = "scopes"
+	attrOIDCResponseTypes                 = "response_types"
+	attrOIDCResponseModes                 = "response_modes"
+	attrOIDCGrantTypes                    = "grant_types"
+	attrOIDCRedirectURIs                  = "redirect_uris"
+	attrOIDCRequestURIs                   = "request_uris"
+	attrOIDCRequestObjectSigningAlg       = "request_object_signing_alg"
+	attrOIDCTokenAuthMethod               = "token_endpoint_auth_method"
+	attrOIDCTokenAuthSigningAlg           = "token_endpoint_auth_signing_alg"
+	attrOIDCRevocationAuthMethod          = "revocation_endpoint_auth_method"
+	attrOIDCRevocationAuthSigningAlg      = "revocation_endpoint_auth_signing_alg"
+	attrOIDCIntrospectionAuthMethod       = "introspection_endpoint_auth_method"
+	attrOIDCIntrospectionAuthSigningAlg   = "introspection_endpoint_auth_signing_alg"
+	attrOIDCPARAuthMethod                 = "pushed_authorization_request_endpoint_auth_method"
+	attrOIDCPARAuthSigningAlg             = "pushed_authorization_request_endpoint_auth_signing_alg"
+	attrOIDCDiscoSigAlg                   = "discovery_signed_response_alg"
+	attrOIDCDiscoSigKID                   = "discovery_signed_response_key_id"
+	attrOIDCAuthorizationPrefix           = "authorization"
+	attrOIDCIDTokenPrefix                 = "id_token"
+	attrOIDCAccessTokenPrefix             = "access_token"
+	attrOIDCUserinfoPrefix                = "userinfo"
+	attrOIDCIntrospectionPrefix           = "introspection"
+	attrOIDCPKCEChallengeMethod           = "pkce_challenge_method"
+	attrOIDCRequestedAudienceMode         = "requested_audience_mode"
+	attrOIDCClientAssertionAllowEmptyType = "client_assertion_jwt_validation_header_allow_empty_type"
+	attrOIDCClientAssertionAllowTypes     = "client_assertion_jwt_validation_header_allow_types"
+	attrSessionAutheliaURL                = "authelia_url"
+	attrSessionDomain                     = "domain"
+	attrDefaultRedirectionURL             = "default_redirection_url"
 )
 
 var (

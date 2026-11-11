@@ -746,6 +746,9 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientSectorIdentifier(ctx, c, config, validator, errDeprecatedFunc)
 
 	validateOIDCClientPublicKeys(c, config, validator)
+	validateOIDCClientRequireSignedRequestObject(c, config, validator)
+
+	validateOIDCClientAssertionJWTValidationHeader(c, config, validator)
 
 	var (
 		method, alg                                  string
@@ -793,6 +796,46 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	}
 }
 
+func validateOIDCClientAssertionJWTValidationHeader(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.Clients[c].ClientAssertionJWTValidationHeaderAllowEmptyType {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientClientAssertionInsecureEmptyType, config.Clients[c].ID, attrOIDCClientAssertionAllowEmptyType))
+	}
+
+	if len(config.Clients[c].ClientAssertionJWTValidationHeaderAllowTypes) == 0 {
+		return
+	}
+
+	var duplicates, inexplicit []string
+
+	seen := map[string]bool{}
+
+	for i, t := range config.Clients[c].ClientAssertionJWTValidationHeaderAllowTypes {
+		if t == "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientClientAssertionEmptyTypeEntry, config.Clients[c].ID, attrOIDCClientAssertionAllowTypes, i))
+
+			continue
+		}
+
+		if seen[t] {
+			duplicates = append(duplicates, t)
+		}
+
+		seen[t] = true
+
+		if t != jwt.JSONWebTokenTypeClientAuthentication {
+			inexplicit = append(inexplicit, t)
+		}
+	}
+
+	if len(duplicates) != 0 {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCClientAssertionAllowTypes, utils.StringJoinAnd(duplicates)))
+	}
+
+	if len(inexplicit) != 0 {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientClientAssertionInsecureTypes, config.Clients[c].ID, attrOIDCClientAssertionAllowTypes, utils.StringJoinAnd(inexplicit), jwt.JSONWebTokenTypeClientAuthentication))
+	}
+}
+
 func validateOIDCClientPublicKeys(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	switch {
 	case config.Clients[c].JSONWebKeysURI != nil && len(config.Clients[c].JSONWebKeys) != 0:
@@ -803,6 +846,19 @@ func validateOIDCClientPublicKeys(c int, config *schema.IdentityProvidersOpenIDC
 		}
 	case len(config.Clients[c].JSONWebKeys) != 0:
 		validateOIDCClientJSONWebKeysList(c, config, validator)
+	}
+}
+
+func validateOIDCClientRequireSignedRequestObject(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.Clients[c].RequestObjectSigningAlg != oidc.SigningAlgNone {
+		return
+	}
+
+	switch {
+	case config.Clients[c].RequireSignedRequestObject:
+		validator.Push(fmt.Errorf(errFmtOIDCClientRequireSignedRequestObjectAlgNone, config.Clients[c].ID, "client"))
+	case config.RequireSignedRequestObject:
+		validator.Push(fmt.Errorf(errFmtOIDCClientRequireSignedRequestObjectAlgNone, config.Clients[c].ID, "provider"))
 	}
 }
 

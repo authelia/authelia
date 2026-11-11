@@ -73,6 +73,7 @@ identity_providers:
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
         require_pushed_authorization_requests: false
+        require_signed_request_object: false
         require_pkce: false
         pkce_challenge_method: 'S256'
         authorization_signed_response_key_id: ''
@@ -441,6 +442,26 @@ authorization flow.
 This configuration option enforces the use of a [Pushed Authorization Requests] flow for this registered client.
 To enforce it for all clients see the global [pushed_authorizations enforce](provider.md#enforce) provider configuration
 option.
+
+### require_signed_request_object
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+A majority of clients will not support this option as it requires the client to sign its authorization requests.
+{{< /callout >}}
+
+This configuration option requires all authorization requests for this registered client be provided as a signed
+[Request Object](../../../integration/openid-connect/introduction.md#request-object) via either the `request` or
+`request_uri` parameter as described in [JWT-Secured Authorization Request]. Unsigned Request Objects do not satisfy
+this requirement, and as such the [request_object_signing_alg](#request_object_signing_alg) must not be `none` when this
+option is enabled. The client must also be registered with the public key Authelia uses to verify the Request Object
+signature, such as via the [jwks](#jwks) or [jwks_uri](#jwks_uri) options. The client retains the corresponding private
+key to sign the Request Object and it must never be provided to Authelia.
+
+This applies to requests made to the [Pushed Authorization Requests] endpoint in addition to the Authorization Endpoint.
+To enforce it for all clients see the global [require_signed_request_object](provider.md#require_signed_request_object)
+provider configuration option.
 
 ### require_pkce
 
@@ -1218,6 +1239,53 @@ Per the text:
 The client MUST NOT use more than one authentication method in each request.
 {{< /callout >}}
 
+### client_assertion_jwt_validation_header_allow_empty_type
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option is insecure and should only be used when a client cannot be configured to send the JWT `typ`
+header. Explicit typing guards a client assertion against being confused with another JWT issued for a different
+purpose.
+{{< /callout >}}
+
+Permits this client to send [Client Assertions] which omit the JWT `typ` header entirely. By default Authelia requires
+the header to be present.
+
+This is an escape hatch for clients which do not send the explicit type recommended by
+[RFC7523bis: Section 4](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4). While the draft
+recommends rather than requires explicit typing, Authelia requires it by default.
+
+### client_assertion_jwt_validation_header_allow_types
+
+{{< confkey type="list(string)" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Including the generic `JWT` type is insecure and should only be used when a client cannot be configured to send the
+explicit `client-authentication+jwt` type. The generic type does not distinguish a client assertion from another JWT.
+{{< /callout >}}
+
+The JWT `typ` header values this client is permitted to send [Client Assertions] with. When unconfigured this defaults
+to only the explicit `client-authentication+jwt` type described by
+[RFC7523bis: Section 4](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4).
+
+This is an escape hatch for clients which send another value. Most notably many JWT libraries default to the generic
+`JWT` type, which requires the following configuration:
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'example'
+        client_assertion_jwt_validation_header_allow_types:
+          - 'client-authentication+jwt'
+          - 'JWT'
+```
+
+Note that configuring this option replaces the default rather than adding to it, so the explicit
+`client-authentication+jwt` type must be listed if it should remain permitted. An empty list is treated as unconfigured
+and uses the default.
+
 ### jwks_uri
 
 {{< confkey type="string" required="situational" >}}
@@ -1232,7 +1300,9 @@ The fully qualified, `https` scheme, and appropriately signed URI for the JWKs e
 time. It's recommended that you configure this option to account for key rotation instead of [jwks](#jwks).
 
 This option or the [jwks](#jwks) option configures the trusted JSON Web Keys or JWKs for this registered client.
-This section is situationally required. These are used to validate the [JWT] assertions from clients.
+This section is situationally required. These are the public keys Authelia uses to validate the signed [JWT] assertions
+from clients such as [Client Assertions] and Request Objects. The client retains the corresponding private keys, which
+must never be shared with Authelia.
 
 Required when the following options are configured:
 
@@ -1277,7 +1347,9 @@ not be configured at the same time. It's recommended that you configure the [jwk
 key rotation instead of this option.
 
 This option or the [jwks_uri](#jwks_uri) option configures the trusted JSON Web Keys or JWKs for this registered client.
-This section is situationally required. These are used to validate the [JWT] assertions from clients.
+This section is situationally required. These are the public keys Authelia uses to validate the signed [JWT] assertions
+from clients such as [Client Assertions] and Request Objects. The client retains the corresponding private keys, which
+must never be shared with Authelia.
 
 Required when the following options are configured:
 
@@ -1368,5 +1440,7 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[JWT-Secured Authorization Request]: https://datatracker.ietf.org/doc/html/rfc9101
+[Client Assertions]: https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
 [jwks]: provider.md#jwks
 [JSON Web Key]: provider.md#jwks

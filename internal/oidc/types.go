@@ -68,6 +68,7 @@ type RegisteredClient struct {
 	Public               bool
 
 	RequirePushedAuthorizationRequests bool
+	RequireSignedRequestObject         bool
 
 	RequirePKCE                bool
 	RequirePKCEChallengeMethod bool
@@ -133,6 +134,9 @@ type RegisteredClient struct {
 	AllowMultipleAuthenticationMethods      bool
 	ClientCredentialsFlowAllowImplicitScope bool
 	DPoPBoundAccessTokens                   bool
+
+	ClientAssertionJWTValidationHeaderAllowEmptyType bool
+	ClientAssertionJWTValidationHeaderAllowTypes     []string
 
 	AuthorizationPolicy ClientAuthorizationPolicy
 
@@ -1149,6 +1153,7 @@ var (
 	_ oauthelia2.ClientAuthenticationPolicyClient                         = (*RegisteredClient)(nil)
 	_ oauthelia2.JARClient                                                = (*RegisteredClient)(nil)
 	_ oauthelia2.JWTSecuredAuthorizationRequestJWTValidationOptionsClient = (*RegisteredClient)(nil)
+	_ oauthelia2.ClientAssertionJWTValidationOptionsClient                = (*RegisteredClient)(nil)
 	_ oauthelia2.AuthenticationMethodClient                               = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshFlowScopeClient                                   = (*RegisteredClient)(nil)
 	_ oauthelia2.RevokeFlowRevokeRefreshTokensExplicitClient              = (*RegisteredClient)(nil)

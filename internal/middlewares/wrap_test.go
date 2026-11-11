@@ -5,9 +5,12 @@
 package middlewares
 
 import (
+	"bufio"
 	"net"
+	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 )
@@ -116,6 +119,44 @@ func TestRequestCtxRemoteIP(t *testing.T) {
 			ctx.Init(&req, &net.TCPAddr{IP: net.ParseIP(tc.remote), Port: 12345}, nil)
 			ip := RequestCtxRemoteIP(&ctx)
 			require.Equal(t, tc.expected, ip.String())
+		})
+	}
+}
+
+func TestRequestCtxRemoteIPHeaderLines(t *testing.T) {
+	const remote = "192.0.2.1"
+
+	testCases := []struct {
+		name     string
+		values   []string
+		expected string
+	}{
+		{"ShouldReturnRemoteWithoutHeader", nil, remote},
+		{"ShouldReturnLeftMost", []string{"1.1.1.1, 203.0.113.9"}, "1.1.1.1"},
+		{"ShouldReturnFirstLineLeftMost", []string{"1.1.1.1", "203.0.113.9"}, "1.1.1.1"},
+		{"ShouldSkipEmptyFirstLine", []string{"", "1.1.1.1, 203.0.113.9"}, "1.1.1.1"},
+		{"ShouldReturnRemoteWhenLeftMostEntryEmpty", []string{" , ,1.1.1.1"}, remote},
+		{"ShouldReturnRemoteWhenAllEmpty", []string{"", " , "}, remote},
+		{"ShouldReturnRemoteWhenLeftMostInvalid", []string{"invalid, 1.1.1.1"}, remote},
+		{"ShouldReturnRemoteWhenLeftMostInvalidAfterEmptyLine", []string{"", "invalid", "1.1.1.1"}, remote},
+		{"ShouldHandleIPv6", []string{"2001:db8::1, 1.1.1.1"}, "2001:db8::1"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw := "GET / HTTP/1.1\r\nHost: example.com\r\n"
+
+			for _, value := range tc.values {
+				raw += "X-Forwarded-For: " + value + "\r\n"
+			}
+
+			ctx := &fasthttp.RequestCtx{}
+
+			ctx.Init(&fasthttp.Request{}, &net.TCPAddr{IP: net.ParseIP(remote), Port: 1234}, nil)
+
+			require.NoError(t, ctx.Request.Read(bufio.NewReader(strings.NewReader(raw+"\r\n"))))
+
+			assert.Equal(t, tc.expected, RequestCtxRemoteIP(ctx).String())
 		})
 	}
 }

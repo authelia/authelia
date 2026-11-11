@@ -5,6 +5,7 @@
 package schema
 
 import (
+	"net"
 	"net/url"
 	"time"
 )
@@ -40,7 +41,7 @@ type ServerEndpointHealth struct {
 	Verbose  bool `koanf:"verbose" yaml:"verbose" toml:"verbose" json:"verbose" jsonschema:"default=false,title=Verbose" jsonschema_description:"Enables the verbose health check endpoint which probes the configured providers."`
 	Detailed bool `koanf:"detailed" yaml:"detailed" toml:"detailed" json:"detailed" jsonschema:"default=false,title=Detailed" jsonschema_description:"Includes the provider error message in the verbose health check response which may disclose infrastructure information to unauthenticated clients."`
 
-	Providers []string `koanf:"providers" yaml:"providers,omitempty" toml:"providers,omitempty" json:"providers,omitempty" jsonschema:"title=Providers,enum=storage,enum=cache,enum=user,enum=notification,enum=ntp,enum=expressions,enum=webauthn-metadata" jsonschema_description:"The providers probed by the verbose health check endpoint."`
+	Providers []string `koanf:"providers" yaml:"providers,omitempty" toml:"providers,omitempty" json:"providers,omitempty" jsonschema:"title=Providers,enum=storage,enum=cache,enum=user,enum=notification,enum=ntp,enum=expressions,enum=duo,enum=webauthn-metadata" jsonschema_description:"The providers probed by the verbose health check endpoint."`
 
 	Cache *time.Duration `koanf:"cache" yaml:"cache,omitempty" toml:"cache,omitempty" json:"cache,omitempty" jsonschema:"title=Cache,default=10 seconds" jsonschema_description:"The duration a verbose health check result is reused for before the providers are probed again."`
 }
@@ -76,6 +77,16 @@ type ServerTLS struct {
 // ServerHeaders represents the customization of the http server headers.
 type ServerHeaders struct {
 	CSPTemplate CSPTemplate `koanf:"csp_template" yaml:"csp_template,omitempty" toml:"csp_template,omitempty" json:"csp_template,omitempty" jsonschema:"title=CSP Template" jsonschema_description:"The Content Security Policy template."`
+
+	TrustedProxies ServerHeadersTrustedProxies `koanf:"trusted_proxies" yaml:"trusted_proxies,omitempty" toml:"trusted_proxies,omitempty" json:"trusted_proxies,omitempty" jsonschema:"title=Trusted Proxies" jsonschema_description:"Configures the removal of proxy headers from requests that do not originate from a trusted proxy."`
+}
+
+// ServerHeadersTrustedProxies represents the trusted proxies configuration of the http server.
+type ServerHeadersTrustedProxies struct {
+	Enable   bool         `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=false,title=Enable" jsonschema_description:"Enables the removal of proxy headers from requests that do not originate from a trusted proxy."`
+	Networks []*net.IPNet `koanf:"networks" yaml:"networks,omitempty" toml:"networks,omitempty" json:"networks,omitempty" jsonschema:"title=Networks" jsonschema_description:"The remote IP's, network ranges in CIDR notation, or network definition names that are trusted as proxies, allowing proxy headers (X-Forwarded-*, X-Real-*, X-Original-*) from these sources."`
+
+	WalkXForwardedFor bool `koanf:"walk_x_forwarded_for" yaml:"walk_x_forwarded_for" toml:"walk_x_forwarded_for" json:"walk_x_forwarded_for" jsonschema:"default=false,title=Walk X-Forwarded-For" jsonschema_description:"Determines the remote IP by walking the X-Forwarded-For header from right to left and using the first IP which is not trusted as a proxy."`
 }
 
 // ServerEndpointRateLimits represents the rate limiter configuration for each endpoint.
@@ -137,9 +148,21 @@ func weightElevatedSessionElevationLifespan(config *Configuration) time.Duration
 
 // ServerEndpointRateLimit represents the rate limiter configuration for a single endpoint.
 type ServerEndpointRateLimit struct {
-	Enable  bool                            `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=true,title=Enable" jsonschema_description:"Enables the rate limiter for this endpoint."`
-	Buckets []ServerEndpointRateLimitBucket `koanf:"buckets" yaml:"buckets,omitempty" toml:"buckets,omitempty" json:"buckets,omitempty" jsonschema:"title=Buckets" jsonschema_description:"The list of rate limit buckets."`
+	Enable   bool                            `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=true,title=Enable" jsonschema_description:"Enables the rate limiter for this endpoint."`
+	IPv6Mask int                             `koanf:"ipv6_mask" yaml:"ipv6_mask,omitempty" toml:"ipv6_mask,omitempty" json:"ipv6_mask,omitempty" jsonschema:"default=64,minimum=48,maximum=128,title=IPv6 Mask" jsonschema_description:"The prefix length used to group IPv6 addresses into a single rate limit bucket."`
+	Buckets  []ServerEndpointRateLimitBucket `koanf:"buckets" yaml:"buckets,omitempty" toml:"buckets,omitempty" json:"buckets,omitempty" jsonschema:"title=Buckets" jsonschema_description:"The list of rate limit buckets."`
 }
+
+const (
+	// DefaultServerEndpointRateLimitIPv6Mask is the default prefix length used to group IPv6 addresses.
+	DefaultServerEndpointRateLimitIPv6Mask = 64
+
+	// MinimumServerEndpointRateLimitIPv6Mask is the minimum permitted prefix length used to group IPv6 addresses.
+	MinimumServerEndpointRateLimitIPv6Mask = 48
+
+	// MaximumServerEndpointRateLimitIPv6Mask is the maximum permitted prefix length used to group IPv6 addresses.
+	MaximumServerEndpointRateLimitIPv6Mask = 128
+)
 
 // ServerEndpointRateLimitBucket represents a single rate limit bucket.
 type ServerEndpointRateLimitBucket struct {

@@ -3444,6 +3444,52 @@ func TestValidateOIDCClients(t *testing.T) {
 	}
 }
 
+func TestValidateOIDCClientRequireSignedRequestObject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		provider bool
+		client   bool
+		alg      string
+		expected string
+	}{
+		{"ShouldNotErrorWhenNotRequired", false, false, oidc.SigningAlgNone, ""},
+		{"ShouldNotErrorWhenClientRequiredWithSignedAlg", false, true, oidc.SigningAlgRSAUsingSHA256, ""},
+		{"ShouldNotErrorWhenProviderRequiredWithSignedAlg", true, false, oidc.SigningAlgRSAUsingSHA256, ""},
+		{"ShouldNotErrorWhenClientRequiredWithEmptyAlg", false, true, "", ""},
+		{"ShouldErrorWhenClientRequiredWithAlgNone", false, true, oidc.SigningAlgNone, "identity_providers: oidc: clients: client 'test': option 'request_object_signing_alg' must not be configured as 'none' when the client option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"},
+		{"ShouldErrorWhenProviderRequiredWithAlgNone", true, false, oidc.SigningAlgNone, "identity_providers: oidc: clients: client 'test': option 'request_object_signing_alg' must not be configured as 'none' when the provider option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"},
+		{"ShouldErrorOnceWhenBothRequiredWithAlgNone", true, true, oidc.SigningAlgNone, "identity_providers: oidc: clients: client 'test': option 'request_object_signing_alg' must not be configured as 'none' when the client option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				RequireSignedRequestObject: tc.provider,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                         "test",
+						RequireSignedRequestObject: tc.client,
+						RequestObjectSigningAlg:    tc.alg,
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientRequireSignedRequestObject(0, config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+
+			if tc.expected == "" {
+				assert.Len(t, validator.Errors(), 0)
+			} else {
+				require.Len(t, validator.Errors(), 1)
+				assert.EqualError(t, validator.Errors()[0], tc.expected)
+			}
+		})
+	}
+}
+
 func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -5679,4 +5725,80 @@ func init() {
 	certEd25519, keyEd25519 = MustLoadCertificateChain("Ed25519", ""), MustLoadEd25519PrivateKey("")
 
 	keyRSA2048Legacy = MustLoadRSAPrivateKey("2048", "legacy")
+}
+
+func TestValidateOIDCClientAssertionJWTValidationHeader(t *testing.T) {
+	testCases := []struct {
+		name      string
+		allowNone bool
+		types     []string
+		warnings  []string
+		errors    []string
+	}{
+		{
+			name: "ShouldNotWarnWhenUnconfigured",
+		},
+		{
+			name:      "ShouldWarnWhenEmptyTypeAllowed",
+			allowNone: true,
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'client_assertion_jwt_validation_header_allow_empty_type' is enabled which permits client assertions that omit the JWT 'typ' header, this is insecure as explicit typing guards an assertion against being confused with another JWT and should only be used when the client cannot be configured to send the 'typ' header",
+			},
+		},
+		{
+			name:  "ShouldNotWarnWhenOnlyExplicitTypeConfigured",
+			types: []string{"client-authentication+jwt"},
+		},
+		{
+			name:  "ShouldWarnWhenGenericTypeConfigured",
+			types: []string{"client-authentication+jwt", "JWT"},
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'client_assertion_jwt_validation_header_allow_types' includes the type 'JWT' which is insecure as it does not distinguish a client assertion from another JWT, the explicit type 'client-authentication+jwt' should be preferred and another type should only be permitted when the client cannot be configured to send it",
+			},
+		},
+		{
+			name:  "ShouldWarnOnDuplicateTypes",
+			types: []string{"client-authentication+jwt", "client-authentication+jwt"},
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'client_assertion_jwt_validation_header_allow_types' must have unique values but the values 'client-authentication+jwt' are duplicated",
+			},
+		},
+		{
+			name:  "ShouldErrorOnEmptyTypeEntry",
+			types: []string{"client-authentication+jwt", ""},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'test': option 'client_assertion_jwt_validation_header_allow_types' must not have empty values but an empty value was present at index 1",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID: "test",
+						ClientAssertionJWTValidationHeaderAllowEmptyType: tc.allowNone,
+						ClientAssertionJWTValidationHeaderAllowTypes:     tc.types,
+					},
+				},
+			}
+
+			validateOIDCClientAssertionJWTValidationHeader(0, config, validator)
+
+			require.Len(t, validator.Warnings(), len(tc.warnings))
+
+			for i, warning := range tc.warnings {
+				assert.EqualError(t, validator.Warnings()[i], warning)
+			}
+
+			require.Len(t, validator.Errors(), len(tc.errors))
+
+			for i, err := range tc.errors {
+				assert.EqualError(t, validator.Errors()[i], err)
+			}
+		})
+	}
 }

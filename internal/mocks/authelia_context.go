@@ -65,6 +65,7 @@ type MockAutheliaCtx struct {
 	NotifierMock     *MockNotifier
 	TOTPMock         *MockTOTP
 	RandomMock       *MockRandom
+	DuoMock          *MockDuoProvider
 
 	Clock clock.Fixed
 }
@@ -239,6 +240,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
+	mockAuthelia.DuoMock = NewMockDuoProvider(mockAuthelia.Ctrl)
+	providers.Duo = mockAuthelia.DuoMock
+
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
 
@@ -317,33 +321,33 @@ func (m *MockAutheliaCtx) LogEntryN(n int) *logrus.Entry {
 }
 
 // AssertKO assert an error response from the service.
-func (m *MockAutheliaCtx) AssertKO(t *testing.T, message string, code int) {
+func (m *MockAutheliaCtx) AssertKO(t *testing.T, message middlewares.ErrorMessage, code int) {
 	assert.Equal(t, code, m.Ctx.Response.StatusCode())
-	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
+	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"code\":\"%s\",\"message\":\"%s\"}", message.Code, message.Message), string(m.Ctx.Response.Body()))
 }
 
 // Assert401KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert401KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert401KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusUnauthorized)
 }
 
 // Assert403KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert403KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert403KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusForbidden)
 }
 
 // Assert404KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert404KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert404KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusNotFound)
 }
 
 // Assert500KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert500KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert500KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusInternalServerError)
 }
 
 // Assert200KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusOK)
 }
 

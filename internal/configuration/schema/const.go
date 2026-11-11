@@ -21,6 +21,7 @@ const (
 	ProviderNameCache            = "cache"
 	ProviderNameNotification     = "notification"
 	ProviderNameExpressions      = "expressions"
+	ProviderNameDuo              = "duo"
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"
 )
 
@@ -35,7 +36,7 @@ const (
 // ProviderNames are every provider which can be probed by name.
 var ProviderNames = []string{
 	ProviderNameStorage, ProviderNameCache, ProviderNameUser, ProviderNameNotification,
-	ProviderNameNTP, ProviderNameExpressions, ProviderNameWebAuthnMetaData,
+	ProviderNameNTP, ProviderNameExpressions, ProviderNameDuo, ProviderNameWebAuthnMetaData,
 }
 
 const (

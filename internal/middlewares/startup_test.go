@@ -97,6 +97,7 @@ func TestProvidersStartupChecksShouldCheckTheCache(t *testing.T) {
 	mock.Ctx.Configuration.Server.DisableHealthcheck = true
 	mock.Ctx.Configuration.Notifier.DisableStartupCheck = true
 	mock.Ctx.Configuration.NTP.DisableStartupCheck = true
+	mock.Ctx.Configuration.DuoAPI.Disable = true
 
 	mock.Ctx.Providers.UserAttributeResolver = expression.NewUserAttributes(&mock.Ctx.Configuration)
 

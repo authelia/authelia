@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
@@ -64,6 +65,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
+	providers.Duo = duo.New(config)
 
 	switch {
 	case config.Cache.Redis != nil:

@@ -28,7 +28,7 @@ func TestDuoPOST(t *testing.T) {
 
 		mock.Ctx.Request.SetBodyString("not json")
 
-		DuoPOST(nil)(mock.Ctx)
+		DuoPOST(mock.Ctx)
 
 		mock.Assert401KO(t, messageMFAValidationFailed)
 
@@ -179,9 +179,7 @@ func TestDuoDevicesGETMisc(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
-		duoMock := mocks.NewMockDuoProvider(mock.Ctrl)
-
-		duoMock.EXPECT().
+		mock.DuoMock.EXPECT().
 			PreAuthCall(mock.Ctx, gomock.Any(), gomock.Any()).
 			Return(&duo.PreAuthResponse{Result: enroll, EnrollPortalURL: "https://api-example.duosecurity.com/portal?abcdef"}, nil)
 
@@ -195,7 +193,7 @@ func TestDuoDevicesGETMisc(t *testing.T) {
 			AnyTimes().
 			Return(&model.DuoDevice{Username: testUsername, Device: "ABC", Method: duo.Push}, nil)
 
-		DuoDevicesGET(duoMock)(mock.Ctx)
+		DuoDevicesGET(mock.Ctx)
 
 		body := DuoDevicesResponse{}
 
@@ -214,7 +212,7 @@ func TestDuoPOSTMisc(t *testing.T) {
 		mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 		mock.Ctx.Request.SetBodyString(`{}`)
 
-		DuoPOST(nil)(mock.Ctx)
+		DuoPOST(mock.Ctx)
 
 		mock.Assert200KO(t, messageMFAValidationFailed)
 
@@ -233,7 +231,7 @@ func TestPerformDuoAuthenticationMisc(t *testing.T) {
 
 		userSession := &session.UserSession{Username: testUsername}
 
-		err := PerformDuoAuthentication(mock.Ctx, userSession, nil, "ABC", duo.OTP, "127.0.0.1", &bodySignDuoRequest{})
+		err := PerformDuoAuthentication(mock.Ctx, userSession, "ABC", duo.OTP, "127.0.0.1", &bodySignDuoRequest{})
 
 		assert.EqualError(t, err, "no passcode received from user: john")
 	})
@@ -320,9 +318,7 @@ func TestHandlePreferredDeviceCheckMisc(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
-		duoMock := mocks.NewMockDuoProvider(mock.Ctrl)
-
-		duoMock.EXPECT().
+		mock.DuoMock.EXPECT().
 			PreAuthCall(mock.Ctx, gomock.Any(), gomock.Any()).
 			Return(&duo.PreAuthResponse{Result: enroll}, nil)
 
@@ -330,7 +326,7 @@ func TestHandlePreferredDeviceCheckMisc(t *testing.T) {
 			DeletePreferredDuoDevice(mock.Ctx, testUsername).
 			Return(errors.New("failed to delete"))
 
-		device, method, err := HandlePreferredDeviceCheck(mock.Ctx, newSession(), duoMock, "ABC", duo.Push, &bodySignDuoRequest{})
+		device, method, err := HandlePreferredDeviceCheck(mock.Ctx, newSession(), "ABC", duo.Push, &bodySignDuoRequest{})
 
 		assert.EqualError(t, err, "unable to delete preferred Duo device and method for user 'john': failed to delete")
 		assert.Empty(t, device)
@@ -341,13 +337,11 @@ func TestHandlePreferredDeviceCheckMisc(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
-		duoMock := mocks.NewMockDuoProvider(mock.Ctrl)
-
-		duoMock.EXPECT().
+		mock.DuoMock.EXPECT().
 			PreAuthCall(mock.Ctx, gomock.Any(), gomock.Any()).
 			Return(&duo.PreAuthResponse{Result: "not-a-result"}, nil)
 
-		device, method, err := HandlePreferredDeviceCheck(mock.Ctx, newSession(), duoMock, "ABC", duo.Push, &bodySignDuoRequest{})
+		device, method, err := HandlePreferredDeviceCheck(mock.Ctx, newSession(), "ABC", duo.Push, &bodySignDuoRequest{})
 
 		assert.EqualError(t, err, "unknown result: not-a-result")
 		assert.Empty(t, device)

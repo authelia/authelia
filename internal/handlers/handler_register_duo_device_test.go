@@ -40,7 +40,7 @@ func TestDuoDeviceDELETE(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
-			`{"status":"KO","message":"Authentication failed, please retry later."}`,
+			`{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -54,7 +54,7 @@ func TestDuoDeviceDELETE(t *testing.T) {
 					DeletePreferredDuoDevice(mock.Ctx, "").
 					Return(fmt.Errorf("failed to delete"))
 			},
-			`{"status":"KO","message":"Authentication failed, please retry later."}`,
+			`{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting the preferred Duo device and method", "failed to delete")
@@ -104,7 +104,7 @@ func TestDuoDevicesRegistrationSessionErrors(t *testing.T) {
 	}{
 		{
 			name:    "DuoDevicesGET",
-			handler: DuoDevicesGET(nil),
+			handler: DuoDevicesGET,
 		},
 		{
 			name:    "DuoDevicePOST",
@@ -163,23 +163,19 @@ func (s *RegisterDuoDeviceSuite) TearDownTest() {
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	values := url.Values{}
 	values.Set("username", "john")
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(nil, fmt.Errorf("Connection error"))
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(nil, fmt.Errorf("Connection error"))
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred performing the Duo PreAuth API call", "Connection error")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: "+123456789****", Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 2"},
@@ -198,32 +194,28 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
 	response.Result = auth
 	response.Devices = duoDevices
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: auth, Devices: apiDevices})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithAllowOnBypass() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	values := url.Values{}
 	values.Set("username", "john")
 
 	response := duo.PreAuthResponse{}
 	response.Result = allow
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: allow})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	var enrollURL = "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890"
 
 	values := url.Values{}
@@ -233,25 +225,23 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
 	response.Result = enroll
 	response.EnrollPortalURL = enrollURL
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	values := url.Values{}
 	values.Set("username", "john")
 
 	response := duo.PreAuthResponse{}
 	response.Result = deny
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: deny})
 }
@@ -272,7 +262,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnInvalidMethod() {
 
 	DuoDevicePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -281,7 +271,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyMethod() {
 
 	DuoDevicePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the preferred Duo device request body", "unable to validate body: method: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
@@ -291,14 +281,12 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyDevice() {
 
 	DuoDevicePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the preferred Duo device request body", "unable to validate body: device: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnrollWhenNoSupportedDevices() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	values := url.Values{}
 	values.Set("username", "john")
 
@@ -306,16 +294,14 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnrollWhenNoSupportedDevic
 	response.Result = auth
 	response.Devices = []duo.Device{{Capabilities: []string{"unsupported"}, Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"}}
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: enroll})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnUnknownPreAuthResult() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	values := url.Values{}
 	values.Set("username", "john")
 
@@ -323,9 +309,9 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnUnknownPreAuthResult() {
 	response.Result = "not-a-result"
 	response.StatusMessage = "a status message"
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
 	s.Assert().Equal("Error occurred performing the Duo PreAuth API call for user 'john' which returned the result 'not-a-result' with the message 'a status message'", s.mock.Hook.LastEntry().Message)

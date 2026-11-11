@@ -54,7 +54,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
@@ -64,7 +64,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "unable to validate body: password: non zero value required")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
@@ -108,7 +108,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 
 	s.mock.AssertLastLogMessage(s.T(), "Unsuccessful 1FA authentication attempt by user 'test'", "failed")
 
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderCheckPasswordError() {
@@ -148,7 +148,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Unsuccessful 1FA authentication attempt by user 'test'", "invalid credentials")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
@@ -220,7 +220,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFailAndGetIPFail() {
@@ -249,7 +249,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFailAndGetIPFai
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFailAndGetIPBanned() {
@@ -289,7 +289,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFailAndGetIPBan
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldNotFailIfAuthenticationMarkFail() {
@@ -506,7 +506,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserIsBanned() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBanCheckFails() {
@@ -529,7 +529,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBanCheckFails() {
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to perform 1FA authentication regulation for user 'test'", "failed to load banned ip")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldSkipRegulationOnPoolDeadlineError() {
@@ -558,7 +558,7 @@ func (s *FirstFactorSuite) TestShouldSkipRegulationOnPoolDeadlineError() {
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Unsuccessful 1FA authentication attempt by user 'test'", "context deadline exceeded")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfSessionProviderUnavailableWithDelayer() {
@@ -599,7 +599,7 @@ func (s *FirstFactorSuite) TestShouldFailIfSessionProviderUnavailableWithDelayer
 	FirstFactorPasswordPOST(middlewares.NewTimingAttackDelay(10, time.Millisecond))(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to get session provider during 1FA attempt", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 type FirstFactorRedirectionSuite struct {
@@ -780,7 +780,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyWhenBadTargetURL() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoFactorOK() {
@@ -933,7 +933,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantParseUUID(
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred parsing the consent session flow id", map[string]any{"error": "invalid UUID length: 55", "flow": "openid_connect", "flow_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaa-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
@@ -975,7 +975,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetConsent
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred loading the consent session", map[string]any{"error": "failed to obtain", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
@@ -1017,7 +1017,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSession
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to process consent session as it has already been responded to", map[string]any{"flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
@@ -1062,7 +1062,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred loading the client for the consent session", map[string]any{"error": "invalid_client", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
@@ -1179,7 +1179,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred getting the original form from the consent session", map[string]any{"error": "invalid URL escape \"%1\"", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": "", "username": "test"})
 }
 
@@ -1338,7 +1338,7 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorReauthenticateSuite) TestShouldFailIfBodyIsInBadFormat() {
@@ -1348,7 +1348,7 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfBodyIsInBadFormat() {
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "unable to validate body: password: non zero value required")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorReauthenticateSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
@@ -1377,7 +1377,7 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfUserProviderCheckPasswo
 
 	s.mock.AssertLastLogMessage(s.T(), "Unsuccessful 1FA authentication attempt by user 'test'", "failed")
 
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorReauthenticateSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderCheckPasswordError() {
@@ -1470,7 +1470,7 @@ func (s *FirstFactorReauthenticateSuite) TestShouldCheckBannedUser() {
 
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorReauthenticateSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
@@ -1523,7 +1523,7 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfUserProviderGetDetailsF
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Could not obtain profile details during 1FA authentication for user 'test'", "failed")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 func (s *FirstFactorReauthenticateSuite) TestShouldNotFailIfAuthenticationMarkFail() {
@@ -1609,7 +1609,7 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfBanCheckFails() {
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to perform 1FA authentication regulation for user 'test'", "failed to load banned ip")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
 type FirstFactorReauthenticateRedirectionSuite struct {
