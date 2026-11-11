@@ -26,8 +26,8 @@ importers:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       react-email:
-        specifier: 6.11.10
-        version: 6.11.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: 6.11.11
+        version: 6.11.11(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
     devDependencies:
       '@eslint-react/eslint-plugin':
         specifier: 5.30.1
@@ -36,8 +36,8 @@ importers:
         specifier: 10.0.1
         version: 10.0.1(eslint@10.14.0(jiti@2.6.1))
       '@react-email/ui':
-        specifier: 6.11.10
-        version: 6.11.10(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: 6.11.11
+        version: 6.11.11(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
@@ -677,15 +677,15 @@ packages:
     resolution: {integrity: sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
-  '@react-email/render@2.3.0':
-    resolution: {integrity: sha512-JmvK+X/VIh0EpruB/iYB5nmnlY6AniMUDPhEOvKP5llEHweOfo/cIy24gdrh6RnpMjJfoGv7xNpMs8+lC3gIwA==}
+  '@react-email/render@2.3.1':
+    resolution: {integrity: sha512-suLxph30AiKy40PPSLQvpZIoQAz5wZ9Vucj+3XlAS1GWWa//TAqysqaa7rorKWNw18I7UxqvjCOj/TFPJeF6nA==}
     engines: {node: '>=20.19.0'}
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
       react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/ui@6.11.10':
-    resolution: {integrity: sha512-I+YFOf/YAJmNKDsUQMKQ04S59EpruJ79vlE0zt2dNVmIDqm+vZiy8S4cild75KWxXNiWywnrFZbHuRhO00ijQg==}
+  '@react-email/ui@6.11.11':
+    resolution: {integrity: sha512-5XP4yeH0F0CKou6CC3RVx5HKAhWCFyFs1m8V/BfQpdFpix4Ap5XitzVu0WoVC36iPcNd9qcvg51po5l99ekLKw==}
 
   '@rolldown/binding-android-arm-eabi@1.2.16':
     resolution: {integrity: sha512-ia3DwAs0OsMGS7+IConptSiyk9pEXkOx/AbJ2n/lAGxH3QkWQus1t8d7gnAT38FCU2sQu8lUbeR6AiZFv4JxaA==}
@@ -1124,10 +1124,6 @@ packages:
 
   debounce-fn@6.0.0:
     resolution: {integrity: sha512-rBMW+F2TXryBwB54Q0d8drNEI+TfoS9JpNTAoVpukbWEhjXQq4rySFYLaqXMFXwdv61Zb2OHtj5bviSoimqxRQ==}
-    engines: {node: '>=18'}
-
-  debounce@2.2.0:
-    resolution: {integrity: sha512-Xks6RUDLZFdz8LIdR6q0MTH44k7FikOmnh5xkSjMig6ch45afc8sjTjRQf3P6ax8dMgcQrYO/AR2RGWURrruqw==}
     engines: {node: '>=18'}
 
   debug@4.4.3:
@@ -1727,8 +1723,8 @@ packages:
     peerDependencies:
       react: ^19.3.1
 
-  react-email@6.11.10:
-    resolution: {integrity: sha512-v10bjJRibHZrzyB4vVvreGMBcUb/fMIfCrMW7TgY4A7prbdbJ5G0eFRgBWdZDks2Jd6fyJCKQ0aAMcfMeVeDcA==}
+  react-email@6.11.11:
+    resolution: {integrity: sha512-yAd5nzXIKk2i5F18kFOtgYm91p+y2W8TJPV5W8Sn4ODFp2asHsRmxc2lSPyX7/Qk48W9mCue9iAJnCWws5vuaA==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
@@ -2485,7 +2481,7 @@ snapshots:
 
   '@pkgr/core@0.3.6': {}
 
-  '@react-email/render@2.3.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@react-email/render@2.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       entities: 4.5.0
       html-to-text: 10.0.1
@@ -2494,7 +2490,7 @@ snapshots:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@react-email/ui@6.11.10(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@react-email/ui@6.11.11(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       esbuild: 0.28.2
       jiti: 2.6.1
@@ -2869,8 +2865,6 @@ snapshots:
   debounce-fn@6.0.0:
     dependencies:
       mimic-function: 5.0.1
-
-  debounce@2.2.0: {}
 
   debug@4.4.3:
     dependencies:
@@ -3467,16 +3461,15 @@ snapshots:
       react: 19.3.1
       scheduler: 0.28.0
 
-  react-email@6.11.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  react-email@6.11.11(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@babel/parser': 7.29.2
       '@babel/traverse': 8.1.0
-      '@react-email/render': 2.3.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@react-email/render': 2.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       chokidar: 5.0.0
       commander: 13.1.0
       conf: 15.1.0
       css-tree: 3.2.1
-      debounce: 2.2.0
       esbuild: 0.28.2
       glob: 14.0.4
       jiti: 2.6.1
