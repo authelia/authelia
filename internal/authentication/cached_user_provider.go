@@ -7,6 +7,8 @@ package authentication
 import (
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"sync/atomic"
 	"time"
 
@@ -23,12 +25,8 @@ func NewCachedUserProvider(provider UserProvider, lifespan schema.RefreshInterva
 	return &CachedUserProvider{
 		UserProvider: provider,
 		lifespan:     lifespan,
-		details: CachedUserDetails{
-			values: map[string]CachedUserDetailsItem{},
-		},
-		extended: CachedUserDetailsExtended{
-			values: map[string]CachedUserDetailsExtendedItem{},
-		},
+		details:      CachedUserValues[UserDetails]{values: map[string]CachedUserValue[UserDetails]{}},
+		extended:     CachedUserValues[UserDetailsExtended]{values: map[string]CachedUserValue[UserDetailsExtended]{}},
 	}
 }
 
@@ -39,8 +37,8 @@ type CachedUserProvider struct {
 
 	lifespan schema.RefreshIntervalDuration
 
-	details  CachedUserDetails
-	extended CachedUserDetailsExtended
+	details  CachedUserValues[UserDetails]
+	extended CachedUserValues[UserDetailsExtended]
 
 	generation atomic.Uint64
 }
@@ -59,70 +57,15 @@ func (p *CachedUserProvider) GetDetails(username string) (details *UserDetails, 
 
 	p.retire(username, key)
 
-	p.details.Lock()
-
-	p.details.values[key] = CachedUserDetailsItem{UserDetails: details, expires: time.Now().Add(p.lifespan.Value())}
-
-	p.details.Unlock()
-
-	p.invalidateExtended(key)
+	p.details.set(key, details, time.Now().Add(p.lifespan.Value()), nil)
+	p.extended.delete(key)
 
 	return details, nil
 }
 
 // GetDetailsCached retrieves the user's information from the cache if available.
 func (p *CachedUserProvider) GetDetailsCached(username string) (details *UserDetails, err error) {
-	var (
-		result any
-		ok     bool
-	)
-
-	if result, err, _ = p.details.Do(username, p.doGetDetailsCached(username)); err != nil {
-		return nil, err
-	}
-
-	if details, ok = result.(*UserDetails); !ok {
-		return nil, fmt.Errorf("error occurred retrieving user details from cache for user '%s'", username)
-	}
-
-	return details, err
-}
-
-func (p *CachedUserProvider) doGetDetailsCached(username string) func() (result any, err error) {
-	return func() (result any, err error) {
-		now := time.Now()
-		generation := p.generation.Load()
-
-		p.details.Lock()
-
-		if cached, ok := p.details.values[username]; ok && (p.lifespan.Never() || cached.expires.After(now)) {
-			p.details.Unlock()
-
-			cp := *cached.UserDetails
-
-			return &cp, nil
-		} else {
-			delete(p.details.values, username)
-		}
-
-		p.details.Unlock()
-
-		var details *UserDetails
-
-		if details, err = p.UserProvider.GetDetails(username); err != nil {
-			return nil, err
-		}
-
-		p.details.Lock()
-
-		if p.generation.Load() == generation {
-			p.details.values[canonicalUsername(username, details)] = CachedUserDetailsItem{UserDetails: details, expires: now.Add(p.lifespan.Value())}
-		}
-
-		p.details.Unlock()
-
-		return details, nil
-	}
+	return getCached(p, &p.details, username, p.UserProvider.GetDetails, identityUserDetails, cloneUserDetails)
 }
 
 // GetDetailsExtended retrieves the user's extended information skipping the cache but ensuring the cache is updated.
@@ -140,18 +83,10 @@ func (p *CachedUserProvider) GetDetailsExtended(username string) (details *UserD
 
 	p.retire(username, key)
 
-	p.extended.Lock()
-
-	p.extended.values[key] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: expires}
-
-	p.extended.Unlock()
+	p.extended.set(key, details, expires, nil)
 
 	if details.UserDetails != nil {
-		p.details.Lock()
-
-		p.details.values[key] = CachedUserDetailsItem{UserDetails: details.UserDetails, expires: expires}
-
-		p.details.Unlock()
+		p.details.set(key, details.UserDetails, expires, nil)
 	}
 
 	return details, nil
@@ -159,57 +94,70 @@ func (p *CachedUserProvider) GetDetailsExtended(username string) (details *UserD
 
 // GetDetailsExtendedCached retrieves the user's extended information from the cache if available.
 func (p *CachedUserProvider) GetDetailsExtendedCached(username string) (details *UserDetailsExtended, err error) {
-	var (
-		result any
-		ok     bool
-	)
-
-	if result, err, _ = p.extended.Do(username, p.doGetDetailsExtendedCached(username)); err != nil {
-		return nil, err
-	}
-
-	if details, ok = result.(*UserDetailsExtended); !ok {
-		return nil, fmt.Errorf("error occurred retrieving user details from cache for user '%s'", username)
-	}
-
-	return details, err
+	return getCached(p, &p.extended, username, p.UserProvider.GetDetailsExtended, extendedUserDetails, cloneUserDetailsExtended)
 }
 
-func (p *CachedUserProvider) doGetDetailsExtendedCached(username string) func() (result any, err error) {
-	return func() (result any, err error) {
-		now := time.Now()
-		generation := p.generation.Load()
+func getCached[T any](p *CachedUserProvider, cache *CachedUserValues[T], username string, fetch func(string) (*T, error), details func(*T) *UserDetails, clone func(*T) *T) (value *T, err error) {
+	result, err, _ := cache.Do(username, func() (any, error) {
+		now, generation := time.Now(), p.generation.Load()
 
-		p.extended.Lock()
-
-		if cached, ok := p.extended.values[username]; ok && (p.lifespan.Never() || cached.expires.After(now)) {
-			p.extended.Unlock()
-
-			cp := *cached.UserDetailsExtended
-
-			return &cp, nil
-		} else {
-			delete(p.extended.values, username)
+		if cached, ok := cache.get(username, now, p.lifespan.Never()); ok {
+			return cached, nil
 		}
 
-		p.extended.Unlock()
-
-		var details *UserDetailsExtended
-
-		if details, err = p.UserProvider.GetDetailsExtended(username); err != nil {
+		fetched, err := fetch(username)
+		if err != nil {
 			return nil, err
 		}
 
-		p.extended.Lock()
+		cache.set(canonicalUsername(username, details(fetched)), fetched, now.Add(p.lifespan.Value()), func() bool {
+			return p.generation.Load() == generation
+		})
 
-		if p.generation.Load() == generation {
-			p.extended.values[canonicalUsername(username, details.UserDetails)] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: now.Add(p.lifespan.Value())}
-		}
-
-		p.extended.Unlock()
-
-		return details, nil
+		return fetched, nil
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	if value, _ = result.(*T); value == nil {
+		return nil, fmt.Errorf("error occurred retrieving user details from cache for user '%s'", username)
+	}
+
+	return clone(value), nil
+}
+
+func (c *CachedUserValues[T]) get(key string, now time.Time, never bool) (value *T, ok bool) {
+	c.Lock()
+
+	defer c.Unlock()
+
+	item, ok := c.values[key]
+	if ok && (never || item.expires.After(now)) {
+		return item.value, true
+	}
+
+	delete(c.values, key)
+
+	return nil, false
+}
+
+func (c *CachedUserValues[T]) set(key string, value *T, expires time.Time, valid func() bool) {
+	c.Lock()
+
+	defer c.Unlock()
+
+	if valid == nil || valid() {
+		c.values[key] = CachedUserValue[T]{value: value, expires: expires}
+	}
+}
+
+func (c *CachedUserValues[T]) delete(key string) {
+	c.Lock()
+
+	defer c.Unlock()
+
+	delete(c.values, key)
 }
 
 func (p *CachedUserProvider) retire(usernames ...string) {
@@ -224,21 +172,8 @@ func (p *CachedUserProvider) retire(usernames ...string) {
 func (p *CachedUserProvider) invalidate(username string) {
 	p.retire(username)
 
-	p.details.Lock()
-
-	delete(p.details.values, username)
-
-	p.details.Unlock()
-
-	p.invalidateExtended(username)
-}
-
-func (p *CachedUserProvider) invalidateExtended(username string) {
-	p.extended.Lock()
-
-	delete(p.extended.values, username)
-
-	p.extended.Unlock()
+	p.details.delete(username)
+	p.extended.delete(username)
 }
 
 func canonicalUsername(input string, details *UserDetails) string {
@@ -247,4 +182,34 @@ func canonicalUsername(input string, details *UserDetails) string {
 	}
 
 	return details.Username
+}
+
+func identityUserDetails(details *UserDetails) *UserDetails {
+	return details
+}
+
+func extendedUserDetails(details *UserDetailsExtended) *UserDetails {
+	return details.UserDetails
+}
+
+func cloneUserDetails(details *UserDetails) *UserDetails {
+	if details == nil {
+		return nil
+	}
+
+	clone := *details
+
+	clone.Emails = slices.Clone(details.Emails)
+	clone.Groups = slices.Clone(details.Groups)
+
+	return &clone
+}
+
+func cloneUserDetailsExtended(details *UserDetailsExtended) *UserDetailsExtended {
+	clone := *details
+
+	clone.Extra = maps.Clone(details.Extra)
+	clone.UserDetails = cloneUserDetails(details.UserDetails)
+
+	return &clone
 }

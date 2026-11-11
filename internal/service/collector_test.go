@@ -131,7 +131,7 @@ func TestCollector_RunContinuesAfterPanic(t *testing.T) {
 		done <- service.Run()
 	}()
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		select {
 		case <-collector.notify:
 		case <-time.After(time.Second * 5):
@@ -152,7 +152,7 @@ func TestCollector_RunContinuesAfterPanic(t *testing.T) {
 func TestCollector_CollectSkipsWhenContextCancelled(t *testing.T) {
 	collector := &mockGarbageCollector{frequency: time.Minute}
 
-	cctx, cancel := context.WithCancel(context.Background())
+	cctx, cancel := context.WithCancel(t.Context())
 
 	ctx := newMockServiceCtx()
 	ctx.ctx = cctx
@@ -194,7 +194,7 @@ func TestCollector_RunCollectsOnFrequency(t *testing.T) {
 }
 
 func TestCollector_RunStopsOnContextCancellation(t *testing.T) {
-	cctx, cancel := context.WithCancel(context.Background())
+	cctx, cancel := context.WithCancel(t.Context())
 
 	ctx := newMockServiceCtx()
 	ctx.ctx = cctx

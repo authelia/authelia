@@ -5,7 +5,6 @@
 package cache
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -29,7 +28,7 @@ func TestMemory_SessionGetExpiry(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := t.Context()
 			provider := NewMemory()
 
 			require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -59,7 +58,7 @@ func TestMemory_SessionGetExpiry(t *testing.T) {
 }
 
 func TestMemory_SessionNeverExpiresWithZeroExpiration(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", 0, []byte("data")))
@@ -72,7 +71,7 @@ func TestMemory_SessionNeverExpiresWithZeroExpiration(t *testing.T) {
 }
 
 func TestMemory_SessionSaveDataRefreshesExpiry(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -89,7 +88,7 @@ func TestMemory_SessionSaveDataRefreshesExpiry(t *testing.T) {
 func TestMemory_SessionSaveDataNotFound(t *testing.T) {
 	provider := NewMemory()
 
-	err := provider.SessionSaveData(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("data"))
+	err := provider.SessionSaveData(t.Context(), "example.com", "id", "pid", "john", time.Hour, []byte("data"))
 	assert.EqualError(t, err, "session not found: example.com:id")
 }
 
@@ -106,10 +105,10 @@ func TestMemory_SessionUsernameLookup(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := t.Context()
 			provider := NewMemory()
 
-			for i := 0; i < tc.Saves; i++ {
+			for range tc.Saves {
 				require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", tc.Username, time.Hour, []byte("data")))
 			}
 
@@ -134,7 +133,7 @@ func TestMemory_SessionSavePublicIDLookup(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := t.Context()
 			provider := NewMemory()
 
 			require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -158,10 +157,10 @@ func TestMemory_SessionSavePublicIDLookup(t *testing.T) {
 }
 
 func TestMemory_SessionSaveDoesNotLeakPublicIDLookups(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		require.NoError(t, provider.SessionSave(ctx, "example.com", "id", fmt.Sprintf("pid%d", i), "john", time.Hour, []byte("data")))
 	}
 
@@ -175,7 +174,7 @@ func TestMemory_SessionSaveDoesNotLeakPublicIDLookups(t *testing.T) {
 }
 
 func TestMemory_SessionChangeID(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -204,14 +203,14 @@ func TestMemory_SessionChangeID(t *testing.T) {
 func TestMemory_SessionChangeIDMissingSession(t *testing.T) {
 	provider := NewMemory()
 
-	assert.NoError(t, provider.SessionChangeID(context.Background(), "example.com", "id", "id2", "pid2", "john", time.Hour, []byte("resealed")))
+	assert.NoError(t, provider.SessionChangeID(t.Context(), "example.com", "id", "id2", "pid2", "john", time.Hour, []byte("resealed")))
 	assert.Empty(t, provider.session)
 	assert.Empty(t, provider.lookupPublicID)
 	assert.Empty(t, provider.lookupUsername)
 }
 
 func TestMemory_SessionSaveShouldDiscardStaleSaveAfterChangeID(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -236,7 +235,7 @@ func TestMemory_SessionSaveShouldDiscardStaleSaveAfterChangeID(t *testing.T) {
 }
 
 func TestMemory_SessionSaveShouldDiscardStaleSaveAfterDelete(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -268,7 +267,7 @@ func TestMemory_SessionSaveShouldDiscardStaleSaveAfterDelete(t *testing.T) {
 }
 
 func TestMemory_SessionGarbageCollectionShouldRemoveExpiredDestroyedSessions(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -283,7 +282,7 @@ func TestMemory_SessionGarbageCollectionShouldRemoveExpiredDestroyedSessions(t *
 }
 
 func TestMemory_SessionSaveShouldRetireTheUsernameLookupOfTheReplacedSession(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -303,7 +302,7 @@ func TestMemory_SessionSaveShouldRetireTheUsernameLookupOfTheReplacedSession(t *
 }
 
 func TestMemory_SessionSaveShouldNotDiscardWhenThePublicIDLookupIsStale(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	provider.lookupPublicID[provider.key("example.com", "pid")] = "gone"
@@ -316,7 +315,7 @@ func TestMemory_SessionSaveShouldNotDiscardWhenThePublicIDLookupIsStale(t *testi
 }
 
 func TestMemory_SessionSaveShouldNotDiscardWhenThePublicIDBelongsToAnotherIssuer(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.org", "other", "pid", "john", time.Hour, []byte("other")))
@@ -328,7 +327,7 @@ func TestMemory_SessionSaveShouldNotDiscardWhenThePublicIDBelongsToAnotherIssuer
 }
 
 func TestMemory_SessionDelete(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -352,7 +351,7 @@ func TestMemory_SessionDelete(t *testing.T) {
 }
 
 func TestMemory_SessionGarbageCollection(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
@@ -369,28 +368,24 @@ func TestMemory_SessionGarbageCollection(t *testing.T) {
 }
 
 func TestMemory_SessionConcurrentAccess(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	provider := NewMemory()
 
 	wg := &sync.WaitGroup{}
 
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		id := fmt.Sprintf("id%d", i)
 
 		require.NoError(t, provider.SessionSave(ctx, "example.com", id, fmt.Sprintf("pid%d", i), "john", time.Hour, []byte("data")))
 
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
-			for n := 0; n < 50; n++ {
+		wg.Go(func() {
+			for range 50 {
 				_, _ = provider.SessionGet(ctx, "example.com", id)
 				_, _ = provider.SessionGetIDsByUsername(ctx, "example.com", "john")
 				_ = provider.SessionSaveData(ctx, "example.com", id, "pid", "john", time.Hour, []byte("updated"))
 				_ = provider.SessionGarbageCollection(ctx)
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

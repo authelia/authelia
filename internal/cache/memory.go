@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
@@ -18,9 +17,9 @@ import (
 // NewMemory returns a new Memory Provider with its lookups initialized.
 func NewMemory() (memory *Memory) {
 	return &Memory{
-		session:        map[string]*itemSession{},
-		lookupPublicID: map[string]string{},
-		lookupUsername: map[string][]string{},
+		session:        map[memoryKey]*itemSession{},
+		lookupPublicID: map[memoryKey]string{},
+		lookupUsername: map[memoryKey][]string{},
 	}
 }
 
@@ -30,9 +29,9 @@ func NewMemory() (memory *Memory) {
 type Memory struct {
 	mu sync.RWMutex
 
-	session        map[string]*itemSession
-	lookupPublicID map[string]string
-	lookupUsername map[string][]string
+	session        map[memoryKey]*itemSession
+	lookupPublicID map[memoryKey]string
+	lookupUsername map[memoryKey][]string
 }
 
 // StartupCheck implements the Provider interface.
@@ -132,9 +131,8 @@ func (m *Memory) SessionSave(ctx context.Context, issuer, id, pid, username stri
 	return nil
 }
 
-// SessionSaveData updates the session data. The public id and username are unused as the stored session already records
-// them and its lookups are derived from it rather than expiring independently.
-// SessionSaveData implements the Provider interface.
+// SessionSaveData implements the Provider interface. The public id and username are unused as the stored session
+// already records them and its lookups are derived from it rather than expiring independently.
 func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -143,7 +141,7 @@ func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, e
 
 	item, ok := m.session[key]
 	if !ok {
-		return fmt.Errorf("session not found: %s", key)
+		return fmt.Errorf("session not found: %s:%s", issuer, id)
 	}
 
 	if item.destroyed {
@@ -276,15 +274,24 @@ func (m *Memory) removeUsername(id, username, issuer string) {
 		return
 	}
 
-	if ids = removeString(ids, id); len(ids) == 0 {
+	if i := slices.Index(ids, id); i >= 0 {
+		ids = slices.Delete(ids, i, i+1)
+	}
+
+	if len(ids) == 0 {
 		delete(m.lookupUsername, key)
 	} else {
 		m.lookupUsername[key] = ids
 	}
 }
 
-func (m *Memory) key(values ...string) string {
-	return strings.Join(values, ":")
+func (m *Memory) key(issuer, value string) memoryKey {
+	return memoryKey{issuer: issuer, value: value}
+}
+
+type memoryKey struct {
+	issuer string
+	value  string
 }
 
 type itemSession struct {
@@ -307,16 +314,6 @@ func sessionExpires(expiration time.Duration) (expires time.Time) {
 	}
 
 	return time.Now().Add(expiration)
-}
-
-func removeString(s []string, str string) (result []string) {
-	for i, v := range s {
-		if v == str {
-			return append(s[:i], s[i+1:]...)
-		}
-	}
-
-	return s
 }
 
 var (

@@ -22,13 +22,13 @@ import (
 func NewStrategy(config schema.SessionCookie, clock clock.Provider, codec Codec, storage Repository) (provider Strategy) {
 	sameSite := newSameSite(config.SameSite)
 
-	var issuer string
+	value := config.Domain
 
-	if config.AutheliaURL == nil {
-		issuer = codec.Sign([]byte(strings.ToLower(config.Domain)))
-	} else {
-		issuer = codec.Sign([]byte(strings.ToLower(config.AutheliaURL.String())))
+	if config.AutheliaURL != nil {
+		value = config.AutheliaURL.String()
 	}
+
+	issuer := codec.Sign([]byte(strings.ToLower(value)))
 
 	return &DefaultStrategy{
 		config:     config,
@@ -92,14 +92,14 @@ func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 // session, which is given a new identifier so its state isn't lost.
 func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	if session == nil {
-		return fmt.Errorf("error occurred saving session: it is nil")
+		return errors.New("error occurred saving session: it is nil")
 	}
 
 	switch {
 	case session.CookieDomain == "":
 		session.CookieDomain = p.config.Domain
 	case session.CookieDomain != p.config.Domain:
-		return fmt.Errorf("error occurred saving session: domain does not match cookie domain")
+		return errors.New("error occurred saving session: domain does not match cookie domain")
 	}
 
 	if !session.RequiresPersistence() {
@@ -282,7 +282,7 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 	}
 
 	if record.GetSessionSignature() != id {
-		return id, nil, fmt.Errorf("error occurred getting session: signature does not match the session identifier")
+		return id, nil, errors.New("error occurred getting session: signature does not match the session identifier")
 	}
 
 	session = &UserSession{}
@@ -292,7 +292,7 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 	}
 
 	if session.CookieDomain != p.config.Domain {
-		return id, nil, fmt.Errorf("error occurred getting session: domain does not match cookie domain")
+		return id, nil, errors.New("error occurred getting session: domain does not match cookie domain")
 	}
 
 	p.setCached(ctx, session)

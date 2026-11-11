@@ -17,15 +17,11 @@ func (s UserSession) deepCopy() (session UserSession) {
 	session.Elevations.User = s.Elevations.User.deepCopy()
 
 	if s.PasswordResetUsername != nil {
-		username := *s.PasswordResetUsername
-
-		session.PasswordResetUsername = &username
+		session.PasswordResetUsername = new(*s.PasswordResetUsername)
 	}
 
 	if s.TOTP != nil {
-		totp := *s.TOTP
-
-		session.TOTP = &totp
+		session.TOTP = new(*s.TOTP)
 	}
 
 	return session

@@ -65,8 +65,8 @@ func TestCachedUserProviderShouldInvalidateWhenTheUserIsNotFound(t *testing.T) {
 
 			expires := time.Now().Add(time.Hour)
 
-			provider.details.values["john"] = CachedUserDetailsItem{UserDetails: &UserDetails{Username: "john"}, expires: expires}
-			provider.extended.values["john"] = CachedUserDetailsExtendedItem{UserDetailsExtended: &UserDetailsExtended{UserDetails: &UserDetails{Username: "john"}}, expires: expires}
+			provider.details.values["john"] = CachedUserValue[UserDetails]{value: &UserDetails{Username: "john"}, expires: expires}
+			provider.extended.values["john"] = CachedUserValue[UserDetailsExtended]{value: &UserDetailsExtended{UserDetails: &UserDetails{Username: "john"}}, expires: expires}
 
 			assert.ErrorIs(t, tc.call(provider), tc.err)
 

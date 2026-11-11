@@ -24,6 +24,14 @@ const (
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"
 )
 
+const (
+	// SessionStorageInternal stores sessions in the storage backend.
+	SessionStorageInternal = "internal"
+
+	// SessionStorageCache stores sessions in the cache backend.
+	SessionStorageCache = "cache"
+)
+
 // ProviderNames are every provider which can be probed by name.
 var ProviderNames = []string{
 	ProviderNameStorage, ProviderNameCache, ProviderNameUser, ProviderNameNotification,

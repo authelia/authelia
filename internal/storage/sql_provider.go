@@ -90,7 +90,6 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpsertSession:                     fmt.Sprintf(queryFmtUpsertSession, tableSession),
 		sqlSelectSession:                     fmt.Sprintf(queryFmtSelectSession, tableSession),
-		sqlSelectSessionExists:               fmt.Sprintf(queryFmtSelectSessionExists, tableSession),
 		sqlSelectSessionByPublicID:           fmt.Sprintf(queryFmtSelectSessionByPublicID, tableSession),
 		sqlSelectSessionSignatureByPublicID:  fmt.Sprintf(queryFmtSelectSessionSignatureByPublicID, tableSession),
 		sqlSelectSessionSignaturesByUsername: fmt.Sprintf(queryFmtSelectSessionSignaturesByUsername, tableSession),
@@ -268,7 +267,6 @@ type SQLProvider struct {
 	// Table: session.
 	sqlUpsertSession                     string
 	sqlSelectSession                     string
-	sqlSelectSessionExists               string
 	sqlSelectSessionByPublicID           string
 	sqlSelectSessionSignatureByPublicID  string
 	sqlSelectSessionSignaturesByUsername string

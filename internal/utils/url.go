@@ -103,7 +103,7 @@ func isHostnameLabelValid(label string) (valid bool) {
 		return false
 	}
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		switch c := label[i]; {
 		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9', c == '-':
 			continue

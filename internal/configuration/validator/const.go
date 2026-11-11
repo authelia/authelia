@@ -568,8 +568,8 @@ var (
 	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
 	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
-	validSessionStorageValues                = []string{sessionStorageCache, sessionStorageInternal}
-	validCacheRedisSentinelModes             = []string{"cluster", "failover"}
+	validSessionStorageValues                = []string{schema.SessionStorageCache, schema.SessionStorageInternal}
+	validCacheRedisSentinelModes             = []string{schema.RedisSentinelModeCluster, schema.RedisSentinelModeFailover}
 	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
 	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
 	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
@@ -617,9 +617,6 @@ const (
 	attrSessionAutheliaURL              = "authelia_url"
 	attrSessionDomain                   = "domain"
 	attrDefaultRedirectionURL           = "default_redirection_url"
-
-	sessionStorageCache    = "cache"
-	sessionStorageInternal = "internal"
 )
 
 var (

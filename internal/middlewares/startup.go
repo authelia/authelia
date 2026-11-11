@@ -76,9 +76,9 @@ func (p *Providers) Finalize(ctx ServiceContext) (err error) {
 	)
 
 	switch name := ctx.GetConfiguration().Session.Storage; name {
-	case "internal", "":
+	case schema.SessionStorageInternal, "":
 		repository = storage.NewSessionRepository(p.StorageProvider)
-	case "cache":
+	case schema.SessionStorageCache:
 		repository = cache.NewSessionRepository(p.Cache)
 	default:
 		return fmt.Errorf("unknown session storage '%s'", name)

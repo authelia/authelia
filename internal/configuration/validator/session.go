@@ -100,7 +100,7 @@ func validateSessionSecret(config *schema.Configuration, validator *schema.Struc
 	}
 
 	switch config.Session.Storage {
-	case sessionStorageInternal:
+	case schema.SessionStorageInternal:
 		if config.Storage.EncryptionKey == "" {
 			validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "secret"))
 
@@ -110,8 +110,8 @@ func validateSessionSecret(config *schema.Configuration, validator *schema.Struc
 		config.Session.Secret = config.Storage.EncryptionKey
 
 		validator.PushWarning(errors.New(errStrSessionSecretFallback))
-	case sessionStorageCache:
-		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, sessionStorageCache))
+	case schema.SessionStorageCache:
+		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, schema.SessionStorageCache))
 	default:
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "secret"))
 	}

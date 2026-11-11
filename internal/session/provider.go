@@ -5,7 +5,7 @@
 package session
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -23,18 +23,17 @@ func NewProvider(config *schema.Configuration, hmac []byte, clock clock.Provider
 		return nil, err
 	}
 
-	strategies := make(map[string]Strategy)
+	strategies := make(map[string]Strategy, len(config.Session.Cookies))
 
 	for _, cookie := range config.Session.Cookies {
 		strategies[cookie.Domain] = NewStrategy(cookie, clock, codec, repository)
 	}
 
-	return &DefaultProvider{codec: codec, strategies: strategies}, nil
+	return &DefaultProvider{strategies: strategies}, nil
 }
 
 // DefaultProvider is the default Provider which resolves a Strategy from the cookie domain of a request.
 type DefaultProvider struct {
-	codec      Codec
 	strategies map[string]Strategy
 }
 
@@ -52,7 +51,7 @@ func (d DefaultProvider) GetStrategy(domain string) (strategy Strategy, err erro
 		return strategy, nil
 	}
 
-	return nil, fmt.Errorf("not found")
+	return nil, errors.New("not found")
 }
 
 var (

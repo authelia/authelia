@@ -56,7 +56,7 @@ func TestDuoGET(t *testing.T) {
 				mock.StorageMock.
 					EXPECT().
 					LoadPreferredDuoDevice(mock.Ctx, "").
-					Return(nil, fmt.Errorf("no such device"))
+					Return(nil, errors.New("no such device"))
 			},
 			`{"status":"OK","data":{"result":"auth"}}`,
 			fasthttp.StatusOK,
@@ -251,7 +251,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
 		Return(nil, errors.New("no Duo device and method saved"))
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, fmt.Errorf("Connection error"))
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, errors.New("Connection error"))
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
@@ -488,7 +488,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
 		Return(&model.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, fmt.Errorf("Connection error"))
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, errors.New("Connection error"))
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
@@ -579,7 +579,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 		GetDetails(gomock.Eq(testUsername)).
 		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil)
 
-	duoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, fmt.Errorf("Connection error"))
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, errors.New("Connection error"))
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
@@ -884,7 +884,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailWhenUserDetailsFailOnAllow() {
 
 	s.mock.UserProviderMock.EXPECT().
 		GetDetails(gomock.Eq(testUsername)).
-		Return(nil, fmt.Errorf("failed to lookup user"))
+		Return(nil, errors.New("failed to lookup user"))
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
@@ -918,7 +918,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailWhenUserDetailsFailOnAuthCall()
 
 	s.mock.UserProviderMock.EXPECT().
 		GetDetails(gomock.Eq(testUsername)).
-		Return(nil, fmt.Errorf("failed to lookup user"))
+		Return(nil, errors.New("failed to lookup user"))
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)

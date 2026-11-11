@@ -351,9 +351,9 @@ func TestRedis_SessionSave(t *testing.T) {
 				var err error
 
 				if data {
-					err = provider.SessionSaveData(context.Background(), "example.com", "id", "pid", tc.Username, tc.Expiration, []byte("data"))
+					err = provider.SessionSaveData(t.Context(), "example.com", "id", "pid", tc.Username, tc.Expiration, []byte("data"))
 				} else {
-					err = provider.SessionSave(context.Background(), "example.com", "id", "pid", tc.Username, tc.Expiration, []byte("data"))
+					err = provider.SessionSave(t.Context(), "example.com", "id", "pid", tc.Username, tc.Expiration, []byte("data"))
 				}
 
 				if tc.Error == "" {
@@ -374,8 +374,8 @@ func TestRedis_SessionSaveShouldReturnSupersededWhenTheScriptDiscardsTheSave(t *
 	client := &mockRedisCmdable{evalResults: []any{[]any{int64(0)}, []any{int64(0)}}}
 	provider := NewRedis(client, "standalone")
 
-	assert.ErrorIs(t, provider.SessionSave(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
-	assert.ErrorIs(t, provider.SessionSaveData(context.Background(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
+	assert.ErrorIs(t, provider.SessionSave(t.Context(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
+	assert.ErrorIs(t, provider.SessionSaveData(t.Context(), "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
 }
 
 func TestRedis_SessionDelete(t *testing.T) {
@@ -398,7 +398,7 @@ func TestRedis_SessionDelete(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			client := &mockRedisCmdable{evalResults: tc.Results}
 
-			err := NewRedis(client, "standalone").SessionDelete(context.Background(), "example.com", "id", tc.PublicID, tc.Username)
+			err := NewRedis(client, "standalone").SessionDelete(t.Context(), "example.com", "id", tc.PublicID, tc.Username)
 
 			require.NotEmpty(t, client.evals)
 			assert.Equal(t, mockRedisEval{script: redisSessionDelete, keys: []string{getSessionKey("example.com", "id")}}, client.evals[0])
@@ -430,7 +430,7 @@ func TestRedis_SessionDelete(t *testing.T) {
 func TestRedis_SessionGetIDsByUsernameShouldReturnErrorOnExec(t *testing.T) {
 	client := &mockRedisCmdable{pipeliner: &mockRedisPipeliner{pruned: map[string]string{}, err: errors.New("exec failed")}}
 
-	ids, err := NewRedis(client, "standalone").SessionGetIDsByUsername(context.Background(), "example.com", "john")
+	ids, err := NewRedis(client, "standalone").SessionGetIDsByUsername(t.Context(), "example.com", "john")
 
 	assert.EqualError(t, err, "exec failed")
 	assert.Nil(t, ids)
@@ -445,7 +445,7 @@ func TestRedis_SessionGarbageCollectionShouldReturnErrorOnPrune(t *testing.T) {
 		pruneErr: errors.New("prune failed"),
 	}
 
-	err := NewRedis(client, "standalone").SessionGarbageCollection(context.Background())
+	err := NewRedis(client, "standalone").SessionGarbageCollection(t.Context())
 
 	assert.EqualError(t, err, "error removing expired sessions from the user index '"+key+"': prune failed")
 	assert.Len(t, client.pruned, 1)
@@ -463,7 +463,7 @@ func TestRedis_SessionGarbageCollectionShouldVisitClusterMasters(t *testing.T) {
 
 	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(t.Context(), time.Second*5)
 	defer cancel()
 
 	assert.Error(t, provider.SessionGarbageCollection(ctx))
@@ -493,7 +493,7 @@ func TestRedis_SessionGetByPublicIDShouldReturnErrorWhenTheSessionLookupFails(t 
 		hmgetErr: errors.New("connection refused"),
 	}
 
-	record, err := NewRedis(client, "standalone").SessionGetByPublicID(context.Background(), "example.com", "pid")
+	record, err := NewRedis(client, "standalone").SessionGetByPublicID(t.Context(), "example.com", "pid")
 
 	assert.EqualError(t, err, "connection refused")
 	assert.Nil(t, record)
@@ -502,7 +502,7 @@ func TestRedis_SessionGetByPublicIDShouldReturnErrorWhenTheSessionLookupFails(t 
 func TestRedis_SessionSaveShouldNotIndexASessionWithoutAPublicIDOrUsername(t *testing.T) {
 	client := &mockRedisCmdable{pipelineErr: errors.New("should not be called")}
 
-	require.NoError(t, NewRedis(client, "standalone").SessionSave(context.Background(), "example.com", "id", "", "", time.Hour, []byte("data")))
+	require.NoError(t, NewRedis(client, "standalone").SessionSave(t.Context(), "example.com", "id", "", "", time.Hour, []byte("data")))
 
 	require.Len(t, client.evals, 1)
 	assert.Empty(t, client.sets)
@@ -534,7 +534,7 @@ func TestRedis_SessionDeleteShouldReturnErrorWhenRetiringIndexesFails(t *testing
 		t.Run(tc.Name, func(t *testing.T) {
 			client := &mockRedisCmdable{evalResults: tc.Results, removeErr: tc.RemoveErr}
 
-			assert.EqualError(t, NewRedis(client, "standalone").SessionDelete(context.Background(), "example.com", "id", "", ""), tc.Error)
+			assert.EqualError(t, NewRedis(client, "standalone").SessionDelete(t.Context(), "example.com", "id", "", ""), tc.Error)
 		})
 	}
 }
@@ -574,7 +574,7 @@ func TestRedis_SessionChangeIDShouldReturnErrorWhenIndexingFails(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			client := &mockRedisCmdable{evalResults: tc.Results, pipelineErr: tc.PipelineErr, removeErr: tc.RemoveErr}
 
-			err := NewRedis(client, "standalone").SessionChangeID(context.Background(), "example.com", "old", "new", "pid", "john", time.Hour, []byte("resealed"))
+			err := NewRedis(client, "standalone").SessionChangeID(t.Context(), "example.com", "old", "new", "pid", "john", time.Hour, []byte("resealed"))
 
 			assert.EqualError(t, err, tc.Error)
 		})
@@ -592,7 +592,7 @@ func TestRedis_SessionGarbageCollectionShouldCollectEachClusterMaster(t *testing
 
 	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(t.Context(), time.Second*5)
 	defer cancel()
 
 	assert.Error(t, NewRedis(client, "cluster").SessionGarbageCollection(ctx))
@@ -614,8 +614,8 @@ func TestGetRedisValues(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			assert.Equal(t, tc.ExpectedString, getRedisString(tc.Values, tc.Index))
-			assert.Equal(t, tc.ExpectedInt, getRedisInt(tc.Values, tc.Index))
+			assert.Equal(t, tc.ExpectedString, getRedisValue[string](tc.Values, tc.Index))
+			assert.Equal(t, tc.ExpectedInt, getRedisValue[int64](tc.Values, tc.Index))
 		})
 	}
 }

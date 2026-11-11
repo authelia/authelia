@@ -57,51 +57,11 @@ func validateCacheRedis(config *schema.RedisCache, validator *schema.StructValid
 
 	validateCacheRedisTLS("redis", config.TLS, cacheRedisServerName(config.Address), validator)
 
-	setDefault(&config.DialTimeout, schema.DefaultRedisCacheConfiguration.DialTimeout)
-	setDefault(&config.ReadTimeout, schema.DefaultRedisCacheConfiguration.ReadTimeout)
-	setDefault(&config.WriteTimeout, schema.DefaultRedisCacheConfiguration.WriteTimeout)
-	setDefault(&config.PoolTimeout, config.ReadTimeout+time.Second)
-	setDefault(&config.MinimumRetryBackoff, schema.DefaultRedisCacheConfiguration.MinimumRetryBackoff)
-	setDefault(&config.MaximumRetryBackoff, schema.DefaultRedisCacheConfiguration.MaximumRetryBackoff)
-
-	if config.MaximumRetries <= 0 {
-		config.MaximumRetries = schema.DefaultRedisCacheConfiguration.MaximumRetries
-	}
-
-	if config.PoolSize < 0 {
-		config.PoolSize = 0
-	}
-
-	if config.PoolMaximumIdleConnections <= 0 {
-		config.PoolMaximumIdleConnections = schema.DefaultRedisCacheConfiguration.PoolMaximumIdleConnections
-	}
-
-	if config.PoolMaximumConnections < 0 {
-		config.PoolMaximumConnections = 0
-	}
-
-	setDefault(&config.DialerRetryTimeout, schema.DefaultRedisCacheConfiguration.DialerRetryTimeout)
-	setDefault(&config.FailingTimeout, schema.DefaultRedisCacheConfiguration.FailingTimeout)
-
-	setDefaultUnset(&config.IdleTimeout, schema.DefaultRedisCacheConfiguration.IdleTimeout)
-
-	if config.DialerRetries <= 0 {
-		config.DialerRetries = schema.DefaultRedisCacheConfiguration.DialerRetries
-	}
-
-	if config.ReadBufferSize <= 0 {
-		config.ReadBufferSize = schema.DefaultRedisCacheConfiguration.ReadBufferSize
-	}
-
-	if config.WriteBufferSize <= 0 {
-		config.WriteBufferSize = schema.DefaultRedisCacheConfiguration.WriteBufferSize
-	}
-
-	validateCacheRedisConnectionLifetimeJitter("redis", config.ConnectionLifetime, config.ConnectionLifetimeJitter, validator)
+	validateCacheRedisCommon("redis", &config.RedisCacheCommon, validator)
 }
 
 func validateCacheRedisSentinelRouting(config *schema.RedisSentinelCache, validator *schema.StructValidator) {
-	if config.SentinelMode != "failover" {
+	if config.SentinelMode != schema.RedisSentinelModeFailover {
 		return
 	}
 
@@ -136,7 +96,7 @@ func validateCacheRedisSentinel(config *schema.RedisSentinelCache, validator *sc
 	switch config.SentinelMode {
 	case "":
 		config.SentinelMode = schema.DefaultRedisSentinelCacheConfiguration.SentinelMode
-	case "failover", "cluster":
+	case schema.RedisSentinelModeFailover, schema.RedisSentinelModeCluster:
 		break
 	default:
 		validator.Push(fmt.Errorf(errFmtCacheRedisSentinelMode, utils.StringJoinOr(validCacheRedisSentinelModes), config.SentinelMode))
@@ -150,47 +110,7 @@ func validateCacheRedisSentinel(config *schema.RedisSentinelCache, validator *sc
 
 	validateCacheRedisTLS("redis_sentinel", config.TLS, "", validator)
 
-	setDefault(&config.DialTimeout, schema.DefaultRedisSentinelCacheConfiguration.DialTimeout)
-	setDefault(&config.ReadTimeout, schema.DefaultRedisSentinelCacheConfiguration.ReadTimeout)
-	setDefault(&config.WriteTimeout, schema.DefaultRedisSentinelCacheConfiguration.WriteTimeout)
-	setDefault(&config.PoolTimeout, config.ReadTimeout+time.Second)
-	setDefault(&config.MinimumRetryBackoff, schema.DefaultRedisSentinelCacheConfiguration.MinimumRetryBackoff)
-	setDefault(&config.MaximumRetryBackoff, schema.DefaultRedisSentinelCacheConfiguration.MaximumRetryBackoff)
-
-	if config.MaximumRetries <= 0 {
-		config.MaximumRetries = schema.DefaultRedisSentinelCacheConfiguration.MaximumRetries
-	}
-
-	if config.PoolSize < 0 {
-		config.PoolSize = 0
-	}
-
-	if config.PoolMaximumIdleConnections <= 0 {
-		config.PoolMaximumIdleConnections = schema.DefaultRedisSentinelCacheConfiguration.PoolMaximumIdleConnections
-	}
-
-	if config.PoolMaximumConnections < 0 {
-		config.PoolMaximumConnections = 0
-	}
-
-	setDefault(&config.DialerRetryTimeout, schema.DefaultRedisSentinelCacheConfiguration.DialerRetryTimeout)
-	setDefault(&config.FailingTimeout, schema.DefaultRedisSentinelCacheConfiguration.FailingTimeout)
-
-	setDefaultUnset(&config.IdleTimeout, schema.DefaultRedisSentinelCacheConfiguration.IdleTimeout)
-
-	if config.DialerRetries <= 0 {
-		config.DialerRetries = schema.DefaultRedisSentinelCacheConfiguration.DialerRetries
-	}
-
-	if config.ReadBufferSize <= 0 {
-		config.ReadBufferSize = schema.DefaultRedisSentinelCacheConfiguration.ReadBufferSize
-	}
-
-	if config.WriteBufferSize <= 0 {
-		config.WriteBufferSize = schema.DefaultRedisSentinelCacheConfiguration.WriteBufferSize
-	}
-
-	validateCacheRedisConnectionLifetimeJitter("redis_sentinel", config.ConnectionLifetime, config.ConnectionLifetimeJitter, validator)
+	validateCacheRedisCommon("redis_sentinel", &config.RedisCacheCommon, validator)
 }
 
 func validateCacheRedisCluster(config *schema.RedisClusterCache, validator *schema.StructValidator) {
@@ -210,51 +130,34 @@ func validateCacheRedisCluster(config *schema.RedisClusterCache, validator *sche
 
 	validateCacheRedisTLS("redis_cluster", config.TLS, "", validator)
 
-	setDefault(&config.DialTimeout, schema.DefaultRedisClusterCacheConfiguration.DialTimeout)
-	setDefault(&config.ReadTimeout, schema.DefaultRedisClusterCacheConfiguration.ReadTimeout)
-	setDefault(&config.WriteTimeout, schema.DefaultRedisClusterCacheConfiguration.WriteTimeout)
+	setDefault(&config.MaximumRedirects, schema.DefaultRedisClusterCacheConfiguration.MaximumRedirects)
+
+	validateCacheRedisCommon("redis_cluster", &config.RedisCacheCommon, validator)
+}
+
+func validateCacheRedisCommon(provider string, config *schema.RedisCacheCommon, validator *schema.StructValidator) {
+	defaults := schema.DefaultRedisCacheCommonConfiguration
+
+	setDefault(&config.DialTimeout, defaults.DialTimeout)
+	setDefault(&config.ReadTimeout, defaults.ReadTimeout)
+	setDefault(&config.WriteTimeout, defaults.WriteTimeout)
 	setDefault(&config.PoolTimeout, config.ReadTimeout+time.Second)
-	setDefault(&config.MinimumRetryBackoff, schema.DefaultRedisClusterCacheConfiguration.MinimumRetryBackoff)
-	setDefault(&config.MaximumRetryBackoff, schema.DefaultRedisClusterCacheConfiguration.MaximumRetryBackoff)
+	setDefault(&config.MinimumRetryBackoff, defaults.MinimumRetryBackoff)
+	setDefault(&config.MaximumRetryBackoff, defaults.MaximumRetryBackoff)
+	setDefault(&config.MaximumRetries, defaults.MaximumRetries)
+	setDefault(&config.PoolMaximumIdleConnections, defaults.PoolMaximumIdleConnections)
+	setDefault(&config.DialerRetries, defaults.DialerRetries)
+	setDefault(&config.DialerRetryTimeout, defaults.DialerRetryTimeout)
+	setDefault(&config.FailingTimeout, defaults.FailingTimeout)
+	setDefault(&config.ReadBufferSize, defaults.ReadBufferSize)
+	setDefault(&config.WriteBufferSize, defaults.WriteBufferSize)
 
-	if config.MaximumRetries <= 0 {
-		config.MaximumRetries = schema.DefaultRedisClusterCacheConfiguration.MaximumRetries
-	}
+	setDefaultUnset(&config.IdleTimeout, defaults.IdleTimeout)
 
-	if config.MaximumRedirects <= 0 {
-		config.MaximumRedirects = schema.DefaultRedisClusterCacheConfiguration.MaximumRedirects
-	}
+	config.PoolSize = max(config.PoolSize, 0)
+	config.PoolMaximumConnections = max(config.PoolMaximumConnections, 0)
 
-	if config.PoolSize < 0 {
-		config.PoolSize = 0
-	}
-
-	if config.PoolMaximumIdleConnections <= 0 {
-		config.PoolMaximumIdleConnections = schema.DefaultRedisClusterCacheConfiguration.PoolMaximumIdleConnections
-	}
-
-	if config.PoolMaximumConnections < 0 {
-		config.PoolMaximumConnections = 0
-	}
-
-	setDefault(&config.DialerRetryTimeout, schema.DefaultRedisClusterCacheConfiguration.DialerRetryTimeout)
-	setDefault(&config.FailingTimeout, schema.DefaultRedisClusterCacheConfiguration.FailingTimeout)
-
-	setDefaultUnset(&config.IdleTimeout, schema.DefaultRedisClusterCacheConfiguration.IdleTimeout)
-
-	if config.DialerRetries <= 0 {
-		config.DialerRetries = schema.DefaultRedisClusterCacheConfiguration.DialerRetries
-	}
-
-	if config.ReadBufferSize <= 0 {
-		config.ReadBufferSize = schema.DefaultRedisClusterCacheConfiguration.ReadBufferSize
-	}
-
-	if config.WriteBufferSize <= 0 {
-		config.WriteBufferSize = schema.DefaultRedisClusterCacheConfiguration.WriteBufferSize
-	}
-
-	validateCacheRedisConnectionLifetimeJitter("redis_cluster", config.ConnectionLifetime, config.ConnectionLifetimeJitter, validator)
+	validateCacheRedisConnectionLifetimeJitter(provider, config.ConnectionLifetime, config.ConnectionLifetimeJitter, validator)
 }
 
 func validateCacheRedisAddress(provider, option string, address *schema.AddressTCP, validator *schema.StructValidator) {
@@ -298,7 +201,7 @@ func cacheRedisServerName(address *schema.AddressTCP) (serverName string) {
 	return address.Hostname()
 }
 
-func setDefault(value *time.Duration, def time.Duration) {
+func setDefault[T int | time.Duration](value *T, def T) {
 	if *value <= 0 {
 		*value = def
 	}

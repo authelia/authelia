@@ -7,6 +7,7 @@ package storage_test
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -29,27 +31,42 @@ func TestSQLProviderSessionGetIDsByUsernameShouldReturnNilWhenThereAreNoRows(t *
 
 	p := storage.NewSQLProviderForTesting(db)
 
-	ids, err := p.SessionGetIDsByUsername(context.Background(), "an-issuer", "john")
+	ids, err := p.SessionGetIDsByUsername(t.Context(), "an-issuer", "john")
 
 	assert.NoError(t, err)
 	assert.Nil(t, ids)
 }
 
-func TestSQLProviderSessionSaveShouldReturnErrorWhenTheExistenceCheckFails(t *testing.T) {
-	ctrl := gomock.NewController(t)
+func TestSQLProviderSessionSaveShouldCheckTheAffectedRows(t *testing.T) {
+	testCases := []struct {
+		name   string
+		result sql.Result
+		err    string
+	}{
+		{"ShouldSucceedWhenARowWasWritten", driver.RowsAffected(1), ""},
+		{"ShouldReturnSupersededWhenNoRowWasWritten", driver.RowsAffected(0), session.ErrSessionSuperseded.Error()},
+		{"ShouldReturnErrorWhenTheAffectedRowsAreUnavailable", driver.ResultNoRows, "error determining whether the session was saved: no RowsAffected available after DDL statement"},
+	}
 
-	db := mocks.NewMockSQLXDB(ctrl)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
 
-	gomock.InOrder(
-		db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "an-issuer", "a-signature", "a-public-id", "john", gomock.Any(), []byte("data")).Return(nil, nil),
-		db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "an-issuer", "a-signature").Return(errors.New("boom")),
-	)
+			db := mocks.NewMockSQLXDB(ctrl)
 
-	p := storage.NewSQLProviderForTesting(db)
+			db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "an-issuer", "a-signature", "a-public-id", "john", gomock.Any(), []byte("data")).Return(tc.result, nil)
 
-	err := p.SessionSave(context.Background(), "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data"))
+			p := storage.NewSQLProviderForTesting(db)
 
-	assert.EqualError(t, err, "error selecting saved session: boom")
+			err := p.SessionSave(t.Context(), "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data"))
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
 }
 
 func TestSQLProviderLoadHMACKeyShouldAdoptTheExistingKeyOnUniqueViolation(t *testing.T) {
@@ -113,7 +130,7 @@ func TestSQLProviderLoadHMACKeyShouldAdoptTheExistingKeyOnUniqueViolation(t *tes
 
 			p := storage.NewSQLProviderForTesting(db)
 
-			key, err := p.LoadHMACKey(context.Background(), "a-name", 64)
+			key, err := p.LoadHMACKey(t.Context(), "a-name", 64)
 
 			assert.EqualError(t, err, tc.expectErr)
 			assert.Nil(t, key)

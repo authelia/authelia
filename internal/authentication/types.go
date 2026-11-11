@@ -627,32 +627,16 @@ type CachedCredential struct {
 	value   []byte
 }
 
-// CachedUserDetails is the cache of *UserDetails values keyed by username.
-type CachedUserDetails struct {
+// CachedUserValues is the cache of *T values keyed by username.
+type CachedUserValues[T any] struct {
 	singleflight.Group
 	sync.Mutex
 
-	values map[string]CachedUserDetailsItem
+	values map[string]CachedUserValue[T]
 }
 
-// CachedUserDetailsExtended is the cache of *UserDetailsExtended values keyed by username.
-type CachedUserDetailsExtended struct {
-	singleflight.Group
-	sync.Mutex
-
-	values map[string]CachedUserDetailsExtendedItem
-}
-
-// CachedUserDetailsItem is a cached *UserDetails value and the time it expires at.
-type CachedUserDetailsItem struct {
-	*UserDetails
-
-	expires time.Time
-}
-
-// CachedUserDetailsExtendedItem is a cached *UserDetailsExtended value and the time it expires at.
-type CachedUserDetailsExtendedItem struct {
-	*UserDetailsExtended
-
+// CachedUserValue is a cached *T value and the time it expires at.
+type CachedUserValue[T any] struct {
+	value   *T
 	expires time.Time
 }

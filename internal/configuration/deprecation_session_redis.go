@@ -6,7 +6,9 @@ package configuration
 
 import (
 	"fmt"
+	"maps"
 	"path"
+	"slices"
 	"strings"
 	"time"
 
@@ -45,23 +47,23 @@ func mapSessionRedisToCache(d MultiKeyMappedDeprecation, keys map[string]any, va
 		}
 	}
 
-	keys[prefix+".idle_timeout"] = time.Second * 300
+	keys[prefix+".idle_timeout"] = 5 * time.Minute
 
-	for old, new := range deprecationSessionRedisOptions {
-		value, ok := keys[keySessionRedis+"."+old]
+	for from, to := range deprecationSessionRedisOptions {
+		value, ok := keys[keySessionRedis+"."+from]
 		if !ok {
 			continue
 		}
 
-		if !sentinel && strings.HasPrefix(old, "high_availability.") {
+		if !sentinel && strings.HasPrefix(from, "high_availability.") {
 			continue
 		}
 
-		keys[prefix+"."+new] = value
+		keys[prefix+"."+to] = value
 	}
 
 	if _, ok := keys[keySessionStorage]; !ok {
-		keys[keySessionStorage] = "cache"
+		keys[keySessionStorage] = schema.SessionStorageCache
 	}
 
 	val.PushWarning(fmt.Errorf(errFmtSessionRedisMapped, d.Version, prefix, d.Version.NextMajor()))
@@ -165,7 +167,7 @@ func sessionRedisSentinelNodeAddresses(addresses []any, keys map[string]any) (re
 
 		address := sessionRedisAddress(nodeHost, nodePort)
 
-		if !anySliceContains(addresses, address) {
+		if !slices.Contains(addresses, any(address)) {
 			addresses = append(addresses, address)
 		}
 	}
@@ -198,19 +200,13 @@ func sessionRedisPortDefault(port int, fallback uint16) (uint16, error) {
 	}
 }
 
-func anySliceContains(values []any, value string) bool {
-	for _, v := range values {
-		if s, ok := v.(string); ok && s == value {
-			return true
-		}
-	}
-
-	return false
+func isKeyOrChild(key, prefix string) bool {
+	return key == prefix || strings.HasPrefix(key, prefix+".")
 }
 
 func mapHasKeyPrefix(prefix string, keys map[string]any) bool {
 	for key := range keys {
-		if key == prefix || strings.HasPrefix(key, prefix+".") {
+		if isKeyOrChild(key, prefix) {
 			return true
 		}
 	}
@@ -219,9 +215,7 @@ func mapHasKeyPrefix(prefix string, keys map[string]any) bool {
 }
 
 func deleteSessionRedisKeys(keys map[string]any) {
-	for key := range keys {
-		if key == keySessionRedis || strings.HasPrefix(key, keySessionRedis+".") {
-			delete(keys, key)
-		}
-	}
+	maps.DeleteFunc(keys, func(key string, _ any) bool {
+		return isKeyOrChild(key, keySessionRedis)
+	})
 }

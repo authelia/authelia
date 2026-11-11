@@ -5,14 +5,13 @@
 package session
 
 import (
+	"crypto/hkdf"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/hkdf"
 
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -20,11 +19,9 @@ import (
 
 // NewCodec returns a new SecureCodec.
 func NewCodec(rawKey string, hmacKey []byte, random random.Provider) (codec Codec, err error) {
-	reader := hkdf.New(sha256.New, []byte(rawKey), nil, []byte(hkdfKeyInfoCodec))
+	var key []byte
 
-	key := make([]byte, 32)
-
-	if _, err = io.ReadFull(reader, key); err != nil {
+	if key, err = hkdf.Key(sha256.New, []byte(rawKey), nil, hkdfKeyInfoCodec, 32); err != nil {
 		return nil, err
 	}
 
@@ -51,9 +48,9 @@ func (c *SecureCodec) GeneratePublicID() (id string, err error) {
 
 	if pid, err = uuid.NewV7(); err != nil {
 		return "", err
-	} else {
-		return pid.String(), nil
 	}
+
+	return pid.String(), nil
 }
 
 // GenerateSessionID returns a new random session identifier which is the raw value encoded into the session cookie.
@@ -116,7 +113,7 @@ func (c *SecureCodec) Open(domain string, record Record, session *UserSession) (
 	var data []byte
 
 	if data, err = utils.Decrypt(record.GetSessionData(), getAAD(domain, record.GetSessionSignature()), c.encKey); err != nil {
-		return fmt.Errorf("unable to decrypt session: %s", err)
+		return fmt.Errorf("unable to decrypt session: %w", err)
 	}
 
 	_, err = session.UnmarshalMsg(data)
@@ -125,5 +122,5 @@ func (c *SecureCodec) Open(domain string, record Record, session *UserSession) (
 }
 
 func getAAD(domain, id string) []byte {
-	return []byte(fmt.Sprintf("authelia:session:v2:%s:%s", domain, id))
+	return []byte("authelia:session:v2:" + domain + ":" + id)
 }

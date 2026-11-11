@@ -552,7 +552,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotSaveHistoryWhenUserDetailsFail() {
 		s.mock.UserProviderMock.
 			EXPECT().
 			GetDetails(gomock.Eq(testUsername)).
-			Return(nil, fmt.Errorf("bad stuff")),
+			Return(nil, errors.New("bad stuff")),
 	)
 
 	bodyBytes, err := json.Marshal(bodySignTOTPRequest{

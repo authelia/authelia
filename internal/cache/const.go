@@ -20,6 +20,12 @@ const (
 )
 
 const (
+	redisVariantStandalone = "standalone"
+	redisVariantSentinel   = "sentinel"
+	redisVariantCluster    = "cluster"
+)
+
+const (
 	redisScoreMinimum = "-inf"
 	redisScanCount    = 100
 )

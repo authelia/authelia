@@ -16,7 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestProvidersFinalize(t *testing.T) {
@@ -31,9 +31,9 @@ func TestProvidersFinalize(t *testing.T) {
 		expected any
 		err      string
 	}{
-		{"ShouldUseTheStorageByDefault", "", hmacKey, storage.SessionRepository{}, ""},
-		{"ShouldUseTheCache", "cache", hmacKey, cache.SessionRepository{}, ""},
-		{"ShouldUseTheStorage", "internal", hmacKey, storage.SessionRepository{}, ""},
+		{"ShouldUseTheStorageByDefault", "", hmacKey, &mocks.MockStorage{}, ""},
+		{"ShouldUseTheCache", "cache", hmacKey, &cache.Memory{}, ""},
+		{"ShouldUseTheStorage", "internal", hmacKey, &mocks.MockStorage{}, ""},
 		{"ShouldErrorOnUnknownStorage", "unknown", nil, nil, "unknown session storage 'unknown'"},
 		{
 			"ShouldErrorWhenTheHMACKeyCannotBeLoaded",
@@ -78,7 +78,8 @@ func TestProvidersFinalize(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, providers.Session)
 
-			assert.IsType(t, tc.expected, providers.SessionRepository)
+			require.IsType(t, session.BackendRepository{}, providers.SessionRepository)
+			assert.IsType(t, tc.expected, providers.SessionRepository.(session.BackendRepository).Backend)
 
 			strategy, err := providers.Session.GetStrategy("example.com")
 

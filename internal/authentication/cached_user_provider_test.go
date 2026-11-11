@@ -96,9 +96,9 @@ func TestCachedUserProvider_GetDetails(t *testing.T) {
 			nil,
 			func(provider *CachedUserProvider) {
 				provider.details.Lock()
-				provider.details.values["john"] = CachedUserDetailsItem{
-					UserDetails: &UserDetails{Username: "john"},
-					expires:     time.Now().Add(-1 * time.Minute),
+				provider.details.values["john"] = CachedUserValue[UserDetails]{
+					value:   &UserDetails{Username: "john"},
+					expires: time.Now().Add(-1 * time.Minute),
 				}
 				provider.details.Unlock()
 			},
@@ -113,9 +113,9 @@ func TestCachedUserProvider_GetDetails(t *testing.T) {
 			fmt.Errorf("provider error"),
 			func(provider *CachedUserProvider) {
 				provider.details.Lock()
-				provider.details.values["john"] = CachedUserDetailsItem{
-					UserDetails: &UserDetails{Username: "john"},
-					expires:     time.Now().Add(-1 * time.Minute),
+				provider.details.values["john"] = CachedUserValue[UserDetails]{
+					value:   &UserDetails{Username: "john"},
+					expires: time.Now().Add(-1 * time.Minute),
 				}
 				provider.details.Unlock()
 			},
@@ -130,9 +130,9 @@ func TestCachedUserProvider_GetDetails(t *testing.T) {
 			nil,
 			func(provider *CachedUserProvider) {
 				provider.details.Lock()
-				provider.details.values["john"] = CachedUserDetailsItem{
-					UserDetails: &UserDetails{Username: "john", DisplayName: "Cached"},
-					expires:     time.Now().Add(-1 * time.Hour),
+				provider.details.values["john"] = CachedUserValue[UserDetails]{
+					value:   &UserDetails{Username: "john", DisplayName: "Cached"},
+					expires: time.Now().Add(-1 * time.Hour),
 				}
 				provider.details.Unlock()
 			},
@@ -260,8 +260,8 @@ func TestCachedUserProvider_GetDetailsExtended(t *testing.T) {
 			nil,
 			func(provider *CachedUserProvider) {
 				provider.extended.Lock()
-				provider.extended.values["john"] = CachedUserDetailsExtendedItem{
-					UserDetailsExtended: &UserDetailsExtended{
+				provider.extended.values["john"] = CachedUserValue[UserDetailsExtended]{
+					value: &UserDetailsExtended{
 						GivenName:   "Old",
 						UserDetails: &UserDetails{Username: "john"},
 					},
@@ -280,8 +280,8 @@ func TestCachedUserProvider_GetDetailsExtended(t *testing.T) {
 			fmt.Errorf("provider error"),
 			func(provider *CachedUserProvider) {
 				provider.extended.Lock()
-				provider.extended.values["john"] = CachedUserDetailsExtendedItem{
-					UserDetailsExtended: &UserDetailsExtended{
+				provider.extended.values["john"] = CachedUserValue[UserDetailsExtended]{
+					value: &UserDetailsExtended{
 						UserDetails: &UserDetails{Username: "john"},
 					},
 					expires: time.Now().Add(-1 * time.Minute),
@@ -302,8 +302,8 @@ func TestCachedUserProvider_GetDetailsExtended(t *testing.T) {
 			nil,
 			func(provider *CachedUserProvider) {
 				provider.extended.Lock()
-				provider.extended.values["john"] = CachedUserDetailsExtendedItem{
-					UserDetailsExtended: &UserDetailsExtended{
+				provider.extended.values["john"] = CachedUserValue[UserDetailsExtended]{
+					value: &UserDetailsExtended{
 						GivenName:   "Cached",
 						UserDetails: &UserDetails{Username: "john"},
 					},
@@ -525,7 +525,7 @@ func TestCachedUserProviderGetDetailsExtendedPopulatesBothCaches(t *testing.T) {
 	provider.details.Unlock()
 
 	require.True(t, ok)
-	assert.Equal(t, "john", cached.Username)
+	assert.Equal(t, "john", cached.value.Username)
 	assert.Equal(t, 0, mock.detailsCalls)
 }
 

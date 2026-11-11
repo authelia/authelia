@@ -5,7 +5,6 @@
 package cache
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -16,7 +15,7 @@ import (
 )
 
 func TestSessionRepositoryShouldDelegateToProvider(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	repository := NewSessionRepository(NewMemory())
 
@@ -63,7 +62,7 @@ func TestMemory_StartupCheckAndGarbageCollectionFrequency(t *testing.T) {
 	provider := NewMemory()
 
 	assert.NoError(t, provider.StartupCheck())
-	assert.Equal(t, sessionGarbageCollectionFrequency, provider.SessionGarbageCollectionFrequency(context.Background()))
+	assert.Equal(t, sessionGarbageCollectionFrequency, provider.SessionGarbageCollectionFrequency(t.Context()))
 }
 
 func TestMemory_SessionDeleteUnknownSession(t *testing.T) {
@@ -79,7 +78,7 @@ func TestMemory_SessionDeleteUnknownSession(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := t.Context()
 			provider := NewMemory()
 
 			if tc.Existing {

@@ -5,7 +5,6 @@
 package cache
 
 import (
-	"bytes"
 	"context"
 	"crypto/x509"
 	"errors"
@@ -57,7 +56,7 @@ func NewRedisStandalone(config *schema.RedisCache, rootCAs *x509.CertPool) *Redi
 		FailingTimeoutSeconds: getFailingTimeoutSeconds(config.FailingTimeout),
 	}
 
-	return NewRedis(redis.NewClient(options), "standalone")
+	return NewRedis(redis.NewClient(options), redisVariantStandalone)
 }
 
 // The NewRedisSentinel creates a Redis Provider that uses a redis or redis compliant server which supports sentinel.
@@ -110,13 +109,13 @@ func NewRedisSentinel(config *schema.RedisSentinelCache, rootCAs *x509.CertPool)
 	var client redis.Cmdable
 
 	switch config.SentinelMode {
-	case "cluster":
+	case schema.RedisSentinelModeCluster:
 		client = redis.NewFailoverClusterClient(options)
 	default:
 		client = redis.NewFailoverClient(options)
 	}
 
-	return NewRedis(client, "sentinel")
+	return NewRedis(client, redisVariantSentinel)
 }
 
 // The NewRedisCluster creates a Redis Provider that uses a redis or redis compliant server which supports clustering.
@@ -164,7 +163,7 @@ func NewRedisCluster(config *schema.RedisClusterCache, rootCAs *x509.CertPool) (
 		ClusterStateReloadInterval: config.ClusterStateReloadInterval,
 	}
 
-	return NewRedis(redis.NewClusterClient(options), "cluster")
+	return NewRedis(redis.NewClusterClient(options), redisVariantCluster)
 }
 
 // NewRedis returns a new Redis Provider for the given client, where the variant records which of the standalone,
@@ -226,7 +225,7 @@ func (r *Redis) SessionGetByPublicID(ctx context.Context, issuer, pid string) (r
 		return nil, err
 	}
 
-	data, recorded := getRedisString(values, 0), getRedisString(values, 1)
+	data, recorded := getRedisValue[string](values, 0), getRedisValue[string](values, 1)
 
 	if len(data) == 0 || recorded != pid {
 		return nil, nil
@@ -304,7 +303,7 @@ func (r *Redis) SessionDelete(ctx context.Context, issuer, id, pid, username str
 		return err
 	}
 
-	previousPID, previousUsername = getRedisString(result, 0), getRedisString(result, 1)
+	previousPID, previousUsername = getRedisValue[string](result, 0), getRedisValue[string](result, 1)
 
 	if pid == "" {
 		pid = previousPID
@@ -343,11 +342,11 @@ func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, use
 		return err
 	}
 
-	if getRedisInt(result, 0) == 0 {
+	if getRedisValue[int64](result, 0) == 0 {
 		return nil
 	}
 
-	previousPID, previousUsername = getRedisString(result, 1), getRedisString(result, 2)
+	previousPID, previousUsername = getRedisValue[string](result, 1), getRedisValue[string](result, 2)
 
 	if _, _, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, data); err != nil {
 		return err
@@ -379,11 +378,11 @@ func (r *Redis) sessionSave(ctx context.Context, issuer, id, pid, username strin
 		return "", "", err
 	}
 
-	if getRedisInt(result, 0) == 0 {
+	if getRedisValue[int64](result, 0) == 0 {
 		return "", "", session.ErrSessionSuperseded
 	}
 
-	return getRedisString(result, 1), getRedisString(result, 2), nil
+	return getRedisValue[string](result, 1), getRedisValue[string](result, 2), nil
 }
 
 func (r *Redis) sessionIndex(ctx context.Context, issuer, id, pid, username string, expiration time.Duration) (err error) {
@@ -461,11 +460,7 @@ func getSessionExpirationMilliseconds(expiration time.Duration) (milliseconds in
 		return 0
 	}
 
-	if milliseconds = expiration.Milliseconds(); milliseconds < 1 {
-		return 1
-	}
-
-	return milliseconds
+	return max(expiration.Milliseconds(), 1)
 }
 
 func getSessionScore(expiration time.Duration) (score float64) {
@@ -485,7 +480,7 @@ func getSessionIndexExpiration(expiration time.Duration) time.Duration {
 		return 0
 	}
 
-	return time.Duration(getSessionExpirationMilliseconds(expiration)) * time.Millisecond
+	return max(expiration.Truncate(time.Millisecond), time.Millisecond)
 }
 
 func getSessionUserKey(issuer, username string) (key string) {
@@ -501,39 +496,21 @@ func getSessionKey(issuer, id string) (key string) {
 }
 
 func getSessionSlotKey(prefix, issuer, value string) (key string) {
-	buf := bytes.NewBuffer(nil)
-
-	buf.WriteString(prefix)
-	buf.WriteString(issuer)
-	buf.WriteString(redisKeySeparator)
-	buf.WriteString(value)
-	buf.WriteString(redisKeySeparatorSlot)
-
-	return buf.String()
+	return prefix + issuer + redisKeySeparator + value + redisKeySeparatorSlot
 }
 
-func getRedisString(values []any, i int) string {
-	if i >= len(values) {
-		return ""
+func getRedisValue[T any](values []any, i int) (value T) {
+	if i < len(values) {
+		value, _ = values[i].(T)
 	}
-
-	value, _ := values[i].(string)
-
-	return value
-}
-
-func getRedisInt(values []any, i int) int64 {
-	if i >= len(values) {
-		return 0
-	}
-
-	value, _ := values[i].(int64)
 
 	return value
 }
 
 func getClientName() (name string) {
-	return fmt.Sprintf(driverParameterFmtAppName, strings.Split(utils.Version(), " ")[0])
+	version, _, _ := strings.Cut(utils.Version(), " ")
+
+	return fmt.Sprintf(driverParameterFmtAppName, version)
 }
 
 func getFailingTimeoutSeconds(timeout time.Duration) (seconds int) {
@@ -541,9 +518,5 @@ func getFailingTimeoutSeconds(timeout time.Duration) (seconds int) {
 		return 0
 	}
 
-	if seconds = int(timeout.Seconds()); seconds == 0 {
-		return 1
-	}
-
-	return seconds
+	return max(int(timeout.Seconds()), 1)
 }

@@ -138,7 +138,7 @@ func assertNoSharedReferences(t *testing.T, path string, original, copied reflec
 			assert.NotEqual(t, original.Pointer(), copied.Pointer(), "%s is the same map in the copy", path)
 		}
 	case reflect.Struct:
-		for i := 0; i < original.NumField(); i++ {
+		for i := range original.NumField() {
 			assertNoSharedReferences(t, path+"."+original.Type().Field(i).Name, original.Field(i), copied.Field(i))
 		}
 	}

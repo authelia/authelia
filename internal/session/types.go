@@ -152,6 +152,110 @@ type Repository interface {
 	model.StartupCheck
 }
 
+// The Backend is implemented by the cache and storage providers which hold sessions, and is adapted to the Repository
+// interface by NewRepository.
+type Backend interface {
+	model.StartupCheck
+
+	// SessionGet should return a session with a matching id (which is a representation of the cookie value hashed using
+	// HMAC-SHA256 and encoded into hexadecimal) and issuer (which is a domain).
+	SessionGet(ctx context.Context, issuer, id string) (record Record, err error)
+
+	// SessionGetByPublicID should return a session with a matching public id, which records the id it is stored against
+	// as the caller has no way to derive it.
+	SessionGetByPublicID(ctx context.Context, issuer, pid string) (record Record, err error)
+
+	// SessionGetIDsByUsername should return all session ids for a given username and issuer (which is a domain).
+	SessionGetIDsByUsername(ctx context.Context, issuer, username string) (ids []string, err error)
+
+	// SessionSave should save a session to the cache, and ensure the id, public id, and username can all be used to
+	// find a session. This is traditionally used for new sessions. If the data for a session has just been updated, use
+	// SessionSaveData instead.
+	SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
+
+	// SessionSaveData updates the session data in the cache, refreshing the expiry of the session and every lookup
+	// which refers to it.
+	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
+
+	// SessionDelete should delete a session from the cache, as well as the related lookup information.
+	SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error)
+
+	// SessionChangeID is used to change the cookie value of a session and update the id. The data is written as part of
+	// the move as the caller reseals it against the new id.
+	SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error)
+
+	// SessionGarbageCollection cleans up the sessions which have expired.
+	SessionGarbageCollection(ctx context.Context) (err error)
+
+	// SessionGarbageCollectionFrequency returns the frequency the garbage collection should be run at. A zero value
+	// indicates the provider expires sessions itself and no garbage collection is required.
+	SessionGarbageCollectionFrequency(ctx context.Context) (frequency time.Duration)
+}
+
+// NewRepository returns a Repository backed by the given Backend.
+func NewRepository(backend Backend) Repository {
+	return BackendRepository{Backend: backend}
+}
+
+// BackendRepository adapts a Backend to the Repository interface.
+type BackendRepository struct {
+	Backend Backend
+}
+
+// StartupCheck implements the Repository interface.
+func (r BackendRepository) StartupCheck() (err error) {
+	return r.Backend.StartupCheck()
+}
+
+// Get implements the Repository interface.
+func (r BackendRepository) Get(ctx context.Context, issuer, id string) (record Record, err error) {
+	return r.Backend.SessionGet(ctx, issuer, id)
+}
+
+// GetByPublicID implements the Repository interface.
+func (r BackendRepository) GetByPublicID(ctx context.Context, issuer, pid string) (record Record, err error) {
+	return r.Backend.SessionGetByPublicID(ctx, issuer, pid)
+}
+
+// GetIDsByUsername implements the Repository interface.
+func (r BackendRepository) GetIDsByUsername(ctx context.Context, issuer, username string) (ids []string, err error) {
+	return r.Backend.SessionGetIDsByUsername(ctx, issuer, username)
+}
+
+// Save implements the Repository interface.
+func (r BackendRepository) Save(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	return r.Backend.SessionSave(ctx, issuer, id, pid, username, expiration, data)
+}
+
+// SaveData implements the Repository interface.
+func (r BackendRepository) SaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	return r.Backend.SessionSaveData(ctx, issuer, id, pid, username, expiration, data)
+}
+
+// Delete implements the Repository interface.
+func (r BackendRepository) Delete(ctx context.Context, issuer, id, pid, username string) (err error) {
+	return r.Backend.SessionDelete(ctx, issuer, id, pid, username)
+}
+
+// ChangeID implements the Repository interface.
+func (r BackendRepository) ChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	return r.Backend.SessionChangeID(ctx, issuer, oldID, id, pid, username, expiration, data)
+}
+
+// GarbageCollection implements the Repository interface.
+func (r BackendRepository) GarbageCollection(ctx context.Context) (err error) {
+	return r.Backend.SessionGarbageCollection(ctx)
+}
+
+// GarbageCollectionFrequency implements the Repository interface.
+func (r BackendRepository) GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration) {
+	return r.Backend.SessionGarbageCollectionFrequency(ctx)
+}
+
+var (
+	_ Repository = BackendRepository{}
+)
+
 // The Codec handles obfuscation and privacy functionality such as generating private and public session identifiers,
 // sealing session data and opening it, signing and verifying values, etc.
 type Codec interface {

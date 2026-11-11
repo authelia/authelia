@@ -37,7 +37,7 @@ func TestRedis_SessionGet(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			provider := NewRedis(&mockRedisCmdable{values: tc.Values, err: tc.Err}, "standalone")
 
-			record, err := provider.SessionGet(context.Background(), "example.com", "id")
+			record, err := provider.SessionGet(t.Context(), "example.com", "id")
 
 			if tc.Error == "" {
 				assert.NoError(t, err)
@@ -90,7 +90,7 @@ func TestRedis_SessionGetByPublicID(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			provider := NewRedis(&mockRedisCmdable{values: tc.Values, hashes: tc.Hashes, err: tc.Err}, "standalone")
 
-			record, err := provider.SessionGetByPublicID(context.Background(), "example.com", "pid")
+			record, err := provider.SessionGetByPublicID(t.Context(), "example.com", "pid")
 
 			if tc.Error == "" {
 				assert.NoError(t, err)
@@ -260,7 +260,7 @@ func TestRedis_SessionChangeID(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			client := &mockRedisCmdable{evalResults: tc.Results}
 
-			err := NewRedis(client, "standalone").SessionChangeID(context.Background(), "example.com", "old", "new", "pid", tc.Username, tc.Expiration, []byte("resealed"))
+			err := NewRedis(client, "standalone").SessionChangeID(t.Context(), "example.com", "old", "new", "pid", tc.Username, tc.Expiration, []byte("resealed"))
 
 			if tc.Error == "" {
 				require.NoError(t, err)
@@ -274,7 +274,7 @@ func TestRedis_SessionChangeID(t *testing.T) {
 }
 
 func TestRedis_SessionScriptsShouldOperateOnASingleKey(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	client := &mockRedisCmdable{evalResults: []any{[]any{int64(1), "oldpid", "jane"}, []any{int64(1), "oldpid", "jane"}}}
 	provider := NewRedis(client, "standalone")
 
@@ -312,7 +312,7 @@ func TestRedis_SessionGetIDsByUsername(t *testing.T) {
 	t.Run("ShouldPruneExpiredMembersBeforeReading", func(t *testing.T) {
 		client := &mockRedisCmdable{pipeliner: &mockRedisPipeliner{members: []string{"id1", "id2"}, pruned: map[string]string{}}}
 
-		ids, err := NewRedis(client, "standalone").SessionGetIDsByUsername(context.Background(), "example.com", "john")
+		ids, err := NewRedis(client, "standalone").SessionGetIDsByUsername(t.Context(), "example.com", "john")
 
 		require.NoError(t, err)
 		assert.Equal(t, []string{"id1", "id2"}, ids)
@@ -328,7 +328,7 @@ func TestRedis_SessionGetIDsByUsername(t *testing.T) {
 	t.Run("ShouldNotQueryForAnonymousSession", func(t *testing.T) {
 		client := &mockRedisCmdable{}
 
-		ids, err := NewRedis(client, "standalone").SessionGetIDsByUsername(context.Background(), "example.com", "")
+		ids, err := NewRedis(client, "standalone").SessionGetIDsByUsername(t.Context(), "example.com", "")
 
 		require.NoError(t, err)
 		assert.Nil(t, ids)
@@ -346,9 +346,9 @@ func TestRedis_SessionGarbageCollection(t *testing.T) {
 
 	provider := NewRedis(client, "standalone")
 
-	assert.Equal(t, sessionGarbageCollectionFrequency, provider.SessionGarbageCollectionFrequency(context.Background()))
+	assert.Equal(t, sessionGarbageCollectionFrequency, provider.SessionGarbageCollectionFrequency(t.Context()))
 
-	require.NoError(t, provider.SessionGarbageCollection(context.Background()))
+	require.NoError(t, provider.SessionGarbageCollection(t.Context()))
 
 	assert.Len(t, client.pruned, 2)
 	assert.Contains(t, client.pruned, getSessionUserKey("example.com", "john"))

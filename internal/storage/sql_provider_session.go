@@ -16,62 +16,7 @@ import (
 
 // NewSessionRepository returns a session.Repository which is backed by the storage Provider.
 func NewSessionRepository(provider Provider) session.Repository {
-	return SessionRepository{provider: provider}
-}
-
-// SessionRepository adapts the storage Provider to the session.Repository interface.
-type SessionRepository struct {
-	provider Provider
-}
-
-// StartupCheck implements the session.Repository interface.
-func (r SessionRepository) StartupCheck() (err error) {
-	return r.provider.StartupCheck()
-}
-
-// Get implements the session.Repository interface.
-func (r SessionRepository) Get(ctx context.Context, issuer, id string) (record session.Record, err error) {
-	return r.provider.SessionGet(ctx, issuer, id)
-}
-
-// GetByPublicID implements the session.Repository interface.
-func (r SessionRepository) GetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
-	return r.provider.SessionGetByPublicID(ctx, issuer, pid)
-}
-
-// GetIDsByUsername implements the session.Repository interface.
-func (r SessionRepository) GetIDsByUsername(ctx context.Context, issuer, username string) (ids []string, err error) {
-	return r.provider.SessionGetIDsByUsername(ctx, issuer, username)
-}
-
-// Save implements the session.Repository interface.
-func (r SessionRepository) Save(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	return r.provider.SessionSave(ctx, issuer, id, pid, username, expiration, data)
-}
-
-// SaveData implements the session.Repository interface.
-func (r SessionRepository) SaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	return r.provider.SessionSaveData(ctx, issuer, id, pid, username, expiration, data)
-}
-
-// Delete implements the session.Repository interface.
-func (r SessionRepository) Delete(ctx context.Context, issuer, id, pid, username string) (err error) {
-	return r.provider.SessionDelete(ctx, issuer, id, pid, username)
-}
-
-// ChangeID implements the session.Repository interface.
-func (r SessionRepository) ChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	return r.provider.SessionChangeID(ctx, issuer, oldID, id, pid, username, expiration, data)
-}
-
-// GarbageCollection implements the session.Repository interface.
-func (r SessionRepository) GarbageCollection(ctx context.Context) (err error) {
-	return r.provider.SessionGarbageCollection(ctx)
-}
-
-// GarbageCollectionFrequency implements the session.Repository interface.
-func (r SessionRepository) GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration) {
-	return r.provider.SessionGarbageCollectionFrequency(ctx)
+	return session.NewRepository(provider)
 }
 
 // SessionGet returns the session for the given signature and issuer. A session which does not exist or which has
@@ -122,7 +67,9 @@ func (p *SQLProvider) SessionGetIDsByUsername(ctx context.Context, issuer, usern
 // SessionSave persists a session, replacing any existing session with the same signature and issuer. A session which
 // was destroyed, or which was moved to another signature, is not replaced and the save is reported as superseded.
 func (p *SQLProvider) SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpsertSession, issuer, id, pid, username, p.sessionExpires(expiration), data); err != nil {
+	var result sql.Result
+
+	if result, err = p.db.ExecContext(ctx, p.sqlUpsertSession, issuer, id, pid, username, p.sessionExpires(expiration), data); err != nil {
 		if IsUniqueViolation(err) && p.sessionPublicIDMoved(ctx, issuer, id, pid) {
 			return session.ErrSessionSuperseded
 		}
@@ -130,13 +77,15 @@ func (p *SQLProvider) SessionSave(ctx context.Context, issuer, id, pid, username
 		return fmt.Errorf("error upserting session: %w", err)
 	}
 
-	var count int
+	var affected int64
 
-	if err = p.db.GetContext(ctx, &count, p.sqlSelectSessionExists, issuer, id); err != nil {
-		return fmt.Errorf("error selecting saved session: %w", err)
+	// This is not safe if encryption is changed to be deterministic i.e. no AAD due to how MySQL treats the
+	// ON DUPLICATE KEY UPDATE statements.
+	if affected, err = result.RowsAffected(); err != nil {
+		return fmt.Errorf("error determining whether the session was saved: %w", err)
 	}
 
-	if count == 0 {
+	if affected == 0 {
 		return session.ErrSessionSuperseded
 	}
 
@@ -165,7 +114,7 @@ func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ stri
 
 // SessionDelete destroys a session. The session is retained without its data until it would have expired, so a save by
 // a request which retrieved it before it was destroyed is discarded rather than restoring it.
-func (p *SQLProvider) SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error) {
+func (p *SQLProvider) SessionDelete(ctx context.Context, issuer, id, _, _ string) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionDestroyed, []byte{}, issuer, id); err != nil {
 		return fmt.Errorf("error deleting session: %w", err)
 	}
@@ -176,7 +125,7 @@ func (p *SQLProvider) SessionDelete(ctx context.Context, issuer, id, pid, userna
 // SessionChangeID changes the signature of an existing session, which is used to regenerate the session identifier
 // without discarding the session itself. The data is updated alongside the signature as the caller reseals the session
 // against the signature it is stored under, and the two must never disagree.
-func (p *SQLProvider) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+func (p *SQLProvider) SessionChangeID(ctx context.Context, issuer, oldID, id, _, _ string, expiration time.Duration, data []byte) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionSignature, id, p.sessionExpires(expiration), data, issuer, oldID); err != nil {
 		return fmt.Errorf("error updating session signature: %w", err)
 	}
@@ -199,9 +148,13 @@ func (p *SQLProvider) SessionGarbageCollectionFrequency(ctx context.Context) (fr
 }
 
 func (p *SQLProvider) sessionExpires(expiration time.Duration) (expires time.Time) {
+	if expiration == 0 {
+		return time.Date(2038, time.January, 1, 0, 0, 0, 0, time.UTC)
+	}
+
 	return time.Now().Add(expiration)
 }
 
 var (
-	_ session.Repository = (*SessionRepository)(nil)
+	_ session.Backend = (*SQLProvider)(nil)
 )

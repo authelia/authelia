@@ -243,7 +243,7 @@ func TestStorageSessionGarbageCollectionShouldRemoveExpiredDestroyedSessions(t *
 func TestStorageSessionStrategyShouldNotRestoreASessionDestroyedByAnotherRequest(t *testing.T) {
 	strategy := newTestSessionStrategy(t)
 
-	login := &testSessionContext{Context: context.Background(), cookies: map[string]string{}}
+	login := &testSessionContext{Context: t.Context(), cookies: map[string]string{}}
 
 	userSession := strategy.New("john")
 
@@ -253,14 +253,14 @@ func TestStorageSessionStrategyShouldNotRestoreASessionDestroyedByAnotherRequest
 
 	require.NotEmpty(t, cookie)
 
-	stale := &testSessionContext{Context: context.Background(), cookies: map[string]string{"authelia_session": cookie}}
+	stale := &testSessionContext{Context: t.Context(), cookies: map[string]string{"authelia_session": cookie}}
 
 	loaded, err := strategy.Get(stale)
 
 	require.NoError(t, err)
 	require.Equal(t, "john", loaded.Username)
 
-	logout := &testSessionContext{Context: context.Background(), cookies: map[string]string{"authelia_session": cookie}}
+	logout := &testSessionContext{Context: t.Context(), cookies: map[string]string{"authelia_session": cookie}}
 
 	require.NoError(t, strategy.Destroy(logout))
 
@@ -270,7 +270,7 @@ func TestStorageSessionStrategyShouldNotRestoreASessionDestroyedByAnotherRequest
 
 	assert.Equal(t, 0, stale.set)
 
-	fresh := &testSessionContext{Context: context.Background(), cookies: map[string]string{"authelia_session": cookie}}
+	fresh := &testSessionContext{Context: t.Context(), cookies: map[string]string{"authelia_session": cookie}}
 
 	actual, err := strategy.Get(fresh)
 
@@ -393,7 +393,7 @@ func newTestSessionProvider(t *testing.T) (ctx context.Context, provider *SQLite
 		},
 	}
 
-	ctx = context.Background()
+	ctx = t.Context()
 
 	migrator, err := NewSQLiteProvider(config)
 	require.NoError(t, err)

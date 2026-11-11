@@ -28,7 +28,7 @@ func TestValidateSessionSecret(t *testing.T) {
 		{
 			"ShouldNotOverrideConfiguredSecret",
 			schema.Configuration{
-				Session: schema.Session{Secret: testJWTSecret, Storage: sessionStorageInternal},
+				Session: schema.Session{Secret: testJWTSecret, Storage: schema.SessionStorageInternal},
 				Storage: schema.Storage{EncryptionKey: testEncryptionKey},
 			},
 			testJWTSecret,
@@ -38,7 +38,7 @@ func TestValidateSessionSecret(t *testing.T) {
 		{
 			"ShouldUseStorageEncryptionKeyWithInternalStorage",
 			schema.Configuration{
-				Session: schema.Session{Storage: sessionStorageInternal},
+				Session: schema.Session{Storage: schema.SessionStorageInternal},
 				Storage: schema.Storage{EncryptionKey: testEncryptionKey},
 			},
 			testEncryptionKey,
@@ -61,7 +61,7 @@ func TestValidateSessionSecret(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInternalStorageWithoutEncryptionKey",
 			schema.Configuration{
-				Session: schema.Session{Storage: sessionStorageInternal},
+				Session: schema.Session{Storage: schema.SessionStorageInternal},
 			},
 			"",
 			nil,
@@ -72,7 +72,7 @@ func TestValidateSessionSecret(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnCacheStorage",
 			schema.Configuration{
-				Session: schema.Session{Storage: sessionStorageCache},
+				Session: schema.Session{Storage: schema.SessionStorageCache},
 				Storage: schema.Storage{EncryptionKey: testEncryptionKey},
 			},
 			"",

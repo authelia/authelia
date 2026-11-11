@@ -5,7 +5,6 @@
 package embed
 
 import (
-	"context"
 	"crypto/sha256"
 	"testing"
 
@@ -84,6 +83,6 @@ func newStartupCheckContext(t *testing.T) (ctx *ctxEmbed, storage *mocks.MockSto
 			Clock:                 clock.New(),
 			Random:                random.New(),
 		},
-		Context: context.Background(),
+		Context: t.Context(),
 	}, storage
 }

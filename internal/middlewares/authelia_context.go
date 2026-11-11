@@ -885,10 +885,6 @@ func (ctx *AutheliaCtx) ClearCookie(cookie *http.Cookie) {
 // CachedSession returns the session retained for the given cookie domain during this request, if there is one. It
 // implements session.CachingContext so a session read by a middleware isn't read again by the handler behind it.
 func (ctx *AutheliaCtx) CachedSession(domain string) (userSession *session.UserSession, ok bool) {
-	if ctx.sessions == nil {
-		return nil, false
-	}
-
 	userSession, ok = ctx.sessions[domain]
 
 	return userSession, ok

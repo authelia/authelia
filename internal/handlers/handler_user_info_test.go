@@ -439,7 +439,7 @@ func (s *FetchSuite) TestShouldReturnErrorWhenUserDetailsFailToLoadGET() {
 			Return(model.UserInfo{Method: "totp"}, nil),
 		s.mock.UserProviderMock.EXPECT().
 			GetDetailsCached(gomock.Eq("john")).
-			Return(nil, fmt.Errorf("failed to lookup user")),
+			Return(nil, errors.New("failed to lookup user")),
 	)
 
 	UserInfoGET(s.mock.Ctx)
@@ -458,7 +458,7 @@ func (s *FetchSuite) TestShouldReturnErrorWhenUserDetailsFailToLoadPOST() {
 			Return(model.UserInfo{Method: "totp"}, nil),
 		s.mock.UserProviderMock.EXPECT().
 			GetDetailsCached(gomock.Eq("john")).
-			Return(nil, fmt.Errorf("failed to lookup user")),
+			Return(nil, errors.New("failed to lookup user")),
 	)
 
 	UserInfoPOST(s.mock.Ctx)

@@ -249,7 +249,7 @@ func TestDefaultStrategy_ShouldTreatInvalidCookieAsNewAnonymousSession(t *testin
 			assert.Equal(t, 0, repository.changes)
 			assert.Equal(t, 0, repository.deletes)
 
-			record, err := repository.testRepository.Get(context.Background(), codec.Sign([]byte(testDomain)), codec.Sign(existing))
+			record, err := repository.testRepository.Get(t.Context(), codec.Sign([]byte(testDomain)), codec.Sign(existing))
 
 			require.NoError(t, err)
 			require.NotNil(t, record, "the existing session was modified or removed by a malformed cookie")

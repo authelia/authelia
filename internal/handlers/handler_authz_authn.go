@@ -131,20 +131,21 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 	var details authentication.UserDetailsExtended
 
 	if !invalid {
-		if details, err = handleGetSessionUserDetails(ctx, userSession.Username, s.extended); err != nil {
-			if !errors.Is(err, authentication.ErrUserNotFound) {
-				return authn, fmt.Errorf("failed to retrieve user details: %w", err)
-			}
+		details, err = handleGetSessionUserDetails(ctx, userSession.Username, s.extended)
 
+		switch {
+		case errors.Is(err, authentication.ErrUserNotFound):
 			ctx.GetLogger().WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
 			invalid = true
-		} else if !userSession.IsAnonymous() && details.GetUsername() == "" {
+		case err != nil:
+			return authn, fmt.Errorf("failed to retrieve user details: %w", err)
+		case !userSession.IsAnonymous() && details.GetUsername() == "":
 			ctx.GetLogger().WithField("username", userSession.Username).Error("Error occurred while attempting to get user details for user: no user details were returned")
 
 			invalid = true
-		} else if handleAuthnCookieRefreshTTL(ctx, &userSession, s.refresh) {
-			modified = true
+		default:
+			modified = handleAuthnCookieRefreshTTL(ctx, &userSession, s.refresh) || modified
 		}
 	}
 
@@ -505,11 +506,13 @@ func handleAuthnCookieRefreshTTL(ctx AuthzContext, userSession *session.UserSess
 		return false
 	}
 
-	if userSession.RefreshTTL.After(ctx.GetClock().Now()) {
+	now := ctx.GetClock().Now()
+
+	if userSession.RefreshTTL.After(now) {
 		return false
 	}
 
-	userSession.RefreshTTL = ctx.GetClock().Now().Add(refresh.Value())
+	userSession.RefreshTTL = now.Add(refresh.Value())
 
 	return true
 }
@@ -554,17 +557,13 @@ func handleAuthnCookieValidateActivityRefresh(ctx AuthzContext, manager session.
 
 	interval := config.Inactivity
 
-	if config.Expiration > 0 && config.Expiration < interval {
-		interval = config.Expiration
+	if config.Expiration > 0 {
+		interval = min(interval, config.Expiration)
 	}
 
-	interval /= sessionActivityRefreshDivisor
+	interval = max(interval/sessionActivityRefreshDivisor, time.Second)
 
-	if interval < time.Second {
-		interval = time.Second
-	}
-
-	return !time.Unix(userSession.LastActivity, 0).Add(interval).After(ctx.GetClock().Now())
+	return ctx.GetClock().Now().Sub(time.Unix(userSession.LastActivity, 0)) >= interval
 }
 
 func handleAuthnCookieValidateInactivity(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, isAnonymous bool) (invalid bool) {

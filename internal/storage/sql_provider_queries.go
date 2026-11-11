@@ -401,11 +401,6 @@ const (
 		FROM %s
 		WHERE issuer = ? AND signature = ? AND expiration > ? AND LENGTH(data) > 0;`
 
-	queryFmtSelectSessionExists = `
-		SELECT COUNT(id)
-		FROM %s
-		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
-
 	queryFmtSelectSessionByPublicID = `
 		SELECT signature, data
 		FROM %s
