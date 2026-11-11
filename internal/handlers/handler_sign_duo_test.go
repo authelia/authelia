@@ -17,6 +17,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -25,9 +26,82 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
+func TestRunSecondFactorDuoPostSuite(t *testing.T) {
+	s := new(SecondFactorDuoPostSuite)
+	suite.Run(t, s)
+}
+
+func TestDuoGET(t *testing.T) {
+	testCases := []struct {
+		name           string
+		setup          func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		expected       string
+		expectedStatus int
+		expectedf      func(t *testing.T, mock *mocks.MockAutheliaCtx)
+	}{
+		{
+			"ShouldHandleGetSessionError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+			},
+			`{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+			},
+		},
+		{
+			"ShouldHandleNoPreferredDevice",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.
+					EXPECT().
+					LoadPreferredDuoDevice(mock.Ctx, "").
+					Return(nil, errors.New("no such device"))
+			},
+			`{"status":"OK","data":{"result":"auth"}}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+		{
+			"ShouldHandlePreferredDevice",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.
+					EXPECT().
+					LoadPreferredDuoDevice(mock.Ctx, "").
+					Return(&model.DuoDevice{Username: testUsername, Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+			},
+			`{"status":"OK","data":{"result":"auth","preferred_device":"12345ABCDEFGHIJ67890","preferred_method":"push"}}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			if tc.setup != nil {
+				tc.setup(t, mock)
+			}
+
+			DuoGET(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Body()))
+
+			if tc.expectedf != nil {
+				tc.expectedf(t, mock)
+			}
+		})
+	}
+}
+
 type SecondFactorDuoPostSuite struct {
 	suite.Suite
-	mock *mocks.MockAutheliaCtx
+	mock        *mocks.MockAutheliaCtx
+	userSession session.UserSession
 }
 
 func (s *SecondFactorDuoPostSuite) SetupTest() {
@@ -38,7 +112,10 @@ func (s *SecondFactorDuoPostSuite) SetupTest() {
 
 	userSession.Username = testUsername
 
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
+
+	s.userSession, err = s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
 }
 
 func (s *SecondFactorDuoPostSuite) TearDownTest() {
@@ -59,7 +136,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 	preAuthResponse.Result = enroll
 	preAuthResponse.EnrollPortalURL = enrollURL
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
@@ -88,7 +165,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	s.mock.StorageMock.EXPECT().
 		SavePreferredDuoDevice(s.mock.Ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}).
@@ -116,7 +193,12 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	authResponse := duo.AuthResponse{}
 	authResponse.Result = allow
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&authResponse, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil).
+		Times(2)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&authResponse, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
@@ -137,7 +219,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
 	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = deny
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	values = url.Values{}
 	values.Set("username", "john")
@@ -161,7 +243,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
 		Return(nil, errors.New("no Duo device and method saved"))
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Any()).Return(nil, fmt.Errorf("Connection error"))
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, errors.New("Connection error"))
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
@@ -186,7 +268,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 	preAuthResponse.Result = enroll
 	preAuthResponse.EnrollPortalURL = enrollURL
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	s.mock.StorageMock.EXPECT().DeletePreferredDuoDevice(s.mock.Ctx, "john").Return(nil)
 
@@ -218,7 +300,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	s.mock.StorageMock.EXPECT().DeletePreferredDuoDevice(s.mock.Ctx, "john").Return(nil)
 
@@ -256,7 +338,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
@@ -294,7 +376,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	s.mock.StorageMock.EXPECT().
 		SavePreferredDuoDevice(s.mock.Ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}).
@@ -310,7 +392,12 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	authResponse := duo.AuthResponse{}
 	authResponse.Result = allow
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&authResponse, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil).
+		Times(2)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&authResponse, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
@@ -331,7 +418,11 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
 	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = allow
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil)
+
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
@@ -353,7 +444,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
 	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = deny
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	values = url.Values{}
 	values.Set("username", "john")
@@ -375,7 +466,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
 		Return(&model.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Any()).Return(nil, fmt.Errorf("Connection error"))
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, errors.New("Connection error"))
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
@@ -414,7 +505,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	values = url.Values{}
 	values.Set("username", "john")
@@ -425,7 +516,11 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	response := duo.AuthResponse{}
 	response.Result = deny
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
@@ -452,9 +547,13 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Any()).Return(nil, fmt.Errorf("Connection error"))
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(nil, errors.New("Connection error"))
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
@@ -493,12 +592,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	response := duo.AuthResponse{}
 	response.Result = allow
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Any()).Return(&response, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil).
+		Times(2)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(&response, nil)
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
@@ -540,12 +644,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	response := duo.AuthResponse{}
 	response.Result = allow
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Any()).Return(&response, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil).
+		Times(2)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
@@ -591,12 +700,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	response := duo.AuthResponse{}
 	response.Result = allow
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Any()).Return(&response, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil).
+		Times(2)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{
 		TargetURL: "https://example.com",
@@ -638,12 +752,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	response := duo.AuthResponse{}
 	response.Result = allow
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Any()).Return(&response, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil).
+		Times(2)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{
 		TargetURL: "http://example.com",
@@ -683,12 +802,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
-	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&preAuthResponse, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
 	response := duo.AuthResponse{}
 	response.Result = allow
 
-	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Any()).Return(&response, nil)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil).
+		Times(2)
+
+	s.mock.DuoMock.EXPECT().AuthCall(s.mock.Ctx, &s.userSession, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(bodySignDuoRequest{
 		TargetURL: "http://example.com",
@@ -707,74 +831,61 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 }
 
-func TestRunSecondFactorDuoPostSuite(t *testing.T) {
-	s := new(SecondFactorDuoPostSuite)
-	suite.Run(t, s)
+func (s *SecondFactorDuoPostSuite) TestShouldFailWhenUserDetailsFailOnAllow() {
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&model.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = allow
+
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(nil, errors.New("failed to lookup user"))
+
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	DuoPOST(s.mock.Ctx)
+
+	s.mock.Assert401KO(s.T(), messageMFAValidationFailed)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), fmt.Sprintf(logFmtErrObtainProfileDetails, regulation.AuthTypeDuo, testUsername), "failed to lookup user")
 }
 
-func TestDuoGET(t *testing.T) {
-	testCases := []struct {
-		name           string
-		setup          func(t *testing.T, mock *mocks.MockAutheliaCtx)
-		expected       string
-		expectedStatus int
-		expectedf      func(t *testing.T, mock *mocks.MockAutheliaCtx)
-	}{
-		{
-			"ShouldHandleGetSessionError",
-			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
-			},
-			`{"status":"KO","code":"mfa_validation_failed","message":"Authentication failed, please retry later."}`,
-			fasthttp.StatusOK,
-			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
-			},
-		},
-		{
-			"ShouldHandleNoPreferredDevice",
-			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.
-					EXPECT().
-					LoadPreferredDuoDevice(mock.Ctx, "").
-					Return(nil, fmt.Errorf("no such device"))
-			},
-			`{"status":"OK","data":{"result":"auth"}}`,
-			fasthttp.StatusOK,
-			nil,
-		},
-		{
-			"ShouldHandlePreferredDevice",
-			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.
-					EXPECT().
-					LoadPreferredDuoDevice(mock.Ctx, "").
-					Return(&model.DuoDevice{Username: testUsername, Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
-			},
-			`{"status":"OK","data":{"result":"auth","preferred_device":"12345ABCDEFGHIJ67890","preferred_method":"push"}}`,
-			fasthttp.StatusOK,
-			nil,
-		},
+func (s *SecondFactorDuoPostSuite) TestShouldFailWhenUserDetailsFailOnAuthCall() {
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&model.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			mock := mocks.NewMockAutheliaCtx(t)
+	values := url.Values{}
+	values.Set("username", "john")
 
-			defer mock.Close()
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
 
-			if tc.setup != nil {
-				tc.setup(t, mock)
-			}
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
-			DuoGET(mock.Ctx)
+	s.mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq(testUsername)).
+		Return(nil, errors.New("failed to lookup user"))
 
-			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
-			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Body()))
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-			if tc.expectedf != nil {
-				tc.expectedf(t, mock)
-			}
-		})
-	}
+	DuoPOST(s.mock.Ctx)
+
+	s.mock.Assert401KO(s.T(), messageMFAValidationFailed)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to get details for Duo Auth Call for user 'john': failed to lookup user", nil)
 }

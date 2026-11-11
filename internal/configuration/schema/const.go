@@ -18,16 +18,24 @@ const (
 	ProviderNameNTP              = "ntp"
 	ProviderNameStorage          = "storage"
 	ProviderNameUser             = "user"
-	ProviderNameSession          = "session"
+	ProviderNameCache            = "cache"
 	ProviderNameNotification     = "notification"
 	ProviderNameExpressions      = "expressions"
 	ProviderNameDuo              = "duo"
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"
 )
 
+const (
+	// SessionStorageInternal stores sessions in the storage backend.
+	SessionStorageInternal = "internal"
+
+	// SessionStorageCache stores sessions in the cache backend.
+	SessionStorageCache = "cache"
+)
+
 // ProviderNames are every provider which can be probed by name.
 var ProviderNames = []string{
-	ProviderNameStorage, ProviderNameSession, ProviderNameUser, ProviderNameNotification,
+	ProviderNameStorage, ProviderNameCache, ProviderNameUser, ProviderNameNotification,
 	ProviderNameNTP, ProviderNameExpressions, ProviderNameDuo, ProviderNameWebAuthnMetaData,
 }
 

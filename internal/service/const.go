@@ -18,11 +18,12 @@ const (
 	logFieldFrequency = "frequency"
 	logFieldInterval  = "interval"
 
-	serviceTypeServer   = "server"
-	serviceTypeWatcher  = "watcher"
-	serviceTypeSignal   = "signal"
-	serviceTypeGC       = "gc"
-	serviceTypeWatchdog = "watchdog"
+	serviceTypeServer    = "server"
+	serviceTypeWatcher   = "watcher"
+	serviceTypeSignal    = "signal"
+	serviceTypeGC        = "gc"
+	serviceTypeCollector = "collector"
+	serviceTypeWatchdog  = "watchdog"
 
 	serviceNameSystemd = "systemd"
 )

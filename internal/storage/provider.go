@@ -14,6 +14,7 @@ import (
 	"authelia.com/provider/oauth2/storage"
 
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // Provider is an interface providing storage capabilities for persisting any kind of data related to Authelia.
@@ -298,6 +299,18 @@ type Provider interface {
 
 	// LoadOAuth2BlacklistedJTI loads an OAuth2.0 blacklisted JTI from the storage provider.
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
+
+	/*
+		Implementation for User Sessions.
+	*/
+
+	session.Backend
+
+	/*
+		Special.
+	*/
+
+	LoadHMACKey(ctx context.Context, name string, size int) (key []byte, err error)
 
 	/*
 		Implementation for Schema controls.

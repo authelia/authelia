@@ -5,6 +5,9 @@
 package service
 
 import (
+	"context"
+	"time"
+
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 )
@@ -32,6 +35,14 @@ type ReloadableProvider interface {
 	Reload() (reloaded bool, err error)
 }
 
+// GarbageCollectorProvider represents the required methods to support periodic garbage collection of a backend. A
+// backend which expires records itself, such as Redis, should return a frequency of zero to indicate no collection
+// service is required.
+type GarbageCollectorProvider interface {
+	GarbageCollection(ctx context.Context) (err error)
+	GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration)
+}
+
 // FileWatcherAction represents an action to perform when a FileWatcher is triggered. A bubble return value of true
 // causes the returned error to terminate the service and be returned to the caller rather than just being logged.
 type FileWatcherAction func(log *logrus.Entry, event fsnotify.Event) (bubble bool, err error)
@@ -49,6 +60,7 @@ func GetProvisioners() []Provisioner {
 		ProvisionLoggingSignal,
 		ProvisionApplicationReloadSignal,
 		ProvisionGarbageCollector,
+		ProvisionSessionCollector,
 		ProvisionSystemdWatchdog,
 	}
 }

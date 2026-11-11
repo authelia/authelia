@@ -41,6 +41,12 @@ func TestUserDetails_Addresses(t *testing.T) {
 	assert.Equal(t, []mail.Address{{Address: "abc@123.com"}}, details.Addresses())
 }
 
+func TestUserDetails_Address(t *testing.T) {
+	assert.Equal(t, mail.Address{}, (&UserDetails{DisplayName: "Example"}).Address())
+	assert.Equal(t, mail.Address{Name: "Example", Address: "abc@123.com"}, (&UserDetails{DisplayName: "Example", Emails: []string{"abc@123.com", "two@apple.com"}}).Address())
+	assert.Equal(t, mail.Address{Address: "abc@123.com"}, (&UserDetails{Emails: []string{"abc@123.com"}}).Address())
+}
+
 func TestLevel_String(t *testing.T) {
 	assert.Equal(t, "one_factor", OneFactor.String())
 	assert.Equal(t, "two_factor", TwoFactor.String())

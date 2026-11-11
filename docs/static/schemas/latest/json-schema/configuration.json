@@ -3454,7 +3454,7 @@
             "type": "string",
             "enum": [
               "storage",
-              "session",
+              "cache",
               "user",
               "notification",
               "ntp",

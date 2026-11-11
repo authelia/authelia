@@ -99,7 +99,7 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	var (
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
-		provider    *session.Session
+		provider    session.Strategy
 		handled     bool
 	)
 
@@ -111,12 +111,34 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		return
 	}
 
-	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+	var current *session.UserSession
+
+	if current, err = provider.Get(ctx); err != nil {
 		ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred obtaining session information: %+v", requester.GetID(), client.GetID(), policy.Name, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the user session."))
 
 		return
+	}
+
+	userSession = *current
+
+	var details authentication.UserDetailsExtended
+
+	if details, err = authentication.MustGetUserDetailsExtendedSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
+		if !errors.Is(err, authentication.ErrUserNotFound) {
+			ctx.GetLogger().WithError(err).WithField("username", userSession.Username).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred looking up user details", requester.GetID(), client.GetID(), policy.Name)
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the users details."))
+
+			return
+		}
+
+		if handled = handleOAuth2AuthorizationUserNotFound(ctx, provider, &userSession, client, policy, rw, requester); handled {
+			return
+		}
+
+		details = authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
 	}
 
 	if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptNone && userSession.IsAnonymous() {
@@ -127,27 +149,17 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		return
 	}
 
-	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, policy, provider, userSession, rw, r, requester); handled {
+	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, policy, provider, userSession, &details, rw, r, requester); handled {
 		return
 	}
 
 	requester.SetRequestedAt(consent.RequestedAt)
 
-	var details *authentication.UserDetailsExtended
-
-	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(userSession.Username); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred retrieving user details for '%s' from the backend", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the users details."))
-
-		return
-	}
-
 	var requests *oidc.ClaimsRequests
 
 	extra := map[string]any{}
 
-	if requests, handled = handleOAuth2AuthorizationClaims(ctx, rw, r, "Authorization", userSession, details, client, requester, issuer, consent, extra); handled {
+	if requests, handled = handleOAuth2AuthorizationClaims(ctx, rw, r, "Authorization", userSession, &details, client, requester, issuer, consent, extra); handled {
 		return
 	}
 
@@ -160,7 +172,7 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	}
 
 	ctx.GetLogger().Tracef("Authorization Request with id '%s' on client with id '%s' using policy '%s' creating session for Authorization Response for subject '%s' with username '%s' with groups: %+v and claims: %+v",
-		requester.GetID(), session.ClientID, policy.Name, session.Subject, session.Username, userSession.Groups, session.Claims)
+		requester.GetID(), session.ClientID, policy.Name, session.Subject, session.Username, details.Groups, session.Claims)
 
 	ctx.GetLogger().WithFields(map[string]any{"id": requester.GetID(), "response_type": requester.GetResponseTypes(), "response_mode": requester.GetResponseMode(), "scope": requester.GetRequestedScopes(), "aud": requester.GetRequestedAudience(), "resource": requester.GetRequestedResource(), "redirect_uri": requester.GetRedirectURI(), "state": requester.GetState()}).Tracef("Authorization Request is using the following request parameters")
 
@@ -181,6 +193,29 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	}
 
 	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
+}
+
+func handleOAuth2AuthorizationUserNotFound(ctx *middlewares.AutheliaCtx, provider session.Strategy, userSession *session.UserSession, client oidc.Client, policy oidc.ClientAuthorizationPolicy, rw http.ResponseWriter, requester oauthelia2.AuthorizeRequester) (handled bool) {
+	var err error
+
+	ctx.GetLogger().WithField("username", userSession.Username).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not use the existing session: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login", requester.GetID(), client.GetID(), policy.Name)
+
+	if err = provider.Destroy(ctx); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while destroying session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
+	}
+
+	*userSession = provider.NewDefault()
+	userSession.LastActivity = ctx.GetClock().Now().Unix()
+
+	if err = provider.Save(ctx, userSession); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
+
+		return true
+	}
+
+	return false
 }
 
 // OAuth2AuthorizationPOST handles redirecting users to use the GET request to ensure the session cookie is

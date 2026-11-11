@@ -112,6 +112,10 @@ func (c *ctxEmbed) GetProviders() middlewares.Providers {
 	return c.Providers.ToInternal()
 }
 
+func (c *ctxEmbed) SetProviders(providers middlewares.Providers) {
+	c.Providers = Providers(providers)
+}
+
 func (c *ctxEmbed) GetLogger() *logrus.Entry {
 	return c.Logger
 }
