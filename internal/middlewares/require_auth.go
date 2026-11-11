@@ -118,7 +118,7 @@ func handleRequireElevatedShouldDoNextValidate(ctx *AutheliaCtx, userSession *se
 
 	if !ctx.RemoteIP().Equal(userSession.Elevations.User.RemoteIP) {
 		if ctx.Configuration.IdentityValidation.ElevatedSession.DisableRemoteIPCheck {
-			ctx.Logger.WithFields(map[string]any{"user": userSession.Username, "expected_ip": userSession.Elevations.User.RemoteIP.String()}).Info("The user session elevation did not have a matching IP. It will be allowed as the remote IP check is disabled.")
+			ctx.Logger.WithFields(map[string]any{"user": userSession.Username, "expected_ip": userSession.Elevations.User.RemoteIP.String()}).Info("The user session elevation did not have a matching IP. The remote IP check is disabled so it has been ignored.")
 		} else {
 			invalid = true
 

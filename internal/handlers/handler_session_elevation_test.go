@@ -299,7 +299,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NotNil(t, us.Elevations.User)
 				assert.Equal(t, net.ParseIP("2001:db8::1"), us.Elevations.User.RemoteIP)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "The user session elevation was created from a different remote IP but it has been kept as the remote IP check is disabled", "")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "The user session elevation was created from a different remote IP but the remote IP check is disabled so it has been ignored", "")
 			},
 		},
 		{

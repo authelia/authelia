@@ -127,8 +127,12 @@ dual-stack clients which open some connections over IPv4 and others over IPv6, a
 Private Relay which may use a different egress address for each connection. These users can't complete the credential
 management flows.
 
-Enabling this option keeps the elevation when the Remote IP does not match, and logs the mismatch at the `info` level
-instead. The elevation remains bound to the session, still requires the One-Time Code (or second factor
-authentication, see [skip_second_factor](#skip_second_factor)), and still expires after the
+Enabling this option ignores the Remote IP check, and logs the mismatch at the `info` level instead. The elevation
+remains bound to the session, still requires the One-Time Code, and still expires after the
 [elevation_lifespan](#elevation_lifespan). Consider reducing the [elevation_lifespan](#elevation_lifespan) if you enable
 this option.
+
+When [skip_second_factor](#skip_second_factor) is enabled, users who have performed second factor authentication don't
+use an elevation at all. Neither the Remote IP check nor the [elevation_lifespan](#elevation_lifespan) applies to these
+users, so this option has no effect on them, and reducing the [elevation_lifespan](#elevation_lifespan) doesn't limit
+them.
