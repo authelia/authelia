@@ -13,9 +13,6 @@ export interface Props {
     onChoice: (_rememberMe: boolean) => void;
 }
 
-// RememberMeDialog asks the user whether the session that has just been established should be remembered. It is
-// intended for any sign in flow which completes without the user having first filled in the login form, and therefore
-// without them having had the opportunity to tick the remember me checkbox on it.
 const RememberMeDialog = function (props: Props) {
     const { t: translate } = useTranslation();
 

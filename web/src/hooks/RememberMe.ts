@@ -4,11 +4,6 @@
 
 import { useCallback, useRef, useState } from "react";
 
-// useRememberMePrompt drives a RememberMeDialog for a sign in flow which completes without the user having filled in
-// the login form, and so without them having had the opportunity to tick the remember me checkbox on it. The prompt
-// resolves to the choice the user makes, allowing the flow to await it at the point the session is about to be
-// established rather than ahead of any user intent. When the feature is disabled the prompt resolves immediately, so
-// callers do not have to special case it.
 export function useRememberMePrompt(enabled: boolean) {
     const [open, setOpen] = useState(false);
 
