@@ -13,14 +13,14 @@ vi.mock("react-i18next", () => ({
 it("renders nothing when closed", () => {
     render(<RememberMeDialog open={false} onChoice={vi.fn()} />);
 
-    expect(screen.queryByText("Remember me?")).not.toBeInTheDocument();
+    expect(screen.queryByText("Remember me")).not.toBeInTheDocument();
 });
 
 it("renders the prompt when open", () => {
     render(<RememberMeDialog open={true} onChoice={vi.fn()} />);
 
     expect(document.getElementById("remember-me-dialog")).toBeInTheDocument();
-    expect(screen.getByText("Remember me?")).toBeInTheDocument();
+    expect(screen.getByText("Remember me")).toBeInTheDocument();
     expect(screen.getByText("Would you like to stay signed in on this device?")).toBeInTheDocument();
 });
 
