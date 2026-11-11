@@ -21,7 +21,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/jose"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -438,6 +438,89 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		assert.NotEmpty(t, location.Query().Get("flow_id"))
 	})
 
+	t.Run("ShouldRedirectPublicClientWithoutAssuredIdentityToExplicitConsent", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		client := newTestOIDCAuthorizationCodeClient(t)
+		client.ConsentMode = "implicit"
+		client.Public = true
+		client.Secret = nil
+		client.TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
+		client.ApplicationType = oidc.ApplicationTypeNative
+		client.RedirectURIs = []string{"http://127.0.0.1/oidc/callback"}
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCConsentStore(t, mock)
+		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCUserDetails(t, mock)
+
+		values := newTestOIDCAuthorizationValues()
+		values.Set(oidc.FormParameterRedirectURI, "http://127.0.0.1:43210/oidc/callback")
+		values.Set("code_challenge", "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")
+		values.Set("code_challenge_method", oidc.PKCEChallengeMethodSHA256)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
+
+		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusSeeOther, rw.Code)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "login.example.com:8080", location.Host)
+		assert.Equal(t, "openid_connect", location.Query().Get("flow"))
+		assert.NotEmpty(t, location.Query().Get("flow_id"))
+	})
+
+	t.Run("ShouldAuthorizePublicClientWithAssuredIdentityWithImplicitConsent", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		client := newTestOIDCAuthorizationCodeClient(t)
+		client.ConsentMode = "implicit"
+		client.Public = true
+		client.Secret = nil
+		client.TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSessionStore(t, mock)
+		setupTestOIDCConsentStore(t, mock)
+		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCUserDetails(t, mock)
+
+		mock.StorageMock.EXPECT().
+			SaveOAuth2RequestReplay(gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		values := newTestOIDCAuthorizationValues()
+		values.Set("code_challenge", "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")
+		values.Set("code_challenge_method", oidc.PKCEChallengeMethodSHA256)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
+
+		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusSeeOther, rw.Code)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "app.example.com", location.Host)
+		assert.Equal(t, "/oidc/callback", location.Path)
+		assert.NotEmpty(t, location.Query().Get("code"))
+		assert.Empty(t, location.Query().Get("error"))
+	})
+
 	t.Run("ShouldRedirectToExplicitConsent", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
@@ -630,7 +713,7 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 		assert.Equal(t, oidc.ScopeOpenID, query.Get(oidc.FormParameterScope))
 	})
 
-	t.Run("ShouldHandleMalformedMultipartForm", func(t *testing.T) {
+	t.Run("ShouldIgnoreMultipartForm", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
@@ -639,7 +722,30 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, nil)
 
 		r.Header.Set(fasthttp.HeaderContentType, "multipart/form-data; boundary=abc")
-		r.Body = io.NopCloser(strings.NewReader("not a valid multipart body"))
+		r.Body = io.NopCloser(strings.NewReader("--abc\r\nContent-Disposition: form-data; name=\"client_id\"\r\n\r\nabc\r\n--abc--\r\n"))
+
+		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusSeeOther, rw.Code)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Equal(t, oidc.EndpointPathAuthorization, location.Path)
+		assert.Empty(t, location.RawQuery)
+	})
+
+	t.Run("ShouldHandleMalformedForm", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		setupTestOIDCProvider(t, mock, nil)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, nil)
+
+		r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
+		r.Body = io.NopCloser(strings.NewReader("client_id=%zz"))
 
 		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
 
@@ -652,7 +758,7 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 		assert.Equal(t, oidc.FrontendEndpointPathConsentCompletion, location.Path)
 		assert.NotEmpty(t, location.Query().Get("error"))
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationMultipartError, regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationFormError, regexpAnyError)
 	})
 }
 

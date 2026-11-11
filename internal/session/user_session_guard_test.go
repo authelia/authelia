@@ -32,7 +32,11 @@ func TestUserSessionUsernameMustOnlyBeSetByAConstructor(t *testing.T) {
 		}
 
 		if d.IsDir() {
-			if name := d.Name(); name == ".git" || name == "vendor" || name == "node_modules" || name == "web" || name == "testdata" {
+			if path == root {
+				return nil
+			}
+
+			if name := d.Name(); strings.HasPrefix(name, ".") || strings.HasPrefix(name, "_") || name == "vendor" || name == "node_modules" || name == "web" || name == "testdata" {
 				return fs.SkipDir
 			}
 

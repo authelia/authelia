@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"time"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/token/jose" // TODO: Review adjusting back to upstream if ML-DSA PR #282 is accepted, as well as pending significant fixes.
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
 
@@ -27,8 +27,13 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ClientSecret:        &ClientSecretDigest{PasswordDigest: config.Secret},
 		SectorIdentifierURI: config.SectorIdentifierURI,
 		Public:              config.Public,
+		ApplicationType:     config.ApplicationType,
 
-		Audience:      config.Audience,
+		Audience: config.Audience,
+		Resource: config.Resource,
+
+		IntrospectionAudience: config.IntrospectionAudience,
+
 		Scopes:        config.Scopes,
 		RedirectURIs:  config.RedirectURIs,
 		RequestURIs:   config.RequestURIs,
@@ -52,6 +57,9 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
+		RequestedResourceMode: NewClientRequestedResourceMode(config.RequestedResourceMode),
+		AudienceStrategy:      NewAudienceStrategy(config.AudienceStrategy),
+		ResourceStrategy:      NewResourceStrategy(config.ResourceStrategy),
 
 		AuthorizationSignedResponseAlg:                   config.AuthorizationSignedResponseAlg,
 		AuthorizationSignedResponseKeyID:                 config.AuthorizationSignedResponseKeyID,
@@ -219,6 +227,37 @@ func (c *RegisteredClient) GetScopes() (scopes oauthelia2.Arguments) {
 // GetAudience returns the Audience.
 func (c *RegisteredClient) GetAudience() (audience oauthelia2.Arguments) {
 	return c.Audience
+}
+
+// GetResource returns the RFC 8707 resource indicators this client is permitted to request.
+func (c *RegisteredClient) GetResource() (resource oauthelia2.Arguments) {
+	return c.Resource
+}
+
+// GetAudienceStrategy returns the audience strategy configured for this client, or nil to use the provider strategy.
+func (c *RegisteredClient) GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceStrategy) {
+	return c.AudienceStrategy
+}
+
+// GetResourceStrategy returns the resource strategy configured for this client, or nil to use the provider strategy.
+func (c *RegisteredClient) GetResourceStrategy(ctx context.Context) (strategy oauthelia2.ResourceStrategy) {
+	return c.ResourceStrategy
+}
+
+// GetIntrospectionPermitted returns true when this client is a resource server at the introspection endpoint, which is
+// the case when it has introspection audience values. Otherwise it may only introspect the tokens issued to it.
+//
+// Implements the oauthelia2.IntrospectionClient.
+func (c *RegisteredClient) GetIntrospectionPermitted() (permitted bool) {
+	return len(c.IntrospectionAudience) != 0
+}
+
+// GetIntrospectionAudience returns the audience and resource values this client serves as a resource server at the
+// introspection endpoint.
+//
+// Implements the oauthelia2.IntrospectionClient.
+func (c *RegisteredClient) GetIntrospectionAudience() (audience []string) {
+	return c.IntrospectionAudience
 }
 
 // GetResponseModes returns the valid response modes for this client.
@@ -574,7 +613,7 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 
 			body.RequireLogin = RequestFormRequiresLogin(form, session.GetRequestedAt(), authTime)
 
-			if body.PreConfiguration && FormRequiresExplicitConsent(form) {
+			if body.PreConfiguration && (FormRequiresExplicitConsent(form) || !FormIsClientIdentityAssured(c, form)) {
 				body.PreConfiguration = false
 			}
 		}
@@ -610,6 +649,12 @@ func (c *RegisteredClient) GetAuthorizationPolicy() (policy ClientAuthorizationP
 // IsPublic returns the value of the Public property.
 func (c *RegisteredClient) IsPublic() (public bool) {
 	return c.Public
+}
+
+// GetApplicationType returns the 'application_type' of the client, being 'web' or 'native'. An empty value is treated
+// as 'web'. This implements the oauthelia2.ApplicationTypeClient interface.
+func (c *RegisteredClient) GetApplicationType() (applicationType string) {
+	return c.ApplicationType
 }
 
 // ValidateResponseModePolicy is an additional check to the response mode parameter to ensure if it's omitted that the
@@ -758,6 +803,13 @@ func (c *RegisteredClient) GetRequestedAudienceImplicit() (implicit bool) {
 	return c.RequestedAudienceMode == ClientRequestedAudienceModeImplicit
 }
 
+// GetRequestedResourceImplicit is indicative of if a client will implicitly request all resources it is allowed to
+// request in the absence of the audience and resource parameters during an Authorization Endpoint Flow, the Device
+// Authorization Flow, or the Client Credentials Flow.
+func (c *RegisteredClient) GetRequestedResourceImplicit() (implicit bool) {
+	return c.RequestedResourceMode == ClientRequestedResourceModeImplicit
+}
+
 // GetEnableDPoPBoundAccessTokens returns true if this client has DPoP bound access tokens enabled.
 func (c *RegisteredClient) GetEnableDPoPBoundAccessTokens() (enable bool) {
 	return c.DPoPBoundAccessTokens
@@ -779,6 +831,13 @@ func (c *RegisteredClient) GetClientAssertionJWTValidationHeaderAllowTypes() (ty
 	}
 
 	return c.ClientAssertionJWTValidationHeaderAllowTypes
+}
+
+// GetRefreshTokenMaximumLifespan returns the time after the first refresh token of a grant is issued beyond which no
+// refresh token of the grant may expire, or a duration of 0 seconds to utilize the global lifespan. This implements the
+// oauthelia2.RefreshTokenMaximumLifespanClient interface.
+func (c *RegisteredClient) GetRefreshTokenMaximumLifespan() (lifespan time.Duration) {
+	return c.Lifespans.RefreshTokenMaximum
 }
 
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
@@ -878,6 +937,10 @@ func (d decoratedUserinfoClient) GetEncryptionEnc() (enc string) {
 
 func (d decoratedUserinfoClient) IsClientSigned() (is bool) {
 	return false
+}
+
+func (d decoratedUserinfoClient) IsPublic() (public bool) {
+	return d.client.IsPublic()
 }
 
 func (d decoratedUserinfoClient) GetID() string {

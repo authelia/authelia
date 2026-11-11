@@ -181,6 +181,45 @@ func TestNewClientRequestedAudienceMode(t *testing.T) {
 	assert.Equal(t, "", oidc.ClientRequestedAudienceMode(-1).String())
 }
 
+func TestNewClientRequestedResourceMode(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected oidc.ClientRequestedResourceMode
+	}{
+		{
+			"ShouldParsePolicyExplicit",
+			"explicit",
+			oidc.ClientRequestedResourceModeExplicit,
+		},
+		{
+			"ShouldParsePolicyImplicit",
+			"implicit",
+			oidc.ClientRequestedResourceModeImplicit,
+		},
+		{
+			"ShouldParsePolicyExplicitByDefault",
+			"",
+			oidc.ClientRequestedResourceModeExplicit,
+		},
+		{
+			"ShouldParsePolicyExplicitByDefaultBadName",
+			"bad",
+			oidc.ClientRequestedResourceModeExplicit,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.NewClientRequestedResourceMode(tc.have))
+		})
+	}
+
+	assert.Equal(t, "explicit", oidc.ClientRequestedResourceModeExplicit.String())
+	assert.Equal(t, "implicit", oidc.ClientRequestedResourceModeImplicit.String())
+	assert.Equal(t, "", oidc.ClientRequestedResourceMode(-1).String())
+}
+
 func TestMatchesSubjects(t *testing.T) {
 	lanip, lan, err := net.ParseCIDR("192.168.2.1/24")
 

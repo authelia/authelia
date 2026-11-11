@@ -244,9 +244,8 @@ func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 
 	r.Body = http.MaxBytesReader(rw, r.Body, 10<<20)
 
-	//nolint:gosec // G120 FALSE positive: bounded by MaxBytesReader on r.Body above.
-	if err = r.ParseMultipartForm(5 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' had an error parsing a multipart form.", requester.GetID())
+	if err = r.ParseForm(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' had an error parsing the form.", requester.GetID())
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 

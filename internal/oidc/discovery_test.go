@@ -5,7 +5,10 @@
 package oidc_test
 
 import (
+	"context"
+	"encoding/base64"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,350 +18,242 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-//nolint:gosec // Test Credentials.
-func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
-		IdentityProviders: schema.IdentityProviders{
-			OIDC: &schema.IdentityProvidersOpenIDConnect{
-				IssuerCertificateChain:   schema.X509CertificateChain{},
-				IssuerPrivateKey:         x509PrivateKeyRSA2048,
-				HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
-				EnablePKCEPlainChallenge: true,
-				Clients: []schema.IdentityProvidersOpenIDConnectClient{
-					{
-						ID:                  "a-client",
-						Secret:              tOpenIDConnectPlainTextClientSecret,
-						AuthorizationPolicy: onefactor,
-						RedirectURIs: []string{
-							"https://google.com",
-						},
-					},
-				},
-			},
-		},
-	}, nil, nil)
+func TestOpenIDConnectProviderMetadata(t *testing.T) {
+	provider := newDiscoveryTestProvider(t, nil)
 
-	a := provider.GetOpenIDConnectWellKnownConfiguration("https://auth.example.com")
+	metadata, err := provider.NewOpenIDConnectProviderMetadata(context.Background())
+	require.NoError(t, err)
 
-	data, err := json.Marshal(&a)
-	assert.NoError(t, err)
+	assert.Equal(t, examplecom, metadata.Issuer)
+	assert.Equal(t, "https://example.com/jwks.json", metadata.JWKSURI)
+	assert.Equal(t, "https://example.com/api/oidc/authorization", metadata.AuthorizationEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/token", metadata.TokenEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/userinfo", metadata.UserinfoEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/introspection", metadata.IntrospectionEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/revocation", metadata.RevocationEndpoint)
+	assert.Equal(t, "", metadata.RegistrationEndpoint)
 
-	b := oidc.OpenIDConnectWellKnownConfiguration{}
+	assert.Equal(t, []string{oidc.PKCEChallengeMethodSHA256}, metadata.CodeChallengeMethodsSupported)
+	assert.Equal(t, []string{oidc.ScopeAddress, oidc.ScopeEmail, oidc.ScopeGroups, oidc.ScopeOffline, oidc.ScopeOfflineAccess, oidc.ScopeOpenID, oidc.ScopePhone, oidc.ScopeProfile}, metadata.ScopesSupported)
+	assert.Equal(t, []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT, oidc.ResponseModeFragment, oidc.ResponseModeFragmentJWT, oidc.ResponseModeJWT, oidc.ResponseModeQuery, oidc.ResponseModeQueryJWT}, metadata.ResponseModesSupported)
+	assert.Equal(t, []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowBoth, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeImplicitFlowToken}, metadata.ResponseTypesSupported)
+	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeClientCredentials, oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}, metadata.GrantTypesSupported)
+	assert.Equal(t, []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise}, metadata.SubjectTypesSupported)
+	assert.Equal(t, []string{oidc.ClaimTypeNormal}, metadata.ClaimTypesSupported)
+	assert.Equal(t, []string{oidc.PromptConsent, oidc.PromptLogin, oidc.PromptNone, oidc.PromptSelectAccount}, metadata.PromptValuesSupported)
 
-	assert.NoError(t, json.Unmarshal(data, &b))
+	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodNone}, metadata.TokenEndpointAuthMethodsSupported)
+	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodNone}, metadata.RevocationEndpointAuthMethodsSupported)
+	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}, metadata.IntrospectionEndpointAuthMethodsSupported)
 
-	assert.Equal(t, a, b)
+	assert.Equal(t, oidc.SigningAlgValuesSupported(), metadata.TokenEndpointAuthSigningAlgValuesSupported)
+	assert.Equal(t, oidc.SigningAlgValuesSupported(), metadata.RevocationEndpointAuthSigningAlgValuesSupported)
+	assert.Equal(t, oidc.SigningAlgValuesSupported(), metadata.IntrospectionEndpointAuthSigningAlgValuesSupported)
+	assert.Equal(t, oidc.SigningAlgValuesSupported(oidc.SigningAlgNone), metadata.RequestObjectSigningAlgValuesSupported)
 
-	y := provider.GetOAuth2WellKnownConfiguration("https://auth.example.com")
+	issued := []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256}
 
-	data, err = json.Marshal(&y)
-	assert.NoError(t, err)
+	assert.Equal(t, issued, metadata.IDTokenSigningAlgValuesSupported)
+	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone}, metadata.UserinfoSigningAlgValuesSupported)
 
-	z := oidc.OAuth2WellKnownConfiguration{}
+	require.NotNil(t, metadata.RFC9701JWTIntrospectionResponseMetadata)
+	assert.Equal(t, issued, metadata.IntrospectionSigningAlgValuesSupported)
 
-	assert.NoError(t, json.Unmarshal(data, &z))
+	require.NotNil(t, metadata.OpenIDConnectJARMMetadata)
+	assert.Equal(t, issued, metadata.AuthorizationSigningAlgValuesSupported)
 
-	assert.Equal(t, y, z)
+	assert.Equal(t, oidc.EncryptionAlgValuesSupported(), metadata.IDTokenEncryptionAlgValuesSupported)
+	assert.Equal(t, oidc.EncryptionEncValuesSupported(), metadata.IDTokenEncryptionEncValuesSupported)
+
+	assert.NotContains(t, metadata.ClaimsSupported, oidc.ClaimAuthenticationContextClassReference)
+	assert.NotContains(t, metadata.ClaimsSupported, oidc.ClaimSessionID)
+	assert.Contains(t, metadata.ClaimsSupported, oidc.ClaimEmailAlts)
+	assert.Contains(t, metadata.ClaimsSupported, oidc.ClaimAccessTokenHash)
+	assert.Contains(t, metadata.ClaimsSupported, oidc.ClaimCodeHash)
+
+	assert.True(t, metadata.ClaimsParameterSupported)
+	assert.Equal(t, "", metadata.SignedMetadata)
 }
 
-//nolint:gosec // Test Credentials.
-func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
-		IdentityProviders: schema.IdentityProviders{
-			OIDC: &schema.IdentityProvidersOpenIDConnect{
-				IssuerCertificateChain: schema.X509CertificateChain{},
-				IssuerPrivateKey:       x509PrivateKeyRSA2048,
-				HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
-				Clients: []schema.IdentityProvidersOpenIDConnectClient{
-					{
-						ID:                  "a-client",
-						Secret:              tOpenIDConnectPlainTextClientSecret,
-						AuthorizationPolicy: onefactor,
-						RedirectURIs: []string{
-							"https://google.com",
-						},
-					},
-				},
-			},
-		},
-	}, nil, nil)
+func TestOAuth2AuthorizationServerMetadata(t *testing.T) {
+	provider := newDiscoveryTestProvider(t, nil)
 
-	require.NotNil(t, provider)
+	metadata, err := provider.NewOAuth2AuthorizationServerMetadata(context.Background())
+	require.NoError(t, err)
 
-	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
+	data, err := json.Marshal(metadata)
+	require.NoError(t, err)
 
-	assert.Equal(t, examplecom, disco.Issuer)
-	assert.Equal(t, "https://example.com/jwks.json", disco.JWKSURI)
-	assert.Equal(t, "https://example.com/api/oidc/authorization", disco.AuthorizationEndpoint)
-	assert.Equal(t, "https://example.com/api/oidc/token", disco.TokenEndpoint)
-	assert.Equal(t, "https://example.com/api/oidc/userinfo", disco.UserinfoEndpoint)
-	assert.Equal(t, "https://example.com/api/oidc/introspection", disco.IntrospectionEndpoint)
-	assert.Equal(t, "https://example.com/api/oidc/revocation", disco.RevocationEndpoint)
-	assert.Equal(t, "", disco.RegistrationEndpoint)
+	raw := map[string]any{}
 
-	assert.Len(t, disco.CodeChallengeMethodsSupported, 1)
-	assert.Contains(t, disco.CodeChallengeMethodsSupported, oidc.PKCEChallengeMethodSHA256)
+	require.NoError(t, json.Unmarshal(data, &raw))
 
-	assert.Len(t, disco.ScopesSupported, 7)
-	assert.Contains(t, disco.ScopesSupported, oidc.ScopeOpenID)
-	assert.Contains(t, disco.ScopesSupported, oidc.ScopeOfflineAccess)
-	assert.Contains(t, disco.ScopesSupported, oidc.ScopeProfile)
-	assert.Contains(t, disco.ScopesSupported, oidc.ScopeGroups)
-	assert.Contains(t, disco.ScopesSupported, oidc.ScopeEmail)
-	assert.Contains(t, disco.ScopesSupported, oidc.ScopeAddress)
-	assert.Contains(t, disco.ScopesSupported, oidc.ScopePhone)
+	assert.Equal(t, examplecom, raw["issuer"])
+	assert.Equal(t, "https://example.com/api/oidc/token", raw["token_endpoint"])
+	assert.Equal(t, "https://example.com/api/oidc/device-authorization", raw["device_authorization_endpoint"])
+	assert.Equal(t, "https://example.com/api/oidc/pushed-authorization-request", raw["pushed_authorization_request_endpoint"])
+	assert.Equal(t, []any{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}, raw["introspection_endpoint_auth_methods_supported"])
+	assert.Equal(t, true, raw["authorization_response_iss_parameter_supported"])
 
-	assert.Len(t, disco.ResponseModesSupported, 7)
-	assert.Contains(t, disco.ResponseModesSupported, oidc.ResponseModeFormPost)
-	assert.Contains(t, disco.ResponseModesSupported, oidc.ResponseModeQuery)
-	assert.Contains(t, disco.ResponseModesSupported, oidc.ResponseModeFragment)
-	assert.Contains(t, disco.ResponseModesSupported, oidc.ResponseModeJWT)
-	assert.Contains(t, disco.ResponseModesSupported, oidc.ResponseModeFormPostJWT)
-	assert.Contains(t, disco.ResponseModesSupported, oidc.ResponseModeQueryJWT)
-	assert.Contains(t, disco.ResponseModesSupported, oidc.ResponseModeFragmentJWT)
-
-	assert.Len(t, disco.SubjectTypesSupported, 2)
-	assert.Contains(t, disco.SubjectTypesSupported, oidc.SubjectTypePublic)
-	assert.Contains(t, disco.SubjectTypesSupported, oidc.SubjectTypePairwise)
-
-	assert.Len(t, disco.ResponseTypesSupported, 7)
-	assert.Contains(t, disco.ResponseTypesSupported, oidc.ResponseTypeAuthorizationCodeFlow)
-	assert.Contains(t, disco.ResponseTypesSupported, oidc.ResponseTypeImplicitFlowIDToken)
-	assert.Contains(t, disco.ResponseTypesSupported, oidc.ResponseTypeImplicitFlowToken)
-	assert.Contains(t, disco.ResponseTypesSupported, oidc.ResponseTypeImplicitFlowBoth)
-	assert.Contains(t, disco.ResponseTypesSupported, oidc.ResponseTypeHybridFlowIDToken)
-	assert.Contains(t, disco.ResponseTypesSupported, oidc.ResponseTypeHybridFlowToken)
-	assert.Contains(t, disco.ResponseTypesSupported, oidc.ResponseTypeHybridFlowBoth)
-
-	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 5)
-	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodClientSecretBasic)
-	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodClientSecretPost)
-	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodClientSecretJWT)
-	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodPrivateKeyJWT)
-	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
-
-	assert.Len(t, disco.RevocationEndpointAuthMethodsSupported, 5)
-	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodClientSecretBasic)
-	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodClientSecretPost)
-	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodClientSecretJWT)
-	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodPrivateKeyJWT)
-	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
-
-	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}, disco.IntrospectionEndpointAuthMethodsSupported)
-	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}, disco.GrantTypesSupported)
-
-	expectedSigningAlgs := func(extra ...string) (algs []string) {
-		algs = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgEd25519, oidc.SigningAlgEdDSA}
-
-		algs = append(algs, oidc.SigningAlgsMLDSA...)
-
-		return append(algs, extra...)
-	}
-
-	assert.Equal(t, expectedSigningAlgs(), disco.RevocationEndpointAuthSigningAlgValuesSupported)
-	assert.Equal(t, expectedSigningAlgs(), disco.TokenEndpointAuthSigningAlgValuesSupported)
-	assert.Equal(t, expectedSigningAlgs(), disco.IDTokenSigningAlgValuesSupported)
-	assert.Equal(t, expectedSigningAlgs(oidc.SigningAlgNone), disco.UserinfoSigningAlgValuesSupported)
-	assert.Equal(t, expectedSigningAlgs(oidc.SigningAlgNone), disco.RequestObjectSigningAlgValuesSupported)
-
-	assert.Len(t, disco.ClaimsSupported, 33)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimAuthenticationMethodsReference)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimAudience)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimAuthorizedParty)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimClientIdentifier)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimExpirationTime)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimIssuedAt)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimIssuer)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimJWTID)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimRequestedAt)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimSubject)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimAuthenticationTime)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimNonce)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimEmailAlts)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimGroups)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimFullName)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimGivenName)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimFamilyName)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimMiddleName)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimNickname)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimPreferredUsername)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimProfile)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimPicture)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimWebsite)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimEmail)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimEmailVerified)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimGender)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimBirthdate)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimZoneinfo)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimLocale)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimPhoneNumber)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimPhoneNumberVerified)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimAddress)
-	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimUpdatedAt)
-
-	assert.Len(t, disco.PromptValuesSupported, 4)
-	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptConsent)
-	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptSelectAccount)
-	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptLogin)
-	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptNone)
+	assert.NotContains(t, raw, "userinfo_endpoint")
+	assert.NotContains(t, raw, "claims_supported")
+	assert.NotContains(t, raw, "signed_metadata")
 }
 
-func TestNewOpenIDConnectWellKnownConfiguration_RequireSignedRequestObject(t *testing.T) {
+func TestOpenIDConnectProviderMetadataOptions(t *testing.T) {
 	testCases := []struct {
-		name     string
-		have     bool
-		expected bool
+		Name   string
+		Setup  func(config *schema.IdentityProvidersOpenIDConnect)
+		Assert func(t *testing.T, raw map[string]any)
 	}{
-		{"ShouldNotRequireSignedRequestObject", false, false},
-		{"ShouldRequireSignedRequestObject", true, true},
+		{
+			Name: "ShouldOmitFalseRequirements",
+			Assert: func(t *testing.T, raw map[string]any) {
+				assert.NotContains(t, raw, "require_signed_request_object")
+				assert.NotContains(t, raw, "require_pushed_authorization_requests")
+				assert.Contains(t, raw["request_object_signing_alg_values_supported"], oidc.SigningAlgNone)
+			},
+		},
+		{
+			Name: "ShouldRequireSignedRequestObject",
+			Setup: func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.RequireSignedRequestObject = true
+			},
+			Assert: func(t *testing.T, raw map[string]any) {
+				assert.Equal(t, true, raw["require_signed_request_object"])
+				assert.NotContains(t, raw["request_object_signing_alg_values_supported"], oidc.SigningAlgNone)
+			},
+		},
+		{
+			Name: "ShouldRequirePushedAuthorizationRequests",
+			Setup: func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.RequirePushedAuthorizationRequests = true
+			},
+			Assert: func(t *testing.T, raw map[string]any) {
+				assert.Equal(t, true, raw["require_pushed_authorization_requests"])
+			},
+		},
+		{
+			Name: "ShouldIncludePlainChallengeMethod",
+			Setup: func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.EnablePKCEPlainChallenge = true
+			},
+			Assert: func(t *testing.T, raw map[string]any) {
+				assert.Equal(t, []any{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain}, raw["code_challenge_methods_supported"])
+			},
+		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			disco := oidc.NewOpenIDConnectWellKnownConfiguration(&schema.IdentityProvidersOpenIDConnect{
-				RequireSignedRequestObject: tc.have,
-			})
+		t.Run(tc.Name, func(t *testing.T) {
+			provider := newDiscoveryTestProvider(t, tc.Setup)
 
-			require.NotNil(t, disco.OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions)
-			assert.Equal(t, tc.expected, disco.RequireSignedRequestObject)
-
-			data, err := json.Marshal(disco)
+			metadata, err := provider.NewOpenIDConnectProviderMetadata(context.Background())
 			require.NoError(t, err)
 
-			var raw map[string]any
+			data, err := json.Marshal(metadata)
+			require.NoError(t, err)
+
+			raw := map[string]any{}
 
 			require.NoError(t, json.Unmarshal(data, &raw))
-			assert.Equal(t, tc.expected, raw["require_signed_request_object"])
+
+			tc.Assert(t, raw)
 		})
 	}
 }
 
-func TestNewOpenIDConnectWellKnownConfiguration_Copy(t *testing.T) {
-	config := &oidc.OpenIDConnectWellKnownConfiguration{
-		OAuth2WellKnownConfiguration: oidc.OAuth2WellKnownConfiguration{
-			CommonDiscoveryOptions: oidc.CommonDiscoveryOptions{
-				Issuer:                            "https://example.com",
-				JWKSURI:                           "https://example.com/jwks.json",
-				AuthorizationEndpoint:             "",
-				TokenEndpoint:                     "",
-				SubjectTypesSupported:             nil,
-				ResponseTypesSupported:            nil,
-				GrantTypesSupported:               nil,
-				ResponseModesSupported:            nil,
-				ScopesSupported:                   nil,
-				ClaimsSupported:                   nil,
-				UILocalesSupported:                nil,
-				TokenEndpointAuthMethodsSupported: nil,
-				TokenEndpointAuthSigningAlgValuesSupported: nil,
-				ServiceDocumentation:                       "",
-				OPPolicyURI:                                "",
-				OPTOSURI:                                   "",
+func TestOpenIDConnectProviderMetadataSigned(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		KeyID    string
+		Alg      string
+		Signed   bool
+		Expected string
+	}{
+		{"ShouldNotSignByDefault", "", "", false, ""},
+		{"ShouldNotSignAlgNone", "", oidc.SigningAlgNone, false, ""},
+		{"ShouldSignAlg", "", oidc.SigningAlgRSAUsingSHA256, true, "rs256"},
+		{"ShouldSignKeyID", "rs256", oidc.SigningAlgRSAUsingSHA256, true, "rs256"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			provider := newDiscoveryTestProvider(t, func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.DiscoverySignedResponseKeyID = tc.KeyID
+				config.DiscoverySignedResponseAlg = tc.Alg
+			})
+
+			metadata, err := provider.NewOpenIDConnectProviderMetadata(context.Background())
+			require.NoError(t, err)
+
+			if !tc.Signed {
+				assert.Equal(t, "", metadata.SignedMetadata)
+
+				return
+			}
+
+			parts := strings.Split(metadata.SignedMetadata, ".")
+			require.Len(t, parts, 3)
+
+			header, claims := map[string]any{}, map[string]any{}
+
+			raw, err := base64.RawURLEncoding.DecodeString(parts[0])
+			require.NoError(t, err)
+			require.NoError(t, json.Unmarshal(raw, &header))
+
+			raw, err = base64.RawURLEncoding.DecodeString(parts[1])
+			require.NoError(t, err)
+			require.NoError(t, json.Unmarshal(raw, &claims))
+
+			assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, header["alg"])
+			assert.Equal(t, tc.Expected, header["kid"])
+			assert.Equal(t, examplecom, claims[oidc.ClaimIssuer])
+			assert.Equal(t, "https://example.com/api/oidc/token", claims["token_endpoint"])
+			assert.NotEmpty(t, claims[oidc.ClaimJWTID])
+			assert.NotEmpty(t, claims[oidc.ClaimIssuedAt])
+			assert.NotEmpty(t, claims[oidc.ClaimExpirationTime])
+			assert.NotContains(t, claims, "signed_metadata")
+		})
+	}
+}
+
+func TestSigningAlgValuesSupported(t *testing.T) {
+	algs := oidc.SigningAlgValuesSupported(oidc.SigningAlgNone)
+
+	assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, algs[0])
+	assert.Equal(t, oidc.SigningAlgNone, algs[len(algs)-1])
+	assert.Len(t, algs, len(oidc.SigningAlgValuesSupported())+1)
+}
+
+func newDiscoveryTestProvider(t *testing.T, setup func(config *schema.IdentityProvidersOpenIDConnect)) *oidc.OpenIDConnectProvider {
+	t.Helper()
+
+	config := &schema.IdentityProvidersOpenIDConnect{
+		HMACSecret:                   badhmac,
+		DiscoverySignedResponseAlg:   oidc.SigningAlgNone,
+		DiscoverySignedResponseKeyID: "",
+		JSONWebKeys: []schema.JWK{
+			{KeyID: "rs256", Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, Key: x509PrivateKeyRSA2048},
+		},
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			{
+				ID:                  myclient,
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
+				RedirectURIs:        []string{examplecom},
 			},
-			OAuth2DiscoveryOptions: oidc.OAuth2DiscoveryOptions{
-				IntrospectionEndpoint:                              "",
-				RevocationEndpoint:                                 "",
-				RegistrationEndpoint:                               "",
-				IntrospectionEndpointAuthMethodsSupported:          nil,
-				RevocationEndpointAuthMethodsSupported:             nil,
-				RevocationEndpointAuthSigningAlgValuesSupported:    nil,
-				IntrospectionEndpointAuthSigningAlgValuesSupported: nil,
-				CodeChallengeMethodsSupported:                      nil,
-			},
-			OAuth2DeviceAuthorizationGrantDiscoveryOptions: &oidc.OAuth2DeviceAuthorizationGrantDiscoveryOptions{
-				DeviceAuthorizationEndpoint: "",
-			},
-			OAuth2MutualTLSClientAuthenticationDiscoveryOptions: &oidc.OAuth2MutualTLSClientAuthenticationDiscoveryOptions{
-				TLSClientCertificateBoundAccessTokens: false,
-				MutualTLSEndpointAliases: oidc.OAuth2MutualTLSClientAuthenticationAliasesDiscoveryOptions{
-					AuthorizationEndpoint:              "",
-					TokenEndpoint:                      "",
-					IntrospectionEndpoint:              "",
-					RevocationEndpoint:                 "",
-					EndSessionEndpoint:                 "",
-					UserinfoEndpoint:                   "",
-					BackChannelAuthenticationEndpoint:  "",
-					FederationRegistrationEndpoint:     "",
-					PushedAuthorizationRequestEndpoint: "",
-					RegistrationEndpoint:               "",
-				},
-			},
-			OAuth2IssuerIdentificationDiscoveryOptions: &oidc.OAuth2IssuerIdentificationDiscoveryOptions{
-				AuthorizationResponseIssuerParameterSupported: false,
-			},
-			OAuth2JWTIntrospectionResponseDiscoveryOptions: &oidc.OAuth2JWTIntrospectionResponseDiscoveryOptions{
-				IntrospectionSigningAlgValuesSupported:    nil,
-				IntrospectionEncryptionAlgValuesSupported: nil,
-				IntrospectionEncryptionEncValuesSupported: nil,
-			},
-			OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions: &oidc.OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions{
-				RequireSignedRequestObject: false,
-			},
-			OAuth2PushedAuthorizationDiscoveryOptions: &oidc.OAuth2PushedAuthorizationDiscoveryOptions{
-				PushedAuthorizationRequestEndpoint: "",
-				RequirePushedAuthorizationRequests: false,
-			},
-		},
-		OpenIDConnectDiscoveryOptions: oidc.OpenIDConnectDiscoveryOptions{
-			UserinfoEndpoint:                          "",
-			IDTokenSigningAlgValuesSupported:          nil,
-			UserinfoSigningAlgValuesSupported:         nil,
-			RequestObjectSigningAlgValuesSupported:    nil,
-			IDTokenEncryptionAlgValuesSupported:       nil,
-			UserinfoEncryptionAlgValuesSupported:      nil,
-			RequestObjectEncryptionAlgValuesSupported: nil,
-			IDTokenEncryptionEncValuesSupported:       nil,
-			UserinfoEncryptionEncValuesSupported:      nil,
-			RequestObjectEncryptionEncValuesSupported: nil,
-			ACRValuesSupported:                        nil,
-			DisplayValuesSupported:                    nil,
-			ClaimTypesSupported:                       nil,
-			ClaimLocalesSupported:                     nil,
-			RequestParameterSupported:                 true,
-			RequestURIParameterSupported:              true,
-			RequireRequestURIRegistration:             true,
-			ClaimsParameterSupported:                  true,
-		},
-		OpenIDConnectFrontChannelLogoutDiscoveryOptions: &oidc.OpenIDConnectFrontChannelLogoutDiscoveryOptions{
-			FrontChannelLogoutSupported:        false,
-			FrontChannelLogoutSessionSupported: false,
-		},
-		OpenIDConnectBackChannelLogoutDiscoveryOptions: &oidc.OpenIDConnectBackChannelLogoutDiscoveryOptions{
-			BackChannelLogoutSupported:        false,
-			BackChannelLogoutSessionSupported: false,
-		},
-		OpenIDConnectSessionManagementDiscoveryOptions: &oidc.OpenIDConnectSessionManagementDiscoveryOptions{
-			CheckSessionIFrame: "",
-		},
-		OpenIDConnectRPInitiatedLogoutDiscoveryOptions: &oidc.OpenIDConnectRPInitiatedLogoutDiscoveryOptions{
-			EndSessionEndpoint: "",
-		},
-		OpenIDConnectPromptCreateDiscoveryOptions: &oidc.OpenIDConnectPromptCreateDiscoveryOptions{
-			PromptValuesSupported: nil,
-		},
-		OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions: &oidc.OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions{
-			BackChannelAuthenticationEndpoint:               "",
-			BackChannelTokenDeliveryModesSupported:          nil,
-			BackChannelAuthRequestSigningAlgValuesSupported: nil,
-			BackChannelUserCodeParameterSupported:           false,
-		},
-		OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions: &oidc.OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions{
-			AuthorizationSigningAlgValuesSupported:    nil,
-			AuthorizationEncryptionAlgValuesSupported: nil,
-			AuthorizationEncryptionEncValuesSupported: nil,
-		},
-		OpenIDFederationDiscoveryOptions: &oidc.OpenIDFederationDiscoveryOptions{
-			FederationRegistrationEndpoint:                 "",
-			ClientRegistrationTypesSupported:               nil,
-			RequestAuthenticationMethodsSupported:          nil,
-			RequestAuthenticationSigningAlgValuesSupported: nil,
 		},
 	}
 
-	x := config.Copy()
+	if setup != nil {
+		setup(config)
+	}
 
-	assert.Equal(t, config, &x)
+	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: config}}, nil, nil)
+	require.NotNil(t, provider)
 
-	y := config.OAuth2WellKnownConfiguration.Copy()
+	provider.Config.Issuer = examplecom
 
-	assert.Equal(t, config.OAuth2WellKnownConfiguration, y)
+	return provider
 }

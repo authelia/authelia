@@ -402,16 +402,9 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 	r.OPTIONS(oidc.EndpointPathJWKs, policyCORSPublicGET.HandleOPTIONS)
 	r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(middlewareAPI(handlers.OAuth2JSONWebKeySetGET))))
 
-	policyCORSAuthorization := middlewares.NewCORSPolicyBuilder().
-		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
-		WithAllowedOrigins(allowedOrigins...).
-		WithEnabled(utils.IsStringInSlice(oidc.EndpointAuthorization, config.IdentityProviders.OIDC.CORS.Endpoints)).
-		Build()
+	authorizationGET := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2AuthorizationGET)))
+	authorizationPOST := bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2AuthorizationPOST))
 
-	authorizationGET := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), policyCORSAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2AuthorizationGET))))
-	authorizationPOST := policyCORSAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2AuthorizationPOST)))
-
-	r.OPTIONS(oidc.EndpointPathAuthorization, policyCORSAuthorization.HandleOnlyOPTIONS)
 	r.GET(oidc.EndpointPathAuthorization, authorizationGET)
 	r.POST(oidc.EndpointPathAuthorization, authorizationPOST)
 

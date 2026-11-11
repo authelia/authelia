@@ -532,7 +532,12 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2DeviceCodeSessionByUserCode(gomock.Any(), gomock.Any()).
+			Times(2).
 			DoAndReturn(func(_ any, _ string) (*model.OAuth2DeviceCodeSession, error) {
+				if device == nil {
+					return nil, sql.ErrNoRows
+				}
+
 				value := *device
 
 				return &value, nil

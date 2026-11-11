@@ -32,6 +32,11 @@ type IdentityProvidersOpenIDConnect struct {
 	DiscoverySignedResponseAlg   string `koanf:"discovery_signed_response_alg" yaml:"discovery_signed_response_alg,omitempty" toml:"discovery_signed_response_alg,omitempty" json:"discovery_signed_response_alg,omitempty" jsonschema:"default=none,enum=,enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,enum=Ed25519,enum=EdDSA,enum=ML-DSA-44,enum=ML-DSA-65,enum=ML-DSA-87,title=Discovery Response Signing Algorithm" jsonschema_description:"The Algorithm this provider uses to sign the Discovery and Metadata Document responses. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."`
 	DiscoverySignedResponseKeyID string `koanf:"discovery_signed_response_key_id" yaml:"discovery_signed_response_key_id,omitempty" toml:"discovery_signed_response_key_id,omitempty" json:"discovery_signed_response_key_id,omitempty" jsonschema:"title=Discovery Response Signing Key ID" jsonschema_description:"The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."`
 
+	AudienceStrategy string `koanf:"audience_strategy" yaml:"audience_strategy,omitempty" toml:"audience_strategy,omitempty" json:"audience_strategy,omitempty" jsonschema:"default=exact,enum=exact,enum=wildcard,title=Audience Strategy" jsonschema_description:"The strategy used to match requested audience values against the audience values a client is permitted to request."`
+	ResourceStrategy string `koanf:"resource_strategy" yaml:"resource_strategy,omitempty" toml:"resource_strategy,omitempty" json:"resource_strategy,omitempty" jsonschema:"default=exact,enum=exact,enum=prefix,enum=wildcard,title=Resource Strategy" jsonschema_description:"The strategy used to match requested resource indicators against the resource values a client is permitted to request."`
+
+	EnableClientAssertionLegacyAudience bool `koanf:"enable_client_assertion_legacy_audience" yaml:"enable_client_assertion_legacy_audience" toml:"enable_client_assertion_legacy_audience" json:"enable_client_assertion_legacy_audience" jsonschema:"default=false,title=Enable Client Assertion Legacy Audience" jsonschema_description:"Allows JWT client authentication assertions to use the endpoint URL or carry multiple audience values instead of requiring the issuer identifier as the sole audience value."`
+
 	RequirePushedAuthorizationRequests bool `koanf:"require_pushed_authorization_requests" yaml:"require_pushed_authorization_requests" toml:"require_pushed_authorization_requests" json:"require_pushed_authorization_requests" jsonschema:"title=Require Pushed Authorization Requests" jsonschema_description:"Requires Pushed Authorization Requests for all clients for this Issuer."`
 	RequireSignedRequestObject         bool `koanf:"require_signed_request_object" yaml:"require_signed_request_object" toml:"require_signed_request_object" json:"require_signed_request_object" jsonschema:"default=false,title=Require Signed Request Object" jsonschema_description:"Requires all authorization requests for all clients for this Issuer be provided as a signed Request Object."`
 
@@ -125,6 +130,7 @@ type IdentityProvidersOpenIDConnectLifespans struct {
 	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash" yaml:",inline"`
 
 	DeviceCode              time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
+	RefreshTokenMaximum     time.Duration `koanf:"refresh_token_maximum" yaml:"refresh_token_maximum,omitempty" toml:"refresh_token_maximum,omitempty" json:"refresh_token_maximum,omitempty" jsonschema:"default=0 seconds,title=Refresh Token Maximum Lifespan" jsonschema_description:"The maximum duration after the first Refresh Token of a grant is issued beyond which no Refresh Token of the grant may expire. A value of 0 applies no limit."`
 	JWTSecuredAuthorization time.Duration `koanf:"jwt_secured_authorization" yaml:"jwt_secured_authorization,omitempty" toml:"jwt_secured_authorization,omitempty" json:"jwt_secured_authorization,omitempty" jsonschema:"default=5 minutes,title=JARM" jsonschema_description:"Allows tuning the token lifespan for the JWT Secured Authorization Response Modes (JARM)."`
 
 	Custom map[string]IdentityProvidersOpenIDConnectLifespan `koanf:"custom" yaml:"custom,omitempty" toml:"custom,omitempty" json:"custom,omitempty" jsonschema:"title=Custom Lifespans" jsonschema_description:"Allows creating custom lifespans to be used by individual clients."`
@@ -134,7 +140,8 @@ type IdentityProvidersOpenIDConnectLifespans struct {
 type IdentityProvidersOpenIDConnectLifespan struct {
 	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash" yaml:",inline"`
 
-	DeviceCode time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
+	DeviceCode          time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
+	RefreshTokenMaximum time.Duration `koanf:"refresh_token_maximum" yaml:"refresh_token_maximum,omitempty" toml:"refresh_token_maximum,omitempty" json:"refresh_token_maximum,omitempty" jsonschema:"title=Refresh Token Maximum Lifespan" jsonschema_description:"The maximum duration after the first Refresh Token of a grant is issued beyond which no Refresh Token of the grant may expire. A value of 0 uses the global value."`
 
 	Grants IdentityProvidersOpenIDConnectLifespanGrants `koanf:"grants" yaml:"grants,omitempty" toml:"grants,omitempty" json:"grants,omitempty" jsonschema:"title=Grant Types" jsonschema_description:"Allows tuning the token lifespans for individual grant types."`
 }
@@ -159,7 +166,7 @@ type IdentityProvidersOpenIDConnectLifespanToken struct {
 
 // IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config.
 type IdentityProvidersOpenIDConnectCORS struct {
-	Endpoints      []string   `koanf:"endpoints" yaml:"endpoints,omitempty" toml:"endpoints,omitempty" json:"endpoints,omitempty" jsonschema:"uniqueItems,enum=authorization,enum=device-authorization,enum=pushed-authorization-request,enum=token,enum=introspection,enum=revocation,enum=userinfo,title=Endpoints" jsonschema_description:"List of endpoints to enable CORS handling for."`
+	Endpoints      []string   `koanf:"endpoints" yaml:"endpoints,omitempty" toml:"endpoints,omitempty" json:"endpoints,omitempty" jsonschema:"uniqueItems,enum=device-authorization,enum=pushed-authorization-request,enum=token,enum=introspection,enum=revocation,enum=userinfo,title=Endpoints" jsonschema_description:"List of endpoints to enable CORS handling for."`
 	AllowedOrigins []*url.URL `koanf:"allowed_origins" yaml:"allowed_origins,omitempty" toml:"allowed_origins,omitempty" json:"allowed_origins,omitempty" jsonschema:"format=uri,title=Allowed Origins" jsonschema_description:"List of arbitrary allowed origins for CORS requests."`
 
 	AllowedOriginsFromClientRedirectURIs bool `koanf:"allowed_origins_from_client_redirect_uris" yaml:"allowed_origins_from_client_redirect_uris" toml:"allowed_origins_from_client_redirect_uris" json:"allowed_origins_from_client_redirect_uris" jsonschema:"default=false,title=Allowed Origins From Client Redirect URIs" jsonschema_description:"Automatically include the redirect URIs from the registered clients."`
@@ -172,21 +179,27 @@ type IdentityProvidersOpenIDConnectClient struct {
 	Secret              *PasswordDigest `koanf:"client_secret" yaml:"client_secret,omitempty" toml:"client_secret,omitempty" json:"client_secret" jsonschema:"title=Client Secret" jsonschema_description:"The Client Secret for Client Authentication."`
 	SectorIdentifierURI *url.URL        `koanf:"sector_identifier_uri" yaml:"sector_identifier_uri,omitempty" toml:"sector_identifier_uri,omitempty" json:"sector_identifier_uri" jsonschema:"title=Sector Identifier URI" jsonschema_description:"The Client Sector Identifier URI for Privacy Isolation via Pairwise subject types."`
 	Public              bool            `koanf:"public" yaml:"public" toml:"public" json:"public" jsonschema:"default=false,title=Public" jsonschema_description:"Enables the Public Client Type."`
+	ApplicationType     string          `koanf:"application_type" yaml:"application_type,omitempty" toml:"application_type,omitempty" json:"application_type,omitempty" jsonschema:"default=web,enum=web,enum=native,title=Application Type" jsonschema_description:"The Application Type of the client which determines if the client is a native application."`
 
 	RedirectURIs IdentityProvidersOpenIDConnectClientURIs `koanf:"redirect_uris" yaml:"redirect_uris,omitempty" toml:"redirect_uris,omitempty" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of whitelisted redirect URIs."`
 	RequestURIs  IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
 
-	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
-	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
-	GrantTypes    []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
-	ResponseTypes []string `koanf:"response_types" yaml:"response_types,omitempty" toml:"response_types,omitempty" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
-	ResponseModes []string `koanf:"response_modes" yaml:"response_modes,omitempty" toml:"response_modes,omitempty" json:"response_modes" jsonschema:"enum=form_post,enum=form_post.jwt,enum=query,enum=query.jwt,enum=fragment,enum=fragment.jwt,enum=jwt,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request."`
+	Audience              []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audience values."`
+	Resource              []string `koanf:"resource" yaml:"resource,omitempty" toml:"resource,omitempty" json:"resource" jsonschema:"uniqueItems,title=Resource" jsonschema_description:"List of authorized resource values."`
+	IntrospectionAudience []string `koanf:"introspection_audience" yaml:"introspection_audience,omitempty" toml:"introspection_audience,omitempty" json:"introspection_audience" jsonschema:"uniqueItems,title=Introspection Audience" jsonschema_description:"List of audience and resource values this client serves as a resource server at the introspection endpoint. When empty the client may only introspect the tokens issued to it."`
+	Scopes                []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
+	GrantTypes            []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
+	ResponseTypes         []string `koanf:"response_types" yaml:"response_types,omitempty" toml:"response_types,omitempty" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
+	ResponseModes         []string `koanf:"response_modes" yaml:"response_modes,omitempty" toml:"response_modes,omitempty" json:"response_modes" jsonschema:"enum=form_post,enum=form_post.jwt,enum=query,enum=query.jwt,enum=fragment,enum=fragment.jwt,enum=jwt,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request."`
 
 	AuthorizationPolicy string `koanf:"authorization_policy" yaml:"authorization_policy,omitempty" toml:"authorization_policy,omitempty" json:"authorization_policy" jsonschema:"title=Authorization Policy" jsonschema_description:"The Authorization Policy to apply to this client."`
 	Lifespan            string `koanf:"lifespan" yaml:"lifespan,omitempty" toml:"lifespan,omitempty" json:"lifespan" jsonschema:"title=Lifespan Name" jsonschema_description:"The name of the custom lifespan to utilize for this client."`
 	ClaimsPolicy        string `koanf:"claims_policy" yaml:"claims_policy,omitempty" toml:"claims_policy,omitempty" json:"claims_policy" jsonschema:"title=Claims Policy" jsonschema_description:"The claims policy to apply to this client."`
 
 	RequestedAudienceMode        string         `koanf:"requested_audience_mode" yaml:"requested_audience_mode,omitempty" toml:"requested_audience_mode,omitempty" json:"requested_audience_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Audience Modes" jsonschema_description:"The Requested Audience Modes used for this client."`
+	RequestedResourceMode        string         `koanf:"requested_resource_mode" yaml:"requested_resource_mode,omitempty" toml:"requested_resource_mode,omitempty" json:"requested_resource_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Resource Modes" jsonschema_description:"The Requested Resource Modes used for this client."`
+	AudienceStrategy             string         `koanf:"audience_strategy" yaml:"audience_strategy,omitempty" toml:"audience_strategy,omitempty" json:"audience_strategy" jsonschema:"enum=,enum=exact,enum=wildcard,title=Audience Strategy" jsonschema_description:"The strategy used to match requested audience values for this client. Defaults to the provider strategy."`
+	ResourceStrategy             string         `koanf:"resource_strategy" yaml:"resource_strategy,omitempty" toml:"resource_strategy,omitempty" json:"resource_strategy" jsonschema:"enum=,enum=exact,enum=prefix,enum=wildcard,title=Resource Strategy" jsonschema_description:"The strategy used to match requested resource indicators for this client. Defaults to the provider strategy."`
 	ConsentMode                  string         `koanf:"consent_mode" yaml:"consent_mode,omitempty" toml:"consent_mode,omitempty" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Modes" jsonschema_description:"The Consent Modes used for this client."`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration" yaml:"pre_configured_consent_duration,omitempty" toml:"pre_configured_consent_duration,omitempty" json:"pre_configured_consent_duration" jsonschema:"default=7 days,title=Pre-Configured Consent Duration" jsonschema_description:"The Pre-Configured Consent Duration when using Consent Modes pre-configured for this client."`
 
@@ -264,7 +277,9 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 		},
 		DeviceCode: time.Minute * 10,
 	},
-	EnforcePKCE: "public_clients_only",
+	EnforcePKCE:      "public_clients_only",
+	AudienceStrategy: "exact",
+	ResourceStrategy: "exact",
 }
 
 // DefaultOpenIDConnectPolicyConfiguration is the default OpenID Connect 1.0 authorization policy configuration.
@@ -276,6 +291,7 @@ var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = IdentityProvidersOpenIDConnectClient{
+	ApplicationType:                "web",
 	AuthorizationPolicy:            policyTwoFactor,
 	Scopes:                         []string{"openid", "groups", "profile", "email"},
 	ResponseTypes:                  []string{"code"},
@@ -286,6 +302,7 @@ var DefaultOpenIDConnectClientConfiguration = IdentityProvidersOpenIDConnectClie
 	UserinfoSignedResponseAlg:      "none",
 	IntrospectionSignedResponseAlg: "none",
 	RequestedAudienceMode:          "explicit",
+	RequestedResourceMode:          "explicit",
 	ConsentMode:                    "auto",
 	ConsentPreConfiguredDuration:   &defaultOIDCClientConsentPreConfiguredDuration,
 }

@@ -21,7 +21,7 @@ func handleOAuth2AuthorizationClaims(ctx *middlewares.AutheliaCtx, rw http.Respo
 	var err error
 
 	if requester.GetRequestedScopes().Has(oidc.ScopeOpenID) {
-		if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err != nil {
+		if requests, err = oidc.NewClaimRequestsFromRequester(requester); err != nil {
 			ctx.GetLogger().WithError(err).Errorf("%s Request with id '%s' on client with id '%s' could not be processed: error occurred parsing the claims parameter", flow, requester.GetID(), client.GetID())
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, err)
@@ -35,7 +35,7 @@ func handleOAuth2AuthorizationClaims(ctx *middlewares.AutheliaCtx, rw http.Respo
 		if err = claimsStrategy.ValidateClaimsRequests(ctx, scopeStrategy, client, requests); err != nil {
 			ctx.GetLogger().WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Errorf("%s Request with id '%s' on client with id '%s' could not be processed: the client requested claims were not permitted.", flow, requester.GetID(), client.GetID())
 
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested claims were not permitted."))
 
 			return nil, true
 		}
@@ -51,7 +51,7 @@ func handleOAuth2AuthorizationClaims(ctx *middlewares.AutheliaCtx, rw http.Respo
 		if requested, ok := requests.MatchesSubject(consent.Subject.UUID.String()); !ok {
 			ctx.GetLogger().Errorf("%s Request with id '%s' on client with id '%s' could not be processed: the client requested subject '%s' but the subject value for '%s' is '%s' for the '%s' sector identifier", flow, requester.GetID(), client.GetID(), requested, userSession.Username, consent.Subject.UUID, client.GetSectorIdentifierURI())
 
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrLoginRequired.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
 
 			return nil, true
 		}
