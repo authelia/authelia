@@ -84,6 +84,9 @@ identity_providers:
     discovery_signed_response_key_id: ''
     require_pushed_authorization_requests: false
     require_signed_request_object: false
+    audience_strategy: 'exact'
+    resource_strategy: 'exact'
+    enable_client_assertion_legacy_audience: false
     authorization_policies:
       policy_name:
         default_policy: 'two_factor'
@@ -231,6 +234,7 @@ The key _**MUST**_:
   - An RSA private key:
     - Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
     - Have a key size of at least 2048 bits.
+    - Have a public exponent which is odd and at least 3.
   - An ECDSA private key:
     - Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
     - Use one of the following elliptical curves:
@@ -238,6 +242,9 @@ The key _**MUST**_:
       - P-384.
       - P-512.
 - Include matching public key data if the [certificate_chain](#certificate_chain) is provided for the first certificate in the chain.
+- Be consistent, i.e. the public key data must be derived from the private key data.
+- Be usable with the configured [algorithm](#algorithm), for example the `ES384` algorithm requires an ECDSA key using
+  the P-384 curve.
 
 [PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
@@ -408,6 +415,52 @@ the `none` algorithm) do not satisfy this requirement, and as such no client may
 This applies to requests made to the [Pushed Authorization Requests] endpoint in addition to the Authorization Endpoint.
 To enforce it for individual clients see the client [require_signed_request_object](clients.md#require_signed_request_object)
 configuration option.
+
+### audience_strategy
+
+{{< confkey type="string" default="exact" required="no" >}}
+
+The strategy used to match the values a client requests via the `audience` parameter against the client
+[audience](clients.md#audience). This can be overridden for individual clients via the client
+[audience_strategy](clients.md#audience_strategy) option.
+
+|  Value   | Description                                                                                                                                                     |
+| :------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  exact   | Each requested value must exactly match a permitted value. Values may be any opaque string.                                                                     |
+| wildcard | As per `exact`, with the addition that a permitted absolute URI ending in `/*` also permits any requested URI which has the portion before the `*` as a prefix. |
+
+### resource_strategy
+
+{{< confkey type="string" default="exact" required="no" >}}
+
+The strategy used to match the [RFC8707] resource indicators a client requests via the `resource` parameter, as well as
+the URL of a request using [Bearer Authorization](../../../integration/openid-connect/oauth-2.0-bearer-token-usage.md),
+against the client [resource](clients.md#resource). This can be overridden for individual clients via the client
+[resource_strategy](clients.md#resource_strategy) option.
+
+|  Value   | Description                                                                                                                                                                                                                   |
+| :------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  exact   | Each requested resource must exactly match a permitted resource.                                                                                                                                                              |
+|  prefix  | Each requested resource must be a permitted resource or a path beneath one on a path segment boundary, i.e. `https://app.example.com/api` permits `https://app.example.com/api/users` but not `https://app.example.com/api2`. |
+| wildcard | As per `exact`, with the addition that a permitted resource ending in `/*` also permits any requested resource which has the portion before the `*` as a prefix.                                                              |
+
+Neither the `prefix` nor the `wildcard` strategy matches a requested resource which contains a dot segment, an encoded
+slash, or a fragment. The `prefix` strategy additionally requires the scheme, host, and query to be identical and never
+matches a requested resource which contains userinfo.
+
+### enable_client_assertion_legacy_audience
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option is generally discouraged. Clients should be configured to use the issuer identifier as the sole
+audience of their client assertions instead.
+{{< /callout >}}
+
+By default, and as required by [RFC10070], the `aud` claim of a client assertion used by the `client_secret_jwt` and
+`private_key_jwt` [token_endpoint_auth_method](clients.md#token_endpoint_auth_method) values must contain the issuer
+identifier as its sole value. Enabling this option permits the legacy behavior where the `aud` claim may instead
+contain the URL of the endpoint the client is authenticating to, and may contain more than one value.
 
 ### authorization_policies
 
@@ -793,6 +846,8 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[RFC8707]: https://datatracker.ietf.org/doc/html/rfc8707
+[RFC10070]: https://datatracker.ietf.org/doc/html/rfc10070
 [JWT-Secured Authorization Request]: https://datatracker.ietf.org/doc/html/rfc9101
 [OpenID Certified™]: https://openid.net/certification/
 [OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

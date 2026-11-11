@@ -9,7 +9,8 @@ go 1.27.0
 toolchain go1.27.4
 
 require (
-	authelia.com/provider/oauth2 v0.3.3
+	authelia.com/provider/jose v0.2.1
+	authelia.com/provider/oauth2 v0.3.4-0.20261111122632-11c3b24cf979
 	cel.dev/cel-go v0.33.2
 	github.com/asaskevich/govalidator/v12 v12.0.0
 	github.com/authelia/jsonschema v0.1.7
@@ -71,7 +72,7 @@ require (
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
-	github.com/dgraph-io/ristretto v0.2.0 // indirect
+	github.com/dgraph-io/ristretto/v2 v2.4.2 // indirect
 	github.com/dlclark/regexp2 v1.12.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
@@ -108,7 +109,6 @@ require (
 	go.uber.org/atomic v1.12.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // indirect
-	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c // indirect

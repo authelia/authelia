@@ -59,7 +59,7 @@ var (
 	regexpIntrospectionRequestFailed      = regexp.MustCompile(`^Introspection Request with id '[^']+' failed with error$`)
 )
 
-var regexpErrorInvalidClient = regexp.MustCompile(`^The request could not be authorized\.`)
+var regexpErrorInvalidClient = regexp.MustCompile(`^Client authentication failed \(e\.g\., unknown client, no client authentication included, or unsupported authentication method\)\.`)
 
 var regexpIntrospectionIssuerMismatch = regexp.MustCompile(`The original request and the introspection request occurred at endpoints where the origin or effective issuer did not match\.`)
 
@@ -547,7 +547,7 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 
 	sessions := map[string]*model.OAuth2DeviceCodeSession{}
 
-	save := func(_ context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+	store := func(session *model.OAuth2DeviceCodeSession) {
 		stored := *session
 
 		if stored.ID == 0 {
@@ -555,30 +555,78 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 		}
 
 		sessions[stored.UserCodeSignature] = &stored
-
-		return nil
 	}
 
 	mock.StorageMock.EXPECT().
 		SaveOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
 		AnyTimes().
-		DoAndReturn(save)
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) error {
+			store(session)
+
+			return nil
+		})
 
 	mock.StorageMock.EXPECT().
 		UpdateOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
 		AnyTimes().
-		DoAndReturn(save)
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) error {
+			store(session)
+
+			return nil
+		})
 
 	mock.StorageMock.EXPECT().
 		UpdateOAuth2DeviceCodeSessionData(gomock.Any(), gomock.Any()).
 		AnyTimes().
-		DoAndReturn(save)
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) error {
+			store(session)
+
+			return nil
+		})
 
 	mock.StorageMock.EXPECT().
 		LoadOAuth2DeviceCodeSessionByUserCode(gomock.Any(), gomock.Any()).
 		AnyTimes().
 		DoAndReturn(func(_ context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error) {
 			if stored, ok := sessions[signature]; ok {
+				value := *stored
+
+				return &value, nil
+			}
+
+			return nil, sql.ErrNoRows
+		})
+
+	bySignature := func(signature string) *model.OAuth2DeviceCodeSession {
+		for _, stored := range sessions {
+			if stored.Signature == signature {
+				return stored
+			}
+		}
+
+		return nil
+	}
+
+	mock.StorageMock.EXPECT().
+		DecideOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+			stored := bySignature(session.Signature)
+
+			if stored == nil || (stored.Status != model.OAuth2DeviceCodeStatusNew && stored.Status != model.OAuth2DeviceCodeStatusClaimed) {
+				return storage.ErrNoRowsAffected
+			}
+
+			store(session)
+
+			return nil
+		})
+
+	mock.StorageMock.EXPECT().
+		LoadOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error) {
+			if stored := bySignature(signature); stored != nil {
 				value := *stored
 
 				return &value, nil

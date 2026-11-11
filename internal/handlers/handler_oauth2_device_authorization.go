@@ -95,7 +95,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	if requester, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeRequest(ctx, r); err != nil {
+	if requester, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeRequest(ctx, r, oidc.NewSession()); err != nil {
 		ctx.GetLogger().
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request failed with error during the User Authorization Flow")

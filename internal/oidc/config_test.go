@@ -47,19 +47,19 @@ func TestConfig_PKCE(t *testing.T) {
 	config := &oidc.Config{}
 
 	assert.False(t, config.GetEnforcePKCE(ctx))
-	assert.False(t, config.GetEnforcePKCEForPublicClients(ctx))
+	assert.True(t, config.GetAllowPublicClientsWithoutPKCE(ctx))
 
 	config.ProofKeyCodeExchange.Enforce = true
 	assert.True(t, config.GetEnforcePKCE(ctx))
-	assert.True(t, config.GetEnforcePKCEForPublicClients(ctx))
+	assert.False(t, config.GetAllowPublicClientsWithoutPKCE(ctx))
 
 	config.ProofKeyCodeExchange.Enforce = false
 
-	assert.False(t, config.GetEnforcePKCEForPublicClients(ctx))
+	assert.True(t, config.GetAllowPublicClientsWithoutPKCE(ctx))
 
 	config.ProofKeyCodeExchange.EnforcePublicClients = true
 
-	assert.True(t, config.GetEnforcePKCEForPublicClients(ctx))
+	assert.False(t, config.GetAllowPublicClientsWithoutPKCE(ctx))
 
 	assert.False(t, config.GetEnablePKCEPlainChallengeMethod(ctx))
 	config.ProofKeyCodeExchange.AllowPlainChallengeMethod = true
@@ -163,11 +163,8 @@ func TestConfig_Misc(t *testing.T) {
 	config.RequireRequestObjectAudienceAndLifetime = true
 	assert.True(t, config.GetRequireRequestObjectAudienceAndLifetime(ctx))
 
-	assert.Equal(t, "", config.Issuers.AccessToken)
-	assert.Equal(t, "", config.GetAccessTokenIssuer(ctx))
-
-	assert.Equal(t, "", config.Issuers.IDToken)
-	assert.Equal(t, "", config.GetIDTokenIssuer(ctx))
+	assert.Equal(t, "", config.Issuer)
+	assert.Equal(t, "", config.GetIssuer(ctx))
 
 	assert.Equal(t, jwt.JWTScopeFieldUnset, config.JWTScopeField)
 	assert.Equal(t, jwt.JWTScopeFieldList, config.GetJWTScopeField(ctx))
@@ -321,17 +318,16 @@ func TestNewConfig(t *testing.T) {
 	assert.Len(t, config.Handlers.TokenIntrospection, 2)
 }
 
-//nolint:gosec // Test Credentials.
-func TestConfig_GetIssuerFuncs(t *testing.T) {
+func TestConfig_GetIssuer(t *testing.T) {
 	testCases := []struct {
-		name                                                                        string
-		have                                                                        oidc.IssuersConfig
-		ctx                                                                         context.Context
-		expectIntrospection, expectIDToken, expectAccessToken, expectAS, expectJARM string
+		name     string
+		have     string
+		ctx      context.Context
+		expected string
 	}{
 		{
-			"ShouldReturnCtxValues",
-			oidc.IssuersConfig{},
+			"ShouldReturnCtxValue",
+			"",
 			&TestContext{
 				Context: context.Background(),
 				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
@@ -339,16 +335,10 @@ func TestConfig_GetIssuerFuncs(t *testing.T) {
 				},
 			},
 			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
 		},
 		{
-			"ShouldNotReturnDefaultValues",
-			oidc.IssuersConfig{
-				IDToken: "https://example.com/id-issuer",
-			},
+			"ShouldNotReturnFallbackValue",
+			"https://example.com/fallback-issuer",
 			&TestContext{
 				Context: context.Background(),
 				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
@@ -356,42 +346,24 @@ func TestConfig_GetIssuerFuncs(t *testing.T) {
 				},
 			},
 			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
 		},
 		{
-			"ShouldReturnDefaultValues",
-			oidc.IssuersConfig{
-				IDToken:                                 "https://example.com/id-issuer",
-				AccessToken:                             "https://example.com/at-issuer",
-				Introspection:                           "https://example.com/i-issuer",
-				JWTSecuredResponseMode:                  "https://example.com/jarm-issuer",
-				AuthorizationServerIssuerIdentification: "https://example.com/as-issuer",
-			},
+			"ShouldReturnFallbackValue",
+			"https://example.com/fallback-issuer",
 			context.Background(),
-			"https://example.com/i-issuer",
-			"https://example.com/id-issuer",
-			"https://example.com/at-issuer",
-			"https://example.com/as-issuer",
-			"https://example.com/jarm-issuer",
+			"https://example.com/fallback-issuer",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			config := &oidc.Config{
-				Issuers: tc.have,
+				Issuer: tc.have,
 			}
 
 			ctx := context.WithValue(tc.ctx, 0, 1) //nolint:staticcheck // This value is used to demonstrate a functionality not used for an actual value.
 
-			assert.Equal(t, tc.expectIntrospection, config.GetIntrospectionIssuer(ctx))
-			assert.Equal(t, tc.expectIDToken, config.GetIDTokenIssuer(ctx))
-			assert.Equal(t, tc.expectAccessToken, config.GetAccessTokenIssuer(ctx))
-			assert.Equal(t, tc.expectAS, config.GetAuthorizationServerIdentificationIssuer(ctx))
-			assert.Equal(t, tc.expectJARM, config.GetJWTSecuredAuthorizeResponseModeIssuer(ctx))
+			assert.Equal(t, tc.expected, config.GetIssuer(ctx))
 		})
 	}
 }

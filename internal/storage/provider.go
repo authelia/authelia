@@ -238,6 +238,10 @@ type Provider interface {
 	// access token, and for a session stored before the access token signature was recorded.
 	LoadOAuth2RefreshTokenSessionAccessSignature(ctx context.Context, signature string) (accessSignature string, err error)
 
+	// UpdateOAuth2RefreshTokenSessionRequest replaces the request stored for a refresh token session, leaving its state
+	// and paired access token signature unchanged. It returns ErrNoRowsAffected when no session exists.
+	UpdateOAuth2RefreshTokenSessionRequest(ctx context.Context, session model.OAuth2Session) (err error)
+
 	// RevokeOAuth2SessionByRequestID marks an OAuth2.0 session as revoked in the storage provider.
 	RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 
@@ -262,6 +266,10 @@ type Provider interface {
 
 	// UpdateOAuth2DeviceCodeSessionData updates an OAuth2.0 device code session data in the storage provider.
 	UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
+	// DecideOAuth2DeviceCodeSession updates an OAuth2.0 device code session data in the storage provider only while it
+	// is undecided. It returns ErrNoRowsAffected when no undecided session exists for the signature.
+	DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
 	// DeactivateOAuth2DeviceCodeSession marks an OAuth2.0 device code session as inactive in the storage provider.
 	DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error)
@@ -294,11 +302,16 @@ type Provider interface {
 		Implementation for OAuth2.0 Blacklisted JTI's.
 	*/
 
-	// SaveOAuth2BlacklistedJTI saves an OAuth2.0 blacklisted JTI to the storage provider.
+	// SaveOAuth2BlacklistedJTI atomically saves an OAuth2.0 blacklisted JTI to the storage provider. It returns
+	// ErrNoRowsAffected when the JTI is already known for the client and has not expired.
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error)
 
-	// LoadOAuth2BlacklistedJTI loads an OAuth2.0 blacklisted JTI from the storage provider.
-	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
+	// LoadOAuth2BlacklistedJTI loads an OAuth2.0 blacklisted JTI for a client from the storage provider.
+	LoadOAuth2BlacklistedJTI(ctx context.Context, clientID, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
+
+	// SaveOAuth2RequestReplay atomically records a value of an authorization request which may only be used once by a
+	// client. It returns ErrNoRowsAffected when the value is already recorded for the client and has not expired.
+	SaveOAuth2RequestReplay(ctx context.Context, replay model.OAuth2RequestReplay) (err error)
 
 	/*
 		Implementation for User Sessions.

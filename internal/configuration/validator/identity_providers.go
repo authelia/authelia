@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 
@@ -59,6 +60,20 @@ func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *sch
 		break
 	default:
 		validator.Push(fmt.Errorf(errFmtOIDCProviderEnforcePKCEInvalidValue, config.IdentityProviders.OIDC.EnforcePKCE))
+	}
+
+	switch config.IdentityProviders.OIDC.AudienceStrategy {
+	case oidc.StrategyExact, oidc.StrategyWildcard:
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCProviderInvalidValue, attrOIDCAudienceStrategy, utils.StringJoinOr(oidc.AudienceStrategyNames), config.IdentityProviders.OIDC.AudienceStrategy))
+	}
+
+	switch config.IdentityProviders.OIDC.ResourceStrategy {
+	case oidc.StrategyExact, oidc.StrategyPrefix, oidc.StrategyWildcard:
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCProviderInvalidValue, attrOIDCResourceStrategy, utils.StringJoinOr(oidc.ResourceStrategyNames), config.IdentityProviders.OIDC.ResourceStrategy))
 	}
 
 	validateOIDCOptionsCORS(config.IdentityProviders.OIDC, validator)
@@ -534,6 +549,12 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.IdentityProvidersOpe
 		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyNotSupported, i+1, config.JSONWebKeys[i].KeyID, key))
 	}
 
+	if checkEqualKey {
+		if err = jwkValidateJOSE(config.JSONWebKeys[i]); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysNotUsable, i+1, config.JSONWebKeys[i].KeyID, err))
+		}
+	}
+
 	if config.JSONWebKeys[i].CertificateChain.HasCertificates() {
 		if checkEqualKey && !config.JSONWebKeys[i].CertificateChain.EqualKey(config.JSONWebKeys[i].Key) {
 			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyCertificateMismatch, i+1, config.JSONWebKeys[i].KeyID))
@@ -568,6 +589,14 @@ func setOIDCDefaults(config *schema.Configuration) {
 
 	if config.IdentityProviders.OIDC.EnforcePKCE == "" {
 		config.IdentityProviders.OIDC.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
+	}
+
+	if config.IdentityProviders.OIDC.AudienceStrategy == "" {
+		config.IdentityProviders.OIDC.AudienceStrategy = schema.DefaultOpenIDConnectConfiguration.AudienceStrategy
+	}
+
+	if config.IdentityProviders.OIDC.ResourceStrategy == "" {
+		config.IdentityProviders.OIDC.ResourceStrategy = schema.DefaultOpenIDConnectConfiguration.ResourceStrategy
 	}
 }
 
@@ -729,6 +758,29 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCRequestedAudienceMode, utils.StringJoinOr([]string{oidc.ClientRequestedAudienceModeExplicit.String(), oidc.ClientRequestedAudienceModeImplicit.String()}), config.Clients[c].RequestedAudienceMode))
 	}
 
+	switch config.Clients[c].RequestedResourceMode {
+	case "":
+		config.Clients[c].RequestedResourceMode = schema.DefaultOpenIDConnectClientConfiguration.RequestedResourceMode
+	case oidc.ClientRequestedResourceModeExplicit.String(), oidc.ClientRequestedResourceModeImplicit.String():
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCRequestedResourceMode, utils.StringJoinOr([]string{oidc.ClientRequestedResourceModeExplicit.String(), oidc.ClientRequestedResourceModeImplicit.String()}), config.Clients[c].RequestedResourceMode))
+	}
+
+	switch config.Clients[c].AudienceStrategy {
+	case "", oidc.StrategyExact, oidc.StrategyWildcard:
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCAudienceStrategy, utils.StringJoinOr(oidc.AudienceStrategyNames), config.Clients[c].AudienceStrategy))
+	}
+
+	switch config.Clients[c].ResourceStrategy {
+	case "", oidc.StrategyExact, oidc.StrategyPrefix, oidc.StrategyWildcard:
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCResourceStrategy, utils.StringJoinOr(oidc.ResourceStrategyNames), config.Clients[c].ResourceStrategy))
+	}
+
 	setDefaults := validateOIDCClientScopesSpecialBearerAuthz(c, config, ccg, validator)
 
 	validateOIDCClientConsentMode(c, config, validator, setDefaults)
@@ -739,6 +791,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
 	validateOIDCClientRequestURIs(c, config, validator)
+	validateOIDCClientResource(c, config, validator)
 
 	validateOIDDClientSigningAlgs(c, config, validator)
 	validateOIDDClientEncryptionAlgs(c, config, validator)
@@ -898,19 +951,30 @@ func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOp
 		case *rsa.PublicKey:
 			checkEqualKey = true
 
-			if key.N == nil {
+			switch {
+			case key.N == nil:
 				checkEqualKey = false
 
 				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysKeyMalformed, config.Clients[c].ID, i+1))
-			} else if key.Size() < 256 {
+			case key.Size() < 256:
 				checkEqualKey = false
 
 				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, key.Size()*8))
+			case key.N.BitLen() > jose.MaxRSAModulusBits:
+				checkEqualKey = false
+
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysRSAKeyGreaterThanMaximumBits, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, key.N.BitLen(), jose.MaxRSAModulusBits))
 			}
 		case *ecdsa.PublicKey:
 			checkEqualKey = true
 		default:
 			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, key))
+		}
+
+		if checkEqualKey {
+			if err = jwkValidateJOSE(config.Clients[c].JSONWebKeys[i]); err != nil {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysNotUsable, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, err))
+			}
 		}
 
 		if config.Clients[c].JSONWebKeys[i].CertificateChain.HasCertificates() {
@@ -1352,6 +1416,12 @@ func validateOIDCClientRedirectURIs(c int, config *schema.IdentityProvidersOpenI
 
 		if !parsedRedirectURI.IsAbs() || (!config.Clients[c].Public && parsedRedirectURI.Scheme == "") {
 			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, config.Clients[c].ID, redirectURI))
+
+			continue
+		}
+
+		if parsedRedirectURI.Scheme == schemeHTTP && !oauthelia2.IsLocalhost(parsedRedirectURI) {
+			validator.PushWarning(fmt.Errorf(errFmtOIDCClientRedirectURIInsecure, config.Clients[c].ID, redirectURI))
 		}
 	}
 
@@ -1387,6 +1457,34 @@ func validateOIDCClientRequestURIs(c int, config *schema.IdentityProvidersOpenID
 
 	if len(duplicates) != 0 {
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCRequestURIs, utils.StringJoinAnd(duplicates)))
+	}
+}
+
+func validateOIDCClientResource(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	var (
+		parsedResource *url.URL
+		err            error
+	)
+
+	for _, resource := range config.Clients[c].Resource {
+		if parsedResource, err = url.Parse(resource); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCClientResourceCantBeParsed, config.Clients[c].ID, resource, err))
+			continue
+		}
+
+		if !parsedResource.IsAbs() {
+			validator.Push(fmt.Errorf(errFmtOIDCClientResourceNotAbsolute, config.Clients[c].ID, resource))
+		}
+
+		if strings.Contains(resource, "#") {
+			validator.Push(fmt.Errorf(errFmtOIDCClientResourceFragment, config.Clients[c].ID, resource))
+		}
+	}
+
+	_, duplicates := validateList(config.Clients[c].Resource, nil, true)
+
+	if len(duplicates) != 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCResource, utils.StringJoinAnd(duplicates)))
 	}
 }
 

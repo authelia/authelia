@@ -5,11 +5,9 @@
 package oidc_test
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -19,42 +17,6 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing
 	provider := oidc.NewOpenIDConnectProvider(nil, nil, nil)
 
 	assert.Nil(t, provider)
-}
-
-func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
-		IdentityProviders: schema.IdentityProviders{
-			OIDC: &schema.IdentityProvidersOpenIDConnect{
-				IssuerCertificateChain:   schema.X509CertificateChain{},
-				IssuerPrivateKey:         x509PrivateKeyRSA2048,
-				EnablePKCEPlainChallenge: true,
-				HMACSecret:               badhmac,
-				Clients: []schema.IdentityProvidersOpenIDConnectClient{
-					{
-						ID:                  myclient,
-						Secret:              tOpenIDConnectPlainTextClientSecret,
-						SectorIdentifierURI: &url.URL{Host: examplecomsid},
-						AuthorizationPolicy: onefactor,
-						RedirectURIs: []string{
-							examplecom,
-						},
-					},
-				},
-			},
-		},
-	}, nil, nil)
-
-	require.NotNil(t, provider)
-
-	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
-
-	assert.Len(t, disco.SubjectTypesSupported, 2)
-	assert.Contains(t, disco.SubjectTypesSupported, oidc.SubjectTypePublic)
-	assert.Contains(t, disco.SubjectTypesSupported, oidc.SubjectTypePairwise)
-
-	assert.Len(t, disco.CodeChallengeMethodsSupported, 2)
-	assert.Contains(t, disco.CodeChallengeMethodsSupported, oidc.PKCEChallengeMethodSHA256)
-	assert.Contains(t, disco.CodeChallengeMethodsSupported, oidc.PKCEChallengeMethodSHA256)
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {

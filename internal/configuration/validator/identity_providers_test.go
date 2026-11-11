@@ -152,6 +152,57 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 }
 
 //nolint:gosec // Test Credentials.
+func TestShouldValidateOIDCProviderStrategies(t *testing.T) {
+	testCases := []struct {
+		Name             string
+		Audience         string
+		Resource         string
+		ExpectedAudience string
+		ExpectedResource string
+		Errors           []string
+	}{
+		{"ShouldSetDefaults", "", "", "exact", "exact", nil},
+		{"ShouldAllowWildcard", "wildcard", "wildcard", "wildcard", "wildcard", nil},
+		{"ShouldAllowExact", "exact", "exact", "exact", "exact", nil},
+		{"ShouldErrorInvalid", "prefix", "magic", "prefix", "magic", []string{
+			"identity_providers: oidc: option 'audience_strategy' must be one of 'exact' or 'wildcard' but it's configured as 'prefix'",
+			"identity_providers: oidc: option 'resource_strategy' must be one of 'exact', 'prefix', or 'wildcard' but it's configured as 'magic'",
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+						IssuerPrivateKey: keyRSA2048,
+						AudienceStrategy: tc.Audience,
+						ResourceStrategy: tc.Resource,
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			errs := validator.Errors()
+
+			require.Len(t, errs, len(tc.Errors)+1)
+
+			for i, expected := range tc.Errors {
+				assert.EqualError(t, errs[i], expected)
+			}
+
+			assert.EqualError(t, errs[len(tc.Errors)], "identity_providers: oidc: option 'clients' must have one or more clients configured")
+			assert.Equal(t, tc.ExpectedAudience, config.IdentityProviders.OIDC.AudienceStrategy)
+			assert.Equal(t, tc.ExpectedResource, config.IdentityProviders.OIDC.ResourceStrategy)
+		})
+	}
+}
+
+//nolint:gosec // Test Credentials.
 func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 
@@ -607,6 +658,74 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				"identity_providers: oidc: clients: client 'client-bad-ram': option 'requested_audience_mode' must be one of 'explicit' or 'implicit' but it's configured as 'magic'",
 			},
 		},
+		{
+			name: "InvalidAudienceStrategy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-bad-as",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					AudienceStrategy: "prefix",
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-bad-as': option 'audience_strategy' must be one of 'exact' or 'wildcard' but it's configured as 'prefix'",
+			},
+		},
+		{
+			name: "InvalidResourceStrategy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-bad-rs",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ResourceStrategy: "magic",
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-bad-rs': option 'resource_strategy' must be one of 'exact', 'prefix', or 'wildcard' but it's configured as 'magic'",
+			},
+		},
+		{
+			name: "ValidAudienceStrategy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-good-as",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					AudienceStrategy: "wildcard",
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, "wildcard", actual[0].AudienceStrategy)
+			},
+		},
+		{
+			name: "ValidResourceStrategy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-good-rs",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ResourceStrategy: "exact",
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, "exact", actual[0].ResourceStrategy)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -998,7 +1117,8 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 		have.Clients[0].Public = true
 		validateOIDCClientRedirectURIs(0, have, validator, nil)
 
-		assert.Len(t, validator.Warnings(), 0)
+		require.Len(t, validator.Warnings(), 1)
+		assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'owncloud': option 'redirect_uris' has the redirect uri 'http://www.mywebsite.com' which uses the 'http' scheme with a host which is not a loopback address or a 'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme should be used instead")
 		assert.Len(t, validator.Errors(), 0)
 	})
 
@@ -1007,12 +1127,58 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 		have.Clients[0].Public = false
 		validateOIDCClientRedirectURIs(0, have, validator, nil)
 
-		assert.Len(t, validator.Warnings(), 0)
+		require.Len(t, validator.Warnings(), 1)
+		assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'owncloud': option 'redirect_uris' has the redirect uri 'http://www.mywebsite.com' which uses the 'http' scheme with a host which is not a loopback address or a 'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme should be used instead")
 		assert.Len(t, validator.Errors(), 1)
 		assert.ElementsMatch(t, validator.Errors(), []error{
 			errors.New("identity_providers: oidc: clients: client 'owncloud': option 'redirect_uris' has the redirect uri 'urn:ietf:wg:oauth:2.0:oob' when option 'public' is false but this is invalid as this uri is not valid for the openid connect confidential client type"),
 		})
 	})
+}
+
+func TestValidateOIDCClientRedirectURIsInsecure(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		URI      string
+		Public   bool
+		Expected string
+	}{
+		{"ShouldNotWarnHTTPS", "https://app.example.com/callback", false, ""},
+		{"ShouldNotWarnLocalhost", "http://localhost:8080/callback", false, ""},
+		{"ShouldNotWarnLocalhostSubdomain", "http://app.localhost/callback", false, ""},
+		{"ShouldNotWarnLoopbackIPv4", "http://127.0.0.1:8080/callback", true, ""},
+		{"ShouldNotWarnLoopbackIPv6", "http://[::1]:8080/callback", true, ""},
+		{"ShouldNotWarnPrivateUseScheme", "com.example.app:/callback", true, ""},
+		{"ShouldWarnConfidential", "http://app.example.com/callback", false, "identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'http://app.example.com/callback' which uses the 'http' scheme with a host which is not a loopback address or a 'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme should be used instead"},
+		{"ShouldWarnPublic", "http://192.168.1.10/callback", true, "identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'http://192.168.1.10/callback' which uses the 'http' scheme with a host which is not a loopback address or a 'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme should be used instead"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:           "test",
+						Public:       tc.Public,
+						RedirectURIs: []string{tc.URI},
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientRedirectURIs(0, config, validator, nil)
+
+			assert.Len(t, validator.Errors(), 0)
+
+			if tc.Expected == "" {
+				assert.Len(t, validator.Warnings(), 0)
+			} else {
+				require.Len(t, validator.Warnings(), 1)
+				assert.EqualError(t, validator.Warnings()[0], tc.Expected)
+			}
+		})
+	}
 }
 
 func TestValidateOIDCClients(t *testing.T) {

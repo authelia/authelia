@@ -10,6 +10,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -292,6 +293,64 @@ func TestSchemaJWKGetPropertiesEnc(t *testing.T) {
 					assert.Equal(t, tc.expectedAlg, props.Algorithm)
 					assert.Equal(t, tc.expectedBts, props.Bits)
 				}
+			}
+		})
+	}
+}
+
+func TestJWKValidateJOSE(t *testing.T) {
+	rsaEvenExponent := &rsa.PublicKey{N: keyRSA2048.N, E: 65536}
+
+	rsaBadD := *keyRSA2048
+	rsaBadD.D = new(big.Int).Add(keyRSA2048.D, big.NewInt(2))
+
+	otherECDSAP256, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	ecdsaMismatched := *keyECDSAP256
+	ecdsaMismatched.PublicKey = otherECDSAP256.PublicKey
+
+	otherEd25519Public, _, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	ed25519Mismatched := make(ed25519.PrivateKey, ed25519.PrivateKeySize)
+	copy(ed25519Mismatched, keyEd25519.Seed())
+	copy(ed25519Mismatched[ed25519.SeedSize:], otherEd25519Public)
+
+	testCases := []struct {
+		name string
+		have schema.JWK
+		err  string
+	}{
+		{"ShouldPassRSA", schema.JWK{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256}, ""},
+		{"ShouldPassRSAPSS", schema.JWK{Key: keyRSA4096, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAPSSUsingSHA512}, ""},
+		{"ShouldPassECDSA", schema.JWK{Key: keyECDSAP384, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384}, ""},
+		{"ShouldPassEd25519", schema.JWK{Key: keyEd25519, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgEd25519}, ""},
+		{"ShouldPassEdDSA", schema.JWK{Key: keyEd25519, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgEdDSA}, ""},
+		{"ShouldPassPublicRSA", schema.JWK{Key: keyRSA2048.Public(), Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256}, ""},
+		{"ShouldPassPublicECDSA", schema.JWK{Key: keyECDSAP521.Public(), Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512}, ""},
+		{"ShouldPassEncryptionWithoutSigning", schema.JWK{Key: keyRSA2048, Use: oidc.KeyUseEncryption, Algorithm: oidc.EncryptionAlgRSAOAEP256}, ""},
+		{"ShouldSkipUnknownAlgorithm", schema.JWK{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: "invalid"}, ""},
+		{"ShouldFailRSAEvenExponent", schema.JWK{Key: rsaEvenExponent, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256}, "the key parameters are invalid or inconsistent"},
+		{"ShouldFailRSAInconsistentPrivateExponent", schema.JWK{Key: &rsaBadD, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256}, "the key parameters are invalid or inconsistent"},
+		{"ShouldFailECDSAMismatchedPublicKey", schema.JWK{Key: &ecdsaMismatched, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256}, "the key parameters are invalid or inconsistent"},
+		{"ShouldFailEd25519MismatchedPublicKey", schema.JWK{Key: ed25519Mismatched, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgEd25519}, "the key parameters are invalid or inconsistent"},
+		{"ShouldFailRSAKeyECDSAAlg", schema.JWK{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256}, "the 'ES256' algorithm requires an ECDSA P-256 key but the key is a RSA key"},
+		{"ShouldFailECDSAKeyRSAAlg", schema.JWK{Key: keyECDSAP256, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256}, "the 'PS256' algorithm requires an RSA key but the key is a ECDSA P-256 key"},
+		{"ShouldFailECDSACurveMismatch", schema.JWK{Key: keyECDSAP384, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256}, "the 'ES256' algorithm requires an ECDSA P-256 key but the key is a ECDSA P-384 key"},
+		{"ShouldFailPublicECDSACurveMismatch", schema.JWK{Key: keyECDSAP256.Public(), Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512}, "the 'ES512' algorithm requires an ECDSA P-521 key but the key is a ECDSA P-256 key"},
+		{"ShouldFailRSAKeyEd25519Alg", schema.JWK{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgEd25519}, "the 'Ed25519' algorithm requires an Ed25519 key but the key is a RSA key"},
+		{"ShouldFailEd25519KeyMLDSAAlg", schema.JWK{Key: keyEd25519, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgMLDSA44}, "the 'ML-DSA-44' algorithm requires a ML-DSA-44 key but the key is a Ed25519 key"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := jwkValidateJOSE(tc.have)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
 			}
 		})
 	}

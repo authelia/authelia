@@ -88,13 +88,16 @@ const (
 )
 
 const (
-	lifespanTokenDefault                      = time.Hour
-	lifespanRefreshTokenDefault               = time.Hour * 24 * 30
-	lifespanAuthorizeCodeDefault              = time.Minute * 15
-	lifespanJWTSecuredAuthorizationDefault    = time.Minute * 5
-	lifespanPARContextDefault                 = time.Minute * 5
-	lifespanRFC8628CodeDefault                = time.Minute * 10
-	lifespanRFC8628PollingIntervalDefault     = time.Second * 10
+	lifespanTokenDefault                   = time.Hour
+	lifespanRefreshTokenDefault            = time.Hour * 24 * 30
+	lifespanAuthorizeCodeDefault           = time.Minute * 15
+	lifespanJWTSecuredAuthorizationDefault = time.Minute * 5
+	lifespanPARContextDefault              = time.Minute * 5
+	lifespanRFC8628CodeDefault             = time.Minute * 10
+	lifespanRFC8628PollingIntervalDefault  = time.Second * 10
+
+	clientAuthenticationRealm                 = "oauth2"
+	rfc8693MaxActorChainDepth                 = 8
 	lifespanVerifiableCredentialsNonceDefault = time.Hour
 	lifespanRequestObjectMaximumDefault       = time.Hour
 	jwtClockSkewDefault                       = time.Second * 10

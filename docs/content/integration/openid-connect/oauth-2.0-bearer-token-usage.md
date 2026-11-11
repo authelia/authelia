@@ -98,7 +98,9 @@ the granted audience or the granted resources. The granted audience can be affec
 parameter and the users consent if relevant, or the clients `requested_audience_policy`; specifically when the
 `requested_audience_policy` is `implicit` the permitted audience values are automatically assumed to be the requested
 audience when no explicit requested audience is available. The granted resources however can only be affected by the
-`resource` request parameter and the users consent if relevant.
+`resource` request parameter and the users consent if relevant. A client can only request a resource which is permitted
+by the [resource](../../configuration/identity-providers/openid-connect/clients.md#resource) client option, the
+[audience](../../configuration/identity-providers/openid-connect/clients.md#audience) client option is not considered.
 
 The users consent plays a part when the Authorization Code Flow is used and the user is presented a consent dialog. At
 this time the user automatically grants all requested audience and requested resources, however at a future date they
@@ -111,14 +113,27 @@ defined by [RFC8707: Resource Indicators for OAuth 2.0](https://datatracker.ietf
 is common across the industry and is an entirely permitted decision delegated to the Authorization Server and Resource
 Server.
 
-The granted audience is matched against the requested resource as an exact case-sensitive string match. i.e. if the
-granted audience contains an exact match for the requested resource it will be considered a valid token for the request.
+The query, fragment, and userinfo of the requested URL are removed before any comparison, and its path is cleaned of
+dot segments.
 
-The granted resources are matched against the requested resource as a URI comparison. Both values are parsed as URLs,
-and the granted resource is only a match when its scheme and host are exactly equal to those of the requested resource,
-and its path is either equal to the requested path or a prefix of it terminating on a path boundary. Query strings are
-not considered as part of this comparison. For example a granted resource with the path `/api` matches a requested
-resource with the path `/api` or `/api/example`, but does not match one with the path `/apiv2`.
+The granted audience is matched against the requested URL using the
+[audience_strategy](../../configuration/identity-providers/openid-connect/provider.md#audience_strategy), which by
+default is an exact case-sensitive string match. i.e. if the granted audience contains an exact match for the requested
+URL it will be considered a valid token for the request.
+
+The granted resources are matched against the requested URL using the
+[resource_strategy](../../configuration/identity-providers/openid-connect/provider.md#resource_strategy). By default
+this is the `exact` strategy, where the granted resource must exactly match the requested URL. As this requires every
+individual URL to be granted, it's recommended that clients using this authorization scheme are configured with the
+`prefix` or `wildcard` strategy. With the `prefix` strategy the granted resource is only a match when its scheme and
+host are exactly equal to those of the requested URL, and its path is either equal to the requested path or a prefix of
+it terminating on a path boundary. For example a granted resource with the path `/api` matches a requested URL with the
+path `/api` or `/api/example`, but does not match one with the path `/apiv2`.
+
+Both strategies can be configured for individual clients, and the same strategies are also used to check that the
+client itself is still permitted the requested URL via its
+[audience](../../configuration/identity-providers/openid-connect/clients.md#audience) or
+[resource](../../configuration/identity-providers/openid-connect/clients.md#resource) options.
 
 ### Authorization Endpoint Configuration
 

@@ -47,7 +47,8 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValuePostgreSQL, tableEncryption)
-	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2RequestReplay = fmt.Sprintf(queryFmtInsertOAuth2RequestReplayPostgreSQL, tableOAuth2RequestReplay)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
 	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionPostgreSQL, tableSession)
@@ -165,6 +166,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSession)
 	provider.sqlUpdateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSession)
 	provider.sqlUpdateOAuth2DeviceCodeSessionData = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSessionData)
+	provider.sqlDecideOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDecideOAuth2DeviceCodeSession)
 	provider.sqlDeactivateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDeactivateOAuth2DeviceCodeSession)
 	provider.sqlSelectOAuth2DeviceCodeSessionByUserCode = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSessionByUserCode)
 
@@ -194,6 +196,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID)
 	provider.sqlSelectOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSession)
 	provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature)
+	provider.sqlUpdateOAuth2RefreshTokenSessionRequest = provider.db.Rebind(provider.sqlUpdateOAuth2RefreshTokenSessionRequest)
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
 

@@ -16,6 +16,7 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	oauth2 "authelia.com/provider/oauth2"
 	gomock "go.uber.org/mock/gomock"
@@ -86,4 +87,18 @@ func (m *MockPKCERequestStorage) GetPKCERequestSession(ctx context.Context, sign
 func (mr *MockPKCERequestStorageMockRecorder) GetPKCERequestSession(ctx, signature, session any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPKCERequestSession", reflect.TypeOf((*MockPKCERequestStorage)(nil).GetPKCERequestSession), ctx, signature, session)
+}
+
+// SetPKCEChallengeUsed mocks base method.
+func (m *MockPKCERequestStorage) SetPKCEChallengeUsed(ctx context.Context, clientID, challenge string, expiresAt time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetPKCEChallengeUsed", ctx, clientID, challenge, expiresAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetPKCEChallengeUsed indicates an expected call of SetPKCEChallengeUsed.
+func (mr *MockPKCERequestStorageMockRecorder) SetPKCEChallengeUsed(ctx, clientID, challenge, expiresAt any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetPKCEChallengeUsed", reflect.TypeOf((*MockPKCERequestStorage)(nil).SetPKCEChallengeUsed), ctx, clientID, challenge, expiresAt)
 }

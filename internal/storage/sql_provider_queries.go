@@ -665,6 +665,23 @@ const (
 			session_data = ?
 		WHERE signature = ?;`
 
+	queryFmtDecideOAuth2DeviceCodeSession = `
+		UPDATE %s
+		SET
+			challenge_id = ?,
+			client_id = ?,
+			status = ?,
+			subject = ?,
+			requested_scopes = ?,
+			requested_audience = ?,
+			requested_resource = ?,
+			granted_scopes = ?,
+			granted_audience = ?,
+			granted_resource = ?,
+			form_data = ?,
+			session_data = ?
+		WHERE signature = ? AND status IN (?, ?);`
+
 	queryFmtSelectOAuth2PARContext = `
 		SELECT id, signature, request_id, client_id, requested_at, scopes, audience, resource,
 		handled_response_types, response_mode, response_mode_default, revoked,
@@ -686,19 +703,63 @@ const (
 	WHERE id = ?;`
 
 	queryFmtSelectOAuth2BlacklistedJTI = `
-		SELECT id, signature, expires_at
+		SELECT id, client_id, signature, expires_at
 		FROM %s
+		WHERE client_id = ? AND signature = ?;`
+
+	queryFmtInsertOAuth2BlacklistedJTI = `
+		INSERT INTO %s (client_id, signature, expires_at)
+		VALUES (?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+			expires_at = IF(expires_at <= ?, VALUES(expires_at), expires_at);`
+
+	queryFmtInsertOAuth2BlacklistedJTISQLite = `
+		INSERT INTO %[1]s (client_id, signature, expires_at)
+		VALUES (?, ?, ?)
+			ON CONFLICT (client_id, signature)
+			DO UPDATE SET expires_at = excluded.expires_at
+			WHERE %[1]s.expires_at <= ?;`
+
+	queryFmtInsertOAuth2BlacklistedJTIPostgreSQL = `
+		INSERT INTO %[1]s (client_id, signature, expires_at)
+		VALUES ($1, $2, $3)
+			ON CONFLICT (client_id, signature)
+			DO UPDATE SET expires_at = $3
+			WHERE %[1]s.expires_at <= $4;`
+
+	queryFmtInsertOAuth2RequestReplay = `
+		INSERT INTO %s (type, client_id, signature, expires_at)
+		VALUES (?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+			expires_at = IF(expires_at <= ?, VALUES(expires_at), expires_at);`
+
+	queryFmtInsertOAuth2RequestReplaySQLite = `
+		INSERT INTO %[1]s (type, client_id, signature, expires_at)
+		VALUES (?, ?, ?, ?)
+			ON CONFLICT (type, client_id, signature)
+			DO UPDATE SET expires_at = excluded.expires_at
+			WHERE %[1]s.expires_at <= ?;`
+
+	queryFmtInsertOAuth2RequestReplayPostgreSQL = `
+		INSERT INTO %[1]s (type, client_id, signature, expires_at)
+		VALUES ($1, $2, $3, $4)
+			ON CONFLICT (type, client_id, signature)
+			DO UPDATE SET expires_at = $4
+			WHERE %[1]s.expires_at <= $5;`
+
+	//nolint:gosec // Not a Credential.
+	queryFmtUpdateOAuth2RefreshTokenSessionRequest = `
+		UPDATE %s
+		SET
+			requested_scopes = ?,
+			granted_scopes = ?,
+			requested_audience = ?,
+			granted_audience = ?,
+			requested_resource = ?,
+			granted_resource = ?,
+			form_data = ?,
+			session_data = ?
 		WHERE signature = ?;`
-
-	queryFmtUpsertOAuth2BlacklistedJTI = `
-		REPLACE INTO %s (signature, expires_at)
-		VALUES(?, ?);`
-
-	queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL = `
-		INSERT INTO %s (signature, expires_at)
-		VALUES ($1, $2)
-			ON CONFLICT (signature)
-			DO UPDATE SET expires_at = $2;`
 
 	queryFmtSelectOAuth2SessionEncryptedData = `
 		SELECT id, signature, session_data

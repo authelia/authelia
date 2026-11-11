@@ -26,6 +26,7 @@ const (
 	tableWebAuthnUsers        = "webauthn_users"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
+	tableOAuth2RequestReplay           = "oauth2_request_replay"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
 

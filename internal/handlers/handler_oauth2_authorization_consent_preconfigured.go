@@ -245,7 +245,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 		serialized, signature string
 	)
 
-	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err != nil {
+	if requests, err = oidc.NewClaimRequestsFromRequester(requester); err != nil {
 		return nil, fmt.Errorf("error parsing claim requests: %w", err)
 	} else if requests != nil {
 		if serialized, signature, err = requests.Serialized(); err != nil {

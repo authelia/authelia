@@ -32,6 +32,11 @@ type IdentityProvidersOpenIDConnect struct {
 	DiscoverySignedResponseAlg   string `koanf:"discovery_signed_response_alg" yaml:"discovery_signed_response_alg,omitempty" toml:"discovery_signed_response_alg,omitempty" json:"discovery_signed_response_alg,omitempty" jsonschema:"default=none,enum=,enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,enum=Ed25519,enum=EdDSA,enum=ML-DSA-44,enum=ML-DSA-65,enum=ML-DSA-87,title=Discovery Response Signing Algorithm" jsonschema_description:"The Algorithm this provider uses to sign the Discovery and Metadata Document responses. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."`
 	DiscoverySignedResponseKeyID string `koanf:"discovery_signed_response_key_id" yaml:"discovery_signed_response_key_id,omitempty" toml:"discovery_signed_response_key_id,omitempty" json:"discovery_signed_response_key_id,omitempty" jsonschema:"title=Discovery Response Signing Key ID" jsonschema_description:"The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."`
 
+	AudienceStrategy string `koanf:"audience_strategy" yaml:"audience_strategy,omitempty" toml:"audience_strategy,omitempty" json:"audience_strategy,omitempty" jsonschema:"default=exact,enum=exact,enum=wildcard,title=Audience Strategy" jsonschema_description:"The strategy used to match requested audience values against the audience values a client is permitted to request."`
+	ResourceStrategy string `koanf:"resource_strategy" yaml:"resource_strategy,omitempty" toml:"resource_strategy,omitempty" json:"resource_strategy,omitempty" jsonschema:"default=exact,enum=exact,enum=prefix,enum=wildcard,title=Resource Strategy" jsonschema_description:"The strategy used to match requested resource indicators against the resource values a client is permitted to request."`
+
+	EnableClientAssertionLegacyAudience bool `koanf:"enable_client_assertion_legacy_audience" yaml:"enable_client_assertion_legacy_audience" toml:"enable_client_assertion_legacy_audience" json:"enable_client_assertion_legacy_audience" jsonschema:"default=false,title=Enable Client Assertion Legacy Audience" jsonschema_description:"Allows JWT client authentication assertions to use the endpoint URL or carry multiple audience values instead of requiring the issuer identifier as the sole audience value."`
+
 	RequirePushedAuthorizationRequests bool `koanf:"require_pushed_authorization_requests" yaml:"require_pushed_authorization_requests" toml:"require_pushed_authorization_requests" json:"require_pushed_authorization_requests" jsonschema:"title=Require Pushed Authorization Requests" jsonschema_description:"Requires Pushed Authorization Requests for all clients for this Issuer."`
 	RequireSignedRequestObject         bool `koanf:"require_signed_request_object" yaml:"require_signed_request_object" toml:"require_signed_request_object" json:"require_signed_request_object" jsonschema:"default=false,title=Require Signed Request Object" jsonschema_description:"Requires all authorization requests for all clients for this Issuer be provided as a signed Request Object."`
 
@@ -176,7 +181,8 @@ type IdentityProvidersOpenIDConnectClient struct {
 	RedirectURIs IdentityProvidersOpenIDConnectClientURIs `koanf:"redirect_uris" yaml:"redirect_uris,omitempty" toml:"redirect_uris,omitempty" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of whitelisted redirect URIs."`
 	RequestURIs  IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
 
-	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
+	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audience values."`
+	Resource      []string `koanf:"resource" yaml:"resource,omitempty" toml:"resource,omitempty" json:"resource" jsonschema:"uniqueItems,title=Resource" jsonschema_description:"List of authorized resource values."`
 	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
 	GrantTypes    []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
 	ResponseTypes []string `koanf:"response_types" yaml:"response_types,omitempty" toml:"response_types,omitempty" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
@@ -187,6 +193,9 @@ type IdentityProvidersOpenIDConnectClient struct {
 	ClaimsPolicy        string `koanf:"claims_policy" yaml:"claims_policy,omitempty" toml:"claims_policy,omitempty" json:"claims_policy" jsonschema:"title=Claims Policy" jsonschema_description:"The claims policy to apply to this client."`
 
 	RequestedAudienceMode        string         `koanf:"requested_audience_mode" yaml:"requested_audience_mode,omitempty" toml:"requested_audience_mode,omitempty" json:"requested_audience_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Audience Modes" jsonschema_description:"The Requested Audience Modes used for this client."`
+	RequestedResourceMode        string         `koanf:"requested_resource_mode" yaml:"requested_resource_mode,omitempty" toml:"requested_resource_mode,omitempty" json:"requested_resource_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Resource Modes" jsonschema_description:"The Requested Resource Modes used for this client."`
+	AudienceStrategy             string         `koanf:"audience_strategy" yaml:"audience_strategy,omitempty" toml:"audience_strategy,omitempty" json:"audience_strategy" jsonschema:"enum=,enum=exact,enum=wildcard,title=Audience Strategy" jsonschema_description:"The strategy used to match requested audience values for this client. Defaults to the provider strategy."`
+	ResourceStrategy             string         `koanf:"resource_strategy" yaml:"resource_strategy,omitempty" toml:"resource_strategy,omitempty" json:"resource_strategy" jsonschema:"enum=,enum=exact,enum=prefix,enum=wildcard,title=Resource Strategy" jsonschema_description:"The strategy used to match requested resource indicators for this client. Defaults to the provider strategy."`
 	ConsentMode                  string         `koanf:"consent_mode" yaml:"consent_mode,omitempty" toml:"consent_mode,omitempty" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Modes" jsonschema_description:"The Consent Modes used for this client."`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration" yaml:"pre_configured_consent_duration,omitempty" toml:"pre_configured_consent_duration,omitempty" json:"pre_configured_consent_duration" jsonschema:"default=7 days,title=Pre-Configured Consent Duration" jsonschema_description:"The Pre-Configured Consent Duration when using Consent Modes pre-configured for this client."`
 
@@ -264,7 +273,9 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 		},
 		DeviceCode: time.Minute * 10,
 	},
-	EnforcePKCE: "public_clients_only",
+	EnforcePKCE:      "public_clients_only",
+	AudienceStrategy: "exact",
+	ResourceStrategy: "exact",
 }
 
 // DefaultOpenIDConnectPolicyConfiguration is the default OpenID Connect 1.0 authorization policy configuration.
@@ -286,6 +297,7 @@ var DefaultOpenIDConnectClientConfiguration = IdentityProvidersOpenIDConnectClie
 	UserinfoSignedResponseAlg:      "none",
 	IntrospectionSignedResponseAlg: "none",
 	RequestedAudienceMode:          "explicit",
+	RequestedResourceMode:          "explicit",
 	ConsentMode:                    "auto",
 	ConsentPreConfiguredDuration:   &defaultOIDCClientConsentPreConfiguredDuration,
 }
