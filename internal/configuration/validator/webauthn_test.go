@@ -841,6 +841,26 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 			},
 		},
 		{
+			"ShouldErrorOnIPAddressRelyingPartyID",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"192.168.1.1": {
+							Origins: []*url.URL{mustParseURL("https://192.168.1.1")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://192.168.1.1")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: 192.168.1.1: the dictionary key is not a valid relying party id: the value must be a domain and not an IP address",
+			},
+		},
+		{
 			"ShouldErrorOnNilOrigin",
 			&schema.Configuration{
 				WebAuthn: schema.WebAuthn{
@@ -1020,6 +1040,38 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 			[]string{
 				"webauthn: relying_parties: example.com: option 'origins' is invalid: error validating related origins: the origins have 6 distinct registrable domain labels but clients only process 5 of them, so origins beyond that limit are ignored",
 			},
+		},
+		{
+			"ShouldNotErrorOnOriginsSharingALabelUnderMultiLabelPublicSuffixes",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{
+								mustParseURL("https://example.com"),
+								mustParseURL("https://example.co.uk"),
+								mustParseURL("https://example.com.au"),
+								mustParseURL("https://example2.co.uk"),
+								mustParseURL("https://example3.co.uk"),
+								mustParseURL("https://example4.co.uk"),
+								mustParseURL("https://example5.co.uk"),
+							},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+						{AutheliaURL: mustParseURL("https://example.co.uk")},
+						{AutheliaURL: mustParseURL("https://example.com.au")},
+						{AutheliaURL: mustParseURL("https://example2.co.uk")},
+						{AutheliaURL: mustParseURL("https://example3.co.uk")},
+						{AutheliaURL: mustParseURL("https://example4.co.uk")},
+						{AutheliaURL: mustParseURL("https://example5.co.uk")},
+					},
+				},
+			},
+			nil,
 		},
 		{
 			"ShouldErrorOnEquivalentOriginDuplicatedAcrossRelyingParties",

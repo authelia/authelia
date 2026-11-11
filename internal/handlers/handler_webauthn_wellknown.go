@@ -39,7 +39,7 @@ func WebAuthnWellKnownGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	related, err := protocol.NewRelatedOrigins(relyingParty.StringOrigins()...)
+	related, err := protocol.NewRelatedOriginsWithLabeler(webauthn.RelatedOriginLabeler, relyingParty.StringOrigins()...)
 	if err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred retrieving the related origins for the request")
 

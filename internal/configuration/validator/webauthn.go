@@ -50,11 +50,6 @@ func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructVali
 	validateWebAuthnRelatedOrigins(config, validator)
 }
 
-// validateWebAuthnRelyingPartyBase validates the options common to both the global WebAuthn configuration and each
-// individual relying party, defaulting any option which has no value to the equivalent option in defaults. The prefix
-// is included in every error to indicate which relying party the error belongs to and is empty for the global
-// configuration.
-//
 //nolint:gocyclo
 func validateWebAuthnRelyingPartyBase(base, defaults *schema.WebAuthnBase, prefix string, passkeys bool, validator *schema.StructValidator) {
 	if base.DisplayName == "" {
@@ -120,8 +115,6 @@ func validateWebAuthnRelyingPartyBase(base, defaults *schema.WebAuthnBase, prefi
 	}
 }
 
-// validateWebAuthnRelyingParties validates each relying party, defaulting the options they share with the global
-// WebAuthn configuration to the value of the global configuration.
 func validateWebAuthnRelyingParties(config *schema.Configuration, validator *schema.StructValidator) {
 	if len(config.WebAuthn.RelyingParties) == 0 {
 		return
@@ -153,8 +146,6 @@ func validateWebAuthnRelyingPartyOpaqueOrigins(relyingParty *schema.WebAuthnRely
 	}
 }
 
-// validateWebAuthnRelatedOrigins validates the origins of every relying party, both individually and as the set which
-// is served in the Related Origin Requests document at the well known endpoint.
 func validateWebAuthnRelatedOrigins(config *schema.Configuration, validator *schema.StructValidator) {
 	if len(config.WebAuthn.RelyingParties) == 0 {
 		return
@@ -177,8 +168,6 @@ func validateWebAuthnRelatedOrigins(config *schema.Configuration, validator *sch
 	}
 }
 
-// validateWebAuthnRelatedOriginsRelyingParty validates the origins of a single relying party, recording each origin
-// against the relying parties which declare it so the caller can detect origins declared more than once.
 func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, relyingPartyID string, relyingParty *schema.WebAuthnRelyingParty, origins map[string][]string, validator *schema.StructValidator) {
 	if relyingPartyID == "" {
 		validator.Push(errors.New(errFmtWebAuthnRelatedOriginsRelyingPartyIDEmpty))
@@ -188,9 +177,7 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 
 	prefix := fmt.Sprintf(errFmtWebAuthnRelyingPartyPrefix, relyingPartyID)
 
-	if relyingPartyID != strings.ToLower(relyingPartyID) {
-		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase, prefix))
-	}
+	validateWebAuthnRelatedOriginsRelyingPartyID(relyingPartyID, prefix, validator)
 
 	if len(relyingParty.Origins) == 0 {
 		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginsEmpty, prefix))
@@ -258,14 +245,22 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 	// The document served at the well known endpoint is built from these origins, so the limits a client applies when
 	// it reads that document have to hold here or the endpoint fails at request time instead.
 	if len(relatable) != 0 {
-		if _, err := protocol.NewRelatedOrigins(relatable...); err != nil {
+		if _, err := protocol.NewRelatedOriginsWithLabeler(webauthn.RelatedOriginLabeler, relatable...); err != nil {
 			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsLabels, prefix, err))
 		}
 	}
 }
 
-// sortedWebAuthnRelyingPartyIDs returns the relying party identifiers in a stable order so the errors reported for
-// them do not depend on the map iteration order.
+func validateWebAuthnRelatedOriginsRelyingPartyID(relyingPartyID, prefix string, validator *schema.StructValidator) {
+	if relyingPartyID != strings.ToLower(relyingPartyID) {
+		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase, prefix))
+	}
+
+	if err := protocol.ValidateRPID(relyingPartyID); err != nil {
+		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNotValid, prefix, err))
+	}
+}
+
 func sortedWebAuthnRelyingPartyIDs(relyingParties map[string]schema.WebAuthnRelyingParty) (ids []string) {
 	ids = make([]string, 0, len(relyingParties))
 
@@ -278,7 +273,6 @@ func sortedWebAuthnRelyingPartyIDs(relyingParties map[string]schema.WebAuthnRely
 	return ids
 }
 
-// sortedMapKeys returns the keys of the given map in a stable order.
 func sortedMapKeys(in map[string][]string) (keys []string) {
 	keys = make([]string, 0, len(in))
 

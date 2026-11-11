@@ -179,6 +179,13 @@ It's a list of objects which primarily contains a list of `origins`. The relying
 be the hostname portion of one of the origins, and all relying party identifiers's must be lowercase strings. This
 groups all of these origins into a single logical relying party.
 
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Credentials are bound to the relying party identifier they were registered under. Changing the relying party identifier
+an existing origin belongs to, including by configuring this option for the first time, makes every credential
+registered under the previous identifier unusable. Before making such a change ensure users have an alternative
+authentication method configured, and expect them to re-register their WebAuthn credentials afterwards.
+{{< /callout >}}
+
 If you configure this then any origin that is not listed in one of the related origin configurations will not have
 the ability to use WebAuthn including Passkeys.
 
@@ -227,7 +234,7 @@ written exactly as the client conveys it, and each value must begin with one of 
 
 |             Prefix             |                    Client                    |
 | :----------------------------: | :------------------------------------------: |
-|    `android:apk-key-hash:`     |  Android native app (SHA-1 of signing cert)  |
+|    `android:apk-key-hash:`     | Android native app (SHA-256 of signing cert) |
 | `android:apk-key-hash-sha256:` | Android native app (SHA-256 of signing cert) |
 |     `android:apk-key-id:`      |     Android native app (signing key id)      |
 |        `ios:bundle-id:`        |          iOS native app (bundle id)          |
@@ -237,8 +244,8 @@ written exactly as the client conveys it, and each value must begin with one of 
 |           `file://`            |          Local file system document          |
 |          `ms-appx://`          |         Windows application package          |
 
-For example the value for an Android application is the base64url encoding, without padding, of the digest of the
-signing certificate of the APK:
+For example the value for an Android application is the base64url encoding, without padding, of the SHA-256 digest of
+the signing certificate of the APK:
 
 ```yaml {title="configuration.yml"}
 webauthn:

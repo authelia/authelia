@@ -356,6 +356,7 @@ const (
 	errFmtWebAuthnMetadataString                         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
 	errFmtWebAuthnRelatedOriginsRelyingPartyIDEmpty      = "webauthn: relying_parties: a dictionary key is empty but each key must be a relying party id"
 	errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase = "webauthn: %sthe dictionary key is not lower case but it must be as it's the relying party id"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNotValid     = "webauthn: %sthe dictionary key is not a valid relying party id: %w"
 	errFmtWebAuthnRelatedOriginsRelyingPartyNoOrigin     = "webauthn: %soption 'origins' must have an origin with the relying party id as its hostname"
 	errFmtWebAuthnRelatedOriginsOriginsEmpty             = "webauthn: %soption 'origins' is empty but it must have at least one value"
 	errFmtWebAuthnRelatedOriginsOriginEmpty              = "webauthn: %soption 'origins' item #%d is empty"
