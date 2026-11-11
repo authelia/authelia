@@ -24,7 +24,7 @@ const RememberMeDialog = function (props: Props) {
             }}
         >
             <DialogContent id="remember-me-dialog" className="sm:max-w-md" showCloseButton={false}>
-                <DialogTitle>{translate("Remember me?")}</DialogTitle>
+                <DialogTitle>{translate("Remember me")}</DialogTitle>
                 <DialogDescription>{translate("Would you like to stay signed in on this device?")}</DialogDescription>
                 <DialogFooter>
                     <Button id="dialog-remember-me-no" variant="outline" onClick={() => props.onChoice(false)}>
