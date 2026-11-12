@@ -1,0 +1,25 @@
+dn: ou=policies,{{ LDAP_BASE_DN }}
+ou: policies
+objectClass: organizationalUnit
+
+dn: cn=password,ou=policies,{{ LDAP_BASE_DN }}
+objectClass: pwdPolicy
+objectClass: person
+objectClass: top
+cn: passwordDefault
+sn: passwordDefault
+pwdAttribute: userPassword
+pwdCheckQuality: 1
+pwdMinAge: 0
+pwdMaxAge: 0
+pwdMinLength: 3
+pwdInHistory: 0
+pwdMaxFailure: 5
+pwdFailureCountInterval: 0
+pwdLockout: TRUE
+pwdLockoutDuration: 0
+pwdAllowUserChange: TRUE
+pwdExpireWarning: 0
+pwdGraceAuthNLimit: 0
+pwdMustChange: FALSE
+pwdSafeModify: FALSE
