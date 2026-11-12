@@ -260,6 +260,156 @@ func TestRequireElevated(t *testing.T) {
 	}
 }
 
+func TestRequireElevationSecondFactor(t *testing.T) {
+	type response struct {
+		Status string                                `json:"status"`
+		Data   middlewares.ElevatedForbiddenResponse `json:"data"`
+	}
+
+	testCases := []struct {
+		name        string
+		level       authentication.Level
+		require2FA  bool
+		setup       func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		expected    int
+		expected1FA bool
+		expected2FA bool
+	}{
+		{
+			"ShouldPass1FAUserWhenNotRequired",
+			authentication.OneFactor,
+			false,
+			nil,
+			fasthttp.StatusOK,
+			false,
+			false,
+		},
+		{
+			"ShouldPass2FAUser",
+			authentication.TwoFactor,
+			true,
+			nil,
+			fasthttp.StatusOK,
+			false,
+			false,
+		},
+		{
+			"ShouldRequire2FAWhenWebAuthnSetup",
+			authentication.OneFactor,
+			true,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, john).
+					Return(model.UserInfo{HasWebAuthn: true}, nil)
+			},
+			fasthttp.StatusForbidden,
+			false,
+			true,
+		},
+		{
+			"ShouldRequire2FAWhenTOTPSetup",
+			authentication.OneFactor,
+			true,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, john).
+					Return(model.UserInfo{HasTOTP: true}, nil)
+			},
+			fasthttp.StatusForbidden,
+			false,
+			true,
+		},
+		{
+			"ShouldNotRequire2FAWhenNotSetup",
+			authentication.OneFactor,
+			true,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, john).
+					Return(model.UserInfo{}, nil)
+			},
+			fasthttp.StatusOK,
+			false,
+			false,
+		},
+		{
+			"ShouldRequire2FAWhenError",
+			authentication.OneFactor,
+			true,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, john).
+					Return(model.UserInfo{}, errors.New("example"))
+			},
+			fasthttp.StatusForbidden,
+			false,
+			true,
+		},
+		{
+			"ShouldRequireAuthentication",
+			authentication.NotAuthenticated,
+			true,
+			nil,
+			fasthttp.StatusForbidden,
+			true,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Configuration.IdentityValidation.ElevatedSession = schema.IdentityValidationElevatedSession{
+				CodeLifespan:        time.Minute,
+				ElevationLifespan:   time.Minute,
+				Characters:          8,
+				RequireSecondFactor: tc.require2FA,
+			}
+
+			userSession, err := mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			switch tc.level {
+			case authentication.OneFactor:
+				userSession.Username = john
+				userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+				userSession.AuthenticationMethodRefs.WebAuthn = false
+			case authentication.TwoFactor:
+				userSession.Username = john
+				userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+				userSession.AuthenticationMethodRefs.WebAuthn = true
+			case authentication.NotAuthenticated:
+				userSession.AuthenticationMethodRefs.UsernameAndPassword = false
+				userSession.AuthenticationMethodRefs.WebAuthn = false
+			}
+
+			require.NoError(t, mock.Ctx.SaveSession(userSession))
+
+			if tc.setup != nil {
+				tc.setup(t, mock)
+			}
+
+			handler := middlewares.RequireElevationSecondFactor(NilHandler)
+
+			handler(mock.Ctx)
+
+			assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
+
+			if tc.expected == fasthttp.StatusOK {
+				assert.Equal(t, "text/plain; charset=utf-8", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentType)))
+				assert.Equal(t, "Example Nil", string(mock.Ctx.Response.Body()))
+			} else {
+				data := &response{}
+
+				require.NoError(t, json.Unmarshal(mock.Ctx.Response.Body(), data))
+
+				assert.False(t, data.Data.Elevation)
+				assert.Equal(t, tc.expected1FA, data.Data.FirstFactor)
+				assert.Equal(t, tc.expected2FA, data.Data.SecondFactor)
+			}
+		})
+	}
+}
+
 func NilHandler(ctx *middlewares.AutheliaCtx) {
 	ctx.SetContentTypeTextPlain()
 	ctx.Response.SetBodyString("Example Nil")
