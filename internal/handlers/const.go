@@ -54,6 +54,11 @@ const (
 	queryArgSubflow   = "subflow"
 	queryArgUserCode  = oidc.FormParameterUserCode
 	queryArgFlowID    = oidc.FormParameterFlowID
+
+	queryArgError            = oidc.FrontendQueryArgError
+	queryArgErrorDescription = oidc.FrontendQueryArgErrorDescription
+	queryArgErrorHint        = oidc.FrontendQueryArgErrorHint
+	queryArgErrorDebug       = oidc.FrontendQueryArgErrorDebug
 )
 
 var (

@@ -151,7 +151,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, strings.Repeat("A", 33))
 
-		mock.Assert200KO(t, messageOperationFailed)
+		assertConsentCompletionRedirect(t, mock, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to handle flow response as the user code is too long", nil)
 	})
@@ -168,7 +168,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "ABCDEFGH")
 
-		mock.Assert200KO(t, messageOperationFailed)
+		assertConsentCompletionRedirect(t, mock, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred using the signature of the user code session to retrieve the device code session preventing a successful flow response", "sql: no rows in result set")
 	})
@@ -293,7 +293,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflowDeviceState(t *testing.
 
 			handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
 
-			mock.Assert200KO(t, messageOperationFailed)
+			assertConsentCompletionRedirect(t, mock, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to handle flow response as the device code session is in an invalid state", nil)
 		})
@@ -312,8 +312,32 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflowDeviceState(t *testing.
 
 		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
 
-		mock.Assert200KO(t, messageAuthenticationFailed)
+		assertConsentCompletionRedirect(t, mock, flowOpenIDConnectSubFlowNameDeviceAuthorization, "")
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading the client for the device code session", regexpAnyError)
 	})
+}
+
+func assertConsentCompletionRedirect(t *testing.T, mock *mocks.MockAutheliaCtx, subflow, debug string) {
+	t.Helper()
+
+	body := redirectResponse{}
+
+	mock.GetResponseData(t, &body)
+
+	target, err := url.Parse(body.Redirect)
+
+	require.NoError(t, err)
+
+	assert.Equal(t, oidc.FrontendEndpointPathConsentCompletion, target.Path)
+
+	query := target.Query()
+
+	assert.Equal(t, oidc.ErrFlowCouldNotContinue.ErrorField, query.Get(queryArgError))
+	assert.Equal(t, oidc.ErrFlowCouldNotContinue.DescriptionField, query.Get(queryArgErrorDescription))
+	assert.Equal(t, oidc.ErrFlowCouldNotContinue.HintField, query.Get(queryArgErrorHint))
+	assert.Equal(t, debug, query.Get(queryArgErrorDebug))
+	assert.Equal(t, flowNameOpenIDConnect, query.Get(queryArgFlow))
+	assert.Equal(t, subflow, query.Get(queryArgSubflow))
+	assert.Empty(t, query.Get(queryArgFlowID))
 }
