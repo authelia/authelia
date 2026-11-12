@@ -33,7 +33,7 @@
     "@fullhuman/postcss-purgecss": "9.1.0",
     "autoprefixer": "10.6.2",
     "basiclightbox": "5.0.4",
-    "bootstrap": "5.3.8",
+    "bootstrap": "5.3.9",
     "clipboard": "2.0.11",
     "eslint": "10.14.0",
     "eslint-formatter-rdjson": "1.0.6",
