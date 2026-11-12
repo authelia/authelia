@@ -63,9 +63,8 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 		RPOpaqueOrigins:       opaqueOrigins,
 		AttestationPreference: base.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			AuthenticatorAttachment: base.SelectionCriteria.Attachment,
-			ResidentKey:             base.SelectionCriteria.Discoverability,
-			UserVerification:        base.SelectionCriteria.UserVerification,
+			ResidentKey:      base.SelectionCriteria.Discoverability,
+			UserVerification: base.SelectionCriteria.UserVerification,
 		},
 		Debug:                false,
 		EncodeUserIDAsString: false,
@@ -85,9 +84,11 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 		ExtensionsUnsolicitedOutputPolicy: policy,
 	}
 
-	switch base.SelectionCriteria.Attachment {
-	case protocol.Platform, protocol.CrossPlatform:
-		config.AuthenticatorSelection.AuthenticatorAttachment = base.SelectionCriteria.Attachment
+	if base.SelectionCriteria.Attachment != nil {
+		switch *base.SelectionCriteria.Attachment {
+		case protocol.Platform, protocol.CrossPlatform:
+			config.AuthenticatorSelection.AuthenticatorAttachment = *base.SelectionCriteria.Attachment
+		}
 	}
 
 	switch base.SelectionCriteria.Discoverability {

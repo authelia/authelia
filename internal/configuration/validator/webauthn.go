@@ -68,10 +68,12 @@ func validateWebAuthnRelyingPartyBase(base, defaults *schema.WebAuthnBase, prefi
 	}
 
 	switch {
-	case base.SelectionCriteria.Attachment == "":
+	case base.SelectionCriteria.Attachment == nil:
 		base.SelectionCriteria.Attachment = defaults.SelectionCriteria.Attachment
-	case !utils.IsStringInSlice(string(base.SelectionCriteria.Attachment), validWebAuthnAttachment):
-		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, prefix, "attachment", utils.StringJoinOr(validWebAuthnAttachment), base.SelectionCriteria.Attachment))
+	case *base.SelectionCriteria.Attachment == "":
+		break
+	case !utils.IsStringInSlice(string(*base.SelectionCriteria.Attachment), validWebAuthnAttachment):
+		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, prefix, "attachment", utils.StringJoinOr(validWebAuthnAttachment), *base.SelectionCriteria.Attachment))
 	}
 
 	switch {
@@ -96,7 +98,7 @@ func validateWebAuthnRelyingPartyBase(base, defaults *schema.WebAuthnBase, prefi
 		base.Filtering.ProhibitBackupEligibility = defaults.Filtering.ProhibitBackupEligibility
 	}
 
-	if len(base.Filtering.PermittedAAGUIDs) == 0 && len(base.Filtering.ProhibitedAAGUIDs) == 0 {
+	if base.Filtering.PermittedAAGUIDs == nil && base.Filtering.ProhibitedAAGUIDs == nil {
 		base.Filtering.PermittedAAGUIDs = defaults.Filtering.PermittedAAGUIDs
 		base.Filtering.ProhibitedAAGUIDs = defaults.Filtering.ProhibitedAAGUIDs
 	}

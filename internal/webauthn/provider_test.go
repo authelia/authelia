@@ -70,7 +70,7 @@ func TestNewProvider(t *testing.T) {
 							Timeout:              time.Second * 30,
 							ConveyancePreference: protocol.PreferDirectAttestation,
 							SelectionCriteria: schema.WebAuthnSelectionCriteria{
-								Attachment:       protocol.CrossPlatform,
+								Attachment:       new(protocol.CrossPlatform),
 								Discoverability:  protocol.ResidentKeyRequirementRequired,
 								UserVerification: protocol.VerificationRequired,
 							},

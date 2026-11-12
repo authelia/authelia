@@ -258,7 +258,7 @@ func TestValidateWebAuthn(t *testing.T) {
 				WebAuthn: schema.WebAuthn{
 					WebAuthnBase: schema.WebAuthnBase{
 						SelectionCriteria: schema.WebAuthnSelectionCriteria{
-							Attachment:      "bad-attachment",
+							Attachment:      new(protocol.AuthenticatorAttachment("bad-attachment")),
 							Discoverability: "bad-discoverability",
 						},
 						Filtering: schema.WebAuthnFiltering{
@@ -374,7 +374,7 @@ func TestValidateWebAuthnRelyingParties(t *testing.T) {
 						Timeout:              time.Second * 30,
 						ConveyancePreference: protocol.PreferDirectAttestation,
 						SelectionCriteria: schema.WebAuthnSelectionCriteria{
-							Attachment:       protocol.CrossPlatform,
+							Attachment:       new(protocol.CrossPlatform),
 							Discoverability:  protocol.ResidentKeyRequirementRequired,
 							UserVerification: protocol.VerificationRequired,
 						},
@@ -394,13 +394,58 @@ func TestValidateWebAuthnRelyingParties(t *testing.T) {
 					Timeout:              time.Second * 30,
 					ConveyancePreference: protocol.PreferDirectAttestation,
 					SelectionCriteria: schema.WebAuthnSelectionCriteria{
-						Attachment:       protocol.CrossPlatform,
+						Attachment:       new(protocol.CrossPlatform),
 						Discoverability:  protocol.ResidentKeyRequirementRequired,
 						UserVerification: protocol.VerificationRequired,
 					},
 					Filtering: schema.WebAuthnFiltering{
 						ProhibitBackupEligibility: new(true),
 						ProhibitedAAGUIDs:         []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+					},
+				},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotOverrideExplicitEmptyAttachmentAndAAGUIDs",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					WebAuthnBase: schema.WebAuthnBase{
+						DisplayName:          "Global",
+						Timeout:              time.Second * 30,
+						ConveyancePreference: protocol.PreferDirectAttestation,
+						SelectionCriteria: schema.WebAuthnSelectionCriteria{
+							Attachment: new(protocol.CrossPlatform),
+						},
+						Filtering: schema.WebAuthnFiltering{
+							ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+						},
+					},
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							WebAuthnBase: schema.WebAuthnBase{
+								SelectionCriteria: schema.WebAuthnSelectionCriteria{
+									Attachment: new(protocol.AuthenticatorAttachment("")),
+								},
+								Filtering: schema.WebAuthnFiltering{
+									ProhibitedAAGUIDs: []uuid.UUID{},
+								},
+							},
+						},
+					},
+				},
+			},
+			map[string]schema.WebAuthnBase{
+				"example.com": {
+					DisplayName:          "Global",
+					Timeout:              time.Second * 30,
+					ConveyancePreference: protocol.PreferDirectAttestation,
+					SelectionCriteria: schema.WebAuthnSelectionCriteria{
+						Attachment: new(protocol.AuthenticatorAttachment("")),
+					},
+					Filtering: schema.WebAuthnFiltering{
+						ProhibitedAAGUIDs: []uuid.UUID{},
 					},
 				},
 			},
@@ -482,7 +527,7 @@ func TestValidateWebAuthnRelyingParties(t *testing.T) {
 							WebAuthnBase: schema.WebAuthnBase{
 								ConveyancePreference: "bad-conveyance",
 								SelectionCriteria: schema.WebAuthnSelectionCriteria{
-									Attachment: "bad-attachment",
+									Attachment: new(protocol.AuthenticatorAttachment("bad-attachment")),
 								},
 								Filtering: schema.WebAuthnFiltering{
 									PermittedAAGUIDs:  []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
