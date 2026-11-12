@@ -54,7 +54,7 @@ func TestNewConfiguration(t *testing.T) {
 				"session: option 'secret' is required",
 				"session: option 'cookies' is required",
 				"storage: option 'encryption_key' is required",
-				"storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided",
+				"storage: configuration for a 'postgres', 'mssql', 'mysql', or 'local' database must be provided",
 				"notifier: you must ensure either the 'smtp' or 'filesystem' notifier is configured",
 			},
 		},

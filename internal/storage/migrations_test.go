@@ -25,16 +25,20 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 		provider string
 	}{
 		{
-			"ShouldTestSQLite",
-			providerSQLite,
-		},
-		{
 			"ShouldTestPostgreSQL",
 			providerPostgres,
 		},
 		{
+			"ShouldTestMSSQL",
+			providerMSSQL,
+		},
+		{
 			"ShouldTestMySQL",
 			providerMySQL,
+		},
+		{
+			"ShouldTestSQLite",
+			providerSQLite,
 		},
 	}
 
@@ -63,8 +67,8 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 
 			assert.Len(t, migrations, ver-1)
 
-			migrations, err = loadMigrations(providerSQLite, ver, 0)
-			require.NoError(t, err)
+			migrations, err = loadMigrations(tc.provider, ver, 0)
+			assert.NoError(t, err)
 
 			assert.Len(t, migrations, ver)
 
@@ -72,10 +76,17 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 				assert.Equal(t, ver-i, migrations[i].Version)
 			}
 
-			migrations, err = loadMigrations(tc.provider, ver, 1)
-			require.NoError(t, err)
+			initialMigration := providerMigrationInitial[tc.provider]
 
-			assert.Len(t, migrations, ver-1)
+			if initialMigration == 1 {
+				migrations, err = loadMigrations(tc.provider, ver, 1)
+				require.NoError(t, err)
+				assert.Len(t, migrations, ver-1)
+			} else {
+				migrations, err = loadMigrations(tc.provider, ver, 1)
+				assert.EqualError(t, err, fmt.Sprintf("migrations between %d (current) and 1 (target) are invalid as the '%s' provider only has migrations starting at %d meaning the minimum target version when migrating down is %d with the exception of 0", ver, tc.provider, initialMigration, initialMigration))
+				assert.Len(t, migrations, 0)
+			}
 		})
 	}
 }
@@ -404,5 +415,5 @@ func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
 }
 
 const (
-	LatestVersion = 31
+	LatestVersion = 32
 )

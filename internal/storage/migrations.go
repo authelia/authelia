@@ -20,13 +20,13 @@ import (
 //go:embed migrations/*
 var migrationsFS embed.FS
 
-func latestMigrationVersion(providerName string) (version int, err error) {
+func latestMigrationVersion(provider string) (version int, err error) {
 	var (
 		entries   []fs.DirEntry
 		migration model.SchemaMigration
 	)
 
-	if entries, err = migrationsFS.ReadDir(path.Join(pathMigrations, providerName)); err != nil {
+	if entries, err = migrationsFS.ReadDir(path.Join(pathMigrations, provider)); err != nil {
 		return -1, err
 	}
 
@@ -35,7 +35,7 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 			continue
 		}
 
-		if migration, err = scanMigration(providerName, entry.Name()); err != nil {
+		if migration, err = scanMigration(provider, entry.Name()); err != nil {
 			return -1, err
 		}
 
@@ -54,9 +54,20 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 // loadMigrations scans the migrations fs and loads the appropriate migrations for a given providerName, prior and
 // target versions. If the target version is -1 this indicates the latest version. If the target version is 0
 // this indicates the database zero state.
-func loadMigrations(providerName string, prior, target int) (migrations []model.SchemaMigration, err error) {
+func loadMigrations(provider string, prior, target int) (migrations []model.SchemaMigration, err error) {
 	if prior == target {
 		return nil, ErrMigrateCurrentVersionSameAsTarget
+	}
+
+	start := providerMigrationInitial[provider]
+
+	if start != 1 {
+		switch {
+		case prior > target && target != 0 && target < start:
+			return nil, fmt.Errorf("migrations between %d (current) and %d (target) are invalid as the '%s' provider only has migrations starting at %d meaning the minimum target version when migrating down is %d with the exception of 0", prior, target, provider, start, start)
+		case prior < target && target < start:
+			return nil, fmt.Errorf("migrations between %d (current) and %d (target) are invalid as the '%s' provider only has migrations starting at %d meaning the minimum target version when migrating up is %d", prior, target, provider, start, start)
+		}
 	}
 
 	var (
@@ -64,7 +75,7 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 		entries   []fs.DirEntry
 	)
 
-	if entries, err = migrationsFS.ReadDir(path.Join(pathMigrations, providerName)); err != nil {
+	if entries, err = migrationsFS.ReadDir(path.Join(pathMigrations, provider)); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +86,7 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 			continue
 		}
 
-		if migration, err = scanMigration(providerName, entry.Name()); err != nil {
+		if migration, err = scanMigration(provider, entry.Name()); err != nil {
 			return nil, err
 		}
 
@@ -106,6 +117,9 @@ func skipMigration(up bool, target, prior int, migration *model.SchemaMigration)
 		}
 
 		if migration.Version > target || migration.Version <= prior {
+			// Skip the migration if:
+			//  - the version is greater than the target.
+			//  - the version less than or equal to the previous version.
 			return true
 		}
 	} else {
@@ -114,6 +128,9 @@ func skipMigration(up bool, target, prior int, migration *model.SchemaMigration)
 		}
 
 		if migration.Version <= target || migration.Version > prior {
+			// Skip the migration if:
+			//  - the version is less than or equal to the target.
+			//  - the version greater than the prior version.
 			return true
 		}
 	}
@@ -129,7 +146,7 @@ func scanMigration(providerName, m string) (migration model.SchemaMigration, err
 	result := reMigration.FindStringSubmatch(m)
 
 	migration = model.SchemaMigration{
-		Name:     strings.ReplaceAll(result[reMigration.SubexpIndex("Name")], "_", " "),
+		Name:     strings.ReplaceAll(result[reMigration.SubexpIndex(migrationRegexGroupName)], "_", " "),
 		Provider: providerName,
 	}
 
@@ -141,16 +158,16 @@ func scanMigration(providerName, m string) (migration model.SchemaMigration, err
 
 	migration.Query = string(data)
 
-	switch direction := result[reMigration.SubexpIndex("Direction")]; direction {
-	case "up":
+	switch direction := result[reMigration.SubexpIndex(migrationRegexGroupDirection)]; direction {
+	case migrationDirectionUp:
 		migration.Up = true
-	case "down":
+	case migrationDirectionDown:
 		migration.Up = false
 	default:
 		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in Direction group '%s' must be up or down", direction)
 	}
 
-	migration.Version, _ = strconv.Atoi(result[reMigration.SubexpIndex("Version")])
+	migration.Version, _ = strconv.Atoi(result[reMigration.SubexpIndex(migrationRegexGroupVersion)])
 
 	return migration, nil
 }

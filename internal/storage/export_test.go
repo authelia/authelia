@@ -72,7 +72,7 @@ func (p *SQLProvider) Conn(ctx context.Context) SQLXConnection {
 
 // SchemaMigrateApply exposes (*SQLProvider).schemaMigrateApply for tests in storage_test.
 func (p *SQLProvider) SchemaMigrateApply(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration, prior, target int) error {
-	return p.schemaMigrateApply(ctx, conn, migration, prior, target)
+	return p.schemaMigrateApply(ctx, conn, providerMigrationInitial[p.name], prior, target, migration)
 }
 
 // Encrypt exposes (*SQLProvider).encrypt for tests in storage_test.

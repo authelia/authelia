@@ -12,6 +12,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mattn/go-sqlite3"
+	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,6 +36,10 @@ func TestIsSerializationFailure(t *testing.T) {
 		{name: "ShouldMatchPostgresDeadlockDetected", err: &pgconn.PgError{Code: codePostgresDeadlockDetected}, expected: true},
 		{name: "ShouldMatchPostgresSerializationFailureWrapped", err: fmt.Errorf("error inserting oauth2 access token session: %w", &pgconn.PgError{Code: codePostgresSerializationFailure}), expected: true},
 		{name: "ShouldNotMatchPostgresUniqueViolation", err: &pgconn.PgError{Code: "23505"}, expected: false},
+		{name: "ShouldMatchMSSQLDeadlock", err: mssql.Error{Number: codeMSSQLDeadlock}, expected: true},
+		{name: "ShouldMatchMSSQLSnapshotUpdateConflict", err: mssql.Error{Number: codeMSSQLSnapshotUpdateConflict}, expected: true},
+		{name: "ShouldMatchMSSQLDeadlockWrapped", err: fmt.Errorf("error inserting oauth2 access token session: %w", mssql.Error{Number: codeMSSQLDeadlock}), expected: true},
+		{name: "ShouldNotMatchMSSQLUniqueViolation", err: mssql.Error{Number: codeMSSQLUniqueIndexViolation}, expected: false},
 	}
 
 	for _, tc := range testCases {
@@ -62,6 +67,10 @@ func TestIsUniqueConstraintViolation(t *testing.T) {
 		{name: "ShouldMatchPostgresUniqueViolation", err: &pgconn.PgError{Code: codePostgresUniqueViolation}, expected: true},
 		{name: "ShouldMatchPostgresUniqueViolationWrapped", err: fmt.Errorf("error inserting user opaque id: %w", &pgconn.PgError{Code: codePostgresUniqueViolation}), expected: true},
 		{name: "ShouldNotMatchPostgresSerializationFailure", err: &pgconn.PgError{Code: codePostgresSerializationFailure}, expected: false},
+		{name: "ShouldMatchMSSQLUniqueConstraintViolation", err: mssql.Error{Number: codeMSSQLUniqueConstraintViolation}, expected: true},
+		{name: "ShouldMatchMSSQLUniqueIndexViolation", err: mssql.Error{Number: codeMSSQLUniqueIndexViolation}, expected: true},
+		{name: "ShouldMatchMSSQLUniqueViolationWrapped", err: fmt.Errorf("error inserting user opaque id: %w", mssql.Error{Number: codeMSSQLUniqueIndexViolation}), expected: true},
+		{name: "ShouldNotMatchMSSQLDeadlock", err: mssql.Error{Number: codeMSSQLDeadlock}, expected: false},
 	}
 
 	for _, tc := range testCases {
@@ -90,6 +99,10 @@ func TestIsUniqueViolation(t *testing.T) {
 		{name: "ShouldMatchPostgresUniqueViolation", err: &pgconn.PgError{Code: codePostgresUniqueViolation}, expected: true},
 		{name: "ShouldMatchPostgresUniqueViolationWrapped", err: fmt.Errorf("error upserting session: %w", &pgconn.PgError{Code: codePostgresUniqueViolation}), expected: true},
 		{name: "ShouldNotMatchPostgresSerializationFailure", err: &pgconn.PgError{Code: codePostgresSerializationFailure}, expected: false},
+		{name: "ShouldMatchMSSQLUniqueConstraintViolation", err: mssql.Error{Number: codeMSSQLUniqueConstraintViolation}, expected: true},
+		{name: "ShouldMatchMSSQLUniqueIndexViolation", err: mssql.Error{Number: codeMSSQLUniqueIndexViolation}, expected: true},
+		{name: "ShouldMatchMSSQLUniqueViolationWrapped", err: fmt.Errorf("error upserting session: %w", mssql.Error{Number: codeMSSQLUniqueIndexViolation}), expected: true},
+		{name: "ShouldNotMatchMSSQLDeadlock", err: mssql.Error{Number: codeMSSQLDeadlock}, expected: false},
 	}
 
 	for _, tc := range testCases {
