@@ -8,7 +8,7 @@ overrides:
   brace-expansion: 5.0.12
   glob: 14.0.4
   katex: 0.19.1
-  minimatch: 11.0.7
+  minimatch: 11.0.8
   picomatch: 4.0.7
   postcss-selector-parser: 7.2.0
   semver: 7.8.6
