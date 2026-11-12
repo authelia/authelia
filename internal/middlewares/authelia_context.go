@@ -771,7 +771,7 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.Provider, err error) 
 		return nil, err
 	}
 
-	ctx.GetLogger().Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", provider.WebAuthn.Config.RPID, strings.Join(provider.WebAuthn.Config.RPOrigins, ", "))
+	ctx.GetLogger().Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", provider.Config.RPID, strings.Join(provider.Config.RPOrigins, ", "))
 
 	return provider, nil
 }

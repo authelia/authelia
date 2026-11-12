@@ -87,7 +87,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, details.DisplayName, provider.WebAuthn.Config.RPID); err != nil {
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, details.DisplayName, provider.Config.RPID); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -282,7 +282,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, details.DisplayName, provider.WebAuthn.Config.RPID); err != nil {
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, details.DisplayName, provider.Config.RPID); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -300,11 +300,11 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	credential := model.NewWebAuthnCredential(ctx, provider.WebAuthn.Config.RPID, userSession.Username, userSession.WebAuthn.Description, c)
+	credential := model.NewWebAuthnCredential(ctx, provider.Config.RPID, userSession.Username, userSession.WebAuthn.Description, c)
 
 	credential.Discoverable = webauthn.IsCredentialCreationDiscoverable(ctx.Logger, response)
 
-	if err = webauthn.ValidateCredentialAllowed(&provider.Config.WebAuthnBase, &credential); err != nil {
+	if err = webauthn.ValidateCredentialAllowed(&provider.Options.WebAuthnBase, &credential); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred processing the credential filtering", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

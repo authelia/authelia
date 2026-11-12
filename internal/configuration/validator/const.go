@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 const (
@@ -366,6 +367,7 @@ const (
 	errFmtWebAuthnRelatedOriginsOriginDuplicateSelf      = "webauthn: %soption 'origins' has value '%s' defined more than once"
 	errFmtWebAuthnRelatedOriginsOriginNotSessionCookie   = "webauthn: %soption 'origins' item #%d has value '%s' but this value is not a valid origin for any 'authelia_url' configured in the session cookies"
 	errFmtWebAuthnRelatedOriginsLabels                   = "webauthn: %soption 'origins' is invalid: %s"
+	errFmtWebAuthnRelatedOriginsLabelsOpaque             = "webauthn: %soption 'origins' is invalid when option 'opaque_origins' is configured: %s"
 )
 
 // Access Control error constants.
@@ -599,17 +601,18 @@ var (
 )
 
 var (
-	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
-	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
-	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
-	validSessionStorageValues                = []string{schema.SessionStorageCache, schema.SessionStorageInternal}
-	validCacheRedisSentinelModes             = []string{schema.RedisSentinelModeCluster, schema.RedisSentinelModeFailover}
-	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
-	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
-	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
-	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
-	validWebAuthnAttachment                  = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
-	validWebAuthnDiscoverability             = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
+	validStoragePostgreSQLSSLModes                   = []string{"disable", "require", "verify-ca", "verify-full"}
+	validThemeNames                                  = []string{"light", "dark", "grey", "oled", auto}
+	validSessionSameSiteValues                       = []string{"none", "lax", "strict"}
+	validSessionStorageValues                        = []string{schema.SessionStorageCache, schema.SessionStorageInternal}
+	validCacheRedisSentinelModes                     = []string{schema.RedisSentinelModeCluster, schema.RedisSentinelModeFailover}
+	validLogLevels                                   = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
+	validLogFormats                                  = []string{logging.FormatText, logging.FormatJSON}
+	validWebAuthnConveyancePreferences               = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+	validWebAuthnUserVerificationRequirement         = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+	validWebAuthnAttachment                          = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
+	validWebAuthnExtensionsUnsolicitedOutputPolicies = []string{webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore}
+	validWebAuthnDiscoverability                     = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
 )
 
 var (

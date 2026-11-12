@@ -195,7 +195,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if u, c, err = provider.ValidatePasskeyLogin(handlerWebAuthnDiscoverableLogin(ctx, provider.WebAuthn.Config.RPID), *userSession.WebAuthn.SessionData, response); err != nil {
+	if u, c, err = provider.ValidatePasskeyLogin(handlerWebAuthnDiscoverableLogin(ctx, provider.Config.RPID), *userSession.WebAuthn.SessionData, response); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -227,7 +227,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 	for _, credential := range user.Credentials {
 		if bytes.Equal(credential.KID.Bytes(), c.ID) {
-			credential.UpdateSignInInfo(provider.WebAuthn.Config, ctx.GetClock().Now().UTC(), c)
+			credential.UpdateSignInInfo(provider.Config, ctx.GetClock().Now().UTC(), c)
 
 			if !credential.Discoverable {
 				credential.Discoverable = true

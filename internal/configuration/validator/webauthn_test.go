@@ -1119,6 +1119,71 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldErrorOnOriginsExceedingDefaultLabelsWithOpaqueOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{
+								mustParseURL("https://example.com"),
+								mustParseURL("https://login.example.co.uk"),
+								mustParseURL("https://b.com"),
+								mustParseURL("https://c.com"),
+								mustParseURL("https://d.com"),
+								mustParseURL("https://e.com"),
+							},
+							OpaqueOrigins: []string{
+								"android:apk-key-hash:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4",
+							},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+						{AutheliaURL: mustParseURL("https://login.example.co.uk")},
+						{AutheliaURL: mustParseURL("https://b.com")},
+						{AutheliaURL: mustParseURL("https://c.com")},
+						{AutheliaURL: mustParseURL("https://d.com")},
+						{AutheliaURL: mustParseURL("https://e.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' is invalid when option 'opaque_origins' is configured: error validating related origins: the origins have 6 distinct registrable domain labels but clients only process 5 of them, so origins beyond that limit are ignored",
+			},
+		},
+		{
+			"ShouldNotErrorOnOriginsWithinPublicSuffixLabelsWithoutOpaqueOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{
+								mustParseURL("https://example.com"),
+								mustParseURL("https://login.example.co.uk"),
+								mustParseURL("https://b.com"),
+								mustParseURL("https://c.com"),
+								mustParseURL("https://d.com"),
+								mustParseURL("https://e.com"),
+							},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+						{AutheliaURL: mustParseURL("https://login.example.co.uk")},
+						{AutheliaURL: mustParseURL("https://b.com")},
+						{AutheliaURL: mustParseURL("https://c.com")},
+						{AutheliaURL: mustParseURL("https://d.com")},
+						{AutheliaURL: mustParseURL("https://e.com")},
+					},
+				},
+			},
+			nil,
+		},
+		{
 			"ShouldErrorOnEquivalentOriginDuplicatedAcrossRelyingParties",
 			&schema.Configuration{
 				WebAuthn: schema.WebAuthn{

@@ -64,6 +64,15 @@ type WebAuthnSelectionCriteria struct {
 	UserVerification protocol.UserVerificationRequirement `koanf:"user_verification" yaml:"user_verification,omitempty" toml:"user_verification,omitempty" json:"user_verification,omitempty" jsonschema:"default=preferred,enum=discouraged,enum=preferred,enum=required,title=User Verification" jsonschema_description:"The default user verification preference for all WebAuthn credentials."`
 }
 
+// GetAttachment returns the configured attachment or an empty attachment when it's not configured.
+func (c WebAuthnSelectionCriteria) GetAttachment() protocol.AuthenticatorAttachment {
+	if c.Attachment == nil {
+		return ""
+	}
+
+	return *c.Attachment
+}
+
 // WebAuthnFiltering represents the WebAuthn authenticator filtering configuration.
 type WebAuthnFiltering struct {
 	ProhibitBackupEligibility *bool       `koanf:"prohibit_backup_eligibility" yaml:"prohibit_backup_eligibility" toml:"prohibit_backup_eligibility" json:"prohibit_backup_eligibility" jsonschema:"default=false,title=Prohibit Backup Eligibility" jsonschema_description:"Prohibits registering authenticators which claim backup eligibility i.e. exporting credentials off of the device."`

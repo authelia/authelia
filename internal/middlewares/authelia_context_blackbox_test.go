@@ -1547,7 +1547,7 @@ func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
 	assert.NotNil(t, provider)
 	assert.NoError(t, err)
 
-	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Attachment = protocol.CrossPlatform
+	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Attachment = new(protocol.CrossPlatform)
 	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability = protocol.ResidentKeyRequirementRequired
 
 	provider, err = mock.Ctx.GetWebAuthnProvider()

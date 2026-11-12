@@ -43,12 +43,12 @@ func TestNewProvider(t *testing.T) {
 			mustParseURL("https://auth.example.com"),
 			"",
 			func(t *testing.T, provider *webauthn.Provider) {
-				assert.Equal(t, "auth.example.com", provider.WebAuthn.Config.RPID)
-				assert.Equal(t, "Authelia", provider.WebAuthn.Config.RPDisplayName)
-				assert.Equal(t, []string{"https://auth.example.com"}, provider.WebAuthn.Config.RPOrigins)
-				assert.Equal(t, protocol.PreferIndirectAttestation, provider.WebAuthn.Config.AttestationPreference)
-				assert.Equal(t, time.Second*60, provider.WebAuthn.Config.Timeouts.Login.Timeout)
-				assert.Equal(t, time.Second*60, provider.WebAuthn.Config.Timeouts.Registration.Timeout)
+				assert.Equal(t, "auth.example.com", provider.Config.RPID)
+				assert.Equal(t, "Authelia", provider.Config.RPDisplayName)
+				assert.Equal(t, []string{"https://auth.example.com"}, provider.Config.RPOrigins)
+				assert.Equal(t, protocol.PreferIndirectAttestation, provider.Config.AttestationPreference)
+				assert.Equal(t, time.Second*60, provider.Config.Timeouts.Login.Timeout)
+				assert.Equal(t, time.Second*60, provider.Config.Timeouts.Registration.Timeout)
 			},
 		},
 		{
@@ -82,16 +82,16 @@ func TestNewProvider(t *testing.T) {
 			mustParseURL("https://example.com"),
 			"",
 			func(t *testing.T, provider *webauthn.Provider) {
-				assert.Equal(t, "example.com", provider.WebAuthn.Config.RPID)
-				assert.Equal(t, "Example", provider.WebAuthn.Config.RPDisplayName)
-				assert.Equal(t, []string{"https://example.com", "https://auth.example.com"}, provider.WebAuthn.Config.RPOrigins)
-				assert.Equal(t, protocol.PreferDirectAttestation, provider.WebAuthn.Config.AttestationPreference)
-				assert.Equal(t, time.Second*30, provider.WebAuthn.Config.Timeouts.Login.Timeout)
-				assert.Equal(t, protocol.CrossPlatform, provider.WebAuthn.Config.AuthenticatorSelection.AuthenticatorAttachment)
-				assert.Equal(t, protocol.ResidentKeyRequirementRequired, provider.WebAuthn.Config.AuthenticatorSelection.ResidentKey)
-				assert.Equal(t, protocol.VerificationRequired, provider.WebAuthn.Config.AuthenticatorSelection.UserVerification)
-				require.NotNil(t, provider.WebAuthn.Config.AuthenticatorSelection.RequireResidentKey)
-				assert.True(t, *provider.WebAuthn.Config.AuthenticatorSelection.RequireResidentKey)
+				assert.Equal(t, "example.com", provider.Config.RPID)
+				assert.Equal(t, "Example", provider.Config.RPDisplayName)
+				assert.Equal(t, []string{"https://example.com", "https://auth.example.com"}, provider.Config.RPOrigins)
+				assert.Equal(t, protocol.PreferDirectAttestation, provider.Config.AttestationPreference)
+				assert.Equal(t, time.Second*30, provider.Config.Timeouts.Login.Timeout)
+				assert.Equal(t, protocol.CrossPlatform, provider.Config.AuthenticatorSelection.AuthenticatorAttachment)
+				assert.Equal(t, protocol.ResidentKeyRequirementRequired, provider.Config.AuthenticatorSelection.ResidentKey)
+				assert.Equal(t, protocol.VerificationRequired, provider.Config.AuthenticatorSelection.UserVerification)
+				require.NotNil(t, provider.Config.AuthenticatorSelection.RequireResidentKey)
+				assert.True(t, *provider.Config.AuthenticatorSelection.RequireResidentKey)
 			},
 		},
 		{
@@ -121,11 +121,11 @@ func TestNewProvider(t *testing.T) {
 			func(t *testing.T, provider *webauthn.Provider) {
 				// The opaque origins must not reach RPOrigins as only the latter is declared in the well known
 				// document, which a client never resolves an opaque origin through.
-				assert.Equal(t, []string{"https://example.com"}, provider.WebAuthn.Config.RPOrigins)
+				assert.Equal(t, []string{"https://example.com"}, provider.Config.RPOrigins)
 				assert.Equal(t, []string{
 					"android:apk-key-hash:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4",
 					"ios:bundle-id:com.example.app",
-				}, provider.WebAuthn.Config.RPOpaqueOrigins)
+				}, provider.Config.RPOpaqueOrigins)
 
 				related, err := provider.RelatedOrigins()
 				require.NoError(t, err)
@@ -153,9 +153,9 @@ func TestNewProvider(t *testing.T) {
 			mustParseURL("https://example.com"),
 			"",
 			func(t *testing.T, provider *webauthn.Provider) {
-				assert.Equal(t, []string{"https://example.com"}, provider.WebAuthn.Config.RPOrigins)
-				assert.Nil(t, provider.WebAuthn.Config.RPOpaqueOrigins)
-				assert.Equal(t, protocol.UnsolicitedOutputPolicyReject, provider.WebAuthn.Config.ExtensionsUnsolicitedOutputPolicy)
+				assert.Equal(t, []string{"https://example.com"}, provider.Config.RPOrigins)
+				assert.Nil(t, provider.Config.RPOpaqueOrigins)
+				assert.Equal(t, protocol.UnsolicitedOutputPolicyReject, provider.Config.ExtensionsUnsolicitedOutputPolicy)
 			},
 		},
 		{
@@ -180,7 +180,7 @@ func TestNewProvider(t *testing.T) {
 			mustParseURL("https://example.com"),
 			"",
 			func(t *testing.T, provider *webauthn.Provider) {
-				assert.Equal(t, protocol.UnsolicitedOutputPolicyIgnore, provider.WebAuthn.Config.ExtensionsUnsolicitedOutputPolicy)
+				assert.Equal(t, protocol.UnsolicitedOutputPolicyIgnore, provider.Config.ExtensionsUnsolicitedOutputPolicy)
 			},
 		},
 		{
@@ -196,7 +196,7 @@ func TestNewProvider(t *testing.T) {
 			mustParseURL("https://auth.example.com"),
 			"",
 			func(t *testing.T, provider *webauthn.Provider) {
-				assert.Equal(t, protocol.UnsolicitedOutputPolicyIgnore, provider.WebAuthn.Config.ExtensionsUnsolicitedOutputPolicy)
+				assert.Equal(t, protocol.UnsolicitedOutputPolicyIgnore, provider.Config.ExtensionsUnsolicitedOutputPolicy)
 			},
 		},
 		{
@@ -211,7 +211,7 @@ func TestNewProvider(t *testing.T) {
 			mustParseURL("https://auth.example.com"),
 			"",
 			func(t *testing.T, provider *webauthn.Provider) {
-				assert.Equal(t, protocol.UnsolicitedOutputPolicyReject, provider.WebAuthn.Config.ExtensionsUnsolicitedOutputPolicy)
+				assert.Equal(t, protocol.UnsolicitedOutputPolicyReject, provider.Config.ExtensionsUnsolicitedOutputPolicy)
 			},
 		},
 		{
@@ -230,8 +230,8 @@ func TestNewProvider(t *testing.T) {
 			mustParseURL("https://auth.example.com"),
 			"",
 			func(t *testing.T, provider *webauthn.Provider) {
-				require.NotNil(t, provider.WebAuthn.Config.AuthenticatorSelection.RequireResidentKey)
-				assert.False(t, *provider.WebAuthn.Config.AuthenticatorSelection.RequireResidentKey)
+				require.NotNil(t, provider.Config.AuthenticatorSelection.RequireResidentKey)
+				assert.False(t, *provider.Config.AuthenticatorSelection.RequireResidentKey)
 			},
 		},
 		{
@@ -288,10 +288,10 @@ func TestNewProvider(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, provider)
 
-			assert.Equal(t, tc.config.Disable, provider.Config.Disable)
-			assert.Equal(t, tc.config.EnablePasskeyLogin, provider.Config.EnablePasskeyLogin)
-			assert.Equal(t, tc.config.EnablePasskey2FA, provider.Config.EnablePasskey2FA)
-			assert.Equal(t, tc.config.EnablePasskeyUpgrade, provider.Config.EnablePasskeyUpgrade)
+			assert.Equal(t, tc.config.Disable, provider.Options.Disable)
+			assert.Equal(t, tc.config.EnablePasskeyLogin, provider.Options.EnablePasskeyLogin)
+			assert.Equal(t, tc.config.EnablePasskey2FA, provider.Options.EnablePasskey2FA)
+			assert.Equal(t, tc.config.EnablePasskeyUpgrade, provider.Options.EnablePasskeyUpgrade)
 
 			if tc.expected != nil {
 				tc.expected(t, provider)

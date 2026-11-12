@@ -56,7 +56,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	rpid := provider.WebAuthn.Config.RPID
+	rpid := provider.Config.RPID
 
 	var details *authentication.UserDetails
 	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
@@ -80,7 +80,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var extensions []gowebauthn.ExtensionOption
 
 	if user.HasFIDOU2F() {
-		extensions = append(extensions, gowebauthn.WithExtensionAppID(provider.WebAuthn.Config.RPOrigins[0]))
+		extensions = append(extensions, gowebauthn.WithExtensionAppID(provider.Config.RPOrigins[0]))
 	}
 
 	var opts = []gowebauthn.LoginOption{
@@ -208,7 +208,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, details.DisplayName, provider.WebAuthn.Config.RPID); err != nil {
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, details.DisplayName, provider.Config.RPID); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -238,7 +238,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	for _, credential := range user.Credentials {
 		if bytes.Equal(credential.KID.Bytes(), c.ID) {
-			credential.UpdateSignInInfo(provider.WebAuthn.Config, ctx.GetClock().Now().UTC(), c)
+			credential.UpdateSignInInfo(provider.Config, ctx.GetClock().Now().UTC(), c)
 
 			found = true
 

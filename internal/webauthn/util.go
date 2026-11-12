@@ -101,23 +101,15 @@ func GetRelatedOriginConfigByRPID(config schema.WebAuthn, rpid string) (ro *sche
 
 // GetRelatedOriginConfigByOrigin returns a *schema.WebAuthnRelyingParty provided it can match it to an origin string.
 func GetRelatedOriginConfigByOrigin(config schema.WebAuthn, origin *url.URL) (relyingPartyID string, ro *schema.WebAuthnRelyingParty) {
-	if origin == nil {
+	if origin == nil || origin.Path != "" {
 		return "", nil
 	}
 
 	for rpid, r := range config.RelyingParties {
-		ro = &r
-
-		for _, o := range ro.Origins {
-			if o == nil || !IsOriginEqual(o, origin) {
-				continue
+		for _, o := range r.Origins {
+			if o != nil && o.Path == "" && IsOriginEqual(o, origin) {
+				return rpid, &r
 			}
-
-			if o.Path != "" || origin.Path != "" {
-				continue
-			}
-
-			return rpid, ro
 		}
 	}
 
@@ -149,8 +141,8 @@ func OriginKey(u *url.URL) (key string) {
 
 	scheme, hostname := strings.ToLower(u.Scheme), strings.ToLower(u.Hostname())
 
-	switch port := u.Port(); {
-	case port == "", port == originEffectivePort(&url.URL{Scheme: scheme}):
+	switch port := u.Port(); port {
+	case "", schemeDefaultPort(scheme):
 		return scheme + "://" + hostname
 	default:
 		return scheme + "://" + net.JoinHostPort(hostname, port)
@@ -162,7 +154,11 @@ func originEffectivePort(u *url.URL) (port string) {
 		return port
 	}
 
-	switch strings.ToLower(u.Scheme) {
+	return schemeDefaultPort(u.Scheme)
+}
+
+func schemeDefaultPort(scheme string) (port string) {
+	switch strings.ToLower(scheme) {
 	case "https":
 		return "443"
 	case "http":

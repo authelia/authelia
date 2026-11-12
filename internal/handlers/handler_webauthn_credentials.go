@@ -71,7 +71,7 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 
 	var credentials []model.WebAuthnCredential
 
-	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, provider.WebAuthn.Config.RPID, userSession.Username); err != nil && err != storage.ErrNoWebAuthnCredential {
+	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, provider.Config.RPID, userSession.Username); err != nil && err != storage.ErrNoWebAuthnCredential {
 		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials for user '%s': error occurred loading credentials from the storage backend", userSession.Username)
 
 		ctx.SetJSONError(messageOperationFailed)
@@ -170,8 +170,8 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if credential.RPID != provider.WebAuthn.Config.RPID {
-		ctx.Logger.WithError(fmt.Errorf("the credential with id '%d' belongs to the relying party '%s' but the request is for the relying party '%s'", credential.ID, credential.RPID, provider.WebAuthn.Config.RPID)).Errorf("Error occurred modifying WebAuthn credential for user '%s'", userSession.Username)
+	if credential.RPID != provider.Config.RPID {
+		ctx.Logger.WithError(fmt.Errorf("the credential with id '%d' belongs to the relying party '%s' but the request is for the relying party '%s'", credential.ID, credential.RPID, provider.Config.RPID)).Errorf("Error occurred modifying WebAuthn credential for user '%s'", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -179,7 +179,7 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, provider.WebAuthn.Config.RPID, userSession.Username); err != nil {
+	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, provider.Config.RPID, userSession.Username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred looking up existing credentials", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

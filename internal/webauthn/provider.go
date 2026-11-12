@@ -21,9 +21,7 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 		return nil, fmt.Errorf("webauthn is disabled")
 	}
 
-	var (
-		origin *url.URL
-	)
+	var origin *url.URL
 
 	if origin, err = ctx.GetOrigin(); err != nil {
 		return nil, fmt.Errorf("error occurred determining the origin for the request: %w", err)
@@ -84,11 +82,9 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 		ExtensionsUnsolicitedOutputPolicy: policy,
 	}
 
-	if base.SelectionCriteria.Attachment != nil {
-		switch *base.SelectionCriteria.Attachment {
-		case protocol.Platform, protocol.CrossPlatform:
-			config.AuthenticatorSelection.AuthenticatorAttachment = *base.SelectionCriteria.Attachment
-		}
+	switch attachment := base.SelectionCriteria.GetAttachment(); attachment {
+	case protocol.Platform, protocol.CrossPlatform:
+		config.AuthenticatorSelection.AuthenticatorAttachment = attachment
 	}
 
 	switch base.SelectionCriteria.Discoverability {
@@ -105,7 +101,7 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 
 	return &Provider{
 		WebAuthn: webauthn,
-		Config:   NewProviderConfig(ctx.GetConfiguration().WebAuthn, base),
+		Options:  NewProviderConfig(ctx.GetConfiguration().WebAuthn, base),
 	}, nil
 }
 
@@ -114,21 +110,19 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 type Provider struct {
 	*gowebauthn.WebAuthn
 
-	Config ProviderConfig
+	Options ProviderConfig
 }
 
 // NewProviderConfig returns the ProviderConfig which combines the global WebAuthn options with the options of the
 // relying party the provider was built for.
-func NewProviderConfig(wconfig schema.WebAuthn, base schema.WebAuthnBase) (config ProviderConfig) {
-	config = ProviderConfig{
+func NewProviderConfig(wconfig schema.WebAuthn, base schema.WebAuthnBase) ProviderConfig {
+	return ProviderConfig{
 		Disable:              wconfig.Disable,
 		EnablePasskeyLogin:   wconfig.EnablePasskeyLogin,
 		EnablePasskey2FA:     wconfig.EnablePasskey2FA,
 		EnablePasskeyUpgrade: wconfig.EnablePasskeyUpgrade,
 		WebAuthnBase:         base,
 	}
-
-	return config
 }
 
 // ProviderConfig is the Authelia configuration which applies to a Provider.

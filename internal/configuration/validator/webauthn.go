@@ -7,8 +7,9 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"net/url"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -67,13 +68,11 @@ func validateWebAuthnRelyingPartyBase(base, defaults *schema.WebAuthnBase, prefi
 		validator.Push(fmt.Errorf(errFmtWebAuthnConveyancePreference, prefix, utils.StringJoinOr(validWebAuthnConveyancePreferences), base.ConveyancePreference))
 	}
 
-	switch {
+	switch attachment := base.SelectionCriteria.GetAttachment(); {
 	case base.SelectionCriteria.Attachment == nil:
 		base.SelectionCriteria.Attachment = defaults.SelectionCriteria.Attachment
-	case *base.SelectionCriteria.Attachment == "":
-		break
-	case !utils.IsStringInSlice(string(*base.SelectionCriteria.Attachment), validWebAuthnAttachment):
-		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, prefix, "attachment", utils.StringJoinOr(validWebAuthnAttachment), *base.SelectionCriteria.Attachment))
+	case attachment != "" && !utils.IsStringInSlice(string(attachment), validWebAuthnAttachment):
+		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, prefix, "attachment", utils.StringJoinOr(validWebAuthnAttachment), attachment))
 	}
 
 	switch {
@@ -107,22 +106,16 @@ func validateWebAuthnRelyingPartyBase(base, defaults *schema.WebAuthnBase, prefi
 		validator.Push(fmt.Errorf(errFmtWebAuthnFiltering, prefix))
 	}
 
-	switch base.ExtensionsUnsolicitedOutputPolicy {
-	case "":
+	switch {
+	case base.ExtensionsUnsolicitedOutputPolicy == "":
 		base.ExtensionsUnsolicitedOutputPolicy = defaults.ExtensionsUnsolicitedOutputPolicy
-	case webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore:
-		break
-	default:
-		validator.Push(fmt.Errorf(errFmtWebAuthnUnsolicitedOutputPolicy, prefix, utils.StringJoinOr([]string{webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore}), base.ExtensionsUnsolicitedOutputPolicy))
+	case !utils.IsStringInSlice(base.ExtensionsUnsolicitedOutputPolicy, validWebAuthnExtensionsUnsolicitedOutputPolicies):
+		validator.Push(fmt.Errorf(errFmtWebAuthnUnsolicitedOutputPolicy, prefix, utils.StringJoinOr(validWebAuthnExtensionsUnsolicitedOutputPolicies), base.ExtensionsUnsolicitedOutputPolicy))
 	}
 }
 
 func validateWebAuthnRelyingParties(config *schema.Configuration, validator *schema.StructValidator) {
-	if len(config.WebAuthn.RelyingParties) == 0 {
-		return
-	}
-
-	for _, relyingPartyID := range sortedWebAuthnRelyingPartyIDs(config.WebAuthn.RelyingParties) {
+	for _, relyingPartyID := range slices.Sorted(maps.Keys(config.WebAuthn.RelyingParties)) {
 		relyingParty := config.WebAuthn.RelyingParties[relyingPartyID]
 
 		prefix := fmt.Sprintf(errFmtWebAuthnRelyingPartyPrefix, relyingPartyID)
@@ -155,13 +148,13 @@ func validateWebAuthnRelatedOrigins(config *schema.Configuration, validator *sch
 
 	origins := map[string][]string{}
 
-	for _, relyingPartyID := range sortedWebAuthnRelyingPartyIDs(config.WebAuthn.RelyingParties) {
+	for _, relyingPartyID := range slices.Sorted(maps.Keys(config.WebAuthn.RelyingParties)) {
 		relyingParty := config.WebAuthn.RelyingParties[relyingPartyID]
 
 		validateWebAuthnRelatedOriginsRelyingParty(config, relyingPartyID, &relyingParty, origins, validator)
 	}
 
-	for _, origin := range sortedMapKeys(origins) {
+	for _, origin := range slices.Sorted(maps.Keys(origins)) {
 		if len(origins[origin]) < 2 {
 			continue
 		}
@@ -217,9 +210,7 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 
 		origins[key] = append(origins[key], relyingPartyID)
 
-		if !found && strings.EqualFold(origin.Hostname(), relyingPartyID) {
-			found = true
-		}
+		found = found || strings.EqualFold(origin.Hostname(), relyingPartyID)
 
 		if origin.Path != "" {
 			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotValidPath, prefix, i+1, value))
@@ -249,6 +240,12 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 	if len(relatable) != 0 {
 		if _, err := protocol.NewRelatedOriginsWithLabeler(webauthn.RelatedOriginLabeler, relatable...); err != nil {
 			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsLabels, prefix, err))
+		} else if len(relyingParty.OpaqueOrigins) != 0 {
+			// The provider validates the origins with the default labeler when opaque origins are configured, which
+			// counts origins under a multi-label public suffix by the second last label, so that count has to hold too.
+			if _, err = protocol.NewRelatedOrigins(relatable...); err != nil {
+				validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsLabelsOpaque, prefix, err))
+			}
 		}
 	}
 }
@@ -261,30 +258,6 @@ func validateWebAuthnRelatedOriginsRelyingPartyID(relyingPartyID, prefix string,
 	if err := protocol.ValidateRPID(relyingPartyID); err != nil {
 		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNotValid, prefix, err))
 	}
-}
-
-func sortedWebAuthnRelyingPartyIDs(relyingParties map[string]schema.WebAuthnRelyingParty) (ids []string) {
-	ids = make([]string, 0, len(relyingParties))
-
-	for id := range relyingParties {
-		ids = append(ids, id)
-	}
-
-	sort.Strings(ids)
-
-	return ids
-}
-
-func sortedMapKeys(in map[string][]string) (keys []string) {
-	keys = make([]string, 0, len(in))
-
-	for key := range in {
-		keys = append(keys, key)
-	}
-
-	sort.Strings(keys)
-
-	return keys
 }
 
 func originMatchesCookieAutheliaURL(config *schema.Configuration, origin *url.URL) (match bool) {
