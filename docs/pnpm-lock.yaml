@@ -165,7 +165,7 @@ settings:
 overrides:
   adm-zip: 0.6.1
   brace-expansion: 5.0.13
-  glob: 14.0.5
+  glob: 14.0.6
   katex: 0.19.1
   minimatch: 11.0.8
   picomatch: 4.0.7
@@ -1591,8 +1591,8 @@ packages:
     resolution: {integrity: sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A==}
     engines: {node: '>=10.13.0'}
 
-  glob@14.0.5:
-    resolution: {integrity: sha512-nbKW5Sl53DEM5PkmZ5Jwfeyss1ohuqcgOBjOarSjz1fp8W4ss4EOOvKADQRbApD6JmVBX+HkpZYfBez4wXbeQQ==}
+  glob@14.0.6:
+    resolution: {integrity: sha512-OwXjVP2svY5EyLY75Vek96C8qK43gqrt4xsZ+qSILdnaEiJPXkd62mcfUSNx/TQErQRdu5uM5kF67sfONragKw==}
     engines: {node: 18 || 20 || >=22}
 
   good-listener@1.2.2:
@@ -2498,7 +2498,7 @@ snapshots:
       chokidar: 5.0.0
       commander: 14.0.3
       convert-source-map: 2.0.0
-      glob: 14.0.5
+      glob: 14.0.6
       slash: 5.1.0
 
   '@babel/code-frame@8.0.6':
@@ -3853,7 +3853,7 @@ snapshots:
     dependencies:
       is-glob: 4.0.3
 
-  glob@14.0.5:
+  glob@14.0.6:
     dependencies:
       minimatch: 11.0.8
       minipass: 7.1.3
