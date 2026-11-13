@@ -562,6 +562,66 @@ error_page 401 =302 $redirection_url;
 # error_page 401 =302 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/?rd=$target_url;
 ```
 
+#### authelia-location-token.conf
+
+_The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
+`auth_request` and is paired with [authelia-authrequest-token.conf](#authelia-authrequest-tokenconf). It's only
+required if the endpoint accepts OAuth 2.0 Access Tokens using the `Bearer` or `DPoP`
+[schemes](../../configuration/miscellaneous/server-endpoints-authz.md#schemes)._
+
+The [authelia-authrequest.conf](#authelia-authrequestconf) snippet converts every `401` response into a redirection,
+which replaces the `WWW-Authenticate` challenge a client using an Access Token relies on, and does not forward the
+`DPoP-Nonce` header a client needs to retry a request when the
+[nonce_enforced](../../configuration/identity-providers/openid-connect/provider.md#dpop) option is enabled. This snippet
+only redirects responses which include a redirection URL, which is the case for the `CookieSession` strategy, and
+otherwise returns the `401` response with the `WWW-Authenticate` and `DPoP-Nonce` headers intact.
+
+```nginx {title="authelia-location-token.conf"}
+include /config/nginx/snippets/authelia-location.conf;
+
+## A virtual endpoint used when the auth_request responds with a 401.
+location @authelia_unauthorized {
+    ## The Location header is only present when the user must be redirected to the Authelia Portal.
+    if ($redirection_url) {
+        return 302 $redirection_url;
+    }
+
+    ## Nginx proxies back the WWW-Authenticate header from Authelia's response.
+    add_header DPoP-Nonce $dpop_nonce always;
+
+    return 401;
+}
+```
+
+#### authelia-authrequest-token.conf
+
+_The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
+and is paired with [authelia-location-token.conf](#authelia-location-tokenconf)._
+
+```nginx {title="authelia-authrequest-token.conf"}
+## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
+auth_request /internal/authelia/authz;
+
+## Save the upstream metadata response headers from Authelia to variables.
+auth_request_set $user $upstream_http_remote_user;
+auth_request_set $groups $upstream_http_remote_groups;
+auth_request_set $name $upstream_http_remote_name;
+auth_request_set $email $upstream_http_remote_email;
+
+## Inject the metadata response headers from the variables into the request made to the backend.
+proxy_set_header Remote-User $user;
+proxy_set_header Remote-Groups $groups;
+proxy_set_header Remote-Email $email;
+proxy_set_header Remote-Name $name;
+
+## Save the Location and DPoP-Nonce response headers from Authelia to variables.
+auth_request_set $redirection_url $upstream_http_location;
+auth_request_set $dpop_nonce $upstream_http_dpop_nonce;
+
+## When there is a 401 response code from the authz endpoint either redirect or return the challenge.
+error_page 401 = @authelia_unauthorized;
+```
+
 #### authelia-location-basic.conf
 
 _The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by

@@ -49,10 +49,27 @@ type IdentityProvidersOpenIDConnect struct {
 	ClaimsPolicies        map[string]IdentityProvidersOpenIDConnectClaimsPolicy `koanf:"claims_policies" yaml:"claims_policies,omitempty" toml:"claims_policies,omitempty" json:"claims_policies,omitempty" jsonschema:"title=Claims Policies" jsonschema_description:"The dictionary of claims policies which can be applied to clients."`
 	Scopes                map[string]IdentityProvidersOpenIDConnectScope        `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes,omitempty" jsonschema:"title=Scopes" jsonschema_description:"List of custom scopes."`
 
+	DPoP IdentityProvidersOpenIDConnectDPoP `koanf:"dpop" yaml:"dpop,omitempty" toml:"dpop,omitempty" json:"dpop,omitempty" jsonschema:"title=DPoP" jsonschema_description:"Demonstrating Proof of Possession configuration"`
+
 	Discovery IdentityProvidersOpenIDConnectDiscovery `yaml:"-" toml:"-" json:"-"` // MetaData value. Not configurable by users.
 
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" yaml:"issuer_certificate_chain,omitempty" toml:"issuer_certificate_chain,omitempty" json:"issuer_certificate_chain,omitempty" jsonschema:"title=Issuer Certificate Chain,deprecated" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" yaml:"issuer_private_key,omitempty" toml:"issuer_private_key,omitempty" json:"issuer_private_key,omitempty" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
+}
+
+// IdentityProvidersOpenIDConnectDPoP represents the DPoP configuration.
+type IdentityProvidersOpenIDConnectDPoP struct {
+	Enabled        bool          `koanf:"enabled" yaml:"enabled,omitempty" toml:"enabled,omitempty" json:"enabled,omitempty" jsonschema:"title=Enabled" jsonschema_description:"Determines if the Issuer has enabled DPoP usage."`
+	Enforced       bool          `koanf:"enforced" yaml:"enforced,omitempty" toml:"enforced,omitempty" json:"enforced,omitempty" jsonschema:"title=Enforced" jsonschema_description:"Determines if the Issuer enforces DPoP usage."`
+	KeyBinding     bool          `koanf:"key_binding" yaml:"key_binding,omitempty" toml:"key_binding,omitempty" json:"key_binding,omitempty" jsonschema:"title=Key Binding" jsonschema_description:"Determines if the Issuer has enabled OpenID Connect Key Binding 1.0 usage."`
+	NonceEnforced  bool          `koanf:"nonce_enforced" yaml:"nonce_enforced,omitempty" toml:"nonce_enforced,omitempty" json:"nonce_enforced,omitempty" jsonschema:"title=Nonce Enforced" jsonschema_description:"Determines if the Issuer enforces DPoP nonce usage."`
+	NonceStateless bool          `koanf:"nonce_stateless" yaml:"nonce_stateless,omitempty" toml:"nonce_stateless,omitempty" json:"nonce_stateless,omitempty" jsonschema:"title=Nonce Stateless,default=false" jsonschema_description:"Determines if the Issuer DPoP nonces carry the time at the server and are authenticated with a key derived from the HMAC secret rather than being stored."`
+	NonceLifespan  time.Duration `koanf:"nonce_lifespan" yaml:"nonce_lifespan,omitempty" toml:"nonce_lifespan,omitempty" json:"nonce_lifespan,omitempty" jsonschema:"title=Nonce Lifespan" jsonschema_description:"Determines the Issuer DPoP nonce lifespans."`
+	ProofLifespan  time.Duration `koanf:"proof_lifespan" yaml:"proof_lifespan,omitempty" toml:"proof_lifespan,omitempty" json:"proof_lifespan,omitempty" jsonschema:"title=Proof Lifespan" jsonschema_description:"Determines how long after the issued at time a DPoP proof remains valid."`
+	ClockSkew      time.Duration `koanf:"clock_skew" yaml:"clock_skew,omitempty" toml:"clock_skew,omitempty" json:"clock_skew,omitempty" jsonschema:"title=Proof Clock Skew" jsonschema_description:"Determines the Issuer DPoP policy surrounding which proofs are accepted based on the time they were issued."`
+
+	StrictRefreshTokenBinding bool     `koanf:"strict_refresh_token_binding" yaml:"strict_refresh_token_binding,omitempty" toml:"strict_refresh_token_binding,omitempty" json:"strict_refresh_token_binding,omitempty" jsonschema:"title=Strict Refresh Token Binding,default=false" jsonschema_description:"Determines if the DPoP bound Refresh Tokens of confidential clients may only be redeemed with a proof for the key they are bound to, rather than being re-bound to the key of the presented proof."`
+	AllowedAlgorithms         []string `koanf:"allowed_algorithms" yaml:"allowed_algorithms,omitempty" toml:"allowed_algorithms,omitempty" json:"allowed_algorithms,omitempty" jsonschema:"enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,enum=Ed25519,enum=EdDSA,enum=ML-DSA-44,enum=ML-DSA-65,enum=ML-DSA-87,uniqueItems,title=Allowed Algorithms" jsonschema_description:"The JWS algorithms a DPoP proof may be signed with."`
 }
 
 // IdentityProvidersOpenIDConnectClaimsPolicy represents the claims policy configuration.
@@ -187,7 +204,7 @@ type IdentityProvidersOpenIDConnectClient struct {
 	Audience              []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audience values."`
 	Resource              []string `koanf:"resource" yaml:"resource,omitempty" toml:"resource,omitempty" json:"resource" jsonschema:"uniqueItems,title=Resource" jsonschema_description:"List of authorized resource values."`
 	IntrospectionAudience []string `koanf:"introspection_audience" yaml:"introspection_audience,omitempty" toml:"introspection_audience,omitempty" json:"introspection_audience" jsonschema:"uniqueItems,title=Introspection Audience" jsonschema_description:"List of audience and resource values this client serves as a resource server at the introspection endpoint. When empty the client may only introspect the tokens issued to it."`
-	Scopes                []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
+	Scopes                []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,enum=bound_key,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
 	GrantTypes            []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
 	ResponseTypes         []string `koanf:"response_types" yaml:"response_types,omitempty" toml:"response_types,omitempty" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
 	ResponseModes         []string `koanf:"response_modes" yaml:"response_modes,omitempty" toml:"response_modes,omitempty" json:"response_modes" jsonschema:"enum=form_post,enum=form_post.jwt,enum=query,enum=query.jwt,enum=fragment,enum=fragment.jwt,enum=jwt,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request."`
@@ -262,6 +279,9 @@ type IdentityProvidersOpenIDConnectClient struct {
 	ClientAssertionJWTValidationHeaderAllowEmptyType bool     `koanf:"client_assertion_jwt_validation_header_allow_empty_type" yaml:"client_assertion_jwt_validation_header_allow_empty_type,omitempty" toml:"client_assertion_jwt_validation_header_allow_empty_type,omitempty" json:"client_assertion_jwt_validation_header_allow_empty_type" jsonschema:"default=false,title=Client Assertion JWT Validation Header Allow Empty Type" jsonschema_description:"Permits this registered client to send Client Assertions which omit the JWT 'typ' header. Explicit typing guards an assertion against being confused with another JWT, so this is not recommended, use at your own security risk."`
 	ClientAssertionJWTValidationHeaderAllowTypes     []string `koanf:"client_assertion_jwt_validation_header_allow_types" yaml:"client_assertion_jwt_validation_header_allow_types,omitempty" toml:"client_assertion_jwt_validation_header_allow_types,omitempty" json:"client_assertion_jwt_validation_header_allow_types" jsonschema:"title=Client Assertion JWT Validation Header Allow Types" jsonschema_description:"The JWT 'typ' header values this registered client is permitted to send Client Assertions with. Defaults to only the explicit 'client-authentication+jwt' type. Permitting the generic 'JWT' type is not recommended, use at your own security risk."`
 
+	DPoPBoundAccessTokens         bool `koanf:"dpop_bound_access_tokens" yaml:"dpop_bound_access_tokens,omitempty" toml:"dpop_bound_access_tokens,omitempty" json:"dpop_bound_access_tokens,omitempty" jsonschema:"title=DPoP Bound Access Tokens,default=false" jsonschema_description:"Enforces DPoP bound Access Tokens for this client."`
+	DPoPStrictRefreshTokenBinding bool `koanf:"dpop_strict_refresh_token_binding" yaml:"dpop_strict_refresh_token_binding,omitempty" toml:"dpop_strict_refresh_token_binding,omitempty" json:"dpop_strict_refresh_token_binding,omitempty" jsonschema:"title=DPoP Strict Refresh Token Binding,default=false" jsonschema_description:"Determines if the DPoP bound Refresh Tokens of this client may only be redeemed with a proof for the key they are bound to, rather than being re-bound to the key of the presented proof."`
+
 	JSONWebKeysURI *url.URL `koanf:"jwks_uri" yaml:"jwks_uri,omitempty" toml:"jwks_uri,omitempty" json:"jwks_uri" jsonschema:"title=JSON Web Keys URI" jsonschema_description:"URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
 	JSONWebKeys    []JWK    `koanf:"jwks" yaml:"jwks,omitempty" toml:"jwks,omitempty" json:"jwks" jsonschema:"title=JSON Web Keys" jsonschema_description:"List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
 
@@ -282,6 +302,11 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 	EnforcePKCE:      "public_clients_only",
 	AudienceStrategy: "exact",
 	ResourceStrategy: "exact",
+	DPoP: IdentityProvidersOpenIDConnectDPoP{
+		NonceLifespan: time.Minute * 5,
+		ProofLifespan: time.Second * 10,
+		ClockSkew:     time.Second * 30,
+	},
 }
 
 // DefaultOpenIDConnectPolicyConfiguration is the default OpenID Connect 1.0 authorization policy configuration.

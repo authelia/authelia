@@ -98,6 +98,7 @@ type HeaderAuthorization struct {
 	Authorization *model.Authorization
 	Realm         string
 	Scope         string
+	Nonce         string
 	Error         *oauthelia2.RFC6749Error
 }
 
@@ -188,6 +189,9 @@ type AuthzBearerIntrospectionProvider interface {
 	GetRegisteredClient(ctx context.Context, id string) (client oidc.Client, err error)
 	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceStrategy)
 	GetResourceStrategy(ctx context.Context) (strategy oauthelia2.ResourceStrategy)
+	GetDPoPStrategy(ctx context.Context) (strategy oauthelia2.DPoPStrategy)
+	GetDPoPNonceRequired(ctx context.Context) (required bool)
+	GetDPoPEnforce(ctx context.Context) (enforce bool)
 	IntrospectToken(ctx context.Context, token string, tokenUse oauthelia2.TokenUse, session oauthelia2.Session, scope ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error)
 }
 

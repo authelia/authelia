@@ -1960,7 +1960,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 					gomock.Any(), gomock.Any(),
 					"client", uuid.Nil, gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {

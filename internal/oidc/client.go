@@ -99,6 +99,9 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		PushedAuthorizationRequestEndpointAuthMethod:     config.PushedAuthorizationRequestEndpointAuthMethod,
 		PushedAuthorizationRequestEndpointAuthSigningAlg: config.PushedAuthorizationRequestAuthSigningAlg,
 
+		DPoPBoundAccessTokens:         config.DPoPBoundAccessTokens,
+		DPoPStrictRefreshTokenBinding: config.DPoPStrictRefreshTokenBinding,
+
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewJSONWebKeySet(config.JSONWebKeys),
 	}
@@ -814,6 +817,12 @@ func (c *RegisteredClient) GetRequestedResourceImplicit() (implicit bool) {
 // GetEnableDPoPBoundAccessTokens returns true if this client has DPoP bound access tokens enabled.
 func (c *RegisteredClient) GetEnableDPoPBoundAccessTokens() (enable bool) {
 	return c.DPoPBoundAccessTokens
+}
+
+// GetDPoPStrictRefreshTokenBinding returns true if this client's DPoP bound refresh tokens may only be redeemed with a
+// proof for the key they are bound to, rather than being re-bound to the key of the presented proof.
+func (c *RegisteredClient) GetDPoPStrictRefreshTokenBinding() (strict bool) {
+	return c.DPoPStrictRefreshTokenBinding
 }
 
 // GetClientAssertionJWTValidationHeaderAllowEmptyType returns true if this client is permitted to send Client

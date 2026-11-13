@@ -152,9 +152,30 @@ the [reference guide](../../reference/guides/proxy-authorization.md#authn-strate
 
 {{< confkey type="list(string)" default="Basic" required="no" >}}
 
-The list of schemes allowed on this endpoint. Options are `Basic`, and `Bearer`. This option is only applicable to the
-`HeaderAuthorization`, `HeaderProxyAuthorization`, and `HeaderAuthRequestProxyAuthorization` strategies and unavailable
-with the `legacy` endpoint which only uses `Basic`.
+The list of schemes allowed on this endpoint. Options are `Basic`, `Bearer`, and `DPoP`. This option is only applicable
+to the `HeaderAuthorization`, `HeaderProxyAuthorization`, and `HeaderAuthRequestProxyAuthorization` strategies and
+unavailable with the `legacy` endpoint which only uses `Basic`.
+
+The `Bearer` and `DPoP` schemes both present an OAuth 2.0 Access Token issued by the
+[OpenID Connect 1.0 Provider](../identity-providers/openid-connect/provider.md), however the `DPoP` scheme additionally
+requires the token to be bound to a proof-of-possession key in accordance with
+[RFC9449](https://datatracker.ietf.org/doc/html/rfc9449) which requires the
+[dpop](../identity-providers/openid-connect/provider.md#dpop) provider option to be enabled. Every request which
+presents a `DPoP` bound Access Token records its proof in the storage backend to prevent replay, see the
+[storage considerations](../identity-providers/openid-connect/provider.md#dpop) for more information.
+
+Clients presenting an Access Token rely on the `401` response containing the `WWW-Authenticate` challenge and, when
+nonces are enforced, the `DPoP-Nonce` header. Proxies which convert every `401` response from an `AuthRequest` endpoint
+into a redirection, such as NGINX using the standard snippets, must be configured to only redirect when a redirection
+URL is provided. See the
+[authelia-location-token.conf](../../integration/proxies/nginx.md#authelia-location-tokenconf) NGINX snippet for an
+example.
+
+_**Important Note:** this option defaults to `['Basic']`. A request which uses a scheme this strategy does not list is
+not rejected, the strategy ignores the credential and the next configured strategy such as `CookieSession` is
+attempted. The request is only handled as an anonymous request if no strategy authenticates it. Endpoints which are
+expected to accept `Bearer` or `DPoP` tokens must therefore explicitly list those schemes, otherwise the token is
+silently ignored._
 
 #### scheme_basic_cache_lifespan
 

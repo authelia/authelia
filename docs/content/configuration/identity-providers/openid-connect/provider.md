@@ -114,6 +114,28 @@ identity_providers:
     scopes:
       scope_name:
         claims: []
+    dpop:
+      enabled: false
+      enforced: false
+      key_binding: false
+      nonce_enforced: false
+      nonce_stateless: false
+      nonce_lifespan: '5 minutes'
+      proof_lifespan: '10 seconds'
+      clock_skew: '30 seconds'
+      strict_refresh_token_binding: false
+      allowed_algorithms:
+        - 'RS256'
+        - 'RS384'
+        - 'RS512'
+        - 'ES256'
+        - 'ES384'
+        - 'ES512'
+        - 'PS256'
+        - 'PS384'
+        - 'PS512'
+        - 'Ed25519'
+        - 'EdDSA'
     cors:
       endpoints:
         - 'token'
@@ -788,6 +810,146 @@ If the scope is configured in a [OpenID Connect 1.0 Client](clients.md#scopes) i
 every claim available in this list must either be a Standard Claim or must be fulfilled by the
 [claims_policy](clients.md#claims_policy).
 
+### dpop
+
+Configures the Demonstrating Proof of Possession characteristics of this issuer.
+
+{{< callout context="note" title="Storage Considerations" icon="outline/info-circle" >}}
+Demonstrating Proof of Possession adds writes to the [storage](../../storage/introduction.md) backend which should be
+considered when sizing it:
+
+- Every accepted proof is recorded so that it can't be replayed, which
+  [RFC9449 Section 11.1](https://datatracker.ietf.org/doc/html/rfc9449#section-11.1) requires. This is one write for
+  every request to the `token`, `pushed-authorization-request`, and `userinfo` endpoints which carries a proof, and for
+  every request to the [authz endpoints](../../miscellaneous/server-endpoints-authz.md#schemes) which presents a `DPoP`
+  bound Access Token. The authz endpoints are typically called for every request to a protected application so this is
+  usually the dominant source.
+- When [nonce_enforced](#nonce_enforced) is enabled every nonce challenge and every successful token response writes
+  a new nonce. A nonce challenge is issued before the client has authenticated, so the
+  [rate limits](../../miscellaneous/server-endpoint-rate-limits.md#openid_connect_token) of the `token`,
+  `pushed-authorization-request`, and `userinfo` endpoints are what bounds this. Enabling
+  [nonce_stateless](#nonce_stateless) removes these writes entirely.
+
+Both records are only retained until they expire, which is fixed by [proof_lifespan](#proof_lifespan) and
+[clock_skew](#clock_skew) for proofs and by [nonce_lifespan](#nonce_lifespan) for nonces, and expired records are
+removed every 30 minutes. Keeping these options short keeps the tables small. The SQLite backend serializes writes, so
+deployments which expect a high request rate with `DPoP` bound Access Tokens should use PostgreSQL or MySQL instead.
+{{< /callout >}}
+
+#### enabled
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables Demonstrating Proof of Possession functionality.
+
+#### enforced
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces Demonstrating Proof of Possession usage by all clients.
+
+#### key_binding
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables [OpenID Connect Key Binding 1.0] functionality, which allows a client to request an ID Token bound to the same
+proof-of-possession key its Access Token is bound to, by requesting the `bound_key` scope alongside `openid` and
+supplying the `dpop_jkt` parameter.
+
+This requires [enabled](#enabled) to also be true as the key binding is established from the Demonstrating Proof of
+Possession proof. Key binding is available to the Authorization Code Flow and the Device Authorization Flow only.
+
+When enabled the `bound_key` scope is advertised in the discovery document, and clients which should be able to request
+it must include it in their [scopes](clients.md#scopes).
+
+As [OpenID Connect Key Binding 1.0 Section 2.2](https://openid.net/specs/openid-connect-key-binding-1_0.html#section-2.2)
+requires the End-User to consent to a key which was not previously bound to the client, a remembered consent of a client
+using the `pre-configured` [consent_mode](clients.md#consent_mode) only applies to a request for the `bound_key` scope
+when that consent was given for the same key. A request binding any other key prompts the End-User for consent again.
+Clients using the `implicit` [consent_mode](clients.md#consent_mode) never prompt for consent, including for a newly
+bound key.
+
+#### nonce_enforced
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces the Demonstrating Proof of Possession nonce mechanism.
+
+#### nonce_stateless
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Issues Demonstrating Proof of Possession nonces which carry the time at the server and are authenticated with a key
+derived from the [hmac_secret](#hmac_secret), as permitted by
+[RFC9449 Section 11.1](https://datatracker.ietf.org/doc/html/rfc9449#section-11.1), rather than storing each nonce. Such
+a nonce is validated without the storage backend, removing the write every nonce otherwise requires.
+
+The security properties are the same in both modes: a nonce is valid for any client until it expires per
+[nonce_lifespan](#nonce_lifespan), and it is the proof replay protection which prevents a proof being used twice.
+Every instance of Authelia must share the same [hmac_secret](#hmac_secret), and changing it invalidates every
+outstanding nonce, which clients recover from by retrying with the nonce provided in the resulting challenge.
+
+#### nonce_lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
+
+Configures how long the Demonstrating Proof of Possession nonce values are valid for.
+
+#### proof_lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="10 seconds" required="no" >}}
+
+Configures how long after the issued at `iat` claim a Demonstrating Proof of Possession proof remains valid. Together
+with [clock_skew](#clock_skew) this fixes the window a proof is accepted in: a proof is accepted from one clock skew
+before its `iat` until one lifespan plus one clock skew after it.
+
+#### clock_skew
+
+{{< confkey type="string,integer" syntax="duration" default="30 seconds" required="no" >}}
+
+Configures the tolerance allowed for disagreement between this server's clock and the client's when judging the issued
+at `iat` claim of a Demonstrating Proof of Possession proof. It widens the acceptance window fixed by
+[proof_lifespan](#proof_lifespan) at both ends, i.e. the default allows the `iat` to be up to 30 seconds ahead of this
+server's clock.
+
+A warning is logged when this option or [proof_lifespan](#proof_lifespan) is greater than 1 minute, or when
+[nonce_lifespan](#nonce_lifespan) is greater than 1 hour. Every proof remains replayable to a party which captured it
+for the window these options fix, and its replay record is retained for that same window, so a long window both weakens
+the protection and grows the storage it requires.
+
+#### strict_refresh_token_binding
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Requires the Demonstrating Proof of Possession bound Refresh Tokens of confidential clients to only be redeemed with a
+proof for the key they are bound to.
+
+[RFC9449 Section 5](https://datatracker.ietf.org/doc/html/rfc9449#section-5) only binds the Refresh Tokens of public
+clients to the proof-of-possession key, as a confidential client already authenticates when it redeems one. When this
+option is disabled the grant of a confidential client is re-bound to the key of the proof presented with the refresh
+request, which permits the client to rotate its key. When enabled a Refresh Token which was stolen alongside the client
+credentials can't be redeemed without the original key.
+
+The Refresh Tokens of public clients, and of grants whose ID Tokens are key bound via [key_binding](#key_binding), are
+always strictly bound regardless of this option. Individual clients can opt into strict binding with the
+[dpop_strict_refresh_token_binding](clients.md#dpop_strict_refresh_token_binding) client option.
+
+#### allowed_algorithms
+
+{{< confkey type="list(string)" default="RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512, Ed25519, EdDSA" required="no" >}}
+
+The JWS algorithms a Demonstrating Proof of Possession proof may be signed with. This list is also advertised in the
+`dpop_signing_alg_values_supported` discovery metadata value and in the `algs` parameter of the `DPoP`
+`WWW-Authenticate` challenge. Only asymmetric algorithms are permitted, as a proof demonstrates possession of a private
+key.
+
+The following values are permitted: `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, `ES512`, `PS256`, `PS384`, `PS512`,
+`Ed25519`, `EdDSA`, `ML-DSA-44`, `ML-DSA-65`, and `ML-DSA-87`.
+
+Deployments which must comply with [FAPI 2.0 Security Profile](https://openid.net/specs/fapi-security-profile-2_0-final.html)
+should restrict this to `PS256`, `ES256`, and `Ed25519` (or its deprecated `EdDSA` identifier), as that profile does
+not permit any other algorithms.
+
 ### cors
 
 Some [OpenID Connect 1.0] Endpoints need to allow cross-origin resource sharing; however, some are optional. This section allows
@@ -811,6 +973,17 @@ The `authorization` endpoint is not permitted as Cross-Origin Resource Sharing m
 Authorization Endpoint as the client does not access this endpoint directly, instead the client redirects the user-agent
 to it, as described by [RFC9700 Section 2.6](https://datatracker.ietf.org/doc/html/rfc9700#section-2.6). If it is
 configured it is ignored and a warning is logged.
+
+When [dpop](#dpop) is [enabled](#enabled) the `DPoP-Nonce` response header is added to the
+`Access-Control-Expose-Headers` header on the `pushed-authorization-request`, `token`, and `userinfo` endpoints, which
+are the endpoints that issue a nonce challenge. Without this a browser based client cannot read the nonce it is required
+to echo in the proof of its next request, so the challenge can never be satisfied. The `WWW-Authenticate` response
+header is also exposed on the `userinfo` endpoint, as
+[RFC9449 Section 7.1](https://datatracker.ietf.org/doc/html/rfc9449#section-7.1) requires for a browser based client to
+read the challenge of a protected resource.
+
+The `device-authorization`, `pushed-authorization-request`, and `token` endpoints permit the `Authorization` request
+header in a preflight request, as clients may authenticate at these endpoints using the `client_secret_basic` method.
 
 #### allowed_origins
 
@@ -884,3 +1057,4 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [JWT-Secured Authorization Request]: https://datatracker.ietf.org/doc/html/rfc9101
 [OpenID Certified™]: https://openid.net/certification/
 [OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/
+[OpenID Connect Key Binding 1.0]: https://openid.net/specs/openid-connect-key-binding-1_0.html

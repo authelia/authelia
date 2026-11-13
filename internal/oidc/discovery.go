@@ -31,6 +31,26 @@ func SigningAlgValuesSupported(extra ...string) (algs []string) {
 	return append(algs, extra...)
 }
 
+// DPoPSigningAlgValuesSupported returns the default JWS algorithms an RFC9449 proof may be signed with, used when the
+// allowed algorithms are not configured. The symmetric algorithms SigningAlgValuesSupported lists are deliberately
+// absent: a proof is signed by a key the client holds and proves possession of, which a shared secret cannot
+// demonstrate.
+func DPoPSigningAlgValuesSupported() (algs []string) {
+	return []string{
+		SigningAlgRSAUsingSHA256,
+		SigningAlgRSAUsingSHA384,
+		SigningAlgRSAUsingSHA512,
+		SigningAlgECDSAUsingP256AndSHA256,
+		SigningAlgECDSAUsingP384AndSHA384,
+		SigningAlgECDSAUsingP521AndSHA512,
+		SigningAlgRSAPSSUsingSHA256,
+		SigningAlgRSAPSSUsingSHA384,
+		SigningAlgRSAPSSUsingSHA512,
+		SigningAlgEd25519,
+		SigningAlgEdDSA,
+	}
+}
+
 // EncryptionAlgValuesSupported returns the JWE key management algorithms this Authorization Server supports.
 func EncryptionAlgValuesSupported() (algs []string) {
 	return []string{

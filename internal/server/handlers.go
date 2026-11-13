@@ -402,6 +402,13 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 	r.OPTIONS(oidc.EndpointPathJWKs, policyCORSPublicGET.HandleOPTIONS)
 	r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(middlewareAPI(handlers.OAuth2JSONWebKeySetGET))))
 
+	var exposedHeaders, exposedHeadersResource []string
+
+	if config.IdentityProviders.OIDC != nil && config.IdentityProviders.OIDC.DPoP.Enabled {
+		exposedHeaders = []string{oidc.HeaderDPoPNonce}
+		exposedHeadersResource = []string{oidc.HeaderDPoPNonce, fasthttp.HeaderWWWAuthenticate}
+	}
+
 	authorizationGET := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2AuthorizationGET)))
 	authorizationPOST := bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2AuthorizationPOST))
 
@@ -409,18 +416,21 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 	r.POST(oidc.EndpointPathAuthorization, authorizationPOST)
 
 	policyCORSDeviceAuthorization := middlewares.NewCORSPolicyBuilder().
+		WithAllowCredentials(true).
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
 		WithAllowedOrigins(allowedOrigins...).
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointDeviceAuthorization, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
-	r.OPTIONS(oidc.EndpointPathDeviceAuthorization, policyCORSDeviceAuthorization.HandleOnlyOPTIONS)
+	r.OPTIONS(oidc.EndpointPathDeviceAuthorization, policyCORSDeviceAuthorization.HandleOPTIONS)
 	r.POST(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), policyCORSDeviceAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2DeviceAuthorizationPOST)))))
 	r.PUT(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2DeviceAuthorizationPUT))))
 
 	policyCORSPAR := middlewares.NewCORSPolicyBuilder().
+		WithAllowCredentials(true).
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
 		WithAllowedOrigins(allowedOrigins...).
+		WithExposedHeaders(exposedHeaders...).
 		WithEnabled(utils.IsStringInSliceFold(oidc.EndpointPushedAuthorizationRequest, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
@@ -431,13 +441,14 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		middlewares.WithRateLimitCollector(providers.GarbageCollector),
 	).Middleware()
 
-	r.OPTIONS(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.HandleOnlyOPTIONS)
+	r.OPTIONS(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.HandleOPTIONS)
 	r.POST(oidc.EndpointPathPushedAuthorizationRequest, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointPushedAuthorizationRequest), policyCORSPAR.Middleware(bridge(rateLimitPAR(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2PushedAuthorizationRequest))))))
 
 	policyCORSToken := middlewares.NewCORSPolicyBuilder().
 		WithAllowCredentials(true).
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
 		WithAllowedOrigins(allowedOrigins...).
+		WithExposedHeaders(exposedHeaders...).
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointToken, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
@@ -455,6 +466,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithAllowCredentials(true).
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
 		WithAllowedOrigins(allowedOrigins...).
+		WithExposedHeaders(exposedHeadersResource...).
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointUserinfo, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 

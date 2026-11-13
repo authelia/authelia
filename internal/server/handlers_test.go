@@ -375,3 +375,190 @@ func (e *timeoutError) Error() string { return "i/o timeout" }
 func (e *timeoutError) Timeout() bool { return true }
 
 func (e *timeoutError) Temporary() bool { return true }
+
+func TestHandlerMainShouldExposeDPoPNonceHeaderWhenDPoPIsEnabled(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	testCases := []struct {
+		name     string
+		enabled  bool
+		path     string
+		method   string
+		expected string
+	}{
+		{"ShouldExposeOnTokenEndpointWhenEnabled", true, oidc.EndpointPathToken, fasthttp.MethodPost, "Dpop-Nonce"},
+		{"ShouldExposeOnUserinfoEndpointWhenEnabled", true, oidc.EndpointPathUserinfo, fasthttp.MethodGet, "Dpop-Nonce, Www-Authenticate"},
+		{"ShouldNotExposeOnTokenEndpointWhenDisabled", false, oidc.EndpointPathToken, fasthttp.MethodPost, ""},
+		{"ShouldNotExposeOnUserinfoEndpointWhenDisabled", false, oidc.EndpointPathUserinfo, fasthttp.MethodGet, ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{
+				Server: schema.Server{
+					Address:   schema.DefaultServerConfiguration.Address,
+					Endpoints: schema.DefaultServerConfiguration.Endpoints,
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: tc.enabled},
+						CORS: schema.IdentityProvidersOpenIDConnectCORS{
+							Endpoints: []string{oidc.EndpointToken, oidc.EndpointUserinfo, oidc.EndpointPushedAuthorizationRequest},
+						},
+					},
+				},
+			}
+
+			providers := middlewares.NewProvidersBasic()
+			providers.Random = random.NewMathematical()
+			providers.Templates = provider
+			providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+
+			handler, err := handlerMain(config, providers)
+			require.NoError(t, err)
+
+			ctx := &fasthttp.RequestCtx{}
+
+			ctx.Request.Header.SetMethod(fasthttp.MethodOptions)
+			ctx.Request.SetRequestURI(tc.path)
+			ctx.Request.Header.Set(fasthttp.HeaderOrigin, "https://client.example.com")
+			ctx.Request.Header.Set(fasthttp.HeaderAccessControlRequestMethod, tc.method)
+
+			handler(ctx)
+
+			assert.Equal(t, tc.expected, string(ctx.Response.Header.Peek(fasthttp.HeaderAccessControlExposeHeaders)))
+		})
+	}
+}
+
+func TestHandlerMainShouldExposeDPoPNonceHeaderOnPushedAuthorizationRequestWhenDPoPIsEnabled(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	testCases := []struct {
+		name     string
+		enabled  bool
+		expected string
+	}{
+		{"ShouldExposeWhenEnabled", true, "Dpop-Nonce"},
+		{"ShouldNotExposeWhenDisabled", false, ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{
+				Server: schema.Server{
+					Address:   schema.DefaultServerConfiguration.Address,
+					Endpoints: schema.DefaultServerConfiguration.Endpoints,
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: tc.enabled},
+						CORS: schema.IdentityProvidersOpenIDConnectCORS{
+							Endpoints: []string{oidc.EndpointPushedAuthorizationRequest},
+						},
+					},
+				},
+			}
+
+			providers := middlewares.NewProvidersBasic()
+			providers.Random = random.NewMathematical()
+			providers.Templates = provider
+			providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+
+			handler, err := handlerMain(config, providers)
+			require.NoError(t, err)
+
+			ctx := &fasthttp.RequestCtx{}
+
+			ctx.Request.Header.SetMethod(fasthttp.MethodPost)
+			ctx.Request.SetRequestURI(oidc.EndpointPathPushedAuthorizationRequest)
+			ctx.Request.Header.Set(fasthttp.HeaderOrigin, "https://client.example.com")
+
+			handler(ctx)
+
+			assert.Equal(t, tc.expected, string(ctx.Response.Header.Peek(fasthttp.HeaderAccessControlExposeHeaders)))
+		})
+	}
+}
+
+func TestHandlerMainShouldHandleCORSPreflightOnClientEndpoints(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	testCases := []struct {
+		name     string
+		endpoint string
+		path     string
+		enabled  bool
+	}{
+		{"ShouldHandlePushedAuthorizationRequestWhenEnabled", oidc.EndpointPushedAuthorizationRequest, oidc.EndpointPathPushedAuthorizationRequest, true},
+		{"ShouldHandleDeviceAuthorizationWhenEnabled", oidc.EndpointDeviceAuthorization, oidc.EndpointPathDeviceAuthorization, true},
+		{"ShouldNotHandlePushedAuthorizationRequestWhenDisabled", oidc.EndpointPushedAuthorizationRequest, oidc.EndpointPathPushedAuthorizationRequest, false},
+		{"ShouldNotHandleDeviceAuthorizationWhenDisabled", oidc.EndpointDeviceAuthorization, oidc.EndpointPathDeviceAuthorization, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var endpoints []string
+
+			if tc.enabled {
+				endpoints = []string{tc.endpoint}
+			}
+
+			config := &schema.Configuration{
+				Server: schema.Server{
+					Address:   schema.DefaultServerConfiguration.Address,
+					Endpoints: schema.DefaultServerConfiguration.Endpoints,
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+						CORS: schema.IdentityProvidersOpenIDConnectCORS{
+							Endpoints: endpoints,
+						},
+					},
+				},
+			}
+
+			providers := middlewares.NewProvidersBasic()
+			providers.Random = random.NewMathematical()
+			providers.Templates = provider
+			providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+
+			handler, err := handlerMain(config, providers)
+			require.NoError(t, err)
+
+			ctx := &fasthttp.RequestCtx{}
+
+			ctx.Request.Header.SetMethod(fasthttp.MethodOptions)
+			ctx.Request.SetRequestURI(tc.path)
+			ctx.Request.Header.Set(fasthttp.HeaderOrigin, "https://client.example.com")
+			ctx.Request.Header.Set(fasthttp.HeaderAccessControlRequestMethod, fasthttp.MethodPost)
+			ctx.Request.Header.Set(fasthttp.HeaderAccessControlRequestHeaders, "Authorization, DPoP")
+
+			handler(ctx)
+
+			assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+
+			if !tc.enabled {
+				assert.Empty(t, ctx.Response.Header.Peek(fasthttp.HeaderAccessControlAllowOrigin))
+				assert.Empty(t, ctx.Response.Header.Peek(fasthttp.HeaderAccessControlAllowHeaders))
+
+				return
+			}
+
+			assert.Equal(t, "https://client.example.com", string(ctx.Response.Header.Peek(fasthttp.HeaderAccessControlAllowOrigin)))
+			assert.Equal(t, "true", string(ctx.Response.Header.Peek(fasthttp.HeaderAccessControlAllowCredentials)))
+			assert.Equal(t, "OPTIONS, POST", string(ctx.Response.Header.Peek(fasthttp.HeaderAccessControlAllowMethods)))
+			assert.Equal(t, "Authorization, DPoP", string(ctx.Response.Header.Peek(fasthttp.HeaderAccessControlAllowHeaders)))
+		})
+	}
+}

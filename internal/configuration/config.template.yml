@@ -1713,6 +1713,51 @@ session:
       ## first refresh token of the grant is issued. The value 0 applies no maximum.
       # refresh_token_maximum: 0
 
+    ## Demonstrating Proof of Possession settings.
+    # dpop:
+      ## Enables DPoP.
+      # enabled: false
+
+      ## Enforces DPoP for all clients.
+      # enforced: false
+
+      ## Enables OpenID Connect Key Binding 1.0.
+      # key_binding: false
+
+      ## Enforces DPoP nonce usage.
+      # nonce_enforced: false
+
+      ## Issues DPoP nonces which carry the time at the server and are authenticated with a key derived from the
+      ## hmac_secret, rather than storing each nonce.
+      # nonce_stateless: false
+
+      ## Sets the DPoP nonce lifespans.
+      # nonce_lifespan: '5 minutes'
+
+      ## Sets how long after the issued at time a DPoP proof remains valid.
+      # proof_lifespan: '10 seconds'
+
+      ## Sets the skew allowed for DPoP proofs.
+      # clock_skew: '30 seconds'
+
+      ## Requires the DPoP bound Refresh Tokens of confidential clients to only be redeemed with a proof for the key
+      ## they are bound to, rather than re-binding them to the key of the presented proof.
+      # strict_refresh_token_binding: false
+
+      ## Sets the JWS algorithms DPoP proofs may be signed with.
+      # allowed_algorithms:
+        # - 'RS256'
+        # - 'RS384'
+        # - 'RS512'
+        # - 'ES256'
+        # - 'ES384'
+        # - 'ES512'
+        # - 'PS256'
+        # - 'PS384'
+        # - 'PS512'
+        # - 'Ed25519'
+        # - 'EdDSA'
+
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
       ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.

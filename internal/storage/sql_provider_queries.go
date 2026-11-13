@@ -499,18 +499,18 @@ const (
 
 const (
 	queryFmtSelectOAuth2ConsentPreConfigurations = `
-		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience, resource, requested_claims, signature_claims, granted_claims
+		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience, resource, requested_claims, signature_claims, granted_claims, dpop_jkt
 		FROM %s
 		WHERE client_id = ? AND subject = ? AND
 			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= ?);`
 
 	queryFmtInsertOAuth2ConsentPreConfiguration = `
-		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, resource, requested_claims, signature_claims, granted_claims)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, resource, requested_claims, signature_claims, granted_claims, dpop_jkt)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL = `
-		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, resource, requested_claims, signature_claims, granted_claims)
-		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, resource, requested_claims, signature_claims, granted_claims, dpop_jkt)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING id;`
 
 	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
@@ -767,6 +767,35 @@ const (
 			granted_resource = ?,
 			form_data = ?,
 			session_data = ?
+		WHERE signature = ?;`
+
+	queryFmtUpsertOAuth2DPoPProof = `
+		INSERT INTO %[1]s (signature, expires_at)
+		VALUES (?, ?)
+			ON CONFLICT (signature)
+			DO UPDATE SET expires_at = excluded.expires_at
+			WHERE %[1]s.expires_at <= ?;`
+
+	queryFmtUpsertOAuth2DPoPProofMySQL = `
+		INSERT INTO %s (signature, expires_at)
+		VALUES (?, ?)
+			ON DUPLICATE KEY UPDATE expires_at = IF(expires_at <= ?, VALUES(expires_at), expires_at);`
+
+	queryFmtDeleteExpiredOAuth2DPoPProofs = `
+		DELETE FROM %s
+		WHERE expires_at <= ?;`
+
+	queryFmtInsertOAuth2DPoPNonce = `
+		INSERT INTO %s (signature, expires_at)
+		VALUES (?, ?);`
+
+	queryFmtDeleteExpiredOAuth2DPoPNonces = `
+		DELETE FROM %s
+		WHERE expires_at <= ?;`
+
+	queryFmtSelectOAuth2DPoPNonce = `
+		SELECT id, signature, expires_at
+		FROM %s
 		WHERE signature = ?;`
 
 	queryFmtSelectOAuth2SessionEncryptedData = `

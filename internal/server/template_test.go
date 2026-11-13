@@ -10,11 +10,13 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -61,6 +63,174 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 	assert.Contains(t, body, "example: 'https://auth.example.com/?rd=https%3A%2F%2Fexample.com%2F&rm=GET'")
 	assert.Contains(t, body, "name: 'authelia_session'")
 	assert.NotContains(t, body, "/api/health/verbose:")
+}
+
+func TestShouldTemplateOpenAPIDPoP(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(&ReadFileOpenAPI{}))
+
+	strategies := []schema.ServerEndpointsAuthzAuthnStrategy{
+		{Name: "HeaderAuthorization", Schemes: []string{"basic", "bearer", "dpop"}},
+		{Name: "CookieSession"},
+	}
+
+	authz := map[string]schema.ServerEndpointsAuthz{
+		"forward-auth": {Implementation: "ForwardAuth", AuthnStrategies: strategies},
+		"auth-request": {Implementation: "AuthRequest", AuthnStrategies: strategies},
+		"ext-authz":    {Implementation: "ExtAuthz", AuthnStrategies: strategies},
+		"legacy":       {Implementation: "Legacy", AuthnStrategies: strategies},
+	}
+
+	paths := []string{"/api/authz/forward-auth", "/api/authz/auth-request", "/api/authz/ext-authz", "/api/verify"}
+
+	testCases := []struct {
+		name     string
+		enabled  bool
+		expected bool
+	}{
+		{"ShouldDocumentDPoPWhenEnabled", true, true},
+		{"ShouldNotDocumentDPoPWhenDisabled", false, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			mock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
+			mock.Ctx.Configuration.Server.Endpoints.Authz = authz
+			mock.Ctx.Configuration.Session = schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain: "example.com",
+					},
+				},
+			}
+			mock.Ctx.Configuration.IdentityProviders.OIDC = &schema.IdentityProvidersOpenIDConnect{
+				DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: tc.enabled},
+			}
+
+			mock.ResetSessionProvider()
+
+			handler := ServeTemplatedOpenAPI(provider.GetAssetOpenAPISpecTemplate(), NewTemplatedFileOptions(&mock.Ctx.Configuration))
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
+			mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/api/openapi.yml")
+
+			handler(mock.Ctx)
+
+			require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+			spec := map[string]any{}
+
+			require.NoError(t, yaml.Unmarshal(mock.Ctx.Response.Body(), &spec))
+
+			assert.Equal(t, tc.expected, openAPIHas(spec, "components", "securitySchemes", "oauth2_dpop"))
+			assert.Equal(t, tc.expected, openAPIHas(spec, "components", "securitySchemes", "authorization_dpop"))
+			assert.Equal(t, tc.expected, openAPIHas(spec, "components", "headers", "dpopNonceHeader"))
+			assert.Equal(t, tc.expected, openAPIHas(spec, "components", "parameters", "dpopProofParam"))
+			assert.True(t, openAPIHas(spec, "components", "schemas", "openid.spec.AuthorizeRequest", "properties", "dpop_jkt"))
+			assert.True(t, openAPIHas(spec, "components", "schemas", "openid.spec.IntrospectionResponse", "properties", "cnf"))
+
+			for _, path := range []string{"/api/oidc/token", "/api/oidc/pushed-authorization-request"} {
+				assert.Equal(t, tc.expected, openAPIHasDPoPProofParam(spec, path, "post"), path)
+			}
+
+			for _, method := range []string{"get", "post"} {
+				assert.Equal(t, tc.expected, openAPIHasDPoPProofParam(spec, "/api/oidc/userinfo", method), method)
+				assert.Equal(t, tc.expected, openAPIHasSecurity(spec, "/api/oidc/userinfo", method, "oauth2_dpop"), method)
+				assert.Equal(t, tc.expected, openAPIHas(spec, "paths", "/api/oidc/userinfo", method, "responses", "401", "headers", "DPoP-Nonce"), method)
+			}
+
+			for _, path := range paths {
+				assert.Equal(t, tc.expected, openAPIHasDPoPProofParam(spec, path, "get"), path)
+				assert.Equal(t, tc.expected, openAPIHasSecurity(spec, path, "get", "authorization_dpop"), path)
+				assert.Equal(t, tc.expected, openAPIHas(spec, "paths", path, "get", "responses", "401", "headers", "DPoP-Nonce"), path)
+				assert.True(t, openAPIHasSecurity(spec, path, "get", "authorization_bearer"), path)
+				assert.True(t, openAPIHasSecurity(spec, path, "get", "authorization_basic"), path)
+			}
+
+			refs := openAPICollectRefs(spec, nil)
+
+			for _, ref := range refs {
+				parts := strings.Split(strings.TrimPrefix(ref, "#/"), "/")
+
+				assert.True(t, openAPIHas(spec, parts...), "dangling reference %s", ref)
+			}
+		})
+	}
+}
+
+func openAPIHas(node any, keys ...string) bool {
+	for _, key := range keys {
+		m, ok := node.(map[string]any)
+		if !ok {
+			return false
+		}
+
+		if node, ok = m[key]; !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func openAPIOperation(spec map[string]any, path, method string) map[string]any {
+	paths, _ := spec["paths"].(map[string]any)
+	item, _ := paths[path].(map[string]any)
+	operation, _ := item[method].(map[string]any)
+
+	return operation
+}
+
+func openAPIHasDPoPProofParam(spec map[string]any, path, method string) bool {
+	parameters, _ := openAPIOperation(spec, path, method)["parameters"].([]any)
+
+	for _, parameter := range parameters {
+		if p, ok := parameter.(map[string]any); ok && p["$ref"] == "#/components/parameters/dpopProofParam" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func openAPIHasSecurity(spec map[string]any, path, method, name string) bool {
+	security, _ := openAPIOperation(spec, path, method)["security"].([]any)
+
+	for _, requirement := range security {
+		if r, ok := requirement.(map[string]any); ok {
+			if _, ok = r[name]; ok {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func openAPICollectRefs(node any, refs []string) []string {
+	switch value := node.(type) {
+	case map[string]any:
+		for key, child := range value {
+			if ref, ok := child.(string); ok && key == "$ref" {
+				refs = append(refs, ref)
+
+				continue
+			}
+
+			refs = openAPICollectRefs(child, refs)
+		}
+	case []any:
+		for _, child := range value {
+			refs = openAPICollectRefs(child, refs)
+		}
+	}
+
+	return refs
 }
 
 func TestServeTemplatedFile(t *testing.T) {

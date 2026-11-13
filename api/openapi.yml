@@ -237,11 +237,11 @@ paths:
   {{- range $part := splitList "-" ($name | replace "/" "-" | replace "." "-" | replace "_" "-") }}
   {{- if gt (len $part) 0 }}{{ $opidAuthz = printf "%s%s%s" $opidAuthz (upper (slice $part 0 1)) (slice $part 1) }}{{ end }}
   {{- end }}
-  {{- $secCookie := false }}{{ $secBasic := false }}{{ $secBearer := false }}{{ $secProxy := false }}{{ $status407 := false }}
+  {{- $secCookie := false }}{{ $secBasic := false }}{{ $secBearer := false }}{{ $secDPoP := false }}{{ $secProxy := false }}{{ $status407 := false }}
   {{- range $strategy := $config.AuthnStrategies }}
   {{- if eq $strategy.Name "CookieSession" }}{{ $secCookie = true }}
   {{- else if eq $strategy.Name "HeaderAuthorization" }}
-  {{- range $scheme := (default (list "basic") $strategy.Schemes) }}{{ if eq (lower $scheme) "bearer" }}{{ $secBearer = true }}{{ else }}{{ $secBasic = true }}{{ end }}{{ end }}
+  {{- range $scheme := (default (list "basic") $strategy.Schemes) }}{{ if eq (lower $scheme) "bearer" }}{{ $secBearer = true }}{{ else if eq (lower $scheme) "dpop" }}{{ if $.DPoP }}{{ $secDPoP = true }}{{ end }}{{ else }}{{ $secBasic = true }}{{ end }}{{ end }}
   {{- else if eq $strategy.Name "HeaderLegacy" }}{{ $secProxy = true }}{{ $secBasic = true }}
   {{- else if eq $strategy.Name "HeaderProxyAuthorization" }}{{ $secProxy = true }}{{ $status407 = true }}
   {{- else }}{{ $secProxy = true }}
@@ -265,6 +265,9 @@ paths:
         Any arbitrary sub-path of this endpoint is also routed to the same handler, i.e. `{{ $uri }}/{path}`, which
         allows proxies that forward the original request path to this endpoint to be supported.
       parameters:
+        {{- if $secDPoP }}
+        - $ref: '#/components/parameters/dpopProofParam'
+        {{- end }}
         - name: X-Original-URL
           in: header
           description: Redirection URL
@@ -375,11 +378,25 @@ paths:
                 type: string
                 format: uri
             WWW-Authenticate:
-              description: The authentication challenge, sent when a header authentication strategy rejects the request.
+              description: >
+                The authentication challenge, sent when a header authentication strategy rejects the request.{{ if (or $secBearer $secDPoP) }} When an
+                OAuth 2.0 Access Token is rejected the challenge follows RFC6750 Section 3.{{ end }}{{ if $secDPoP }} The error is carried on the
+                challenge of the scheme the Access Token was presented with, and the RFC9449 Section 7.1 DPoP challenge
+                carries the algs parameter listing the permitted DPoP proof signing algorithms.{{ end }}
               schema:
                 type: string
                 examples:
                   - 'Basic realm="Authorization Required"'
+                  {{- if $secBearer }}
+                  - 'Bearer error="invalid_token", error_description="The access token provided is expired, revoked, malformed, or invalid for other reasons."'
+                  {{- end }}
+                  {{- if $secDPoP }}
+                  - 'Bearer, DPoP error="invalid_dpop_proof", error_description="The DPoP proof is missing or invalid.", algs="ES256 PS256 Ed25519"'
+                  {{- end }}
+            {{- if $secDPoP }}
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+            {{- end }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -413,6 +430,9 @@ paths:
         {{- if $secBearer }}
         - authorization_bearer: []
         {{- end }}
+        {{- if $secDPoP }}
+        - authorization_dpop: []
+        {{- end }}
         {{- if $secProxy }}
         - proxy_authorization: []
         {{- end }}
@@ -432,6 +452,9 @@ paths:
         Any arbitrary sub-path of this endpoint is also routed to the same handler, i.e. `{{ $uri }}/{path}`, as Envoy
         forwards the original request path to this endpoint.
       parameters:
+        {{- if $secDPoP }}
+        - $ref: '#/components/parameters/dpopProofParam'
+        {{- end }}
         - $ref: '#/components/parameters/forwardedMethodParam'
         - $ref: '#/components/parameters/forwardedProtoParam'
         - $ref: '#/components/parameters/forwardedHostParam'
@@ -492,11 +515,25 @@ paths:
                 type: string
                 format: uri
             WWW-Authenticate:
-              description: The authentication challenge, sent when a header authentication strategy rejects the request.
+              description: >
+                The authentication challenge, sent when a header authentication strategy rejects the request.{{ if (or $secBearer $secDPoP) }} When an
+                OAuth 2.0 Access Token is rejected the challenge follows RFC6750 Section 3.{{ end }}{{ if $secDPoP }} The error is carried on the
+                challenge of the scheme the Access Token was presented with, and the RFC9449 Section 7.1 DPoP challenge
+                carries the algs parameter listing the permitted DPoP proof signing algorithms.{{ end }}
               schema:
                 type: string
                 examples:
                   - 'Basic realm="Authorization Required"'
+                  {{- if $secBearer }}
+                  - 'Bearer error="invalid_token", error_description="The access token provided is expired, revoked, malformed, or invalid for other reasons."'
+                  {{- end }}
+                  {{- if $secDPoP }}
+                  - 'Bearer, DPoP error="invalid_dpop_proof", error_description="The DPoP proof is missing or invalid.", algs="ES256 PS256 Ed25519"'
+                  {{- end }}
+            {{- if $secDPoP }}
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+            {{- end }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -530,6 +567,9 @@ paths:
         {{- if $secBearer }}
         - authorization_bearer: []
         {{- end }}
+        {{- if $secDPoP }}
+        - authorization_dpop: []
+        {{- end }}
         {{- if $secProxy }}
         - proxy_authorization: []
         {{- end }}
@@ -545,6 +585,9 @@ paths:
         The ForwardAuth authorization verification endpoint provides the ability to verify if a user has the necessary
         permissions to access a specified resource with the Traefik, Caddy, or Skipper proxies.
       parameters:
+        {{- if $secDPoP }}
+        - $ref: '#/components/parameters/dpopProofParam'
+        {{- end }}
         - $ref: '#/components/parameters/forwardedMethodParam'
         - $ref: '#/components/parameters/forwardedProtoParam'
         - $ref: '#/components/parameters/forwardedHostParam'
@@ -605,11 +648,25 @@ paths:
                 type: string
                 format: uri
             WWW-Authenticate:
-              description: The authentication challenge, sent when a header authentication strategy rejects the request.
+              description: >
+                The authentication challenge, sent when a header authentication strategy rejects the request.{{ if (or $secBearer $secDPoP) }} When an
+                OAuth 2.0 Access Token is rejected the challenge follows RFC6750 Section 3.{{ end }}{{ if $secDPoP }} The error is carried on the
+                challenge of the scheme the Access Token was presented with, and the RFC9449 Section 7.1 DPoP challenge
+                carries the algs parameter listing the permitted DPoP proof signing algorithms.{{ end }}
               schema:
                 type: string
                 examples:
                   - 'Basic realm="Authorization Required"'
+                  {{- if $secBearer }}
+                  - 'Bearer error="invalid_token", error_description="The access token provided is expired, revoked, malformed, or invalid for other reasons."'
+                  {{- end }}
+                  {{- if $secDPoP }}
+                  - 'Bearer, DPoP error="invalid_dpop_proof", error_description="The DPoP proof is missing or invalid.", algs="ES256 PS256 Ed25519"'
+                  {{- end }}
+            {{- if $secDPoP }}
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+            {{- end }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -643,6 +700,9 @@ paths:
         {{- if $secBearer }}
         - authorization_bearer: []
         {{- end }}
+        {{- if $secDPoP }}
+        - authorization_dpop: []
+        {{- end }}
         {{- if $secProxy }}
         - proxy_authorization: []
         {{- end }}
@@ -658,6 +718,9 @@ paths:
         The AuthRequest authorization verification endpoint provides the ability to verify if a user has the necessary
         permissions to access a specified resource with the HAPROXY, NGINX, or NGINX-based proxies.
       parameters:
+        {{- if $secDPoP }}
+        - $ref: '#/components/parameters/dpopProofParam'
+        {{- end }}
         - $ref: '#/components/parameters/originalMethodParam'
         - $ref: '#/components/parameters/originalURLParam'
         - $ref: '#/components/parameters/autheliaURLQueryParam'
@@ -689,11 +752,25 @@ paths:
                 type: string
                 format: uri
             WWW-Authenticate:
-              description: The authentication challenge, sent when a header authentication strategy rejects the request.
+              description: >
+                The authentication challenge, sent when a header authentication strategy rejects the request.{{ if (or $secBearer $secDPoP) }} When an
+                OAuth 2.0 Access Token is rejected the challenge follows RFC6750 Section 3.{{ end }}{{ if $secDPoP }} The error is carried on the
+                challenge of the scheme the Access Token was presented with, and the RFC9449 Section 7.1 DPoP challenge
+                carries the algs parameter listing the permitted DPoP proof signing algorithms.{{ end }}
               schema:
                 type: string
                 examples:
                   - 'Basic realm="Authorization Required"'
+                  {{- if $secBearer }}
+                  - 'Bearer error="invalid_token", error_description="The access token provided is expired, revoked, malformed, or invalid for other reasons."'
+                  {{- end }}
+                  {{- if $secDPoP }}
+                  - 'Bearer, DPoP error="invalid_dpop_proof", error_description="The DPoP proof is missing or invalid.", algs="ES256 PS256 Ed25519"'
+                  {{- end }}
+            {{- if $secDPoP }}
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+            {{- end }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -726,6 +803,9 @@ paths:
         {{- end }}
         {{- if $secBearer }}
         - authorization_bearer: []
+        {{- end }}
+        {{- if $secDPoP }}
+        - authorization_dpop: []
         {{- end }}
         {{- if $secProxy }}
         - proxy_authorization: []
@@ -2361,6 +2441,18 @@ paths:
             type: string
             examples:
               - 'https://app.example.com'
+        {{- if .DPoP }}
+        - in: query
+          name: dpop_jkt
+          description: >
+            The RFC9449 Section 10 JWK SHA-256 Thumbprint of the DPoP proof-of-possession key the authorization code is
+            bound to. The DPoP proof presented at the token endpoint when redeeming the code must be signed by this key.
+          required: false
+          schema:
+            type: string
+            examples:
+              - '0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I'
+        {{- end }}
       responses:
         "200":
           description: >
@@ -2543,6 +2635,10 @@ paths:
       summary: OAuth 2.0 Pushed Authorization Endpoint
       description: >
         This endpoint performs OAuth 2.0 Pushed Authorization.
+      {{- if .DPoP }}
+      parameters:
+        - $ref: '#/components/parameters/dpopProofParam'
+      {{- end }}
       requestBody:
         description: Pushed Authorize Request Parameters.
         required: true
@@ -2586,6 +2682,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          {{- if .DPoP }}
+          headers:
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+          {{- end }}
         "413":
           description: Content Too Large
           content:
@@ -2622,6 +2723,10 @@ paths:
       summary: OpenID Connect 1.0 Token Endpoint
       description: >
         This endpoint performs OpenID Connect 1.0 Token Access Requests.
+      {{- if .DPoP }}
+      parameters:
+        - $ref: '#/components/parameters/dpopProofParam'
+      {{- end }}
       requestBody:
         description: Access Request Parameters.
         required: true
@@ -2641,12 +2746,22 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/openid.spec.AccessResponse'
+          {{- if .DPoP }}
+          headers:
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+          {{- end }}
         "400":
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          {{- if .DPoP }}
+          headers:
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+          {{- end }}
         "401":
           description: Unauthorized
           content:
@@ -2809,6 +2924,9 @@ paths:
       description: >
         This endpoint performs OpenID Connect 1.0 UserInfo Access Requests.
       parameters:
+        {{- if .DPoP }}
+        - $ref: '#/components/parameters/dpopProofParam'
+        {{- end }}
         - in: query
           name: access_token
           description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
@@ -2838,11 +2956,22 @@ paths:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
           headers:
             WWW-Authenticate:
-              description: The RFC6750 Bearer authentication challenge describing the error.
+              description: >
+                The RFC6750 Section 3 authentication challenge describing the error.{{ if .DPoP }} The error is carried
+                on the challenge of the scheme the Access Token was presented with, and the RFC9449 Section 7.1 DPoP
+                challenge carries the algs parameter listing the permitted DPoP proof signing algorithms.{{ end }}
               schema:
                 type: string
                 examples:
-                  - 'Bearer error="invalid_token",error_description="The access token is invalid."'
+                  - 'Bearer error="invalid_token", error_description="The access token provided is expired, revoked, malformed, or invalid for other reasons."'
+                  {{- if .DPoP }}
+                  - 'Bearer error="invalid_token", error_description="The access token provided is expired, revoked, malformed, or invalid for other reasons.", DPoP algs="ES256 PS256 Ed25519"'
+                  - 'Bearer, DPoP error="invalid_dpop_proof", error_description="The DPoP proof is missing or invalid.", algs="ES256 PS256 Ed25519"'
+                  {{- end }}
+            {{- if .DPoP }}
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+            {{- end }}
         "403":
           description: Forbidden
           content:
@@ -2869,6 +2998,9 @@ paths:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - oauth2_bearer: []
+        {{- if .DPoP }}
+        - oauth2_dpop: []
+        {{- end }}
         - {}
     post:
       operationId: postOpenIDConnectUserInfo
@@ -2878,6 +3010,9 @@ paths:
       description: >
         This endpoint performs OpenID Connect 1.0 UserInfo Access Requests.
       parameters:
+        {{- if .DPoP }}
+        - $ref: '#/components/parameters/dpopProofParam'
+        {{- end }}
         - in: query
           name: access_token
           description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
@@ -2918,11 +3053,22 @@ paths:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
           headers:
             WWW-Authenticate:
-              description: The RFC6750 Bearer authentication challenge describing the error.
+              description: >
+                The RFC6750 Section 3 authentication challenge describing the error.{{ if .DPoP }} The error is carried
+                on the challenge of the scheme the Access Token was presented with, and the RFC9449 Section 7.1 DPoP
+                challenge carries the algs parameter listing the permitted DPoP proof signing algorithms.{{ end }}
               schema:
                 type: string
                 examples:
-                  - 'Bearer error="invalid_token",error_description="The access token is invalid."'
+                  - 'Bearer error="invalid_token", error_description="The access token provided is expired, revoked, malformed, or invalid for other reasons."'
+                  {{- if .DPoP }}
+                  - 'Bearer error="invalid_token", error_description="The access token provided is expired, revoked, malformed, or invalid for other reasons.", DPoP algs="ES256 PS256 Ed25519"'
+                  - 'Bearer, DPoP error="invalid_dpop_proof", error_description="The DPoP proof is missing or invalid.", algs="ES256 PS256 Ed25519"'
+                  {{- end }}
+            {{- if .DPoP }}
+            DPoP-Nonce:
+              $ref: '#/components/headers/dpopNonceHeader'
+            {{- end }}
         "403":
           description: Forbidden
           content:
@@ -2949,6 +3095,9 @@ paths:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - oauth2_bearer: []
+        {{- if .DPoP }}
+        - oauth2_dpop: []
+        {{- end }}
         - {}
   /api/oidc/consent:
     get:
@@ -3004,7 +3153,33 @@ paths:
         - authelia_auth: []
   {{- end }}
 components:
+  {{- if .DPoP }}
+  headers:
+    dpopNonceHeader:
+      description: >
+        The RFC9449 Section 8 and Section 9 server provided nonce which the client must include in the nonce claim of
+        the DPoP proof of its next request. Sent alongside a use_dpop_nonce error, and on successful responses to supply
+        a fresh nonce.
+      schema:
+        type: string
+        examples:
+          - 'eyJ7S_zG.eyJH0-Z.HX4w-7v'
+  {{- end }}
   parameters:
+    {{- if .DPoP }}
+    dpopProofParam:
+      name: DPoP
+      in: header
+      description: >
+        The RFC9449 DPoP proof JWT demonstrating possession of the private key the issued or presented tokens are bound
+        to. Required when the client or the provider enforces DPoP, or when the presented token is DPoP bound. Only a
+        single DPoP header is permitted.
+      required: false
+      schema:
+        type: string
+        examples:
+          - 'eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCRnMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JEQSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiItQndDM0VTYzZhY2MybFRjIiwiaHRtIjoiUE9TVCIsImh0dSI6Imh0dHBzOi8vc2VydmVyLmV4YW1wbGUuY29tL3Rva2VuIiwiaWF0IjoxNTYyMjYyNjE2fQ.2-GxA6T8lP4vfrg8v-FdWP0A0zdrj8igiMLvqRMUvwnQg4PtFLbdLXiOSsX0x7NVY-FNyJK70nfbV37xRZT3Lg'  # trufflehog:ignore
+    {{- end }}
     credentialID:
       in: path
       name: credentialID
@@ -5012,6 +5187,17 @@ components:
           type: boolean
           examples:
             - true
+        dpop_signing_alg_values_supported:
+          description: >
+            OPTIONAL. JSON array containing a list of the JWS alg values supported by the authorization server for DPoP
+            proof JWTs, as defined by RFC9449 Section 5.1. Only present when DPoP is enabled.
+          type: array
+          examples:
+            - - 'ES256'
+              - 'PS256'
+              - 'Ed25519'
+          items:
+            type: string
         request_object_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request
@@ -5942,6 +6128,17 @@ components:
           type: boolean
           examples:
             - true
+        dpop_signing_alg_values_supported:
+          description: >
+            OPTIONAL. JSON array containing a list of the JWS alg values supported by the authorization server for DPoP
+            proof JWTs, as defined by RFC9449 Section 5.1. Only present when DPoP is enabled.
+          type: array
+          examples:
+            - - 'ES256'
+              - 'PS256'
+              - 'Ed25519'
+          items:
+            type: string
         introspection_signing_alg_values_supported:
           description: >
             OPTIONAL. JSON array containing a list of the JWS [RFC7515] signing algorithms (alg values), as defined in
@@ -6053,9 +6250,23 @@ components:
           type: string
           enum:
             - 'bearer'
+            - 'DPoP'
           examples:
             - 'bearer'
-          description: 'OPTIONAL. Type of the token as defined in Section 5.1 of OAuth 2.0 [RFC6749].'
+          description: >
+            OPTIONAL. Type of the token as defined in Section 5.1 of OAuth 2.0 [RFC6749]. The value is DPoP for an
+            RFC9449 DPoP bound Access Token as defined by RFC9449 Section 6.2.
+        cnf:
+          type: object
+          description: >
+            OPTIONAL. The RFC7800 confirmation claim. Present for an RFC9449 DPoP bound Access Token as defined by RFC9449
+            Section 6.2.
+          properties:
+            jkt:
+              type: string
+              description: The JWK SHA-256 Thumbprint of the DPoP proof-of-possession key the token is bound to.
+              examples:
+                - '0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I'
         exp:
           type: integer
           description: >
@@ -6240,6 +6451,7 @@ components:
         - type: string
           enum:
             - 'groups'
+            - 'bound_key'
     openid.spec.Scopes:
       type: string
       enum:
@@ -6631,9 +6843,10 @@ components:
             required to successfully utilize the access token to make a protected
             resource request (along with type-specific attributes). The client
             MUST NOT use an access token if it does not understand the token
-            type.
+            type. The value is DPoP for an RFC9449 DPoP bound Access Token as defined by RFC9449 Section 5.
           enum:
             - 'bearer'
+            - 'DPoP'
           examples:
             - 'bearer'
           type: string
@@ -6805,6 +7018,13 @@ components:
             Space delimited list of the audience values requested for the tokens. The values must be permitted by the
             audience option of the client.
           type: string
+        dpop_jkt:
+          description: >
+            The RFC9449 Section 10 JWK SHA-256 Thumbprint of the DPoP proof-of-possession key the grant is bound to.
+            The DPoP proof presented at the token endpoint must be signed by this key.
+          examples:
+            - '0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I'
+          type: string
     openid.spec.DeviceAuthorizeRequest:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -6844,6 +7064,13 @@ components:
             the value "fr-CA fr en" represents a preference for French as spoken in Canada, then French (without
             a region designation), followed by English (without a region designation). An error SHOULD NOT
             result if some or all of the requested locales are not supported by the OpenID Provider.
+          type: string
+        dpop_jkt:
+          description: >
+            The RFC9449 Section 10 JWK SHA-256 Thumbprint of the DPoP proof-of-possession key the grant is bound to.
+            The DPoP proof presented at the token endpoint must be signed by this key.
+          examples:
+            - '0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I'
           type: string
     openid.spec.SubjectIdentifier:
       description: >
@@ -7363,6 +7590,15 @@ components:
       description: >
         An OAuth 2.0 Access Token granted the authelia.bearer.authz scope in the Authorization header. Accepted by
         authorization endpoints using the HeaderAuthorization strategy with the bearer scheme.
+    {{- if .DPoP }}
+    authorization_dpop:
+      type: http
+      scheme: dpop
+      description: >
+        An RFC9449 DPoP bound OAuth 2.0 Access Token granted the authelia.bearer.authz scope in the Authorization header,
+        presented alongside a DPoP proof in the DPoP header. Accepted by authorization endpoints using the
+        HeaderAuthorization strategy with the DPoP scheme.
+    {{- end }}
     proxy_authorization:
       type: apiKey
       in: header
@@ -7388,5 +7624,14 @@ components:
       description: >
         An OAuth 2.0 Access Token sent in the Authorization header as described by RFC6750 Section 2.1. The token may
         instead be sent in the access_token form parameter.
+    {{- if .DPoP }}
+    oauth2_dpop:
+      type: http
+      scheme: dpop
+      description: >
+        An RFC9449 DPoP bound OAuth 2.0 Access Token sent in the Authorization header as described by RFC9449 Section
+        7.1, alongside a DPoP proof in the DPoP header which includes the ath claim. A DPoP bound Access Token must be
+        presented using this scheme.
+    {{- end }}
     {{- end }}
 ...
