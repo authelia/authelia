@@ -1070,6 +1070,11 @@
     "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CODE_LIFESPAN"
   },
   {
+    "path": "identity_validation.elevated_session.disable_remote_ip_check",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_DISABLE_REMOTE_IP_CHECK"
+  },
+  {
     "path": "identity_validation.elevated_session.elevation_lifespan",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_ELEVATION_LIFESPAN"

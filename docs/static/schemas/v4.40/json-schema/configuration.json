@@ -2844,6 +2844,12 @@
           "title": "Skip Second Factor",
           "description": "Skips the primary identity verification process if the user has authenticated with a second factor.",
           "default": false
+        },
+        "disable_remote_ip_check": {
+          "type": "boolean",
+          "title": "Disable Remote IP Check",
+          "description": "Disables destroying the elevation when the Remote IP of a request does not match the Remote IP the elevation was created with.",
+          "default": false
         }
       },
       "additionalProperties": false,

@@ -102,6 +102,38 @@ func TestRequireElevated(t *testing.T) {
 			true,
 		},
 		{
+			"ShouldPassElevationBadIPWhenRemoteIPCheckDisabled",
+			authentication.OneFactor,
+			&elevation{
+				1, time.Minute, net.ParseIP("2001:db8::1"),
+			},
+			false,
+			false,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.DisableRemoteIPCheck = true
+			},
+			fasthttp.StatusOK,
+			false,
+			false,
+			false,
+		},
+		{
+			"ShouldRequireElevationExpiredWhenRemoteIPCheckDisabled",
+			authentication.OneFactor,
+			&elevation{
+				1, time.Minute * -1, net.ParseIP("2001:db8::1"),
+			},
+			false,
+			false,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.DisableRemoteIPCheck = true
+			},
+			fasthttp.StatusForbidden,
+			false,
+			false,
+			true,
+		},
+		{
 			"ShouldRequire2FAWhenElevated",
 			authentication.OneFactor,
 			&elevation{
