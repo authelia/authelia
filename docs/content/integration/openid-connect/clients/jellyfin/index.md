@@ -27,11 +27,11 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
+  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
 - [Jellyfin]
-  - [v10.10.7](https://github.com/jellyfin/jellyfin/releases/tag/v10.10.7)
+  - [v10.11.11](https://github.com/jellyfin/jellyfin/releases/tag/v10.11.11)
 - [Jellyfin SSO-Auth Plugin]
-  - [v4.0.0.3](https://github.com/9p4/jellyfin-plugin-sso/releases/tag/v4.0.0.3)
+  - [v5.0.0.2](https://github.com/Buco7854/jellyfin-plugin-sso/releases/tag/v5.0.0.2)
 
 {{% oidc-common %}}
 
@@ -61,7 +61,7 @@ To install the [Jellyfin SSO-Auth Plugin] for [Jellyfin] via the Web GUI:
 4. Click the `+` to add a repository.
 5. Enter the following details:
    - Repository Name: `Jellyfin SSO-Auth`
-   - Repository URL: `https://raw.githubusercontent.com/9p4/jellyfin-plugin-sso/manifest-release/manifest.json`
+   - Repository URL: `https://raw.githubusercontent.com/Buco7854/jellyfin-plugin-sso/manifest-release/manifest.json`
 6. Click `Save`.
 7. Click `Ok` to confirm the repository installation.
 
@@ -165,6 +165,10 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
           </OidScopes>
           <CanonicalLinks></CanonicalLinks>
           <DisableHttps>false</DisableHttps>
+          <!-- this is required when pushed_authorizations.force is left with its default value.
+            If your configuration has require_pushed_authorization_requests: true in the client, set this to false instead.
+          -->
+          <DisablePushedAuthorization>true</DisablePushedAuthorization>
           <DoNotValidateEndpoints>false</DoNotValidateEndpoints>
           <DoNotValidateIssuerName>false</DoNotValidateIssuerName>
           <SchemeOverride>https</SchemeOverride>
@@ -197,6 +201,7 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
    - Role Claim: `groups`
    - Request Additional Scopes: `groups`
    - Set default username claim: `preferred_username`
+   - Disable Pushed Authorization: Checked (uncheck this if `<client>.require_pushed_authorization_requests` is `true` in your authelia config.)
    - Scheme Override: `https`
 7. All other options may remain unchecked or unconfigured.
 8. Click `Save`.
@@ -205,7 +210,7 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
 
 #### Add a Login Button to Jellyfin
 
-The [Jellyfin SSO-Auth Plugin] has example instructions in the [README](https://github.com/9p4/jellyfin-plugin-sso#examples)
+The [Jellyfin SSO-Auth Plugin] has example instructions in the [README](https://github.com/Buco7854/jellyfin-plugin-sso#examples)
 
 ## See Also
 
@@ -213,6 +218,6 @@ The [Jellyfin SSO-Auth Plugin] has example instructions in the [README](https://
 
 [Authelia]: https://www.authelia.com
 [Jellyfin]: https://jellyfin.org/
-[Jellyfin SSO-Auth Plugin]: https://github.com/9p4/jellyfin-plugin-sso
+[Jellyfin SSO-Auth Plugin]: https://github.com/Buco7854/jellyfin-plugin-sso
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
