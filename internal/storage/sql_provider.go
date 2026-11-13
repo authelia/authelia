@@ -173,8 +173,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateExternalIdentityLinkSignIn:          fmt.Sprintf(queryFmtUpdateExternalIdentityLinkSignIn, tableUserExternalIdentityLinks),
 		sqlDeleteExternalIdentityLinkByUsernameAndID: fmt.Sprintf(queryFmtDeleteExternalIdentityLinkByUsernameAndID, tableUserExternalIdentityLinks),
 
-		sqlInsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
-		sqlInsertOAuth2RequestReplay:  fmt.Sprintf(queryFmtInsertOAuth2RequestReplay, tableOAuth2RequestReplay),
+		sqlInsertOAuth2BlacklistedJTI:              fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
+		sqlInsertOAuth2BlacklistedIssuerJTI:        fmt.Sprintf(queryFmtInsertOAuth2BlacklistedIssuerJTI, tableOAuth2BlacklistedIssuerJTI),
+		sqlSelectOAuth2BlacklistedIssuerJTI:        fmt.Sprintf(queryFmtSelectOAuth2BlacklistedIssuerJTI, tableOAuth2BlacklistedIssuerJTI),
+		sqlDeleteOAuth2BlacklistedIssuerJTIExpired: fmt.Sprintf(queryFmtDeleteOAuth2BlacklistedIssuerJTIExpired, tableOAuth2BlacklistedIssuerJTI),
+		sqlInsertOAuth2RequestReplay:               fmt.Sprintf(queryFmtInsertOAuth2RequestReplay, tableOAuth2RequestReplay),
 
 		sqlDeleteOAuth2BlacklistedJTIExpired: fmt.Sprintf(queryFmtDeleteOAuth2BlacklistedJTIExpired, tableOAuth2BlacklistedJTI),
 		sqlDeleteOAuth2RequestReplayExpired:  fmt.Sprintf(queryFmtDeleteOAuth2RequestReplayExpired, tableOAuth2RequestReplay),
@@ -476,7 +479,11 @@ type SQLProvider struct {
 	sqlDeactivateOAuth2RefreshTokenSessionByRequestID string
 
 	sqlInsertOAuth2BlacklistedJTI string
-	sqlInsertOAuth2RequestReplay  string
+
+	sqlInsertOAuth2BlacklistedIssuerJTI        string
+	sqlSelectOAuth2BlacklistedIssuerJTI        string
+	sqlDeleteOAuth2BlacklistedIssuerJTIExpired string
+	sqlInsertOAuth2RequestReplay               string
 
 	sqlDeleteOAuth2BlacklistedJTIExpired string
 	sqlDeleteOAuth2RequestReplayExpired  string
@@ -1941,6 +1948,33 @@ func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, clientID, si
 	return blacklistedJTI, nil
 }
 
+// SaveOAuth2BlacklistedIssuerJTI atomically saves an OAuth2.0 blacklisted JTI for an issuer to the storage provider. It
+// returns an error wrapping ErrNoRowsAffected when the JTI is already known for the issuer and has not expired.
+func (p *SQLProvider) SaveOAuth2BlacklistedIssuerJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedIssuerJTI) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2BlacklistedIssuerJTI, blacklistedJTI.Issuer, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt.UTC(), time.Now().UTC()); err != nil {
+		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s' for issuer '%s': %w", blacklistedJTI.Signature, blacklistedJTI.Issuer, err)
+	}
+
+	if err = checkInsertResult(result); err != nil {
+		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s' for issuer '%s': %w", blacklistedJTI.Signature, blacklistedJTI.Issuer, err)
+	}
+
+	return nil
+}
+
+// LoadOAuth2BlacklistedIssuerJTI loads an OAuth2.0 blacklisted JTI for an issuer from the storage provider.
+func (p *SQLProvider) LoadOAuth2BlacklistedIssuerJTI(ctx context.Context, issuer, signature string) (blacklistedJTI *model.OAuth2BlacklistedIssuerJTI, err error) {
+	blacklistedJTI = &model.OAuth2BlacklistedIssuerJTI{}
+
+	if err = p.conn(ctx).GetContext(ctx, blacklistedJTI, p.sqlSelectOAuth2BlacklistedIssuerJTI, issuer, signature); err != nil {
+		return nil, fmt.Errorf("error selecting oauth2 blacklisted JTI with signature '%s' for issuer '%s': %w", signature, issuer, err)
+	}
+
+	return blacklistedJTI, nil
+}
+
 // SaveOAuth2RequestReplay atomically records a value of an authorization request which may only be used once by a
 // client, such as a PKCE code challenge or an OpenID Connect nonce. It returns ErrNoRowsAffected when the value is
 // already recorded for the client and has not expired.
@@ -1969,6 +2003,10 @@ func (p *SQLProvider) GarbageCollection(ctx context.Context) (err error) {
 
 	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteOAuth2BlacklistedJTIExpired, now); err != nil {
 		return fmt.Errorf("error deleting expired rows from table '%s': %w", tableOAuth2BlacklistedJTI, err)
+	}
+
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteOAuth2BlacklistedIssuerJTIExpired, now); err != nil {
+		return fmt.Errorf("error deleting expired rows from table '%s': %w", tableOAuth2BlacklistedIssuerJTI, err)
 	}
 
 	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteOAuth2RequestReplayExpired, now); err != nil {

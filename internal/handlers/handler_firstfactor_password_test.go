@@ -1037,7 +1037,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 			},
 		}})
 
-	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}}}, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
+	s.mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}}}, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -1094,7 +1094,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		},
 	}
 
-	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
+	s.mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -1154,7 +1154,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		},
 	}
 
-	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
+	s.mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -1212,7 +1212,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
 		},
 	}
 
-	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
+	s.mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -1270,7 +1270,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {
 		},
 	}
 
-	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
+	s.mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",

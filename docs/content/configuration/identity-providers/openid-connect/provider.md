@@ -115,6 +115,7 @@ identity_providers:
         - 'urn:ietf:params:oauth:token-type:access_token'
         - 'urn:ietf:params:oauth:token-type:refresh_token'
         - 'urn:ietf:params:oauth:token-type:id_token'
+        - 'urn:ietf:params:oauth:token-type:id-jag'
       default_requested_token_type: 'urn:ietf:params:oauth:token-type:access_token'
       transaction_tokens:
         trust_domain: ''
@@ -125,6 +126,29 @@ identity_providers:
         replacement:
           enabled: false
           max_chain_length: 8
+    identity_assertion_authorization_grant:
+      lifespan: '5 minutes'
+      single_use: true
+      access_token_allowance: 0
+      resource_optional: false
+      resource_authorization_servers:
+        - issuer: 'https://rs.example.com'
+          aliases: []
+          signing_algorithm: 'RS256'
+          max_age: 0
+          subject_client_id: 'rs-sso'
+          claims_policy: ''
+          jwt_dpop_supported: false
+      trusted_issuers:
+        - issuer: 'https://idp.example.com'
+          jwks_uri: 'https://idp.example.com/jwks.json'
+          signing_algorithms:
+            - 'RS256'
+          clients:
+            - 'myapp'
+          resources: []
+          username_claim: 'sub'
+          authentication_methods_references: ''
     claims_policies:
       policy_name:
         id_token: []
@@ -829,17 +853,23 @@ here. The supported values are:
 - `urn:ietf:params:oauth:token-type:refresh_token`
 - `urn:ietf:params:oauth:token-type:id_token`
 - `urn:ietf:params:oauth:token-type:txn_token`
+- `urn:ietf:params:oauth:token-type:id-jag`
 
 The `urn:ietf:params:oauth:token-type:txn_token` value enables [Transaction Tokens](#transaction_tokens) and is never
 accepted as an `actor_token` type.
+
+The `urn:ietf:params:oauth:token-type:id-jag` value enables issuing Identity Assertion JWT Authorization Grants, and is
+required when, and only permitted when, the
+[resource_authorization_servers](#resource_authorization_servers) option is configured. It may only be requested and is
+never accepted as a `subject_token` or `actor_token` type.
 
 #### default_requested_token_type
 
 {{< confkey type="string" default="urn:ietf:params:oauth:token-type:access_token" required="no" >}}
 
 The token type issued when a token exchange request omits the `requested_token_type` parameter. It must be one of the
-configured [token_types](#token_types), and it may not be `urn:ietf:params:oauth:token-type:refresh_token` or
-`urn:ietf:params:oauth:token-type:txn_token`. A client which does not configure
+configured [token_types](#token_types), and it may not be `urn:ietf:params:oauth:token-type:refresh_token`,
+`urn:ietf:params:oauth:token-type:txn_token`, or `urn:ietf:params:oauth:token-type:id-jag`. A client which does not configure
 [request_token_types_supported](clients.md#request_token_types_supported) defaults to a list containing only this value.
 
 #### transaction_tokens
@@ -921,6 +951,269 @@ Enables the replacement of Transaction Tokens.
 {{< confkey type="integer" default="8" required="no" >}}
 
 The maximum length of the chain of replaced Transaction Tokens. The minimum value is `1`.
+
+### identity_assertion_authorization_grant
+
+Global configuration for the Identity Assertion JWT Authorization Grant ([ID-JAG]), as described in the
+[IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-identity-assertion-authz-grant). Both roles of the
+draft are supported:
+
+- **Issue:** Authelia acts as the Identity Provider. A client exchanges a user's ID Token or refresh token, using
+  [OAuth 2.0 Token Exchange](https://oauth.net/2/token-exchange/) with the `requested_token_type` of
+  `urn:ietf:params:oauth:token-type:id-jag`, for a signed grant which a Resource Authorization Server accepts. This is
+  enabled by listing `urn:ietf:params:oauth:token-type:id-jag` in the [token_exchange: token_types](#token_types)
+  option, and configured by [resource_authorization_servers](#resource_authorization_servers) and the per-client
+  [relationships](clients.md#identity_assertion_authorization_grant_relationships).
+- **Redeem:** Authelia acts as the Resource Authorization Server. A client presents a grant issued by an external
+  trusted issuer using the `urn:ietf:params:oauth:grant-type:jwt-bearer` grant type, or the
+  `urn:ietf:params:oauth:grant-type:jwt-dpop` grant type for a [dpop](#dpop) bound grant, and receives an Access Token.
+  This is configured by [trusted_issuers](#trusted_issuers).
+
+See the [Identity Assertion JWT Authorization Grant](clients.md#identity-assertion-jwt-authorization-grant) section of
+the clients documentation for the security model and examples.
+
+#### lifespan
+
+{{< confkey type="duration" syntax="duration" default="5 minutes" required="no" >}}
+
+The duration an issued grant is valid for. This should be short. A value above `1 hour` produces a warning. A value of
+`0` applies the default.
+
+#### single_use
+
+{{< confkey type="boolean" default="true" required="no" >}}
+
+Determines if a presented grant may only be redeemed once. The `jti` of every redeemed grant is recorded until the grant
+expires, and a second presentation is rejected with `invalid_grant`. Disabling this is not recommended.
+
+#### access_token_allowance
+
+{{< confkey type="duration" syntax="duration" default="0" required="no" >}}
+
+The additional duration the Access Token issued from a redeemed grant may remain valid beyond the remaining lifetime of
+the grant. When `0` the Access Token does not outlive the grant.
+
+#### resource_optional
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Determines if the `resource` parameter is optional when a client requests a grant for a relationship which defines
+[resources](clients.md#resources). When `false` the `resource` parameter is required for those relationships. This can
+be overridden per client with
+[identity_assertion_authorization_grant_resource_optional](clients.md#identity_assertion_authorization_grant_resource_optional).
+
+#### resource_authorization_servers
+
+{{< confkey type="list(object)" required="no" >}}
+
+The Resource Authorization Servers which grants may be issued for. A client can only request a grant for a Resource
+Authorization Server which it has a [relationship](clients.md#identity_assertion_authorization_grant_relationships)
+with. This option may only be configured, and must be configured, when the
+[token_exchange: token_types](#token_types) option includes `urn:ietf:params:oauth:token-type:id-jag`.
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    token_exchange:
+      token_types:
+        - 'urn:ietf:params:oauth:token-type:access_token'
+        - 'urn:ietf:params:oauth:token-type:refresh_token'
+        - 'urn:ietf:params:oauth:token-type:id_token'
+        - 'urn:ietf:params:oauth:token-type:id-jag'
+    identity_assertion_authorization_grant:
+      resource_authorization_servers:
+        - issuer: 'https://rs.example.com'
+          aliases:
+            - 'https://rs.example.com/alias'
+          signing_algorithm: 'RS256'
+          max_age: 0
+          subject_client_id: 'rs-sso'
+          claims_policy: 'rs-claims'
+          jwt_dpop_supported: false
+```
+
+##### issuer
+
+{{< confkey type="string" syntax="uri" required="yes" >}}
+
+The issuer identifier of the Resource Authorization Server. It becomes the `aud` claim of the grant. It must be an
+absolute URL with the `https` scheme, must be unique across all Resource Authorization Servers, and must not be the same
+as the issuer of this provider.
+
+##### aliases
+
+{{< confkey type="list(string)" required="no" >}}
+
+Additional values of the `audience` request parameter which identify this Resource Authorization Server. Each value must
+be unique across the [issuer](#issuer) and aliases of all Resource Authorization Servers, and must not be the same as the
+issuer of this provider. The grant is always issued with the [issuer](#issuer) as the audience.
+
+##### signing_algorithm
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+The JWS algorithm used to sign grants issued for this Resource Authorization Server. Authelia must have a
+[JSON Web Key](#jwks) for the algorithm.
+
+##### max_age
+
+{{< confkey type="duration" syntax="duration" default="0" required="no" >}}
+
+The maximum duration since the user last authenticated which is permitted for a grant to be issued. When `0` no maximum
+is applied.
+
+##### subject_client_id
+
+{{< confkey type="string" required="yes" >}}
+
+The identifier of the registered client which represents this Resource Authorization Server as an SSO relying party. The
+`sub` claim of the grant is the subject an ID Token issued to this client carries, which means the Resource
+Authorization Server sees the same `sub` for the user as it does at SSO login, including when the client uses the
+pairwise [subject identifier type](clients.md#sector_identifier_uri).
+
+The [authorization_policy](clients.md#authorization_policy) of this client is also evaluated against the user when a
+grant is issued, in addition to that of the requesting client.
+
+##### claims_policy
+
+{{< confkey type="string" required="no" >}}
+
+The name of a [claims_policies](#claims_policies) entry. The claims the policy lists for the ID Token are included in
+the grant (for example `email`), resolved from the user's current attributes with every scope treated as granted. When
+not configured no claims are included in the grant. The `tenant` and `aud_tenant` claims are never included.
+
+##### jwt_dpop_supported
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Determines if the Resource Authorization Server supports the `urn:ietf:params:oauth:grant-type:jwt-dpop` grant type, i.e.
+DPoP bound grants. When [dpop](#dpop) is enabled and the token exchange request carries a DPoP proof, the grant is bound
+to the key of the proof. When this option is `false` such a request is refused with `invalid_request` rather than being
+issued an unbound grant. This option has no effect when [dpop](#dpop) is not enabled.
+
+#### trusted_issuers
+
+{{< confkey type="list(object)" required="no" >}}
+
+The external issuers whose grants this provider accepts. A grant can only be redeemed by a client listed in the
+`clients` option of the issuer of the grant.
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    identity_assertion_authorization_grant:
+      trusted_issuers:
+        - issuer: 'https://idp.example.com'
+          jwks_uri: 'https://idp.example.com/jwks.json'
+          signing_algorithms:
+            - 'RS256'
+          clients:
+            - 'myapp'
+          resources:
+            - 'https://api.example.com'
+          username_claim: 'sub'
+          authentication_methods_references: >-
+            has(claims.amr) && 'mfa' in claims.amr ? ['pwd', 'otp'] : ['pwd']
+```
+
+##### issuer
+
+{{< confkey type="string" syntax="uri" required="yes" >}}
+
+The issuer identifier matched with an exact string comparison against the `iss` claim of the presented grant. It must be
+unique across all trusted issuers and must not be the same as the issuer of this provider.
+
+##### jwks_uri
+
+{{< confkey type="string" syntax="uri" required="situational" >}}
+
+The URI of the JWKS endpoint used to validate grants from this issuer. It must use the `https` scheme. Exactly one of
+this option and `jwks` is required.
+
+##### jwks
+
+{{< confkey type="list(object)" required="situational" >}}
+
+The static public keys used to validate grants from this issuer, in the same format as the client
+[jwks](clients.md#jwks) option. Exactly one of this option and [jwks_uri](#jwks_uri) is required. Every key must have
+the `use` of `sig`, an RS, PS, or ES algorithm, and a unique `key_id`, and RSA keys must be at least 2048 bits.
+
+##### signing_algorithms
+
+{{< confkey type="list(string)" default="RS256" required="no" >}}
+
+The JWS algorithms grants from this issuer may be signed with. Only the RS, PS, and ES families are accepted.
+
+##### clients
+
+{{< confkey type="list(string)" required="yes" >}}
+
+The identifiers of the registered clients which are permitted to present grants from this issuer. At least one client is
+required: an empty list never means every client. Each client must exist, must be confidential, and must have the
+`urn:ietf:params:oauth:grant-type:jwt-bearer` or `urn:ietf:params:oauth:grant-type:jwt-dpop` grant type. A client which
+has either grant type must be listed here by at least one trusted issuer. Each client must also have a
+[consent_mode](clients.md#consent_mode) which resolves to `implicit` or `pre-configured`, as explicit consent cannot be
+obtained when redeeming a grant; a client whose `consent_mode` is `explicit`, or is `auto` and resolves to `explicit`, is
+rejected when the configuration is loaded.
+
+##### resources
+
+{{< confkey type="list(string)" required="no" >}}
+
+The resources this provider governs for grants from this issuer. A grant which names a resource not listed here is
+rejected. Each value must be an absolute URI.
+
+##### username_claim
+
+{{< confkey type="string" required="yes" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+The trusted issuer is fully trusted to assert the identity of any user of this provider, including administrators: a
+grant naming a user is accepted as that user without any further authentication. The claim configured here must
+therefore be immutable and controlled by administrators of the external identity provider, never by its users. The
+`preferred_username` claim is not suitable unless the external identity provider guarantees this, as
+[OpenID Connect Core 1.0 Section 5.7](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability) states it is
+neither guaranteed to be unique nor stable. The [authorization_policy](clients.md#authorization_policy) of the redeeming
+client is the only per-user restriction applied to redeemed grants.
+{{< /callout >}}
+
+The claim of the verified grant whose value is the username of the user in this provider, for example `sub` when the
+external identity provider uses the usernames of this provider as subject identifiers. The claim must be a non-empty
+string. The user is looked up in the user provider at the time of redemption: a user which does not exist or is
+disabled is rejected with `invalid_grant`. The username returned by the user provider, not the value of the claim, is
+used to identify the user, so values which the user provider resolves to the same user identify the same user.
+
+##### authentication_methods_references
+
+{{< confkey type="string" required="no" >}}
+
+A [Common Expression Language](https://cel.dev/) expression which maps the verified claims of the grant to the
+[RFC8176](https://datatracker.ietf.org/doc/html/rfc8176) `amr` values recorded for the redeemed Access Token. External
+identity providers use their own `amr` values (for example `mfa`) which Authelia does not recognize, so this mapping is
+how the strength of the original authentication is conveyed. The mapped `amr` values are stored on the redeemed Access
+Token, are used to evaluate the [authorization_policy](clients.md#authorization_policy) of the redeeming client, and are
+reported by introspection.
+
+The expression has a single variable, `claims`, which is a map of the verified claims of the grant, and it must return
+a `list(string)`. The type is checked when the configuration is loaded, and `claims.amr` on its own has the dynamic type
+so it is rejected; produce the list explicitly.
+
+```yaml {title="configuration.yml"}
+authentication_methods_references: >-
+  has(claims.amr) && 'mfa' in claims.amr ? ['pwd', 'otp'] : ['pwd']
+```
+
+Authelia treats a user as having authenticated with multiple factors only when the result contains both a knowledge
+factor (for example `pwd`) and a possession factor (for example `otp`, `hwk`, or `sw`). Other values are recorded but do
+not affect the level.
+
+An expression which fails to evaluate, for example because it references a claim which is missing without checking it
+with `has()`, rejects the redemption with `invalid_grant`; it never falls back to a level. When the expression is empty
+a single factor is recorded. The `auth_time` claim of the grant is recorded as the authentication time.
+
+As the default [authorization_policy](clients.md#authorization_policy) of a client is `two_factor`, a client listed in
+`clients` can only redeem grants from an issuer without this expression when its policy permits `one_factor`. A
+warning is logged at startup for each listed client whose policy never permits `one_factor`.
 
 ### claims_policies
 
@@ -1277,3 +1570,4 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [OpenID Certified™]: https://openid.net/certification/
 [OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/
 [OpenID Connect Key Binding 1.0]: https://openid.net/specs/openid-connect-key-binding-1_0.html
+[ID-JAG]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-identity-assertion-authz-grant

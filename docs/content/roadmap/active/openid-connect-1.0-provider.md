@@ -288,6 +288,18 @@ optionally permits their replacement.
 For more information see the [RFC8693: OAuth 2.0 Token Exchange] and
 [Transaction Tokens](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-transaction-tokens-11) specifications.
 
+#### Identity Assertion JWT Authorization Grant
+
+{{< roadmap-status stage="in-progress" >}}
+
+Both roles of the Identity Assertion JWT Authorization Grant (ID-JAG) are implemented: issuing a grant for a configured
+Resource Authorization Server via token exchange with the `urn:ietf:params:oauth:token-type:id-jag` requested token
+type, and redeeming a grant from a configured trusted issuer via the `urn:ietf:params:oauth:grant-type:jwt-bearer` and
+`urn:ietf:params:oauth:grant-type:jwt-dpop` grant types. Generic RFC7523 assertions which are not ID-JAGs, and the
+`acr_values` of the draft, are not supported.
+
+For more information see the [Identity Assertion JWT Authorization Grant] specification.
+
 #### OAuth 2.0 Dynamic Client Registration Protocol
 
 {{< roadmap-status >}}
@@ -444,6 +456,7 @@ The `preferred_username` claim was missing and was fixed.
 [RFC7591: OAuth 2.0 Dynamic Client Registration Protocol]: https://datatracker.ietf.org/doc/html/rfc7591
 [RFC7592: OAuth 2.0 Dynamic Client Registration Management Protocol]: https://datatracker.ietf.org/doc/html/rfc7592
 [RFC8693: OAuth 2.0 Token Exchange]: https://datatracker.ietf.org/doc/html/rfc8693
+[Identity Assertion JWT Authorization Grant]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-identity-assertion-authz-grant
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
 [JWT Response for OAuth Token Inspection]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-jwt-introspection-response
 [OpenID Certified™]: https://openid.net/certification/

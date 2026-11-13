@@ -632,6 +632,21 @@ func (mr *MockStorageMockRecorder) LoadIdentityVerification(ctx, jti any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadIdentityVerification", reflect.TypeOf((*MockStorage)(nil).LoadIdentityVerification), ctx, jti)
 }
 
+// LoadOAuth2BlacklistedIssuerJTI mocks base method.
+func (m *MockStorage) LoadOAuth2BlacklistedIssuerJTI(ctx context.Context, issuer, signature string) (*model.OAuth2BlacklistedIssuerJTI, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2BlacklistedIssuerJTI", ctx, issuer, signature)
+	ret0, _ := ret[0].(*model.OAuth2BlacklistedIssuerJTI)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2BlacklistedIssuerJTI indicates an expected call of LoadOAuth2BlacklistedIssuerJTI.
+func (mr *MockStorageMockRecorder) LoadOAuth2BlacklistedIssuerJTI(ctx, issuer, signature any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2BlacklistedIssuerJTI", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2BlacklistedIssuerJTI), ctx, issuer, signature)
+}
+
 // LoadOAuth2BlacklistedJTI mocks base method.
 func (m *MockStorage) LoadOAuth2BlacklistedJTI(ctx context.Context, clientID, signature string) (*model.OAuth2BlacklistedJTI, error) {
 	m.ctrl.T.Helper()
@@ -1334,6 +1349,20 @@ func (m *MockStorage) SaveIdentityVerification(ctx context.Context, verification
 func (mr *MockStorageMockRecorder) SaveIdentityVerification(ctx, verification any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveIdentityVerification", reflect.TypeOf((*MockStorage)(nil).SaveIdentityVerification), ctx, verification)
+}
+
+// SaveOAuth2BlacklistedIssuerJTI mocks base method.
+func (m *MockStorage) SaveOAuth2BlacklistedIssuerJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedIssuerJTI) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2BlacklistedIssuerJTI", ctx, blacklistedJTI)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2BlacklistedIssuerJTI indicates an expected call of SaveOAuth2BlacklistedIssuerJTI.
+func (mr *MockStorageMockRecorder) SaveOAuth2BlacklistedIssuerJTI(ctx, blacklistedJTI any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2BlacklistedIssuerJTI", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2BlacklistedIssuerJTI), ctx, blacklistedJTI)
 }
 
 // SaveOAuth2BlacklistedJTI mocks base method.

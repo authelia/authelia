@@ -5,6 +5,7 @@
 package oidc_test
 
 import (
+	"encoding/json"
 	"net/url"
 	"testing"
 	"time"
@@ -722,4 +723,29 @@ func TestSessionSetClaimAuthorizedActorNilDefaultSession(t *testing.T) {
 	})
 
 	assert.Equal(t, map[string]any{"client_id": "actor"}, session.Extra[oidc.ClaimAuthorizedActor])
+}
+
+func TestSessionIDJAGClaims(t *testing.T) {
+	session := oidc.NewSession()
+
+	assert.Nil(t, session.GetIDJAGClaims())
+
+	claims := map[string]any{oidc.ClaimIssuer: "https://idp.example.com", oidc.ClaimPreferredUsername: "john"}
+
+	session.SetIDJAGClaims(claims)
+
+	assert.Equal(t, claims, session.GetIDJAGClaims())
+
+	data, err := json.Marshal(session)
+	require.NoError(t, err)
+	assert.NotContains(t, string(data), "https://idp.example.com")
+	assert.NotContains(t, string(data), "IDJAGClaims")
+
+	clone, ok := session.Clone().(*oidc.Session)
+	require.True(t, ok)
+	assert.Equal(t, claims, clone.GetIDJAGClaims())
+
+	clone.GetIDJAGClaims()[oidc.ClaimPreferredUsername] = "jane"
+
+	assert.Equal(t, "john", session.GetIDJAGClaims()[oidc.ClaimPreferredUsername])
 }

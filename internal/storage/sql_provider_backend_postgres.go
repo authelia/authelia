@@ -48,6 +48,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValuePostgreSQL, tableEncryption)
 	provider.sqlInsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2BlacklistedIssuerJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedIssuerJTIPostgreSQL, tableOAuth2BlacklistedIssuerJTI)
 	provider.sqlInsertOAuth2RequestReplay = fmt.Sprintf(queryFmtInsertOAuth2RequestReplayPostgreSQL, tableOAuth2RequestReplay)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
@@ -220,7 +221,10 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
 
+	provider.sqlSelectOAuth2BlacklistedIssuerJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedIssuerJTI)
+
 	provider.sqlDeleteOAuth2BlacklistedJTIExpired = provider.db.Rebind(provider.sqlDeleteOAuth2BlacklistedJTIExpired)
+	provider.sqlDeleteOAuth2BlacklistedIssuerJTIExpired = provider.db.Rebind(provider.sqlDeleteOAuth2BlacklistedIssuerJTIExpired)
 	provider.sqlDeleteOAuth2RequestReplayExpired = provider.db.Rebind(provider.sqlDeleteOAuth2RequestReplayExpired)
 
 	provider.sqlUpsertOAuth2DPoPProof = provider.db.Rebind(provider.sqlUpsertOAuth2DPoPProof)

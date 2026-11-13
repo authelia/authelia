@@ -215,10 +215,24 @@ func (c *Config) GetRFC7523AssertionSigningAlgValues(ctx context.Context) (algs 
 	return SigningAlgValuesSupported()
 }
 
-// GetIDJAGRedeemSigningAlgValues returns nil as this Authorization Server does not redeem Identity Assertion JWT
-// Authorization Grants.
+// GetIDJAGRedeemSigningAlgValues returns the JWS algorithms accepted for a redeemed Identity Assertion JWT
+// Authorization Grant from any trusted issuer, or nil when there are no trusted issuers.
 func (c *Config) GetIDJAGRedeemSigningAlgValues(ctx context.Context) (algs []string) {
-	return nil
+	if c.IDJAG == nil {
+		return nil
+	}
+
+	return c.IDJAG.redeemSigningAlgs
+}
+
+// GetIDJAGIssueSigningAlgValues returns the JWS algorithms used to sign issued Identity Assertion JWT Authorization
+// Grants, which always includes RS256, or nil when there are no Resource Authorization Servers.
+func (c *Config) GetIDJAGIssueSigningAlgValues(ctx context.Context) (algs []string) {
+	if c.IDJAG == nil {
+		return nil
+	}
+
+	return c.IDJAG.issueSigningAlgs
 }
 
 // GetAuthorizationServerIdentificationEnabled returns true when the 'iss' authorization response parameter is
@@ -264,7 +278,7 @@ func (c *Config) GetDisablePushedAuthorizationRequestClientRefetch(ctx context.C
 
 // GetDiscoveryMetadataHooks returns the hooks which run after the discovery metadata is built.
 func (c *Config) GetDiscoveryMetadataHooks(ctx context.Context) (hooks []oauthelia2.DiscoveryMetadataHook) {
-	return []oauthelia2.DiscoveryMetadataHook{discoveryMetadataHook{}}
+	return []oauthelia2.DiscoveryMetadataHook{discoveryMetadataHook{config: c}}
 }
 
 // GetDiscoveryMetadataSigningStrategy returns the strategy which signs the discovery metadata as the
@@ -376,6 +390,8 @@ var (
 	_ oauthelia2.JWTProfileAccessTokenDefaultAudienceProvider = (*Config)(nil)
 	_ oauthelia2.ClaimsParameterEnforcementProvider           = (*Config)(nil)
 	_ oauthelia2.DPoPConfigProvider                           = (*Config)(nil)
+	_ oauthelia2.IDJAGConfigProvider                          = (*Config)(nil)
+	_ oauthelia2.IDJAGResourceOptionalProvider                = (*Config)(nil)
 	_ oauthelia2.DPoPStrictRefreshTokenBindingProvider        = (*Config)(nil)
 	_ oauthelia2.EndpointURLsProvider                         = (*Config)(nil)
 	_ oauthelia2.ConfirmationConfigProvider                   = (*Config)(nil)
@@ -441,12 +457,18 @@ func (c *discoverySigningClient) GetJSONWebKeysURI() (uri string) {
 	return ""
 }
 
-type discoveryMetadataHook struct{}
+type discoveryMetadataHook struct {
+	config *Config
+}
 
-func (discoveryMetadataHook) HandleDiscoveryMetadata(ctx context.Context, metadata *oauthelia2.OpenIDConnectProviderMetadata) (err error) {
+func (h discoveryMetadataHook) HandleDiscoveryMetadata(ctx context.Context, metadata *oauthelia2.OpenIDConnectProviderMetadata) (err error) {
 	metadata.ClaimsSupported = slices.DeleteFunc(metadata.ClaimsSupported, func(claim string) bool {
 		return claim == ClaimAuthenticationContextClassReference || claim == ClaimSessionID
 	})
+
+	if metadata.DraftIDJAGMetadata != nil {
+		metadata.IDJAGSigningAlgValuesSupported = h.config.GetIDJAGIssueSigningAlgValues(ctx)
+	}
 
 	if metadata.IntrospectionEndpoint != "" {
 		metadata.IntrospectionEndpointAuthMethodsSupported = []string{

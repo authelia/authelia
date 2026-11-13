@@ -1401,6 +1401,73 @@ func TestSQLProviderOAuth2BlacklistedJTI(t *testing.T) {
 	})
 }
 
+func TestSQLProviderSaveLoadOAuth2BlacklistedIssuerJTI(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	jti := model.NewOAuth2BlacklistedIssuerJTI("https://idp.example.com", "abc", time.Now().Add(time.Hour).Truncate(time.Second))
+
+	require.NoError(t, provider.SaveOAuth2BlacklistedIssuerJTI(ctx, jti))
+
+	loaded, err := provider.LoadOAuth2BlacklistedIssuerJTI(ctx, jti.Issuer, jti.Signature)
+
+	require.NoError(t, err)
+	assert.Equal(t, jti.Issuer, loaded.Issuer)
+	assert.Equal(t, jti.Signature, loaded.Signature)
+	assert.True(t, jti.ExpiresAt.Equal(loaded.ExpiresAt))
+
+	_, err = provider.LoadOAuth2BlacklistedIssuerJTI(ctx, "https://other.example.com", jti.Signature)
+
+	assert.ErrorIs(t, err, sql.ErrNoRows)
+}
+
+func TestSQLProviderSaveOAuth2BlacklistedIssuerJTIDuplicate(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	jti := model.NewOAuth2BlacklistedIssuerJTI("https://idp.example.com", "abc", time.Now().Add(time.Hour))
+
+	require.NoError(t, provider.SaveOAuth2BlacklistedIssuerJTI(ctx, jti))
+
+	err := provider.SaveOAuth2BlacklistedIssuerJTI(ctx, jti)
+
+	assert.ErrorIs(t, err, ErrNoRowsAffected)
+
+	other := model.NewOAuth2BlacklistedIssuerJTI("https://other.example.com", "abc", time.Now().Add(time.Hour))
+
+	assert.NoError(t, provider.SaveOAuth2BlacklistedIssuerJTI(ctx, other))
+
+	expired := model.NewOAuth2BlacklistedIssuerJTI("https://idp.example.com", "old", time.Now().Add(-time.Hour))
+
+	require.NoError(t, provider.SaveOAuth2BlacklistedIssuerJTI(ctx, expired))
+
+	expired.ExpiresAt = time.Now().Add(time.Hour)
+
+	assert.NoError(t, provider.SaveOAuth2BlacklistedIssuerJTI(ctx, expired))
+}
+
+func TestSQLProviderGarbageCollectionIssuerJTI(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	require.NoError(t, provider.SaveOAuth2BlacklistedIssuerJTI(ctx, model.NewOAuth2BlacklistedIssuerJTI("https://idp.example.com", "expired", time.Now().Add(-time.Hour))))
+	require.NoError(t, provider.SaveOAuth2BlacklistedIssuerJTI(ctx, model.NewOAuth2BlacklistedIssuerJTI("https://idp.example.com", "live", time.Now().Add(time.Hour))))
+
+	require.NoError(t, provider.GarbageCollection(ctx))
+
+	_, err := provider.LoadOAuth2BlacklistedIssuerJTI(ctx, "https://idp.example.com", model.NewOAuth2BlacklistedJTISignature("expired"))
+	assert.ErrorIs(t, err, sql.ErrNoRows)
+
+	_, err = provider.LoadOAuth2BlacklistedIssuerJTI(ctx, "https://idp.example.com", model.NewOAuth2BlacklistedJTISignature("live"))
+	assert.NoError(t, err)
+}
+
 func TestSQLProviderOAuth2RequestReplay(t *testing.T) {
 	testCases := []struct {
 		Name     string

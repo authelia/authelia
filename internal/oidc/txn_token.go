@@ -17,8 +17,9 @@ import (
 )
 
 // NewRFC8693TokenTypes builds the token types of the configured RFC8693 token exchange, keyed by their URN. The static
-// types are built for each configured URN and the Transaction Token type from the Transaction Tokens configuration. The
-// access, refresh, and ID token types are used when none are configured.
+// types, including the Identity Assertion JWT Authorization Grant type which enables issuing grants, are built for each
+// configured URN and the Transaction Token type from the Transaction Tokens configuration. The access, refresh, and ID
+// token types are used when none are configured.
 func NewRFC8693TokenTypes(config *schema.IdentityProvidersOpenIDConnectTokenExchange, issuer *Issuer) (types map[string]oauthelia2.RFC8693TokenType) {
 	names := config.TokenTypes
 

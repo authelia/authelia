@@ -154,7 +154,13 @@ func setupTestOIDCProvider(t *testing.T, mock *mocks.MockAutheliaCtx, config *sc
 	}
 
 	mock.Ctx.Configuration.IdentityProviders.OIDC = config
-	mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+
+	var err error
+
+	mock.Ctx.Providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+
+	require.NoError(t, err)
+
 	mock.Ctx.Providers.UserAttributeResolver = expression.NewUserAttributes(&mock.Ctx.Configuration)
 
 	require.NotNil(t, mock.Ctx.Providers.OpenIDConnect)

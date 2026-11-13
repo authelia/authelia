@@ -36,6 +36,8 @@ func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider, 
 
 	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionSQLite, tableSession)
 	provider.sqlInsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTISQLite, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2BlacklistedIssuerJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedIssuerJTISQLite, tableOAuth2BlacklistedIssuerJTI)
+	provider.sqlDeleteOAuth2BlacklistedIssuerJTIExpired = fmt.Sprintf(queryFmtDeleteOAuth2BlacklistedIssuerJTIExpiredSQLite, tableOAuth2BlacklistedIssuerJTI)
 	provider.sqlInsertOAuth2RequestReplay = fmt.Sprintf(queryFmtInsertOAuth2RequestReplaySQLite, tableOAuth2RequestReplay)
 	provider.sqlLockRecoveryCodesByUsername = fmt.Sprintf(queryFmtLockRecoveryCodesByUsernameSQLite, tableRecoveryCodesLock)
 	provider.sqlDeleteOAuth2BlacklistedJTIExpired = fmt.Sprintf(queryFmtDeleteOAuth2BlacklistedJTIExpiredSQLite, tableOAuth2BlacklistedJTI)

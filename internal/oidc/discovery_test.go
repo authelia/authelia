@@ -297,10 +297,97 @@ func newDiscoveryTestProvider(t *testing.T, setup func(config *schema.IdentityPr
 		setup(config)
 	}
 
-	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: config}}, nil, nil)
+	provider, err := oidc.NewOpenIDConnectProvider(&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: config}}, nil, nil)
+	require.NoError(t, err)
 	require.NotNil(t, provider)
 
 	provider.Config.Issuer = examplecom
 
 	return provider
+}
+
+func TestDiscoveryIDJAG(t *testing.T) {
+	ras := schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{
+		Issuer:           MustParseRequestURI("https://ras.example.com"),
+		SigningAlgorithm: oidc.SigningAlgECDSAUsingP256AndSHA256,
+		SubjectClientID:  myclient,
+	}
+
+	trusted := schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{
+		Issuer:            MustParseRequestURI("https://idp.example.com"),
+		JSONWebKeysURI:    MustParseRequestURI("https://idp.example.com/jwks.json"),
+		SigningAlgorithms: []string{oidc.SigningAlgRSAUsingSHA256},
+		Clients:           []string{myclient},
+		UsernameClaim:     oidc.ClaimSubject,
+	}
+
+	testCases := []struct {
+		name         string
+		setup        func(config *schema.IdentityProvidersOpenIDConnect)
+		algs         []string
+		profiles     []string
+		grantBearer  bool
+		grantDPoP    bool
+		tokenTypeJAG bool
+	}{
+		{"ShouldOmitWhenUnconfigured", nil, nil, nil, false, false, false},
+		{
+			"ShouldAdvertiseIssueOnly",
+			func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.TokenExchange.TokenTypes = []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken, oidc.TokenTypeIDJAG}
+				config.IdentityAssertionAuthorizationGrant.ResourceAuthorizationServers = []schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{ras}
+			},
+			[]string{oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA256}, nil, false, false, true,
+		},
+		{
+			"ShouldAdvertiseRedeemWithoutDPoP",
+			func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.IdentityAssertionAuthorizationGrant.TrustedIssuers = []schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{trusted}
+			},
+			nil, []string{"urn:ietf:params:oauth:grant-profile:id-jag"}, true, false, false,
+		},
+		{
+			"ShouldAdvertiseRedeemWithDPoP",
+			func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.DPoP.Enabled = true
+				config.IdentityAssertionAuthorizationGrant.TrustedIssuers = []schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{trusted}
+			},
+			nil, []string{"urn:ietf:params:oauth:grant-profile:id-jag"}, true, true, false,
+		},
+		{
+			"ShouldNotAdvertiseJWTDPoPWithDPoPButNoTrustedIssuers",
+			func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.DPoP.Enabled = true
+			},
+			nil, nil, false, false, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newDiscoveryTestProvider(t, tc.setup)
+
+			metadata, err := provider.NewOpenIDConnectProviderMetadata(context.Background())
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.grantBearer, slices.Contains(metadata.GrantTypesSupported, oidc.GrantTypeJWTBearer))
+			assert.Equal(t, tc.grantDPoP, slices.Contains(metadata.GrantTypesSupported, oidc.GrantTypeJWTDPoP))
+
+			if tc.algs == nil && tc.profiles == nil {
+				assert.Nil(t, metadata.DraftIDJAGMetadata)
+			} else {
+				require.NotNil(t, metadata.DraftIDJAGMetadata)
+				assert.Equal(t, tc.profiles, metadata.AuthorizationGrantProfilesSupported)
+				assert.Equal(t, tc.algs, metadata.IDJAGSigningAlgValuesSupported)
+			}
+
+			var types []string
+
+			if metadata.DraftIdentityChainingMetadata != nil {
+				types = metadata.IdentityChainingRequestedTokenTypesSupported
+			}
+
+			assert.Equal(t, tc.tokenTypeJAG, slices.Contains(types, oidc.TokenTypeIDJAG))
+		})
+	}
 }

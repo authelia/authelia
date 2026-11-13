@@ -1744,12 +1744,15 @@ session:
       # max_actor_chain_depth: 8
 
       ## The token types the token exchange grant is enabled for. The 'urn:ietf:params:oauth:token-type:txn_token'
-      ## value enables Transaction Tokens.
+      ## value enables Transaction Tokens. The 'urn:ietf:params:oauth:token-type:id-jag' value enables the issuance of
+      ## Identity Assertion JWT Authorization Grants and requires the 'identity_assertion_authorization_grant' option
+      ## 'resource_authorization_servers'.
       # token_types:
         # - 'urn:ietf:params:oauth:token-type:access_token'
         # - 'urn:ietf:params:oauth:token-type:refresh_token'
         # - 'urn:ietf:params:oauth:token-type:id_token'
         # - 'urn:ietf:params:oauth:token-type:txn_token'
+        # - 'urn:ietf:params:oauth:token-type:id-jag'
 
       ## The token type issued when a token exchange request omits the 'requested_token_type' parameter.
       # default_requested_token_type: 'urn:ietf:params:oauth:token-type:access_token'
@@ -1824,6 +1827,91 @@ session:
         # - 'PS512'
         # - 'Ed25519'
         # - 'EdDSA'
+
+    ## Identity Assertion JWT Authorization Grant (ID-JAG) settings.
+    # identity_assertion_authorization_grant:
+      ## The duration an issued grant is valid for.
+      # lifespan: '5 minutes'
+
+      ## Determines if a presented grant may only be redeemed once.
+      # single_use: true
+
+      ## The additional duration the Access Token issued from a redeemed grant may remain valid beyond the lifespan of
+      ## the grant.
+      # access_token_allowance: 0
+
+      ## Determines if the 'resource' parameter is optional when requesting a grant for relationships which define
+      ## resources.
+      # resource_optional: false
+
+      ## The Resource Authorization Servers which grants may be issued for. This requires, and is required by, the
+      ## 'urn:ietf:params:oauth:token-type:id-jag' value in the 'token_exchange' option 'token_types'.
+      # resource_authorization_servers:
+        # -
+          ## The issuer identifier of the Resource Authorization Server which is used as the audience of the grant.
+          # issuer: 'https://rs.example.com'
+
+          ## Additional 'audience' values which identify this Resource Authorization Server.
+          # aliases:
+            # - 'https://rs.example.com/alias'
+
+          ## The JWS algorithm used to sign grants issued for this Resource Authorization Server.
+          # signing_algorithm: 'RS256'
+
+          ## The maximum duration since the user last authenticated that is permitted for a grant to be issued. The
+          ## value 0 applies no maximum.
+          # max_age: 0
+
+          ## The registered client which represents this Resource Authorization Server as a relying party and
+          ## determines the 'sub' value of the grant.
+          # subject_client_id: 'rs-sso'
+
+          ## The name of the claims policy whose claims are included in the grant.
+          # claims_policy: ''
+
+          ## Determines if the Resource Authorization Server supports DPoP bound grants.
+          # jwt_dpop_supported: false
+
+      ## The external issuers whose grants this provider accepts.
+      # trusted_issuers:
+        # -
+          ## The issuer identifier matched against the 'iss' claim of presented grants.
+          # issuer: 'https://idp.example.com'
+
+          ## URI of the JWKS endpoint used to validate grants from this issuer. Mutually exclusive with 'jwks'.
+          # jwks_uri: 'https://idp.example.com/jwks.json'
+
+          ## List of Public Keys used to validate grants from this issuer. Mutually exclusive with 'jwks_uri'.
+          # jwks:
+            # -
+              # key_id: 'example'
+              # algorithm: 'RS256'
+              # use: 'sig'
+              # key: |
+                # -----BEGIN RSA PUBLIC KEY-----
+                # ...
+                # -----END RSA PUBLIC KEY-----
+
+          ## The JWS algorithms grants from this issuer may be signed with.
+          # signing_algorithms:
+            # - 'RS256'
+
+          ## The registered clients which are permitted to present grants from this issuer.
+          # clients:
+            # - 'myapp'
+
+          ## The resources this provider treats as governed for grants presented from this issuer.
+          # resources:
+            # - 'https://api.example.com'
+
+          ## The claim of the grant whose value is the username of the user in this provider. The issuer is fully
+          ## trusted to assert any user including administrators, so this claim must be immutable and administrator
+          ## controlled.
+          # username_claim: 'sub'
+
+          ## A Common Expression Language expression which maps the verified claims of the grant to the RFC8176
+          ## authentication methods references recorded for the redeemed token.
+          # authentication_methods_references: ''
 
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
@@ -2133,6 +2221,31 @@ session:
         ## client when using the 'client_secret_jwt' or 'private_key_jwt'
         ## pushed_authorization_request_endpoint_auth_method.
         # pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
+
+        ## The Resource Authorization Servers this client may request Identity Assertion Authorization Grants for.
+        # identity_assertion_authorization_grant_relationships:
+          # -
+            ## The issuer of the configured Resource Authorization Server this relationship applies to.
+            # issuer: 'https://rs.example.com'
+
+            ## The identifier of this client at the Resource Authorization Server.
+            # client_id: 'myapp-at-rs'
+
+            ## The scopes at the Resource Authorization Server which may be requested.
+            # scopes:
+              # - 'read'
+
+            ## The resources which may be requested for this relationship.
+            # resources:
+              # - 'https://api.example.com'
+
+            ## The authorization details types which may be requested for this relationship.
+            # authorization_details_types:
+              # - 'payment_initiation'
+
+        ## Determines if the 'resource' parameter is optional when this client requests a grant for relationships which
+        ## define resources.
+        # identity_assertion_authorization_grant_resource_optional: false
 
         ## Trusted public keys configuration for request object signing for things such as 'private_key_jwt'.
         ## URL of the HTTPS endpoint which serves the keys. Please note the 'jwks_uri' and the 'jwks' option below

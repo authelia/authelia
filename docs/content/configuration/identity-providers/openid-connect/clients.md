@@ -87,6 +87,15 @@ identity_providers:
         token_exchange_may_act:
           client_id: ''
           subject: ''
+        identity_assertion_authorization_grant_relationships:
+          - issuer: 'https://rs.example.com'
+            client_id: 'unique-client-identifier-at-rs'
+            scopes:
+              - 'read'
+            resources:
+              - 'https://api.example.com'
+            authorization_details_types: []
+        identity_assertion_authorization_grant_resource_optional: false
         response_types:
           - 'code'
         response_modes:
@@ -448,7 +457,9 @@ The [OAuth 2.0 Token Exchange] token types this client is permitted to present a
 supported token types are `urn:ietf:params:oauth:token-type:access_token`, `urn:ietf:params:oauth:token-type:refresh_token`,
 `urn:ietf:params:oauth:token-type:id_token`, and `urn:ietf:params:oauth:token-type:txn_token`. Each value must also be
 enabled globally by the provider [token_exchange: token_types](provider.md#token_types) option. The `txn_token` type
-may only be listed when [token_exchange_txn_token_replacement](#token_exchange_txn_token_replacement) is enabled. The `jwt`, `saml1`, and `saml2` subject token types defined by
+may only be listed when [token_exchange_txn_token_replacement](#token_exchange_txn_token_replacement) is enabled. The
+`urn:ietf:params:oauth:token-type:id-jag` type can never be exchanged, so it is rejected here and in
+[actor_token_types_supported](#actor_token_types_supported). The `jwt`, `saml1`, and `saml2` subject token types defined by
 [RFC8693] are not supported.
 
 When the [grant_types](#grant_types) list for this client includes the
@@ -563,6 +574,10 @@ containing only the provider
 
 When the `urn:ietf:params:oauth:token-type:txn_token` type is listed the client must include the provider
 [trust_domain](provider.md#trust_domain) in its [audience](#audience).
+
+The `urn:ietf:params:oauth:token-type:id-jag` type may only be listed when the provider
+[token_exchange: token_types](provider.md#token_types) option includes it, and requires at least one
+[identity_assertion_authorization_grant_relationships](#identity_assertion_authorization_grant_relationships) entry.
 
 The `urn:ietf:params:oauth:token-type:refresh_token` type may only be listed when
 [token_exchange_refresh_token_allowed](#token_exchange_refresh_token_allowed) is enabled and the `refresh_token`
@@ -779,6 +794,87 @@ carries the `act` claim instead. The claim is carried forward unchanged when a r
 option only affects authorizations granted afterwards.
 
 See [Static May Act](#static-may-act) for the consequences of enabling this option.
+
+### identity_assertion_authorization_grant_relationships
+
+{{< confkey type="list(object)" required="no" >}}
+
+The Resource Authorization Servers this client may request an Identity Assertion JWT Authorization Grant ([ID-JAG]) for,
+and the ceilings which apply to each request. Each entry must reference a Resource Authorization Server defined in the
+provider [identity_assertion_authorization_grant](provider.md#resource_authorization_servers) option.
+
+{{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
+A relationship is the administrator's consent for the client to disclose the user's `sub` and the claims of the
+Resource Authorization Server's `claims_policy` to that Resource Authorization Server. The user is not asked for
+consent when a grant is issued. Only add a relationship for a Resource Authorization Server the client is trusted to
+disclose the user's identity to.
+{{< /callout >}}
+
+This option requires the `urn:ietf:params:oauth:grant-type:token-exchange` [grant type](#grant_types), and the
+`urn:ietf:params:oauth:token-type:id-jag` type in [request_token_types_supported](#request_token_types_supported).
+Conversely the `urn:ietf:params:oauth:token-type:id-jag` type requires at least one relationship, and requires the
+`id_token` or `refresh_token` type in [subject_token_types_supported](#subject_token_types_supported). Any other
+combination is rejected at startup.
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'agent'
+        identity_assertion_authorization_grant_relationships:
+          - issuer: 'https://rs.example.com'
+            client_id: 'agent-at-rs'
+            scopes:
+              - 'read'
+            resources:
+              - 'https://api.example.com'
+            authorization_details_types: []
+```
+
+#### issuer
+
+{{< confkey type="string" syntax="uri" required="yes" >}}
+
+The issuer of the Resource Authorization Server this relationship applies to. It must match the `issuer` of a provider
+Resource Authorization Server and must be unique within this client.
+
+#### client_id
+
+{{< confkey type="string" required="yes" >}}
+
+The identifier of this client at the Resource Authorization Server. It becomes the `client_id` claim of the grant.
+
+#### scopes
+
+{{< confkey type="list(string)" required="no" >}}
+
+The scopes at the Resource Authorization Server which may be requested. These are scopes of the Resource Authorization
+Server and not of this provider. The requested `scope` is matched against this list using the scope strategy of this
+client, and any requested scope outside the list is silently omitted from the grant rather than refused. When empty no
+scope is granted and the request still succeeds.
+
+#### resources
+
+{{< confkey type="list(string)" required="no" >}}
+
+The resources which may be requested for this relationship. Each value must be an absolute URI without a fragment. When
+configured the `resource` parameter is required for requests of this relationship, unless
+[identity_assertion_authorization_grant_resource_optional](#identity_assertion_authorization_grant_resource_optional) or
+the provider [resource_optional](provider.md#resource_optional) option is enabled.
+
+#### authorization_details_types
+
+{{< confkey type="list(string)" required="no" >}}
+
+The `authorization_details` types which may be requested for this relationship. An empty list means none are permitted,
+it never means every type.
+
+### identity_assertion_authorization_grant_resource_optional
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Determines if the `resource` parameter is optional when this client requests a grant for a relationship which defines
+[resources](#resources). When not enabled the provider [resource_optional](provider.md#resource_optional) option applies.
 
 ### response_types
 
@@ -2126,6 +2222,177 @@ client authentication do not produce an entry. The following fields are included
 field is `true` only for a cross-client exchange without an `actor_token`; it is `false` for delegation and for every
 own-token exchange.
 
+## Identity Assertion JWT Authorization Grant
+
+The Identity Assertion JWT Authorization Grant ([ID-JAG]) allows an application which a user has signed in to via an
+identity provider to obtain access to another resource's authorization server without the user being redirected again.
+Authelia supports both roles; the provider-wide options are documented in the
+[identity_assertion_authorization_grant](provider.md#identity_assertion_authorization_grant) section.
+
+### Issuing a Grant
+
+An AI agent (or any client) which holds an ID Token or refresh token issued to itself exchanges it for a grant which the
+Resource Authorization Server accepts. Only an own-token exchange is permitted: the `subject_token` must have been issued
+to the client performing the exchange, and must be an ID Token or refresh token. The [Token Exchange
+Security](#token-exchange-security) controls which are not specific to cross-client exchange apply, and in addition:
+
+- The [authorization_policy](#authorization_policy) of the requesting client **and** of the `subject_client_id` client of
+  the Resource Authorization Server are both evaluated against the user. Either denying the user, or the authentication
+  level of the `subject_token` being too low for either, rejects the request with `invalid_grant`.
+- There is no user consent check. The [relationship](#identity_assertion_authorization_grant_relationships) is the
+  administrator consent to disclose the `sub` and claims policy claims of the user to the Resource Authorization Server.
+- Requested scopes outside the `scopes` of the relationship are silently omitted from the grant (matched with the scope
+  strategy of the requesting client), so the request succeeds with fewer or no scopes. A requested `resource` outside
+  the `resources` of the relationship is refused with `invalid_target`. `authorization_details` types are limited to the
+  relationship's list (none when empty).
+- The `audience` must identify a Resource Authorization Server (by its `issuer` or one of its `aliases`) which the client
+  has a relationship with, otherwise the request is rejected.
+- If the request carries a DPoP proof the grant is bound to the key of the proof, which requires the Resource
+  Authorization Server to have [jwt_dpop_supported](provider.md#jwt_dpop_supported) enabled; otherwise the request is
+  refused with `invalid_request`.
+- The `acr_values` of the draft are not supported as Authelia does not issue the `acr` claim.
+- A client credentials token has no user and cannot be exchanged for a grant.
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    token_exchange:
+      token_types:
+        - 'urn:ietf:params:oauth:token-type:access_token'
+        - 'urn:ietf:params:oauth:token-type:refresh_token'
+        - 'urn:ietf:params:oauth:token-type:id_token'
+        - 'urn:ietf:params:oauth:token-type:id-jag'
+    identity_assertion_authorization_grant:
+      resource_authorization_servers:
+        - issuer: 'https://mcp.example.com'
+          subject_client_id: 'mcp-sso'
+          claims_policy: 'email-only'
+    claims_policies:
+      email-only:
+        id_token:
+          - 'email'
+    clients:
+      - client_id: 'mcp-sso'
+        client_name: 'MCP Server SSO'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'
+        redirect_uris:
+          - 'https://mcp.example.com/oauth2/callback'
+      - client_id: 'agent'
+        client_name: 'AI Agent'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'
+        redirect_uris:
+          - 'https://agent.example.com/callback'
+        scopes:
+          - 'openid'
+          - 'offline_access'
+        grant_types:
+          - 'authorization_code'
+          - 'refresh_token'
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+        subject_token_types_supported:
+          - 'urn:ietf:params:oauth:token-type:refresh_token'
+        request_token_types_supported:
+          - 'urn:ietf:params:oauth:token-type:id-jag'
+        identity_assertion_authorization_grant_relationships:
+          - issuer: 'https://mcp.example.com'
+            client_id: 'agent-at-mcp'
+            scopes:
+              - 'tools:read'
+```
+
+The agent then requests the grant, and presents it to the Resource Authorization Server's token endpoint:
+
+```text
+POST /api/oidc/token HTTP/1.1
+Authorization: Basic <base64 of agent:<client secret>>
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:token-exchange
+&subject_token=<refresh token>
+&subject_token_type=urn:ietf:params:oauth:token-type:refresh_token
+&requested_token_type=urn:ietf:params:oauth:token-type:id-jag
+&audience=https://mcp.example.com
+&scope=tools:read
+```
+
+The response contains the grant in the `access_token` parameter with the `issued_token_type` of
+`urn:ietf:params:oauth:token-type:id-jag`.
+
+### Redeeming a Grant
+
+A client presents a grant issued by a [trusted issuer](provider.md#trusted_issuers) to the token endpoint using the
+`urn:ietf:params:oauth:grant-type:jwt-bearer` grant type, or the `urn:ietf:params:oauth:grant-type:jwt-dpop` grant type
+with a DPoP proof for a DPoP bound grant. The client must be confidential, have the grant type configured, and be listed
+in the `clients` option of the trusted issuer.
+
+- A client with the `urn:ietf:params:oauth:grant-type:jwt-dpop` grant type requires [dpop](provider.md#dpop) to be
+  enabled, otherwise the configuration is rejected at startup.
+- The user is resolved from the claim configured in `username_claim` and looked up at the time of redemption. A user
+  which is missing or disabled is rejected with `invalid_grant`.
+- The scopes and resources of the grant are also filtered by the [scopes](#scopes) and [resource](#resource) options
+  of the redeeming client: values the client is not registered for are dropped silently, and the request is rejected
+  with `access_denied` when the grant has resources and none of them remain.
+- The [authorization_policy](#authorization_policy) of the redeeming client is evaluated against the user. The
+  authentication level is derived from the `amr` values produced by the
+  [authentication_methods_references](provider.md#authentication_methods_references) expression of the trusted issuer;
+  an expression which fails to evaluate rejects the redemption with `invalid_grant`.
+- The [consent_mode](#consent_mode) of the redeeming client applies: `implicit` passes as the trusted issuer entry is the
+  administrator consent, `pre-configured` requires a live pre-configured consent covering the granted scopes, audience,
+  and resources. A client whose `consent_mode` is `explicit`, or is `auto` and resolves to `explicit`, is rejected when
+  the configuration is loaded, as explicit consent cannot be obtained when redeeming a grant.
+- A grant is single use by default. The mapped `amr` values are stored on the Access Token issued, are used to evaluate
+  the [authorization_policy](#authorization_policy) of the redeeming client, and are reported by introspection.
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+A trusted issuer is fully trusted to assert the identity of any user of this provider, including administrators. The
+claim configured in [username_claim](provider.md#username_claim) must be immutable and controlled by administrators of
+the external identity provider; the `preferred_username` claim is neither guaranteed to be unique nor stable. The
+[authorization_policy](#authorization_policy) of the redeeming client is the only per-user restriction applied to
+redeemed grants.
+{{< /callout >}}
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    identity_assertion_authorization_grant:
+      trusted_issuers:
+        - issuer: 'https://idp.example.com'
+          jwks_uri: 'https://idp.example.com/jwks.json'
+          clients:
+            - 'mcp-client'
+          resources:
+            - 'https://api.example.com'
+          username_claim: 'sub'
+          authentication_methods_references: >-
+            has(claims.amr) && 'mfa' in claims.amr ? ['pwd', 'otp'] : ['pwd']
+    clients:
+      - client_id: 'mcp-client'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+        consent_mode: 'implicit'
+```
+
+```text
+POST /api/oidc/token HTTP/1.1
+Authorization: Basic <base64 of mcp-client:<client secret>>
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&assertion=<grant>
+&resource=https://api.example.com
+```
+
+### Audit Log
+
+Issuing a grant is logged by the [Token Exchange audit entry](#audit-log), with the additional fields `id_jag_audience`
+and `id_jag_client_id`. Every redemption request from a client which authenticated successfully is logged at the `info`
+level with the message `Identity Assertion JWT Authorization Grant redeemed`, or at the `warn` level with the message
+`Identity Assertion JWT Authorization Grant denied`. The fields include `client_id`, `grant_type`, `iss`, `jti`, the
+external `sub`, `username`, `subject`, `granted_scope`, `granted_resource`, `dpop_bound`, and `remote_ip`; the fields
+which derive from the grant are omitted when the denial occurs before the grant is verified. The grant itself is never
+logged.
+
 ## Integration
 
 To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party please see the
@@ -2152,3 +2419,4 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [JSON Web Key]: provider.md#jwks
 [OAuth 2.0 Token Exchange]: https://oauth.net/2/token-exchange/
 [RFC8693]: https://datatracker.ietf.org/doc/html/rfc8693
+[ID-JAG]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-identity-assertion-authz-grant

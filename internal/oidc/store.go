@@ -28,14 +28,24 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-// NewStore returns a Store when provided with a schema.OpenIDConnect and storage.Provider.
-func NewStore(config *schema.Configuration, provider storage.Provider) (store *Store) {
+// NewStore returns a Store when provided with a schema.OpenIDConnect, storage.Provider, and the provider Config which
+// owns the runtime Identity Assertion JWT Authorization Grant configuration.
+func NewStore(config *schema.Configuration, provider storage.Provider, oidc *Config) (store *Store) {
 	store = &Store{
 		ClientStore: NewMemoryClientStore(config),
 		provider:    provider,
+		config:      oidc,
 	}
 
 	return store
+}
+
+func (s *Store) idjag() *IDJAGConfig {
+	if s.config == nil {
+		return nil
+	}
+
+	return s.config.IDJAG
 }
 
 // NewMemoryClientStore returns a new *MemoryClientStore given the provided configuration.
@@ -149,25 +159,43 @@ func (s *Store) GetClient(ctx context.Context, id string) (client oauthelia2.Cli
 // JTI is not known.
 // This implements a portion of oauthelia2.ClientManager.
 func (s *Store) ClientAssertionJWTValid(ctx context.Context, clientID, jti string) (err error) {
-	blacklistedJTI, err := s.provider.LoadOAuth2BlacklistedJTI(ctx, clientID, model.NewOAuth2BlacklistedJTISignature(jti))
+	var known bool
 
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		return nil
-	case err != nil:
-		return errStorage(err)
-	case blacklistedJTI.ExpiresAt.After(time.Now()):
-		return oauthelia2.ErrJTIKnown
-	default:
-		return nil
+	if known, err = isBlacklistedJTIKnown(s.provider.LoadOAuth2BlacklistedJTI(ctx, clientID, model.NewOAuth2BlacklistedJTISignature(jti))); err != nil {
+		return err
 	}
+
+	if known {
+		return oauthelia2.ErrJTIKnown
+	}
+
+	return nil
 }
 
 // SetClientAssertionJWT atomically marks a JTI as known for the client until the given expiry time. It returns the
 // oauthelia2.ErrJTIKnown error when the JTI is already known for the client and has not expired.
 // This implements a portion of oauthelia2.ClientManager.
 func (s *Store) SetClientAssertionJWT(ctx context.Context, clientID, jti string, exp time.Time) (err error) {
-	if err = s.provider.SaveOAuth2BlacklistedJTI(ctx, model.NewOAuth2BlacklistedJTI(clientID, jti, exp)); errors.Is(err, storage.ErrNoRowsAffected) {
+	return blacklistedJTISaveError(s.provider.SaveOAuth2BlacklistedJTI(ctx, model.NewOAuth2BlacklistedJTI(clientID, jti, exp)))
+}
+
+type blacklistedJTI interface {
+	GetExpiresAt() time.Time
+}
+
+func isBlacklistedJTIKnown(jti blacklistedJTI, err error) (known bool, rerr error) {
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return false, nil
+	case err != nil:
+		return false, errStorage(err)
+	default:
+		return jti.GetExpiresAt().After(time.Now()), nil
+	}
+}
+
+func blacklistedJTISaveError(err error) error {
+	if errors.Is(err, storage.ErrNoRowsAffected) {
 		return oauthelia2.ErrJTIKnown
 	}
 

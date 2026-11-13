@@ -5,6 +5,7 @@
 package oidc
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -46,8 +47,46 @@ func UserDetailerFromSubject(ctx Context, subject uuid.UUID) (detailer UserDetai
 		return nil, err
 	}
 
-	if details, err = ctx.GetUserProvider().GetDetailsExtended(identifier.Username); err != nil {
+	if details, err = getUserDetailsExtended(ctx, ctx.GetUserProvider(), identifier.Username); err != nil {
 		return nil, err
+	}
+
+	return details, nil
+}
+
+type ctxKeyUserDetailsExtended struct{}
+
+type userValueContext interface {
+	UserValue(key any) any
+	SetUserValue(key, value any)
+}
+
+func getUserDetailsExtended(ctx context.Context, users authentication.UserProvider, username string) (details *authentication.UserDetailsExtended, err error) {
+	uctx, ok := ctx.(userValueContext)
+	if !ok {
+		return users.GetDetailsExtended(username)
+	}
+
+	memo, _ := uctx.UserValue(ctxKeyUserDetailsExtended{}).(map[string]*authentication.UserDetailsExtended)
+
+	if details, ok = memo[username]; ok {
+		return details, nil
+	}
+
+	if details, err = users.GetDetailsExtended(username); err != nil {
+		return nil, err
+	}
+
+	if memo == nil {
+		memo = map[string]*authentication.UserDetailsExtended{}
+
+		uctx.SetUserValue(ctxKeyUserDetailsExtended{}, memo)
+	}
+
+	memo[username] = details
+
+	if details != nil && details.UserDetails != nil {
+		memo[details.Username] = details
 	}
 
 	return details, nil

@@ -15,12 +15,14 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -86,6 +88,379 @@ func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *sch
 		validator.Push(errors.New(errFmtOIDCProviderNoClientsConfigured))
 	} else {
 		validateOIDCClients(ctx, config.IdentityProviders.OIDC, validator)
+	}
+
+	autheliaURLs := make([]*url.URL, 0, len(config.Session.Cookies))
+
+	for _, cookie := range config.Session.Cookies {
+		if cookie.AutheliaURL != nil {
+			autheliaURLs = append(autheliaURLs, cookie.AutheliaURL)
+		}
+	}
+
+	validateOIDCIDJAG(ctx, config.IdentityProviders.OIDC, validator, autheliaURLs)
+}
+
+func validateOIDCIDJAG(_ *ValidateCtx, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, autheliaURLs []*url.URL) {
+	idjag := &config.IdentityAssertionAuthorizationGrant
+
+	switch {
+	case idjag.Lifespan == durationZero:
+		idjag.Lifespan = schema.DefaultOpenIDConnectConfiguration.IdentityAssertionAuthorizationGrant.Lifespan
+	case idjag.Lifespan < durationZero:
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGLifespanInvalid, idjag.Lifespan))
+	case idjag.Lifespan > time.Hour:
+		validator.PushWarning(fmt.Errorf(errFmtOIDCIDJAGLifespanLong, idjag.Lifespan))
+	}
+
+	if idjag.AccessTokenAllowance < durationZero {
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGAccessTokenAllowanceInvalid, idjag.AccessTokenAllowance))
+	}
+
+	if idjag.SingleUse == nil {
+		idjag.SingleUse = new(true)
+	}
+
+	validateOIDCIDJAGResourceAuthorizationServers(config, validator, autheliaURLs)
+	validateOIDCIDJAGTrustedIssuers(config, validator, autheliaURLs)
+}
+
+func isOIDCIDJAGAutheliaIssuer(value string, autheliaURLs []*url.URL) bool {
+	for _, u := range autheliaURLs {
+		if strings.TrimRight(u.String(), "/") == strings.TrimRight(value, "/") {
+			return true
+		}
+	}
+
+	return false
+}
+
+func validateOIDCIDJAGResourceAuthorizationServers(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, autheliaURLs []*url.URL) {
+	servers := config.IdentityAssertionAuthorizationGrant.ResourceAuthorizationServers
+
+	issuers := make(map[string]int, len(servers))
+
+	for i := range servers {
+		n := i + 1
+
+		if servers[i].Issuer == nil || servers[i].Issuer.String() == "" {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASIssuerMissing, n))
+
+			continue
+		}
+
+		issuer := servers[i].Issuer.String()
+
+		switch {
+		case servers[i].Issuer.Scheme != schemeHTTPS || servers[i].Issuer.Host == "":
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASIssuerNotAbsoluteHTTPS, n, issuer))
+		case isOIDCIDJAGAutheliaIssuer(issuer, autheliaURLs):
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASIssuerAutheliaIssuer, n, attrOIDCIssuer, issuer))
+		}
+
+		if _, ok := issuers[issuer]; ok {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASIssuerDuplicate, n, issuer))
+
+			continue
+		}
+
+		issuers[issuer] = i
+	}
+
+	aliases := map[string]int{}
+
+	for i := range servers {
+		n := i + 1
+
+		for _, alias := range servers[i].Aliases {
+			switch {
+			case alias == "":
+				validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASAliasEmpty, n))
+
+				continue
+			case isOIDCIDJAGAutheliaIssuer(alias, autheliaURLs):
+				validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASIssuerAutheliaIssuer, n, attrOIDCAliases, alias))
+
+				continue
+			}
+
+			if _, ok := issuers[alias]; ok {
+				validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASAliasDuplicate, n, alias))
+
+				continue
+			}
+
+			if _, ok := aliases[alias]; ok {
+				validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASAliasDuplicate, n, alias))
+
+				continue
+			}
+
+			aliases[alias] = i
+		}
+
+		validateOIDCIDJAGResourceAuthorizationServer(n, &servers[i], config, validator)
+	}
+}
+
+func validateOIDCIDJAGTrustedIssuers(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, autheliaURLs []*url.URL) {
+	issuers := config.IdentityAssertionAuthorizationGrant.TrustedIssuers
+
+	seen := make([]string, 0, len(issuers))
+	listed := map[string]bool{}
+
+	for i := range issuers {
+		n := i + 1
+		issuer := &issuers[i]
+
+		if issuer.Issuer == nil || issuer.Issuer.String() == "" {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerIssuerMissing, n))
+		} else {
+			value := issuer.Issuer.String()
+
+			switch {
+			case isOIDCIDJAGAutheliaIssuer(value, autheliaURLs):
+				validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerIssuerAutheliaIssuer, n, value))
+			case utils.IsStringInSlice(value, seen):
+				validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerIssuerDuplicate, n, value))
+			}
+
+			seen = append(seen, value)
+		}
+
+		validateOIDCIDJAGTrustedIssuerKeys(n, issuer, validator)
+		validateOIDCIDJAGTrustedIssuerSigningAlgorithms(n, issuer, validator)
+		validateOIDCIDJAGTrustedIssuerClients(n, issuer, config, validator)
+
+		for _, resource := range issuer.Resources {
+			if u, err := url.Parse(resource); err != nil || !u.IsAbs() {
+				validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerResourceInvalid, n, resource))
+			}
+		}
+
+		if issuer.UsernameClaim == "" {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerUsernameClaimMissing, n))
+		}
+
+		if _, err := expression.NewAuthenticationMethodsReferencesMapping(issuer.AuthenticationMethodsReferences); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerAMRInvalid, n, err))
+		}
+
+		for _, id := range issuer.Clients {
+			listed[id] = true
+		}
+	}
+
+	validateOIDCClientsIDJAGGrantTypes(config, listed, validator)
+}
+
+func validateOIDCClientsIDJAGGrantTypes(config *schema.IdentityProvidersOpenIDConnect, listed map[string]bool, validator *schema.StructValidator) {
+	for c := range config.Clients {
+		client := &config.Clients[c]
+
+		for _, grantType := range []string{oidc.GrantTypeJWTBearer, oidc.GrantTypeJWTDPoP} {
+			if !utils.IsStringInSlice(grantType, client.GrantTypes) {
+				continue
+			}
+
+			if !listed[client.ID] {
+				validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGGrantTypeNotTrusted, client.ID, grantType))
+			}
+
+			if grantType == oidc.GrantTypeJWTDPoP && !config.DPoP.Enabled {
+				validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGGrantTypeDPoPDisabled, client.ID))
+			}
+		}
+	}
+}
+
+func validateOIDCIDJAGTrustedIssuerKeys(n int, issuer *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer, validator *schema.StructValidator) {
+	switch {
+	case issuer.JSONWebKeysURI != nil && len(issuer.JSONWebKeys) != 0:
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerKeysBoth, n))
+	case issuer.JSONWebKeysURI != nil:
+		if issuer.JSONWebKeysURI.Scheme != schemeHTTPS {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerKeysURIScheme, n, issuer.JSONWebKeysURI.Scheme))
+		}
+
+		if issuer.JSONWebKeysURI.Host == "" {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerKeysURIHost, n))
+		}
+	case len(issuer.JSONWebKeys) != 0:
+		prefix := fmt.Sprintf(errFmtOIDCIDJAGTrustedIssuerOption, n) + "'jwks': "
+
+		validateJWKSKeys(prefix, issuer.JSONWebKeys, []string{oidc.KeyUseSignature}, validOIDCIDJAGTrustedIssuerSigningAlgs, true, validator, nil)
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerKeysNeither, n))
+	}
+}
+
+func validateOIDCIDJAGTrustedIssuerSigningAlgorithms(n int, issuer *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer, validator *schema.StructValidator) {
+	if len(issuer.SigningAlgorithms) == 0 {
+		issuer.SigningAlgorithms = []string{oidc.SigningAlgRSAUsingSHA256}
+
+		return
+	}
+
+	for _, alg := range issuer.SigningAlgorithms {
+		if !utils.IsStringInSlice(alg, validOIDCIDJAGTrustedIssuerSigningAlgs) {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerSigningAlgsInvalid, n, utils.StringJoinOr(validOIDCIDJAGTrustedIssuerSigningAlgs), alg))
+		}
+	}
+}
+
+func validateOIDCIDJAGTrustedIssuerClients(n int, issuer *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if len(issuer.Clients) == 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerClientsEmpty, n))
+
+		return
+	}
+
+	for _, id := range issuer.Clients {
+		var client *schema.IdentityProvidersOpenIDConnectClient
+
+		for c := range config.Clients {
+			if config.Clients[c].ID == id {
+				client = &config.Clients[c]
+
+				break
+			}
+		}
+
+		switch {
+		case client == nil:
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerClientsUnknown, n, id))
+		case client.Public:
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerClientsPublic, n, id))
+		case client.TokenEndpointAuthMethod == oidc.ClientAuthMethodNone:
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerClientsAuthMethodNone, n, id))
+		case !utils.IsStringInSlice(oidc.GrantTypeJWTBearer, client.GrantTypes) && !utils.IsStringInSlice(oidc.GrantTypeJWTDPoP, client.GrantTypes):
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerClientsGrantType, n, id))
+		case client.ConsentMode == oidc.ClientConsentModeExplicit.String():
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerClientsConsentMode, n, id, client.ConsentMode))
+		case issuer.AuthenticationMethodsReferences == "" && !isOIDCAuthorizationPolicyOneFactorPermitted(config, client.AuthorizationPolicy):
+			validator.PushWarning(fmt.Errorf(errFmtOIDCIDJAGTrustedIssuerClientsPolicyUnsatisfiable, n, id, client.AuthorizationPolicy))
+		}
+	}
+}
+
+func isOIDCAuthorizationPolicyOneFactorPermitted(config *schema.IdentityProvidersOpenIDConnect, name string) bool {
+	switch name {
+	case policyOneFactor:
+		return true
+	case policyTwoFactor:
+		return false
+	}
+
+	policy, ok := config.AuthorizationPolicies[name]
+	if !ok {
+		return true
+	}
+
+	if policy.DefaultPolicy == policyOneFactor {
+		return true
+	}
+
+	for _, rule := range policy.Rules {
+		if rule.Policy == policyOneFactor {
+			return true
+		}
+	}
+
+	return false
+}
+
+func validateOIDCIDJAGResourceAuthorizationServer(n int, server *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if server.SigningAlgorithm == "" {
+		server.SigningAlgorithm = oidc.SigningAlgRSAUsingSHA256
+	}
+
+	if server.SigningAlgorithm != oidc.SigningAlgRSAUsingSHA256 && !utils.IsStringInSlice(server.SigningAlgorithm, config.Discovery.ResponseObjectSigningAlgs) {
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASSigningAlgInvalid, n, utils.StringJoinOr(config.Discovery.ResponseObjectSigningAlgs), server.SigningAlgorithm))
+	}
+
+	if server.MaxAge < durationZero {
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASMaxAgeInvalid, n, server.MaxAge))
+	}
+
+	if server.SubjectClientID == "" {
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASSubjectClientIDMissing, n))
+	} else if !slices.ContainsFunc(config.Clients, func(client schema.IdentityProvidersOpenIDConnectClient) bool {
+		return client.ID == server.SubjectClientID
+	}) {
+		validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASSubjectClientIDUnknown, n, server.SubjectClientID))
+	}
+
+	if server.ClaimsPolicy != "" {
+		if _, ok := config.ClaimsPolicies[server.ClaimsPolicy]; !ok {
+			validator.Push(fmt.Errorf(errFmtOIDCIDJAGRASClaimsPolicyUnknown, n, server.ClaimsPolicy))
+		}
+	}
+}
+
+func validateOIDCClientIDJAG(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	client := &config.Clients[c]
+
+	requested := utils.IsStringInSlice(oidc.TokenTypeIDJAG, client.RequestTokenTypesSupported)
+	te := utils.IsStringInSlice(oidc.GrantTypeTokenExchange, client.GrantTypes)
+
+	if len(client.IDJAGRelationships) != 0 {
+		if !te {
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGWithoutGrantType, client.ID, attrOIDCIDJAGRelationships))
+		}
+
+		if !requested {
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGWithoutTokenType, client.ID, attrOIDCIDJAGRelationships))
+		}
+	}
+
+	if requested && te {
+		if len(client.IDJAGRelationships) == 0 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGTokenTypeWithoutRelationships, client.ID, attrOIDCIDJAGRelationships))
+		}
+
+		if !utils.IsStringInSlice(oidc.TokenTypeIDToken, client.SubjectTokenTypesSupported) && !utils.IsStringInSlice(oidc.TokenTypeRefreshToken, client.SubjectTokenTypesSupported) {
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGTokenTypeWithoutSubjectTokenType, client.ID))
+		}
+	}
+
+	seen := make([]string, 0, len(client.IDJAGRelationships))
+
+	for i := range client.IDJAGRelationships {
+		validateOIDCClientIDJAGRelationship(c, i, config, validator, &seen)
+	}
+}
+
+func validateOIDCClientIDJAGRelationship(c, i int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, seen *[]string) {
+	client := &config.Clients[c]
+	relationship := &client.IDJAGRelationships[i]
+	n := i + 1
+
+	if relationship.Issuer == nil || relationship.Issuer.String() == "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGRelationshipIssuerMissing, client.ID, attrOIDCIDJAGRelationships, n))
+	} else {
+		issuer := relationship.Issuer.String()
+
+		switch {
+		case utils.IsStringInSlice(issuer, *seen):
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGRelationshipIssuerDuplicate, client.ID, attrOIDCIDJAGRelationships, n, issuer))
+		case !slices.ContainsFunc(config.IdentityAssertionAuthorizationGrant.ResourceAuthorizationServers, func(server schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) bool {
+			return server.Issuer != nil && server.Issuer.String() == issuer
+		}):
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGRelationshipIssuerUnknown, client.ID, attrOIDCIDJAGRelationships, n, issuer))
+		}
+
+		*seen = append(*seen, issuer)
+	}
+
+	if relationship.ClientID == "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGRelationshipClientIDMissing, client.ID, attrOIDCIDJAGRelationships, n))
+	}
+
+	for _, resource := range relationship.Resources {
+		if u, err := url.Parse(resource); err != nil || !u.IsAbs() || u.Fragment != "" || strings.Contains(resource, "#") {
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDJAGRelationshipResourceInvalid, client.ID, attrOIDCIDJAGRelationships, n, resource))
+		}
 	}
 }
 
@@ -745,13 +1120,26 @@ func validateOIDCTokenExchange(config *schema.Configuration, validator *schema.S
 	}
 
 	switch {
-	case te.DefaultRequestedTokenType == oidc.TokenTypeRefreshToken, te.DefaultRequestedTokenType == oidc.TokenTypeTxnToken:
+	case te.DefaultRequestedTokenType == oidc.TokenTypeRefreshToken, te.DefaultRequestedTokenType == oidc.TokenTypeTxnToken, te.DefaultRequestedTokenType == oidc.TokenTypeIDJAG:
 		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeDefaultInvalid, te.DefaultRequestedTokenType))
 	case !utils.IsStringInSlice(te.DefaultRequestedTokenType, te.TokenTypes):
 		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeDefaultNotConfigured, utils.StringJoinOr(te.TokenTypes), te.DefaultRequestedTokenType))
 	}
 
 	validateOIDCTokenExchangeTransactionTokens(config, validator)
+	validateOIDCTokenExchangeIDJAG(config, validator)
+}
+
+func validateOIDCTokenExchangeIDJAG(config *schema.Configuration, validator *schema.StructValidator) {
+	listed := utils.IsStringInSlice(oidc.TokenTypeIDJAG, config.IdentityProviders.OIDC.TokenExchange.TokenTypes)
+	servers := len(config.IdentityProviders.OIDC.IdentityAssertionAuthorizationGrant.ResourceAuthorizationServers) != 0
+
+	switch {
+	case listed && !servers:
+		validator.Push(errors.New(errFmtOIDCProviderTokenExchangeIDJAGWithoutServers))
+	case servers && !listed:
+		validator.Push(errors.New(errFmtOIDCIDJAGServersWithoutTokenType))
+	}
 }
 
 func validateOIDCTokenExchangeTransactionTokens(config *schema.Configuration, validator *schema.StructValidator) {
@@ -988,6 +1376,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientResponseModes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientTokenExchange(c, config, validator)
+	validateOIDCClientIDJAG(c, config, validator)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
 	validateOIDCClientApplicationType(c, config, validator)
 	validateOIDCClientRefreshTokenRotation(c, config, validator)
@@ -1166,39 +1555,72 @@ func validateOIDCClientRequireSignedRequestObject(c int, config *schema.Identity
 	}
 }
 
-//nolint:gocyclo
 func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	client := &config.Clients[c]
+
+	prefix := fmt.Sprintf("identity_providers: oidc: clients: client '%s': jwks: ", client.ID)
+
+	validateJWKSKeys(prefix, client.JSONWebKeys, []string{oidc.KeyUseSignature, oidc.KeyUseEncryption}, validOIDCIssuerJWKSigningAlgs, false, validator, func(alg string) {
+		config.Discovery.RequestObjectSigningAlgs = appendOIDCSigningAlg(config.Discovery.RequestObjectSigningAlgs, alg)
+		client.Discovery.RequestObjectSigningAlgs = appendOIDCSigningAlg(client.Discovery.RequestObjectSigningAlgs, alg)
+
+		if alg == oidc.SigningAlgEdDSA {
+			validator.PushWarning(fmt.Errorf(errFmtOIDCClientSigAlgDeprecated, client.ID, attrOIDCAlgorithm, oidc.SigningAlgEdDSA, oidc.SigningAlgEd25519))
+		}
+	})
+
+	if client.RequestObjectSigningAlg != "" && client.JSONWebKeysURI == nil && !utils.IsStringInSlice(client.RequestObjectSigningAlg, client.Discovery.RequestObjectSigningAlgs) {
+		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysROSAMissingAlgorithm, client.ID, utils.StringJoinOr(client.Discovery.RequestObjectSigningAlgs)))
+	}
+
+	if client.RequestObjectSigningAlg == oidc.SigningAlgEdDSA {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientSigAlgDeprecated, client.ID, attrOIDCRequestObjectSigningAlg, oidc.SigningAlgEdDSA, oidc.SigningAlgEd25519))
+	}
+}
+
+//nolint:gocyclo
+func validateJWKSKeys(prefix string, keys []schema.JWK, allowedUses, allowedAlgs []string, uniqueKeyID bool, validator *schema.StructValidator, onAlg func(alg string)) {
 	var (
 		props *JWKProperties
 		err   error
 	)
 
-	for i := 0; i < len(config.Clients[c].JSONWebKeys); i++ {
-		if config.Clients[c].JSONWebKeys[i].KeyID == "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKeyID))
+	seen := make([]string, 0, len(keys))
+
+	for i := range keys {
+		jwk := &keys[i]
+
+		if jwk.KeyID == "" {
+			validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyInvalidOptionMissingOneOf, i+1, attrOIDCKeyID)))
+		} else if uniqueKeyID {
+			if utils.IsStringInSlice(jwk.KeyID, seen) {
+				validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyIDDuplicate, i+1, jwk.KeyID)))
+			}
+
+			seen = append(seen, jwk.KeyID)
 		}
 
-		if props, err = schemaJWKGetProperties(config.Clients[c].JSONWebKeys[i]); err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysProperties, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, err))
+		if props, err = schemaJWKGetProperties(*jwk); err != nil {
+			validator.Push(fmt.Errorf("%s%w", prefix, fmt.Errorf(errFmtJWKSKeyProperties, i+1, jwk.KeyID, err)))
 
 			continue
 		}
 
-		if config.Clients[c].JSONWebKeys[i].Key == nil {
-			if len(config.Clients[c].JSONWebKeys[i].KeyID) != 0 {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysWithIDInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, attrOIDCKey))
+		if jwk.Key == nil {
+			if len(jwk.KeyID) != 0 {
+				validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyWithIDInvalidOptionMissingOneOf, i+1, jwk.KeyID, attrOIDCKey)))
 			} else {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKey))
+				validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyInvalidOptionMissingOneOf, i+1, attrOIDCKey)))
 			}
 
 			continue
 		}
 
-		validateOIDCClientJSONWebKeysListKeyUseAlg(c, i, props, config, validator)
+		validateJWKSKeyUseAlg(prefix, i, jwk, props, allowedUses, allowedAlgs, validator, onAlg)
 
 		var checkEqualKey bool
 
-		switch key := config.Clients[c].JSONWebKeys[i].Key.(type) {
+		switch key := jwk.Key.(type) {
 		case *rsa.PublicKey:
 			checkEqualKey = true
 
@@ -1206,74 +1628,61 @@ func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOp
 			case key.N == nil:
 				checkEqualKey = false
 
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysKeyMalformed, config.Clients[c].ID, i+1))
+				validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyKeyMalformed, i+1)))
 			case key.Size() < 256:
 				checkEqualKey = false
 
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, key.Size()*8))
+				validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyRSAKeyLessThan2048Bits, i+1, jwk.KeyID, key.Size()*8)))
 			case key.N.BitLen() > jose.MaxRSAModulusBits:
 				checkEqualKey = false
 
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysRSAKeyGreaterThanMaximumBits, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, key.N.BitLen(), jose.MaxRSAModulusBits))
+				validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyRSAKeyGreaterThanMaximumBits, i+1, jwk.KeyID, key.N.BitLen(), jose.MaxRSAModulusBits)))
 			}
 		case *ecdsa.PublicKey:
 			checkEqualKey = true
 		default:
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, key))
+			validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyKeyNotRSAOrECDSA, i+1, jwk.KeyID, key)))
 		}
 
 		if checkEqualKey {
-			if err = jwkValidateJOSE(config.Clients[c].JSONWebKeys[i]); err != nil {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysNotUsable, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, err))
+			if err = jwkValidateJOSE(*jwk); err != nil {
+				validator.Push(fmt.Errorf("%s%w", prefix, fmt.Errorf(errFmtJWKSKeyNotUsable, i+1, jwk.KeyID, err)))
 			}
 		}
 
-		if config.Clients[c].JSONWebKeys[i].CertificateChain.HasCertificates() {
-			if checkEqualKey && !config.Clients[c].JSONWebKeys[i].CertificateChain.EqualKey(config.Clients[c].JSONWebKeys[i].Key) {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysCertificateChainKeyMismatch, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID))
+		if jwk.CertificateChain.HasCertificates() {
+			if checkEqualKey && !jwk.CertificateChain.EqualKey(jwk.Key) {
+				validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyCertificateChainKeyMismatch, i+1, jwk.KeyID)))
 			}
 
-			if err = config.Clients[c].JSONWebKeys[i].CertificateChain.Validate(); err != nil {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysCertificateChainInvalid, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, err))
+			if err = jwk.CertificateChain.Validate(); err != nil {
+				validator.Push(fmt.Errorf("%s%w", prefix, fmt.Errorf(errFmtJWKSKeyCertificateChainInvalid, i+1, jwk.KeyID, err)))
 			}
 		}
-	}
-
-	if config.Clients[c].RequestObjectSigningAlg != "" && config.Clients[c].JSONWebKeysURI == nil && !utils.IsStringInSlice(config.Clients[c].RequestObjectSigningAlg, config.Clients[c].Discovery.RequestObjectSigningAlgs) {
-		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysROSAMissingAlgorithm, config.Clients[c].ID, utils.StringJoinOr(config.Clients[c].Discovery.RequestObjectSigningAlgs)))
-	}
-
-	if config.Clients[c].RequestObjectSigningAlg == oidc.SigningAlgEdDSA {
-		validator.PushWarning(fmt.Errorf(errFmtOIDCClientSigAlgDeprecated, config.Clients[c].ID, attrOIDCRequestObjectSigningAlg, oidc.SigningAlgEdDSA, oidc.SigningAlgEd25519))
 	}
 }
 
-func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	switch config.Clients[c].JSONWebKeys[i].Use {
-	case "":
-		config.Clients[c].JSONWebKeys[i].Use = props.Use
-	case oidc.KeyUseSignature, oidc.KeyUseEncryption:
+func validateJWKSKeyUseAlg(prefix string, i int, jwk *schema.JWK, props *JWKProperties, allowedUses, allowedAlgs []string, validator *schema.StructValidator, onAlg func(alg string)) {
+	switch {
+	case jwk.Use == "":
+		jwk.Use = props.Use
+	case utils.IsStringInSlice(jwk.Use, allowedUses):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionOneOf, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, attrOIDCKeyUse, utils.StringJoinOr([]string{oidc.KeyUseSignature, oidc.KeyUseEncryption}), config.Clients[c].JSONWebKeys[i].Use))
+		validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyInvalidOptionOneOf, i+1, jwk.KeyID, attrOIDCKeyUse, utils.StringJoinOr(allowedUses), jwk.Use)))
 	}
 
 	switch {
-	case config.Clients[c].JSONWebKeys[i].Algorithm == "":
-		config.Clients[c].JSONWebKeys[i].Algorithm = props.Algorithm
-	case utils.IsStringInSlice(config.Clients[c].JSONWebKeys[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
+	case jwk.Algorithm == "":
+		jwk.Algorithm = props.Algorithm
+	case utils.IsStringInSlice(jwk.Algorithm, allowedAlgs):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionOneOf, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, attrOIDCAlgorithm, utils.StringJoinOr(validOIDCIssuerJWKSigningAlgs), config.Clients[c].JSONWebKeys[i].Algorithm))
+		validator.Push(errors.New(prefix + fmt.Sprintf(errFmtJWKSKeyInvalidOptionOneOf, i+1, jwk.KeyID, attrOIDCAlgorithm, utils.StringJoinOr(allowedAlgs), jwk.Algorithm)))
 	}
 
-	if config.Clients[c].JSONWebKeys[i].Algorithm != "" {
-		config.Discovery.RequestObjectSigningAlgs = appendOIDCSigningAlg(config.Discovery.RequestObjectSigningAlgs, config.Clients[c].JSONWebKeys[i].Algorithm)
-		config.Clients[c].Discovery.RequestObjectSigningAlgs = appendOIDCSigningAlg(config.Clients[c].Discovery.RequestObjectSigningAlgs, config.Clients[c].JSONWebKeys[i].Algorithm)
-
-		if config.Clients[c].JSONWebKeys[i].Algorithm == oidc.SigningAlgEdDSA {
-			validator.PushWarning(fmt.Errorf(errFmtOIDCClientSigAlgDeprecated, config.Clients[c].ID, attrOIDCAlgorithm, oidc.SigningAlgEdDSA, oidc.SigningAlgEd25519))
-		}
+	if jwk.Algorithm != "" && onAlg != nil {
+		onAlg(jwk.Algorithm)
 	}
 }
 
@@ -1803,8 +2212,11 @@ func validateOIDCClientTokenExchangeTokenTypes(c int, config *schema.IdentityPro
 		invalid, duplicates := validateList(option.values, enabled, true)
 
 		for _, value := range option.values {
-			if option.attr == attrOIDCActorTokenTypesSupported && value == oidc.TokenTypeTxnToken {
+			switch {
+			case option.attr == attrOIDCActorTokenTypesSupported && value == oidc.TokenTypeTxnToken:
 				validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeActorTxnToken, config.Clients[c].ID, option.attr, value))
+			case option.attr != attrOIDCRequestTokenTypesSupported && value == oidc.TokenTypeIDJAG:
+				validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeIDJAGNotExchangeable, config.Clients[c].ID, option.attr, value))
 			}
 		}
 

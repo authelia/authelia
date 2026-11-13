@@ -12,6 +12,8 @@ import (
 
 	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/idjag"
+	"authelia.com/provider/oauth2/handler/rfc7523"
 	"authelia.com/provider/oauth2/handler/rfc8693"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
@@ -44,6 +46,7 @@ type Store struct {
 	ClientStore
 
 	provider storage.Provider
+	config   *Config
 }
 
 // ClientStore is an abstraction used for the Store struct which stores clients.
@@ -176,6 +179,9 @@ type RegisteredClient struct {
 	TokenExchangeMayAct                     *schema.IdentityProvidersOpenIDConnectClientMayAct
 	TokenExchangeTxnTokenReplacement        bool
 
+	IDJAGRelationships    map[string]*IDJAGClientRelationship
+	IDJAGResourceOptional bool
+
 	RequestURIs    []string
 	JSONWebKeys    *jose.JSONWebKeySet
 	JSONWebKeysURI *url.URL
@@ -245,6 +251,9 @@ type Client interface {
 	GetImpersonationAllowed() (allowed bool)
 	GetTokenExchangeMayAct() (mayAct map[string]any)
 	GetAllowTxnTokenReplacement() (allowed bool)
+
+	GetIDJAGRelationship(issuer string) (relationship *IDJAGClientRelationship, ok bool)
+	GetIDJAGResourceOptional() (optional bool)
 }
 
 // RefreshFlowScopeClient is a client which can be customized to ignore scopes that were not originally granted.
@@ -411,12 +420,15 @@ var (
 	_ rfc8693.ActorTokenExchangeClient                                    = (*RegisteredClient)(nil)
 	_ rfc8693.RefreshTokenIssuanceClient                                  = (*RegisteredClient)(nil)
 	_ rfc8693.TxnTokenReplacementClient                                   = (*RegisteredClient)(nil)
+	_ oauthelia2.IDJAGResourceOptionalClient                              = (*RegisteredClient)(nil)
 	_ rfc8693.OwnAccessTokenExchangeClient                                = (*RegisteredClient)(nil)
 	_ rfc8693.OwnAccessTokenExchangeTargetClient                          = (*RegisteredClient)(nil)
 	_ oauthelia2.DPoPClient                                               = (*RegisteredClient)(nil)
 	_ oauthelia2.DPoPStrictRefreshTokenBindingClient                      = (*RegisteredClient)(nil)
 
 	_ rfc8693.Session             = (*Session)(nil)
+	_ rfc7523.Session             = (*Session)(nil)
+	_ idjag.RedeemSession         = (*Session)(nil)
 	_ oauthelia2.DPoPBoundSession = (*Session)(nil)
 
 	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
