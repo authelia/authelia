@@ -25,6 +25,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -2731,4 +2732,69 @@ func init() {
 	x509CACertificateECDSAP521, x509CAPrivateKeyECDSAP521, x509CertificateECDSAP521, x509PrivateKeyECDSAP521 = MustLoadCryptoSet("ECDSA", false, "P521")
 
 	x509CACertificateEd25519, x509CAPrivateKeyEd25519, x509CertificateEd25519, x509PrivateKeyEd25519 = MustLoadCryptoSet("Ed25519", false)
+}
+
+func TestStringToTokenExchangePolicyHookFunc(t *testing.T) {
+	hook := configuration.StringToTokenExchangePolicyHookFunc()
+
+	expectedType := reflect.TypeOf(schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{})
+
+	testCases := []struct {
+		name     string
+		from     reflect.Type
+		to       reflect.Type
+		have     any
+		expected any
+	}{
+		{
+			"ShouldDecodeStringShorthand",
+			reflect.TypeOf(""),
+			expectedType,
+			"app-b",
+			schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{ClientID: "app-b"},
+		},
+		{
+			"ShouldSkipNonStringInput",
+			reflect.TypeOf(0),
+			expectedType,
+			5,
+			5,
+		},
+		{
+			"ShouldSkipUnrelatedTargetType",
+			reflect.TypeOf(""),
+			reflect.TypeOf(""),
+			"app-b",
+			"app-b",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := hook(tc.from, tc.to, tc.have)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestStringToTokenExchangePolicyHookFuncClientOptions(t *testing.T) {
+	actual := schema.IdentityProvidersOpenIDConnectClient{}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		DecodeHook: configuration.StringToTokenExchangePolicyHookFunc(),
+		Result:     &actual,
+		TagName:    "koanf",
+	})
+
+	require.NoError(t, err)
+
+	require.NoError(t, decoder.Decode(map[string]any{
+		"subject_token_clients_supported": []any{"a"},
+		"actor_token_clients_supported":   []any{"b", map[string]any{"client_id": "c", "requested_token_types": []any{"urn:ietf:params:oauth:token-type:access_token"}}},
+	}))
+
+	assert.Equal(t, []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{{ClientID: "a"}}, actual.SubjectTokenClientsSupported)
+	assert.Equal(t, []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{{ClientID: "b"}, {ClientID: "c", RequestedTokenTypes: []string{"urn:ietf:params:oauth:token-type:access_token"}}}, actual.ActorTokenClientsSupported)
 }

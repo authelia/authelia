@@ -50,6 +50,10 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		errs = append(errs, err)
 	}
 
+	if gc, ok := providers.StorageProvider.(GarbageCollectorProvider); ok {
+		providers.GarbageCollector.Register(gc)
+	}
+
 	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
 		errs = append(errs, err)
 	}

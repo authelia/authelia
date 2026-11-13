@@ -260,3 +260,19 @@ func TestFormatRequestMethod(t *testing.T) {
 		})
 	}
 }
+
+func TestNewProvidersShouldRegisterStorageGarbageCollector(t *testing.T) {
+	config := &schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "a_very_important_secret",
+			Local:         &schema.StorageLocal{Path: filepath.Join(t.TempDir(), "db.sqlite3")},
+		},
+	}
+
+	providers, _, _ := NewProviders(config, nil)
+
+	require.NotNil(t, providers.StorageProvider)
+	require.GreaterOrEqual(t, providers.GarbageCollector.Len(), 1)
+
+	assert.Contains(t, providers.GarbageCollector.Providers(), providers.StorageProvider)
+}

@@ -755,6 +755,22 @@ const (
 			DO UPDATE SET expires_at = $4
 			WHERE %[1]s.expires_at <= $5;`
 
+	queryFmtDeleteOAuth2BlacklistedJTIExpired = `
+		DELETE FROM %s
+		WHERE expires_at < ?;`
+
+	queryFmtDeleteOAuth2BlacklistedJTIExpiredSQLite = `
+		DELETE FROM %s
+		WHERE julianday(expires_at) < julianday(?);`
+
+	queryFmtDeleteOAuth2RequestReplayExpired = `
+		DELETE FROM %s
+		WHERE expires_at < ?;`
+
+	queryFmtDeleteOAuth2RequestReplayExpiredSQLite = `
+		DELETE FROM %s
+		WHERE julianday(expires_at) < julianday(?);`
+
 	//nolint:gosec // Not a Credential.
 	queryFmtUpdateOAuth2RefreshTokenSessionRequest = `
 		UPDATE %s

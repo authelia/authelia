@@ -555,6 +555,20 @@ func (s *Store) DeletePARSession(ctx context.Context, requestURI string) (err er
 	return errStorage(err)
 }
 
+// SetTokenExchangeCustomJWT implements the rfc8693.Storage interface. It is only reached via the
+// rfc8693.CustomJWTTypeHandler, which Authelia does not register as the 'urn:ietf:params:oauth:token-type:jwt' token
+// type is not supported. It is implemented solely to satisfy the interface embedded by the registered type handlers.
+func (s *Store) SetTokenExchangeCustomJWT(ctx context.Context, issuer, jti string, exp time.Time) (err error) {
+	return oauthelia2.ErrInvalidRequest.WithHintf("The token type '%s' is not supported by this authorization server.", TokenTypeJWT)
+}
+
+// GetSubjectForTokenExchange implements the rfc8693.Storage interface. It is only reached via the
+// rfc8693.CustomJWTTypeHandler, which Authelia does not register as the 'urn:ietf:params:oauth:token-type:jwt' token
+// type is not supported. It is implemented solely to satisfy the interface embedded by the registered type handlers.
+func (s *Store) GetSubjectForTokenExchange(ctx context.Context, requester oauthelia2.Requester, subjectToken map[string]any) (sub string, err error) {
+	return "", oauthelia2.ErrInvalidRequest.WithHintf("The token type '%s' is not supported by this authorization server.", TokenTypeJWT)
+}
+
 func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session oauthelia2.Session) (r oauthelia2.Requester, err error) {
 	var (
 		sessionModel *model.OAuth2Session

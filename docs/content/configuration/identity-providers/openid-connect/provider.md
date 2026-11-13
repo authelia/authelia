@@ -102,6 +102,8 @@ identity_providers:
       id_token: '1h'
       refresh_token: '90m'
       refresh_token_maximum: 0
+    token_exchange:
+      max_actor_chain_depth: 8
     claims_policies:
       policy_name:
         id_token: []
@@ -690,7 +692,22 @@ identity_providers:
               access_token: '1h'
               refresh_token: '90m'
               id_token: '1h'
+            token_exchange:
+              access_token: '1h'
+              refresh_token: '90m'
+              id_token: '1h'
 ```
+
+### token_exchange
+
+Global [OAuth 2.0 Token Exchange](https://oauth.net/2/token-exchange/) configuration. Per-client options are documented
+in the [clients](clients.md#token-exchange-security) section.
+
+#### max_actor_chain_depth
+
+{{< confkey type="integer" default="8" required="no" >}}
+
+The maximum depth of the nested `act` claim chain permitted in a token exchange. The minimum value is `1`.
 
 ### claims_policies
 

@@ -922,6 +922,78 @@ func TestOAuth2ConsentPreConfigHasExactGrants(t *testing.T) {
 	}
 }
 
+func TestOAuth2ConsentPreConfigHasGrantsCovering(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Config   model.OAuth2ConsentPreConfig
+		Scopes   []string
+		Audience []string
+		Resource []string
+		Expected bool
+	}{
+		{
+			Name:     "ShouldCoverSubset",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid", "profile", "email"}, Audience: model.StringSlicePipeDelimited{"aud-a", "aud-b"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com", "https://b.example.com"}},
+			Scopes:   []string{"openid", "profile"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://b.example.com"},
+			Expected: true,
+		},
+		{
+			Name:     "ShouldCoverExactMatch",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotCoverScopeSuperset",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid", "profile"},
+			Audience: []string{"aud-a"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotCoverAudienceSuperset",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a", "aud-b"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotCoverResourceSuperset",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Resource: []string{"https://a.example.com", "https://b.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldCoverEmptyRequest",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}},
+			Expected: true,
+		},
+		{
+			Name:     "ShouldCoverEmptyRequestAgainstEmptyGrants",
+			Config:   model.OAuth2ConsentPreConfig{},
+			Expected: true,
+		},
+		{
+			Name:     "ShouldCoverRegardlessOfOrder",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"email", "profile", "openid"}, Audience: model.StringSlicePipeDelimited{"aud-b", "aud-a"}, Resource: model.StringSlicePipeDelimited{"https://b.example.com", "https://a.example.com"}},
+			Scopes:   []string{"openid", "profile", "email"},
+			Audience: []string{"aud-a", "aud-b"},
+			Resource: []string{"https://a.example.com", "https://b.example.com"},
+			Expected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, tc.Config.HasGrantsCovering(tc.Scopes, tc.Audience, tc.Resource))
+		})
+	}
+}
 func TestOAuth2ConsentSessionMatchesRequester(t *testing.T) {
 	const prefixPAR = "urn:ietf:params:oauth:request_uri:"
 

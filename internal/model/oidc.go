@@ -255,6 +255,15 @@ func (s *OAuth2ConsentPreConfig) HasExactGrants(scopes, audience, resource []str
 	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience) && s.HasExactGrantedResource(resource)
 }
 
+// HasGrantsCovering returns true if the granted scopes, audience, and resource indicators of this consent
+// pre-configuration each contain every value of the requested scopes, audience, and resource indicators respectively.
+// The order of the values is not significant and an empty request is always covered.
+func (s *OAuth2ConsentPreConfig) HasGrantsCovering(scopes, audience, resource []string) (has bool) {
+	return utils.IsStringSliceContainsAll(scopes, s.Scopes) &&
+		utils.IsStringSliceContainsAll(audience, s.Audience) &&
+		utils.IsStringSliceContainsAll(resource, s.Resource)
+}
+
 // HasExactGrantedAudience returns true if the granted audience of this consent matches exactly with another audience.
 func (s *OAuth2ConsentPreConfig) HasExactGrantedAudience(audience []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.Audience, audience)

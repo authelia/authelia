@@ -1154,6 +1154,38 @@ func TestSQLProviderOAuth2RequestReplayLegacyTimeZone(t *testing.T) {
 	}
 }
 
+func TestSQLProviderGarbageCollection(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	assert.Equal(t, time.Hour, provider.GarbageCollectionFrequency(ctx))
+
+	zone := time.FixedZone("UTC-12", -12*60*60)
+
+	require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "expired", ExpiresAt: time.Now().Add(-time.Hour)}))
+	require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "live", ExpiresAt: time.Now().Add(time.Hour)}))
+
+	require.NoError(t, provider.SaveOAuth2RequestReplay(ctx, model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "expired", ExpiresAt: time.Now().Add(-time.Hour)}))
+	require.NoError(t, provider.SaveOAuth2RequestReplay(ctx, model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "expired-zone", ExpiresAt: time.Now().Add(-time.Hour).In(zone)}))
+	require.NoError(t, provider.SaveOAuth2RequestReplay(ctx, model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "live", ExpiresAt: time.Now().Add(time.Hour)}))
+
+	require.NoError(t, provider.GarbageCollection(ctx))
+
+	for _, table := range []string{"oauth2_blacklisted_jti", "oauth2_request_replay"} {
+		var count int
+
+		require.NoError(t, provider.db.GetContext(ctx, &count, "SELECT COUNT(*) FROM "+table))
+		assert.Equal(t, 1, count, table)
+
+		var signature string
+
+		require.NoError(t, provider.db.GetContext(ctx, &signature, "SELECT signature FROM "+table))
+		assert.Equal(t, "live", signature, table)
+	}
+}
+
 func TestSQLProviderBannedUser(t *testing.T) {
 	provider := newTestSQLiteProviderWithEncryption(t)
 	require.NoError(t, provider.StartupCheck())

@@ -12,6 +12,7 @@ import (
 
 	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/rfc8693"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -54,6 +55,13 @@ type ClientStore interface {
 // MemoryClientStore is an implementation of the ClientStore which just stores the clients in memory.
 type MemoryClientStore struct {
 	clients map[string]Client
+}
+
+// TokenExchangePolicy describes a registered client permitted to perform a Token Exchange using tokens issued to
+// this client as the 'subject_token', optionally restricted to specific requested token types.
+type TokenExchangePolicy struct {
+	ClientID            string
+	RequestedTokenTypes []string
 }
 
 // RegisteredClient represents a registered client.
@@ -149,6 +157,21 @@ type RegisteredClient struct {
 	AudienceStrategy      oauthelia2.AudienceStrategy
 	ResourceStrategy      oauthelia2.ResourceStrategy
 
+	SubjectTokenTypesSupported     []string
+	SubjectTokenIssuersSupported   []string
+	ActorTokenTypesSupported       []string
+	ActorTokenIssuersSupported     []string
+	ActorTokenWithoutMayActAllowed bool
+	RequestTokenTypesSupported     []string
+	SubjectTokenClientsSupported   []TokenExchangePolicy
+	ActorTokenClientsSupported     []TokenExchangePolicy
+
+	TokenExchangeRefreshTokenAllowed        bool
+	OwnAccessTokenExchangeAllowed           bool
+	OwnAccessTokenExchangeTargetsRestricted *bool
+	ImpersonationAllowed                    bool
+	TokenExchangeMayAct                     *schema.IdentityProvidersOpenIDConnectClientMayAct
+
 	RequestURIs    []string
 	JSONWebKeys    *jose.JSONWebKeySet
 	JSONWebKeysURI *url.URL
@@ -214,6 +237,9 @@ type Client interface {
 	GetAuthorizationPolicy() (policy ClientAuthorizationPolicy)
 
 	GetEffectiveLifespan(gt oauthelia2.GrantType, tt oauthelia2.TokenType, fallback time.Duration) (lifespan time.Duration)
+
+	GetImpersonationAllowed() (allowed bool)
+	GetTokenExchangeMayAct() (mayAct map[string]any)
 }
 
 // RefreshFlowScopeClient is a client which can be customized to ignore scopes that were not originally granted.
@@ -375,6 +401,13 @@ var (
 	_ oauthelia2.ApplicationTypeClient                                    = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshTokenMaximumLifespanClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshTokenRotationClient                               = (*RegisteredClient)(nil)
+	_ rfc8693.Client                                                      = (*RegisteredClient)(nil)
+	_ rfc8693.ActorTokenExchangeClient                                    = (*RegisteredClient)(nil)
+	_ rfc8693.RefreshTokenIssuanceClient                                  = (*RegisteredClient)(nil)
+	_ rfc8693.OwnAccessTokenExchangeClient                                = (*RegisteredClient)(nil)
+	_ rfc8693.OwnAccessTokenExchangeTargetClient                          = (*RegisteredClient)(nil)
+
+	_ rfc8693.Session = (*Session)(nil)
 
 	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
 	_ RequesterFormSession = (*model.OAuth2DeviceCodeSession)(nil)
