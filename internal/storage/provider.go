@@ -423,6 +423,14 @@ type Provider interface {
 	// DeleteOAuth2SessionLogoutTask deletes a claimed logout task, returning false when the claim was superseded.
 	DeleteOAuth2SessionLogoutTask(ctx context.Context, id, attempts int) (deleted bool, err error)
 
+	// LoadOAuth2SessionLogoutTasksBySessionID returns the logout tasks of the kind for the session identifier.
+	LoadOAuth2SessionLogoutTasksBySessionID(ctx context.Context, sid, kind string) (tasks []model.OAuth2SessionLogoutTask, err error)
+
+	// SaveOAuth2SessionIDClient records that a client was issued the 'sid' claim value for the issuer and session
+	// public identifier along with the subject identifier it was issued. It returns ErrOAuth2SessionEnded when the
+	// session has ended. Recording the same client for the same 'sid' more than once is not an error.
+	SaveOAuth2SessionIDClient(ctx context.Context, issuer, publicID, sid, clientID, subject string) (err error)
+
 	// SaveOAuth2SessionLogout saves an OpenID Connect RP-Initiated Logout 1.0 request awaiting the confirmation of the
 	// End-User, removing every logout session which expired before it was created.
 	SaveOAuth2SessionLogout(ctx context.Context, session model.OAuth2SessionLogout) (err error)

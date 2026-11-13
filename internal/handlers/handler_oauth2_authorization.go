@@ -168,10 +168,8 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	var sid string
 
-	if sid, err = oidcSessionID(ctx, client, &userSession); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred obtaining the session identifier", requester.GetID(), client.GetID())
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the session identifier."))
+	if sid, err = oidcSessionID(ctx, client, requester, &userSession); err != nil {
+		oidcSessionIDAuthorizeError(ctx, rw, requester, err, fmt.Sprintf("Authorization Request with id '%s' on client with id '%s' could not be processed", requester.GetID(), client.GetID()), "obtaining the session identifier", "Could not obtain the session identifier.")
 
 		return
 	}

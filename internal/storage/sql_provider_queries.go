@@ -766,10 +766,49 @@ const (
 		FROM %s
 		WHERE signature = ?;`
 
+	queryFmtSelectOAuth2SessionIDIDByIssuerSessionID = `
+		SELECT id
+		FROM %s
+		WHERE sid = ? AND issuer = ?;`
+
 	queryFmtSelectOAuth2SessionIDByIDLock = `
 		SELECT id
 		FROM %s
 		WHERE id = ?%s;`
+
+	queryFmtInsertOAuth2SessionIDClient = `
+		INSERT INTO %s (issuer, public_id, sid, client_id, subject, created_at)
+		VALUES(?, ?, ?, ?, ?, ?)
+		ON CONFLICT (issuer, sid, client_id) DO NOTHING;`
+
+	queryFmtInsertOAuth2SessionIDClientMySQL = `
+		INSERT INTO %s (issuer, public_id, sid, client_id, subject, created_at)
+		VALUES(?, ?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE id = id;`
+
+	queryFmtInsertOAuth2SessionLogoutTasksBackChannel = `
+		INSERT INTO %[1]s (kind, sid, client_id, subject, issuer_url, attempts, next_attempt_at, created_at, expires_at)
+		SELECT ?, sid, client_id, subject, ?, 0, ?, ?, ?
+		FROM %[2]s
+		WHERE issuer = ? AND sid = ?
+		ON CONFLICT (sid, kind, client_id) DO NOTHING;`
+
+	queryFmtInsertOAuth2SessionLogoutTasksBackChannelMySQL = `
+		INSERT INTO %[1]s (kind, sid, client_id, subject, issuer_url, attempts, next_attempt_at, created_at, expires_at)
+		SELECT ?, sid, client_id, subject, ?, 0, ?, ?, ?
+		FROM %[2]s
+		WHERE issuer = ? AND sid = ?
+		ON DUPLICATE KEY UPDATE %[1]s.attempts = %[1]s.attempts;`
+
+	queryFmtSelectOAuth2SessionLogoutTasksBySessionID = `
+		SELECT id, kind, sid, client_id, subject, issuer_url, attempts, next_attempt_at, created_at, expires_at
+		FROM %s
+		WHERE sid = ? AND kind = ?
+		ORDER BY id;`
+
+	queryFmtDeleteOAuth2SessionIDClientsBySessionID = `
+		DELETE FROM %s
+		WHERE issuer = ? AND sid = ?;`
 
 	queryFmtDeleteOAuth2SessionIDByID = `
 		DELETE FROM %s

@@ -129,6 +129,9 @@ identity_providers:
       allowed_origins:
         - 'https://{{< sitevar name="domain" nojs="example.com" >}}'
       allowed_origins_from_client_redirect_uris: false
+    backchannel_logout:
+      lifespan: '2 minutes'
+      concurrency: 10
 ```
 
 ## Options
@@ -519,7 +522,9 @@ control.
 
 The guard refuses connections to special-use addresses, such as loopback, private, and link-local addresses, when
 fetching a location supplied by a client such as the `jwks_uri` or a `request_uri`, as required by
-[draft-ietf-oauth-rfc8725bis Section 3.10]. The HTTP proxy is not used for these fetches while the guard is enabled.
+[draft-ietf-oauth-rfc8725bis Section 3.10], and when delivering a Logout Token to a client's
+[backchannel_logout_uri](clients.md#backchannel_logout_uri). The HTTP proxy is not used for these requests while the
+guard is enabled.
 
 #### disable
 
@@ -537,7 +542,7 @@ Disables the guard entirely which permits locations supplied by clients to be fe
 {{< confkey type="list(string)" syntax="network" required="no" >}}
 
 The list of networks the guard permits connections to even when they are special-use addresses. This is useful when a
-client has a `jwks_uri` hosted on an internal network. Items in this list can also be named
+client has a `jwks_uri` or `backchannel_logout_uri` hosted on an internal network. Items in this list can also be named
 [Network Definitions](../../definitions/network.md).
 
 ### authorization_policies
@@ -923,6 +928,29 @@ Automatically adds the origin portion of all redirect URI's on all clients to th
 [allowed_origins](#allowed_origins), provided they have the scheme http or https and do not have the hostname of
 localhost.
 
+### backchannel_logout
+
+Configures the delivery of the Logout Tokens of [OpenID Connect Back-Channel Logout 1.0], which is described in
+[Back-Channel Logout](../../../integration/openid-connect/introduction.md#back-channel-logout).
+
+#### lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="2 minutes" required="no" >}}
+
+The duration a Logout Token is valid for, which also bounds how long Authelia waits for a client to respond to a single
+delivery, up to 35 seconds. This should be long enough for a client to accept a token which was delayed in transit, and
+short enough that a token which is intercepted is of little use. [OpenID Connect Back-Channel Logout 1.0] recommends a
+lifespan of no more than two minutes. The lifespan should be at least one second, as the times in a Logout Token are
+measured in seconds.
+
+#### concurrency
+
+{{< confkey type="integer" default="10" required="no" >}}
+
+The maximum number of Logout Tokens delivered at the same time, which applies to the deliveries of every logout
+combined. Raising this notifies a large number of clients sooner at the cost of more simultaneous outbound requests. A
+delivery waiting for one of these to become available doesn't spend its [lifespan](#lifespan) waiting.
+
 ### clients
 
 {{< confkey type="list(object)" required="yes" >}}
@@ -962,3 +990,4 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [JWT-Secured Authorization Request]: https://datatracker.ietf.org/doc/html/rfc9101
 [OpenID Certified™]: https://openid.net/certification/
 [OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/
+[OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html

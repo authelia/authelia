@@ -7,11 +7,15 @@ package oidc
 import (
 	"context"
 	"crypto/sha512"
+	"crypto/tls"
+	"crypto/x509"
 	"hash"
 	"html/template"
 	"net"
+	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -38,6 +42,7 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
+		HTTPClient:                 NewHTTPClient(nil),
 		Lifespans: LifespansConfig{
 			IdentityProvidersOpenIDConnectLifespanToken: config.Lifespans.IdentityProvidersOpenIDConnectLifespanToken,
 			RFC8628Code:         config.Lifespans.DeviceCode,
@@ -57,6 +62,8 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 			Enable:                       config.Discovery.JWTResponseAccessTokens,
 			EnableStatelessIntrospection: config.EnableJWTAccessTokenStatelessIntrospection,
 		},
+		BackChannelLogoutLifespan:    config.BackChannelLogout.Lifespan,
+		BackChannelLogoutConcurrency: config.BackChannelLogout.Concurrency,
 		Strategy: StrategyConfig{
 			Audience: NewAudienceStrategy(config.AudienceStrategy),
 			Resource: NewResourceStrategy(config.ResourceStrategy),
@@ -88,10 +95,14 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		c.Strategy.Core = oauth2.NewCoreStrategy(c, fmtAutheliaOpaqueOAuth2Token, nil)
 	}
 
-	c.Strategy.OpenID = &openid.DefaultStrategy{
+	strategyOpenID := &openid.DefaultStrategy{
 		Strategy: c.Strategy.JWT,
 		Config:   c,
 	}
+
+	// The one strategy satisfies both interfaces; they are separate fields because
+	// openid.OpenIDConnectTokenStrategy only describes ID Token generation.
+	c.Strategy.OpenID, c.Strategy.BackChannelLogout = strategyOpenID, strategyOpenID
 
 	c.Strategy.IDTokenValidation = &openid.DefaultIDTokenValidationStrategy{
 		Strategy: c.Strategy.JWT,
@@ -157,6 +168,9 @@ type Config struct {
 
 	BackChannelLogoutLifespan    time.Duration
 	BackChannelLogoutConcurrency int
+
+	backChannelLogoutSlots     chan struct{}
+	backChannelLogoutSlotsOnce sync.Once
 
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
@@ -242,6 +256,7 @@ type StrategyConfig struct {
 	RevocationEndpointClientAuth    oauthelia2.EndpointClientAuthStrategy
 	IntrospectionEndpointClientAuth oauthelia2.EndpointClientAuthStrategy
 	IDTokenValidation               oauthelia2.TokenValidationStrategy
+	BackChannelLogout               oauthelia2.BackChannelLogoutTokenStrategy
 }
 
 // JWTAccessTokenConfig represents the JWT Access Token config.
@@ -762,6 +777,28 @@ func (c *Config) GetRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte,
 	return c.RotatedGlobalSecrets, nil
 }
 
+// NewHTTPClient returns the client used for the requests this provider makes to other parties, such as delivering
+// Logout Tokens to a client's 'backchannel_logout_uri', which trusts the given certificate pool. A nil pool trusts the
+// system certificate pool. Requests are logged to the Authelia logger, and are retried a bounded number of times with a
+// short backoff so a retried request completes within the timeouts of the requests the provider makes.
+func NewHTTPClient(pool *x509.CertPool) (client *retryablehttp.Client) {
+	client = retryablehttp.NewClient()
+
+	client.Logger = logging.NewLeveledLogger()
+	client.RetryMax = httpClientRetryMax
+	client.RetryWaitMin = httpClientRetryWaitMin
+	client.RetryWaitMax = httpClientRetryWaitMax
+
+	if transport, ok := client.HTTPClient.Transport.(*http.Transport); ok {
+		transport.TLSClientConfig = &tls.Config{
+			RootCAs:    pool,
+			MinVersion: tls.VersionTLS12,
+		}
+	}
+
+	return client
+}
+
 // GetHTTPClient returns the HTTP client provider.
 func (c *Config) GetHTTPClient(ctx context.Context) (client *retryablehttp.Client) {
 	if c.HTTPClient == nil {
@@ -1197,10 +1234,10 @@ func (c *Config) GetIDTokenValidationStrategy(ctx context.Context) (strategy oau
 	return c.Strategy.IDTokenValidation
 }
 
-// GetBackChannelLogoutTokenStrategy returns the Back-Channel Logout token strategy. It is nil as this Authorization
-// Server does not implement OpenID Connect Back-Channel Logout 1.0.
+// GetBackChannelLogoutTokenStrategy returns the Back-Channel Logout token strategy used to generate the Logout
+// Tokens delivered to Relying Parties.
 func (c *Config) GetBackChannelLogoutTokenStrategy(ctx context.Context) (strategy oauthelia2.BackChannelLogoutTokenStrategy) {
-	return nil
+	return c.Strategy.BackChannelLogout
 }
 
 // GetBackChannelLogoutLifespan returns the lifespan of a Back-Channel Logout Token.
@@ -1219,6 +1256,22 @@ func (c *Config) GetBackChannelLogoutConcurrency(ctx context.Context) (n int) {
 	}
 
 	return c.BackChannelLogoutConcurrency
+}
+
+// AcquireBackChannelLogoutSlot blocks until a Back-Channel Logout request may be performed, or the context is done. The
+// GetBackChannelLogoutConcurrency limit is shared by every Back-Channel Logout request this provider performs, so it
+// bounds the outbound requests of every logout combined. The returned function releases the slot.
+func (c *Config) AcquireBackChannelLogoutSlot(ctx context.Context) (release func(), err error) {
+	c.backChannelLogoutSlotsOnce.Do(func() {
+		c.backChannelLogoutSlots = make(chan struct{}, c.GetBackChannelLogoutConcurrency(ctx))
+	})
+
+	select {
+	case c.backChannelLogoutSlots <- struct{}{}:
+		return func() { <-c.backChannelLogoutSlots }, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 // GetAuthorizeEndpointBindingHandlers returns the authorization endpoint binding handlers. None are registered as

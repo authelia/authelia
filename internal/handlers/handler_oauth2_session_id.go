@@ -16,9 +16,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func oidcSessionID(ctx *middlewares.AutheliaCtx, client oidc.Client, userSession *session.UserSession) (sid string, err error) {
+func oidcSessionID(ctx *middlewares.AutheliaCtx, client oidc.Client, requester oauthelia2.Requester, userSession *session.UserSession) (sid string, err error) {
 	if userSession == nil || userSession.PublicID == "" {
 		return "", nil
 	}
@@ -35,7 +36,29 @@ func oidcSessionID(ctx *middlewares.AutheliaCtx, client oidc.Client, userSession
 		return "", err
 	}
 
-	return record.SessionID.String(), nil
+	sid = record.SessionID.String()
+
+	if !requester.GetGrantedScopes().Has(oidc.ScopeOpenID) {
+		return sid, nil
+	}
+
+	var subject string
+
+	if identifier, errSubject := ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); errSubject != nil {
+		ctx.GetLogger().WithError(errSubject).Warnf("The subject identifier of user '%s' for the client with id '%s' could not be determined: the Logout Token for the session will be delivered without the 'sub' claim", userSession.Username, client.GetID())
+	} else {
+		subject = identifier.String()
+	}
+
+	if err = ctx.Providers.StorageProvider.SaveOAuth2SessionIDClient(ctx, provider.GetIssuer(), userSession.PublicID, sid, client.GetID(), subject); err != nil {
+		if errors.Is(err, storage.ErrOAuth2SessionEnded) {
+			return "", errOIDCSessionEnded
+		}
+
+		return "", err
+	}
+
+	return sid, nil
 }
 
 var errOIDCSessionEnded = errors.New("the session the session identifier was issued for has ended")

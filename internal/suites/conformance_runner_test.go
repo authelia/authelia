@@ -389,6 +389,8 @@ func TestConformanceOverrides_AreWiredToTheirAssertions(t *testing.T) {
 		"oidcc-rp-initiated-logout-no-id-token-hint":                        {Index: conformanceLogoutLeg},
 		"oidcc-rp-initiated-logout-bad-id-token-hint":                       {Index: conformanceLogoutLeg},
 		"oidcc-rp-initiated-logout-modified-id-token-hint":                  {Index: conformanceLogoutLeg},
+
+		"oidcc-backchannel-rp-initiated-logout": {Index: conformanceLogoutLeg},
 	} {
 		override, ok := conformanceOverrides[module]
 
