@@ -18,6 +18,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -843,7 +844,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', or 'urn:ietf:params:oauth:grant-type:device_code' but the values 'bad_grant_type' are present")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', 'urn:ietf:params:oauth:grant-type:device_code', or 'urn:ietf:params:oauth:grant-type:token-exchange' but the values 'bad_grant_type' are present")
 }
 
 //nolint:gosec // Test Credentials.
@@ -996,6 +997,72 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 				for i := 0; i < n; i++ {
 					assert.EqualError(t, validator.Errors()[i], tc.errors[i])
 				}
+			}
+		})
+	}
+}
+
+func TestValidateIdentityProvidersOpenIDConnectTokenExchangeMaxActorChainDepth(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     int
+		expected int
+		errors   []string
+	}{
+		{
+			"ShouldNotOverrideCustomValue",
+			3,
+			3,
+			nil,
+		},
+		{
+			"ShouldSetDefault",
+			0,
+			8,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnNegative",
+			-1,
+			-1,
+			[]string{"identity_providers: oidc: token_exchange: option 'max_actor_chain_depth' must be greater than or equal to 1 but it's configured as '-1'"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:       "abc",
+						IssuerPrivateKey: keyRSA2048,
+						TokenExchange: schema.IdentityProvidersOpenIDConnectTokenExchange{
+							MaxActorChainDepth: tc.have,
+						},
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "good_id",
+								Secret:              tOpenIDConnectPBKDF2ClientSecret,
+								AuthorizationPolicy: "two_factor",
+								RedirectURIs: []string{
+									"https://google.com/callback",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			assert.Equal(t, tc.expected, config.IdentityProviders.OIDC.TokenExchange.MaxActorChainDepth)
+			assert.Len(t, validator.Warnings(), 0)
+
+			require.Len(t, validator.Errors(), len(tc.errors))
+
+			for i, expected := range tc.errors {
+				assert.EqualError(t, validator.Errors()[i], expected)
 			}
 		})
 	}
@@ -1895,7 +1962,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', or 'urn:ietf:params:oauth:grant-type:device_code' but the values 'invalid' are present",
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', 'urn:ietf:params:oauth:grant-type:device_code', or 'urn:ietf:params:oauth:grant-type:token-exchange' but the values 'invalid' are present",
 			},
 		},
 		{
@@ -1943,6 +2010,85 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have the 'client_credentials' value if it is of the confidential client type but it's of the public client type",
 			},
+		},
+		{
+			"ShouldRaiseErrorOnTokenExchangeGrantTypeForPublicClient",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].Public = true
+				have.Clients[0].Secret = nil
+				have.Clients[0].Scopes = []string{oidc.ScopeOpenID}
+				have.TokenExchange = tokenExchangeTestDefaults()
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeTokenExchange},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeTokenExchange},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have the 'urn:ietf:params:oauth:grant-type:token-exchange' value if it is of the confidential client type but it's of the public client type",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnTokenExchangeGrantTypeForConfidentialClientWithoutAuthentication",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].Public = false
+				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
+				have.Clients[0].RevocationEndpointAuthMethod = oidc.ClientAuthMethodNone
+				have.Clients[0].IntrospectionEndpointAuthMethod = oidc.ClientAuthMethodNone
+				have.Clients[0].PushedAuthorizationRequestEndpointAuthMethod = oidc.ClientAuthMethodNone
+				have.Clients[0].Secret = nil
+				have.Clients[0].Scopes = []string{oidc.ScopeOpenID}
+				have.TokenExchange = tokenExchangeTestDefaults()
+			},
+			nil,
+			tcv{
+				nil,
+				[]string{oidc.ResponseTypeImplicitFlowIDToken},
+				nil,
+				[]string{oidc.GrantTypeImplicit, oidc.GrantTypeTokenExchange},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID},
+				[]string{oidc.ResponseTypeImplicitFlowIDToken},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeFragment},
+				[]string{oidc.GrantTypeImplicit, oidc.GrantTypeTokenExchange},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have the 'urn:ietf:params:oauth:grant-type:token-exchange' value if the client authenticates at the token endpoint but option 'token_endpoint_auth_method' is configured as 'none'",
+			},
+		},
+		{
+			"ShouldNotRaiseErrorOnTokenExchangeGrantTypeForConfidentialClient",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].Public = false
+				have.Clients[0].Scopes = []string{oidc.ScopeOpenID}
+				have.TokenExchange = tokenExchangeTestDefaults()
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeTokenExchange},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeTokenExchange},
+			},
+			nil,
+			nil,
 		},
 		{
 			"ShouldNotRaiseErrorOnValidGrantTypesForConfidentialClient",
@@ -7131,6 +7277,974 @@ func TestValidateOIDCClientIntrospectionAudience(t *testing.T) {
 
 			for i, err := range tc.errors {
 				assert.EqualError(t, validator.Errors()[i], err)
+			}
+		})
+	}
+}
+
+func TestValidateOIDCClientTokenExchange(t *testing.T) {
+	testCases := []struct {
+		name     string
+		clients  []schema.IdentityProvidersOpenIDConnectClient
+		errs     []string
+		warns    []string
+		expected func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect)
+	}{
+		{
+			"ShouldRejectUnsupportedSubjectTokenType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                         "test",
+					GrantTypes:                 []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenTypesSupported: []string{oidc.TokenTypeJWT},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_types_supported' must only contain token types enabled by 'token_exchange: token_types' but it has 'urn:ietf:params:oauth:token-type:jwt'"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectTokenExchangeOptionsWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                         "test",
+					GrantTypes:                 []string{oidc.GrantTypeAuthorizationCode},
+					SubjectTokenTypesSupported: []string{oidc.TokenTypeAccessToken},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_types_supported' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectUnknownReferencedClient",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:         "test",
+					Audience:   []string{"nonexistent"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "nonexistent"},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_clients_supported' must only reference registered clients but the client 'nonexistent' does not exist"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectDuplicateReferencedClient",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+						{ClientID: "other"},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_clients_supported' must only reference each client once but the client 'other' is referenced multiple times"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldWarnSubjectTokenClientNotInAudience",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+				},
+			},
+			nil,
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_clients_supported' references client 'other' which is not in the 'audience' option, so tokens issued to this client can never be exchanged by it"},
+			nil,
+		},
+		{
+			"ShouldWarnActorTokenClientNotInAudience",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+				},
+			},
+			nil,
+			[]string{"identity_providers: oidc: clients: client 'test': option 'actor_token_clients_supported' references client 'other' which is not in the 'audience' option, so tokens issued to this client can never be exchanged by it"},
+			nil,
+		},
+		{
+			"ShouldNotWarnTokenClientInAudience",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					Audience:   []string{"other"},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotWarnTokenClientReferencingItself",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:         "test",
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "test"},
+					},
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "test"},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectMayActWithAllActorTokenTypes",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                             "test",
+					GrantTypes:                     []string{oidc.GrantTypeTokenExchange},
+					ActorTokenWithoutMayActAllowed: true,
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'actor_token_without_may_act_allowed' can only be enabled when the 'actor_token_types_supported' option is configured, as an empty value permits every supported token type to be presented as an 'actor_token' with the RFC8693 Section 4.4 'may_act' check disabled"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotWarnMayActWithRestrictedActorTokenTypes",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                             "test",
+					GrantTypes:                     []string{oidc.GrantTypeTokenExchange},
+					ActorTokenTypesSupported:       []string{oidc.TokenTypeAccessToken},
+					ActorTokenWithoutMayActAllowed: true,
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectMayActWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                             "test",
+					GrantTypes:                     []string{oidc.GrantTypeAuthorizationCode},
+					ActorTokenWithoutMayActAllowed: true,
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'actor_token_without_may_act_allowed' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectSubjectTokenClientsWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeAuthorizationCode},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_clients_supported' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectUnsupportedRequestedTokenTypeInSubjectTokenClients",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other", RequestedTokenTypes: []string{oidc.TokenTypeJWT}},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_clients_supported' must only contain token types enabled by 'token_exchange: token_types' but it has 'urn:ietf:params:oauth:token-type:jwt'"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectReferencedClientWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeAuthorizationCode}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_clients_supported' must only reference clients which have the 'urn:ietf:params:oauth:grant-type:token-exchange' value in their 'grant_types' option but the client 'other' does not"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldAllowReferencedClientWithGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldAllowSelfReferenceInSubjectTokenClients",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:         "test",
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "test"},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectTokenIssuersWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                           "test",
+					GrantTypes:                   []string{oidc.GrantTypeAuthorizationCode},
+					SubjectTokenIssuersSupported: []string{"https://issuer.example.com"},
+					ActorTokenIssuersSupported:   []string{"https://actor-issuer.example.com"},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'subject_token_issuers_supported' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'",
+				"identity_providers: oidc: clients: client 'test': option 'actor_token_issuers_supported' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'",
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldWarnOnDuplicateSubjectTokenTypes",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                         "test",
+					GrantTypes:                 []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenTypesSupported: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeAccessToken},
+				},
+			},
+			nil,
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_types_supported' must have unique values but the values 'urn:ietf:params:oauth:token-type:access_token' are duplicated"},
+			nil,
+		},
+		{
+			"ShouldWarnOnDuplicateRequestedTokenTypesInSubjectTokenClients",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeAccessToken}},
+					},
+				},
+			},
+			nil,
+			[]string{"identity_providers: oidc: clients: client 'test': option 'subject_token_clients_supported' must have unique values but the values 'urn:ietf:params:oauth:token-type:access_token' are duplicated"},
+			nil,
+		},
+		{
+			"ShouldDefaultTokenTypesWhenGrantTypePresent",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+			},
+			nil,
+			nil,
+			func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken}, actual.Clients[0].SubjectTokenTypesSupported)
+				assert.Equal(t, []string{oidc.TokenTypeAccessToken}, actual.Clients[0].RequestTokenTypesSupported)
+				require.NotNil(t, actual.Clients[0].OwnAccessTokenExchangeTargetsRestricted)
+				assert.True(t, *actual.Clients[0].OwnAccessTokenExchangeTargetsRestricted)
+				assert.Empty(t, actual.Clients[0].ActorTokenTypesSupported)
+			},
+		},
+		{
+			"ShouldNotDefaultTokenTypesWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", GrantTypes: []string{oidc.GrantTypeAuthorizationCode}},
+			},
+			nil,
+			nil,
+			func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect) {
+				assert.Empty(t, actual.Clients[0].SubjectTokenTypesSupported)
+				assert.Empty(t, actual.Clients[0].RequestTokenTypesSupported)
+				assert.Nil(t, actual.Clients[0].OwnAccessTokenExchangeTargetsRestricted)
+			},
+		},
+		{
+			"ShouldNotOverrideExplicitOwnAccessTokenExchangeTargetsRestricted",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", GrantTypes: []string{oidc.GrantTypeTokenExchange}, OwnAccessTokenExchangeAllowed: true, OwnAccessTokenExchangeTargetsRestricted: new(false)},
+			},
+			nil,
+			nil,
+			func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect) {
+				require.NotNil(t, actual.Clients[0].OwnAccessTokenExchangeTargetsRestricted)
+				assert.False(t, *actual.Clients[0].OwnAccessTokenExchangeTargetsRestricted)
+			},
+		},
+		{
+			"ShouldWarnOwnAccessTokenExchangeTargetsRestrictedWithoutOwnAccessTokenExchange",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", GrantTypes: []string{oidc.GrantTypeTokenExchange}, OwnAccessTokenExchangeTargetsRestricted: new(true)},
+			},
+			nil,
+			[]string{"identity_providers: oidc: clients: client 'test': option 'own_access_token_exchange_targets_restricted' has no effect when option 'own_access_token_exchange_allowed' is not enabled"},
+			nil,
+		},
+		{
+			"ShouldRejectRefreshTokenRequestTokenTypeWithoutAllowed",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", GrantTypes: []string{oidc.GrantTypeTokenExchange, oidc.GrantTypeRefreshToken}, RequestTokenTypesSupported: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken}},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'request_token_types_supported' can only contain the 'urn:ietf:params:oauth:token-type:refresh_token' value when the 'token_exchange_refresh_token_allowed' option is enabled"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectRefreshTokenRequestTokenTypeWithoutRefreshTokenGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", GrantTypes: []string{oidc.GrantTypeTokenExchange}, TokenExchangeRefreshTokenAllowed: true, RequestTokenTypesSupported: []string{oidc.TokenTypeRefreshToken}},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'request_token_types_supported' can only contain the 'urn:ietf:params:oauth:token-type:refresh_token' value when the 'grant_types' option contains 'refresh_token'"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldAllowRefreshTokenRequestTokenType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", GrantTypes: []string{oidc.GrantTypeTokenExchange, oidc.GrantTypeRefreshToken}, TokenExchangeRefreshTokenAllowed: true, RequestTokenTypesSupported: []string{oidc.TokenTypeRefreshToken}},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectNewOptionsWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:                                      "test",
+					Audience:                                []string{"other"},
+					GrantTypes:                              []string{oidc.GrantTypeAuthorizationCode},
+					TokenExchangeRefreshTokenAllowed:        true,
+					OwnAccessTokenExchangeAllowed:           true,
+					OwnAccessTokenExchangeTargetsRestricted: new(true),
+					ImpersonationAllowed:                    true,
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'token_exchange_refresh_token_allowed' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'",
+				"identity_providers: oidc: clients: client 'test': option 'own_access_token_exchange_allowed' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'",
+				"identity_providers: oidc: clients: client 'test': option 'own_access_token_exchange_targets_restricted' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'",
+				"identity_providers: oidc: clients: client 'test': option 'impersonation_allowed' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'",
+				"identity_providers: oidc: clients: client 'test': option 'actor_token_clients_supported' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'",
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotWarnImpersonationDisabledWithoutActorTokenTypes",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", GrantTypes: []string{oidc.GrantTypeTokenExchange}, ImpersonationAllowed: false},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectUnknownActorTokenClient",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:         "test",
+					Audience:   []string{"nonexistent"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "nonexistent"},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'actor_token_clients_supported' must only reference registered clients but the client 'nonexistent' does not exist"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectActorTokenClientWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeAuthorizationCode}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'actor_token_clients_supported' must only reference clients which have the 'urn:ietf:params:oauth:grant-type:token-exchange' value in their 'grant_types' option but the client 'other' does not"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectDuplicateActorTokenClient",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other"},
+						{ClientID: "other"},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'actor_token_clients_supported' must only reference each client once but the client 'other' is referenced multiple times"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectUnsupportedRequestedTokenTypeInActorTokenClients",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other", RequestedTokenTypes: []string{oidc.TokenTypeJWT}},
+					},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'actor_token_clients_supported' must only contain token types enabled by 'token_exchange: token_types' but it has 'urn:ietf:params:oauth:token-type:jwt'"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldAllowActorTokenClients",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "other", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:         "test",
+					Audience:   []string{"other"},
+					GrantTypes: []string{oidc.GrantTypeTokenExchange},
+					ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{
+						{ClientID: "other", RequestedTokenTypes: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken}},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldAllowMayActWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "actor", GrantTypes: []string{oidc.GrantTypeTokenExchange}},
+				{
+					ID:                  "test",
+					Audience:            []string{"actor"},
+					GrantTypes:          []string{oidc.GrantTypeAuthorizationCode},
+					TokenExchangeMayAct: &schema.IdentityProvidersOpenIDConnectClientMayAct{ClientID: "actor", Subject: "abc"},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldAllowMayActSubjectOnly",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "test",
+					GrantTypes:          []string{oidc.GrantTypeAuthorizationCode},
+					TokenExchangeMayAct: &schema.IdentityProvidersOpenIDConnectClientMayAct{Subject: "abc"},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectMayActEmpty",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "test",
+					GrantTypes:          []string{oidc.GrantTypeAuthorizationCode},
+					TokenExchangeMayAct: &schema.IdentityProvidersOpenIDConnectClientMayAct{},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'token_exchange_may_act' must have at least one of the 'client_id' or 'subject' options configured"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectMayActUnknownClient",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "test",
+					Audience:            []string{"nonexistent"},
+					GrantTypes:          []string{oidc.GrantTypeAuthorizationCode},
+					TokenExchangeMayAct: &schema.IdentityProvidersOpenIDConnectClientMayAct{ClientID: "nonexistent"},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'token_exchange_may_act' must only reference registered clients but the client 'nonexistent' does not exist"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectMayActClientWithoutGrantType",
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "actor", GrantTypes: []string{oidc.GrantTypeAuthorizationCode}},
+				{
+					ID:                  "test",
+					Audience:            []string{"actor"},
+					GrantTypes:          []string{oidc.GrantTypeAuthorizationCode},
+					TokenExchangeMayAct: &schema.IdentityProvidersOpenIDConnectClientMayAct{ClientID: "actor"},
+				},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'token_exchange_may_act' must only reference clients which have the 'urn:ietf:params:oauth:grant-type:token-exchange' value in their 'grant_types' option but the client 'actor' does not"},
+			nil,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{Clients: tc.clients, TokenExchange: tokenExchangeTestDefaults()}
+			validator := schema.NewStructValidator()
+
+			for c := range config.Clients {
+				validateOIDCClientTokenExchange(c, config, validator)
+			}
+
+			assert.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+
+			assert.Len(t, validator.Warnings(), len(tc.warns))
+
+			for i, expected := range tc.warns {
+				assert.EqualError(t, validator.Warnings()[i], expected)
+			}
+
+			if tc.expected != nil {
+				tc.expected(t, config)
+			}
+		})
+	}
+}
+
+func tokenExchangeTestDefaults() schema.IdentityProvidersOpenIDConnectTokenExchange {
+	te := schema.IdentityProvidersOpenIDConnectTokenExchange{
+		TokenTypes:                slices.Clone(schema.DefaultOpenIDConnectConfiguration.TokenExchange.TokenTypes),
+		DefaultRequestedTokenType: schema.DefaultOpenIDConnectConfiguration.TokenExchange.DefaultRequestedTokenType,
+	}
+
+	return te
+}
+
+func TestValidateOIDCClientTokenExchangeTokenTypesAgainstGlobal(t *testing.T) {
+	const (
+		access  = oidc.TokenTypeAccessToken
+		refresh = oidc.TokenTypeRefreshToken
+		idToken = oidc.TokenTypeIDToken
+		txn     = oidc.TokenTypeTxnToken
+		prefix  = "identity_providers: oidc: clients: client 'test': option "
+		notEn   = " must only contain token types enabled by 'token_exchange: token_types' but it has "
+	)
+
+	grants := []string{oidc.GrantTypeTokenExchange}
+
+	withTxn := func(replacement bool) schema.IdentityProvidersOpenIDConnectTokenExchange {
+		te := tokenExchangeTestDefaults()
+		te.TokenTypes = []string{access, refresh, idToken, txn}
+		te.TransactionTokens.TrustDomain = "example.com"
+		te.TransactionTokens.Replacement.Enabled = replacement
+
+		return te
+	}
+
+	accessOnly := tokenExchangeTestDefaults()
+	accessOnly.TokenTypes = []string{access}
+
+	testCases := []struct {
+		name     string
+		te       schema.IdentityProvidersOpenIDConnectTokenExchange
+		client   schema.IdentityProvidersOpenIDConnectClient
+		errs     []string
+		expected func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnectClient)
+	}{
+		{"ShouldRejectSubjectTypeNotEnabled", accessOnly, schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants, SubjectTokenTypesSupported: []string{refresh}}, []string{prefix + "'subject_token_types_supported'" + notEn + "'" + refresh + "'"}, nil},
+		{"ShouldRejectActorTypeNotEnabled", accessOnly, schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants, ActorTokenTypesSupported: []string{idToken}}, []string{prefix + "'actor_token_types_supported'" + notEn + "'" + idToken + "'"}, nil},
+		{"ShouldRejectRequestTypeNotEnabled", accessOnly, schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants, RequestTokenTypesSupported: []string{idToken}}, []string{prefix + "'request_token_types_supported'" + notEn + "'" + idToken + "'"}, nil},
+		{
+			"ShouldRejectPolicyRequestedTypeNotEnabled", accessOnly,
+			schema.IdentityProvidersOpenIDConnectClient{ID: "test", Audience: []string{"test"}, GrantTypes: grants, SubjectTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{{ClientID: "test", RequestedTokenTypes: []string{refresh}}}},
+			[]string{prefix + "'subject_token_clients_supported'" + notEn + "'" + refresh + "'"}, nil,
+		},
+		{
+			"ShouldRejectActorPolicyRequestedTypeNotEnabled", accessOnly,
+			schema.IdentityProvidersOpenIDConnectClient{ID: "test", Audience: []string{"test"}, GrantTypes: grants, ActorTokenClientsSupported: []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{{ClientID: "test", RequestedTokenTypes: []string{refresh}}}},
+			[]string{prefix + "'actor_token_clients_supported'" + notEn + "'" + refresh + "'"}, nil,
+		},
+		{"ShouldRejectTxnTokenAsActorType", withTxn(true), schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants, ActorTokenTypesSupported: []string{txn}}, []string{prefix + "'actor_token_types_supported' must not contain the '" + txn + "' value as Transaction Tokens are not accepted as an 'actor_token'"}, nil},
+		{"ShouldRejectTxnTokenSubjectWithoutReplacement", withTxn(true), schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants, SubjectTokenTypesSupported: []string{txn}}, []string{prefix + "'subject_token_types_supported' can only contain the '" + txn + "' value when the 'token_exchange_txn_token_replacement' option is enabled"}, nil},
+		{"ShouldAllowTxnTokenSubjectWithReplacement", withTxn(true), schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants, SubjectTokenTypesSupported: []string{txn}, TokenExchangeTxnTokenReplacement: true}, nil, nil},
+		{"ShouldRejectReplacementWithoutGrantType", withTxn(true), schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: []string{oidc.GrantTypeAuthorizationCode}, TokenExchangeTxnTokenReplacement: true}, []string{prefix + "'token_exchange_txn_token_replacement' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'"}, nil},
+		{"ShouldRejectReplacementWithoutGlobalEnabled", withTxn(false), schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants, TokenExchangeTxnTokenReplacement: true}, []string{prefix + "'token_exchange_txn_token_replacement' can only be enabled when the 'token_exchange: transaction_tokens: replacement: enabled' option is enabled"}, nil},
+		{"ShouldRejectTxnRequestWithoutTrustDomainAudience", withTxn(false), schema.IdentityProvidersOpenIDConnectClient{ID: "test", Audience: []string{"other"}, GrantTypes: grants, RequestTokenTypesSupported: []string{txn}}, []string{prefix + "'audience' must include the 'transaction_tokens: trust_domain' value 'example.com' when the 'request_token_types_supported' option contains '" + txn + "'"}, nil},
+		{"ShouldAllowTxnRequestWithTrustDomainAudience", withTxn(false), schema.IdentityProvidersOpenIDConnectClient{ID: "test", Audience: []string{"example.com"}, GrantTypes: grants, RequestTokenTypesSupported: []string{txn}}, nil, nil},
+		{
+			"ShouldDefaultRequestTypeToConfiguredDefault", func() schema.IdentityProvidersOpenIDConnectTokenExchange {
+				te := tokenExchangeTestDefaults()
+				te.DefaultRequestedTokenType = idToken
+
+				return te
+			}(),
+			schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants}, nil,
+			func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, []string{idToken}, actual.RequestTokenTypesSupported)
+				assert.Equal(t, []string{access, refresh}, actual.SubjectTokenTypesSupported)
+			},
+		},
+		{
+			"ShouldRejectDefaultSubjectTypesWhenNoneEnabled", func() schema.IdentityProvidersOpenIDConnectTokenExchange {
+				te := tokenExchangeTestDefaults()
+				te.TokenTypes = []string{idToken}
+				te.DefaultRequestedTokenType = idToken
+
+				return te
+			}(),
+			schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants},
+			[]string{prefix + "'subject_token_types_supported' must be configured explicitly when 'token_exchange: token_types' does not include any of the default subject token types '" + access + "' and '" + refresh + "'"},
+			func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Empty(t, actual.SubjectTokenTypesSupported)
+			},
+		},
+		{
+			"ShouldIntersectDefaultSubjectTypesWithGlobal", accessOnly, schema.IdentityProvidersOpenIDConnectClient{ID: "test", GrantTypes: grants}, nil,
+			func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, []string{access}, actual.SubjectTokenTypesSupported)
+				assert.Equal(t, []string{access}, actual.RequestTokenTypesSupported)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{Clients: []schema.IdentityProvidersOpenIDConnectClient{tc.client}, TokenExchange: tc.te}
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientTokenExchange(0, config, validator)
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+
+			if tc.expected != nil {
+				tc.expected(t, &config.Clients[0])
+			}
+		})
+	}
+}
+
+func TestValidateOIDCClientTokenExchangeTxnTokenReplacementPolicy(t *testing.T) {
+	const warn = "identity_providers: oidc: clients: client 'test': option 'token_exchange_txn_token_replacement' is enabled but the 'authorization_policy' '%s' requires 'two_factor' by default and replaced Transaction Tokens carry no authentication methods references, so replacement requests will be rejected wherever the policy requires 'two_factor'"
+
+	policies := map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+		"named-two": {DefaultPolicy: policyTwoFactor},
+		"named-one": {DefaultPolicy: policyOneFactor, Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{{Policy: policyTwoFactor}}},
+	}
+
+	testCases := []struct {
+		name        string
+		policy      string
+		replacement bool
+		warns       []string
+	}{
+		{"ShouldWarnTwoFactor", policyTwoFactor, true, []string{fmt.Sprintf(warn, policyTwoFactor)}},
+		{"ShouldWarnNamedPolicyDefaultTwoFactor", "named-two", true, []string{fmt.Sprintf(warn, "named-two")}},
+		{"ShouldNotWarnOneFactor", policyOneFactor, true, nil},
+		{"ShouldNotWarnNamedPolicyDefaultOneFactor", "named-one", true, nil},
+		{"ShouldNotWarnWithoutReplacement", policyTwoFactor, false, nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			te := tokenExchangeTestDefaults()
+			te.TokenTypes = []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeTxnToken}
+			te.TransactionTokens.TrustDomain = "example.com"
+			te.TransactionTokens.Replacement.Enabled = true
+
+			config := &schema.IdentityProvidersOpenIDConnect{
+				AuthorizationPolicies: policies,
+				TokenExchange:         te,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                               "test",
+						AuthorizationPolicy:              tc.policy,
+						GrantTypes:                       []string{oidc.GrantTypeTokenExchange},
+						TokenExchangeTxnTokenReplacement: tc.replacement,
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientTokenExchange(0, config, validator)
+
+			assert.Len(t, validator.Errors(), 0)
+			require.Len(t, validator.Warnings(), len(tc.warns))
+
+			for i, expected := range tc.warns {
+				assert.EqualError(t, validator.Warnings()[i], expected)
+			}
+		})
+	}
+}
+
+// TestValidateOIDCClientTokenExchangeWiring proves validateOIDCClientTokenExchange is actually reached from the
+// exported ValidateIdentityProviders entry point (i.e. wired into validateOIDCClient), rather than only being
+// exercised by tests that call it directly.
+func TestValidateOIDCClientTokenExchangeWiring(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "hmac1",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "client-with-token-exchange-option-without-grant-type",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://localhost",
+						},
+						GrantTypes:                 []string{oidc.GrantTypeAuthorizationCode},
+						SubjectTokenTypesSupported: []string{oidc.TokenTypeAccessToken},
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'client-with-token-exchange-option-without-grant-type': option 'subject_token_types_supported' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'")
+}
+
+func TestValidateOIDCTokenExchange(t *testing.T) {
+	const (
+		prefix = "identity_providers: oidc: token_exchange: option "
+		at     = "urn:ietf:params:oauth:token-type:access_token"
+		rt     = "urn:ietf:params:oauth:token-type:refresh_token"
+		id     = "urn:ietf:params:oauth:token-type:id_token"
+		txn    = "urn:ietf:params:oauth:token-type:txn_token"
+		valid  = "'" + at + "', '" + rt + "', '" + id + "', or '" + txn + "'"
+	)
+
+	testCases := []struct {
+		name     string
+		have     schema.IdentityProvidersOpenIDConnectTokenExchange
+		expected func(t *testing.T, have schema.IdentityProvidersOpenIDConnectTokenExchange)
+		warnings []string
+		errors   []string
+	}{
+		{
+			"ShouldApplyDefaults",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{},
+			func(t *testing.T, have schema.IdentityProvidersOpenIDConnectTokenExchange) {
+				assert.Equal(t, []string{at, rt, id}, have.TokenTypes)
+				assert.Equal(t, at, have.DefaultRequestedTokenType)
+				assert.Equal(t, time.Minute*5, have.TransactionTokens.Lifespan)
+				assert.Equal(t, "RS256", have.TransactionTokens.SigningAlgorithm)
+				assert.Equal(t, 8, have.TransactionTokens.Replacement.MaxChainLength)
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectShortName",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, "access_token"}},
+			nil,
+			nil,
+			[]string{prefix + "'token_types' must only contain the values " + valid + " but it has the value 'access_token'"},
+		},
+		{
+			"ShouldWarnOnDuplicate",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, at}},
+			nil,
+			[]string{prefix + "'token_types' must have unique values but the values '" + at + "' are duplicated"},
+			nil,
+		},
+		{
+			"ShouldRejectDefaultNotConfigured",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at}, DefaultRequestedTokenType: id},
+			nil,
+			nil,
+			[]string{prefix + "'default_requested_token_type' must be one of the configured 'token_types' '" + at + "' but it's configured as '" + id + "'"},
+		},
+		{
+			"ShouldAcceptDefaultIDToken",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, id}, DefaultRequestedTokenType: id},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectDefaultRefreshToken",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{DefaultRequestedTokenType: rt},
+			nil,
+			nil,
+			[]string{prefix + "'default_requested_token_type' must not be '" + rt + "'"},
+		},
+		{
+			"ShouldRejectDefaultTxnToken",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, txn}, DefaultRequestedTokenType: txn, TransactionTokens: schema.IdentityProvidersOpenIDConnectTransactionTokens{TrustDomain: "example.com"}},
+			nil,
+			nil,
+			[]string{prefix + "'default_requested_token_type' must not be '" + txn + "'"},
+		},
+		{
+			"ShouldRejectTransactionTokensWithoutType",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TransactionTokens: schema.IdentityProvidersOpenIDConnectTransactionTokens{TrustDomain: "example.com"}},
+			nil,
+			nil,
+			[]string{prefix + "'transaction_tokens' must not be configured when 'token_types' does not include '" + txn + "'"},
+		},
+		{
+			"ShouldRejectMissingTrustDomain",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, txn}},
+			nil,
+			nil,
+			[]string{prefix + "'transaction_tokens: trust_domain' is required when 'token_types' includes '" + txn + "'"},
+		},
+		{
+			"ShouldAcceptValidTransactionTokens",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, txn}, TransactionTokens: schema.IdentityProvidersOpenIDConnectTransactionTokens{TrustDomain: "example.com", SigningAlgorithm: "RS256"}},
+			func(t *testing.T, have schema.IdentityProvidersOpenIDConnectTokenExchange) {
+				assert.Equal(t, time.Minute*5, have.TransactionTokens.Lifespan)
+				assert.Equal(t, 8, have.TransactionTokens.Replacement.MaxChainLength)
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRejectNegativeLifespan",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, txn}, TransactionTokens: schema.IdentityProvidersOpenIDConnectTransactionTokens{TrustDomain: "example.com", Lifespan: -time.Minute}},
+			nil,
+			nil,
+			[]string{prefix + "'transaction_tokens: lifespan' must be a positive duration but it's configured as '-1m0s'"},
+		},
+		{
+			"ShouldRejectNegativeChainLength",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, txn}, TransactionTokens: schema.IdentityProvidersOpenIDConnectTransactionTokens{TrustDomain: "example.com", Replacement: schema.IdentityProvidersOpenIDConnectTransactionTokensReplacement{MaxChainLength: -1}}},
+			nil,
+			nil,
+			[]string{prefix + "'transaction_tokens: replacement: max_chain_length' must be greater than or equal to 1 but it's configured as '-1'"},
+		},
+		{
+			"ShouldRejectSigningAlgorithmWithoutMatchingKey",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, txn}, TransactionTokens: schema.IdentityProvidersOpenIDConnectTransactionTokens{TrustDomain: "example.com", SigningAlgorithm: "ES256"}},
+			nil,
+			nil,
+			[]string{prefix + "'transaction_tokens: signing_algorithm' must be one of the algorithms of the configured 'jwks' 'RS256' but it's configured as 'ES256'"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:       "abc",
+						IssuerPrivateKey: keyRSA2048,
+						TokenExchange:    tc.have,
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "good_id",
+								Secret:              tOpenIDConnectPBKDF2ClientSecret,
+								AuthorizationPolicy: "two_factor",
+								RedirectURIs:        []string{"https://google.com/callback"},
+							},
+						},
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			if tc.expected != nil {
+				tc.expected(t, config.IdentityProviders.OIDC.TokenExchange)
+			}
+
+			require.Len(t, validator.Warnings(), len(tc.warnings))
+
+			for i, expected := range tc.warnings {
+				assert.EqualError(t, validator.Warnings()[i], expected)
+			}
+
+			require.Len(t, validator.Errors(), len(tc.errors))
+
+			for i, expected := range tc.errors {
+				assert.EqualError(t, validator.Errors()[i], expected)
 			}
 		})
 	}

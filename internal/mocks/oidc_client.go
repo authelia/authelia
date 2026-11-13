@@ -21,11 +21,10 @@ import (
 
 	jose "authelia.com/provider/jose"
 	oauth2 "authelia.com/provider/oauth2"
-	gomock "go.uber.org/mock/gomock"
-
 	authentication "github.com/authelia/authelia/v4/internal/authentication"
 	authorization "github.com/authelia/authelia/v4/internal/authorization"
 	oidc "github.com/authelia/authelia/v4/internal/oidc"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockOIDCClient is a mock of Client interface.
@@ -120,6 +119,20 @@ func (m *MockOIDCClient) GetAccessTokenSignedResponseKeyID() string {
 func (mr *MockOIDCClientMockRecorder) GetAccessTokenSignedResponseKeyID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccessTokenSignedResponseKeyID", reflect.TypeOf((*MockOIDCClient)(nil).GetAccessTokenSignedResponseKeyID))
+}
+
+// GetAllowTxnTokenReplacement mocks base method.
+func (m *MockOIDCClient) GetAllowTxnTokenReplacement() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllowTxnTokenReplacement")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// GetAllowTxnTokenReplacement indicates an expected call of GetAllowTxnTokenReplacement.
+func (mr *MockOIDCClientMockRecorder) GetAllowTxnTokenReplacement() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllowTxnTokenReplacement", reflect.TypeOf((*MockOIDCClient)(nil).GetAllowTxnTokenReplacement))
 }
 
 // GetAudience mocks base method.
@@ -460,6 +473,20 @@ func (mr *MockOIDCClientMockRecorder) GetIDTokenSignedResponseKeyID() *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDTokenSignedResponseKeyID", reflect.TypeOf((*MockOIDCClient)(nil).GetIDTokenSignedResponseKeyID))
 }
 
+// GetImpersonationAllowed mocks base method.
+func (m *MockOIDCClient) GetImpersonationAllowed() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetImpersonationAllowed")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// GetImpersonationAllowed indicates an expected call of GetImpersonationAllowed.
+func (mr *MockOIDCClientMockRecorder) GetImpersonationAllowed() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetImpersonationAllowed", reflect.TypeOf((*MockOIDCClient)(nil).GetImpersonationAllowed))
+}
+
 // GetIntrospectionEncryptedResponseAlg mocks base method.
 func (m *MockOIDCClient) GetIntrospectionEncryptedResponseAlg() string {
 	m.ctrl.T.Helper()
@@ -696,6 +723,20 @@ func (m *MockOIDCClient) GetSectorIdentifierURI() string {
 func (mr *MockOIDCClientMockRecorder) GetSectorIdentifierURI() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSectorIdentifierURI", reflect.TypeOf((*MockOIDCClient)(nil).GetSectorIdentifierURI))
+}
+
+// GetTokenExchangeMayAct mocks base method.
+func (m *MockOIDCClient) GetTokenExchangeMayAct() map[string]any {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTokenExchangeMayAct")
+	ret0, _ := ret[0].(map[string]any)
+	return ret0
+}
+
+// GetTokenExchangeMayAct indicates an expected call of GetTokenExchangeMayAct.
+func (mr *MockOIDCClientMockRecorder) GetTokenExchangeMayAct() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenExchangeMayAct", reflect.TypeOf((*MockOIDCClient)(nil).GetTokenExchangeMayAct))
 }
 
 // GetUserinfoEncryptedResponseAlg mocks base method.

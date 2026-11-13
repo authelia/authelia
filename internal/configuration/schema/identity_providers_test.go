@@ -5,10 +5,15 @@
 package schema
 
 import (
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/jsonschema"
 )
 
 func TestGetCustomClaimByName(t *testing.T) {
@@ -98,4 +103,119 @@ func TestDefaultOpenIDConnectClientConfiguration(t *testing.T) {
 		assert.NotNil(t, DefaultOpenIDConnectClientConfiguration.ConsentPreConfiguredDuration)
 		assert.Equal(t, 7*24*time.Hour, *DefaultOpenIDConnectClientConfiguration.ConsentPreConfiguredDuration)
 	})
+}
+
+func TestIdentityProvidersOpenIDConnectClientTokenExchangePolicyJSONSchema(t *testing.T) {
+	field, ok := reflect.TypeOf(IdentityProvidersOpenIDConnectClientTokenExchangePolicy{}).FieldByName("RequestedTokenTypes")
+
+	require.True(t, ok)
+
+	var (
+		tagged      []any
+		uniqueItems bool
+	)
+
+	for _, part := range strings.Split(field.Tag.Get("jsonschema"), ",") {
+		switch {
+		case strings.HasPrefix(part, "enum="):
+			tagged = append(tagged, strings.TrimPrefix(part, "enum="))
+		case part == "uniqueItems":
+			uniqueItems = true
+		}
+	}
+
+	require.NotEmpty(t, tagged)
+	require.True(t, uniqueItems)
+
+	schema := IdentityProvidersOpenIDConnectClientTokenExchangePolicy{}.JSONSchema()
+
+	require.Len(t, schema.OneOf, 2)
+
+	property, ok := schema.OneOf[1].Properties.Get("requested_token_types")
+
+	require.True(t, ok)
+
+	mapping, ok := property.(*jsonschema.Schema)
+
+	require.True(t, ok)
+	require.NotNil(t, mapping.Items)
+
+	assert.Equal(t, tagged, mapping.Items.Enum)
+	assert.Equal(t, uniqueItems, mapping.UniqueItems)
+}
+
+func TestDefaultOpenIDConnectConfigurationTokenExchange(t *testing.T) {
+	te := DefaultOpenIDConnectConfiguration.TokenExchange
+
+	assert.Equal(t, []string{
+		"urn:ietf:params:oauth:token-type:access_token",
+		"urn:ietf:params:oauth:token-type:refresh_token",
+		"urn:ietf:params:oauth:token-type:id_token",
+	}, te.TokenTypes)
+	assert.Equal(t, "urn:ietf:params:oauth:token-type:access_token", te.DefaultRequestedTokenType)
+	assert.Equal(t, 5*time.Minute, te.TransactionTokens.Lifespan)
+	assert.Equal(t, "RS256", te.TransactionTokens.SigningAlgorithm)
+	assert.Equal(t, 8, te.TransactionTokens.Replacement.MaxChainLength)
+	assert.False(t, te.TransactionTokens.Replacement.Enabled)
+}
+
+func TestIdentityProvidersOpenIDConnectClientTokenExchangeSchemaEnums(t *testing.T) {
+	all := []string{
+		"urn:ietf:params:oauth:token-type:access_token",
+		"urn:ietf:params:oauth:token-type:refresh_token",
+		"urn:ietf:params:oauth:token-type:id_token",
+		"urn:ietf:params:oauth:token-type:txn_token",
+	}
+
+	testCases := []struct {
+		name     string
+		expected []string
+	}{
+		{"SubjectTokenTypesSupported", all},
+		{"ActorTokenTypesSupported", all[:3]},
+		{"RequestTokenTypesSupported", all},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			field, ok := reflect.TypeOf(IdentityProvidersOpenIDConnectClient{}).FieldByName(tc.name)
+
+			require.True(t, ok)
+
+			var actual []string
+
+			for _, part := range strings.Split(field.Tag.Get("jsonschema"), ",") {
+				if strings.HasPrefix(part, "enum=") {
+					actual = append(actual, strings.TrimPrefix(part, "enum="))
+				}
+			}
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestIdentityProvidersOpenIDConnectTokenExchangeSchemaEnums(t *testing.T) {
+	expected := []string{
+		"urn:ietf:params:oauth:token-type:access_token",
+		"urn:ietf:params:oauth:token-type:refresh_token",
+		"urn:ietf:params:oauth:token-type:id_token",
+		"urn:ietf:params:oauth:token-type:txn_token",
+	}
+
+	for _, name := range []string{"TokenTypes", "DefaultRequestedTokenType"} {
+		field, ok := reflect.TypeOf(IdentityProvidersOpenIDConnectTokenExchange{}).FieldByName(name)
+
+		require.True(t, ok)
+
+		var actual []string
+
+		for _, part := range strings.Split(field.Tag.Get("jsonschema"), ",") {
+			if strings.HasPrefix(part, "enum=") {
+				actual = append(actual, strings.TrimPrefix(part, "enum="))
+			}
+		}
+
+		assert.Equal(t, expected, actual, name)
+	}
 }
