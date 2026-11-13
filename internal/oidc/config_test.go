@@ -6,7 +6,10 @@ package oidc_test
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -21,6 +24,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -534,4 +538,39 @@ func (t *testConfigContext) GetUserProvider() authentication.UserProvider { retu
 
 func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
+}
+
+func TestNewHTTPClientShouldUseTheLogger(t *testing.T) {
+	client := oidc.NewHTTPClient(nil)
+
+	assert.IsType(t, &logging.LeveledLogger{}, client.Logger)
+	assert.Equal(t, 3, client.RetryMax)
+	assert.Equal(t, time.Millisecond*500, client.RetryWaitMin)
+	assert.Equal(t, time.Second*4, client.RetryWaitMax)
+}
+
+func TestNewHTTPClientShouldTrustCertificatePool(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+	}))
+
+	defer server.Close()
+
+	pool := x509.NewCertPool()
+	pool.AddCert(server.Certificate())
+
+	trusted := oidc.NewHTTPClient(pool)
+	trusted.RetryMax = 0
+
+	response, err := trusted.Get(server.URL)
+	require.NoError(t, err)
+	require.NoError(t, response.Body.Close())
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	untrusted := oidc.NewHTTPClient(x509.NewCertPool())
+	untrusted.RetryMax = 0
+
+	_, err = untrusted.Get(server.URL)
+	assert.ErrorContains(t, err, "certificate")
 }

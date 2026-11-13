@@ -84,6 +84,11 @@ var (
 		"oidcc-rp-initiated-logout-no-id-token-hint":                        {Assert: conformanceAssertLogoutErrorPage, Screenshot: ConformanceScreenshotErrorPage},
 		"oidcc-rp-initiated-logout-bad-id-token-hint":                       {Assert: conformanceAssertLogoutErrorPage, Screenshot: ConformanceScreenshotErrorPage},
 		"oidcc-rp-initiated-logout-modified-id-token-hint":                  {Assert: conformanceAssertLogoutErrorPage, Screenshot: ConformanceScreenshotErrorPage},
+
+		// The Back-Channel Logout module authorizes, then sends the browser to the end session endpoint with a valid
+		// id_token_hint and post_logout_redirect_uri on the second leg. The confirmed logout must deliver the Logout Token
+		// to the client's backchannel_logout_uri, which the module validates itself, and return to the client.
+		"oidcc-backchannel-rp-initiated-logout": {Assert: conformanceAssertPostLogoutRedirect},
 	}
 
 	conformanceUnattended = map[string]string{

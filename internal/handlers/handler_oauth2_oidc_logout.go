@@ -11,6 +11,8 @@ import (
 
 	"github.com/google/uuid"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -39,7 +41,7 @@ func oidcLogout(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, 
 
 	sid := oidcLogoutEndedSessionID(ctx, issuer, userSession, pending)
 
-	oidcLogoutSession(ctx, issuer, userSession.PublicID)
+	oidcLogoutSession(ctx, issuer, userSession.Username, userSession.PublicID)
 
 	if sid != "" {
 		oidcLogoutEndedSession(ctx, userSession.Username, pending)
@@ -95,7 +97,10 @@ func oidcLogoutUsername(ctx *middlewares.AutheliaCtx, subject string) (username 
 }
 
 // oidcLogoutSession ends every OpenID Connect session belonging to the Authelia session.
-func oidcLogoutSession(ctx *middlewares.AutheliaCtx, issuer, publicID string) {
+func oidcLogoutSession(ctx *middlewares.AutheliaCtx, issuer, username, publicID string) {
+	// Delivered before the session identifiers are removed as the participating clients are recorded against them.
+	oidcBackChannelLogoutSession(ctx, issuer, username, publicID)
+
 	records, err := ctx.Providers.StorageProvider.LoadOAuth2SessionIDsByPublicID(ctx, issuer, publicID)
 	if err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred loading the OpenID Connect session identifiers during logout")
@@ -112,13 +117,22 @@ func oidcLogoutSession(ctx *middlewares.AutheliaCtx, issuer, publicID string) {
 	}
 }
 
-// oidcLogoutEndedSession revokes the tokens of the OpenID Connect session identified by the 'id_token_hint' which
-// outlived the Authelia session it belonged to.
+// oidcLogoutEndedSession ends the OpenID Connect session identified by the 'id_token_hint' which outlived the Authelia
+// session it belonged to. The participating clients were recorded against the Authelia session, so only the client
+// which requested the logout is notified, though the tokens of every client issued to the session are revoked.
 func oidcLogoutEndedSession(ctx *middlewares.AutheliaCtx, username string, pending *model.OAuth2LogoutSession) {
 	if !strings.EqualFold(oidcLogoutUsername(ctx, pending.Subject), username) {
 		ctx.GetLogger().Debugf("The ended session identified by the 'id_token_hint' was skipped during logout: it doesn't belong to user '%s'", username)
 
 		return
+	}
+
+	if ctx.Providers.OpenIDConnect != nil && pending.ClientID != "" {
+		if client, err := ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, pending.ClientID); err != nil {
+			ctx.GetLogger().WithError(err).Debugf("Back-Channel Logout request for user '%s' on client with id '%s' was skipped: the client is not registered", username, pending.ClientID)
+		} else if client.GetBackChannelLogoutURI() != "" {
+			oidcBackChannelLogoutSendGroups(ctx, username, []oidcBackChannelLogoutGroup{{sid: pending.SessionID, sectorID: client.GetSectorIdentifierURI(), subject: pending.Subject, clients: []oauthelia2.Client{client}}})
+		}
 	}
 
 	if err := ctx.Providers.StorageProvider.RevokeOAuth2SessionsBySessionID(ctx, pending.SessionID); err != nil {

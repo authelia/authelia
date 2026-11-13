@@ -81,7 +81,11 @@ type RegisteredClient struct {
 	PostLogoutRedirectURIs []string
 	GrantTypes             []string
 	ResponseTypes          []string
-	ResponseModes          []oauthelia2.ResponseModeType
+
+	BackChannelLogoutURI             string
+	BackChannelLogoutSessionRequired bool
+
+	ResponseModes []oauthelia2.ResponseModeType
 
 	Lifespans      schema.IdentityProvidersOpenIDConnectLifespan
 	ClaimsStrategy ClaimsStrategy
@@ -167,6 +171,9 @@ type Client interface {
 
 	GetRedirectURIs() (redirectURIs []string)
 	GetPostLogoutRedirectURIs() (redirectURIs []string)
+
+	GetBackChannelLogoutURI() (uri string)
+	GetBackChannelLogoutSessionRequired() (required bool)
 
 	GetClaimsStrategy() (strategy ClaimsStrategy)
 
@@ -381,6 +388,7 @@ var (
 	_ oauthelia2.RefreshTokenMaximumLifespanClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshTokenRotationClient                               = (*RegisteredClient)(nil)
 	_ oauthelia2.RPInitiatedLogoutClient                                  = (*RegisteredClient)(nil)
+	_ oauthelia2.BackChannelLogoutClient                                  = (*RegisteredClient)(nil)
 
 	_ model.OpenIDSession = (*Session)(nil)
 

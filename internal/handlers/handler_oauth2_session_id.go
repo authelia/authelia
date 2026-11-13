@@ -36,7 +36,13 @@ func oidcSessionID(ctx *middlewares.AutheliaCtx, client oidc.Client, requester o
 		return "", err
 	}
 
-	return record.SessionID.String(), nil
+	sid = record.SessionID.String()
+
+	if err = ctx.Providers.StorageProvider.SaveOAuth2SessionIDClient(ctx, provider.GetIssuer(), userSession.PublicID, sid, client.GetID()); err != nil {
+		return "", err
+	}
+
+	return sid, nil
 }
 
 var errOIDCSessionEnded = errors.New("the session the session identifier was issued for has ended")

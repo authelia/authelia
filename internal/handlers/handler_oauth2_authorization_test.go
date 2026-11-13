@@ -985,6 +985,10 @@ func TestOAuth2AuthorizationGETShouldRejectWhenTheSessionIsDestroyedDuringTheReq
 			return &model.OAuth2SessionID{PublicID: pid, SessionID: sid}, nil
 		})
 
+	mock.StorageMock.EXPECT().
+		SaveOAuth2SessionIDClient(gomock.Any(), gomock.Any(), us.PublicID, sid.String(), testOIDCAuthorizationCodeID).
+		Return(nil)
+
 	rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
 
 	OAuth2AuthorizationGET(mock.Ctx, rw, r)
