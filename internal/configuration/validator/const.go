@@ -316,6 +316,19 @@ const (
 		"the redirect uri '%s' which uses the private-use uri scheme '%s' but only native applications receive " +
 		"authorization responses this way so option 'application_type' should be configured as 'native'"
 
+	errFmtOIDCClientPostLogoutRedirectURIHas          = errFmtOIDCClientOption + "'post_logout_redirect_uris' has "
+	errFmtOIDCClientPostLogoutRedirectURICantBeParsed = errFmtOIDCClientPostLogoutRedirectURIHas +
+		"an invalid value: post logout redirect uri '%s' could not be parsed: %v"
+	errFmtOIDCClientPostLogoutRedirectURIAbsolute = errFmtOIDCClientPostLogoutRedirectURIHas +
+		"an invalid value: post logout redirect uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientPostLogoutRedirectURIFragment = errFmtOIDCClientPostLogoutRedirectURIHas +
+		"an invalid value: post logout redirect uri '%s' must not have a fragment component"
+	errFmtOIDCClientPostLogoutRedirectURIScheme = errFmtOIDCClientPostLogoutRedirectURIHas +
+		"an invalid value: post logout redirect uri '%s' must not use the '%s' scheme"
+	errFmtOIDCClientPostLogoutRedirectURIPublicHTTP = errFmtOIDCClientPostLogoutRedirectURIHas +
+		"an invalid value: post logout redirect uri '%s' must not use the 'http' scheme when option 'public' is true " +
+		"as this scheme is only permitted for the openid connect confidential client type"
+
 	errFmtOIDCClientRequestURIHas          = errFmtOIDCClientOption + "'request_uris' has "
 	errFmtOIDCClientRequestURICantBeParsed = errFmtOIDCClientRequestURIHas +
 		"an invalid value: request uri '%s' could not be parsed: %v"
@@ -391,6 +404,8 @@ const (
 		"'sector_identifier_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierRedirect = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': must be a json document that contains all of the 'redirect_uris' for the client but had an error validating it: %w"
+	errFmtOIDCClientOnlineRefreshTokensWithoutGrantType = errFmtOIDCClientOption +
+		"'allow_online_refresh_tokens' has no effect when option 'grant_types' does not include '%s'"
 	errFmtOIDCClientRefreshTokenRotationPublic = errFmtOIDCClientOption +
 		"'disable_refresh_token_rotation' has no effect when option 'public' is true as the refresh tokens of public " +
 		"clients are always rotated so that the reuse of a refresh token can be detected"
@@ -700,6 +715,7 @@ const (
 	attrOIDCGrantTypes                    = "grant_types"
 	attrOIDCRedirectURIs                  = "redirect_uris"
 	attrOIDCRequestURIs                   = "request_uris"
+	attrOIDCPostLogoutRedirectURIs        = "post_logout_redirect_uris"
 	attrOIDCAudience                      = "audience"
 	attrOIDCResource                      = "resource"
 	attrOIDCIntrospectionAudience         = "introspection_audience"
@@ -737,7 +753,9 @@ var (
 )
 
 var (
-	validOIDCCORSEndpoints = []string{oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCClientPostLogoutRedirectURIForbiddenSchemes = []string{"javascript", "vbscript", "data", "blob", "file"}
+
+	validOIDCCORSEndpoints = []string{oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, oidc.EndpointEndSession}
 
 	validOIDCReservedClaims                  = []string{oidc.ClaimJWTID, oidc.ClaimAuthorizedParty, oidc.ClaimClientIdentifier, oidc.ClaimScope, oidc.ClaimScopeNonStandard, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimUpdatedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
 	validOIDCReservedCustomizableScopes      = []string{oidc.ScopeAutheliaPAM}

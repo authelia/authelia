@@ -83,6 +83,7 @@ identity_providers:
         require_signed_request_object: false
         require_pkce: false
         pkce_challenge_method: 'S256'
+        allow_online_refresh_tokens: false
         disable_refresh_token_rotation: false
         device_code_verification_uri_complete: false
         authorization_signed_response_key_id: ''
@@ -322,6 +323,29 @@ A list of URIs which can be used for the OpenID Connect 1.0 Request Object to pa
 JSON Web Token remote URI using the `request_uri` parameter.
 
 These URIs must have the `https` scheme.
+
+### post_logout_redirect_uris
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of valid callback URIs this client will redirect to after a relying-party initiated logout. All other callbacks
+will be considered unsafe. The URIs are case-sensitive and they differ from application to application. All redirect
+URIs are matched as per the requirements in the specification i.e. no patterns and it is an exact match.
+
+The community has [provided configurations](../../../integration/openid-connect/introduction.md) for lots of common
+applications which may include example values.
+
+Some restrictions that have been placed on clients and their post logout redirect URIs are as follows:
+
+1. If a client attempts to perform an end session request with Authelia and its redirect URI is not listed in the client
+   configuration the attempt to perform the end session will fail and an error will be generated.
+2. The URI must be absolute i.e. it must include a scheme.
+3. The URI must not include a fragment component.
+4. The URI must not use the `http` scheme when the client is a [public](#public) client, as the specification only
+   permits it for confidential clients. The `https` scheme is recommended for all clients.
+5. The URI must not use a scheme which evaluates content rather than directing the user to an application, i.e.
+   `javascript`, `vbscript`, `data`, `blob`, or `file`. Private-use schemes which identify a callback into a native
+   application such as `com.example.app:/logged-out` are permitted.
 
 ### audience
 
@@ -655,6 +679,19 @@ effectively enables the [require_pkce](#require_pkce) option for this client.
 
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
+
+### allow_online_refresh_tokens
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Allows this client to be issued online refresh tokens, i.e. refresh tokens for grants without the `offline_access` or
+`offline` scope, which are revoked when the End-User's session ends. See
+[Session Termination](../../../integration/openid-connect/introduction.md#session-termination) for how online and
+offline refresh tokens behave.
+
+When this option is changed to `false` the online refresh tokens already issued to this client can no longer be used.
+This option has no effect unless [grant_types](#grant_types) includes `refresh_token`, and a warning is logged at startup
+when it doesn't.
 
 ### disable_refresh_token_rotation
 

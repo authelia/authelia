@@ -62,5 +62,7 @@ func GetProvisioners() []Provisioner {
 		ProvisionGarbageCollector,
 		ProvisionSessionCollector,
 		ProvisionSystemdWatchdog,
+		ProvisionOAuth2SessionIDCollector,
+		ProvisionOAuth2SessionLogoutTaskCollector,
 	}
 }

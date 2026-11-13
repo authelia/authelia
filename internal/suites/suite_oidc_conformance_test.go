@@ -377,6 +377,10 @@ func (s *OIDCConformanceSuite) TestRelyingPartyConfig() {
 	}
 }
 
+func (s *OIDCConformanceSuite) TestRPInitiatedLogout() {
+	s.assertPlan(conformance.NameRPInitiatedLogout)
+}
+
 func TestOIDCConformanceSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
@@ -408,6 +412,7 @@ func TestOIDCConformanceGenerateRoundTrip(t *testing.T) {
 		conformance.NameImplicitFormPost:          {"oidcc-formpost-implicit-certification-test-plan", true, "", ""},
 		conformance.NameRelyingPartyBasic:         {"oidcc-client-basic-certification-test-plan", true, "conformance-rp-basic", ""},
 		conformance.NameRelyingPartyBasicFormPost: {"oidcc-client-formpost-basic-certification-test-plan", true, "conformance-rp-basic-form-post", ""},
+		conformance.NameRPInitiatedLogout:         {"oidcc-rp-initiated-logout-certification-test-plan", true, "", ""},
 	}
 
 	for _, module := range conformance.RelyingPartyConfigModules {
@@ -473,8 +478,14 @@ func TestOIDCConformanceGenerateRoundTrip(t *testing.T) {
 
 		if want.variant {
 			require.NotNilf(t, plan.Variant, "the '%s' profile lost its variant", plan.Name)
-			assert.Equal(t, "discovery", plan.Variant.ServerMetadata)
 			assert.Equal(t, "static_client", plan.Variant.ClientRegistration)
+
+			if plan.Name == conformance.NameRPInitiatedLogout {
+				assert.Empty(t, plan.Variant.ServerMetadata, "the logout plan fixes the server metadata itself and rejects it being set again")
+				assert.Equal(t, "code", plan.Variant.ResponseType, "the logout plan does not fix the response type itself")
+			} else {
+				assert.Equal(t, "discovery", plan.Variant.ServerMetadata)
+			}
 		} else {
 			assert.Nilf(t, plan.Variant, "the '%s' profile gained a variant", plan.Name)
 		}

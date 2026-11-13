@@ -6,6 +6,7 @@ package session
 
 import (
 	"testing"
+	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -72,13 +73,36 @@ func TestSecureCodec_GenerateSessionIDShouldReturnRandomError(t *testing.T) {
 func TestSecureCodec_GeneratePublicID(t *testing.T) {
 	codec := newTestCodec(t)
 
-	id, err := codec.GeneratePublicID()
+	before := time.Now().Truncate(time.Millisecond)
 
-	require.NoError(t, err)
+	ids := make([]uuid.UUID, 5)
 
-	pid, err := uuid.Parse(id)
-	require.NoError(t, err)
-	assert.Equal(t, uuid.Version(7), pid.Version())
+	for i := range ids {
+		id, err := codec.GeneratePublicID()
+		require.NoError(t, err)
+
+		ids[i], err = uuid.Parse(id)
+		require.NoError(t, err)
+	}
+
+	after := time.Now()
+
+	var previous time.Time
+
+	seen := map[uuid.UUID]bool{}
+
+	for _, id := range ids {
+		assert.Equal(t, uuid.Version(7), id.Version())
+
+		generated := time.Unix(id.Time().UnixTime())
+
+		assert.False(t, generated.Before(before))
+		assert.False(t, generated.After(after))
+		assert.False(t, generated.Before(previous))
+		assert.False(t, seen[id])
+
+		previous, seen[id] = generated, true
+	}
 }
 
 func TestSecureCodec_SealShouldReturnErrorWhenEncryptionFails(t *testing.T) {

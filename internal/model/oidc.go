@@ -110,11 +110,19 @@ func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (sess
 		granted = oauthelia2.Arguments{}
 	}
 
+	var mode string
+
+	if ms, ok := r.GetSession().(oauthelia2.RefreshTokenModeSession); ok {
+		mode = string(ms.GetRefreshTokenMode())
+	}
+
 	return &OAuth2Session{
 		ChallengeID:       s.GetChallengeID(),
 		RequestID:         r.GetID(),
 		ClientID:          r.GetClient().GetID(),
+		SessionID:         NewNullString(s.GetSessionID()),
 		Signature:         signature,
+		RefreshTokenMode:  mode,
 		RequestedAt:       r.GetRequestedAt(),
 		Subject:           subject,
 		RequestedScopes:   StringSlicePipeDelimited(requested),
@@ -170,6 +178,7 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 		ChallengeID:       s.GetChallengeID(),
 		RequestID:         r.GetID(),
 		ClientID:          r.GetClient().GetID(),
+		SessionID:         NewNullString(s.GetSessionID()),
 		Signature:         r.GetDeviceCodeSignature(),
 		UserCodeSignature: r.GetUserCodeSignature(),
 		Status:            int(r.GetStatus()),
@@ -216,6 +225,7 @@ func NewOAuth2PushedAuthorizationSession(contextID string, r oauthelia2.Authoriz
 		Signature:            contextID,
 		RequestID:            r.GetID(),
 		ClientID:             r.GetClient().GetID(),
+		SessionID:            NewNullString(s.GetSessionID()),
 		RequestedAt:          r.GetRequestedAt(),
 		Scopes:               StringSlicePipeDelimited(r.GetRequestedScopes()),
 		Audience:             StringSlicePipeDelimited(r.GetRequestedAudience()),
@@ -528,8 +538,10 @@ type OAuth2Session struct {
 	ChallengeID       uuid.NullUUID            `db:"challenge_id"`
 	RequestID         string                   `db:"request_id"`
 	ClientID          string                   `db:"client_id"`
+	SessionID         sql.NullString           `db:"session_id"`
 	Signature         string                   `db:"signature"`
 	AccessSignature   string                   `db:"access_signature"`
+	RefreshTokenMode  string                   `db:"refresh_token_mode"`
 	RequestedAt       time.Time                `db:"requested_at"`
 	Subject           sql.NullString           `db:"subject"`
 	RequestedScopes   StringSlicePipeDelimited `db:"requested_scopes"`
@@ -594,6 +606,7 @@ type OAuth2DeviceCodeSession struct {
 	ChallengeID       uuid.NullUUID            `db:"challenge_id"`
 	RequestID         string                   `db:"request_id"`
 	ClientID          string                   `db:"client_id"`
+	SessionID         sql.NullString           `db:"session_id"`
 	Signature         string                   `db:"signature"`
 	UserCodeSignature string                   `db:"user_code_signature"`
 	Status            int                      `db:"status"`
@@ -701,6 +714,7 @@ type OAuth2PushedAuthorizationSession struct {
 	Signature            string                   `db:"signature"`
 	RequestID            string                   `db:"request_id"`
 	ClientID             string                   `db:"client_id"`
+	SessionID            sql.NullString           `db:"session_id"`
 	RequestedAt          time.Time                `db:"requested_at"`
 	Scopes               StringSlicePipeDelimited `db:"scopes"`
 	Audience             StringSlicePipeDelimited `db:"audience"`
@@ -780,4 +794,8 @@ type OpenIDSession interface {
 
 	GetChallengeID() uuid.NullUUID
 	GetStorageSubject() (subject string)
+
+	// GetSessionID returns the 'sid' claim value identifying the End-User session at this provider, which is empty when the
+	// session has none.
+	GetSessionID() (sid string)
 }

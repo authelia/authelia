@@ -72,11 +72,23 @@ func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ct
 		return
 	}
 
+	location := NewConsentCompletionErrorURI(issuer, rfc, s.Config.GetSendDebugMessagesToClients(ctx))
+
+	rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
+	rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
+	rw.Header().Set(fasthttp.HeaderLocation, location.String())
+	rw.WriteHeader(http.StatusSeeOther)
+}
+
+// NewConsentCompletionErrorURI returns the URI of the front-end page which displays the given error to the End-User,
+// used for any error which can't be returned to the client. A nil error is treated as a server error. The debug
+// information is only included when debug is true.
+func NewConsentCompletionErrorURI(issuer *url.URL, rfc *oauthelia2.RFC6749Error, debug bool) (location *url.URL) {
 	if rfc == nil {
 		rfc = oauthelia2.ErrServerError
 	}
 
-	location := issuer.JoinPath(FrontendEndpointPathConsentCompletion)
+	location = issuer.JoinPath(FrontendEndpointPathConsentCompletion)
 
 	query := location.Query()
 
@@ -96,14 +108,11 @@ func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ct
 		query.Set("error_hint", rfc.HintField)
 	}
 
-	if s.Config.GetSendDebugMessagesToClients(ctx) && len(rfc.DebugField) != 0 {
+	if debug && len(rfc.DebugField) != 0 {
 		query.Set("error_debug", rfc.DebugField)
 	}
 
 	location.RawQuery = query.Encode()
 
-	rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
-	rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
-	rw.Header().Set(fasthttp.HeaderLocation, location.String())
-	rw.WriteHeader(http.StatusSeeOther)
+	return location
 }

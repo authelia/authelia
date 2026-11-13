@@ -39,6 +39,9 @@ const (
 	// NameRelyingPartyConfig is the prefix of the builder names of the Config RP profile, which has a builder for each
 	// of its modules.
 	NameRelyingPartyConfig = "rp-config"
+
+	// NameRPInitiatedLogout is the builder name of the RP-Initiated Logout OP profile.
+	NameRPInitiatedLogout = "rp-initiated-logout"
 )
 
 var (
