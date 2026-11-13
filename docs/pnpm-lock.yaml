@@ -233,8 +233,8 @@ importers:
         specifier: 5.0.4
         version: 5.0.4
       bootstrap:
-        specifier: 5.3.8
-        version: 5.3.8(@popperjs/core@2.11.8)
+        specifier: 5.3.9
+        version: 5.3.9(@popperjs/core@2.11.8)
       clipboard:
         specifier: 2.0.11
         version: 2.0.11
@@ -1296,8 +1296,8 @@ packages:
   bootstrap-icons@1.13.2:
     resolution: {integrity: sha512-fAU1Ly3dH7hwRg+CB8EZ0Vl0fF80zgXHeUVJyfUOKzoURr+TbwISbCW5tKUoQLERaWYG2emTCybcPbD96hdD1A==}
 
-  bootstrap@5.3.8:
-    resolution: {integrity: sha512-HP1SZDqaLDPwsNiqRqi5NcP0SSXciX2s9E+RyqJIIqGo+vJeN5AJVM98CXmW/Wux0nQ5L7jeWUdplCEf0Ee+tg==}
+  bootstrap@5.3.9:
+    resolution: {integrity: sha512-20cU0rcfw8WdxtVbmfU+xT2EjvVTw9Ror/h1Qvd7DXCujRg8OO9mdBCsmTHdJFf3BuadmBNJtgIuUXsBqSkk/w==}
     peerDependencies:
       '@popperjs/core': ^2.11.8
 
@@ -3474,7 +3474,7 @@ snapshots:
   '@thulite/bootstrap@1.2.4':
     dependencies:
       '@popperjs/core': 2.11.8
-      bootstrap: 5.3.8(@popperjs/core@2.11.8)
+      bootstrap: 5.3.9(@popperjs/core@2.11.8)
 
   '@thulite/core@2.0.4(yaml@2.9.1)':
     dependencies:
@@ -3578,7 +3578,7 @@ snapshots:
 
   bootstrap-icons@1.13.2: {}
 
-  bootstrap@5.3.8(@popperjs/core@2.11.8):
+  bootstrap@5.3.9(@popperjs/core@2.11.8):
     dependencies:
       '@popperjs/core': 2.11.8
 
