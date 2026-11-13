@@ -535,3 +535,37 @@ func (t *testConfigContext) GetUserProvider() authentication.UserProvider { retu
 func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
 }
+
+func TestNewConfigRegistersRFC8693TokenTypes(t *testing.T) {
+	c := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, nil, nil)
+
+	types := c.GetRFC8693TokenTypes(context.TODO())
+
+	require.NotNil(t, types)
+	assert.Len(t, types, 3)
+
+	for _, name := range []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken} {
+		tokenType, ok := types[name]
+
+		require.True(t, ok, "token type %s must be registered", name)
+		require.NotNil(t, tokenType)
+		assert.Equal(t, name, tokenType.GetName(context.TODO()))
+	}
+
+	assert.NotContains(t, types, oidc.TokenTypeJWT)
+	assert.Equal(t, oidc.TokenTypeAccessToken, c.GetDefaultRFC8693RequestedTokenType(context.TODO()))
+}
+
+func TestConfig_GetRFC8693MaxActorChainDepth(t *testing.T) {
+	tmpl, err := templates.New(templates.Config{})
+
+	require.NoError(t, err)
+
+	c := &schema.IdentityProvidersOpenIDConnect{TokenExchange: schema.IdentityProvidersOpenIDConnectTokenExchange{MaxActorChainDepth: 3}}
+
+	assert.Equal(t, 3, oidc.NewConfig(c, oidc.NewIssuer(c.JSONWebKeys), tmpl).GetRFC8693MaxActorChainDepth(context.Background()))
+
+	c = &schema.IdentityProvidersOpenIDConnect{}
+
+	assert.Equal(t, 8, oidc.NewConfig(c, oidc.NewIssuer(c.JSONWebKeys), tmpl).GetRFC8693MaxActorChainDepth(context.Background()))
+}

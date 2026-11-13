@@ -291,7 +291,11 @@ func (c *Config) GetIntrospectionTokenTypeEnabled(ctx context.Context) (enabled 
 
 // GetRFC8693MaxActorChainDepth returns the maximum actor chain depth of a token issued by Token Exchange.
 func (c *Config) GetRFC8693MaxActorChainDepth(ctx context.Context) (depth int) {
-	return rfc8693MaxActorChainDepth
+	if c.RFC8693.MaxActorChainDepth < 1 {
+		return rfc8693MaxActorChainDepthDefault
+	}
+
+	return c.RFC8693.MaxActorChainDepth
 }
 
 // GetSSFConfig returns nil as the Shared Signals Framework is not supported.

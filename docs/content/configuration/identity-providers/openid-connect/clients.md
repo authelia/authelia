@@ -64,6 +64,28 @@ identity_providers:
         grant_types:
           - 'refresh_token'
           - 'authorization_code'
+        subject_token_types_supported:
+          - 'urn:ietf:params:oauth:token-type:access_token'
+          - 'urn:ietf:params:oauth:token-type:refresh_token'
+        subject_token_issuers_supported: []
+        actor_token_types_supported: []
+        actor_token_issuers_supported: []
+        actor_token_without_may_act_allowed: false
+        request_token_types_supported:
+          - 'urn:ietf:params:oauth:token-type:access_token'
+        subject_token_clients_supported:
+          - client_id: 'other-client'
+            requested_token_types: []
+        actor_token_clients_supported:
+          - client_id: 'other-client'
+            requested_token_types: []
+        token_exchange_refresh_token_allowed: false
+        own_access_token_exchange_allowed: false
+        own_access_token_exchange_targets_restricted: true
+        impersonation_allowed: false
+        token_exchange_may_act:
+          client_id: ''
+          subject: ''
         response_types:
           - 'code'
         response_modes:
@@ -409,6 +431,315 @@ The `implicit` grant type is required when the [response_types](#response_types)
 returns an `id_token` or `token` from the Authorization Endpoint, which includes every hybrid flow response type, and
 the `authorization_code` grant type is also required for the hybrid flow response types. A configuration which does not
 meet these requirements is rejected at startup.
+
+### subject_token_types_supported
+
+{{< confkey type="list(string)" default="see below" required="no" >}}
+
+The [OAuth 2.0 Token Exchange] token types this client is permitted to present as the `subject_token`. The three
+supported token types are `urn:ietf:params:oauth:token-type:access_token`, `urn:ietf:params:oauth:token-type:refresh_token`,
+and `urn:ietf:params:oauth:token-type:id_token`. The `jwt`, `saml1`, and `saml2` subject token types defined by
+[RFC8693] are not supported.
+
+When the [grant_types](#grant_types) list for this client includes the
+`urn:ietf:params:oauth:grant-type:token-exchange` grant type and this option is not configured, it defaults to
+`urn:ietf:params:oauth:token-type:access_token` and `urn:ietf:params:oauth:token-type:refresh_token`. The
+`urn:ietf:params:oauth:token-type:id_token` type is opt-in and must be explicitly listed.
+
+An Authelia ID Token always carries the `azp` claim identifying the client it was issued to, and an ID Token presented
+as the `subject_token` is only accepted when its `azp` is the client performing the exchange. An ID Token can therefore
+only ever be exchanged by the client it was issued to, even when its audience includes other clients, and a cross-client
+exchange of an ID Token is not possible. An ID Token presented as the
+`subject_token` must be a genuine ID Token, i.e. it must carry the `auth_time` claim; the signed UserInfo response and
+other JWTs issued by Authelia are refused, with the client only seeing the generic `Unable to parse the id_token` error.
+The specific reason is only available in the debug logs.
+
+### subject_token_issuers_supported
+
+{{< confkey type="list(string)" required="no" >}}
+
+The JWT `iss` claim values this client is permitted to present as the `subject_token`. An empty list (the default)
+disables the per-client issuer check.
+
+This option only applies to the `urn:ietf:params:oauth:token-type:id_token` subject token type. The `access_token`
+and `refresh_token` types are resolved by their signature against the tokens this provider issued and stored, so
+they have no `iss` claim to compare and this option has no effect on them. When the list is empty the `id_token`
+issuer must match this provider's own issuer.
+
+### actor_token_types_supported
+
+{{< confkey type="list(string)" required="no" >}}
+
+The [OAuth 2.0 Token Exchange] token types this client is permitted to present as the `actor_token`. The same three
+token types documented for [subject_token_types_supported](#subject_token_types_supported) apply here.
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+An empty list is **unrestricted**, not disabled. It does **not** prevent this client from presenting an
+`actor_token`.
+{{< /callout >}}
+
+Unlike [subject_token_types_supported](#subject_token_types_supported) and
+[request_token_types_supported](#request_token_types_supported), this option is not expanded to an explicit default.
+The list is only enforced when it is non-empty, so leaving it empty permits all three supported token types to be
+presented as an `actor_token`. Configure it explicitly to restrict which token types this client may present.
+
+Enabling [actor_token_without_may_act_allowed](#actor_token_without_may_act_allowed) while this option is empty is a
+configuration error, because that combination would permit every supported token type to be presented as an
+`actor_token` with the `may_act` check disabled.
+
+Note that with an empty list the delegation itself is still gated by the
+[actor_token_without_may_act_allowed](#actor_token_without_may_act_allowed) option and the allow list of the client
+the subject token was issued to.
+
+### actor_token_issuers_supported
+
+{{< confkey type="list(string)" required="no" >}}
+
+The JWT `iss` claim values this client is permitted to present as the `actor_token`. An empty list (the default)
+disables the per-client issuer check.
+
+As with [subject_token_issuers_supported](#subject_token_issuers_supported), this option only applies to the
+`urn:ietf:params:oauth:token-type:id_token` actor token type; the `access_token` and `refresh_token` types are
+resolved by signature and carry no `iss` claim to compare.
+
+### actor_token_without_may_act_allowed
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option disables an [RFC8693] Section 4.4 safety check. It should only be enabled when an out-of-band
+mechanism authorizes the actor to act on behalf of the subject.
+{{< /callout >}}
+
+When enabled, this client is permitted to perform delegation with an `actor_token` against subject tokens that do
+not include a `may_act` claim naming the actor. By default the `may_act` claim is required, and its presence and
+content on the subject token is what authorizes a specific actor to act on behalf of the subject.
+
+Authelia only issues the `may_act` claim on tokens issued to clients which configure the
+[token_exchange_may_act](#token_exchange_may_act) option. A subject token which does not carry a `may_act` claim can
+therefore only be used in a delegation flow with an `actor_token` when this option is enabled. Without it every
+exchange presenting an `actor_token` for such a subject token is rejected with `invalid_request`.
+
+When this option is the mechanism which permits delegation it rests entirely on:
+
+1. The [subject_token_clients_supported](#subject_token_clients_supported) allow list of the client the subject
+   token was issued to, which authorizes the exchange at the client level only.
+2. Any out-of-band authorization the operator arranges themselves.
+
+Neither of those establishes that a _specific_ actor is permitted to act on behalf of a _specific_ subject, which
+is precisely what the `may_act` claim exists to express. Enable this option only when you have independently
+established that authorization; any client permitted to exchange a subject token can otherwise present itself as
+the actor for every subject whose token it can obtain. Prefer [token_exchange_may_act](#token_exchange_may_act).
+
+This option requires the [actor_token_types_supported](#actor_token_types_supported) option to be configured, and is a
+configuration error otherwise.
+
+### request_token_types_supported
+
+{{< confkey type="list(string)" default="see below" required="no" >}}
+
+The [OAuth 2.0 Token Exchange] token types this client is permitted to name in `requested_token_type`. The same
+three token types documented for [subject_token_types_supported](#subject_token_types_supported) apply here.
+
+When the [grant_types](#grant_types) list for this client includes the
+`urn:ietf:params:oauth:grant-type:token-exchange` grant type and this option is not configured, it defaults to
+`urn:ietf:params:oauth:token-type:access_token` only.
+
+The `urn:ietf:params:oauth:token-type:refresh_token` type may only be listed when
+[token_exchange_refresh_token_allowed](#token_exchange_refresh_token_allowed) is enabled and the `refresh_token`
+[grant type](#grant_types) is configured, otherwise the configuration is rejected.
+
+### subject_token_clients_supported
+
+{{< confkey type="list" required="no" >}}
+
+The registered clients permitted to perform an [OAuth 2.0 Token Exchange] using tokens that were issued to this
+client as the `subject_token`. Each entry is either a bare client identifier string, or a mapping with a required
+`client_id` and an optional `requested_token_types` list which restricts the token types that client may request via
+`requested_token_type` when exchanging tokens issued to this client. An empty (or omitted) `requested_token_types`
+permits any token type the requesting client is itself permitted to request.
+
+A client may reference its own client identifier in this list; exchanging a client's tokens for itself is a
+legitimate arrangement. Each client may only be referenced once in this list.
+
+The [grant_types](#grant_types) requirement applies to both sides of the exchange: the client whose tokens are being
+exchanged (`api` below) and every client referenced in this option (`app-b` and `app-c` below) must each have the
+`urn:ietf:params:oauth:grant-type:token-exchange` grant type configured. Both requirements are enforced at
+configuration load, so a misconfiguration prevents Authelia from starting rather than failing at the token endpoint.
+
+A client configured with the `urn:ietf:params:oauth:grant-type:token-exchange` grant type must also be of the
+confidential client type, i.e. it must not have [public](#public) enabled. [RFC8693] leaves client authentication
+to the discretion of the authorization server; Authelia requires clients to authenticate at the token endpoint for
+this grant type, so a public client is rejected at configuration load.
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'api'
+        audience:
+          - 'app-b'
+          - 'app-c'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+        subject_token_clients_supported:
+          - 'app-b'
+          - client_id: 'app-c'
+            requested_token_types:
+              - 'urn:ietf:params:oauth:token-type:access_token'
+      - client_id: 'app-b'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+      - client_id: 'app-c'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+```
+
+In the above example, `app-b` may exchange tokens issued to the `api` client for any token type it's otherwise
+permitted to request, and `app-c` may exchange tokens issued to the `api` client but only for an access token. The
+`api` client lists both clients in its [audience](#audience) as a cross-client exchange also requires the audience of
+the token to include the client performing the exchange; a referenced client which is missing from the
+[audience](#audience) produces a warning.
+
+### actor_token_clients_supported
+
+{{< confkey type="list" required="no" >}}
+
+The registered clients permitted to perform an [OAuth 2.0 Token Exchange] using tokens that were issued to this
+client as the `actor_token`. This option has exactly the same format and validation rules as
+[subject_token_clients_supported](#subject_token_clients_supported): each entry is either a bare client identifier
+string or a mapping with a required `client_id` and an optional `requested_token_types` list.
+
+This list is independent of [subject_token_clients_supported](#subject_token_clients_supported). An empty (or omitted)
+list means no other client may present tokens issued to this client as the `actor_token`. A client being permitted to
+present this client's tokens as a `subject_token` does not permit it to present them as an `actor_token`.
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'agent'
+        audience:
+          - 'api'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+        actor_token_clients_supported:
+          - 'api'
+      - client_id: 'api'
+        grant_types:
+          - 'urn:ietf:params:oauth:grant-type:token-exchange'
+```
+
+### token_exchange_refresh_token_allowed
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Permits this client to be issued a refresh token by a [OAuth 2.0 Token Exchange]. A refresh token is only ever issued
+when the `subject_token` is a refresh token issued to this client, and in one of two ways:
+
+1. Explicitly, when the request sets `requested_token_type` to `urn:ietf:params:oauth:token-type:refresh_token`. The
+   refresh token is returned in the `access_token` parameter of the response with a `token_type` of `N_A`, and the type
+   must be listed in [request_token_types_supported](#request_token_types_supported), which is only permitted when this
+   option is enabled. If this option is not enabled such a request is rejected.
+2. Implicitly, alongside the access token issued by an exchange requesting an access token. The refresh token is
+   returned in the `refresh_token` parameter of the response. If this option is not enabled the access token is still
+   issued, just without a refresh token.
+
+Either way issuing a refresh token also requires the `refresh_token` [grant type](#grant_types) on the client, and the
+exchange must be granted the `offline_access` (or `offline`) scope, so it must be included in the `scope` parameter of
+the exchange request. When the scope is not granted the explicit request is rejected with `invalid_scope` and the
+implicit refresh token is not issued. Issuing a refresh token by exchange rotates the `subject_token` in the same way
+as the refresh token grant, so the refresh token presented as the `subject_token` can no longer be used, and the access
+token issued alongside it is revoked, unless rotation is disabled by
+[disable_refresh_token_rotation](#disable_refresh_token_rotation). An issued refresh token never outlives the
+`subject_token`.
+
+Because of the `refresh_token` grant type, the existing validation which warns when a client with the `refresh_token`
+grant type lacks the `offline_access` scope or the related response type requirements applies to the client in the
+same way as any other client that is issued refresh tokens.
+
+### own_access_token_exchange_allowed
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Permits this client to exchange an access token that was issued to itself as the `subject_token`. This is not
+recommended: each exchange leaves another live token for the same grant with nothing linking it for revocation. When
+not enabled such an exchange is rejected. This does not affect the exchange of the refresh token issued to the client,
+which is permitted when the token type is in [subject_token_types_supported](#subject_token_types_supported).
+
+This option also governs the own-token exchange of access tokens issued by the client credentials grant, which is
+rejected unless it is enabled.
+
+See [own_access_token_exchange_targets_restricted](#own_access_token_exchange_targets_restricted) for how the targets
+of such an exchange are constrained.
+
+### own_access_token_exchange_targets_restricted
+
+{{< confkey type="boolean" default="true" required="no" >}}
+
+When [own_access_token_exchange_allowed](#own_access_token_exchange_allowed) is enabled, this option restricts the
+audiences and resources which can be requested by the exchange of an own access token to those which were already
+granted to the token being exchanged. Setting this option to `false` removes that restriction and is discouraged.
+
+Setting this option while [own_access_token_exchange_allowed](#own_access_token_exchange_allowed) is not enabled has no
+effect and produces a warning.
+
+### impersonation_allowed
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Impersonation gives this client all of the rights of the subject at every resource server that trusts the issued token,
+and the issued token does not identify this client as the actor.
+{{< /callout >}}
+
+Permits this client to perform a cross-client [OAuth 2.0 Token Exchange] without an `actor_token`, i.e. impersonation
+as described in [RFC8693 Section 1.1](https://datatracker.ietf.org/doc/html/rfc8693#section-1.1). When not enabled such
+an exchange is rejected with `invalid_request` and the client must use delegation by presenting an `actor_token`.
+
+An own-token exchange, where the subject token was issued to this same client, is exempt from this option.
+
+### token_exchange_may_act
+
+{{< confkey type="object" required="no" >}}
+
+Configures a single actor which is issued as the [RFC8693 Section 4.4](https://datatracker.ietf.org/doc/html/rfc8693#section-4.4)
+`may_act` claim on every user token issued to this client, authorizing that actor to perform delegation using those
+tokens as a `subject_token`. At least one of the `client_id` and `subject` members is required. Only one actor can be
+configured as the `may_act` claim is a single JSON object. The `may_act` claim is also included in the ID Tokens issued
+to this client.
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'app'
+        token_exchange_may_act:
+          client_id: 'agent'
+```
+
+#### client_id
+
+{{< confkey type="string" required="no" >}}
+
+The identifier of the registered client permitted to act. It must reference a registered client which has the
+`urn:ietf:params:oauth:grant-type:token-exchange` grant type configured. This client is not itself required to have
+the grant type, as it is the actor which performs the exchange.
+
+#### subject
+
+{{< confkey type="string" required="no" >}}
+
+The subject of the actor, which must exactly match the `sub` claim of the `actor_token` as Authelia issued it (i.e. the
+opaque subject identifier of the actor, not a username). The comparison made by the provider is an exact match of the
+configured claim members against the claims of the actor token.
+
+The claim is issued on tokens obtained by the authorization code, implicit, hybrid, and device code flows. It is never
+issued on tokens from the client credentials grant, and it is removed from the token issued by an exchange, which
+carries the `act` claim instead. The claim is carried forward unchanged when a refresh token is used, so changing this
+option only affects authorizations granted afterwards.
+
+See [Static May Act](#static-may-act) for the consequences of enabling this option.
 
 ### response_types
 
@@ -1613,6 +1944,107 @@ key data for the first certificate in the chain.
 The certificate chain/bundle to be used with the [key](#key) DER base64 ([RFC4648])
 encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s.
 
+## Token Exchange Security
+
+The [OAuth 2.0 Token Exchange] grant allows a client to trade a token for a different token, which is how an AI agent or
+a service acting on behalf of a user obtains tokens for other resource servers. The following controls apply, and the
+defaults are the most restrictive.
+
+### Own-Token and Cross-Client Exchange
+
+An exchange is an **own-token** exchange when the `subject_token` was issued to the client performing the exchange, and a
+**cross-client** exchange otherwise. Cross-client exchange requires the client the token was issued to to list the
+requesting client in [subject_token_clients_supported](#subject_token_clients_supported), and the audience of the token
+must include the requesting client. Own-token exchange is not
+subject to the impersonation and consent checks below. Refresh tokens can only be exchanged by the client they were
+issued to. The same is true for ID Tokens: the `azp` claim of an Authelia ID Token is always the client it was issued
+to, and an ID Token is only accepted when its `azp` is the client performing the exchange.
+
+A token obtained with the client credentials grant can only be exchanged by the client it was issued to. A cross-client
+exchange of such a token is rejected with `invalid_grant`.
+
+### Impersonation and Delegation
+
+Without an `actor_token` an exchange is impersonation, which requires [impersonation_allowed](#impersonation_allowed)
+for cross-client exchanges. With an `actor_token` the exchange is delegation, and the issued token carries the `act`
+claim identifying the actor. The maximum depth of nested `act` claims is configured by the provider
+[token_exchange](provider.md#token_exchange) option.
+
+### Consent
+
+A cross-client exchange is evaluated against the [consent_mode](#consent_mode) of the client performing the exchange.
+An own-token exchange skips this check as the user already consented to the client for those scopes.
+
+|   consent_mode   |                                                                                           Behavior                                                                                           |
+| :--------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|    `implicit`    |                        The [subject_token_clients_supported](#subject_token_clients_supported) entry of the client which owns the token is the administrator consent.                        |
+| `pre-configured` | Additionally requires a live pre-configured consent for the requesting client and the subject covering every requested scope, audience, and resource, otherwise `invalid_grant` is returned. |
+|    `explicit`    |                                                Rejected with `invalid_grant` as explicit consent cannot be obtained during a token exchange.                                                 |
+
+The `auto` mode, which is the default, is resolved when the configuration is loaded: it resolves to `explicit` unless
+[pre_configured_consent_duration](#pre_configured_consent_duration) is set, in which case it resolves to
+`pre-configured`. A cross-client exchange is therefore denied by default until the [consent_mode](#consent_mode) of the
+client performing the exchange is configured.
+
+### Authorization Policy
+
+The [authorization_policy](#authorization_policy) of the client performing the exchange is evaluated against the user
+the `subject_token` belongs to, for both own-token and cross-client exchange. It is never evaluated against the actor,
+as the `may_act` claim is the mechanism which authorizes an actor. An exchange is rejected with `invalid_grant` if the
+policy denies the user, or if the authentication level of the subject token is lower than the level the policy requires.
+The IP address used for network rules is that of the exchange request. Exchanges of client credentials tokens have no
+user and skip this check.
+
+### Static May Act
+
+Enabling [token_exchange_may_act](#token_exchange_may_act) means every user token issued to the client carries a
+`may_act` claim for a single actor, and:
+
+- The token can only be exchanged when a matching `actor_token` is presented. This includes an own-token exchange, and
+  [impersonation_allowed](#impersonation_allowed) cannot override it.
+- The configuration is only applied to tokens issued after it changes; existing grants keep the claim they were issued.
+- The claim is not copied into exchanged tokens.
+
+### The AI Agent Pattern
+
+An AI client which acts on behalf of a user should hold its own tokens and obtain narrower tokens as required. The
+recommended approaches are:
+
+1. Exchange the refresh token issued to the client itself. This requires the `refresh_token` grant type, and the
+   `urn:ietf:params:oauth:token-type:refresh_token` type in
+   [subject_token_types_supported](#subject_token_types_supported) (which is a default).
+2. Enable [own_access_token_exchange_allowed](#own_access_token_exchange_allowed) to exchange the access token already
+   issued to the client. The targets remain restricted to those already granted unless
+   [own_access_token_exchange_targets_restricted](#own_access_token_exchange_targets_restricted) is disabled.
+
+Issuing a refresh token by exchange requires [token_exchange_refresh_token_allowed](#token_exchange_refresh_token_allowed),
+the `refresh_token` grant type, a refresh token as the `subject_token`, and the `offline_access` (or `offline`) scope in
+the `scope` parameter of the exchange. With these in place a refresh token is issued both when it is requested via
+`requested_token_type` and alongside the access token of an exchange requesting an access token. Either way the
+`subject_token` is rotated, so the client must keep the newly issued refresh token and discard the one it presented.
+
+### Notes
+
+- A denial because the owner of the token does not permit the exchange, or because a required `may_act` claim is
+  missing, is returned by the provider as `invalid_request` rather than `invalid_grant`.
+- With the pairwise subject identifier type the `sub` of an exchanged token is re-derived for the
+  [sector_identifier_uri](#sector_identifier_uri) of the requesting client. The `sub` of the `act` claim is the actor's
+  identifier as it was issued, which may belong to another sector.
+- See the [UserInfo endpoint behavior](../../../integration/openid-connect/openid-connect-1.0-claims.md#userinfo-endpoint-behavior)
+  for the behavior when the user of a session cannot be resolved.
+
+### Audit Log
+
+Every token exchange request from a client which authenticated successfully is logged. A successful exchange is logged at
+the `info` level with the message `Token Exchange completed`, and an exchange denied by the provider or by Authelia is
+logged at the `warn` level with the message `Token Exchange denied` including the error and hint. Requests which fail
+client authentication do not produce an entry. The following fields are included when available:
+`oauth2_access_request_id`, `client_id`, `subject`, `username`, `subject_token_type`, `subject_token_client_id`,
+`actor_token_type`, `actor`, `impersonation`, `requested_token_type`, `issued_token_type`, `granted_scope`,
+`granted_audience`, `granted_resource`, and `remote_ip`. The values of tokens are never logged. The `impersonation`
+field is `true` only for a cross-client exchange without an `actor_token`; it is `false` for delegation and for every
+own-token exchange.
+
 ## Integration
 
 To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party please see the
@@ -1636,3 +2068,5 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Client Assertions]: https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
 [jwks]: provider.md#jwks
 [JSON Web Key]: provider.md#jwks
+[OAuth 2.0 Token Exchange]: https://oauth.net/2/token-exchange/
+[RFC8693]: https://datatracker.ietf.org/doc/html/rfc8693

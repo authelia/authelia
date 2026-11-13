@@ -1458,6 +1458,11 @@
           "title": "Issuer Private Key",
           "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens.",
           "deprecated": true
+        },
+        "token_exchange": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectTokenExchange",
+          "title": "Token Exchange",
+          "description": "Token Exchange configuration."
         }
       },
       "additionalProperties": false,
@@ -1619,7 +1624,8 @@
               "implicit",
               "refresh_token",
               "client_credentials",
-              "urn:ietf:params:oauth:grant-type:device_code"
+              "urn:ietf:params:oauth:grant-type:device_code",
+              "urn:ietf:params:oauth:grant-type:token-exchange"
             ]
           },
           "type": "array",
@@ -2366,6 +2372,115 @@
           "type": "array",
           "title": "JSON Web Keys",
           "description": "List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."
+        },
+        "actor_token_clients_supported": {
+          "items": {
+            "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientTokenExchangePolicy"
+          },
+          "type": "array",
+          "title": "Actor Token Clients Supported",
+          "description": "The registered clients permitted to perform a Token Exchange using tokens that were issued to this client as the 'actor_token'. Each entry is either a client identifier string or a mapping with 'client_id' and optional 'requested_token_types'."
+        },
+        "actor_token_issuers_supported": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Actor Token Issuers Supported",
+          "description": "The JWT 'iss' claim values this client is permitted to present as the 'actor_token'. This option only applies to the 'id_token' actor token type. An empty list disables the per-client issuer check, in which case the 'id_token' issuer must match this provider's own issuer."
+        },
+        "actor_token_types_supported": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "urn:ietf:params:oauth:token-type:access_token",
+              "urn:ietf:params:oauth:token-type:refresh_token",
+              "urn:ietf:params:oauth:token-type:id_token"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Actor Token Types Supported",
+          "description": "The Token Exchange actor token types this client is permitted to present as the 'actor_token'."
+        },
+        "actor_token_without_may_act_allowed": {
+          "type": "boolean",
+          "title": "Actor Token Without May Act Allowed",
+          "description": "Permits this client to perform delegation with an 'actor_token' on subject tokens that do not include a 'may_act' claim. Enable this only when an out-of-band authorization mechanism verifies that the actor is permitted to act on behalf of the subject.",
+          "default": false
+        },
+        "impersonation_allowed": {
+          "type": "boolean",
+          "title": "Impersonation Allowed",
+          "description": "Permits this client to perform a Token Exchange without an 'actor_token' using a 'subject_token' which was issued to another client.",
+          "default": false
+        },
+        "own_access_token_exchange_allowed": {
+          "type": "boolean",
+          "title": "Own Access Token Exchange Allowed",
+          "description": "Permits this client to exchange an Access Token which was issued to itself.",
+          "default": false
+        },
+        "own_access_token_exchange_targets_restricted": {
+          "type": "boolean",
+          "title": "Own Access Token Exchange Targets Restricted",
+          "description": "Restricts the audience and resource of Access Tokens issued when this client exchanges an Access Token which was issued to itself to those of the original Access Token.",
+          "default": true
+        },
+        "request_token_types_supported": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "urn:ietf:params:oauth:token-type:access_token",
+              "urn:ietf:params:oauth:token-type:refresh_token",
+              "urn:ietf:params:oauth:token-type:id_token"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Requested Token Types Supported",
+          "description": "The Token Exchange token types this client is permitted to request via the 'requested_token_type'."
+        },
+        "subject_token_clients_supported": {
+          "items": {
+            "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientTokenExchangePolicy"
+          },
+          "type": "array",
+          "title": "Subject Token Clients Supported",
+          "description": "The registered clients permitted to perform a Token Exchange using tokens that were issued to this client as the 'subject_token'. Each entry is either a client identifier string or a mapping with 'client_id' and optional 'requested_token_types'."
+        },
+        "subject_token_issuers_supported": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Subject Token Issuers Supported",
+          "description": "The JWT 'iss' claim values this client is permitted to present as the 'subject_token'. This option only applies to the 'id_token' subject token type. An empty list disables the per-client issuer check, in which case the 'id_token' issuer must match this provider's own issuer."
+        },
+        "subject_token_types_supported": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "urn:ietf:params:oauth:token-type:access_token",
+              "urn:ietf:params:oauth:token-type:refresh_token",
+              "urn:ietf:params:oauth:token-type:id_token"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Subject Token Types Supported",
+          "description": "The Token Exchange subject token types this client is permitted to present as the 'subject_token'."
+        },
+        "token_exchange_may_act": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientMayAct",
+          "title": "Token Exchange May Act",
+          "description": "The actor issued as the RFC8693 Section 4.4 'may_act' claim on tokens issued to this client for a user."
+        },
+        "token_exchange_refresh_token_allowed": {
+          "type": "boolean",
+          "title": "Token Exchange Refresh Token Allowed",
+          "description": "Permits this client to be issued a Refresh Token via a Token Exchange.",
+          "default": false
         }
       },
       "additionalProperties": false,
@@ -2531,6 +2646,11 @@
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
           "title": "JWT Bearer Grant",
           "description": "Allows tuning the token lifespans for the JWT bearer grant."
+        },
+        "token_exchange": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Token Exchange Grant",
+          "description": "Allows tuning the token lifespans for the token exchange grant."
         }
       },
       "additionalProperties": false,
@@ -4830,6 +4950,85 @@
     "X509CertificateChain": {
       "type": "string",
       "pattern": "^(-{5}BEGIN CERTIFICATE-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END CERTIFICATE-{5}\\n?)+$"
+    },
+    "IdentityProvidersOpenIDConnectClientMayAct": {
+      "anyOf": [
+        {
+          "required": [
+            "client_id"
+          ]
+        },
+        {
+          "required": [
+            "subject"
+          ]
+        }
+      ],
+      "properties": {
+        "client_id": {
+          "type": "string",
+          "minLength": 1,
+          "title": "Client ID",
+          "description": "The identifier of the registered client which is permitted to act on behalf of the subject."
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "title": "Subject",
+          "description": "The subject identifier of the actor which is permitted to act on behalf of the subject."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "IdentityProvidersOpenIDConnectClientTokenExchangePolicy": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "properties": {
+            "client_id": {
+              "type": "string",
+              "title": "Client ID",
+              "description": "The identifier of the registered client permitted to perform the Token Exchange."
+            },
+            "requested_token_types": {
+              "items": {
+                "type": "string",
+                "enum": [
+                  "urn:ietf:params:oauth:token-type:access_token",
+                  "urn:ietf:params:oauth:token-type:refresh_token",
+                  "urn:ietf:params:oauth:token-type:id_token"
+                ]
+              },
+              "type": "array",
+              "uniqueItems": true,
+              "title": "Requested Token Types",
+              "description": "The token types this client may request via 'requested_token_type' when exchanging tokens issued to this client. An empty list permits any token type the requesting client is itself permitted to request."
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "client_id"
+          ]
+        }
+      ]
+    },
+    "IdentityProvidersOpenIDConnectTokenExchange": {
+      "properties": {
+        "max_actor_chain_depth": {
+          "type": "integer",
+          "minimum": 1,
+          "title": "Maximum Actor Chain Depth",
+          "description": "The maximum depth of the nested 'act' claim chain permitted in a Token Exchange.",
+          "default": 8
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectTokenExchange represents the global OAuth 2.0 Token Exchange configuration."
     }
   }
 }

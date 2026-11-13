@@ -599,3 +599,110 @@ func TestSession_GetStorageSubject(t *testing.T) {
 		})
 	}
 }
+
+func TestSessionSetClaimActorNilExtraMap(t *testing.T) {
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	require.Nil(t, session.Extra)
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	require.NotPanics(t, func() {
+		session.SetClaimActor(act)
+	})
+
+	assert.Equal(t, act, session.Extra[oidc.ClaimActor])
+}
+
+func TestSessionSetClaimActorPropagatesToJWTClaims(t *testing.T) {
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	session.SetClaimActor(act)
+
+	require.NotNil(t, session.Claims)
+	require.NotNil(t, session.Claims.Extra)
+	assert.Equal(t, act, session.Claims.Extra[oidc.ClaimActor])
+}
+
+func TestSessionSetClaimActorNilDefaultSession(t *testing.T) {
+	session := &oidc.Session{}
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	require.NotPanics(t, func() {
+		session.SetClaimActor(act)
+	})
+
+	assert.Equal(t, act, session.Extra[oidc.ClaimActor])
+}
+
+func TestSessionAccessTokenClaimsMapIncludesActor(t *testing.T) {
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	session.SetClaimActor(act)
+
+	claims := session.AccessTokenClaimsMap()
+
+	require.NotNil(t, claims)
+	assert.Equal(t, act, claims[oidc.ClaimActor])
+}
+
+func TestSessionSetClaimActorMergesWithoutClobberingExistingClaims(t *testing.T) {
+	session := &oidc.Session{
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Extra: map[string]any{"unrelated": "claims-value"},
+			},
+		},
+		Extra: map[string]any{"unrelated": "extra-value"},
+	}
+
+	act := map[string]any{"sub": "actor-subject"}
+
+	session.SetClaimActor(act)
+
+	assert.Equal(t, "extra-value", session.Extra["unrelated"])
+	assert.Equal(t, act, session.Extra[oidc.ClaimActor])
+
+	assert.Equal(t, "claims-value", session.Claims.Extra["unrelated"])
+	assert.Equal(t, act, session.Claims.Extra[oidc.ClaimActor])
+}
+
+func TestSessionSetClaimAuthorizedActorNilIsNoop(t *testing.T) {
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	session.SetClaimAuthorizedActor(nil)
+
+	assert.NotContains(t, session.Extra, oidc.ClaimAuthorizedActor)
+
+	if session.Claims != nil {
+		assert.NotContains(t, session.Claims.Extra, oidc.ClaimAuthorizedActor)
+	}
+}
+
+func TestSessionSetClaimAuthorizedActorPropagates(t *testing.T) {
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	mayAct := map[string]any{"client_id": "actor"}
+
+	session.SetClaimAuthorizedActor(mayAct)
+
+	assert.Equal(t, mayAct, session.Extra[oidc.ClaimAuthorizedActor])
+	require.NotNil(t, session.Claims)
+	assert.Equal(t, mayAct, session.Claims.Extra[oidc.ClaimAuthorizedActor])
+	assert.Equal(t, mayAct, session.AccessTokenClaimsMap()[oidc.ClaimAuthorizedActor])
+}
+
+func TestSessionSetClaimAuthorizedActorNilDefaultSession(t *testing.T) {
+	session := &oidc.Session{}
+
+	require.NotPanics(t, func() {
+		session.SetClaimAuthorizedActor(map[string]any{"client_id": "actor"})
+	})
+
+	assert.Equal(t, map[string]any{"client_id": "actor"}, session.Extra[oidc.ClaimAuthorizedActor])
+}

@@ -146,6 +146,10 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	if detailer, err = oidc.UserDetailerFromClaims(ctx, original); err != nil {
 		if userinfo {
 			ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
+
+			errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError.WithDebugf("Error occurred loading user information: %v.", err))
+
+			return
 		}
 
 		if err = client.GetClaimsStrategy().HydrateClientCredentialsUserInfoClaims(ctx, client, original, claims); err != nil {

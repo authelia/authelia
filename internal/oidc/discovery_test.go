@@ -37,7 +37,7 @@ func TestOpenIDConnectProviderMetadata(t *testing.T) {
 	assert.Equal(t, []string{oidc.ScopeAddress, oidc.ScopeEmail, oidc.ScopeGroups, oidc.ScopeOffline, oidc.ScopeOfflineAccess, oidc.ScopeOpenID, oidc.ScopePhone, oidc.ScopeProfile}, metadata.ScopesSupported)
 	assert.Equal(t, []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT, oidc.ResponseModeFragment, oidc.ResponseModeFragmentJWT, oidc.ResponseModeJWT, oidc.ResponseModeQuery, oidc.ResponseModeQueryJWT}, metadata.ResponseModesSupported)
 	assert.Equal(t, []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowBoth, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeImplicitFlowToken}, metadata.ResponseTypesSupported)
-	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeClientCredentials, oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}, metadata.GrantTypesSupported)
+	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeClientCredentials, oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode, oidc.GrantTypeTokenExchange}, metadata.GrantTypesSupported)
 	assert.Equal(t, []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise}, metadata.SubjectTypesSupported)
 	assert.Equal(t, []string{oidc.ClaimTypeNormal}, metadata.ClaimTypesSupported)
 	assert.Equal(t, []string{oidc.PromptConsent, oidc.PromptLogin, oidc.PromptNone, oidc.PromptSelectAccount}, metadata.PromptValuesSupported)

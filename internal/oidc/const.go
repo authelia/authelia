@@ -58,6 +58,8 @@ const (
 	ClaimScopeNonStandard                    = "scp"
 	ClaimExtra                               = "ext"
 	ClaimSubject                             = "sub"
+	ClaimActor                               = "act"
+	ClaimAuthorizedActor                     = "may_act"
 	ClaimFullName                            = "name"
 	ClaimGivenName                           = "given_name"
 	ClaimFamilyName                          = "family_name"
@@ -97,7 +99,7 @@ const (
 	lifespanRFC8628PollingIntervalDefault  = time.Second * 10
 
 	clientAuthenticationRealm                 = "oauth2"
-	rfc8693MaxActorChainDepth                 = 8
+	rfc8693MaxActorChainDepthDefault          = 8
 	lifespanVerifiableCredentialsNonceDefault = time.Hour
 	lifespanRequestObjectMaximumDefault       = time.Hour
 	jwtClockSkewDefault                       = time.Second * 10
@@ -139,6 +141,15 @@ const (
 	GrantTypeAuthorizationCode = "authorization_code"
 	GrantTypeClientCredentials = "client_credentials"
 	GrantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code"
+	GrantTypeTokenExchange     = "urn:ietf:params:oauth:grant-type:token-exchange" //nolint:gosec
+)
+
+// RFC8693 Token Type URN strings.
+const (
+	TokenTypeAccessToken  = "urn:ietf:params:oauth:token-type:access_token"  //nolint:gosec // This is a token type identifier, not a credential.
+	TokenTypeRefreshToken = "urn:ietf:params:oauth:token-type:refresh_token" //nolint:gosec // This is a token type identifier, not a credential.
+	TokenTypeIDToken      = "urn:ietf:params:oauth:token-type:id_token"      //nolint:gosec // This is a token type identifier, not a credential.
+	TokenTypeJWT          = "urn:ietf:params:oauth:token-type:jwt"           //nolint:gosec // This is a token type identifier, not a credential.
 )
 
 // Client Auth Method strings.
@@ -265,9 +276,21 @@ const (
 	RedirectURISpecialOAuth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
 )
 
+// Token Exchange Form Parameter strings.
+//
+//nolint:gosec // These are form parameter names, not credentials.
+const (
+	FormParameterActorToken         = "actor_token"
+	FormParameterSubjectTokenType   = "subject_token_type"
+	FormParameterActorTokenType     = "actor_token_type"
+	FormParameterRequestedTokenType = "requested_token_type"
+	FormParameterIssuedTokenType    = "issued_token_type"
+)
+
 // Form Parameter strings.
 const (
 	FormParameterState        = "state"
+	FormParameterGrantType    = "grant_type"
 	FormParameterClientID     = valueClientID
 	FormParameterRequestURI   = "request_uri"
 	FormParameterRedirectURI  = "redirect_uri"

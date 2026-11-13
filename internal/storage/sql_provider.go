@@ -153,6 +153,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlInsertOAuth2RequestReplay:  fmt.Sprintf(queryFmtInsertOAuth2RequestReplay, tableOAuth2RequestReplay),
 
+		sqlDeleteOAuth2BlacklistedJTIExpired: fmt.Sprintf(queryFmtDeleteOAuth2BlacklistedJTIExpired, tableOAuth2BlacklistedJTI),
+		sqlDeleteOAuth2RequestReplayExpired:  fmt.Sprintf(queryFmtDeleteOAuth2RequestReplayExpired, tableOAuth2RequestReplay),
+
 		sqlUpdateOAuth2RefreshTokenSessionRequest: fmt.Sprintf(queryFmtUpdateOAuth2RefreshTokenSessionRequest, tableOAuth2RefreshTokenSession),
 		sqlDecideOAuth2DeviceCodeSession:          fmt.Sprintf(queryFmtDecideOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2BlacklistedJTI:             fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
@@ -420,6 +423,9 @@ type SQLProvider struct {
 
 	sqlInsertOAuth2BlacklistedJTI string
 	sqlInsertOAuth2RequestReplay  string
+
+	sqlDeleteOAuth2BlacklistedJTIExpired string
+	sqlDeleteOAuth2RequestReplayExpired  string
 
 	sqlUpdateOAuth2RefreshTokenSessionRequest string
 	sqlDecideOAuth2DeviceCodeSession          string
@@ -1778,6 +1784,26 @@ func (p *SQLProvider) SaveOAuth2RequestReplay(ctx context.Context, replay model.
 
 	if err = checkInsertResult(result); err != nil {
 		return fmt.Errorf("error inserting oauth2 request replay of type '%s' with signature '%s' for client '%s': %w", replay.Type, replay.Signature, replay.ClientID, err)
+	}
+
+	return nil
+}
+
+// GarbageCollectionFrequency returns how often GarbageCollection should be performed.
+func (p *SQLProvider) GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration) {
+	return time.Hour
+}
+
+// GarbageCollection deletes expired OAuth 2.0 blacklisted JTI and request replay records.
+func (p *SQLProvider) GarbageCollection(ctx context.Context) (err error) {
+	now := time.Now().UTC()
+
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteOAuth2BlacklistedJTIExpired, now); err != nil {
+		return fmt.Errorf("error deleting expired rows from table '%s': %w", tableOAuth2BlacklistedJTI, err)
+	}
+
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteOAuth2RequestReplayExpired, now); err != nil {
+		return fmt.Errorf("error deleting expired rows from table '%s': %w", tableOAuth2RequestReplay, err)
 	}
 
 	return nil

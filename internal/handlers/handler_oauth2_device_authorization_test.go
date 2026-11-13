@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -325,7 +328,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 }
 
 func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
-	setupPUT := func(t *testing.T, mutate func(client *schema.IdentityProvidersOpenIDConnectClient)) (mock *mocks.MockAutheliaCtx, userCode string, consent *model.OAuth2ConsentSession) {
+	setupPUT := func(t *testing.T, mutate func(client *schema.IdentityProvidersOpenIDConnectClient)) (mock *mocks.MockAutheliaCtx, userCode string, consent *model.OAuth2ConsentSession, stored func() []*model.OAuth2DeviceCodeSession) {
 		t.Helper()
 
 		mock = mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
@@ -340,7 +343,7 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
 
 		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
+		stored = setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
 
@@ -358,7 +361,7 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 			AnyTimes().
 			Return(consent, nil)
 
-		return mock, userCode, consent
+		return mock, userCode, consent, stored
 	}
 
 	newRequest := func(t *testing.T, userCode string, consent *model.OAuth2ConsentSession) (*httptest.ResponseRecorder, *http.Request) {
@@ -370,8 +373,70 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 		})
 	}
 
+	storedExtra := func(t *testing.T, stored func() []*model.OAuth2DeviceCodeSession) map[string]any {
+		t.Helper()
+
+		var session *model.OAuth2DeviceCodeSession
+
+		for _, value := range stored() {
+			if len(value.Session) != 0 && value.Status == int(oauthelia2.DeviceAuthorizeStatusApproved) {
+				session = value
+			}
+		}
+
+		require.NotNil(t, session)
+
+		data := &oidc.Session{}
+
+		require.NoError(t, json.Unmarshal(session.Session, data))
+
+		return data.Extra
+	}
+
+	t.Run("ShouldIssueMayActOnDeviceCodeSession", func(t *testing.T) {
+		mock, userCode, consent, stored := setupPUT(t, func(client *schema.IdentityProvidersOpenIDConnectClient) {
+			client.TokenExchangeMayAct = &schema.IdentityProvidersOpenIDConnectClientMayAct{ClientID: testOIDCActorID}
+		})
+
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		mock.StorageMock.EXPECT().
+			SaveOAuth2ConsentSessionGranted(gomock.Any(), consent.ID).
+			Return(nil)
+
+		rw, r := newRequest(t, userCode, consent)
+
+		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusOK, rw.Code)
+
+		assert.Equal(t, map[string]any{oidc.ClaimClientIdentifier: testOIDCActorID}, storedExtra(t, stored)[oidc.ClaimAuthorizedActor])
+	})
+
+	t.Run("ShouldNotIssueMayActOnDeviceCodeSessionWhenUnset", func(t *testing.T) {
+		mock, userCode, consent, stored := setupPUT(t, nil)
+
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		mock.StorageMock.EXPECT().
+			SaveOAuth2ConsentSessionGranted(gomock.Any(), consent.ID).
+			Return(nil)
+
+		rw, r := newRequest(t, userCode, consent)
+
+		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusOK, rw.Code)
+
+		assert.NotContains(t, storedExtra(t, stored), oidc.ClaimAuthorizedActor)
+	})
+
 	t.Run("ShouldHandleUserDetailsError", func(t *testing.T) {
-		mock, userCode, consent := setupPUT(t, nil)
+		mock, userCode, consent, _ := setupPUT(t, nil)
 		defer mock.Close()
 
 		mock.UserProviderMock.EXPECT().
@@ -386,7 +451,7 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 	})
 
 	t.Run("ShouldHandleSaveConsentSessionGrantedError", func(t *testing.T) {
-		mock, userCode, consent := setupPUT(t, nil)
+		mock, userCode, consent, _ := setupPUT(t, nil)
 		defer mock.Close()
 
 		setupTestOIDCUserDetails(t, mock)
@@ -403,7 +468,7 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 	})
 
 	t.Run("ShouldMergeAudienceWhenClaimsStrategyRequires", func(t *testing.T) {
-		mock, userCode, consent := setupPUT(t, func(client *schema.IdentityProvidersOpenIDConnectClient) {
+		mock, userCode, consent, _ := setupPUT(t, func(client *schema.IdentityProvidersOpenIDConnectClient) {
 			client.ClaimsPolicy = testOIDCClaimsPolicyMerged
 		})
 
