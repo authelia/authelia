@@ -109,6 +109,22 @@ identity_providers:
       id_token: '1h'
       refresh_token: '90m'
       refresh_token_maximum: 0
+    token_exchange:
+      max_actor_chain_depth: 8
+      token_types:
+        - 'urn:ietf:params:oauth:token-type:access_token'
+        - 'urn:ietf:params:oauth:token-type:refresh_token'
+        - 'urn:ietf:params:oauth:token-type:id_token'
+      default_requested_token_type: 'urn:ietf:params:oauth:token-type:access_token'
+      transaction_tokens:
+        trust_domain: ''
+        issuer: ''
+        lifespan: '5m'
+        signing_algorithm: 'RS256'
+        copy_request_parameters: false
+        replacement:
+          enabled: false
+          max_chain_length: 8
     claims_policies:
       policy_name:
         id_token: []
@@ -782,7 +798,129 @@ identity_providers:
               access_token: '1h'
               refresh_token: '90m'
               id_token: '1h'
+            token_exchange:
+              access_token: '1h'
+              refresh_token: '90m'
+              id_token: '1h'
 ```
+
+### token_exchange
+
+Global [OAuth 2.0 Token Exchange](https://oauth.net/2/token-exchange/) configuration. Per-client options are documented
+in the [clients](clients.md#token-exchange-security) section.
+
+#### max_actor_chain_depth
+
+{{< confkey type="integer" default="8" required="no" >}}
+
+The maximum depth of the nested `act` claim chain permitted in a token exchange. The minimum value is `1`.
+
+#### token_types
+
+{{< confkey type="list(string)" default="urn:ietf:params:oauth:token-type:access_token, urn:ietf:params:oauth:token-type:refresh_token, urn:ietf:params:oauth:token-type:id_token" required="no" >}}
+
+The token types the token exchange grant is enabled for. Each value must be the exact token type identifier, and
+the values are used to validate the per-client [subject_token_types_supported](clients.md#subject_token_types_supported),
+[actor_token_types_supported](clients.md#actor_token_types_supported), and
+[request_token_types_supported](clients.md#request_token_types_supported) options, which may only contain values listed
+here. The supported values are:
+
+- `urn:ietf:params:oauth:token-type:access_token`
+- `urn:ietf:params:oauth:token-type:refresh_token`
+- `urn:ietf:params:oauth:token-type:id_token`
+- `urn:ietf:params:oauth:token-type:txn_token`
+
+The `urn:ietf:params:oauth:token-type:txn_token` value enables [Transaction Tokens](#transaction_tokens) and is never
+accepted as an `actor_token` type.
+
+#### default_requested_token_type
+
+{{< confkey type="string" default="urn:ietf:params:oauth:token-type:access_token" required="no" >}}
+
+The token type issued when a token exchange request omits the `requested_token_type` parameter. It must be one of the
+configured [token_types](#token_types), and it may not be `urn:ietf:params:oauth:token-type:refresh_token` or
+`urn:ietf:params:oauth:token-type:txn_token`. A client which does not configure
+[request_token_types_supported](clients.md#request_token_types_supported) defaults to a list containing only this value.
+
+#### transaction_tokens
+
+{{< confkey type="object" required="no" >}}
+
+Configures the issuance of Transaction Tokens as per the
+[Transaction Tokens](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-transaction-tokens-11) draft. This section
+may only be configured when [token_types](#token_types) includes `urn:ietf:params:oauth:token-type:txn_token`.
+
+A Transaction Token request must explicitly send `requested_token_type` as
+`urn:ietf:params:oauth:token-type:txn_token` and must send `audience` with exactly the [trust_domain](#trust_domain)
+value, and the client making the request must include the trust domain in its
+[audience](clients.md#audience). The `sub` claim of a Transaction Token is the pairwise subject of the requesting client
+(i.e. it is derived for the sector of the requesting client), so workloads which operate within one trust domain should
+share a [sector_identifier_uri](clients.md#sector_identifier_uri). Issuing an initial Transaction Token from a token
+which was issued to another client requires the requesting client to have
+[impersonation_allowed](clients.md#impersonation_allowed) enabled, or an `actor_token` to be presented.
+
+##### trust_domain
+
+{{< confkey type="string" required="yes" >}}
+
+The trust domain of the Transaction Tokens. This value is required when [token_types](#token_types) includes
+`urn:ietf:params:oauth:token-type:txn_token`, and is the `aud` claim of every Transaction Token issued.
+
+##### issuer
+
+{{< confkey type="string" required="no" >}}
+
+The issuer of the Transaction Tokens. When not configured the issuer of the provider is used. When configured it must
+differ from the issuer of the provider.
+
+##### lifespan
+
+{{< confkey type="duration" default="5m" required="no" >}}
+
+The lifespan of Transaction Tokens. This should be kept short as Transaction Tokens are intended to represent a single
+call chain.
+
+##### signing_algorithm
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+The algorithm used to sign Transaction Tokens. It must match the algorithm of one of the keys configured in the
+[jwks](#jwks) option.
+
+##### copy_request_parameters
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Only enable this option when every workload which is permitted to request Transaction Tokens is trusted for the values
+it sends, as these values are included in the Transaction Token and are relied upon by downstream workloads.
+{{< /callout >}}
+
+When enabled the `request_context` and `request_details` parameters of the request are copied into the `rctx` and
+`tctx` claims of the Transaction Token respectively.
+
+##### replacement
+
+{{< confkey type="object" required="no" >}}
+
+Configures the replacement of an existing Transaction Token with a new Transaction Token. A replacement keeps the `sub`
+of the Transaction Token presented. Only clients which enable
+[token_exchange_txn_token_replacement](clients.md#token_exchange_txn_token_replacement) may perform a replacement, and
+an `actor_token` must not be presented with a replacement. As a replaced Transaction Token carries no authentication
+methods references, the replacing client's authorization policy must not require `two_factor` and its consent mode must
+be `implicit` or `pre-configured`.
+
+###### enabled
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables the replacement of Transaction Tokens.
+
+###### max_chain_length
+
+{{< confkey type="integer" default="8" required="no" >}}
+
+The maximum length of the chain of replaced Transaction Tokens. The minimum value is `1`.
 
 ### claims_policies
 

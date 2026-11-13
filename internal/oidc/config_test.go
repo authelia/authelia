@@ -22,6 +22,7 @@ import (
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/handler/oidckb"
 	"authelia.com/provider/oauth2/handler/rfc8628"
+	"authelia.com/provider/oauth2/handler/rfc8693"
 	"authelia.com/provider/oauth2/handler/rfc9449"
 	"authelia.com/provider/oauth2/token/jwt"
 
@@ -1027,4 +1028,80 @@ func (t *testConfigContext) GetUserProvider() authentication.UserProvider { retu
 
 func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
+}
+
+func TestNewConfigRegistersRFC8693TokenTypes(t *testing.T) {
+	c := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, nil, nil)
+
+	types := c.GetRFC8693TokenTypes(context.TODO())
+
+	require.NotNil(t, types)
+	assert.Len(t, types, 3)
+
+	for _, name := range []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken} {
+		tokenType, ok := types[name]
+
+		require.True(t, ok, "token type %s must be registered", name)
+		require.NotNil(t, tokenType)
+		assert.Equal(t, name, tokenType.GetName(context.TODO()))
+	}
+
+	assert.NotContains(t, types, oidc.TokenTypeJWT)
+	assert.Equal(t, oidc.TokenTypeAccessToken, c.GetDefaultRFC8693RequestedTokenType(context.TODO()))
+}
+
+func TestConfig_GetRFC8693MaxActorChainDepth(t *testing.T) {
+	tmpl, err := templates.New(templates.Config{})
+
+	require.NoError(t, err)
+
+	c := &schema.IdentityProvidersOpenIDConnect{TokenExchange: schema.IdentityProvidersOpenIDConnectTokenExchange{MaxActorChainDepth: 3}}
+
+	assert.Equal(t, 3, oidc.NewConfig(c, oidc.NewIssuer(c.JSONWebKeys), tmpl).GetRFC8693MaxActorChainDepth(context.Background()))
+
+	c = &schema.IdentityProvidersOpenIDConnect{}
+
+	assert.Equal(t, 8, oidc.NewConfig(c, oidc.NewIssuer(c.JSONWebKeys), tmpl).GetRFC8693MaxActorChainDepth(context.Background()))
+}
+
+func TestNewConfigTransactionTokens(t *testing.T) {
+	ctx := context.Background()
+
+	c := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{
+		TokenExchange: schema.IdentityProvidersOpenIDConnectTokenExchange{
+			TokenTypes:                []string{oidc.TokenTypeAccessToken, oidc.TokenTypeIDToken},
+			DefaultRequestedTokenType: oidc.TokenTypeIDToken,
+		},
+	}, oidc.NewIssuer(nil), nil)
+
+	assert.Equal(t, oidc.TokenTypeIDToken, c.GetDefaultRFC8693RequestedTokenType(ctx))
+	assert.Len(t, c.GetRFC8693TokenTypes(ctx), 2)
+
+	c.LoadHandlers(&oidc.Store{})
+
+	for _, h := range c.Handlers.TokenEndpoint {
+		_, isTxn := h.(*rfc8693.TxnTokenTypeHandler)
+
+		assert.False(t, isTxn)
+	}
+
+	c = oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{
+		TokenExchange: schema.IdentityProvidersOpenIDConnectTokenExchange{
+			TokenTypes:                []string{oidc.TokenTypeAccessToken, oidc.TokenTypeTxnToken},
+			DefaultRequestedTokenType: oidc.TokenTypeAccessToken,
+			TransactionTokens:         schema.IdentityProvidersOpenIDConnectTransactionTokens{TrustDomain: "example.com"},
+		},
+	}, oidc.NewIssuer(nil), nil)
+
+	c.LoadHandlers(&oidc.Store{})
+
+	var found bool
+
+	for _, h := range c.Handlers.TokenEndpoint {
+		if _, ok := h.(*rfc8693.TxnTokenTypeHandler); ok {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
 }

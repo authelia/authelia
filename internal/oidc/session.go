@@ -75,7 +75,11 @@ type Session struct {
 	AllowedTopLevelClaims []string        `json:"allowed_top_level_claims"`
 	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
 	GrantedClaims         []string        `json:"granted_claims,omitempty"`
+	ActorToken            map[string]any  `json:"-"`
+	SubjectToken          map[string]any  `json:"-"`
 	Extra                 map[string]any  `json:"extra"`
+
+	subjectRequester oauthelia2.Requester
 }
 
 // GetSubject returns the subject, if set. This is optional and only used during token introspection and to determine
@@ -146,8 +150,8 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 		amr     bool
 	)
 
-	for _, cl := range s.AllowedTopLevelClaims {
-		switch cl {
+	for _, claim := range s.AllowedTopLevelClaims {
+		switch claim {
 		case ClaimJWTID, ClaimIssuer, ClaimSubject, ClaimAudience, ClaimExpirationTime, ClaimNotBefore, ClaimIssuedAt, ClaimClientIdentifier, ClaimScopeNonStandard, ClaimExtra:
 			continue
 		case ClaimAuthenticationMethodsReference:
@@ -156,7 +160,7 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 			continue
 		}
 
-		allowed = append(allowed, cl)
+		allowed = append(allowed, claim)
 	}
 
 	claims := &jwt.JWTClaims{
@@ -174,8 +178,8 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 
 	if s.DefaultSession != nil && s.Claims != nil {
 		for _, allowedClaim := range allowed {
-			if cl, ok := s.Claims.Extra[allowedClaim]; ok {
-				claims.Extra[allowedClaim] = cl
+			if value, ok := s.Claims.Extra[allowedClaim]; ok {
+				claims.Extra[allowedClaim] = value
 			}
 		}
 
@@ -188,6 +192,10 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 
 	if len(s.ClientID) != 0 {
 		claims.Extra[ClaimClientIdentifier] = s.ClientID
+	}
+
+	if act, ok := s.Extra[ClaimActor]; ok && act != nil {
+		claims.Extra[ClaimActor] = act
 	}
 
 	return claims
@@ -331,6 +339,111 @@ func cloneClaimRequests(requests map[string]*ClaimRequest) (clone map[string]*Cl
 	}
 
 	return clone
+}
+
+// SetActorToken sets the actor token claims associated with an RFC8693 token exchange.
+func (s *Session) SetActorToken(token map[string]any) {
+	s.ActorToken = token
+}
+
+// GetActorToken returns the actor token claims associated with an RFC8693 token exchange.
+func (s *Session) GetActorToken() map[string]any {
+	return s.ActorToken
+}
+
+// SetSubjectToken sets the subject token claims associated with an RFC8693 token exchange.
+func (s *Session) SetSubjectToken(token map[string]any) {
+	s.SubjectToken = token
+}
+
+// GetSubjectToken returns the subject token claims associated with an RFC8693 token exchange.
+func (s *Session) GetSubjectToken() map[string]any {
+	return s.SubjectToken
+}
+
+// SetSubjectRequester stores the request the subject token was issued for during an RFC8693 token exchange. It is
+// never persisted.
+func (s *Session) SetSubjectRequester(requester oauthelia2.Requester) {
+	s.subjectRequester = requester
+}
+
+// GetSubjectRequester returns the request the subject token was issued for during an RFC8693 token exchange, or nil
+// when the subject token is not a token this server issued and stored.
+func (s *Session) GetSubjectRequester() oauthelia2.Requester {
+	return s.subjectRequester
+}
+
+// SetClaimActor records the RFC8693 Section 4.1 'act' claim describing the actor in a delegation flow. A nil act
+// removes the claim.
+func (s *Session) SetClaimActor(act map[string]any) {
+	if act == nil {
+		delete(s.Extra, ClaimActor)
+
+		if s.DefaultSession != nil && s.Claims != nil {
+			delete(s.Claims.Extra, ClaimActor)
+		}
+
+		return
+	}
+
+	if s.Extra == nil {
+		s.Extra = map[string]any{}
+	}
+
+	s.Extra[ClaimActor] = act
+
+	if s.DefaultSession == nil {
+		return
+	}
+
+	if s.Claims == nil {
+		s.Claims = &jwt.IDTokenClaims{}
+	}
+
+	if s.Claims.Extra == nil {
+		s.Claims.Extra = map[string]any{}
+	}
+
+	s.Claims.Extra[ClaimActor] = act
+}
+
+// SetClaimAuthorizedActor records the RFC8693 Section 4.4 'may_act' claim describing the party authorized to act on
+// behalf of the subject. A nil mayAct is a no-op.
+func (s *Session) SetClaimAuthorizedActor(mayAct map[string]any) {
+	if mayAct == nil {
+		return
+	}
+
+	if s.Extra == nil {
+		s.Extra = map[string]any{}
+	}
+
+	s.Extra[ClaimAuthorizedActor] = mayAct
+
+	if s.DefaultSession == nil {
+		return
+	}
+
+	if s.Claims == nil {
+		s.Claims = &jwt.IDTokenClaims{}
+	}
+
+	if s.Claims.Extra == nil {
+		s.Claims.Extra = map[string]any{}
+	}
+
+	s.Claims.Extra[ClaimAuthorizedActor] = mayAct
+}
+
+// AccessTokenClaimsMap returns the access token claims as a map.
+func (s *Session) AccessTokenClaimsMap() map[string]any {
+	claims := s.GetJWTClaims().ToMapClaims()
+
+	for key, value := range s.Extra {
+		claims[key] = value
+	}
+
+	return claims
 }
 
 // ConsentGrantImplicit that handles the implicit consent flow assigning the subject and responded at values then

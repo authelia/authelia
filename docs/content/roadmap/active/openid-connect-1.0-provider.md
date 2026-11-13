@@ -275,9 +275,18 @@ For more information see the [RFC8414: OAuth 2.0 Authorization Server Metadata] 
 
 #### OAuth 2.0 Token Exchange
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="in-progress" >}}
 
-For more information see the [RFC8693: OAuth 2.0 Token Exchange] specification.
+Support for exchanging a `subject_token` (optionally with an `actor_token`) for a new token is implemented, but only
+for tokens previously issued by Authelia itself: the `access_token`, `refresh_token`, and `id_token` subject and actor
+token types are supported. Accepting an externally issued JWT (the `jwt`, `saml1`, and `saml2` subject token types)
+as a `subject_token` or `actor_token` remains future work.
+
+The `txn_token` token type is also supported, which issues Transaction Tokens with a configured trust domain and
+optionally permits their replacement.
+
+For more information see the [RFC8693: OAuth 2.0 Token Exchange] and
+[Transaction Tokens](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-transaction-tokens-11) specifications.
 
 #### OAuth 2.0 Dynamic Client Registration Protocol
 

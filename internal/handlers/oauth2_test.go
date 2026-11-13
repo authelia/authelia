@@ -294,6 +294,17 @@ func setupTestOIDCSessionStore(t *testing.T, mock *mocks.MockAutheliaCtx) (store
 		})
 
 	mock.StorageMock.EXPECT().
+		LoadOAuth2RefreshTokenSessionAccessSignature(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, signature string) (accessSignature string, err error) {
+			if s, ok := sessions[storage.OAuth2SessionTypeRefreshToken][signature]; ok {
+				return s.AccessSignature, nil
+			}
+
+			return "", sql.ErrNoRows
+		})
+
+	mock.StorageMock.EXPECT().
 		RevokeOAuth2Session(gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().
 		DoAndReturn(func(_ context.Context, sessionType storage.OAuth2SessionType, signature string) (err error) {
@@ -559,7 +570,7 @@ func mustGetTestOIDCSubject(t *testing.T, mock *mocks.MockAutheliaCtx, clientID 
 	return subject
 }
 
-func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
+func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) (stored func() []*model.OAuth2DeviceCodeSession) {
 	t.Helper()
 
 	sessions := map[string]*model.OAuth2DeviceCodeSession{}
@@ -668,6 +679,16 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 		})
 
 	setupTestOIDCDeviceCodeStoreDecision(mock, sessions, bySignature)
+
+	return func() []*model.OAuth2DeviceCodeSession {
+		values := make([]*model.OAuth2DeviceCodeSession, 0, len(sessions))
+
+		for _, value := range sessions {
+			values = append(values, value)
+		}
+
+		return values
+	}
 }
 
 func setupTestOIDCDeviceCodeStoreDecision(mock *mocks.MockAutheliaCtx, sessions map[string]*model.OAuth2DeviceCodeSession, bySignature func(signature string) *model.OAuth2DeviceCodeSession) {

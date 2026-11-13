@@ -51,6 +51,16 @@ The [Scope Definitions] indicate the default locations for a specific claim depe
 [Scope]: https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
 [Claims Parameter]: https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter
 
+### UserInfo Endpoint Behavior
+
+The user claims returned by the [UserInfo] endpoint are resolved from the current details of the user, while the `sub`
+claim is preserved from the original [ID Token]. If the user of a session cannot be resolved, for example when the user
+backend is unavailable, the [UserInfo] endpoint returns the `server_error` error. It does not fall back to the claims of
+the original [ID Token].
+
+The exception is a session established via the Client Credentials Flow, which has no user. If a user cannot be resolved
+for such a session the [UserInfo] endpoint returns the claims stored with the session.
+
 ### Authentication Method References
 
 Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method

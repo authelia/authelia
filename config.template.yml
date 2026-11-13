@@ -1752,6 +1752,48 @@ session:
       ## first refresh token of the grant is issued. The value 0 applies no maximum.
       # refresh_token_maximum: 0
 
+    ## OAuth 2.0 Token Exchange settings.
+    # token_exchange:
+      ## The maximum depth of the nested 'act' claim chain permitted in a token exchange.
+      # max_actor_chain_depth: 8
+
+      ## The token types the token exchange grant is enabled for. The 'urn:ietf:params:oauth:token-type:txn_token'
+      ## value enables Transaction Tokens.
+      # token_types:
+        # - 'urn:ietf:params:oauth:token-type:access_token'
+        # - 'urn:ietf:params:oauth:token-type:refresh_token'
+        # - 'urn:ietf:params:oauth:token-type:id_token'
+        # - 'urn:ietf:params:oauth:token-type:txn_token'
+
+      ## The token type issued when a token exchange request omits the 'requested_token_type' parameter.
+      # default_requested_token_type: 'urn:ietf:params:oauth:token-type:access_token'
+
+      ## Transaction Tokens settings. Only configurable when 'token_types' includes the txn_token type.
+      # transaction_tokens:
+        ## The trust domain of the Transaction Tokens which is the 'aud' claim of every Transaction Token.
+        # trust_domain: ''
+
+        ## The issuer of the Transaction Tokens. Defaults to the issuer of the provider.
+        # issuer: ''
+
+        ## The lifespan of Transaction Tokens in the duration common syntax.
+        # lifespan: '5 minutes'
+
+        ## The algorithm used to sign Transaction Tokens.
+        # signing_algorithm: 'RS256'
+
+        ## SECURITY NOTICE: Only enable this when every workload permitted to request Transaction Tokens is trusted
+        ## for the values it sends. Copies the 'request_context' and 'request_details' parameters into the token.
+        # copy_request_parameters: false
+
+        ## Transaction Token replacement settings.
+        # replacement:
+          ## Enables the replacement of Transaction Tokens.
+          # enabled: false
+
+          ## The maximum length of the chain of replacements.
+          # max_chain_length: 8
+
     ## Demonstrating Proof of Possession settings.
     # dpop:
       ## Enables DPoP.
