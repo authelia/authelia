@@ -280,11 +280,13 @@ func TestUserSession_RequiresPersistence(t *testing.T) {
 // classified, as an unclassified field holding state would otherwise be silently discarded for anonymous sessions.
 func TestUserSession_RequiresPersistenceShouldConsiderEveryField(t *testing.T) {
 	disregarded := map[string]bool{
-		"CookieDomain":   true,
-		"PublicID":       true,
-		"KeepMeLoggedIn": true,
-		"LastActivity":   true,
-		"RefreshTTL":     true,
+		"CookieDomain":      true,
+		"PublicID":          true,
+		"KeepMeLoggedIn":    true,
+		"LastActivity":      true,
+		"RefreshTTL":        true,
+		"RemoteNetwork":     true,
+		"RemoteNetworkBits": true,
 	}
 
 	fields := reflect.TypeFor[UserSession]()
@@ -312,6 +314,10 @@ func setTestNonZero(t *testing.T, value reflect.Value) {
 		value.SetBool(true)
 	case reflect.Int, reflect.Int64:
 		value.SetInt(1)
+	case reflect.Uint8:
+		value.SetUint(1)
+	case reflect.Slice:
+		value.Set(reflect.MakeSlice(value.Type(), 1, 1))
 	case reflect.Pointer:
 		value.Set(reflect.New(value.Type().Elem()))
 	case reflect.Struct:

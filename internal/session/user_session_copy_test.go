@@ -101,6 +101,8 @@ func newPopulatedUserSession() (session UserSession) {
 
 	session.CookieDomain = testDomain
 	session.PublicID = "pid"
+	session.RemoteNetwork = net.IP{192, 0, 2, 0}
+	session.RemoteNetworkBits = 24
 	session.AuthenticationMethodRefs.Extra = []string{"extra"}
 	session.PasswordResetUsername = &reset
 	session.TOTP = &TOTP{Issuer: "issuer", Algorithm: "SHA1", Digits: 6, Period: 30, Secret: "secret"}

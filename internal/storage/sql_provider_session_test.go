@@ -6,6 +6,7 @@ package storage
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -379,6 +380,10 @@ func newTestSessionStrategy(t *testing.T) session.Strategy {
 	require.NoError(t, err)
 
 	return strategy
+}
+
+func (c *testSessionContext) RemoteIP() net.IP {
+	return net.ParseIP("192.0.2.1")
 }
 
 func newTestSessionProvider(t *testing.T) (ctx context.Context, provider *SQLiteProvider) {
