@@ -6,10 +6,14 @@ import { useEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
 import { Card, CardContent } from "@components/UI/Card";
+import { IndexRoute } from "@constants/Routes";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
+import { useFlowPresent } from "@hooks/Flow";
+import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
@@ -26,6 +30,8 @@ const TwoFactorAuthenticationView = function () {
     const [refreshWebAuthnState, setRefreshWebAuthnState] = useState(0);
     const [refreshTOTPState, setRefreshTOTPState] = useState(0);
     const { createErrorNotification } = useNotifications();
+    const navigate = useRouterNavigate();
+    const flowPresent = useFlowPresent();
 
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
@@ -119,6 +125,10 @@ const TwoFactorAuthenticationView = function () {
         fetchUserInfo();
     };
 
+    const handleContinueClick = () => {
+        navigate(IndexRoute);
+    };
+
     const renderSecondFactorDisabled = () => {
         if (!configuration || !userInfo) {
             return false;
@@ -131,6 +141,20 @@ const TwoFactorAuthenticationView = function () {
 
     return (
         <div className="grid grid-cols-1 gap-4">
+            {flowPresent && (hasTOTP || hasWebAuthn) ? (
+                <div className="w-full">
+                    <Card>
+                        <CardContent className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+                            <p id="two-factor-continue-message">
+                                {translate("Your two-factor authentication method is ready, continue to sign in")}
+                            </p>
+                            <Button id="two-factor-continue" onClick={handleContinueClick}>
+                                {translate("Continue")}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : null}
             {renderSecondFactorDisabled() ? (
                 <div className="w-full flex justify-center items-center">
                     <Card>

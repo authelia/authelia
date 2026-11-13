@@ -4,6 +4,7 @@
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { IndexRoute } from "@constants/Routes";
 import { SecondFactorMethod } from "@models/Methods";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
 
@@ -17,7 +18,9 @@ const mocks = vi.hoisted(() => ({
     fetchCredentials: vi.fn(),
     fetchTOTPConfig: vi.fn(),
     fetchUserInfo: vi.fn(),
+    flowPresent: false,
     localStorageMethodAvailable: false,
+    navigate: vi.fn(),
     setLocalStorageMethod: vi.fn(),
     totpConfig: { digits: 6, period: 30 } as any,
     totpConfigError: null as Error | null,
@@ -45,6 +48,14 @@ vi.mock("@contexts/NotificationsContext", () => ({
 
 vi.mock("@hooks/Configuration", () => ({
     useConfiguration: () => [mocks.configuration, mocks.fetchConfiguration, false, mocks.configurationError],
+}));
+
+vi.mock("@hooks/Flow", () => ({
+    useFlowPresent: () => mocks.flowPresent,
+}));
+
+vi.mock("@hooks/RouterNavigate", () => ({
+    useRouterNavigate: () => mocks.navigate,
 }));
 
 vi.mock("@hooks/UserInfo", () => ({
@@ -101,6 +112,7 @@ beforeEach(() => {
     mocks.configurationError = null;
     mocks.credentials = [];
     mocks.credentialsError = null;
+    mocks.flowPresent = false;
     mocks.localStorageMethodAvailable = false;
     mocks.totpConfig = { digits: 6, period: 30 };
     mocks.totpConfigError = null;
@@ -297,5 +309,61 @@ describe("refreshing", () => {
         fireEvent.click(screen.getByTestId("options-refresh"));
 
         await waitFor(() => expect(mocks.fetchUserInfo).toHaveBeenCalled());
+    });
+});
+
+describe("continue sign in", () => {
+    it("offers to continue when a flow is present and the user has a TOTP method", () => {
+        mocks.flowPresent = true;
+        mocks.userInfo = { ...userInfo, has_webauthn: false };
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(
+            screen.getByText("Your two-factor authentication method is ready, continue to sign in"),
+        ).toBeInTheDocument();
+    });
+
+    it("offers to continue when a flow is present and the user has a WebAuthn credential", () => {
+        mocks.flowPresent = true;
+        mocks.userInfo = { ...userInfo, has_totp: false };
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.getByRole("button", { name: "Continue" })).toBeInTheDocument();
+    });
+
+    it("returns to the login portal with the flow when continue is clicked", () => {
+        mocks.flowPresent = true;
+
+        render(<TwoFactorAuthenticationView />);
+
+        fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+        expect(mocks.navigate).toHaveBeenCalledWith(IndexRoute);
+    });
+
+    it("does not offer to continue when no flow is present", () => {
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
+    });
+
+    it("does not offer to continue before the user has a second factor method", () => {
+        mocks.flowPresent = true;
+        mocks.userInfo = { ...userInfo, has_totp: false, has_webauthn: false };
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
+    });
+
+    it("does not offer to continue while the user info is unavailable", () => {
+        mocks.flowPresent = true;
+        mocks.userInfo = undefined;
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
     });
 });
