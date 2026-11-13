@@ -75,7 +75,7 @@ func NewNTP(config *schema.Configuration) *ntp.Provider {
 // NewOpenIDConnect creates a new *oidc.OpenIDConnectProvider given a valid configuration.
 //
 // Warning: This method may panic if the provided configuration isn't validated.
-func NewOpenIDConnect(config *schema.Configuration, storage storage.Provider, templates *templates.Provider) *oidc.OpenIDConnectProvider {
+func NewOpenIDConnect(config *schema.Configuration, storage storage.Provider, templates *templates.Provider) (provider *oidc.OpenIDConnectProvider, err error) {
 	return oidc.NewOpenIDConnectProvider(config, storage, templates)
 }
 

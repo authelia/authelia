@@ -1246,7 +1246,7 @@ func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeClientCreden
 		},
 	}
 
-	mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+	mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 	client, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, "test-ccs-client")
 	s.Require().NoError(err)
@@ -1436,7 +1436,7 @@ func (s *AuthzSuite) TestShouldValidateDPoPProofsUsingBearerAuthorization() {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			client, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, "test-dpop-client")
 			require.NoError(t, err)
@@ -1587,7 +1587,7 @@ func (s *AuthzSuite) TestShouldRejectBearerSchemeClientCredentialsWithoutBearerA
 		},
 	}
 
-	mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+	mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 	client, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, "test-ccs-client")
 	s.Require().NoError(err)
@@ -1680,7 +1680,7 @@ func (s *AuthzSuite) bearerSchemeClientCredentialsResourceScenario(target, strat
 		},
 	}
 
-	mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+	mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 	client, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, "test-ccs-client")
 	s.Require().NoError(err)

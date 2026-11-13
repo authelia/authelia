@@ -1706,6 +1706,14 @@ func TestOAuth2ConsentSessionHasExactGrants(t *testing.T) {
 	}
 }
 
+func TestNewOAuth2BlacklistedIssuerJTI(t *testing.T) {
+	jti := model.NewOAuth2BlacklistedIssuerJTI("https://idp.example.com", "abc", time.Unix(10000, 0).UTC())
+
+	assert.Equal(t, "https://idp.example.com", jti.Issuer)
+	assert.Equal(t, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", jti.Signature)
+	assert.Equal(t, time.Unix(10000, 0).UTC(), jti.ExpiresAt)
+}
+
 func TestMisc(t *testing.T) {
 	jti := model.NewOAuth2BlacklistedJTI("client", "abc", time.Unix(10000, 0).UTC())
 

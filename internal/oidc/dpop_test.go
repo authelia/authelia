@@ -271,7 +271,7 @@ func TestRFC9449HandlerRefreshTokenBinding(t *testing.T) {
 				},
 			}
 
-			provider := oidc.NewOpenIDConnectProvider(config, store, nil)
+			provider, _ := oidc.NewOpenIDConnectProvider(config, store, nil)
 
 			ctx := context.Background()
 

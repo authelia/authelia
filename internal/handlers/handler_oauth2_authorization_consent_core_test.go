@@ -238,7 +238,7 @@ func TestHandleOAuth2AuthorizationConsentGenerate(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			rw := httptest.NewRecorder()
 
@@ -400,7 +400,7 @@ func TestHandleOIDCAuthorizationConsentNotAuthenticated(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			rw := httptest.NewRecorder()
 
@@ -747,7 +747,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			rw := httptest.NewRecorder()
 
@@ -1199,7 +1199,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			rw := httptest.NewRecorder()
 
@@ -1564,7 +1564,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			rw := httptest.NewRecorder()
 
@@ -2254,7 +2254,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			rw := httptest.NewRecorder()
 

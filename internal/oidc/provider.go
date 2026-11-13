@@ -5,6 +5,7 @@
 package oidc
 
 import (
+	"fmt"
 	"net/http"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -15,24 +16,32 @@ import (
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(config *schema.Configuration, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider) {
+func NewOpenIDConnectProvider(config *schema.Configuration, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider, err error) {
 	if config == nil || config.IdentityProviders.OIDC == nil {
-		return nil
+		return nil, nil
+	}
+
+	var idjag *IDJAGConfig
+
+	if idjag, err = NewIDJAGConfig(config.IdentityProviders.OIDC); err != nil {
+		return nil, fmt.Errorf("error occurred initializing the identity assertion authorization grant: %w", err)
 	}
 
 	issuer := NewIssuer(config.IdentityProviders.OIDC.JSONWebKeys)
 
 	provider = &OpenIDConnectProvider{
-		Store:  NewStore(config, store),
 		Issuer: issuer,
 		Config: NewConfig(config.IdentityProviders.OIDC, issuer, templates),
 	}
+
+	provider.IDJAG = idjag
+	provider.Store = NewStore(config, store, provider.Config)
 
 	provider.Provider = oauthelia2.New(provider.Store, provider.Config)
 
 	provider.LoadHandlers(provider.Store)
 
-	return provider
+	return provider, nil
 }
 
 // WriteDynamicAuthorizeError writes the authorization error appropriate for the given requester.

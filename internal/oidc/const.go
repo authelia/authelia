@@ -83,6 +83,8 @@ const (
 	ClaimActive                              = "active"
 	ClaimUsername                            = "username"
 	ClaimTokenIntrospection                  = "token_introspection"
+	ClaimTenant                              = "tenant"
+	ClaimAudienceTenant                      = "aud_tenant"
 )
 
 // Claim Type strings.
@@ -144,6 +146,8 @@ const (
 	GrantTypeClientCredentials = "client_credentials"
 	GrantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code"
 	GrantTypeTokenExchange     = "urn:ietf:params:oauth:grant-type:token-exchange" //nolint:gosec
+	GrantTypeJWTBearer         = "urn:ietf:params:oauth:grant-type:jwt-bearer"     //nolint:gosec
+	GrantTypeJWTDPoP           = "urn:ietf:params:oauth:grant-type:jwt-dpop"
 )
 
 // RFC8693 Token Type URN strings.
@@ -153,6 +157,7 @@ const (
 	TokenTypeIDToken      = "urn:ietf:params:oauth:token-type:id_token"      //nolint:gosec // This is a token type identifier, not a credential.
 	TokenTypeTxnToken     = "urn:ietf:params:oauth:token-type:txn_token"     //nolint:gosec // This is a token type identifier, not a credential.
 	TokenTypeJWT          = "urn:ietf:params:oauth:token-type:jwt"           //nolint:gosec // This is a token type identifier, not a credential.
+	TokenTypeIDJAG        = "urn:ietf:params:oauth:token-type:id-jag"        //nolint:gosec // This is a token type identifier, not a credential.
 )
 
 // Client Auth Method strings.

@@ -3094,6 +3094,7 @@ paths:
                 - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientCredentialsFlow'
                 - $ref: '#/components/schemas/openid.spec.AccessRequest.DeviceCodeFlow'
                 - $ref: '#/components/schemas/openid.spec.AccessRequest.TokenExchangeFlow'
+                - $ref: '#/components/schemas/openid.spec.AccessRequest.JWTBearerFlow'
       responses:
         "200":
           description: OK
@@ -5729,6 +5730,16 @@ components:
               - 'private_key_jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
+        id_jag_signing_alg_values_supported:
+          description: >
+            JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Identity
+            Assertion JWT Authorization Grants. Only present when at least one Resource Authorization Server is
+            configured.
+          type: array
+          examples:
+            - - 'RS256'
+          items:
+            type: string
         token_endpoint_auth_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint for
@@ -6549,6 +6560,16 @@ components:
               - 'private_key_jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
+        id_jag_signing_alg_values_supported:
+          description: >
+            JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Identity
+            Assertion JWT Authorization Grants. Only present when at least one Resource Authorization Server is
+            configured.
+          type: array
+          examples:
+            - - 'RS256'
+          items:
+            type: string
         token_endpoint_auth_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint
@@ -7394,6 +7415,44 @@ components:
                 Space delimited list of the audience values requested for the tokens. The values must be permitted by
                 the audience option of the client.
               type: string
+    openid.spec.AccessRequest.JWTBearerFlow:
+      allOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
+        - type: object
+          required:
+            - 'grant_type'
+            - 'assertion'
+          properties:
+            grant_type:
+              description: >
+                Value MUST be set to "urn:ietf:params:oauth:grant-type:jwt-bearer"{{ if .DPoP }}, or to
+                "urn:ietf:params:oauth:grant-type:jwt-dpop" when the Identity Assertion JWT Authorization Grant is
+                DPoP bound, in which case a DPoP proof MUST be presented{{ end }}.
+              enum:
+                - 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+                {{- if .DPoP }}
+                - 'urn:ietf:params:oauth:grant-type:jwt-dpop'
+                {{- end }}
+              type: string
+            assertion:
+              description: >
+                An Identity Assertion JWT Authorization Grant (ID-JAG) issued by a trusted issuer. The requesting
+                client MUST be listed in the 'clients' option of the trusted issuer.
+              examples:
+                - '<identity assertion jwt authorization grant>'
+              type: string
+            scope:
+              description: >
+                The scope of the access request as described by Section 3.3. The requested scope MUST NOT exceed the
+                scope of the assertion.
+              examples:
+                - 'read'
+              type: string
+            resource:
+              description: >
+                The resource indicator of the access request. It MUST be governed by the trusted issuer.
+              type: string
+              format: uri
     openid.spec.AccessRequest.TokenExchangeFlow:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -7452,11 +7511,14 @@ components:
               description: >
                 An identifier for the type of the token the client is requesting. If omitted the default is
                 'urn:ietf:params:oauth:token-type:access_token'. The requesting client MUST permit this type via its
-                'request_token_types_supported' configuration option.
+                'request_token_types_supported' configuration option. The value
+                'urn:ietf:params:oauth:token-type:id-jag' requests an Identity Assertion JWT Authorization Grant, in
+                which case the 'audience' parameter MUST identify a configured Resource Authorization Server.
               enum:
                 - 'urn:ietf:params:oauth:token-type:access_token'
                 - 'urn:ietf:params:oauth:token-type:refresh_token'
                 - 'urn:ietf:params:oauth:token-type:id_token'
+                - 'urn:ietf:params:oauth:token-type:id-jag'
               examples:
                 - 'urn:ietf:params:oauth:token-type:access_token'
               type: string
@@ -7464,7 +7526,9 @@ components:
               description: >
                 The scope of the access request as described by Section 3.3. The requested scope MUST NOT exceed the
                 scope the requesting client is registered for, and if omitted is treated as equal to the scope of the
-                'subject_token'.
+                'subject_token'. When requesting an Identity Assertion JWT Authorization Grant the scopes are matched
+                against the scopes of the client's relationship with the Resource Authorization Server using the
+                client's scope strategy, and any scope not in the relationship is silently omitted from the grant.
               examples:
                 - 'openid profile groups'
               type: string
@@ -7555,6 +7619,7 @@ components:
             - 'urn:ietf:params:oauth:token-type:access_token'
             - 'urn:ietf:params:oauth:token-type:refresh_token'
             - 'urn:ietf:params:oauth:token-type:id_token'
+            - 'urn:ietf:params:oauth:token-type:id-jag'
           examples:
             - 'urn:ietf:params:oauth:token-type:access_token'
           type: string
@@ -7841,6 +7906,10 @@ components:
         - 'client_credentials'
         - "urn:ietf:params:oauth:grant-type:device_code"
         - "urn:ietf:params:oauth:grant-type:token-exchange"
+        - "urn:ietf:params:oauth:grant-type:jwt-bearer"
+        {{- if .DPoP }}
+        - "urn:ietf:params:oauth:grant-type:jwt-dpop"
+        {{- end }}
       examples:
         - 'authorization_code'
       type: string

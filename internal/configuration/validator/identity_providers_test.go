@@ -8,6 +8,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
@@ -844,7 +846,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', 'urn:ietf:params:oauth:grant-type:device_code', or 'urn:ietf:params:oauth:grant-type:token-exchange' but the values 'bad_grant_type' are present")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', 'urn:ietf:params:oauth:grant-type:device_code', 'urn:ietf:params:oauth:grant-type:token-exchange', 'urn:ietf:params:oauth:grant-type:jwt-bearer', or 'urn:ietf:params:oauth:grant-type:jwt-dpop' but the values 'bad_grant_type' are present")
 }
 
 //nolint:gosec // Test Credentials.
@@ -1962,7 +1964,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', 'urn:ietf:params:oauth:grant-type:device_code', or 'urn:ietf:params:oauth:grant-type:token-exchange' but the values 'invalid' are present",
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', 'urn:ietf:params:oauth:grant-type:device_code', 'urn:ietf:params:oauth:grant-type:token-exchange', 'urn:ietf:params:oauth:grant-type:jwt-bearer', or 'urn:ietf:params:oauth:grant-type:jwt-dpop' but the values 'invalid' are present",
 			},
 		},
 		{
@@ -8096,7 +8098,8 @@ func TestValidateOIDCTokenExchange(t *testing.T) {
 		rt     = "urn:ietf:params:oauth:token-type:refresh_token"
 		id     = "urn:ietf:params:oauth:token-type:id_token"
 		txn    = "urn:ietf:params:oauth:token-type:txn_token"
-		valid  = "'" + at + "', '" + rt + "', '" + id + "', or '" + txn + "'"
+		idjag  = "urn:ietf:params:oauth:token-type:id-jag"
+		valid  = "'" + at + "', '" + rt + "', '" + id + "', '" + txn + "', or '" + idjag + "'"
 	)
 
 	testCases := []struct {
@@ -8160,6 +8163,23 @@ func TestValidateOIDCTokenExchange(t *testing.T) {
 			nil,
 			nil,
 			[]string{prefix + "'default_requested_token_type' must not be '" + txn + "'"},
+		},
+		{
+			"ShouldRejectDefaultIDJAG",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, idjag}, DefaultRequestedTokenType: idjag},
+			nil,
+			nil,
+			[]string{
+				prefix + "'default_requested_token_type' must not be '" + idjag + "'",
+				prefix + "'token_types' includes '" + idjag + "' which requires the 'identity_assertion_authorization_grant' option 'resource_authorization_servers' to be configured",
+			},
+		},
+		{
+			"ShouldRejectIDJAGWithoutResourceAuthorizationServers",
+			schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{at, idjag}},
+			nil,
+			nil,
+			[]string{prefix + "'token_types' includes '" + idjag + "' which requires the 'identity_assertion_authorization_grant' option 'resource_authorization_servers' to be configured"},
 		},
 		{
 			"ShouldRejectTransactionTokensWithoutType",
@@ -8248,4 +8268,738 @@ func TestValidateOIDCTokenExchange(t *testing.T) {
 			}
 		})
 	}
+}
+
+func idjagTestURL(t *testing.T, raw string) *url.URL {
+	t.Helper()
+
+	u, err := url.Parse(raw)
+	require.NoError(t, err)
+
+	return u
+}
+
+func TestValidateIDJAGGlobalDefaults(t *testing.T) {
+	config := &schema.IdentityProvidersOpenIDConnect{}
+	validator := schema.NewStructValidator()
+
+	validateOIDCIDJAG(NewValidateCtx(), config, validator, nil)
+
+	assert.Empty(t, validator.Errors())
+	assert.Empty(t, validator.Warnings())
+	require.NotNil(t, config.IdentityAssertionAuthorizationGrant.SingleUse)
+	assert.True(t, *config.IdentityAssertionAuthorizationGrant.SingleUse)
+	assert.Equal(t, 5*time.Minute, config.IdentityAssertionAuthorizationGrant.Lifespan)
+	assert.Equal(t, time.Duration(0), config.IdentityAssertionAuthorizationGrant.AccessTokenAllowance)
+}
+
+func TestValidateIDJAGGlobal(t *testing.T) {
+	testCases := []struct {
+		name  string
+		have  schema.IdentityProvidersOpenIDConnectIDJAG
+		errs  []string
+		warns []string
+	}{
+		{"ShouldRejectNegativeLifespan", schema.IdentityProvidersOpenIDConnectIDJAG{Lifespan: -time.Second}, []string{"identity_providers: oidc: identity_assertion_authorization_grant: option 'lifespan' must be greater than 0 but it's configured as '-1s'"}, nil},
+		{"ShouldWarnLongLifespan", schema.IdentityProvidersOpenIDConnectIDJAG{Lifespan: 2 * time.Hour}, nil, []string{"identity_providers: oidc: identity_assertion_authorization_grant: option 'lifespan' is configured as '2h0m0s' which is longer than the recommended maximum of '1h' for a grant"}},
+		{"ShouldAllowOneHourLifespan", schema.IdentityProvidersOpenIDConnectIDJAG{Lifespan: time.Hour}, nil, nil},
+		{"ShouldRejectNegativeAccessTokenAllowance", schema.IdentityProvidersOpenIDConnectIDJAG{AccessTokenAllowance: -time.Second}, []string{"identity_providers: oidc: identity_assertion_authorization_grant: option 'access_token_allowance' must be greater than or equal to 0 but it's configured as '-1s'"}, nil},
+		{"ShouldKeepExplicitSingleUseFalse", schema.IdentityProvidersOpenIDConnectIDJAG{SingleUse: new(false)}, nil, nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{IdentityAssertionAuthorizationGrant: tc.have}
+			validator := schema.NewStructValidator()
+
+			validateOIDCIDJAG(NewValidateCtx(), config, validator, nil)
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+
+			require.Len(t, validator.Warnings(), len(tc.warns))
+
+			for i, expected := range tc.warns {
+				assert.EqualError(t, validator.Warnings()[i], expected)
+			}
+
+			if tc.have.SingleUse != nil {
+				assert.Equal(t, *tc.have.SingleUse, *config.IdentityAssertionAuthorizationGrant.SingleUse)
+			} else {
+				assert.True(t, *config.IdentityAssertionAuthorizationGrant.SingleUse)
+			}
+		})
+	}
+}
+
+func TestValidateIDJAGResourceAuthorizationServer(t *testing.T) {
+	const prefix = "identity_providers: oidc: identity_assertion_authorization_grant: resource_authorization_servers: server #1: option "
+
+	valid := func(mutate func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer)) schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer {
+		s := schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{
+			Issuer:          idjagTestURL(t, "https://ras.example.com"),
+			SubjectClientID: "subject",
+		}
+
+		if mutate != nil {
+			mutate(&s)
+		}
+
+		return s
+	}
+
+	testCases := []struct {
+		name     string
+		have     schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer
+		errs     []string
+		expected string
+	}{
+		{"ShouldAcceptValidAndDefaultSigningAlgorithm", valid(nil), nil, "RS256"},
+		{"ShouldAcceptConfiguredSigningAlgorithm", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.SigningAlgorithm = "ES256"
+		}), nil, "ES256"},
+		{"ShouldRejectMissingIssuer", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) { s.Issuer = nil }), []string{prefix + "'issuer' is required"}, "RS256"},
+		{"ShouldRejectHTTPIssuer", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.Issuer = idjagTestURL(t, "http://ras.example.com")
+		}), []string{prefix + "'issuer' must be an absolute URL with the 'https' scheme but it's configured as 'http://ras.example.com'"}, "RS256"},
+		{"ShouldRejectRelativeIssuer", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.Issuer = idjagTestURL(t, "/ras")
+		}), []string{prefix + "'issuer' must be an absolute URL with the 'https' scheme but it's configured as '/ras'"}, "RS256"},
+		{"ShouldRejectAutheliaIssuer", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.Issuer = idjagTestURL(t, "https://auth.example.com")
+		}), []string{prefix + "'issuer' must not be the same as the issuer of this provider but the value 'https://auth.example.com' is"}, "RS256"},
+		{"ShouldRejectUnsupportedSigningAlgorithm", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.SigningAlgorithm = "ES512"
+		}), []string{prefix + "'signing_algorithm' must be one of 'RS256' or 'ES256' but it's configured as 'ES512'"}, "ES512"},
+		{"ShouldRejectNegativeMaxAge", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.MaxAge = -time.Second
+		}), []string{prefix + "'max_age' must be greater than or equal to 0 but it's configured as '-1s'"}, "RS256"},
+		{"ShouldRejectMissingSubjectClientID", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) { s.SubjectClientID = "" }), []string{prefix + "'subject_client_id' is required"}, "RS256"},
+		{"ShouldRejectUnknownSubjectClientID", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.SubjectClientID = "nope"
+		}), []string{prefix + "'subject_client_id' must reference a registered client but the client 'nope' does not exist"}, "RS256"},
+		{"ShouldRejectUnknownClaimsPolicy", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.ClaimsPolicy = "nope"
+		}), []string{prefix + "'claims_policy' must reference a configured claims policy but the claims policy 'nope' does not exist"}, "RS256"},
+		{"ShouldAcceptKnownClaimsPolicy", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.ClaimsPolicy = "policy"
+		}), nil, "RS256"},
+		{"ShouldRejectEmptyAlias", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.Aliases = []string{""}
+		}), []string{prefix + "'aliases' must not contain empty values"}, "RS256"},
+		{"ShouldRejectAliasEqualToOwnIssuer", valid(func(s *schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer) {
+			s.Aliases = []string{"https://ras.example.com"}
+		}), []string{prefix + "'aliases' must be unique across the 'issuer' and 'aliases' options of all servers but the value 'https://ras.example.com' is configured multiple times"}, "RS256"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients:        []schema.IdentityProvidersOpenIDConnectClient{{ID: "subject"}},
+				ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{"policy": {}},
+				Discovery:      schema.IdentityProvidersOpenIDConnectDiscovery{ResponseObjectSigningAlgs: []string{"RS256", "ES256"}},
+				IdentityAssertionAuthorizationGrant: schema.IdentityProvidersOpenIDConnectIDJAG{
+					ResourceAuthorizationServers: []schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{tc.have},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCIDJAG(NewValidateCtx(), config, validator, []*url.URL{idjagTestURL(t, "https://auth.example.com")})
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+
+			assert.Equal(t, tc.expected, config.IdentityAssertionAuthorizationGrant.ResourceAuthorizationServers[0].SigningAlgorithm)
+		})
+	}
+}
+
+func TestValidateIDJAGResourceAuthorizationServerDuplicateIssuer(t *testing.T) {
+	config := &schema.IdentityProvidersOpenIDConnect{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{{ID: "subject"}},
+		IdentityAssertionAuthorizationGrant: schema.IdentityProvidersOpenIDConnectIDJAG{
+			ResourceAuthorizationServers: []schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{
+				{Issuer: idjagTestURL(t, "https://ras.example.com"), SubjectClientID: "subject"},
+				{Issuer: idjagTestURL(t, "https://ras.example.com"), SubjectClientID: "subject"},
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	validateOIDCIDJAG(NewValidateCtx(), config, validator, nil)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: identity_assertion_authorization_grant: resource_authorization_servers: server #2: option 'issuer' must be unique but the value 'https://ras.example.com' is configured multiple times")
+}
+
+func TestValidateIDJAGResourceAuthorizationServerAliasCollision(t *testing.T) {
+	config := &schema.IdentityProvidersOpenIDConnect{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{{ID: "subject"}},
+		IdentityAssertionAuthorizationGrant: schema.IdentityProvidersOpenIDConnectIDJAG{
+			ResourceAuthorizationServers: []schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{
+				{Issuer: idjagTestURL(t, "https://ras1.example.com"), SubjectClientID: "subject", Aliases: []string{"alias-one", "https://auth.example.com"}},
+				{Issuer: idjagTestURL(t, "https://ras2.example.com"), SubjectClientID: "subject", Aliases: []string{"https://ras1.example.com", "alias-one"}},
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	validateOIDCIDJAG(NewValidateCtx(), config, validator, []*url.URL{idjagTestURL(t, "https://auth.example.com")})
+
+	prefix := "identity_providers: oidc: identity_assertion_authorization_grant: resource_authorization_servers: server #%d: option "
+
+	errs := validator.Errors()
+	require.Len(t, errs, 3)
+	assert.EqualError(t, errs[0], fmt.Sprintf(prefix, 1)+"'aliases' must not be the same as the issuer of this provider but the value 'https://auth.example.com' is")
+	assert.EqualError(t, errs[1], fmt.Sprintf(prefix, 2)+"'aliases' must be unique across the 'issuer' and 'aliases' options of all servers but the value 'https://ras1.example.com' is configured multiple times")
+	assert.EqualError(t, errs[2], fmt.Sprintf(prefix, 2)+"'aliases' must be unique across the 'issuer' and 'aliases' options of all servers but the value 'alias-one' is configured multiple times")
+}
+
+func TestValidateOIDCClientIDJAGRelationships(t *testing.T) {
+	const prefix = "identity_providers: oidc: clients: client 'test': option "
+
+	ras := schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{Issuer: idjagTestURL(t, "https://ras.example.com"), SubjectClientID: "test"}
+
+	relationship := func(mutate func(r *schema.IdentityProvidersOpenIDConnectClientIDJAGRelationship)) schema.IdentityProvidersOpenIDConnectClientIDJAGRelationship {
+		r := schema.IdentityProvidersOpenIDConnectClientIDJAGRelationship{Issuer: idjagTestURL(t, "https://ras.example.com"), ClientID: "remote"}
+
+		if mutate != nil {
+			mutate(&r)
+		}
+
+		return r
+	}
+
+	client := func(mutate func(c *schema.IdentityProvidersOpenIDConnectClient)) schema.IdentityProvidersOpenIDConnectClient {
+		c := schema.IdentityProvidersOpenIDConnectClient{
+			ID:                         "test",
+			GrantTypes:                 []string{oidc.GrantTypeTokenExchange},
+			SubjectTokenTypesSupported: []string{oidc.TokenTypeIDToken},
+			RequestTokenTypesSupported: []string{oidc.TokenTypeIDJAG},
+			IDJAGRelationships:         []schema.IdentityProvidersOpenIDConnectClientIDJAGRelationship{relationship(nil)},
+		}
+
+		if mutate != nil {
+			mutate(&c)
+		}
+
+		return c
+	}
+
+	testCases := []struct {
+		name     string
+		have     schema.IdentityProvidersOpenIDConnectClient
+		errs     []string
+		expected func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnectClient)
+	}{
+		{"ShouldAcceptValid", client(nil), nil, nil},
+		{"ShouldAcceptRefreshTokenSubjectType", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.SubjectTokenTypesSupported = []string{oidc.TokenTypeRefreshToken}
+		}), nil, nil},
+		{"ShouldRejectMissingGrantType", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.GrantTypes = []string{oidc.GrantTypeAuthorizationCode}
+		}), []string{prefix + "'identity_assertion_authorization_grant_relationships' can only be configured when the 'grant_types' option contains 'urn:ietf:params:oauth:grant-type:token-exchange'"}, nil},
+		{"ShouldRejectMissingTokenType", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.RequestTokenTypesSupported = []string{oidc.TokenTypeAccessToken}
+		}), []string{prefix + "'identity_assertion_authorization_grant_relationships' can only be configured when the 'request_token_types_supported' option contains 'urn:ietf:params:oauth:token-type:id-jag'"}, nil},
+		{"ShouldRejectTokenTypeWithoutRelationships", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships = nil
+		}), []string{prefix + "'request_token_types_supported' contains 'urn:ietf:params:oauth:token-type:id-jag' which requires at least one 'identity_assertion_authorization_grant_relationships' entry"}, nil},
+		{"ShouldRejectBadSubjectTokenTypes", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.SubjectTokenTypesSupported = []string{oidc.TokenTypeAccessToken}
+		}), []string{prefix + "'subject_token_types_supported' must contain 'urn:ietf:params:oauth:token-type:id_token' or 'urn:ietf:params:oauth:token-type:refresh_token' when the 'request_token_types_supported' option contains 'urn:ietf:params:oauth:token-type:id-jag'"}, nil},
+		{"ShouldRejectUnknownIssuer", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships[0].Issuer = idjagTestURL(t, "https://other.example.com")
+		}), []string{prefix + "'identity_assertion_authorization_grant_relationships': relationship #1: option 'issuer' must reference a configured resource authorization server but 'https://other.example.com' does not match one"}, nil},
+		{"ShouldRejectMissingIssuer", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships[0].Issuer = nil
+		}), []string{prefix + "'identity_assertion_authorization_grant_relationships': relationship #1: option 'issuer' is required"}, nil},
+		{"ShouldRejectDuplicateIssuer", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships = append(c.IDJAGRelationships, relationship(nil))
+		}), []string{prefix + "'identity_assertion_authorization_grant_relationships': relationship #2: option 'issuer' must be unique but the value 'https://ras.example.com' is configured multiple times"}, nil},
+		{"ShouldRejectMissingClientID", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships[0].ClientID = ""
+		}), []string{prefix + "'identity_assertion_authorization_grant_relationships': relationship #1: option 'client_id' is required"}, nil},
+		{"ShouldRejectFragmentResource", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships[0].Resources = []string{"https://api.example.com/#frag"}
+		}), []string{prefix + "'identity_assertion_authorization_grant_relationships': relationship #1: option 'resources' must only contain absolute URIs without a fragment but the value 'https://api.example.com/#frag' is not"}, nil},
+		{"ShouldRejectRelativeResource", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships[0].Resources = []string{"/api"}
+		}), []string{prefix + "'identity_assertion_authorization_grant_relationships': relationship #1: option 'resources' must only contain absolute URIs without a fragment but the value '/api' is not"}, nil},
+		{"ShouldAcceptAbsoluteResource", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships[0].Resources = []string{"https://api.example.com/v1"}
+		}), nil, nil},
+		{"ShouldKeepConfiguredAuthorizationDetailsTypes", client(func(c *schema.IdentityProvidersOpenIDConnectClient) {
+			c.IDJAGRelationships[0].AuthorizationDetailsTypes = []string{"type"}
+		}), nil, func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnectClient) {
+			assert.Equal(t, []string{"type"}, actual.IDJAGRelationships[0].AuthorizationDetailsTypes)
+		}},
+		{"ShouldAcceptNoIDJAG", schema.IdentityProvidersOpenIDConnectClient{ID: "test"}, nil, nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients:                             []schema.IdentityProvidersOpenIDConnectClient{tc.have},
+				IdentityAssertionAuthorizationGrant: schema.IdentityProvidersOpenIDConnectIDJAG{ResourceAuthorizationServers: []schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{ras}},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientIDJAG(0, config, validator)
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+
+			if tc.expected != nil {
+				tc.expected(t, &config.Clients[0])
+			}
+		})
+	}
+}
+
+func TestValidateOIDCClientIDJAGRequestTokenType(t *testing.T) {
+	const prefix = "identity_providers: oidc: clients: client 'test': option "
+
+	enabled := []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken, oidc.TokenTypeIDJAG}
+
+	testCases := []struct {
+		name   string
+		types  []string
+		client schema.IdentityProvidersOpenIDConnectClient
+		errs   []string
+	}{
+		{
+			"ShouldAcceptRequestTokenTypeWhenEnabled",
+			enabled,
+			schema.IdentityProvidersOpenIDConnectClient{RequestTokenTypesSupported: []string{oidc.TokenTypeIDJAG}},
+			nil,
+		},
+		{
+			"ShouldRejectRequestTokenTypeWhenNotEnabled",
+			[]string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken},
+			schema.IdentityProvidersOpenIDConnectClient{RequestTokenTypesSupported: []string{oidc.TokenTypeIDJAG}},
+			[]string{prefix + "'request_token_types_supported' must only contain token types enabled by 'token_exchange: token_types' but it has 'urn:ietf:params:oauth:token-type:id-jag'"},
+		},
+		{
+			"ShouldRejectSubjectTokenType",
+			enabled,
+			schema.IdentityProvidersOpenIDConnectClient{SubjectTokenTypesSupported: []string{oidc.TokenTypeIDToken, oidc.TokenTypeIDJAG}},
+			[]string{prefix + "'subject_token_types_supported' must not contain the 'urn:ietf:params:oauth:token-type:id-jag' value as Identity Assertion JWT Authorization Grants cannot be exchanged"},
+		},
+		{
+			"ShouldRejectActorTokenType",
+			enabled,
+			schema.IdentityProvidersOpenIDConnectClient{ActorTokenTypesSupported: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeIDJAG}},
+			[]string{prefix + "'actor_token_types_supported' must not contain the 'urn:ietf:params:oauth:token-type:id-jag' value as Identity Assertion JWT Authorization Grants cannot be exchanged"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := tc.client
+			client.ID = "test"
+			client.GrantTypes = []string{oidc.GrantTypeTokenExchange}
+
+			config := &schema.IdentityProvidersOpenIDConnect{
+				TokenExchange: schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: tc.types, DefaultRequestedTokenType: oidc.TokenTypeAccessToken},
+				Clients:       []schema.IdentityProvidersOpenIDConnectClient{client},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientTokenExchange(0, config, validator)
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+		})
+	}
+}
+
+func TestValidateOIDCTokenExchangeIDJAG(t *testing.T) {
+	const (
+		at    = "urn:ietf:params:oauth:token-type:access_token"
+		rt    = "urn:ietf:params:oauth:token-type:refresh_token"
+		id    = "urn:ietf:params:oauth:token-type:id_token"
+		idjag = "urn:ietf:params:oauth:token-type:id-jag"
+	)
+
+	testCases := []struct {
+		name   string
+		types  []string
+		ras    bool
+		errors []string
+	}{
+		{"ShouldAcceptListedWithResourceAuthorizationServers", []string{at, rt, id, idjag}, true, nil},
+		{"ShouldAcceptNeither", []string{at, rt, id}, false, nil},
+		{
+			"ShouldRejectResourceAuthorizationServersWhenNotListed",
+			[]string{at, rt, id},
+			true,
+			[]string{"identity_providers: oidc: identity_assertion_authorization_grant: option 'resource_authorization_servers' must not be configured when the 'token_exchange' option 'token_types' does not include '" + idjag + "'"},
+		},
+		{
+			"ShouldRejectResourceAuthorizationServersWhenDefaulted",
+			nil,
+			true,
+			[]string{"identity_providers: oidc: identity_assertion_authorization_grant: option 'resource_authorization_servers' must not be configured when the 'token_exchange' option 'token_types' does not include '" + idjag + "'"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:       "abc",
+						IssuerPrivateKey: keyRSA2048,
+						TokenExchange:    schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: tc.types},
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "good_id",
+								Secret:              tOpenIDConnectPBKDF2ClientSecret,
+								AuthorizationPolicy: "two_factor",
+								RedirectURIs:        []string{"https://google.com/callback"},
+							},
+						},
+					},
+				},
+			}
+
+			if tc.ras {
+				config.IdentityProviders.OIDC.IdentityAssertionAuthorizationGrant.ResourceAuthorizationServers = []schema.IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer{
+					{Issuer: idjagTestURL(t, "https://ras.example.com"), SubjectClientID: "good_id"},
+				}
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			require.Len(t, validator.Errors(), len(tc.errors))
+
+			for i, expected := range tc.errors {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+		})
+	}
+}
+
+func TestValidateIDJAGTrustedIssuers(t *testing.T) {
+	const prefix = "identity_providers: oidc: identity_assertion_authorization_grant: trusted_issuers: issuer #1: option "
+
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	valid := func(mutate func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer)) schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer {
+		i := schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{
+			Issuer:         idjagTestURL(t, "https://idp.example.com"),
+			JSONWebKeysURI: idjagTestURL(t, "https://idp.example.com/jwks.json"),
+			Clients:        []string{"bearer"},
+			UsernameClaim:  "preferred_username",
+		}
+
+		if mutate != nil {
+			mutate(&i)
+		}
+
+		return i
+	}
+
+	testCases := []struct {
+		name     string
+		have     schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer
+		errs     []string
+		expected []string
+	}{
+		{"ShouldAcceptValidAndDefaultAlgorithms", valid(nil), nil, []string{"RS256"}},
+		{"ShouldAcceptStaticKeys", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k", Use: "sig", Algorithm: "ES256", Key: &key.PublicKey}}
+			i.SigningAlgorithms = []string{"ES256", "PS512"}
+		}), nil, []string{"ES256", "PS512"}},
+		{"ShouldRejectMissingIssuer", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.Issuer = nil }), []string{prefix + "'issuer' is required"}, []string{"RS256"}},
+		{"ShouldRejectAutheliaIssuer", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.Issuer = idjagTestURL(t, "https://auth.example.com")
+		}), []string{prefix + "'issuer' must not be the same as the issuer of this provider but the value 'https://auth.example.com' is"}, []string{"RS256"}},
+		{"ShouldRejectBothJWKSAndURI", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k", Use: "sig", Algorithm: "ES256", Key: &key.PublicKey}}
+		}), []string{prefix + "'jwks' and 'jwks_uri' are mutually exclusive but both are configured"}, []string{"RS256"}},
+		{"ShouldRejectNeitherJWKSNorURI", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.JSONWebKeysURI = nil }), []string{prefix + "one of 'jwks' or 'jwks_uri' is required"}, []string{"RS256"}},
+		{"ShouldRejectInsecureJWKSURI", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = idjagTestURL(t, "http://idp.example.com/jwks.json")
+		}), []string{prefix + "'jwks_uri' must have the 'https' scheme but the scheme is 'http'"}, []string{"RS256"}},
+		{"ShouldRejectJWKWithoutKey", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k"}}
+		}), []string{prefix + "'jwks': key #1 with key id 'k': option 'key' must be provided"}, []string{"RS256"}},
+		{"ShouldRejectEmptyJWKSURIHost", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = idjagTestURL(t, "https:///jwks.json")
+		}), []string{prefix + "'jwks_uri' must have a host"}, []string{"RS256"}},
+		{"ShouldRejectUndersizedRSAKey", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k", Use: "sig", Algorithm: "RS256", Key: keyRSA1024.Public()}}
+		}), []string{prefix + "'jwks': key #1 with key id 'k': option 'key' is an RSA 1024 bit private key but it must at minimum be a RSA 2048 bit private key"}, []string{"RS256"}},
+		{"ShouldAcceptRSA2048Key", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k", Key: keyRSA2048.Public(), CertificateChain: certRSA2048}}
+		}), nil, []string{"RS256"}},
+		{"ShouldRejectEncryptionUseKey", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k", Use: "enc", Algorithm: "RS256", Key: keyRSA2048.Public()}}
+		}), []string{prefix + "'jwks': key #1 with key id 'k': option 'use' must be one of 'sig' but it's configured as 'enc'"}, []string{"RS256"}},
+		{"ShouldRejectDisallowedKeyAlgorithm", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k", Use: "sig", Algorithm: "EdDSA", Key: &key.PublicKey}}
+		}), []string{prefix + "'jwks': key #1 with key id 'k': option 'algorithm' must be one of 'RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512', 'ES256', 'ES384', or 'ES512' but it's configured as 'EdDSA'", prefix + "'jwks': key #1 with key id 'k': option 'key' is not usable: the 'EdDSA' algorithm requires an Ed25519 key but the key is a ECDSA P-256 key"}, []string{"RS256"}},
+		{"ShouldRejectMissingKeyID", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{Key: &key.PublicKey}}
+		}), []string{prefix + "'jwks': key #1: option 'key_id' must be provided"}, []string{"RS256"}},
+		{"ShouldRejectDuplicateKeyID", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k", Key: &key.PublicKey}, {KeyID: "k", Key: &key.PublicKey}}
+		}), []string{prefix + "'jwks': key #2: option 'key_id' must be unique but the value 'k' is configured multiple times"}, []string{"RS256"}},
+		{"ShouldRejectMismatchedCertificate", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.JSONWebKeysURI = nil
+			i.JSONWebKeys = []schema.JWK{{KeyID: "k", Use: "sig", Algorithm: "RS256", Key: keyRSA2048Legacy.Public(), CertificateChain: certRSA1024}}
+		}), []string{prefix + "'jwks': key #1 with key id 'k': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"}, []string{"RS256"}},
+		{"ShouldRejectInvalidSigningAlgorithm", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.SigningAlgorithms = []string{"HS256", "EdDSA"}
+		}), []string{
+			prefix + "'signing_algorithms' must only contain 'RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512', 'ES256', 'ES384', or 'ES512' but it contains 'HS256'",
+			prefix + "'signing_algorithms' must only contain 'RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512', 'ES256', 'ES384', or 'ES512' but it contains 'EdDSA'",
+		}, []string{"HS256", "EdDSA"}},
+		{"ShouldRejectEmptyClients", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.Clients = nil }), []string{prefix + "'clients' must contain at least one client"}, []string{"RS256"}},
+		{"ShouldRejectUnknownClient", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.Clients = []string{"nope"} }), []string{prefix + "'clients' must only reference registered clients but the client 'nope' does not exist"}, []string{"RS256"}},
+		{"ShouldRejectPublicClient", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.Clients = []string{"public"} }), []string{prefix + "'clients' must only reference confidential clients but the client 'public' is public"}, []string{"RS256"}},
+		{"ShouldRejectUnauthenticatedClient", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.Clients = []string{"none"} }), []string{prefix + "'clients' must only reference clients which authenticate at the token endpoint but the client 'none' has a 'token_endpoint_auth_method' of 'none'"}, []string{"RS256"}},
+		{"ShouldRejectClientWithoutGrantType", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.Clients = []string{"plain"} }), []string{prefix + "'clients' must only reference clients which have the 'grant_types' option containing 'urn:ietf:params:oauth:grant-type:jwt-bearer' or 'urn:ietf:params:oauth:grant-type:jwt-dpop' but the client 'plain' does not"}, []string{"RS256"}},
+		{"ShouldRejectRelativeResource", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.Resources = []string{"/relative"} }), []string{prefix + "'resources' must only contain absolute URIs but the value '/relative' is not"}, []string{"RS256"}},
+		{"ShouldAcceptAbsoluteResource", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.Resources = []string{"https://api.example.com"}
+		}), nil, []string{"RS256"}},
+		{"ShouldRejectMissingUsernameClaim", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) { i.UsernameClaim = "" }), []string{prefix + "'username_claim' is required"}, []string{"RS256"}},
+		{"ShouldAcceptAMRExpression", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.AuthenticationMethodsReferences = `'mfa' in claims.amr ? ['pwd', 'otp'] : ['pwd']`
+		}), nil, []string{"RS256"}},
+		{"ShouldRejectBadAMRExpression", valid(func(i *schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer) {
+			i.AuthenticationMethodsReferences = `'two_factor'`
+		}), []string{prefix + "'authentication_methods_references' is not a valid expression: expected the output type to be a list of strings but it was 'string'"}, []string{"RS256"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{ID: "bearer", GrantTypes: []string{oidc.GrantTypeJWTBearer}},
+					{ID: "public", Public: true, GrantTypes: []string{oidc.GrantTypeAuthorizationCode}},
+					{ID: "plain", GrantTypes: []string{oidc.GrantTypeAuthorizationCode}},
+					{ID: "none", TokenEndpointAuthMethod: oidc.ClientAuthMethodNone, ResponseTypes: []string{oidc.ResponseTypeImplicitFlowIDToken}, GrantTypes: []string{oidc.GrantTypeImplicit}},
+				},
+				IdentityAssertionAuthorizationGrant: schema.IdentityProvidersOpenIDConnectIDJAG{
+					TrustedIssuers: []schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{tc.have, {
+						Issuer:         idjagTestURL(t, "https://anchor.example.com"),
+						JSONWebKeysURI: idjagTestURL(t, "https://anchor.example.com/jwks.json"),
+						Clients:        []string{"bearer"},
+						UsernameClaim:  "sub",
+					}},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCIDJAG(NewValidateCtx(), config, validator, []*url.URL{idjagTestURL(t, "https://auth.example.com")})
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+
+			assert.Equal(t, tc.expected, config.IdentityAssertionAuthorizationGrant.TrustedIssuers[0].SigningAlgorithms)
+		})
+	}
+}
+
+func TestValidateIDJAGTrustedIssuersResolvedConsentMode(t *testing.T) {
+	const prefix = "identity_providers: oidc: identity_assertion_authorization_grant: trusted_issuers: issuer #1: option "
+
+	testCases := []struct {
+		name     string
+		mode     string
+		duration *time.Duration
+		errs     []string
+	}{
+		{"ShouldRejectExplicit", "explicit", nil, []string{prefix + "'clients' must only reference clients which have a 'consent_mode' of 'implicit' or 'pre-configured' but the client 'bearer' has a 'consent_mode' of 'explicit'"}},
+		{"ShouldRejectAutoResolvingToExplicit", "auto", nil, []string{prefix + "'clients' must only reference clients which have a 'consent_mode' of 'implicit' or 'pre-configured' but the client 'bearer' has a 'consent_mode' of 'explicit'"}},
+		{"ShouldRejectEmptyResolvingToExplicit", "", nil, []string{prefix + "'clients' must only reference clients which have a 'consent_mode' of 'implicit' or 'pre-configured' but the client 'bearer' has a 'consent_mode' of 'explicit'"}},
+		{"ShouldAcceptAutoResolvingToPreConfigured", "auto", new(time.Hour), nil},
+		{"ShouldAcceptImplicit", "implicit", nil, nil},
+		{"ShouldAcceptPreConfigured", "pre-configured", nil, nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{{ID: "bearer", GrantTypes: []string{oidc.GrantTypeJWTBearer}, ConsentMode: tc.mode, ConsentPreConfiguredDuration: tc.duration}},
+				IdentityAssertionAuthorizationGrant: schema.IdentityProvidersOpenIDConnectIDJAG{
+					TrustedIssuers: []schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{
+						{Issuer: idjagTestURL(t, "https://idp.example.com"), JSONWebKeysURI: idjagTestURL(t, "https://idp.example.com/jwks"), Clients: []string{"bearer"}, UsernameClaim: "sub"},
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientConsentMode(0, config, validator, true)
+			validateOIDCIDJAG(NewValidateCtx(), config, validator, nil)
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+		})
+	}
+}
+
+func TestValidateIDJAGTrustedIssuersPolicyUnsatisfiable(t *testing.T) {
+	const prefix = "identity_providers: oidc: identity_assertion_authorization_grant: trusted_issuers: issuer #1: option "
+
+	policies := map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+		"strict":  {DefaultPolicy: policyTwoFactor, Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{{Policy: policyDeny}}},
+		"mixed":   {DefaultPolicy: policyTwoFactor, Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{{Policy: policyOneFactor}}},
+		"lenient": {DefaultPolicy: policyOneFactor},
+	}
+
+	testCases := []struct {
+		name     string
+		policy   string
+		amr      string
+		warnings []string
+	}{
+		{"ShouldWarnTwoFactor", policyTwoFactor, "", []string{prefix + "'clients' references the client 'bearer' which has an 'authorization_policy' of 'two_factor' that never permits one factor authentication but 'authentication_methods_references' is not configured, so grants from this issuer will always be rejected for this client"}},
+		{"ShouldWarnCustomPolicyWithoutOneFactor", "strict", "", []string{prefix + "'clients' references the client 'bearer' which has an 'authorization_policy' of 'strict' that never permits one factor authentication but 'authentication_methods_references' is not configured, so grants from this issuer will always be rejected for this client"}},
+		{"ShouldNotWarnTwoFactorWithAMR", policyTwoFactor, "['pwd', 'otp']", nil},
+		{"ShouldNotWarnOneFactor", policyOneFactor, "", nil},
+		{"ShouldNotWarnCustomPolicyRuleOneFactor", "mixed", "", nil},
+		{"ShouldNotWarnCustomPolicyDefaultOneFactor", "lenient", "", nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				AuthorizationPolicies: policies,
+				Clients:               []schema.IdentityProvidersOpenIDConnectClient{{ID: "bearer", GrantTypes: []string{oidc.GrantTypeJWTBearer}, ConsentMode: "implicit", AuthorizationPolicy: tc.policy}},
+				IdentityAssertionAuthorizationGrant: schema.IdentityProvidersOpenIDConnectIDJAG{
+					TrustedIssuers: []schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{
+						{Issuer: idjagTestURL(t, "https://idp.example.com"), JSONWebKeysURI: idjagTestURL(t, "https://idp.example.com/jwks"), Clients: []string{"bearer"}, UsernameClaim: "sub", AuthenticationMethodsReferences: tc.amr},
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCIDJAG(NewValidateCtx(), config, validator, nil)
+
+			assert.Len(t, validator.Errors(), 0)
+			require.Len(t, validator.Warnings(), len(tc.warnings))
+
+			for i, expected := range tc.warnings {
+				assert.EqualError(t, validator.Warnings()[i], expected)
+			}
+		})
+	}
+}
+
+func TestValidateIDJAGTrustedIssuersDuplicateIssuer(t *testing.T) {
+	config := &schema.IdentityProvidersOpenIDConnect{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{{ID: "bearer", GrantTypes: []string{oidc.GrantTypeJWTBearer}}},
+		IdentityAssertionAuthorizationGrant: schema.IdentityProvidersOpenIDConnectIDJAG{
+			TrustedIssuers: []schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{
+				{Issuer: idjagTestURL(t, "https://idp.example.com"), JSONWebKeysURI: idjagTestURL(t, "https://idp.example.com/jwks"), Clients: []string{"bearer"}, UsernameClaim: "sub"},
+				{Issuer: idjagTestURL(t, "https://idp.example.com"), JSONWebKeysURI: idjagTestURL(t, "https://idp.example.com/jwks"), Clients: []string{"bearer"}, UsernameClaim: "sub"},
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	validateOIDCIDJAG(NewValidateCtx(), config, validator, nil)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: identity_assertion_authorization_grant: trusted_issuers: issuer #2: option 'issuer' must be unique but the value 'https://idp.example.com' is configured multiple times")
+}
+
+func TestValidateOIDCClientIDJAGGrantTypes(t *testing.T) {
+	trusted := func(clients ...string) schema.IdentityProvidersOpenIDConnectIDJAG {
+		return schema.IdentityProvidersOpenIDConnectIDJAG{
+			TrustedIssuers: []schema.IdentityProvidersOpenIDConnectIDJAGTrustedIssuer{
+				{Issuer: idjagTestURL(t, "https://idp.example.com"), JSONWebKeysURI: idjagTestURL(t, "https://idp.example.com/jwks"), Clients: append([]string{"listed"}, clients...), UsernameClaim: "sub"},
+			},
+		}
+	}
+
+	testCases := []struct {
+		name      string
+		grantType string
+		dpop      bool
+		idjag     schema.IdentityProvidersOpenIDConnectIDJAG
+		errs      []string
+	}{
+		{"ShouldAcceptJWTBearerListed", oidc.GrantTypeJWTBearer, false, trusted("test"), nil},
+		{"ShouldAcceptJWTDPoPListedWithDPoP", oidc.GrantTypeJWTDPoP, true, trusted("test"), nil},
+		{"ShouldRejectJWTBearerNotListed", oidc.GrantTypeJWTBearer, false, trusted(), []string{"identity_providers: oidc: clients: client 'test': option 'grant_types' contains 'urn:ietf:params:oauth:grant-type:jwt-bearer' which requires the client to be listed in the 'clients' option of at least one trusted issuer"}},
+		{"ShouldRejectJWTDPoPWithoutDPoP", oidc.GrantTypeJWTDPoP, false, trusted("test"), []string{"identity_providers: oidc: clients: client 'test': option 'grant_types' contains 'urn:ietf:params:oauth:grant-type:jwt-dpop' which requires the 'dpop' option 'enabled' to be true"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: tc.dpop},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{ID: "test", GrantTypes: []string{tc.grantType}},
+					{ID: "listed", GrantTypes: []string{oidc.GrantTypeJWTBearer}},
+				},
+				IdentityAssertionAuthorizationGrant: tc.idjag,
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCIDJAG(NewValidateCtx(), config, validator, nil)
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, expected := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+		})
+	}
+
+	t.Run("ShouldAcceptGrantTypesAsValid", func(t *testing.T) {
+		config := &schema.IdentityProvidersOpenIDConnect{
+			Clients: []schema.IdentityProvidersOpenIDConnectClient{{ID: "test", GrantTypes: []string{oidc.GrantTypeJWTBearer, oidc.GrantTypeJWTDPoP}}},
+		}
+
+		validator := schema.NewStructValidator()
+
+		validateOIDCClientGrantTypes(0, config, validator, false, func() {})
+
+		assert.Empty(t, validator.Errors())
+	})
 }
