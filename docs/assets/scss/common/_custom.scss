@@ -101,6 +101,9 @@ a:hover.confkey-syntax {
 
 .confkey-default {
   background-color: $blue;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
 }
 
 .confkey-required {
