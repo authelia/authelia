@@ -46,12 +46,16 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier_uri: 'https://{{< sitevar name="domain" nojs="example.com" >}}/sector.json'
         public: false
+        application_type: 'web'
         redirect_uris:
           - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/callback'
         request_uris:
           - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oidc/request-object.jwk'
         audience:
           - 'https://app.{{< sitevar name="domain" nojs="example.com" >}}'
+        resource:
+          - 'https://api.{{< sitevar name="domain" nojs="example.com" >}}'
+        introspection_audience: []
         scopes:
           - 'openid'
           - 'groups'
@@ -70,12 +74,16 @@ identity_providers:
         lifespan: ''
         claims_policy: ''
         requested_audience_mode: 'explicit'
+        requested_resource_mode: 'explicit'
+        audience_strategy: ''
+        resource_strategy: ''
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
         require_pushed_authorization_requests: false
         require_signed_request_object: false
         require_pkce: false
         pkce_challenge_method: 'S256'
+        disable_refresh_token_rotation: false
         authorization_signed_response_key_id: ''
         authorization_signed_response_alg: 'RS256'
         authorization_encrypted_response_key_id: ''
@@ -226,6 +234,57 @@ This enables the public client type for this client. This is for clients that ar
 confidentiality of credentials, you can read more about client types in [RFC6749 Section 2.1]. This is particularly
 useful for SPA's and CLI tools. This option requires setting the [client secret](#client_secret) to a blank string.
 
+As a private-use URI scheme or a loopback redirect URI does not prove the identity of a public client, as described in
+[RFC8252 Section 8.6](https://datatracker.ietf.org/doc/html/rfc8252#section-8.6), an authorization request from a public
+client with the `prompt` value `none` is only processed without user interaction when its redirect URI uses the
+`https` scheme and a host which is not a loopback address or `localhost`. Otherwise the client receives the
+`consent_required` error. Public clients are also unable to use the hybrid flow with a redirect URI which is not
+considered secure.
+
+For the same reason a public client is always required to provide explicit consent, regardless of the
+[consent_mode](#consent_mode), unless the redirect URI of the authorization request uses the `https` scheme and a host
+which is not a loopback address or `localhost`, and the consent can not be remembered. See
+[RFC10017 Section 6.3.3.2](https://datatracker.ietf.org/doc/html/rfc10017#section-6.3.3.2).
+
+### application_type
+
+{{< confkey type="string" default="web" required="no" >}}
+
+The kind of application the client is as defined by the `application_type` metadata of
+[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+The value must be either `web` or `native`.
+
+A `native` application is an application installed on the device of the user such as a desktop or mobile application.
+Native applications which receive the authorization response on the loopback interface listen on a port which is
+assigned by the operating system when the authorization request is made, so a registered loopback redirect URI matches
+a requested redirect URI with the same scheme, host, and path on any port only when the client is a `native`
+application as described by [RFC8252 Section 7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3). For
+example the registered redirect URI `http://127.0.0.1/callback` matches the requested redirect URI
+`http://127.0.0.1:51004/callback`. A `web` application, whether it is a [public](#public) or a confidential client, must
+request a loopback redirect URI with exactly the registered port.
+
+When this option is not configured it is `native` if the client is a [public](#public) client which does not use the
+`implicit` [grant type](#grant_types) and has a [redirect URI](#redirect_uris) which is a loopback redirect URI using
+the `http` scheme, uses a private-use URI scheme, or is `urn:ietf:wg:oauth:2.0:oob`. Otherwise it is `web`.
+
+The following additional rules apply to `native` applications:
+
+1. [PKCE](provider.md#enforce_pkce) is required unless the [enforce_pkce](provider.md#enforce_pkce) option is `never`,
+   whether or not the client is a [public](#public) client, as described by
+   [RFC8252 Section 8.1](https://datatracker.ietf.org/doc/html/rfc8252#section-8.1).
+2. The `implicit` [grant type](#grant_types), and therefore any [response type](#response_types) which returns an
+   `id_token` or `token` from the authorization endpoint, is not permitted as the implicit flow can not be protected by
+   PKCE as described by [RFC8252 Section 8.2](https://datatracker.ietf.org/doc/html/rfc8252#section-8.2).
+3. When this option is explicitly configured as `native` a warning is logged at startup for a loopback
+   [redirect URI](#redirect_uris) which uses a name such as `localhost` instead of the `127.0.0.1` or `[::1]` loopback
+   IP address as described by [RFC8252 Section 7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3), and for
+   a private-use URI scheme which is not a domain name under the control of the application expressed in reverse order
+   such as `com.example.app` as described by
+   [RFC8252 Section 7.1](https://datatracker.ietf.org/doc/html/rfc8252#section-7.1).
+
+A warning is logged at startup for a `web` application with a [redirect URI](#redirect_uris) which uses a private-use URI
+scheme, as only native applications receive the authorization response this way.
+
 ### redirect_uris
 
 {{< confkey type="list(string)" required="yes" >}}
@@ -240,7 +299,15 @@ their redirect URIs are as follows:
 1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
    attempt to authorize will fail and an error will be generated.
 2. The redirect URIs are case-sensitive.
-3. The URI must include a scheme and that scheme must be one of `http` or `https`.
+3. The URI must include a scheme. Any scheme other than `http` or `https` is a private-use URI scheme which is only
+   expected for a `native` [application_type](#application_type).
+4. The `http` scheme may only be used when the host is a loopback address such as `127.0.0.1` or `[::1]`, or is
+   `localhost` or a name ending in `.localhost`, as required by
+   [RFC9700 Section 2.6](https://datatracker.ietf.org/doc/html/rfc9700#section-2.6). This applies to both public and
+   confidential clients, and authorization requests using any other `http` redirect URI will be rejected. A warning is
+   logged at startup for each redirect URI which does not meet this requirement.
+5. The port of a loopback redirect URI must match the registered port exactly unless the
+   [application_type](#application_type) is `native`, in which case any port is permitted.
 
 ### request_uris
 
@@ -263,6 +330,51 @@ the [requested_audience_mode](#requested_audience_mode).
 This value should not generally affect the minted ID Tokens as the audience specifically applies to Access Tokens, and
 ID Tokens are always meant to be minted with the client identifier being the audience. You can tune this behavior using
 the [claims policy](#claims_policy).
+
+The values of this option are only compared with the `audience` parameter. The values a client is allowed to request
+using the `resource` parameter are configured using the [resource](#resource) option.
+
+### resource
+
+{{< confkey type="list(string)" required="no" >}}
+
+A whitelist of [RFC8707](https://datatracker.ietf.org/doc/html/rfc8707) resource indicators this client is allowed to
+request using the `resource` parameter and be granted. Each value must be an absolute URI, i.e. it must have a scheme,
+and must not include a fragment as described in
+[RFC8707 Section 2](https://datatracker.ietf.org/doc/html/rfc8707#section-2).
+
+By default the requested resource must exactly match a value. When using the `prefix`
+[resource_strategy](#resource_strategy) the requested resource only matches a value with the same scheme, host, and query, and a path equal to or beneath the path of the value on a segment boundary. For
+example the value `https://api.{{< sitevar name="domain" nojs="example.com" >}}/v1`
+allows the client to request `https://api.{{< sitevar name="domain" nojs="example.com" >}}/v1` and
+`https://api.{{< sitevar name="domain" nojs="example.com" >}}/v1/users`, but not
+`https://api.{{< sitevar name="domain" nojs="example.com" >}}/v10`. A requested resource which includes userinfo, a
+fragment, a dot segment such as `..`, or an encoded slash in its path never matches, and a value which includes any of
+these can not be requested.
+
+The values of the [audience](#audience) option are not considered when a resource is requested, a resource which is
+only configured as an audience is refused with the `invalid_target` error.
+
+The resource can be requested by the client specifically or can be implicitly requested. This behavior can be tuned
+using the [requested_resource_mode](#requested_resource_mode).
+
+The way the requested resource is matched against these values can be tuned using the
+[resource_strategy](#resource_strategy).
+
+### introspection_audience
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of [audience](#audience) and [resource](#resource) values this client serves as a resource server, which
+controls which tokens it is permitted to introspect at the
+[RFC7662](https://datatracker.ietf.org/doc/html/rfc7662) introspection endpoint as described in
+[RFC7662 Section 4](https://datatracker.ietf.org/doc/html/rfc7662#section-4).
+
+When this option is not configured the client may only introspect the tokens issued to it. When it is configured the
+client is treated as a resource server and may only introspect the tokens whose granted audience or granted resource
+includes one of these values, which no longer includes the tokens issued to it unless they were also granted one of
+these values. Values must match exactly. A token which the client is not permitted to introspect is reported as
+inactive.
 
 ### scopes
 
@@ -293,6 +405,11 @@ granted tokens.
 See the [Grant Types](../../../integration/openid-connect/introduction.md#grant-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#grant-types) for more information.
 
+The `implicit` grant type is required when the [response_types](#response_types) include any response type which
+returns an `id_token` or `token` from the Authorization Endpoint, which includes every hybrid flow response type, and
+the `authorization_code` grant type is also required for the hybrid flow response types. A configuration which does not
+meet these requirements is rejected at startup.
+
 ### response_types
 
 {{< confkey type="list(string)" default="code" required="no" >}}
@@ -307,6 +424,8 @@ error will be returned to the client. The response type indicates the types of v
 
 See the [Response Types](../../../integration/openid-connect/introduction.md#response-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#response-types) for more information.
+
+A hybrid flow request whose response type includes `id_token` is refused unless the `openid` scope is granted.
 
 ### response_modes
 
@@ -327,6 +446,16 @@ The default values are based on the [response_types](#response_types) values. Wh
 values include the `code` type then the `query` response mode will be included. When any other type is included the
 `fragment` response mode will be included. It's important to note at this time we do not support the `none` response
 type, but when it is supported it will include the `query` response mode.
+
+When this list excludes the default response mode of a requested response type, which is `query` for the `code` type and
+`fragment` for every other type, the client must explicitly request one of the listed response modes using the
+`response_mode` parameter, as an authorization request which omits it is refused with an `unsupported_response_mode`
+error. A warning is logged at startup for each client configured this way.
+
+The `query.jwt` response mode can only be used with a response type which includes `token` or `id_token` when the
+[authorization_encrypted_response_alg](#authorization_encrypted_response_alg) is configured, as
+[JARM Section 2.3.1](https://openid.net/specs/oauth-v2-jarm.html#section-2.3.1) forbids placing these tokens in the
+query of the redirect URI unless the response is encrypted.
 
 ### authorization_policy
 
@@ -391,6 +520,47 @@ the audience.
 | explicit |            Requires the client explicitly requests an audiences for an audience to be included in the issued tokens             |
 | implicit | Assumes if the client is requesting all audiences it is permitted to request if the audience and resource parameters are absent |
 
+When this is `implicit` the values of the [audience](#audience) option are granted as they are configured, so they must
+not contain wildcard values ending with `/*` when the effective [audience_strategy](#audience_strategy) is `wildcard`.
+
+### requested_resource_mode
+
+{{< confkey type="string" default="explicit" required="no" >}}
+
+Controls the effective [RFC8707](https://datatracker.ietf.org/doc/html/rfc8707) resources the client has requested.
+The following table describes the possible values and their behavior. The resources the client is permitted to request
+are configured using the [resource](#resource) option.
+
+|  Value   |                                                           Description                                                           |
+| :------: | :-----------------------------------------------------------------------------------------------------------------------------: |
+| explicit |              Requires the client explicitly requests a resource for a resource to be included in the issued tokens              |
+| implicit | Assumes if the client is requesting all resources it is permitted to request if the audience and resource parameters are absent |
+
+This applies to requests made to the Authorization Endpoint, the Pushed Authorization Request Endpoint, the Device
+Authorization Endpoint, and to the Token Endpoint when using the Client Credentials Flow.
+
+When this is `implicit` the values of the [resource](#resource) option are granted as they are configured, so they must
+not contain wildcard values ending with `/*` when the effective [resource_strategy](#resource_strategy) is `wildcard`.
+
+### audience_strategy
+
+{{< confkey type="string" required="no" >}}
+
+The strategy used to match the values this client requests via the `audience` parameter against the
+[audience](#audience) option. When not configured the provider
+[audience_strategy](provider.md#audience_strategy) is used. See the provider option for the possible values and their
+behavior.
+
+### resource_strategy
+
+{{< confkey type="string" required="no" >}}
+
+The strategy used to match the resource indicators this client requests via the `resource` parameter, as well as the
+URL of a request using [Bearer Authorization](../../../integration/openid-connect/oauth-2.0-bearer-token-usage.md),
+against the [resource](#resource) option. When not configured the provider
+[resource_strategy](provider.md#resource_strategy) is used. See the provider option for the possible values and their
+behavior.
+
 ### consent_mode
 
 {{< confkey type="string" default="auto" required="no" >}}
@@ -402,7 +572,8 @@ secret) has been exposed to an attacker. For these reasons this mode is discoura
 {{< /callout >}}
 
 Configures the fallback consent mode. If explicit consent or a condition that requires explicit consent is present this
-setting has no effect. The following table describes the different modes:
+setting has no effect. Notably a [public](#public) client whose identity is not assured by the redirect URI always
+requires explicit consent. The following table describes the different modes:
 
 |     Value      |                                                                  Description                                                                   |
 | :------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: |
@@ -479,6 +650,24 @@ effectively enables the [require_pkce](#require_pkce) option for this client.
 
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
+
+### disable_refresh_token_rotation
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Disabling refresh token rotation means a refresh token can be used repeatedly until it expires, so the reuse of a stolen
+refresh token can no longer be detected. It should only be disabled for confidential clients which can't handle the
+rotation of the refresh token, such as clients which make concurrent refresh token requests.
+{{< /callout >}}
+
+By default every use of a refresh token issues a new refresh token and the presented one can't be used again, as
+described by [RFC9700 Section 4.14.2](https://datatracker.ietf.org/doc/html/rfc9700#section-4.14.2). When the presented
+refresh token is used again, every token issued from the same authorization grant is revoked. When this option is
+`true` the refresh token grant keeps the presented refresh token and does not issue a new one.
+
+This option has no effect for [public](#public) clients, as RFC9700 requires the refresh tokens of public clients to be
+rotated unless they are sender-constrained, and a warning is logged at startup when it's configured for one.
 
 ### authorization_signed_response_key_id
 
@@ -1399,13 +1588,16 @@ The key _**MUST**_:
 - Be either:
   - An RSA public key:
     - Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
-    - Have a key size of at least 2048 bits.
+    - Have a key size of at least 2048 bits and at most 4096 bits.
+    - Have a public exponent which is odd and at least 3.
   - An ECDSA public key:
     - Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
     - Use one of the following elliptical curves:
       - P-256.
       - P-384.
       - P-512.
+- Be usable with the configured [algorithm](#algorithm), for example the `ES384` algorithm requires an ECDSA key using
+  the P-384 curve.
 
 [PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017

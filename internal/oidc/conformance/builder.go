@@ -39,6 +39,10 @@ func (b *SuiteBuilder) Description(release string) string {
 	return fmt.Sprintf("Authelia %s %s Test Profile", release, b.Friendly)
 }
 
+var allowUnexpectedMetadataFields = []string{
+	"refresh_token_expiration_types_supported",
+}
+
 // Build returns the Suite for this builder.
 func (b *SuiteBuilder) Build() Suite {
 	var (
@@ -92,7 +96,8 @@ func (b *SuiteBuilder) Build() Suite {
 			Publish:     "summary",
 			Description: description,
 			Server: PlanServer{
-				DiscoveryURL: b.AutheliaURL.JoinPath(".well-known/openid-configuration").String(),
+				DiscoveryURL:                  b.AutheliaURL.JoinPath(".well-known/openid-configuration").String(),
+				AllowUnexpectedMetadataFields: allowUnexpectedMetadataFields,
 			},
 		},
 	}
@@ -143,6 +148,8 @@ func (b *SuiteBuilder) Build() Suite {
 	switch b.Name {
 	case NameBasicFormPost, NameHybridFormPost, NameImplicitFormPost:
 		responseModes = []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT}
+	case NameImplicit, NameHybrid:
+		responseModes = []string{oidc.ResponseModeFragment, oidc.ResponseModeFragmentJWT, oidc.ResponseModeQuery, oidc.ResponseModeQueryJWT}
 	default:
 		responseModes = []string{oidc.ResponseModeQuery, oidc.ResponseModeQueryJWT}
 	}

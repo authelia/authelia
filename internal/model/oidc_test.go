@@ -1570,8 +1570,9 @@ func TestOAuth2ConsentSessionHasExactGrants(t *testing.T) {
 }
 
 func TestMisc(t *testing.T) {
-	jti := model.NewOAuth2BlacklistedJTI("abc", time.Unix(10000, 0).UTC())
+	jti := model.NewOAuth2BlacklistedJTI("client", "abc", time.Unix(10000, 0).UTC())
 
+	assert.Equal(t, "client", jti.ClientID)
 	assert.Equal(t, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", jti.Signature)
 	assert.Equal(t, time.Unix(10000, 0).UTC(), jti.ExpiresAt)
 

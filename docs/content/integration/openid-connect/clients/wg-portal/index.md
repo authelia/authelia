@@ -64,6 +64,7 @@ identity_providers:
         client_name: 'WG-Portal'
         client_secret: '$pbkdf2-sha512$310000$hDm3SNqIGebGH33JVGnCZA$5XA6C8mg.j2MejL1uJfHwFPEqXbW2K.xufEuIIpwN.0Jn0dKs/LLvRKbPTo7MTOjTpwoAVyZj6BsUTHeBjd3sQ'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

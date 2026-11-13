@@ -1378,7 +1378,7 @@ func (s *AuthzSuite) TestShouldRejectBearerSchemeClientCredentialsWithoutBearerA
 	}
 }
 
-func (s *AuthzSuite) bearerSchemeClientCredentialsResourceScenario(target string, audience, resource []string) (statusCode int) {
+func (s *AuthzSuite) bearerSchemeClientCredentialsResourceScenario(target, strategy string, permitted, resource []string) (statusCode int) {
 	authz := s.BuilderWithBearerScheme().Build()
 
 	s.ApplyTestDelayer(authz)
@@ -1401,7 +1401,8 @@ func (s *AuthzSuite) bearerSchemeClientCredentialsResourceScenario(target string
 				{
 					ID:                  "test-ccs-client",
 					Scopes:              []string{oidc.ScopeAutheliaBearerAuthz},
-					Audience:            audience,
+					Resource:            permitted,
+					ResourceStrategy:    strategy,
 					GrantTypes:          []string{oidc.GrantTypeClientCredentials},
 					AuthorizationPolicy: "one_factor",
 				},
@@ -1481,6 +1482,7 @@ func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndi
 
 	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/api/v1/users",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com"},
 		[]string{"https://one-factor.example.com"},
 	))
@@ -1493,6 +1495,46 @@ func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndi
 
 	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/api/v1/users",
+		oidc.StrategyPrefix,
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndicatorPrefixWithQuery() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/v1/users?page=2&sort=name",
+		oidc.StrategyPrefix,
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndicatorPrefixWithDotSegments() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/v1/../v2/users",
+		oidc.StrategyPrefix,
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorWithDotSegmentsOutsideGrantedPrefix() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/../admin",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com/api"},
 		[]string{"https://one-factor.example.com/api"},
 	))
@@ -1505,6 +1547,7 @@ func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorOutsideGranted
 
 	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/admin",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com"},
 		[]string{"https://one-factor.example.com/api"},
 	))
@@ -1517,20 +1560,48 @@ func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorOnPartialPathS
 
 	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/apiv2",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com"},
 		[]string{"https://one-factor.example.com/api"},
 	))
 }
 
-func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorNotPermittedByClientAudience() {
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorNotPermittedByClientResource() {
 	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
 		s.T().Skip()
 	}
 
 	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/admin",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com/api"},
 		[]string{"https://one-factor.example.com"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndicatorExactByDefault() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api?page=2",
+		"",
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorSubpathByDefault() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/v1/users",
+		"",
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
 	))
 }
 

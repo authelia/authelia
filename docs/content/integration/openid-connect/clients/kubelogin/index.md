@@ -62,6 +62,7 @@ identity_providers:
         client_name: 'Kubernetes Cluster Access'
         client_secret: 'insecure_secret'
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'http://localhost:8000'

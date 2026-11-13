@@ -1678,6 +1678,16 @@ session:
     ## Requires all authorization requests for all clients be provided as a signed Request Object when set to true.
     # require_signed_request_object: false
 
+    ## The strategy used to match requested audience values; exact or wildcard.
+    # audience_strategy: 'exact'
+
+    ## The strategy used to match requested resource indicators; exact, prefix, or wildcard.
+    # resource_strategy: 'exact'
+
+    ## SECURITY NOTICE: It's not recommended changing this option. Permits client assertions which do not have the
+    ## issuer identifier as the sole audience value.
+    # enable_client_assertion_legacy_audience: false
+
     ## Authorization Policies which can be utilized by clients. The 'policy_name' is an arbitrary value that you pick
     ## which is utilized as the value for the 'authorization_policy' on the client.
     # authorization_policies:
@@ -1699,11 +1709,15 @@ session:
       # id_token: '1 hour'
       # refresh_token: '90 minutes'
 
+      ## Configures the maximum lifespan of the refresh tokens of a single authorization grant measured from when the
+      ## first refresh token of the grant is issued. The value 0 applies no maximum.
+      # refresh_token_maximum: 0
+
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
       ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
       # endpoints:
-        #  - 'authorization'
+        #  - 'device-authorization'
         #  - 'pushed-authorization-request'
         #  - 'token'
         #  - 'revocation'
@@ -1743,6 +1757,11 @@ session:
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
         # public: false
 
+        ## The application type of the client which is either 'web' or 'native'. Only native applications such as
+        ## desktop applications may use a registered loopback redirect URI on any port. When not configured it's
+        ## 'native' for public clients with a loopback or private-use URI scheme redirect URI, otherwise 'web'.
+        # application_type: 'web'
+
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         # redirect_uris:
           # - 'https://oidc.example.com:8080/oauth2/callback'
@@ -1754,6 +1773,19 @@ session:
 
         ## Audience this client is allowed to request.
         # audience: []
+
+        ## Resource indicators this client is allowed to request. These must be absolute URIs without a fragment.
+        # resource: []
+
+        ## Audience and resource values this client serves as a resource server at the introspection endpoint. When
+        ## empty the client may only introspect the tokens issued to it.
+        # introspection_audience: []
+
+        ## The strategy used to match requested audience values for this client. Defaults to the provider strategy.
+        # audience_strategy: ''
+
+        ## The strategy used to match requested resource indicators for this client. Defaults to the provider strategy.
+        # resource_strategy: ''
 
         ## Scopes this client is allowed to request.
         # scopes:
@@ -1804,6 +1836,10 @@ session:
         ## Enforces the use of PKCE for this client when configured, and enforces the specified challenge method.
         ## Options are 'plain' and 'S256'.
         # pkce_challenge_method: 'S256'
+
+        ## Keeps the presented refresh token during the refresh token grant rather than issuing a new one. This makes
+        ## refresh token reuse undetectable and has no effect for public clients.
+        # disable_refresh_token_rotation: false
 
         ## The signing algorithm used for signing the authorization responses.
         ## Please read the documentation before adjusting this option.

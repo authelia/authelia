@@ -53,14 +53,19 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 
 		mode := client.GetConsentPolicy().Mode
 
-		if oidc.RequesterRequiresExplicitConsent(requester) && mode != oidc.ClientConsentModeExplicit {
+		switch {
+		case mode == oidc.ClientConsentModeExplicit:
+			handler = handleOAuth2AuthorizationConsentModeExplicit
+		case oidc.RequesterRequiresExplicitConsent(requester):
 			ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' using policy '%s' was determined to require explicit consent due to requirements requested by the client", requester.GetID(), client.GetID(), policy.Name)
 
 			handler = handleOAuth2AuthorizationConsentModeExplicit
-		} else {
+		case !oidc.RequesterIsClientIdentityAssured(ctx, client, requester):
+			ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' using policy '%s' was determined to require explicit consent as the identity of the public client is not assured by the redirect uri", requester.GetID(), client.GetID(), policy.Name)
+
+			handler = handleOAuth2AuthorizationConsentModeExplicit
+		default:
 			switch mode {
-			case oidc.ClientConsentModeExplicit:
-				handler = handleOAuth2AuthorizationConsentModeExplicit
 			case oidc.ClientConsentModeImplicit:
 				handler = handleOAuth2AuthorizationConsentModeImplicit
 			case oidc.ClientConsentModePreConfigured:

@@ -355,12 +355,22 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 		{
 			name: "ShouldReturnErrSaveOAuth2BlacklistedJTI",
 			setup: func(db *mocks.MockSQLXDB) {
-				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig", gomock.Any()).Return(nil, errors.New("boom"))
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "client", "sig", gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.SaveOAuth2BlacklistedJTI(context.Background(), model.OAuth2BlacklistedJTI{Signature: "sig", ExpiresAt: time.Now()})
+				return p.SaveOAuth2BlacklistedJTI(context.Background(), model.OAuth2BlacklistedJTI{ClientID: "client", Signature: "sig", ExpiresAt: time.Now()})
 			},
-			expectErr: "error inserting oauth2 blacklisted JTI with signature 'sig': boom",
+			expectErr: "error inserting oauth2 blacklisted JTI with signature 'sig' for client 'client': boom",
+		},
+		{
+			name: "ShouldReturnErrSaveOAuth2RequestReplay",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), model.OAuth2RequestReplayTypePKCEChallenge, "client", "sig", gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.SaveOAuth2RequestReplay(context.Background(), model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client", Signature: "sig", ExpiresAt: time.Now()})
+			},
+			expectErr: "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client': boom",
 		},
 		{
 			name: "ShouldReturnErrAppendAuthenticationLog",
@@ -786,13 +796,13 @@ func TestSQLProviderLoadErrors(t *testing.T) {
 		{
 			name: "ShouldReturnErrLoadOAuth2BlacklistedJTI",
 			setup: func(db *mocks.MockSQLXDB) {
-				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "sig").Return(errors.New("boom"))
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "client", "sig").Return(errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				_, err := p.LoadOAuth2BlacklistedJTI(context.Background(), "sig")
+				_, err := p.LoadOAuth2BlacklistedJTI(context.Background(), "client", "sig")
 				return err
 			},
-			expectErr: "error selecting oauth2 blacklisted JTI with signature 'sig': boom",
+			expectErr: "error selecting oauth2 blacklisted JTI with signature 'sig' for client 'client': boom",
 		},
 		{
 			name: "ShouldReturnErrLoadBannedUser",

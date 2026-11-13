@@ -183,8 +183,10 @@ const (
 const (
 	errFmtOIDCProviderNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `jwks` is required"
-	errFmtOIDCProviderEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+	errFmtOIDCProviderLifespansRefreshTokenMaximumNegative       = "identity_providers: oidc: lifespans: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '%s'"
+	errFmtOIDCProviderLifespansCustomRefreshTokenMaximumNegative = "identity_providers: oidc: lifespans: custom: %s: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '%s'"
+	errFmtOIDCProviderNoPrivateKey                               = "identity_providers: oidc: option `jwks` is required"
+	errFmtOIDCProviderEnforcePKCEInvalidValue                    = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it's configured as '%s'"
 	errFmtOIDCProviderInsecureParameterEntropy       = "identity_providers: oidc: option 'minimum_parameter_entropy' is "
 	errFmtOIDCProviderInsecureParameterEntropyUnsafe = errFmtOIDCProviderInsecureParameterEntropy +
@@ -201,6 +203,7 @@ const (
 	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
 	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
 	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCProviderPrivateKeysNotUsable               = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' is not usable: %w"
 	errFmtOIDCProviderPrivateKeysKeyNotSupported         = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' must be an RSA private key, ECDSA private key, Ed25519 private key, or ML-DSA private key but it's type is %T"
 	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
 	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
@@ -213,6 +216,7 @@ const (
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
 	errFmtOIDCCORSInvalidOriginWildcard            = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself"
 	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
+	errFmtOIDCCORSAuthorizationEndpoint            = "identity_providers: oidc: cors: option 'endpoints' contains the value 'authorization' which is ignored as Cross-Origin Resource Sharing must not be supported by the Authorization Endpoint as per RFC9700 Section 2.6"
 	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of %s"
 
 	errFmtOIDCPolicyInvalidName          = "identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists"
@@ -252,6 +256,22 @@ const (
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = errFmtOIDCClientRedirectURIHas +
 		"an invalid value: redirect uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientRedirectURIInsecure = errFmtOIDCClientRedirectURIHas +
+		"the redirect uri '%s' which uses the 'http' scheme with a host which is not a loopback address or a " +
+		"'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme " +
+		"should be used instead"
+
+	errFmtOIDCClientRedirectURINativeLoopback = errFmtOIDCClientRedirectURIHas +
+		"the redirect uri '%s' which uses the 'http' scheme with the host '%s' but it should use the loopback ip " +
+		"address '127.0.0.1' or '[::1]' when option 'application_type' is 'native' as the name may not resolve to " +
+		"the loopback interface the application listens on"
+	errFmtOIDCClientRedirectURINativePrivateUseScheme = errFmtOIDCClientRedirectURIHas +
+		"the redirect uri '%s' which uses the private-use uri scheme '%s' but it should be a domain name under the " +
+		"control of the application expressed in reverse order such as 'com.example.app' when option " +
+		"'application_type' is 'native' so that it does not collide with the scheme of another application"
+	errFmtOIDCClientRedirectURIWebPrivateUseScheme = errFmtOIDCClientRedirectURIHas +
+		"the redirect uri '%s' which uses the private-use uri scheme '%s' but only native applications receive " +
+		"authorization responses this way so option 'application_type' should be configured as 'native'"
 
 	errFmtOIDCClientRequestURIHas          = errFmtOIDCClientOption + "'request_uris' has "
 	errFmtOIDCClientRequestURICantBeParsed = errFmtOIDCClientRequestURIHas +
@@ -260,6 +280,16 @@ const (
 		"an invalid value: request uri '%s' must have a scheme but it's absent"
 	errFmtOIDCClientRequestURIInvalidScheme = errFmtOIDCClientRequestURIHas +
 		"an invalid scheme: scheme must be 'https' but request uri '%s' has a '%s' scheme"
+
+	errFmtOIDCClientResourceHas          = errFmtOIDCClientOption + "'resource' has "
+	errFmtOIDCClientResourceCantBeParsed = errFmtOIDCClientResourceHas +
+		"an invalid value: resource '%s' could not be parsed: %v"
+	errFmtOIDCClientResourceNotAbsolute = errFmtOIDCClientResourceHas +
+		"an invalid value: resource '%s' must be an absolute uri with a scheme but it's absent"
+	errFmtOIDCClientImplicitWildcard = errFmtOIDCClientOption +
+		"'%s' must not contain wildcard values when option '%s' is 'implicit' and option '%s' is 'wildcard' as the values are granted literally but it has the wildcard values %s"
+	errFmtOIDCClientResourceFragment = errFmtOIDCClientResourceHas +
+		"an invalid value: resource '%s' must not include a fragment"
 
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: clients: client '%s': consent: option 'mode' must be one of " +
 		"%s but it's configured as '%s'"
@@ -271,7 +301,7 @@ const (
 		errFmtOIDCWhenScope + " but the values %s are present"
 	errFmtOIDCClientEmptyEntriesScope = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
 		errFmtOIDCWhenScope + " but it's not configured"
-	errFmtOIDCClientOptionRequiredScope             = errFmtOIDCClientOption + "'%s' must be configured " + errFmtOIDCWhenScope + " but it's absent"
+	errFmtOIDCClientOptionRequiredEitherScope       = errFmtOIDCClientOption + "'%s' or option '%s' must be configured " + errFmtOIDCWhenScope + " but both are absent"
 	errFmtOIDCClientOptionMustScope                 = errFmtOIDCClientOption + errFmtMustBeConfiguredAs + errFmtOIDCWhenScope + " but it's configured as '%s'"
 	errFmtOIDCClientOptionMustScopeClientType       = errFmtOIDCClientOption + errFmtMustBeConfiguredAs + errFmtOIDCWhenScope + " and the '%s' client type but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntriesClientCredentials = errFmtOIDCClientOption + "'scopes' has the values " +
@@ -285,7 +315,7 @@ const (
 		"'%s' includes the type %s which is insecure as it does not distinguish a client assertion from another JWT, " +
 		"the explicit type '%s' should be preferred and another type should only be permitted when the client cannot " +
 		"be configured to send it"
-	errFmtOIDCClientClientAssertionEmptyTypeEntry = errFmtOIDCClientOption +
+	errFmtOIDCClientEmptyEntry = errFmtOIDCClientOption +
 		"'%s' must not have empty values but an empty value was present at index %d"
 	errFmtOIDCClientInvalidValue = errFmtOIDCClientOption +
 		errFmtMustBeOneOf
@@ -316,8 +346,18 @@ const (
 		"'sector_identifier_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierRedirect = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': must be a json document that contains all of the 'redirect_uris' for the client but had an error validating it: %w"
+	errFmtOIDCClientRefreshTokenRotationPublic = errFmtOIDCClientOption +
+		"'disable_refresh_token_rotation' has no effect when option 'public' is true as the refresh tokens of public " +
+		"clients are always rotated so that the reuse of a refresh token can be detected"
+	errFmtOIDCClientApplicationTypeNativeImplicit = errFmtOIDCClientOption +
+		"'grant_types' must not include 'implicit' when option 'application_type' is 'native' as the implicit flow " +
+		"can not be protected by PKCE but it's included and the response types are %s"
 	errFmtOIDCClientInvalidGrantTypeMatch = errFmtOIDCClientOption +
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
+	errFmtOIDCClientResponseModesMissingDefault = errFmtOIDCClientOption +
+		"'response_modes' does not include '%s' which is the default response mode for the configured response types %s so authorization requests using these response types which omit the 'response_mode' parameter will be rejected"
+	errFmtOIDCClientInvalidResponseTypeGrantTypeMissing = errFmtOIDCClientOption +
+		"'grant_types' must include %s when option 'response_types' includes '%s'"
 	errFmtOIDCClientInvalidGrantTypeRefresh = errFmtOIDCClientOption +
 		"'grant_types' should only have the 'refresh_token' value if the client is also configured with the 'offline_access' scope"
 	errFmtOIDCClientInvalidGrantTypePublic = errFmtOIDCClientOption + "'grant_types' " +
@@ -333,7 +373,9 @@ const (
 	errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf       = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option '%s' must be provided"
 	errFmtOIDCClientPublicKeysWithIDInvalidOptionMissingOneOf = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option '%s' must be provided"
 	errFmtOIDCClientPublicKeysKeyMalformed                    = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCClientPublicKeysRSAKeyGreaterThanMaximumBits    = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit public key but it must at maximum be a RSA %d bit public key"
 	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits          = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCClientPublicKeysNotUsable                       = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is not usable: %w"
 	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA                = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
 	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
 	errFmtOIDCClientPublicKeysCertificateChainInvalid         = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
@@ -613,6 +655,9 @@ const (
 	attrOIDCGrantTypes                    = "grant_types"
 	attrOIDCRedirectURIs                  = "redirect_uris"
 	attrOIDCRequestURIs                   = "request_uris"
+	attrOIDCAudience                      = "audience"
+	attrOIDCResource                      = "resource"
+	attrOIDCIntrospectionAudience         = "introspection_audience"
 	attrOIDCRequestObjectSigningAlg       = "request_object_signing_alg"
 	attrOIDCTokenAuthMethod               = "token_endpoint_auth_method"
 	attrOIDCTokenAuthSigningAlg           = "token_endpoint_auth_signing_alg"
@@ -630,7 +675,11 @@ const (
 	attrOIDCUserinfoPrefix                = "userinfo"
 	attrOIDCIntrospectionPrefix           = "introspection"
 	attrOIDCPKCEChallengeMethod           = "pkce_challenge_method"
+	attrOIDCApplicationType               = "application_type"
 	attrOIDCRequestedAudienceMode         = "requested_audience_mode"
+	attrOIDCRequestedResourceMode         = "requested_resource_mode"
+	attrOIDCAudienceStrategy              = "audience_strategy"
+	attrOIDCResourceStrategy              = "resource_strategy"
 	attrOIDCClientAssertionAllowEmptyType = "client_assertion_jwt_validation_header_allow_empty_type"
 	attrOIDCClientAssertionAllowTypes     = "client_assertion_jwt_validation_header_allow_types"
 	attrSessionAutheliaURL                = "authelia_url"
@@ -643,7 +692,7 @@ var (
 )
 
 var (
-	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCCORSEndpoints = []string{oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
 	validOIDCReservedClaims                  = []string{oidc.ClaimJWTID, oidc.ClaimAuthorizedParty, oidc.ClaimClientIdentifier, oidc.ClaimScope, oidc.ClaimScopeNonStandard, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimUpdatedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
 	validOIDCReservedCustomizableScopes      = []string{oidc.ScopeAutheliaPAM}

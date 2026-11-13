@@ -290,7 +290,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 
 		if bodyJSON.PreConfigure {
 			switch {
-			case oidc.FormRequiresExplicitConsent(form):
+			case oidc.FormRequiresExplicitConsent(form), !oidc.FormIsClientIdentityAssured(client, form):
 				ctx.GetLogger().
 					WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 					Warn("Ignored saving pre-configuration as it is not permitted due to constraints within the authorization request form")

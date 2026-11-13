@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"path"
 	"strings"
 	"time"
 
@@ -662,11 +663,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("token is not an access token")
 	}
 
-	audience := []string{object.URL.String()}
-
-	if !oidc.AudienceMatchesRequester(provider.GetAudienceStrategy(ctx), provider.GetResourceStrategy(ctx), requester, audience) {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("the granted audience and resource does not match the request to '%s'", audience[0])
-	}
+	audience := []string{authzBearerTarget(object.URL)}
 
 	fsession := requester.GetSession()
 
@@ -688,7 +685,13 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is registered but does not permit the '%s' scope", osession.ClientID, oidc.ScopeAutheliaBearerAuthz)
 	}
 
-	if !oidc.AudienceMatchesGrantedAudienceOrResource(provider.GetAudienceStrategy(ctx), client.GetAudience(), provider.GetResourceStrategy(ctx), client.GetAudience(), audience) {
+	strategyAudience, strategyResource := oauthelia2.GetAudienceStrategy(ctx, provider, client), oauthelia2.GetResourceStrategy(ctx, provider, client)
+
+	if !oidc.AudienceMatchesRequester(strategyAudience, strategyResource, requester, audience) {
+		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("the granted audience and resource does not match the request to '%s'", audience[0])
+	}
+
+	if !oidc.AudienceMatchesGrantedAudienceOrResource(strategyAudience, client.GetAudience(), strategyResource, client.GetResource(), audience) {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is registered but does not permit an audience for the url '%s'", osession.ClientID, audience[0])
 	}
 
@@ -709,4 +712,22 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 	}
 
 	return osession.Username, "", false, level, nil
+}
+
+func authzBearerTarget(u *url.URL) (target string) {
+	if u == nil {
+		return ""
+	}
+
+	clean := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: "/"}
+
+	if p := u.Path; p != "" && p != "/" {
+		clean.Path = path.Clean(p)
+
+		if strings.HasSuffix(p, "/") && clean.Path != "/" {
+			clean.Path += "/"
+		}
+	}
+
+	return clean.String()
 }

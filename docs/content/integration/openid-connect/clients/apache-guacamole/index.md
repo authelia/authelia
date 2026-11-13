@@ -61,6 +61,7 @@ identity_providers:
       - client_id: 'guacamole'
         client_name: 'Apache Guacamole'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

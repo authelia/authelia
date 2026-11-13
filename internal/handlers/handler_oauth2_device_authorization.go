@@ -95,7 +95,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	if requester, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeRequest(ctx, r); err != nil {
+	if requester, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeRequest(ctx, r, oidc.NewSession()); err != nil {
 		ctx.GetLogger().
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request failed with error during the User Authorization Flow")
@@ -226,22 +226,22 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 	requester.SetStatus(oauthelia2.DeviceAuthorizeStatusApproved)
 
-	if responder, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeResponse(ctx, requester, session); err != nil {
-		log.
-			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
-			Error("Device Authorization Request had an error while attempting to generate the responder during the User Authorization Flow")
-
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, err)
-
-		return
-	}
-
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionGranted(ctx, consent.ID); err != nil {
 		log.
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request had an error while saving the session during the User Authorization Flow")
 
 		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
+
+		return
+	}
+
+	if responder, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeResponse(ctx, requester, session); err != nil {
+		log.
+			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+			Error("Device Authorization Request had an error while attempting to generate the responder during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}

@@ -19,11 +19,12 @@ import (
 	reflect "reflect"
 	time "time"
 
+	uuid "github.com/google/uuid"
+	gomock "go.uber.org/mock/gomock"
+
 	model "github.com/authelia/authelia/v4/internal/model"
 	session "github.com/authelia/authelia/v4/internal/session"
 	storage "github.com/authelia/authelia/v4/internal/storage"
-	uuid "github.com/google/uuid"
-	gomock "go.uber.org/mock/gomock"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -175,6 +176,20 @@ func (m *MockStorage) DeactivateOAuth2SessionByRequestID(ctx context.Context, se
 func (mr *MockStorageMockRecorder) DeactivateOAuth2SessionByRequestID(ctx, sessionType, requestID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeactivateOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).DeactivateOAuth2SessionByRequestID), ctx, sessionType, requestID)
+}
+
+// DecideOAuth2DeviceCodeSession mocks base method.
+func (m *MockStorage) DecideOAuth2DeviceCodeSession(ctx context.Context, arg1 *model.OAuth2DeviceCodeSession) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DecideOAuth2DeviceCodeSession", ctx, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DecideOAuth2DeviceCodeSession indicates an expected call of DecideOAuth2DeviceCodeSession.
+func (mr *MockStorageMockRecorder) DecideOAuth2DeviceCodeSession(ctx, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecideOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).DecideOAuth2DeviceCodeSession), ctx, arg1)
 }
 
 // DeleteCachedData mocks base method.
@@ -413,18 +428,18 @@ func (mr *MockStorageMockRecorder) LoadIdentityVerification(ctx, jti any) *gomoc
 }
 
 // LoadOAuth2BlacklistedJTI mocks base method.
-func (m *MockStorage) LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (*model.OAuth2BlacklistedJTI, error) {
+func (m *MockStorage) LoadOAuth2BlacklistedJTI(ctx context.Context, clientID, signature string) (*model.OAuth2BlacklistedJTI, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOAuth2BlacklistedJTI", ctx, signature)
+	ret := m.ctrl.Call(m, "LoadOAuth2BlacklistedJTI", ctx, clientID, signature)
 	ret0, _ := ret[0].(*model.OAuth2BlacklistedJTI)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoadOAuth2BlacklistedJTI indicates an expected call of LoadOAuth2BlacklistedJTI.
-func (mr *MockStorageMockRecorder) LoadOAuth2BlacklistedJTI(ctx, signature any) *gomock.Call {
+func (mr *MockStorageMockRecorder) LoadOAuth2BlacklistedJTI(ctx, clientID, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2BlacklistedJTI", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2BlacklistedJTI), ctx, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2BlacklistedJTI", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2BlacklistedJTI), ctx, clientID, signature)
 }
 
 // LoadOAuth2ConsentPreConfigurations mocks base method.
@@ -1099,6 +1114,20 @@ func (mr *MockStorageMockRecorder) SaveOAuth2PushedAuthorizationSession(ctx, par
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2PushedAuthorizationSession), ctx, par)
 }
 
+// SaveOAuth2RequestReplay mocks base method.
+func (m *MockStorage) SaveOAuth2RequestReplay(ctx context.Context, replay model.OAuth2RequestReplay) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2RequestReplay", ctx, replay)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2RequestReplay indicates an expected call of SaveOAuth2RequestReplay.
+func (mr *MockStorageMockRecorder) SaveOAuth2RequestReplay(ctx, replay any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2RequestReplay", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2RequestReplay), ctx, replay)
+}
+
 // SaveOAuth2Session mocks base method.
 func (m *MockStorage) SaveOAuth2Session(ctx context.Context, sessionType storage.OAuth2SessionType, arg2 model.OAuth2Session) error {
 	m.ctrl.T.Helper()
@@ -1556,6 +1585,20 @@ func (m *MockStorage) UpdateOAuth2PushedAuthorizationSession(ctx context.Context
 func (mr *MockStorageMockRecorder) UpdateOAuth2PushedAuthorizationSession(ctx, par any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2PushedAuthorizationSession), ctx, par)
+}
+
+// UpdateOAuth2RefreshTokenSessionRequest mocks base method.
+func (m *MockStorage) UpdateOAuth2RefreshTokenSessionRequest(ctx context.Context, arg1 model.OAuth2Session) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOAuth2RefreshTokenSessionRequest", ctx, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOAuth2RefreshTokenSessionRequest indicates an expected call of UpdateOAuth2RefreshTokenSessionRequest.
+func (mr *MockStorageMockRecorder) UpdateOAuth2RefreshTokenSessionRequest(ctx, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2RefreshTokenSessionRequest", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2RefreshTokenSessionRequest), ctx, arg1)
 }
 
 // UpdateTOTPConfigurationSignIn mocks base method.

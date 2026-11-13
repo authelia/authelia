@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/jose"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -66,7 +66,7 @@ func TestIssuerEdwardsAlgorithmPair(t *testing.T) {
 
 			require.NoError(t, err)
 
-			parsed, err := jose.ParseSigned(token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm(tc.request)})
+			parsed, err := jose.ParseSignedCompact(token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm(tc.request)})
 
 			require.NoError(t, err)
 			assert.Equal(t, tc.request, parsed.Signatures[0].Header.Algorithm)
@@ -105,7 +105,7 @@ func assertIssuerSigns(t *testing.T, key schema.CryptographicKey, alg string) {
 
 	require.NoError(t, err)
 
-	parsed, err := jose.ParseSigned(token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm(alg)})
+	parsed, err := jose.ParseSignedCompact(token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm(alg)})
 
 	require.NoError(t, err)
 

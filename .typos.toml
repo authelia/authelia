@@ -4,6 +4,10 @@
 
 [default]
 locale = "en-us"
+# Third-party UI labels quoted verbatim in integration guides
+extend-ignore-re = [
+    "Authorised groups",
+]
 
 [default.extend-words]
 # RFC 8176 fingerprint authentication method reference
@@ -56,6 +60,9 @@ MYE = "MYE"
 hass = "hass"
 cpy = "cpy"
 peom = "peom"
+# Calibre e-book software (proper noun)
+calibre = "calibre"
+Calibre = "Calibre"
 
 [files]
 ignore-hidden = false

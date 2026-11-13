@@ -112,7 +112,7 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 
 	var requests *oidc.ClaimsRequests
 
-	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
+	if requests, err = oidc.NewClaimRequestsFromRequester(requester); err == nil && requests != nil {
 		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.GetClock().Now())
 	} else {
 		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.GetClock().Now())
@@ -171,7 +171,7 @@ func handleOAuth2AuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Auth
 
 	var requests *oidc.ClaimsRequests
 
-	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
+	if requests, err = oidc.NewClaimRequestsFromRequester(requester); err == nil && requests != nil {
 		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.GetClock().Now())
 	} else {
 		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.GetClock().Now())

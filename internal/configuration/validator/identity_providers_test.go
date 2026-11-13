@@ -84,7 +84,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 				IssuerPrivateKey: keyRSA2048,
 				CORS: schema.IdentityProvidersOpenIDConnectCORS{
-					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
+					Endpoints: []string{oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
@@ -99,6 +99,44 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, []string{oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}, config.IdentityProviders.OIDC.CORS.Endpoints)
+}
+
+//nolint:gosec // Test Credentials.
+func TestShouldWarnAndRemoveCORSAuthorizationEndpoint(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				CORS: schema.IdentityProvidersOpenIDConnectCORS{
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken},
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:     "example",
+						Secret: tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, []string{oidc.EndpointToken}, config.IdentityProviders.OIDC.CORS.Endpoints)
+
+	var found bool
+
+	for _, warning := range validator.Warnings() {
+		if warning.Error() == "identity_providers: oidc: cors: option 'endpoints' contains the value 'authorization' which is ignored as Cross-Origin Resource Sharing must not be supported by the Authorization Endpoint as per RFC9700 Section 2.6" {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
 }
 
 //nolint:gosec // Test Credentials.
@@ -126,7 +164,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
 }
 
 //nolint:gosec // Test Credentials.
@@ -149,6 +187,57 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'enforce_pkce' must be 'never', 'public_clients_only' or 'always', but it's configured as 'invalid'")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: option 'clients' must have one or more clients configured")
+}
+
+//nolint:gosec // Test Credentials.
+func TestShouldValidateOIDCProviderStrategies(t *testing.T) {
+	testCases := []struct {
+		Name             string
+		Audience         string
+		Resource         string
+		ExpectedAudience string
+		ExpectedResource string
+		Errors           []string
+	}{
+		{"ShouldSetDefaults", "", "", "exact", "exact", nil},
+		{"ShouldAllowWildcard", "wildcard", "wildcard", "wildcard", "wildcard", nil},
+		{"ShouldAllowExact", "exact", "exact", "exact", "exact", nil},
+		{"ShouldErrorInvalid", "prefix", "magic", "prefix", "magic", []string{
+			"identity_providers: oidc: option 'audience_strategy' must be one of 'exact' or 'wildcard' but it's configured as 'prefix'",
+			"identity_providers: oidc: option 'resource_strategy' must be one of 'exact', 'prefix', or 'wildcard' but it's configured as 'magic'",
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+						IssuerPrivateKey: keyRSA2048,
+						AudienceStrategy: tc.Audience,
+						ResourceStrategy: tc.Resource,
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			errs := validator.Errors()
+
+			require.Len(t, errs, len(tc.Errors)+1)
+
+			for i, expected := range tc.Errors {
+				assert.EqualError(t, errs[i], expected)
+			}
+
+			assert.EqualError(t, errs[len(tc.Errors)], "identity_providers: oidc: option 'clients' must have one or more clients configured")
+			assert.Equal(t, tc.ExpectedAudience, config.IdentityProviders.OIDC.AudienceStrategy)
+			assert.Equal(t, tc.ExpectedResource, config.IdentityProviders.OIDC.ResourceStrategy)
+		})
+	}
 }
 
 //nolint:gosec // Test Credentials.
@@ -607,6 +696,74 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				"identity_providers: oidc: clients: client 'client-bad-ram': option 'requested_audience_mode' must be one of 'explicit' or 'implicit' but it's configured as 'magic'",
 			},
 		},
+		{
+			name: "InvalidAudienceStrategy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-bad-as",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					AudienceStrategy: "prefix",
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-bad-as': option 'audience_strategy' must be one of 'exact' or 'wildcard' but it's configured as 'prefix'",
+			},
+		},
+		{
+			name: "InvalidResourceStrategy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-bad-rs",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ResourceStrategy: "magic",
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-bad-rs': option 'resource_strategy' must be one of 'exact', 'prefix', or 'wildcard' but it's configured as 'magic'",
+			},
+		},
+		{
+			name: "ValidAudienceStrategy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-good-as",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					AudienceStrategy: "wildcard",
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, "wildcard", actual[0].AudienceStrategy)
+			},
+		},
+		{
+			name: "ValidResourceStrategy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-good-rs",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ResourceStrategy: "exact",
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, "exact", actual[0].ResourceStrategy)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -998,7 +1155,8 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 		have.Clients[0].Public = true
 		validateOIDCClientRedirectURIs(0, have, validator, nil)
 
-		assert.Len(t, validator.Warnings(), 0)
+		require.Len(t, validator.Warnings(), 1)
+		assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'owncloud': option 'redirect_uris' has the redirect uri 'http://www.mywebsite.com' which uses the 'http' scheme with a host which is not a loopback address or a 'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme should be used instead")
 		assert.Len(t, validator.Errors(), 0)
 	})
 
@@ -1007,12 +1165,277 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 		have.Clients[0].Public = false
 		validateOIDCClientRedirectURIs(0, have, validator, nil)
 
-		assert.Len(t, validator.Warnings(), 0)
+		require.Len(t, validator.Warnings(), 1)
+		assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'owncloud': option 'redirect_uris' has the redirect uri 'http://www.mywebsite.com' which uses the 'http' scheme with a host which is not a loopback address or a 'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme should be used instead")
 		assert.Len(t, validator.Errors(), 1)
 		assert.ElementsMatch(t, validator.Errors(), []error{
 			errors.New("identity_providers: oidc: clients: client 'owncloud': option 'redirect_uris' has the redirect uri 'urn:ietf:wg:oauth:2.0:oob' when option 'public' is false but this is invalid as this uri is not valid for the openid connect confidential client type"),
 		})
 	})
+}
+
+func TestValidateOIDCClientRefreshTokenRotation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		public   bool
+		disable  bool
+		warnings []string
+	}{
+		{name: "ShouldNotWarnRotatedConfidentialClient"},
+		{name: "ShouldNotWarnRotatedPublicClient", public: true},
+		{name: "ShouldNotWarnConfidentialClientWithoutRotation", disable: true},
+		{
+			name:    "ShouldWarnPublicClientWithoutRotation",
+			public:  true,
+			disable: true,
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'disable_refresh_token_rotation' has no effect when option 'public' is true as the refresh tokens of public clients are always rotated so that the reuse of a refresh token can be detected",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{ID: "test", Public: tc.public, DisableRefreshTokenRotation: tc.disable},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientRefreshTokenRotation(0, config, validator)
+
+			require.Len(t, validator.Warnings(), len(tc.warnings))
+
+			for i, err := range tc.warnings {
+				assert.EqualError(t, validator.Warnings()[i], err)
+			}
+
+			assert.Len(t, validator.Errors(), 0)
+		})
+	}
+}
+
+func TestValidateOIDCClientApplicationType(t *testing.T) {
+	testCases := []struct {
+		name            string
+		applicationType string
+		public          bool
+		redirectURIs    []string
+		grantTypes      []string
+		expected        string
+		warnings        []string
+		errs            []string
+	}{
+		{
+			name:         "ShouldDefaultConfidentialClientToWeb",
+			redirectURIs: []string{"http://127.0.0.1/callback"},
+			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
+			expected:     oidc.ApplicationTypeWeb,
+		},
+		{
+			name:         "ShouldDefaultPublicClientWithHTTPSToWeb",
+			public:       true,
+			redirectURIs: []string{"https://app.example.com/callback"},
+			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
+			expected:     oidc.ApplicationTypeWeb,
+		},
+		{
+			name:       "ShouldDefaultPublicClientWithoutRedirectURIsToWeb",
+			public:     true,
+			grantTypes: []string{oidc.GrantTypeDeviceCode},
+			expected:   oidc.ApplicationTypeWeb,
+		},
+		{
+			name:         "ShouldDefaultPublicClientWithLoopbackToNative",
+			public:       true,
+			redirectURIs: []string{"https://app.example.com/callback", "http://127.0.0.1/callback"},
+			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
+			expected:     oidc.ApplicationTypeNative,
+		},
+		{
+			name:         "ShouldDefaultPublicClientWithLocalhostToNativeWithoutWarning",
+			public:       true,
+			redirectURIs: []string{"http://localhost:8080/callback"},
+			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
+			expected:     oidc.ApplicationTypeNative,
+		},
+		{
+			name:         "ShouldDefaultPublicClientWithPrivateUseSchemeToNativeWithoutWarning",
+			public:       true,
+			redirectURIs: []string{"myapp://callback"},
+			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
+			expected:     oidc.ApplicationTypeNative,
+		},
+		{
+			name:         "ShouldDefaultPublicClientWithInstalledAppToNative",
+			public:       true,
+			redirectURIs: []string{oidc.RedirectURISpecialOAuth2InstalledApp},
+			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
+			expected:     oidc.ApplicationTypeNative,
+		},
+		{
+			name:         "ShouldDefaultPublicClientWithNonLoopbackHTTPToWeb",
+			public:       true,
+			redirectURIs: []string{"http://app.example.com/callback", "::invalid"},
+			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
+			expected:     oidc.ApplicationTypeWeb,
+		},
+		{
+			name:         "ShouldDefaultPublicClientWithImplicitGrantToWeb",
+			public:       true,
+			redirectURIs: []string{"http://127.0.0.1/callback"},
+			grantTypes:   []string{oidc.GrantTypeImplicit},
+			expected:     oidc.ApplicationTypeWeb,
+		},
+		{
+			name:            "ShouldAllowNativeLoopbackAndReverseDNSScheme",
+			applicationType: oidc.ApplicationTypeNative,
+			redirectURIs:    []string{"http://127.0.0.1/callback", "http://[::1]/callback", "com.example.app:/callback", "https://app.example.com/callback", "http://app.example.com/callback"},
+			grantTypes:      []string{oidc.GrantTypeAuthorizationCode},
+			expected:        oidc.ApplicationTypeNative,
+		},
+		{
+			name:            "ShouldRaiseErrorOnNativeImplicitGrant",
+			applicationType: oidc.ApplicationTypeNative,
+			redirectURIs:    []string{"http://127.0.0.1/callback"},
+			grantTypes:      []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit},
+			expected:        oidc.ApplicationTypeNative,
+			errs: []string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must not include 'implicit' when option 'application_type' is 'native' as the implicit flow can not be protected by PKCE but it's included and the response types are 'code id_token'",
+			},
+		},
+		{
+			name:            "ShouldWarnNativeLocalhost",
+			applicationType: oidc.ApplicationTypeNative,
+			redirectURIs:    []string{"http://localhost:8080/callback"},
+			grantTypes:      []string{oidc.GrantTypeAuthorizationCode},
+			expected:        oidc.ApplicationTypeNative,
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'http://localhost:8080/callback' which uses the 'http' scheme with the host 'localhost' but it should use the loopback ip address '127.0.0.1' or '[::1]' when option 'application_type' is 'native' as the name may not resolve to the loopback interface the application listens on",
+			},
+		},
+		{
+			name:            "ShouldWarnNativeNonReverseDNSScheme",
+			applicationType: oidc.ApplicationTypeNative,
+			redirectURIs:    []string{"myapp://callback"},
+			grantTypes:      []string{oidc.GrantTypeAuthorizationCode},
+			expected:        oidc.ApplicationTypeNative,
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'myapp://callback' which uses the private-use uri scheme 'myapp' but it should be a domain name under the control of the application expressed in reverse order such as 'com.example.app' when option 'application_type' is 'native' so that it does not collide with the scheme of another application",
+			},
+		},
+		{
+			name:            "ShouldWarnWebPrivateUseScheme",
+			applicationType: oidc.ApplicationTypeWeb,
+			redirectURIs:    []string{"com.example.app:/callback"},
+			grantTypes:      []string{oidc.GrantTypeAuthorizationCode},
+			expected:        oidc.ApplicationTypeWeb,
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'com.example.app:/callback' which uses the private-use uri scheme 'com.example.app' but only native applications receive authorization responses this way so option 'application_type' should be configured as 'native'",
+			},
+		},
+		{
+			name:         "ShouldWarnDefaultedConfidentialPrivateUseScheme",
+			redirectURIs: []string{"com.example.app:/callback"},
+			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
+			expected:     oidc.ApplicationTypeWeb,
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'com.example.app:/callback' which uses the private-use uri scheme 'com.example.app' but only native applications receive authorization responses this way so option 'application_type' should be configured as 'native'",
+			},
+		},
+		{
+			name:            "ShouldRaiseErrorOnInvalidApplicationTypeOnly",
+			applicationType: "desktop",
+			redirectURIs:    []string{"myapp://callback"},
+			grantTypes:      []string{oidc.GrantTypeImplicit},
+			expected:        "desktop",
+			errs: []string{
+				"identity_providers: oidc: clients: client 'test': option 'application_type' must be one of 'web' or 'native' but it's configured as 'desktop'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:              "test",
+						Public:          tc.public,
+						ApplicationType: tc.applicationType,
+						RedirectURIs:    tc.redirectURIs,
+						ResponseTypes:   []string{oidc.ResponseTypeHybridFlowIDToken},
+						GrantTypes:      tc.grantTypes,
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientApplicationType(0, config, validator)
+
+			assert.Equal(t, tc.expected, config.Clients[0].ApplicationType)
+
+			require.Len(t, validator.Warnings(), len(tc.warnings))
+
+			for i, err := range tc.warnings {
+				assert.EqualError(t, validator.Warnings()[i], err)
+			}
+
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, err := range tc.errs {
+				assert.EqualError(t, validator.Errors()[i], err)
+			}
+		})
+	}
+}
+
+func TestValidateOIDCClientRedirectURIsInsecure(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		URI      string
+		Public   bool
+		Expected string
+	}{
+		{"ShouldNotWarnHTTPS", "https://app.example.com/callback", false, ""},
+		{"ShouldNotWarnLocalhost", "http://localhost:8080/callback", false, ""},
+		{"ShouldNotWarnLocalhostSubdomain", "http://app.localhost/callback", false, ""},
+		{"ShouldNotWarnLoopbackIPv4", "http://127.0.0.1:8080/callback", true, ""},
+		{"ShouldNotWarnLoopbackIPv6", "http://[::1]:8080/callback", true, ""},
+		{"ShouldNotWarnPrivateUseScheme", "com.example.app:/callback", true, ""},
+		{"ShouldWarnConfidential", "http://app.example.com/callback", false, "identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'http://app.example.com/callback' which uses the 'http' scheme with a host which is not a loopback address or a 'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme should be used instead"},
+		{"ShouldWarnPublic", "http://192.168.1.10/callback", true, "identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'http://192.168.1.10/callback' which uses the 'http' scheme with a host which is not a loopback address or a 'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme should be used instead"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:           "test",
+						Public:       tc.Public,
+						RedirectURIs: []string{tc.URI},
+					},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientRedirectURIs(0, config, validator, nil)
+
+			assert.Len(t, validator.Errors(), 0)
+
+			if tc.Expected == "" {
+				assert.Len(t, validator.Warnings(), 0)
+			} else {
+				require.Len(t, validator.Warnings(), 1)
+				assert.EqualError(t, validator.Warnings()[0], tc.Expected)
+			}
+		})
+	}
 }
 
 func TestValidateOIDCClients(t *testing.T) {
@@ -1197,15 +1620,18 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.ScopeOpenID, oidc.ScopeGroups},
 				[]string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowBoth},
 				[]string{oidc.ResponseModeFormPost},
-				[]string{oidc.GrantTypeAuthorizationCode},
+				[]string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit},
 			},
 			tcv{
 				[]string{oidc.ScopeOpenID, oidc.ScopeGroups},
 				[]string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowBoth},
 				[]string{oidc.ResponseModeFormPost},
-				[]string{oidc.GrantTypeAuthorizationCode},
+				[]string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit},
 			},
-			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'response_modes' does not include 'query' which is the default response mode for the configured response types 'code' so authorization requests using these response types which omit the 'response_mode' parameter will be rejected",
+				"identity_providers: oidc: clients: client 'test': option 'response_modes' does not include 'fragment' which is the default response mode for the configured response types 'id_token token' and 'code id_token token' so authorization requests using these response types which omit the 'response_mode' parameter will be rejected",
+			},
 			nil,
 		},
 		{
@@ -1351,7 +1777,9 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{"not_valid"},
 				[]string{oidc.GrantTypeAuthorizationCode},
 			},
-			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'response_modes' does not include 'query' which is the default response mode for the configured response types 'code' so authorization requests using these response types which omit the 'response_mode' parameter will be rejected",
+			},
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'response_modes' must only have the values 'form_post', 'query', 'fragment', 'jwt', 'form_post.jwt', 'query.jwt', or 'fragment.jwt' but the values 'not_valid' are present",
 			},
@@ -1532,7 +1960,9 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but 'authorization_code' expects a response type for either the authorization code or hybrid flow such as 'code', 'code id_token', 'code token', or 'code id_token token' but the response types are 'id_token token'",
 			},
-			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must include 'implicit' when option 'response_types' includes 'id_token token'",
+			},
 		},
 		{
 			"ShouldRaiseErrorOnGrantTypeImplicitWithoutImplicitOrHybridFlow",
@@ -2319,7 +2749,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'abc': option 'scopes' must only have the values 'offline_access', 'offline', and 'authelia.bearer.authz' when configured with scope 'authelia.bearer.authz' but the values 'authelia.bearer.authz' and 'openid' are present",
 				"identity_providers: oidc: clients: client 'abc': option 'grant_types' must only have the values 'authorization_code', 'refresh_token', and 'client_credentials' when configured with scope 'authelia.bearer.authz' but the values 'implicit' are present",
-				"identity_providers: oidc: clients: client 'abc': option 'audience' must be configured when configured with scope 'authelia.bearer.authz' but it's absent",
+				"identity_providers: oidc: clients: client 'abc': option 'audience' or option 'resource' must be configured when configured with scope 'authelia.bearer.authz' but both are absent",
 				"identity_providers: oidc: clients: client 'abc': option 'require_pushed_authorization_requests' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
 				"identity_providers: oidc: clients: client 'abc': option 'require_pkce' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
 				"identity_providers: oidc: clients: client 'abc': option 'consent_mode' must be configured as 'explicit' when configured with scope 'authelia.bearer.authz' but it's configured as 'implicit'",
@@ -2367,7 +2797,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'abc': option 'scopes' must only have the values 'offline_access', 'offline', and 'authelia.bearer.authz' when configured with scope 'authelia.bearer.authz' but the values 'authelia.bearer.authz' and 'openid' are present",
 				"identity_providers: oidc: clients: client 'abc': option 'grant_types' must only have the values 'authorization_code', 'refresh_token', and 'client_credentials' when configured with scope 'authelia.bearer.authz' but the values 'implicit' are present",
-				"identity_providers: oidc: clients: client 'abc': option 'audience' must be configured when configured with scope 'authelia.bearer.authz' but it's absent",
+				"identity_providers: oidc: clients: client 'abc': option 'audience' or option 'resource' must be configured when configured with scope 'authelia.bearer.authz' but both are absent",
 				"identity_providers: oidc: clients: client 'abc': option 'require_pushed_authorization_requests' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
 				"identity_providers: oidc: clients: client 'abc': option 'pkce_challenge_method' must be configured as 'S256' when configured with scope 'authelia.bearer.authz' but it's configured as ''",
 				"identity_providers: oidc: clients: client 'abc': option 'consent_mode' must be configured as 'explicit' when configured with scope 'authelia.bearer.authz' but it's configured as 'implicit'",
@@ -2414,7 +2844,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'abc': option 'scopes' must only have the values 'offline_access', 'offline', and 'authelia.bearer.authz' when configured with scope 'authelia.bearer.authz' but the values 'authelia.bearer.authz' and 'openid' are present",
-				"identity_providers: oidc: clients: client 'abc': option 'audience' must be configured when configured with scope 'authelia.bearer.authz' but it's absent",
+				"identity_providers: oidc: clients: client 'abc': option 'audience' or option 'resource' must be configured when configured with scope 'authelia.bearer.authz' but both are absent",
 				"identity_providers: oidc: clients: client 'abc': option 'token_endpoint_auth_method' must be configured as 'client_secret_basic', 'client_secret_jwt', or 'private_key_jwt' when configured with scope 'authelia.bearer.authz' and the 'confidential' client type but it's configured as ''",
 				"identity_providers: oidc: clients: client 'abc': option 'scopes' has the values 'authelia.bearer.authz' and 'openid' however when utilizing the 'client_credentials' value for the 'grant_types' the values 'openid' are not allowed",
 			},
@@ -2451,7 +2881,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'abc': option 'grant_types' must only have the values 'authorization_code', 'refresh_token', and 'client_credentials' when configured with scope 'authelia.bearer.authz' but it's not configured",
-				"identity_providers: oidc: clients: client 'abc': option 'audience' must be configured when configured with scope 'authelia.bearer.authz' but it's absent",
+				"identity_providers: oidc: clients: client 'abc': option 'audience' or option 'resource' must be configured when configured with scope 'authelia.bearer.authz' but both are absent",
 				"identity_providers: oidc: clients: client 'abc': option 'require_pushed_authorization_requests' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
 				"identity_providers: oidc: clients: client 'abc': option 'require_pkce' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
 				"identity_providers: oidc: clients: client 'abc': option 'consent_mode' must be configured as 'explicit' when configured with scope 'authelia.bearer.authz' but it's configured as ''",
@@ -2507,6 +2937,44 @@ func TestValidateOIDCClients(t *testing.T) {
 					Public:                             true,
 					RedirectURIs:                       []string{"http://localhost"},
 					Audience:                           []string{"https://app.example.com"},
+					Scopes:                             []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
+					GrantTypes:                         []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
+					ResponseTypes:                      []string{oidc.ResponseTypeAuthorizationCodeFlow},
+					ResponseModes:                      []string{oidc.ResponseModeFormPost},
+					AuthorizationPolicy:                "",
+					RequestedAudienceMode:              "",
+					ConsentMode:                        oidc.ClientConsentModeExplicit.String(),
+					RequirePushedAuthorizationRequests: true,
+					RequirePKCE:                        true,
+					PKCEChallengeMethod:                oidc.PKCEChallengeMethodSHA256,
+					TokenEndpointAuthMethod:            oidc.ClientAuthMethodNone,
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost},
+				[]string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldHandleBearerValidWithOnlyResource",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0] = schema.IdentityProvidersOpenIDConnectClient{
+					ID:                                 "abc",
+					Secret:                             nil,
+					Public:                             true,
+					RedirectURIs:                       []string{"http://localhost"},
+					Resource:                           []string{"https://app.example.com/api"},
 					Scopes:                             []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
 					GrantTypes:                         []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
 					ResponseTypes:                      []string{oidc.ResponseTypeAuthorizationCodeFlow},
@@ -3379,6 +3847,190 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of 'HS256', 'HS384', or 'HS512' when option 'token_endpoint_auth_method' is configured to 'client_secret_jwt'",
 			},
+		},
+		{
+			"ShouldRaiseErrorOnHybridResponseTypeWithoutImplicitGrantType",
+			nil,
+			nil,
+			tcv{
+				nil,
+				[]string{oidc.ResponseTypeHybridFlowIDToken},
+				nil,
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeHybridFlowIDToken},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeFragment},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must include 'implicit' when option 'response_types' includes 'code id_token'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnHybridResponseTypeWithoutAnyRequiredGrantType",
+			nil,
+			nil,
+			tcv{
+				nil,
+				[]string{oidc.ResponseTypeHybridFlowToken},
+				nil,
+				[]string{oidc.GrantTypeRefreshToken},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeHybridFlowToken},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeFragment},
+				[]string{oidc.GrantTypeRefreshToken},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have the 'refresh_token' value if the client is also configured with the 'offline_access' scope",
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must include 'authorization_code' and 'implicit' when option 'response_types' includes 'code token'",
+			},
+		},
+		{
+			"ShouldSetDefaultApplicationType",
+			nil,
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, oidc.ApplicationTypeWeb, have.Clients[0].ApplicationType)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldAllowApplicationTypeNative",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].ApplicationType = oidc.ApplicationTypeNative
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, oidc.ApplicationTypeNative, have.Clients[0].ApplicationType)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidApplicationType",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].ApplicationType = "desktop"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'application_type' must be one of 'web' or 'native' but it's configured as 'desktop'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnImplicitAudienceWithWildcardStrategy",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.AudienceStrategy = oidc.StrategyWildcard
+				have.Clients[0].RequestedAudienceMode = oidc.ClientRequestedAudienceModeImplicit.String()
+				have.Clients[0].Audience = []string{"https://api.example.com/*", "https://app.example.com"}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'audience' must not contain wildcard values when option 'requested_audience_mode' is 'implicit' and option 'audience_strategy' is 'wildcard' as the values are granted literally but it has the wildcard values 'https://api.example.com/*'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnImplicitResourceWithClientWildcardStrategy",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].ResourceStrategy = oidc.StrategyWildcard
+				have.Clients[0].RequestedResourceMode = oidc.ClientRequestedResourceModeImplicit.String()
+				have.Clients[0].Resource = []string{"https://api.example.com/*"}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'resource' must not contain wildcard values when option 'requested_resource_mode' is 'implicit' and option 'resource_strategy' is 'wildcard' as the values are granted literally but it has the wildcard values 'https://api.example.com/*'",
+			},
+		},
+		{
+			"ShouldAllowImplicitAudienceWildcardWithExactStrategy",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.AudienceStrategy = oidc.StrategyExact
+				have.Clients[0].RequestedAudienceMode = oidc.ClientRequestedAudienceModeImplicit.String()
+				have.Clients[0].Audience = []string{"https://api.example.com/*"}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
 		},
 	}
 
@@ -4574,6 +5226,43 @@ func TestValidateLifespans(t *testing.T) {
 			},
 			[]string{"custom"},
 			nil,
+		},
+		{
+			"ShouldHandleRefreshTokenMaximum",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+							RefreshTokenMaximum: time.Hour * 24,
+							Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
+								"custom": {RefreshTokenMaximum: time.Hour},
+							},
+						},
+					},
+				},
+			},
+			[]string{"custom"},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnNegativeRefreshTokenMaximum",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+							RefreshTokenMaximum: -time.Hour,
+							Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
+								"custom": {RefreshTokenMaximum: -time.Minute},
+							},
+						},
+					},
+				},
+			},
+			[]string{"custom"},
+			[]string{
+				"identity_providers: oidc: lifespans: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '-1h0m0s'",
+				"identity_providers: oidc: lifespans: custom: custom: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '-1m0s'",
+			},
 		},
 	}
 
@@ -5794,6 +6483,60 @@ func TestValidateOIDCClientAssertionJWTValidationHeader(t *testing.T) {
 				assert.EqualError(t, validator.Warnings()[i], warning)
 			}
 
+			require.Len(t, validator.Errors(), len(tc.errors))
+
+			for i, err := range tc.errors {
+				assert.EqualError(t, validator.Errors()[i], err)
+			}
+		})
+	}
+}
+
+func TestValidateOIDCClientIntrospectionAudience(t *testing.T) {
+	testCases := []struct {
+		name     string
+		audience []string
+		errors   []string
+	}{
+		{
+			name: "ShouldNotErrorWhenUnconfigured",
+		},
+		{
+			name:     "ShouldNotErrorWhenConfigured",
+			audience: []string{"https://api.example.com", "api"},
+		},
+		{
+			name:     "ShouldErrorOnEmptyEntry",
+			audience: []string{"api", ""},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'test': option 'introspection_audience' must not have empty values but an empty value was present at index 1",
+			},
+		},
+		{
+			name:     "ShouldErrorOnDuplicateEntries",
+			audience: []string{"api", "api"},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'test': option 'introspection_audience' must have unique values but the values 'api' are duplicated",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                    "test",
+						IntrospectionAudience: tc.audience,
+					},
+				},
+			}
+
+			validateOIDCClientIntrospectionAudience(0, config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
 			require.Len(t, validator.Errors(), len(tc.errors))
 
 			for i, err := range tc.errors {

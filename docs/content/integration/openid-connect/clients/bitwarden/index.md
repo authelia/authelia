@@ -66,6 +66,7 @@ identity_providers:
       - client_id: 'bitwarden'
         client_name: 'Bitwarden'
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
