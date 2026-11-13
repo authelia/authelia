@@ -249,7 +249,7 @@ importers:
         version: 9.0.1
       eslint-plugin-prettier:
         specifier: 5.5.7
-        version: 5.5.7(eslint@10.14.0(supports-color@8.1.1))(prettier@3.9.10)
+        version: 5.5.7(eslint@10.14.0(supports-color@8.1.1))(prettier@3.10.0)
       flexsearch:
         specifier: 0.8.212
         version: 0.8.212
@@ -260,8 +260,8 @@ importers:
         specifier: 12.0.0
         version: 12.0.0(postcss@8.5.32)(yaml@2.9.1)
       prettier:
-        specifier: 3.9.10
-        version: 3.9.10
+        specifier: 3.10.0
+        version: 3.10.0
       vite:
         specifier: 8.3.8
         version: 8.3.8(sass-embedded@1.108.2)(sass@1.108.2)(yaml@2.9.1)
@@ -2049,8 +2049,8 @@ packages:
     resolution: {integrity: sha512-SxToR7P8Y2lWmv/kTzVLC1t/GDI2WGjMwNhLLE9qtH8Q13C+aEmuRlzDst4Up4s0Wc8sF2M+J57iB3cMLqftfg==}
     engines: {node: '>=6.0.0'}
 
-  prettier@3.9.10:
-    resolution: {integrity: sha512-skGHTH1Yb9QvaTC4hWnRTzEYtCpApF0UMBPz+t/0ZPzP8ihefo/btKd+QA7pUE0fEwA1SbS/NmhyEcstdXOIdA==}
+  prettier@3.10.0:
+    resolution: {integrity: sha512-mBi4765LgjO1PFjlEs7pUeK0nb1bw71c+N4/ItfeUWNdY5cV2pRKaFpbbFRYmDJMO+5ZwzGxHRqHxFZna7iv5w==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3696,10 +3696,10 @@ snapshots:
 
   eslint-formatter-visualstudio@9.0.1: {}
 
-  eslint-plugin-prettier@5.5.7(eslint@10.14.0(supports-color@8.1.1))(prettier@3.9.10):
+  eslint-plugin-prettier@5.5.7(eslint@10.14.0(supports-color@8.1.1))(prettier@3.10.0):
     dependencies:
       eslint: 10.14.0(supports-color@8.1.1)
-      prettier: 3.9.10
+      prettier: 3.10.0
       prettier-linter-helpers: 1.0.1
       synckit: 0.12.3
 
@@ -4454,7 +4454,7 @@ snapshots:
     dependencies:
       fast-diff: 1.3.0
 
-  prettier@3.9.10: {}
+  prettier@3.10.0: {}
 
   pretty-hrtime@1.0.3: {}
 
