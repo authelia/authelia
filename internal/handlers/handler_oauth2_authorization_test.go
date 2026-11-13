@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"database/sql"
@@ -16,6 +17,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -229,9 +231,10 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
 
 		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCSessionStore(t, mock)
+		store := setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
@@ -249,6 +252,22 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		assert.NotEmpty(t, location.Query().Get("code"))
 		assert.Equal(t, "abcdefghijklmnopqrstuvwxyz", location.Query().Get("state"))
 		assert.Empty(t, location.Query().Get("error"))
+
+		codeSessions := store.Sessions[storage.OAuth2SessionTypeAuthorizeCode]
+
+		require.Len(t, codeSessions, 1)
+
+		for _, saved := range codeSessions {
+			issued := &oidc.Session{}
+
+			require.NoError(t, json.Unmarshal(saved.Session, issued))
+
+			require.NotEmpty(t, issued.GetSessionID())
+
+			_, err = uuid.Parse(issued.GetSessionID())
+
+			assert.NoError(t, err)
+		}
 	})
 
 	t.Run("ShouldHandleUserDetailsError", func(t *testing.T) {
@@ -421,6 +440,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
@@ -493,6 +513,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCSessionStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
@@ -534,6 +555,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
@@ -563,6 +585,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		mock.Ctx.Request.SetRequestURI(testOIDCAuthorizationEndpoint + "?consent_id=not-a-uuid")
@@ -595,6 +618,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		subject := mustGetTestOIDCSubject(t, mock, client.ID)
@@ -641,6 +665,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
@@ -692,6 +717,7 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		mock.StorageMock.EXPECT().
@@ -859,4 +885,115 @@ func newTestSignedRequestObject(t *testing.T, key *rsa.PrivateKey, kid string, v
 	require.NoError(t, err)
 
 	return object
+}
+
+func TestOAuth2AuthorizationGETShouldConfirmTheUserSession(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(repository *failingSessionRepository)
+		expected string
+		log      string
+	}{
+		{
+			"ShouldRejectWhenTheSessionEnded",
+			func(repository *failingSessionRepository) {
+				repository.endedByPublicID = true
+			},
+			"access_denied",
+			"the user session ended while the request was being processed",
+		},
+		{
+			"ShouldRejectWhenTheSessionCanNotBeConfirmed",
+			func(repository *failingSessionRepository) {
+				repository.errGetByPublicID = errTestSessionBackend
+			},
+			"server_error",
+			"error occurred confirming the user session",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			client := newTestOIDCAuthorizationCodeClient(t)
+			client.ConsentMode = "implicit"
+
+			setupTestOIDCAuthorizationCodeFlow(t, mock, client)
+
+			repository := setupTestFailingSessionRepository(t, mock)
+
+			us := newTestOIDCUserSession(1)
+
+			require.NoError(t, mock.Ctx.SaveSession(&us))
+			require.NotEmpty(t, us.PublicID)
+
+			tc.setup(repository)
+
+			rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
+
+			OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+			require.Equal(t, http.StatusSeeOther, rw.Code)
+
+			location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expected, location.Query().Get("error"))
+			assert.Empty(t, location.Query().Get(testOIDCFormParameterCode))
+			require.NotNil(t, mock.Hook.LastEntry())
+			assert.Contains(t, mock.Hook.LastEntry().Message, tc.log)
+		})
+	}
+}
+
+func TestOAuth2AuthorizationGETShouldRejectWhenTheSessionIsDestroyedDuringTheRequest(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	client := newTestOIDCAuthorizationCodeClient(t)
+	client.ConsentMode = "implicit"
+
+	config := newTestOIDCConfig(t)
+	config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+	setupTestOIDCProvider(t, mock, config)
+	setupTestOIDCSessionStore(t, mock)
+	setupTestOIDCConsentStore(t, mock)
+	setupTestOIDCSubjectStore(t, mock)
+	setupTestOIDCUserDetails(t, mock)
+
+	repository := setupTestFailingSessionRepository(t, mock)
+
+	us := newTestOIDCUserSession(1)
+
+	require.NoError(t, mock.Ctx.SaveSession(&us))
+	require.NotEmpty(t, us.PublicID)
+
+	sid := uuid.Must(uuid.NewRandom())
+
+	mock.StorageMock.EXPECT().
+		GetOrCreateOAuth2SessionID(gomock.Any(), gomock.Any(), gomock.Any(), us.PublicID).
+		DoAndReturn(func(ctx context.Context, issuer, _, pid string) (*model.OAuth2SessionID, error) {
+			record, err := repository.Repository.GetByPublicID(ctx, issuer, pid)
+			require.NoError(t, err)
+			require.NotNil(t, record)
+
+			require.NoError(t, repository.Repository.Delete(ctx, issuer, record.GetSessionSignature(), pid, testUsername))
+
+			return &model.OAuth2SessionID{PublicID: pid, SessionID: sid}, nil
+		})
+
+	rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
+
+	OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+	require.Equal(t, http.StatusSeeOther, rw.Code)
+
+	location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+	require.NoError(t, err)
+
+	assert.Equal(t, "access_denied", location.Query().Get("error"))
+	assert.Empty(t, location.Query().Get(testOIDCFormParameterCode))
 }

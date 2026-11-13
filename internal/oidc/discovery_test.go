@@ -66,7 +66,7 @@ func TestOpenIDConnectProviderMetadata(t *testing.T) {
 	assert.Equal(t, oidc.EncryptionEncValuesSupported(), metadata.IDTokenEncryptionEncValuesSupported)
 
 	assert.NotContains(t, metadata.ClaimsSupported, oidc.ClaimAuthenticationContextClassReference)
-	assert.NotContains(t, metadata.ClaimsSupported, oidc.ClaimSessionID)
+	assert.Contains(t, metadata.ClaimsSupported, oidc.ClaimSessionID)
 	assert.Contains(t, metadata.ClaimsSupported, oidc.ClaimEmailAlts)
 	assert.Contains(t, metadata.ClaimsSupported, oidc.ClaimAccessTokenHash)
 	assert.Contains(t, metadata.ClaimsSupported, oidc.ClaimCodeHash)

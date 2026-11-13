@@ -5,7 +5,10 @@
 package session
 
 import (
+	"bytes"
+	"encoding/binary"
 	"testing"
+	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -79,6 +82,51 @@ func TestSecureCodec_GeneratePublicID(t *testing.T) {
 	pid, err := uuid.Parse(id)
 	require.NoError(t, err)
 	assert.Equal(t, uuid.Version(7), pid.Version())
+}
+
+func TestSecureCodecShouldGeneratePublicIDVersion7(t *testing.T) {
+	codec := newTestCodec(t)
+
+	var ids [5][16]byte
+
+	var idStrings [5]string
+
+	now := time.Now().UnixMilli()
+
+	for i := 0; i < 5; i++ {
+		idStr, err := codec.GeneratePublicID()
+		require.NoError(t, err)
+
+		idStrings[i] = idStr
+		parsed, err := uuid.Parse(idStr)
+		require.NoError(t, err)
+		assert.Equal(t, uuid.Version(7), parsed.Version())
+
+		ids[i] = parsed
+
+		var ts [8]byte
+		copy(ts[2:], ids[i][:6])
+
+		//nolint:gosec
+		timestamp := int64(binary.BigEndian.Uint64(ts[:]))
+
+		minTime := now - 60000
+		maxTime := now + 60000
+
+		assert.GreaterOrEqual(t, timestamp, minTime, "timestamp should not be before 1 minute ago")
+		assert.LessOrEqual(t, timestamp, maxTime, "timestamp should not be after 1 minute from now")
+	}
+
+	for i := 1; i < 5; i++ {
+		cmp := bytes.Compare(ids[i-1][:6], ids[i][:6])
+		assert.LessOrEqual(t, cmp, 0, "timestamp prefix should be non-decreasing")
+	}
+
+	for i := 0; i < 5; i++ {
+		for j := i + 1; j < 5; j++ {
+			assert.NotEqual(t, idStrings[i], idStrings[j])
+		}
+	}
 }
 
 func TestSecureCodec_SealShouldReturnErrorWhenEncryptionFails(t *testing.T) {

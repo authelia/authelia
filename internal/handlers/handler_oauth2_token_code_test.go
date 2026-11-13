@@ -5,6 +5,8 @@
 package handlers
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,6 +19,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -28,7 +31,7 @@ func TestOAuth2TokenPOSTAuthorizationCode(t *testing.T) {
 		client := newTestOIDCAuthorizationCodeClient(t)
 		client.ConsentMode = "implicit"
 
-		setupTestOIDCAuthorizationCodeFlow(t, mock, client)
+		records := setupTestOIDCAuthorizationCodeFlow(t, mock, client)
 
 		code := mustGetTestOIDCAuthorizationCode(t, mock, newTestOIDCAuthorizationValues())
 
@@ -52,7 +55,22 @@ func TestOAuth2TokenPOSTAuthorizationCode(t *testing.T) {
 		idToken, ok := response["id_token"].(string)
 
 		require.True(t, ok)
-		assert.Len(t, strings.Split(idToken, "."), 3)
+
+		parts := strings.Split(idToken, ".")
+
+		require.Len(t, parts, 3)
+
+		payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+		require.NoError(t, err)
+
+		claims := map[string]any{}
+
+		require.NoError(t, json.Unmarshal(payload, &claims))
+		require.Len(t, records, 1)
+
+		for _, record := range records {
+			assert.Equal(t, record.SessionID.String(), claims[oidc.ClaimSessionID])
+		}
 	})
 
 	t.Run("ShouldNotExchangeAuthorizationCodeTwice", func(t *testing.T) {
@@ -281,6 +299,7 @@ func TestOAuth2TokenPOSTErrors(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		store := setupTestOIDCSessionStore(t, mock)
@@ -305,7 +324,7 @@ func TestOAuth2TokenPOSTErrors(t *testing.T) {
 	})
 }
 
-func setupTestOIDCAuthorizationCodeFlow(t *testing.T, mock *mocks.MockAutheliaCtx, client schema.IdentityProvidersOpenIDConnectClient) {
+func setupTestOIDCAuthorizationCodeFlow(t *testing.T, mock *mocks.MockAutheliaCtx, client schema.IdentityProvidersOpenIDConnectClient) (records map[string]model.OAuth2SessionID) {
 	t.Helper()
 
 	config := newTestOIDCConfig(t)
@@ -315,5 +334,8 @@ func setupTestOIDCAuthorizationCodeFlow(t *testing.T, mock *mocks.MockAutheliaCt
 	setupTestOIDCSessionStore(t, mock)
 	setupTestOIDCConsentStore(t, mock)
 	setupTestOIDCSubjectStore(t, mock)
+	records = setupTestOIDCSessionIDStore(t, mock)
 	setupTestOIDCUserDetails(t, mock)
+
+	return records
 }

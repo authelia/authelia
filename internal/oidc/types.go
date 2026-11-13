@@ -74,13 +74,14 @@ type RegisteredClient struct {
 	RequirePKCEChallengeMethod bool
 	PKCEChallengeMethod        string
 
-	Audience      []string
-	Resource      []string
-	Scopes        []string
-	RedirectURIs  []string
-	GrantTypes    []string
-	ResponseTypes []string
-	ResponseModes []oauthelia2.ResponseModeType
+	Audience               []string
+	Resource               []string
+	Scopes                 []string
+	RedirectURIs           []string
+	PostLogoutRedirectURIs []string
+	GrantTypes             []string
+	ResponseTypes          []string
+	ResponseModes          []oauthelia2.ResponseModeType
 
 	Lifespans      schema.IdentityProvidersOpenIDConnectLifespan
 	ClaimsStrategy ClaimsStrategy
@@ -149,7 +150,8 @@ type RegisteredClient struct {
 	AudienceStrategy      oauthelia2.AudienceStrategy
 	ResourceStrategy      oauthelia2.ResourceStrategy
 
-	RequestURIs    []string
+	RequestURIs []string
+
 	JSONWebKeys    *jose.JSONWebKeySet
 	JSONWebKeysURI *url.URL
 }
@@ -162,6 +164,9 @@ type Client interface {
 
 	GetName() (name string)
 	GetSectorIdentifierURI() (sector string)
+
+	GetRedirectURIs() (redirectURIs []string)
+	GetPostLogoutRedirectURIs() (redirectURIs []string)
 
 	GetClaimsStrategy() (strategy ClaimsStrategy)
 
@@ -375,6 +380,9 @@ var (
 	_ oauthelia2.ApplicationTypeClient                                    = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshTokenMaximumLifespanClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshTokenRotationClient                               = (*RegisteredClient)(nil)
+	_ oauthelia2.RPInitiatedLogoutClient                                  = (*RegisteredClient)(nil)
+
+	_ model.OpenIDSession = (*Session)(nil)
 
 	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
 	_ RequesterFormSession = (*model.OAuth2DeviceCodeSession)(nil)

@@ -57,7 +57,7 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 	log.Debug("Device Authorization Request is processing the Device Authorization Flow")
 
-	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, requester, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
+	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, requester, oidc.NewSessionWithClientAndRequestedAt(requester.GetClient(), ctx.GetClock().Now())); err != nil {
 		log.WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Error("Device Authorization Request had an error while trying to create a response during the Device Authorization Flow")
 
 		errorsx.WriteJSONError(rw, r, err)
@@ -218,7 +218,19 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
+	var sid string
+
+	if sid, err = oidcSessionID(ctx, client, requester, &userSession); err != nil {
+		log.
+			WithError(err).
+			Error("Device Authorization Request failed to obtain the session identifier during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the session identifier."))
+
+		return
+	}
+
+	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, sid, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
 		session.Claims.Audience = append([]string{client.GetID()}, oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource())...)
@@ -242,6 +254,30 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 			Error("Device Authorization Request had an error while attempting to generate the responder during the User Authorization Flow")
 
 		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	if err = oidcSessionIDConfirm(ctx, sid, &userSession); err != nil {
+		if errDeactivate := ctx.Providers.StorageProvider.DeactivateOAuth2DeviceCodeSession(ctx, requester.GetDeviceCodeSignature()); errDeactivate != nil {
+			log.
+				WithError(errDeactivate).
+				Error("Device Authorization Request had an error while deactivating the device code during the User Authorization Flow")
+		}
+
+		if errors.Is(err, errOIDCSessionEnded) {
+			log.Error("Device Authorization Request failed as the user session ended while the request was being processed during the User Authorization Flow")
+
+			ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The user session ended while the request was being processed."))
+
+			return
+		}
+
+		log.
+			WithError(err).
+			Error("Device Authorization Request failed to confirm the user session during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not confirm the user session."))
 
 		return
 	}

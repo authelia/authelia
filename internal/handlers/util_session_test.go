@@ -27,9 +27,12 @@ func newTestSessionCookie(label string) string {
 type failingSessionRepository struct {
 	session.Repository
 
-	errGet      error
-	errDelete   error
-	errChangeID error
+	errGet           error
+	errGetByPublicID error
+	errDelete        error
+	errChangeID      error
+
+	endedByPublicID bool
 
 	errSave []error
 	saved   []string
@@ -41,6 +44,18 @@ func (r *failingSessionRepository) Get(ctx context.Context, issuer, id string) (
 	}
 
 	return r.Repository.Get(ctx, issuer, id)
+}
+
+func (r *failingSessionRepository) GetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
+	if r.errGetByPublicID != nil {
+		return nil, r.errGetByPublicID
+	}
+
+	if r.endedByPublicID {
+		return nil, nil
+	}
+
+	return r.Repository.GetByPublicID(ctx, issuer, pid)
 }
 
 func (r *failingSessionRepository) Save(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {

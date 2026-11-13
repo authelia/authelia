@@ -504,6 +504,60 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 |           [UserInfo]            |           https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo           |           userinfo_endpoint           |
 |         [Introspection]         |        https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/introspection         |        introspection_endpoint         |
 |          [Revocation]           |          https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/revocation          |          revocation_endpoint          |
+|          [End Session]          |         https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/end-session          |         end_session_endpoint          |
+
+## Logout
+
+Authelia implements [OpenID Connect RP-Initiated Logout 1.0]. [OpenID Connect Back-Channel Logout 1.0],
+[OpenID Connect Front-Channel Logout 1.0], and [OpenID Connect Session Management 1.0], including the
+`check_session_iframe`, are not supported.
+
+### End Session
+
+A Relying Party logs the End-User out by redirecting them to the [End Session] endpoint using either the `GET` or `POST`
+method with the following parameters:
+
+|         Parameter          |                                                    Description                                                    |
+| :------------------------: | :---------------------------------------------------------------------------------------------------------------: |
+|      `id_token_hint`       |          An ID Token previously issued to the Relying Party. Expired ID Tokens are accepted as the hint.          |
+|        `client_id`         |      The client identifier, required with a `post_logout_redirect_uri` when `id_token_hint` is not provided.      |
+| `post_logout_redirect_uri` | Where the End-User is redirected after the logout, which must be one of the client's [post_logout_redirect_uris]. |
+|          `state`           |                       An opaque value returned to the `post_logout_redirect_uri` unchanged.                       |
+|        `ui_locales`        |                              The End-User's preferred languages for the logout page.                              |
+|       `logout_hint`        |                                               Accepted and ignored.                                               |
+
+The End-User is always asked to confirm the logout. As the End-User confirms the logout themselves, the
+`post_logout_redirect_uri` is honored even without an `id_token_hint`, provided it's registered for the `client_id`.
+The [End Session] endpoint doesn't use the session of the End-User, as the browser doesn't send the session cookie with
+a cross-site `POST`, nor with any cross-site request when the session cookie has the
+[same_site](../../configuration/session/introduction.md#same_site) option set to `strict`. It stores the validated
+request and redirects the End-User to the logout page, which checks the request against their session when they confirm
+the logout. Both the `GET` and `POST` methods, and every `same_site` value, are supported.
+
+When the End-User is logged in, a request with an `id_token_hint` issued to another End-User, or identifying another
+logged in session, is declined: the End-User is asked to confirm an ordinary logout of their own session, after which
+they are not redirected to the `post_logout_redirect_uri`. When the End-User is not logged in, for example because their
+session already expired, confirming the logout only redirects them to the `post_logout_redirect_uri` and doesn't end any
+other session, as an ID Token alone does not prove the browser belongs to the End-User it was issued to.
+
+### Session Termination
+
+When the End-User logs out of Authelia, either directly or via the [End Session] endpoint, the OpenID Connect sessions
+they participated in are ended. The access tokens, authorization codes, and refresh tokens issued for the session are
+revoked, except refresh tokens granted the `offline_access` or `offline` scope which remain valid until they expire or
+are revoked by the client. Refresh tokens obtained by refreshing a token issued for the session belong to the same
+session.
+
+When the `id_token_hint` identifies an OpenID Connect session of the same End-User which outlived the Authelia session it
+was issued for, the tokens of that session are also revoked.
+
+Sessions which end by expiring or through inactivity, rather than by the End-User logging out, don't revoke their
+tokens.
+
+The revocation of access tokens applies to the default configuration. When
+[enable_jwt_access_token_stateless_introspection] is enabled, JWT access tokens are introspected without checking
+whether they were revoked, so they remain usable after the logout until they expire. It's therefore recommended this
+option is left disabled.
 
 ## Security
 
@@ -622,8 +676,8 @@ either implemented, have our eye on, or are refusing to implement.
 |                                        [OAuth 2.0 Multiple Response Types]                                         |   Certified   |                                              N/A                                              |
 |                                        [OAuth 2.0 Form Post Response Mode]                                         |   Certified   |                                              N/A                                              |
 |                                  [OpenID Connect Dynamic Client Registration 1.0]                                  |     None      |                                              N/A                                              |
+|                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |   Complete    |                                              N/A                                              |
 |                                [OpenID Connect Relying Party Metadata Choices 1.0]                                 |     None      |                                              N/A                                              |
-|                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Session Management 1.0]                                       |     None      |                                              N/A                                              |
 |                                     [OpenID Connect Front-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Back-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
@@ -727,6 +781,9 @@ either implemented, have our eye on, or are refusing to implement.
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
+[End Session]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
+[post_logout_redirect_uris]: ../../configuration/identity-providers/openid-connect/clients.md#post_logout_redirect_uris
+[enable_jwt_access_token_stateless_introspection]: ../../configuration/identity-providers/openid-connect/provider.md#enable_jwt_access_token_stateless_introspection
 [Proof Key for Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
 [Client Authentication]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3
 [Client Type]: https://oauth.net/2/client-types/

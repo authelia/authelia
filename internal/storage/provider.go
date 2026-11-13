@@ -316,6 +316,46 @@ type Provider interface {
 	SaveOAuth2RequestReplay(ctx context.Context, replay model.OAuth2RequestReplay) (err error)
 
 	/*
+		Implementation for OAuth2.0 Session ID's.
+	*/
+
+	// GetOrCreateOAuth2SessionID returns the session id mapping for the issuer, sector, and public identifier,
+	// creating it when absent.
+	GetOrCreateOAuth2SessionID(ctx context.Context, issuer, sectorID, publicID string) (record *model.OAuth2SessionID, err error)
+
+	// LoadOAuth2SessionIDBySessionID returns the session id mapping for the issuer and 'sid' claim value, returning
+	// a nil record and no error when there is no such mapping.
+	LoadOAuth2SessionIDBySessionID(ctx context.Context, issuer, sid string) (record *model.OAuth2SessionID, err error)
+
+	// LoadOAuth2SessionIDsOldest pages the session id mappings ordered by ascending id.
+	LoadOAuth2SessionIDsOldest(ctx context.Context, after, limit int) (records []model.OAuth2SessionID, err error)
+
+	// DeleteOAuth2SessionID removes the session id mapping matching the issuer and 'sid' claim value.
+	DeleteOAuth2SessionID(ctx context.Context, issuer, sid string) (err error)
+
+	// DeleteOAuth2SessionIDByPublicID removes every session id mapping for the issuer and session public identifier.
+	DeleteOAuth2SessionIDByPublicID(ctx context.Context, issuer, publicID string) (err error)
+
+	// LoadOAuth2SessionIDsByPublicID returns every sector's session id mapping for the issuer and session public
+	// identifier.
+	LoadOAuth2SessionIDsByPublicID(ctx context.Context, issuer, publicID string) (records []model.OAuth2SessionID, err error)
+
+	// SaveOAuth2LogoutSession saves an OpenID Connect RP-Initiated Logout 1.0 request awaiting the confirmation of the
+	// End-User, removing every logout session which expired before it was created.
+	SaveOAuth2LogoutSession(ctx context.Context, session model.OAuth2LogoutSession) (err error)
+
+	// LoadOAuth2LogoutSession returns the logout session with the flow id, or a nil session without an error when there
+	// is no such session.
+	LoadOAuth2LogoutSession(ctx context.Context, flowID uuid.UUID) (session *model.OAuth2LogoutSession, err error)
+
+	// DeleteOAuth2LogoutSession deletes the logout session with the flow id.
+	DeleteOAuth2LogoutSession(ctx context.Context, flowID uuid.UUID) (err error)
+
+	// RevokeOAuth2SessionsBySessionID revokes every OAuth 2.0 session issued with the 'sid' claim value, except the
+	// refresh token sessions which were granted offline access.
+	RevokeOAuth2SessionsBySessionID(ctx context.Context, sid string) (err error)
+
+	/*
 		Implementation for User Sessions.
 	*/
 
