@@ -21,6 +21,7 @@ const (
 	ScopePhone         = "phone"
 	ScopeAddress       = "address"
 	ScopeGroups        = "groups"
+	ScopeBoundKey      = "bound_key"
 
 	ScopeAutheliaBearerAuthz = "authelia.bearer.authz"
 	ScopeAutheliaPAM         = "authelia.pam"
@@ -107,7 +108,8 @@ const (
 )
 
 const (
-	backChannelLogoutConcurrencyDefault = 10
+	frequencyGarbageCollectionOAuth2DPoP = time.Minute * 30
+	backChannelLogoutConcurrencyDefault  = 10
 )
 
 // Redirect URI prefix strings.
@@ -270,6 +272,7 @@ const (
 	FormParameterState        = "state"
 	FormParameterClientID     = valueClientID
 	FormParameterRequestURI   = "request_uri"
+	FormParameterDPoPJKT      = "dpop_jkt"
 	FormParameterRedirectURI  = "redirect_uri"
 	FormParameterResponseMode = "response_mode"
 	FormParameterResponseType = "response_type"
@@ -306,6 +309,18 @@ const (
 // JWT Header Type values.
 const (
 	JWTHeaderTypeValueAccessTokenJWT = "at+jwt"
+)
+
+// RFC9449 DPoP HTTP header names and authentication scheme.
+const (
+	// HeaderDPoP is the header the RFC9449 proof JWT is transmitted in.
+	HeaderDPoP = "DPoP"
+
+	// HeaderDPoPNonce is the header a server provided RFC9449 nonce is transmitted in.
+	HeaderDPoPNonce = "DPoP-Nonce"
+
+	// SchemeDPoP is the RFC9449 authentication scheme a DPoP bound Access Token is presented with.
+	SchemeDPoP = "DPoP"
 )
 
 // ID Token Audience Mode strings.

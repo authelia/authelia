@@ -18,6 +18,7 @@ import (
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/handler/pkce"
 	"authelia.com/provider/oauth2/handler/rfc8628"
+	"authelia.com/provider/oauth2/handler/rfc9449"
 	ostorage "authelia.com/provider/oauth2/storage"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -555,6 +556,39 @@ func (s *Store) DeletePARSession(ctx context.Context, requestURI string) (err er
 	return errStorage(err)
 }
 
+// CheckAndSetDPoPProofUsed atomically determines if a DPoP proof has already been used and has not yet expired and,
+// when it has not, records it as used until exp. The record is keyed on the 'jti' claim, the JWK Thumbprint of the
+// proof key, the HTTP method, and the normalized target URI. RFC 9449 Section 4.2 only requires a 'jti' to be unique
+// in the context it is presented in, so keying on the 'jti' alone would reject a conforming client which reuses it
+// against another endpoint, and the JWK Thumbprint gives each key holder its own 'jti' namespace so that one client
+// cannot cause the proofs of another to be rejected as replays. The 'nonce' claim is excluded as it's validated before
+// this record is written. This implements a portion of rfc9449.DPoPReplayStorage.
+func (s *Store) CheckAndSetDPoPProofUsed(ctx context.Context, jti, jkt, _, htm, htu string, exp time.Time) (used bool, err error) {
+	return s.provider.CheckAndSetOAuth2DPoPProofUsed(ctx, model.NewOAuth2DPoPProof(jti, jkt, htm, htu, exp), time.Now())
+}
+
+// CreateDPoPNonce persists a freshly issued DPoP nonce until exp.
+// This implements a portion of rfc9449.DPoPNonceStorage.
+func (s *Store) CreateDPoPNonce(ctx context.Context, nonce string, exp time.Time) (err error) {
+	return s.provider.SaveOAuth2DPoPNonce(ctx, model.NewOAuth2DPoPNonce(nonce, exp))
+}
+
+// IsDPoPNonceValid determines if a DPoP nonce exists and has not expired.
+// This implements a portion of rfc9449.DPoPNonceStorage.
+func (s *Store) IsDPoPNonceValid(ctx context.Context, nonce string) (valid bool, err error) {
+	var value *model.OAuth2DPoPNonce
+
+	if value, err = s.provider.LoadOAuth2DPoPNonce(ctx, model.NewOAuth2DPoPNonceSignature(nonce)); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return value.ExpiresAt.After(time.Now()), nil
+}
+
 func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session oauthelia2.Session) (r oauthelia2.Requester, err error) {
 	var (
 		sessionModel *model.OAuth2Session
@@ -660,4 +694,5 @@ var (
 	_ rfc8628.Storage                    = (*Store)(nil)
 	_ rfc8628.DecisionStorage            = (*Store)(nil)
 	_ pkce.Storage                       = (*Store)(nil)
+	_ rfc9449.Storage                    = (*Store)(nil)
 )

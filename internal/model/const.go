@@ -40,6 +40,7 @@ const (
 	formParameterNonce      = "nonce"
 	formParameterState      = "state"
 	formParameterRequestURI = "request_uri"
+	formParameterDPoPJKT    = "dpop_jkt"
 )
 
 // JSON Schema format strings.

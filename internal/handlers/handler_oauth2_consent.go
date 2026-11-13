@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -362,6 +363,10 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 		Resource:  consent.GrantedResource,
 	}
 
+	if jkt := oauth2ConsentKeyBindingThumbprint(ctx, consent.GrantedScopes, form); jkt != "" {
+		config.DPoPJWKThumbprint = sql.NullString{String: jkt, Valid: true}
+	}
+
 	var (
 		requests *oidc.ClaimsRequests
 	)
@@ -403,6 +408,16 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 	ctx.GetLogger().
 		WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldExpiration: config.ExpiresAt.Time.Unix(), logging.FieldScope: consent.GrantedScopes, "claims": consent.GrantedClaims}).
 		Debug("Saved consent pre-configuration with expiration")
+}
+
+func oauth2ConsentKeyBindingThumbprint(ctx *middlewares.AutheliaCtx, scopes []string, form url.Values) (jkt string) {
+	provider := ctx.Providers.OpenIDConnect
+
+	if provider == nil || !provider.GetDPoPEnabled(ctx) || !provider.GetOIDCKeyBindingEnabled(ctx) || !slices.Contains(scopes, oidc.ScopeBoundKey) {
+		return ""
+	}
+
+	return form.Get(oidc.FormParameterDPoPJKT)
 }
 
 //nolint:gocyclo

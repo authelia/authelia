@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+
 	. "github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 )
@@ -132,6 +134,7 @@ func TestNewHTTPToAutheliaHandlerAdaptor(t *testing.T) {
 
 		mock.Ctx.Request.Header.SetMethod(fasthttp.MethodPost)
 		mock.Ctx.Request.Header.SetHost("auth.example.com")
+		mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 		mock.Ctx.Request.SetRequestURI("/api/oidc/token?example=abc")
 		mock.Ctx.Request.SetBodyString("grant_type=authorization_code")
 		mock.Ctx.SetRemoteAddr(&net.TCPAddr{IP: net.IPv4(192, 168, 1, 5), Port: 41234})
@@ -154,6 +157,57 @@ func TestNewHTTPToAutheliaHandlerAdaptor(t *testing.T) {
 		assert.Equal(t, "abc", request.URL.Query().Get("example"))
 
 		assert.Equal(t, mock.Ctx, request.Context())
+	})
+
+	t.Run("ShouldMapForwardedHostAndProto", func(t *testing.T) {
+		var request *http.Request
+
+		handler := NewHTTPToAutheliaHandlerAdaptor(func(ctx *AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+			request = r
+		})
+
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		defer mock.Close()
+
+		mock.Ctx.Request.Header.SetMethod(fasthttp.MethodPost)
+		mock.Ctx.Request.Header.SetHost("authelia:9091")
+		mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
+		mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+		mock.Ctx.Request.SetRequestURI("/api/oidc/token?example=abc")
+
+		handler(mock.Ctx)
+
+		require.NotNil(t, request)
+
+		assert.Equal(t, "auth.example.com", request.Host)
+		assert.Equal(t, "https", request.Header.Get(fasthttp.HeaderXForwardedProto))
+		assert.Equal(t, "https://auth.example.com/api/oidc/token", oauthelia2.RequestURL(request))
+	})
+
+	t.Run("ShouldMapHostAndConnectionProtoWithoutForwardedHeaders", func(t *testing.T) {
+		var request *http.Request
+
+		handler := NewHTTPToAutheliaHandlerAdaptor(func(ctx *AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+			request = r
+		})
+
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		defer mock.Close()
+
+		mock.Ctx.Request.Header.SetHost("authelia:9091")
+		mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
+		mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedProto)
+		mock.Ctx.Request.SetRequestURI("/api/oidc/token")
+
+		handler(mock.Ctx)
+
+		require.NotNil(t, request)
+
+		assert.Equal(t, "authelia:9091", request.Host)
+		assert.Equal(t, "http", request.Header.Get(fasthttp.HeaderXForwardedProto))
+		assert.Equal(t, "http://authelia:9091/api/oidc/token", oauthelia2.RequestURL(request))
 	})
 
 	t.Run("ShouldMapProtocolHTTP11", func(t *testing.T) {
@@ -287,6 +341,93 @@ func TestNewHTTPToAutheliaHandlerAdaptor(t *testing.T) {
 		}
 
 		assert.Equal(t, "authelia_session=aaaaaaaaaaaaaaaaaaaa", cookie)
+	})
+
+	t.Run("ShouldPreserveRepeatedHeaders", func(t *testing.T) {
+		var values []string
+
+		handler := NewHTTPToAutheliaHandlerAdaptor(func(ctx *AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+			values = r.Header.Values("DPoP")
+		})
+
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		defer mock.Close()
+
+		mock.Ctx.Request.Header.Add("DPoP", "proof-one")
+		mock.Ctx.Request.Header.Add("DPoP", "proof-two")
+
+		handler(mock.Ctx)
+
+		assert.Equal(t, []string{"proof-one", "proof-two"}, values)
+	})
+
+	t.Run("ShouldPreserveFirstStatusCode", func(t *testing.T) {
+		handler := NewHTTPToAutheliaHandlerAdaptor(func(ctx *AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(http.StatusCreated)
+			rw.WriteHeader(http.StatusInternalServerError)
+		})
+
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		defer mock.Close()
+
+		handler(mock.Ctx)
+
+		assert.Equal(t, http.StatusCreated, mock.Ctx.Response.StatusCode())
+	})
+
+	t.Run("ShouldReplaceInformationalStatusCode", func(t *testing.T) {
+		handler := NewHTTPToAutheliaHandlerAdaptor(func(ctx *AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(http.StatusEarlyHints)
+			rw.WriteHeader(http.StatusCreated)
+			rw.WriteHeader(http.StatusInternalServerError)
+		})
+
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		defer mock.Close()
+
+		handler(mock.Ctx)
+
+		assert.Equal(t, http.StatusCreated, mock.Ctx.Response.StatusCode())
+	})
+
+	t.Run("ShouldSetProtocolFromRequest", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			protocol string
+			expected string
+			major    int
+			minor    int
+		}{
+			{"HTTP11", "HTTP/1.1", "HTTP/1.1", 1, 1},
+			{"HTTP10", "HTTP/1.0", "HTTP/1.0", 1, 0},
+			{"Invalid", "NOTAPROTOCOL", "HTTP/1.1", 1, 1},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				var r *http.Request
+
+				handler := NewHTTPToAutheliaHandlerAdaptor(func(ctx *AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+					r = req
+				})
+
+				mock := mocks.NewMockAutheliaCtx(t)
+
+				defer mock.Close()
+
+				mock.Ctx.Request.Header.SetProtocol(tc.protocol)
+
+				handler(mock.Ctx)
+
+				require.NotNil(t, r)
+				assert.Equal(t, tc.expected, r.Proto)
+				assert.Equal(t, tc.major, r.ProtoMajor)
+				assert.Equal(t, tc.minor, r.ProtoMinor)
+			})
+		}
 	})
 
 	t.Run("ShouldHandleRequestWithData", func(t *testing.T) {
