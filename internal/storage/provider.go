@@ -251,7 +251,9 @@ type Provider interface {
 	// DeactivateOAuth2SessionByRequestID marks an OAuth2.0 session as inactive in the storage provider.
 	DeactivateOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 
-	// LoadOAuth2Session loads an OAuth2.0 session from the storage provider.
+	// LoadOAuth2Session loads an OAuth2.0 session from the storage provider. A revoked session is not loaded unless it
+	// is a refresh token session, which is loaded with the revoked flag set so the reuse of the refresh token can be
+	// detected.
 	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error)
 
 	/*

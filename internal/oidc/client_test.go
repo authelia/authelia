@@ -2031,6 +2031,68 @@ func TestRegisteredClient_GetApplicationType(t *testing.T) {
 	}
 }
 
+func TestRegisteredClientRefreshTokenRotation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.RegisteredClient
+		expected bool
+		disabled bool
+	}{
+		{
+			name:     "ShouldRotateByDefault",
+			have:     &oidc.RegisteredClient{ID: "app"},
+			expected: false,
+			disabled: false,
+		},
+		{
+			name:     "ShouldNotRotateConfidentialClient",
+			have:     &oidc.RegisteredClient{ID: "app", DisableRefreshTokenRotation: true},
+			expected: true,
+			disabled: true,
+		},
+		{
+			name:     "ShouldRotatePublicClient",
+			have:     &oidc.RegisteredClient{ID: "app", Public: true, DisableRefreshTokenRotation: true},
+			expected: true,
+			disabled: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetDisableRefreshTokenRotation())
+
+			config := &oidc.Config{}
+
+			request := &oauthelia2.Request{Client: tc.have, Session: oidc.NewSession()}
+
+			assert.Equal(t, tc.disabled, oauthelia2.IsRefreshTokenRotationDisabledForRequest(context.Background(), config, request))
+		})
+	}
+}
+
+func TestNewClientDisableRefreshTokenRotation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     bool
+		expected bool
+	}{
+		{"ShouldMapEnabled", true, true},
+		{"ShouldMapDisabled", false, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{ID: "app", DisableRefreshTokenRotation: tc.have}, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			rotation, ok := client.(oauthelia2.RefreshTokenRotationClient)
+
+			require.True(t, ok)
+			assert.Equal(t, tc.expected, rotation.GetDisableRefreshTokenRotation())
+		})
+	}
+}
+
 func TestGetRevokeRefreshTokensExplicit(t *testing.T) {
 	testCases := []struct {
 		name string

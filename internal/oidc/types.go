@@ -67,6 +67,7 @@ type RegisteredClient struct {
 	ApplicationType      string
 
 	RequirePushedAuthorizationRequests bool
+	DisableRefreshTokenRotation        bool
 	RequireSignedRequestObject         bool
 
 	RequirePKCE                bool
@@ -373,6 +374,7 @@ var (
 	_ oauthelia2.IntrospectionClient                                      = (*RegisteredClient)(nil)
 	_ oauthelia2.ApplicationTypeClient                                    = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshTokenMaximumLifespanClient                        = (*RegisteredClient)(nil)
+	_ oauthelia2.RefreshTokenRotationClient                               = (*RegisteredClient)(nil)
 
 	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
 	_ RequesterFormSession = (*model.OAuth2DeviceCodeSession)(nil)

@@ -630,6 +630,54 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		assert.Empty(t, location.Query().Get("error"))
 	})
 
+	t.Run("ShouldNotIssueCodeWhenConsentAlreadyGranted", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		client := newTestOIDCAuthorizationCodeClient(t)
+		client.ConsentMode = "explicit"
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCUserDetails(t, mock)
+
+		subject := mustGetTestOIDCSubject(t, mock, client.ID)
+
+		consent := newTestOIDCConsentSession(t, mock, subject)
+		consent.Authorized = true
+		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
+		consent.RespondedAt = sql.NullTime{Time: mock.Ctx.GetClock().Now(), Valid: true}
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			AnyTimes().
+			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			SaveOAuth2ConsentSessionGranted(gomock.Any(), consent.ID).
+			Return(storage.ErrNoRowsAffected)
+
+		mock.StorageMock.EXPECT().
+			SaveOAuth2Session(gomock.Any(), gomock.Any(), gomock.Any()).
+			Times(0)
+
+		mock.Ctx.Request.SetRequestURI(testOIDCAuthorizationEndpoint + "?consent_id=" + consent.ChallengeID.String())
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
+
+		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Empty(t, location.Query().Get("code"))
+		assert.NotEmpty(t, location.Query().Get("error"))
+	})
+
 	t.Run("ShouldRedirectToConsentWhenNoPreConfigurationMatches", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()

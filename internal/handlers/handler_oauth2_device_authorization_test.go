@@ -596,6 +596,10 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 			Return(consent, nil)
 
 		mock.StorageMock.EXPECT().
+			SaveOAuth2ConsentSessionGranted(gomock.Any(), consent.ID).
+			Return(nil)
+
+		mock.StorageMock.EXPECT().
 			SaveOAuth2Session(gomock.Any(), gomock.Any(), gomock.Any()).
 			AnyTimes().
 			Return(fmt.Errorf("error in db"))

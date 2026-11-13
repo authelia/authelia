@@ -208,6 +208,78 @@ func TestOAuth2SessionGrantedResourceRoundTripsThroughStore(t *testing.T) {
 	assert.Equal(t, oauthelia2.Arguments{"https://api.example.com"}, loaded.GetGrantedResource())
 }
 
+func TestOAuth2RefreshTokenSessionExpiryDeadlineRoundTripsThroughStore(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	deadline := time.Date(2030, time.January, 2, 3, 4, 5, 0, time.UTC)
+
+	subject, err := s.GetSubject(ctx, "", "john")
+
+	require.NoError(t, err)
+
+	session := oidc.NewSession()
+	session.ChallengeID = model.MustNullUUID(model.NewRandomNullUUID())
+	session.Subject = subject.String()
+
+	var setter oauthelia2.ExpiryDeadlineSetterSession = session
+
+	setter.SetExpiryDeadline(deadline)
+
+	requester := &oauthelia2.Request{
+		ID:             "req-deadline",
+		Client:         &oidc.RegisteredClient{ID: myclient},
+		RequestedScope: oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+		GrantedScope:   oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+		Session:        session,
+	}
+
+	require.NoError(t, s.CreateRefreshTokenSession(ctx, "sig-deadline", "", requester))
+
+	loaded, err := s.GetRefreshTokenSession(ctx, "sig-deadline", oidc.NewSession())
+
+	require.NoError(t, err)
+
+	bounded, ok := loaded.GetSession().(oauthelia2.ExpiryDeadlineSession)
+
+	require.True(t, ok)
+	assert.True(t, deadline.Equal(bounded.GetExpiryDeadline()))
+
+	cloned, ok := loaded.GetSession().Clone().(oauthelia2.ExpiryDeadlineSession)
+
+	require.True(t, ok)
+	assert.True(t, deadline.Equal(cloned.GetExpiryDeadline()))
+}
+
 func TestOAuth2DeviceCodeSessionGrantedResourceRoundTripsThroughStore(t *testing.T) {
 	ctx := context.Background()
 
@@ -761,6 +833,53 @@ func (s *StoreSuite) TestRevokeSessions() {
 	s.NoError(s.store.DeletePARSession(s.ctx, "urn:par1"))
 	s.EqualError(s.store.DeletePARSession(s.ctx, "urn:par2"), "not found")
 	s.ErrorIs(s.store.DeletePARSession(s.ctx, "urn:par3"), oauthelia2.ErrNotFound)
+}
+
+func (s *StoreSuite) TestDeleteSessionsShouldReturnNotFound() {
+	testCases := []struct {
+		name        string
+		sessionType storage.OAuth2SessionType
+		do          func(signature string) (err error)
+	}{
+		{"ShouldMapDeleteAccessTokenSession", storage.OAuth2SessionTypeAccessToken, func(signature string) error { return s.store.DeleteAccessTokenSession(s.ctx, signature) }},
+		{"ShouldMapDeleteRefreshTokenSession", storage.OAuth2SessionTypeRefreshToken, func(signature string) error { return s.store.DeleteRefreshTokenSession(s.ctx, signature) }},
+		{"ShouldMapDeletePKCERequestSession", storage.OAuth2SessionTypePKCEChallenge, func(signature string) error { return s.store.DeletePKCERequestSession(s.ctx, signature) }},
+		{"ShouldMapDeleteOpenIDConnectSession", storage.OAuth2SessionTypeOpenIDConnect, func(signature string) error { return s.store.DeleteOpenIDConnectSession(s.ctx, signature) }},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			s.mock.EXPECT().RevokeOAuth2Session(s.ctx, tc.sessionType, abc).Return(storage.ErrNoRowsAffected)
+
+			assert.ErrorIs(t, tc.do(abc), oauthelia2.ErrNotFound)
+		})
+	}
+}
+
+func (s *StoreSuite) TestGetRefreshTokenSessionShouldReturnInactiveWhenRevoked() {
+	sessionData, err := json.Marshal(&oidc.Session{ClientID: "hs256"})
+	s.Require().NoError(err)
+
+	testCases := []struct {
+		name   string
+		active bool
+	}{
+		{"ShouldReturnInactiveWhenRevokedAndActive", true},
+		{"ShouldReturnInactiveWhenRevokedAndInactive", false},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			s.mock.EXPECT().LoadOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).
+				Return(&model.OAuth2Session{RequestID: abc, ClientID: "hs256", Session: sessionData, Active: tc.active, Revoked: true}, nil)
+
+			r, err := s.store.GetRefreshTokenSession(s.ctx, abc, &oidc.Session{})
+
+			require.NotNil(t, r)
+			assert.Equal(t, abc, r.GetID())
+			assert.ErrorIs(t, err, oauthelia2.ErrInactiveToken)
+		})
+	}
 }
 
 func (s *StoreSuite) TestGetSessions() {

@@ -563,6 +563,14 @@ const (
 		FROM %s
 		WHERE signature = ? AND revoked = FALSE;`
 
+	queryFmtSelectOAuth2SessionIncludingRevoked = `
+		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
+		requested_resource, granted_resource,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE signature = ?;`
+
 	queryFmtInsertOAuth2Session = `
 		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at,
 		requested_scopes, granted_scopes, requested_audience, granted_audience,

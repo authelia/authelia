@@ -83,6 +83,7 @@ identity_providers:
         require_signed_request_object: false
         require_pkce: false
         pkce_challenge_method: 'S256'
+        disable_refresh_token_rotation: false
         authorization_signed_response_key_id: ''
         authorization_signed_response_alg: 'RS256'
         authorization_encrypted_response_key_id: ''
@@ -649,6 +650,24 @@ effectively enables the [require_pkce](#require_pkce) option for this client.
 
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
+
+### disable_refresh_token_rotation
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Disabling refresh token rotation means a refresh token can be used repeatedly until it expires, so the reuse of a stolen
+refresh token can no longer be detected. It should only be disabled for confidential clients which can't handle the
+rotation of the refresh token, such as clients which make concurrent refresh token requests.
+{{< /callout >}}
+
+By default every use of a refresh token issues a new refresh token and the presented one can't be used again, as
+described by [RFC9700 Section 4.14.2](https://datatracker.ietf.org/doc/html/rfc9700#section-4.14.2). When the presented
+refresh token is used again, every token issued from the same authorization grant is revoked. When this option is
+`true` the refresh token grant keeps the presented refresh token and does not issue a new one.
+
+This option has no effect for [public](#public) clients, as RFC9700 requires the refresh tokens of public clients to be
+rotated unless they are sender-constrained, and a warning is logged at startup when it's configured for one.
 
 ### authorization_signed_response_key_id
 

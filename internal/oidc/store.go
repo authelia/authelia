@@ -336,7 +336,9 @@ func (s *Store) DeleteClient(ctx context.Context, id string) (err error) {
 	return errClientRegistrationNotSupported
 }
 
-// GetRefreshTokenSession gets the authorization request for a given refresh token.
+// GetRefreshTokenSession gets the authorization request for a given refresh token. It returns the oauthelia2.ErrNotFound
+// error when no session exists for the refresh token, and the request along with the oauthelia2.ErrInactiveToken error
+// when the refresh token was rotated or revoked, so the reuse of the refresh token revokes the grant.
 // This implements a portion of oauth2.RefreshTokenStorage.
 func (s *Store) GetRefreshTokenSession(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.Requester, err error) {
 	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature, session)
@@ -574,7 +576,7 @@ func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storag
 
 	restoreClaimsRequest(r)
 
-	if !sessionModel.Active {
+	if !sessionModel.Active || sessionModel.Revoked {
 		switch sessionType {
 		case storage.OAuth2SessionTypeAuthorizeCode:
 			return r, oauthelia2.ErrInvalidatedAuthorizeCode
@@ -616,7 +618,11 @@ func (s *Store) setRequestReplay(ctx context.Context, replayType model.OAuth2Req
 }
 
 func (s *Store) revokeSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string) (err error) {
-	return errStorage(s.provider.RevokeOAuth2Session(ctx, sessionType, signature))
+	if err = s.provider.RevokeOAuth2Session(ctx, sessionType, signature); errors.Is(err, storage.ErrNoRowsAffected) {
+		return oauthelia2.ErrNotFound
+	}
+
+	return errStorage(err)
 }
 
 func (s *Store) revokeSessionByRequestID(ctx context.Context, sessionType storage.OAuth2SessionType, requestID string) (err error) {

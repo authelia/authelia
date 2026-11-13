@@ -346,6 +346,9 @@ const (
 		"'sector_identifier_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierRedirect = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': must be a json document that contains all of the 'redirect_uris' for the client but had an error validating it: %w"
+	errFmtOIDCClientRefreshTokenRotationPublic = errFmtOIDCClientOption +
+		"'disable_refresh_token_rotation' has no effect when option 'public' is true as the refresh tokens of public " +
+		"clients are always rotated so that the reuse of a refresh token can be detected"
 	errFmtOIDCClientApplicationTypeNativeImplicit = errFmtOIDCClientOption +
 		"'grant_types' must not include 'implicit' when option 'application_type' is 'native' as the implicit flow " +
 		"can not be protected by PKCE but it's included and the response types are %s"

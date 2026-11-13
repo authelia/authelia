@@ -1174,6 +1174,49 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 	})
 }
 
+func TestValidateOIDCClientRefreshTokenRotation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		public   bool
+		disable  bool
+		warnings []string
+	}{
+		{name: "ShouldNotWarnRotatedConfidentialClient"},
+		{name: "ShouldNotWarnRotatedPublicClient", public: true},
+		{name: "ShouldNotWarnConfidentialClientWithoutRotation", disable: true},
+		{
+			name:    "ShouldWarnPublicClientWithoutRotation",
+			public:  true,
+			disable: true,
+			warnings: []string{
+				"identity_providers: oidc: clients: client 'test': option 'disable_refresh_token_rotation' has no effect when option 'public' is true as the refresh tokens of public clients are always rotated so that the reuse of a refresh token can be detected",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{ID: "test", Public: tc.public, DisableRefreshTokenRotation: tc.disable},
+				},
+			}
+
+			validator := schema.NewStructValidator()
+
+			validateOIDCClientRefreshTokenRotation(0, config, validator)
+
+			require.Len(t, validator.Warnings(), len(tc.warnings))
+
+			for i, err := range tc.warnings {
+				assert.EqualError(t, validator.Warnings()[i], err)
+			}
+
+			assert.Len(t, validator.Errors(), 0)
+		})
+	}
+}
+
 func TestValidateOIDCClientApplicationType(t *testing.T) {
 	testCases := []struct {
 		name            string

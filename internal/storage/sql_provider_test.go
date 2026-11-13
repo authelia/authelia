@@ -1518,14 +1518,15 @@ func TestSQLProviderUpdateOAuth2DeviceCodeSession(t *testing.T) {
 
 func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 	testCases := []struct {
-		name        string
-		sessionType OAuth2SessionType
+		name         string
+		sessionType  OAuth2SessionType
+		loadsRevoked bool
 	}{
-		{"ShouldHandleAccessToken", OAuth2SessionTypeAccessToken},
-		{"ShouldHandleRefreshToken", OAuth2SessionTypeRefreshToken},
-		{"ShouldHandleAuthorizeCode", OAuth2SessionTypeAuthorizeCode},
-		{"ShouldHandleOpenIDConnect", OAuth2SessionTypeOpenIDConnect},
-		{"ShouldHandlePKCEChallenge", OAuth2SessionTypePKCEChallenge},
+		{"ShouldHandleAccessToken", OAuth2SessionTypeAccessToken, false},
+		{"ShouldHandleRefreshToken", OAuth2SessionTypeRefreshToken, true},
+		{"ShouldHandleAuthorizeCode", OAuth2SessionTypeAuthorizeCode, false},
+		{"ShouldHandleOpenIDConnect", OAuth2SessionTypeOpenIDConnect, false},
+		{"ShouldHandlePKCEChallenge", OAuth2SessionTypePKCEChallenge, false},
 	}
 
 	for _, tc := range testCases {
@@ -1562,6 +1563,18 @@ func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 			loaded, err = provider.LoadOAuth2Session(ctx, tc.sessionType, sig.String())
 			require.NoError(t, err)
 			assert.False(t, loaded.Active)
+
+			require.NoError(t, provider.RevokeOAuth2Session(ctx, tc.sessionType, sig.String()))
+			assert.ErrorIs(t, provider.RevokeOAuth2Session(ctx, tc.sessionType, sig.String()), ErrNoRowsAffected)
+
+			loaded, err = provider.LoadOAuth2Session(ctx, tc.sessionType, sig.String())
+
+			if tc.loadsRevoked {
+				require.NoError(t, err)
+				assert.True(t, loaded.Revoked)
+			} else {
+				assert.ErrorIs(t, err, sql.ErrNoRows)
+			}
 		})
 	}
 }

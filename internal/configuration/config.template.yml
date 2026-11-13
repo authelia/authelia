@@ -1837,6 +1837,10 @@ session:
         ## Options are 'plain' and 'S256'.
         # pkce_challenge_method: 'S256'
 
+        ## Keeps the presented refresh token during the refresh token grant rather than issuing a new one. This makes
+        ## refresh token reuse undetectable and has no effect for public clients.
+        # disable_refresh_token_rotation: false
+
         ## The signing algorithm used for signing the authorization responses.
         ## Please read the documentation before adjusting this option.
         ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_signed_response_alg

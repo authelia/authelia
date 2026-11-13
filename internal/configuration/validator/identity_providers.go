@@ -810,6 +810,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
 	validateOIDCClientApplicationType(c, config, validator)
+	validateOIDCClientRefreshTokenRotation(c, config, validator)
 	validateOIDCClientRequestURIs(c, config, validator)
 	validateOIDCClientResource(c, config, validator)
 	validateOIDCClientImplicitWildcards(c, config, validator)
@@ -1511,6 +1512,12 @@ func validateOIDCClientRedirectURIs(c int, config *schema.IdentityProvidersOpenI
 		errDeprecatedFunc()
 
 		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCRedirectURIs, utils.StringJoinAnd(duplicates)))
+	}
+}
+
+func validateOIDCClientRefreshTokenRotation(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.Clients[c].DisableRefreshTokenRotation && config.Clients[c].Public {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientRefreshTokenRotationPublic, config.Clients[c].ID))
 	}
 }
 

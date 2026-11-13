@@ -48,6 +48,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		PKCEChallengeMethod:        config.PKCEChallengeMethod,
 
 		RequirePushedAuthorizationRequests:      config.RequirePushedAuthorizationRequests,
+		DisableRefreshTokenRotation:             config.DisableRefreshTokenRotation,
 		RequireSignedRequestObject:              config.RequireSignedRequestObject,
 		ClientCredentialsFlowAllowImplicitScope: false,
 		AllowMultipleAuthenticationMethods:      config.AllowMultipleAuthenticationMethods,
@@ -838,6 +839,13 @@ func (c *RegisteredClient) GetClientAssertionJWTValidationHeaderAllowTypes() (ty
 // oauthelia2.RefreshTokenMaximumLifespanClient interface.
 func (c *RegisteredClient) GetRefreshTokenMaximumLifespan() (lifespan time.Duration) {
 	return c.Lifespans.RefreshTokenMaximum
+}
+
+// GetDisableRefreshTokenRotation returns true if the refresh token grant should keep the presented refresh token of this
+// client rather than issue a new one. Refresh tokens of public clients are rotated regardless. This implements the
+// oauthelia2.RefreshTokenRotationClient interface.
+func (c *RegisteredClient) GetDisableRefreshTokenRotation() (disable bool) {
+	return c.DisableRefreshTokenRotation
 }
 
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
