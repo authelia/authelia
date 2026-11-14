@@ -88,8 +88,8 @@ identity_providers:
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 This configuration assumes [HedgeDoc](https://hedgedoc.org/) users are part of the `hedgedoc-users` group. Depending on
 your specific group configuration, you will have to adapt the `CMD_OAUTH2_ACCESS_ROLE` variable. Alternatively you may
-elect to create a new authorization policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the
-[client authorization policy](../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+elect to create a new authorization policy in [provider authorization policies](../../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the
+[client authorization policy](../../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
 To configure [HedgeDoc] there is one method, using the [Environment Variables](#environment-variables).

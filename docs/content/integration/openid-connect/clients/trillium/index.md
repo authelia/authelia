@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-title: "Trillium Notes"
-description: "A guide on integrating Trillium Notes with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
+title: "Trilium Notes"
+description: "A guide on integrating Trilium Notes with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -16,8 +16,8 @@ support:
   versions: true
   integration: true
 seo:
-  title: "Trillium Notes | OpenID Connect 1.0 | Integration"
-  description: "Step-by-step guide to configuring Trillium Notes with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
+  title: "Trilium Notes | OpenID Connect 1.0 | Integration"
+  description: "Step-by-step guide to configuring Trilium Notes with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
@@ -26,14 +26,19 @@ seo:
 
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
-- [Trillium Notes]
+- [Trilium Notes]
   - [v0.97.1](https://github.com/TriliumNext/Trilium/releases/tag/v0.97.1)
+
+{{% oidc-common %}}
 
 ### Assumptions
 
 This example makes the following assumptions:
 
 - **Application Root URL:** `https://trillium.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
+    `https://trillium.{{< sitevar name="domain" nojs="example.com" >}}/callback`.
+    This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `trillium`
 - **Client Secret:** `insecure_secret`
@@ -46,7 +51,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example **Authelia** [client configuration] for use with [Trillium Notes] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Trilium Notes] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -56,7 +61,7 @@ identity_providers:
     ## See: https://www.authelia.com/c/oidc
     clients:
       - client_id: 'trillium'
-        client_name: 'Trillium Notes'
+        client_name: 'Trilium Notes'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         application_type: 'web'
@@ -80,12 +85,12 @@ identity_providers:
 
 ### Application
 
-To configure [Trillium Notes] there are two methods, using the [Configuration File](#configuration-file) or using the
+To configure [Trilium Notes] there are two methods, using the [Configuration File](#configuration-file) or using the
 [Environment Variables](#environment-variables).
 
 #### Configuration File
 
-To configure [Trillium Notes] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
+To configure [Trilium Notes] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```ini {title="config.ini"}
 [MultiFactorAuthentication]
@@ -99,7 +104,7 @@ oauthIssuerIcon=https://www.authelia.com/images/branding/logo-cropped.png
 
 #### Environment Variables
 
-To configure [Trillium Notes] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
+To configure [Trilium Notes] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
 variables:
 
 ##### Standard
@@ -129,10 +134,10 @@ services:
 
 ## See Also
 
-- [Trillium Notes Authentication Documentation](https://github.com/TriliumNext/Trilium/blob/main/docs/User%20Guide/User%20Guide/Installation%20%26%20Setup/Server%20Installation/Authentication.md)
-- [Trillium Notes Multi-Factor Authentication Documentation](https://github.com/TriliumNext/Trilium/blob/main/docs/User%20Guide/User%20Guide/Installation%20%26%20Setup/Server%20Installation/Multi-Factor%20Authentication.md)
+- [Trilium Notes Authentication Documentation](https://github.com/TriliumNext/Trilium/blob/main/docs/User%20Guide/User%20Guide/Installation%20%26%20Setup/Server%20Installation/Authentication.md)
+- [Trilium Notes Multi-Factor Authentication Documentation](https://github.com/TriliumNext/Trilium/blob/main/docs/User%20Guide/User%20Guide/Installation%20%26%20Setup/Server%20Installation/Multi-Factor%20Authentication.md)
 
 [Authelia]: https://www.authelia.com
-[Trillium Notes]: https://github.com/TriliumNext/Trilium
+[Trilium Notes]: https://github.com/TriliumNext/Trilium
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

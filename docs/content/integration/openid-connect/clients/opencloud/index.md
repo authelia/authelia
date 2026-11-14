@@ -294,7 +294,7 @@ Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/
 When using an external IDP, you need to map groups and roles. Create the following file and save it next to `opencloud.yaml`:
 
 In this example the `opencloud-admins` Authelia group maps to the `admin` role in [openCloud]. This is because of the
-`role_claim` value set to `groups`, and the list of mappings in `role_mappings`. Examples also exist for the
+`role_claim` value set to `groups`, and the list of mappings in `role_mapping`. Examples also exist for the
 `spaceadmin`, `user`, and `user-light` roles in [openCloud].
 
 You should adapt this configuration to your needs.

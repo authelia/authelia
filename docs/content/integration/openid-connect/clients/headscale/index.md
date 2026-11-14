@@ -31,6 +31,8 @@ seo:
 - [Headscale]
   - [v0.29.1](https://github.com/juanfont/headscale/releases/tag/v0.29.1)
 
+{{% oidc-common %}}
+
 ### Assumptions
 
 This example makes the following assumptions:

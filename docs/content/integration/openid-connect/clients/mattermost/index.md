@@ -28,6 +28,7 @@ seo:
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Mattermost]
+  - [v12.0.2](https://github.com/mattermost/mattermost/releases/tag/v12.0.2)
 
 {{% oidc-common %}}
 
@@ -91,10 +92,6 @@ identity_providers:
 ```
 
 ### Application
-
-Before configuring or using [OpenID Connect 1.0] with [Mattermost] you must ensure the
-[openid extension](https://mattermost.apache.org/doc/gug/openid-auth.html#installing-support-for-openid-connect) is
-installed.
 
 To configure [Mattermost] there is one method, using the [Configuration File](#configuration-file).
 

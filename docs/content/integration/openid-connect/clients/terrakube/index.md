@@ -39,7 +39,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://terrakube.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://terrakube.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    `https://terrakube.{{< sitevar name="domain" nojs="example.com" >}}/dex/callback`.
     This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `terrakube`
@@ -75,6 +75,7 @@ identity_providers:
           - 'openid'
           - 'email'
           - 'profile'
+          - 'groups'
         response_types:
           - 'code'
         grant_types:
@@ -107,6 +108,11 @@ connectors:
       clientSecret: "insecure_secret"
       redirectURI: "https://terrakube.{{< sitevar name="domain" nojs="example.com" >}}/dex/callback"
       insecureEnableGroups: true
+      getUserInfo: true
+      scopes:
+        - profile
+        - email
+        - groups
 ```
 
 ## See Also

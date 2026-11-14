@@ -46,6 +46,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
+## Configuration
+
 ### Authelia
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Warpgate]

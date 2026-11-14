@@ -91,7 +91,7 @@ identity_providers:
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 Stirling-PDF OIDC Login requires you to log in with a user who isn't already registered with Stirling-PDF. You can
-rename your current ('web') user via `https://stirlingpdf.{{</* sitevar name="domain" nojs="example.com" */>}}/account`
+rename your current ('web') user via `https://stirlingpdf.{{< sitevar name="domain" nojs="example.com" >}}/account`
 {{< /callout >}}
 
 To configure [Stirling-PDF] there is one method, using the [Environment Variables](#environment-variables).
@@ -112,7 +112,7 @@ SECURITY_OAUTH2_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth"
 SECURITY_OAUTH2_CLIENTID=stirlingpdf
 SECURITY_OAUTH2_CLIENTSECRET=insecure_secret
 SECURITY_OAUTH2_BLOCKREGISTRATION=false
-SECURITY_OAUTH2_SCOPES=openid,profile
+SECURITY_OAUTH2_SCOPES=openid,profile,email
 SECURITY_OAUTH2_USEASUSERNAME=preferred_username
 SECURITY_OAUTH2_PROVIDER=Authelia
 ```
@@ -132,7 +132,7 @@ services:
       SECURITY_OAUTH2_CLIENTID: 'stirlingpdf'
       SECURITY_OAUTH2_CLIENTSECRET: 'insecure_secret'
       SECURITY_OAUTH2_BLOCKREGISTRATION: 'false'
-      SECURITY_OAUTH2_SCOPES: 'openid, profile, email'
+      SECURITY_OAUTH2_SCOPES: 'openid,profile,email'
       SECURITY_OAUTH2_USEASUSERNAME: 'preferred_username'
       SECURITY_OAUTH2_PROVIDER: 'Authelia'
 ```

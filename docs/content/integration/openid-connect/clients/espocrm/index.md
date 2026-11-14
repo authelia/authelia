@@ -29,7 +29,7 @@ seo:
 - [Authelia]
   - [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
 - [EspoCRM]
-  - [v2.0.1](https://github.com/espocrm/espocrm/releases/tag/2.0.1)
+  - [v9.0.1](https://github.com/espocrm/espocrm/releases/tag/9.0.1)
 
 {{% oidc-common %}}
 
@@ -39,7 +39,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/oauth-callback.php`.
     This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `espocrm`

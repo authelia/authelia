@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "ZTNET"
-description: "Integrating ZTNET with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating ZTNET with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2026-10-03T00:00:00+00:00
 draft: false
@@ -16,8 +16,8 @@ support:
   versions: true
   integration: true
 seo:
-  title: "ZTNET| OpenID Connect 1.0 | Integration"
-  description: "Step-by-step guide to configuring ztnet with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
+  title: "ZTNET | OpenID Connect 1.0 | Integration"
+  description: "Step-by-step guide to configuring ZTNET with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: ""
   noindex: false
 ---
@@ -28,14 +28,18 @@ seo:
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [ZTNET]
   - [v0.8.4](https://github.com/sinamics/ztnet/releases/tag/v0.8.4)
+
 {{% oidc-common %}}
 
-## Assumptions
+### Assumptions
 
 This example makes the following assumptions:
 
-- **Application Root URL:** `https://ztnet.example.com`
-- **Authelia Root URL:** `https://auth.example.com`
+- **Application Root URL:** `https://ztnet.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
+    `https://ztnet.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/callback/oauth`.
+    This means if you change this value, you need to update the redirect URI.
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `ztnet`
 - **Client Secret:** `insecure_secret`
 
@@ -65,7 +69,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://ztnet.example.com/api/auth/callback/oauth'
+          - 'https://ztnet.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/callback/oauth'
         scopes:
           - 'openid'
           - 'profile'
@@ -106,15 +110,18 @@ identity_providers:
 
 ### Application
 
-To configure [ZTNET] to utilize Authelia as an [OpenID Connect 1.0] Provider, set the following environment variables
-for the ZTNET container or service:
+To configure [ZTNET] there is one method, using the [Environment Variables](#environment-variables).
+
+#### Environment Variables
+
+To configure [ZTNET] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
 
 ```shell {title=".env"}
 OAUTH_ID=ztnet
 OAUTH_SECRET=insecure_secret
-OAUTH_WELLKNOWN=https://auth.example.com/.well-known/openid-configuration
+OAUTH_WELLKNOWN=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 OAUTH_ALLOW_NEW_USERS=true
-NEXTAUTH_URL=https://ztnet.example.com
+NEXTAUTH_URL=https://ztnet.{{< sitevar name="domain" nojs="example.com" >}}
 ```
 
 Notes:

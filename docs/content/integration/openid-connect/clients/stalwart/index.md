@@ -54,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 This client is created as an example but [Stalwart](https://stalw.art) doesn't use this client directly, it just queries
 the Introspection or User Info Endpoint given an Access Token. This means you must procure the relevant Access Token
 yourself in order to use it. In this example we issue it to an application that has a URI different to
-[Stalwart](https://stalw.art) which allows that application to leverage OAuth 2.0 to authenticate on a users behalf.
+[Stalwart](https://stalw.art) which allows that application to leverage OAuth 2.0 to authenticate on a user's behalf.
 {{< /callout >}}
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Stalwart] which will
@@ -125,7 +125,7 @@ To configure [Stalwart] to utilize Authelia as an [OpenID Connect 1.0] Provider,
    - Directory Id: `authelia`
    - Type: `OpenID Connect`
    - URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   - Type: `OpenID Connect Userinfo`
+   - Type (the endpoint type field below the URL): `OpenID Connect Userinfo`
    - Timeout: `15 seconds`
    - E-mail Field: `email`
    - Username field: `preferred_username`

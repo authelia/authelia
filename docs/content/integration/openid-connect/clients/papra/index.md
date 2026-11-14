@@ -92,7 +92,7 @@ To configure [Papra] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
 ##### Standard
 
 ```shell {title=".env"}
-AUTH_PROVIDERS_CUSTOMS=[{"providerId": "authelia","providerName": "Authelia","providerIconUrl": "https://www.authelia.com/images/branding/logo-cropped.png","clientId": "papra","clientSecret": "insecure_secret","type": "oidc","discoveryUrl": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration","scopes": ["openid", "profile", "email"]}]
+AUTH_PROVIDERS_CUSTOMS=[{"providerId": "authelia","providerName": "Authelia","providerIconUrl": "https://www.authelia.com/images/branding/logo-cropped.png","clientId": "papra","clientSecret": "insecure_secret","pkce": true,"type": "oidc","discoveryUrl": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration","scopes": ["openid", "profile", "email"]}]
 ```
 
 ##### Docker Compose

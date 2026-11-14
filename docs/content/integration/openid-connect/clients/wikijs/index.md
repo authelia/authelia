@@ -39,7 +39,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://wiki.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- **Client ID:** `Wiki.js`
+- **Client ID:** `wikijs`
 - **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -68,7 +68,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://wikijs.{{< sitevar name="domain" nojs="example.com" >}}/login/<UUID>/callback'  # Note this must be copied during step 7 of the Application configuration.
+          - 'https://wiki.{{< sitevar name="domain" nojs="example.com" >}}/login/<UUID>/callback'  # Note this must be copied during step 7 of the Application configuration.
         scopes:
           - 'openid'
           - 'profile'

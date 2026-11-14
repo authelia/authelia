@@ -45,6 +45,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
+## Configuration
+
 ### Authelia
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Incus]
@@ -64,7 +66,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://incus.{{< sitevar name="domain" nojs="example.com" >}}/iodc/callback'
+          - 'https://incus.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
         audience:
           - 'https://incus.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
@@ -75,12 +77,16 @@ identity_providers:
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
+          - 'urn:ietf:params:oauth:grant-type:device_code'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
 ```
 
-## Application
+The `urn:ietf:params:oauth:grant-type:device_code` grant type is required for the [Incus] command line client
+(i.e. `incus remote add`) which authenticates using the Device Authorization Grant.
+
+### Application
 
 To configure [Incus] there is one method, using the [CLI](#cli).
 

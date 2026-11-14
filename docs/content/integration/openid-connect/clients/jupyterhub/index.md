@@ -27,7 +27,9 @@ seo:
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [JupyterHub]
-  - [OAuthenticator v17.5.0](https://oauthenticator.readthedocs.io/en/latest/reference/changelog.html)
+  - [v6.2.0](https://github.com/jupyterhub/jupyterhub/releases/tag/6.2.0)
+- [OAuthenticator]
+  - [v17.5.0](https://github.com/jupyterhub/oauthenticator/releases/tag/17.5.0)
 
 {{% oidc-common %}}
 

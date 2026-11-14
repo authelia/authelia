@@ -30,8 +30,6 @@ seo:
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Proxmox Virtual Environment]
   - [v8.4.1](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.4)
-- [Proxmox Backup Server]
-  - [v3.4.2](https://pbs.proxmox.com/wiki/index.php/Roadmap#Proxmox_Backup_Server_3.4)
 
 {{% oidc-common %}}
 
@@ -43,7 +41,7 @@ This example makes the following assumptions:
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `proxmox`
 - **Client Secret:** `insecure_secret`
-- **Realm** `authelia`
+- **Realm:** `authelia`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -105,8 +103,8 @@ To configure [Proxmox Virtual Environment] to utilize Authelia as an [OpenID Con
    - Client Key: `insecure_secret`
    - Username Claim: `Default (subject)`
    - Scopes: `openid email profile groups`
-   - Autocreate Users: Enable if you want users to automatically be created in [Proxmox].
-   - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox].
+   - Autocreate Users: Enable if you want users to automatically be created in [Proxmox Virtual Environment].
+   - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox Virtual Environment].
    - Groups Claim: Set to `groups` to add users to existing proxmox groups.
 
 {{< figure src="proxmox.png" alt="Proxmox" sizes="600px" >}}
@@ -117,6 +115,5 @@ To configure [Proxmox Virtual Environment] to utilize Authelia as an [OpenID Con
 
 [Authelia]: https://www.authelia.com
 [Proxmox Virtual Environment]: https://pve.proxmox.com
-[Proxmox Backup Server]: https://pbs.proxmox.com
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

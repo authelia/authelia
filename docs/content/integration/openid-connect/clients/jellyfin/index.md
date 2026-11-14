@@ -105,7 +105,7 @@ identity_providers:
 This configuration assumes [Jellyfin](https://jellyfin.org/) administrators are part of the `jellyfin-admins` group, and
 [Jellyfin](https://jellyfin.org/) users are part of the `jellyfin-users` group. Depending on your specific group configuration, you will have
 to adapt the `AdminRoles` and `Roles` nodes respectively. Alternatively you may elect to create a new authorization
-policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the [client authorization policy](./../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+policy in [provider authorization policies](../../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the [client authorization policy](../../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
 To configure the [Jellyfin SSO-Auth Plugin] there are two methods, using the [Configuration File](#configuration-file), or using the
@@ -165,6 +165,7 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
             <string>groups</string>
           </OidScopes>
           <CanonicalLinks></CanonicalLinks>
+          <DefaultUsernameClaim>preferred_username</DefaultUsernameClaim>
           <DisableHttps>false</DisableHttps>
           <DoNotValidateEndpoints>false</DoNotValidateEndpoints>
           <DoNotValidateIssuerName>false</DoNotValidateIssuerName>

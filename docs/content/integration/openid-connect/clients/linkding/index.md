@@ -48,9 +48,9 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ## Configuration
 
-### Linkding
+### Authelia
 
-The following YAML configuration is an example Linkding [client configuration] for use with [Linkding] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Linkding] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -91,7 +91,7 @@ variables:
 
 ```shell {title=".env"}
 LD_ENABLE_OIDC=True
-LD_CSRF_TRUSTED_ORIGINS=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+LD_CSRF_TRUSTED_ORIGINS=https://linkding.{{< sitevar name="domain" nojs="example.com" >}}
 OIDC_RP_CLIENT_ID=linkding
 OIDC_RP_CLIENT_SECRET=insecure_secret
 OIDC_OP_AUTHORIZATION_ENDPOINT=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
@@ -107,7 +107,7 @@ services:
   linkding:
     environment:
       LD_ENABLE_OIDC: 'True'
-      LD_CSRF_TRUSTED_ORIGINS: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      LD_CSRF_TRUSTED_ORIGINS: 'https://linkding.{{< sitevar name="domain" nojs="example.com" >}}'
       OIDC_RP_CLIENT_ID: 'linkding'
       OIDC_RP_CLIENT_SECRET: 'insecure_secret'
       OIDC_OP_AUTHORIZATION_ENDPOINT: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'

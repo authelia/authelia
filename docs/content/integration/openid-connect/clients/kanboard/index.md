@@ -60,19 +60,18 @@ identity_providers:
     clients:
       - client_id: 'kanboard'
         client_name: 'Kanboard'
-        public: true
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
         application_type: 'web'
         authorization_policy: 'two_factor'
-        require_pkce: true
-        pkce_challenge_method: 'S256'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://kanboard.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback'
         scopes:
           - 'openid'
           - 'email'
           - 'profile'
-        response_modes:
-          - 'form_post'
         response_types:
           - 'code'
         grant_types:

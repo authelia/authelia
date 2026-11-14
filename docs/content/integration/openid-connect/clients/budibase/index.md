@@ -46,6 +46,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
+## Configuration
+
 ### Authelia
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Budibase] which will
@@ -88,8 +90,6 @@ To configure [Budibase] there is one method, using the [Web GUI](#web-gui).
 #### Web GUI
 
 To configure [Budibase] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
-
-You may be able to skip steps 1 to 3 by visiting the following URL: https://budibase.{{< sitevar name="domain" nojs="example.com" >}}/builder/portal/settings/organisation
 
 1. Perform one of the following steps:
    1. Visit https://budibase.{{< sitevar name="domain" nojs="example.com" >}}/builder/portal/settings/organisation

@@ -61,8 +61,8 @@ identity_providers:
         public: true
         application_type: 'web'
         authorization_policy: 'two_factor'
-        require_pkce: true
-        pkce_challenge_method: 'S256'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://odoo.{{< sitevar name="domain" nojs="example.com" >}}/auth_oauth/signin'
         scopes:
@@ -96,11 +96,11 @@ To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider, use
    - Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
    - Scope: openid profile email
    - UserInfo URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   - Data Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
-4. If you want your Authelia user to have a guest access on Odoo, you need to enable it in General Settings/Permissions/Customer Account/Free sign up
-5. If you want to allow an already existing user in [Odoo] to use its Authelia login:
-   - Ask the user to reset its password
-   - When Odoo prompt for the new password, select the "Connect with Authelia" button
+   - Data Endpoint: leave empty
+4. If you want your Authelia user to have guest access on Odoo, you need to enable it in General Settings/Permissions/Customer Account/Free sign up
+5. If you want to allow an already existing user in [Odoo] to use their Authelia login:
+   - Ask the user to reset their password
+   - When Odoo prompts for the new password, select the "Connect with Authelia" button
 
 ## See Also
 

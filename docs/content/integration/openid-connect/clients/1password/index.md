@@ -63,7 +63,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - ''  # See step 5 below.
+          - ''  # See step 4 below.
         scopes:
           - 'openid'
           - 'email'
@@ -87,13 +87,10 @@ To configure [1Password] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 1. [Sign in to your 1Password](https://start.1password.com/policies/sso/configure-idp).
 2. Select `Other` from the list of identity providers and select `Next`.
-3. Select `Other` from the identity provider list.
-4. Configure the following options:
-
-- Client ID: `1password`
-- Well-known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-
-5. Copy the listed `Redirect URIs` and configure the Authelia `redirect_uris` option.
+3. Configure the following options:
+   - Client ID: `1password`
+   - Well-known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+4. Copy the listed `Redirect URIs` and configure the Authelia `redirect_uris` option.
 
 ## See Also
 

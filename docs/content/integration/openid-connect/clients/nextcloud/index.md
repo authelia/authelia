@@ -53,9 +53,9 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 It has been reported that some of the [Nextcloud](https://nextcloud.com/) plugins do not properly encode the client secret.
-as such it's important to only use alphanumeric characters as well as the other
-[RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3). We recommend using the
-generating client secrets guidance above.
+As such, it's important to only use alphanumeric characters as well as the other
+[RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3). We recommend following the
+client secret generation guidance above.
 {{< /callout >}}
 
 ## Available Options
@@ -203,7 +203,7 @@ identity_providers:
     clients:
       - client_id: 'nextcloud'
         client_name: 'NextCloud'
-        client_secret: 'insecure_secret'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         application_type: 'web'
         authorization_policy: 'two_factor'

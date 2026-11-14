@@ -92,7 +92,7 @@ To configure [HomeBox] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 
 ```shell {title=".env"}
 HBOX_OIDC_ENABLED=true
-HBOX_OIDC_ISSUER_URL=https://auth.{{< sitevar name="domain" nojs="example.com" >}}
+HBOX_OIDC_ISSUER_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 HBOX_OIDC_CLIENT_ID=homebox
 HBOX_OIDC_CLIENT_SECRET=insecure_secret
 HBOX_OIDC_SCOPE=openid profile email groups
@@ -106,7 +106,7 @@ services:
   homebox:
     environment:
       HBOX_OIDC_ENABLED: 'true'
-      HBOX_OIDC_ISSUER_URL: 'https://auth.{{< sitevar name="domain" nojs="example.com" >}}'
+      HBOX_OIDC_ISSUER_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       HBOX_OIDC_CLIENT_ID: 'homebox'
       HBOX_OIDC_CLIENT_SECRET: 'insecure_secret'
       HBOX_OIDC_SCOPE: 'openid profile email groups'

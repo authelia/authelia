@@ -27,6 +27,7 @@ seo:
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Vercel]
+  - Not Applicable
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 [Vercel] single sign-on requires the Enterprise plan or the Pro plan with the SAML SSO add-on, and must be configured

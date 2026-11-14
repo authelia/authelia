@@ -115,9 +115,9 @@ OAUTH_ROLES_CLAIM=groups
 OAUTH_CODE_CHALLENGE_METHOD=S256
 ```
 
-###### Docker Compose
+##### Docker Compose
 
-```yaml {title="comppse.yml"}
+```yaml {title="compose.yml"}
 services:
   open-webui:
     environment:

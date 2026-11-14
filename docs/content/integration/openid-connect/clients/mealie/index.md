@@ -88,8 +88,8 @@ identity_providers:
 This configuration assumes [Mealie](https://mealie.io/) administrators are part of the `mealie-admins` group, and
 [Mealie](https://mealie.io/) users are part of the `mealie-users` group. Depending on your specific group configuration, you will have to
 adapt the `OIDC_ADMIN_GROUP` and `OIDC_USER_GROUP` nodes respectively. Alternatively you may elect to create a new
-authorization policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the
-[client authorization policy](./../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+authorization policy in [provider authorization policies](../../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the
+[client authorization policy](../../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
 To configure [Mealie] there is one method, using [Environment Variables](#environment-variables).

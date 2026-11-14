@@ -92,10 +92,10 @@ To configure [Donetick] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 DT_OAUTH2_NAME=Authelia
 DT_OAUTH2_CLIENT_ID=donetick
 DT_OAUTH2_CLIENT_SECRET=insecure_secret
-DT_OAUTH2_SCOPE=openid profile email
+DT_OAUTH2_SCOPES=openid profile email
 DT_OAUTH2_AUTH_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
 DT_OAUTH2_TOKEN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
-DT_OAUTH2_INFO_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
+DT_OAUTH2_USER_INFO_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 DT_OAUTH2_REDIRECT_URL=https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2
 ```
 
@@ -115,7 +115,7 @@ services:
       DT_OAUTH2_REDIRECT_URL: 'https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2'
 ```
 
-##### Configuration File
+#### Configuration File
 
 To configure [Donetick] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
@@ -137,7 +137,9 @@ oauth2:
 
 ### Android App
 
-Please note that the Donetick app in version [0.1.34](https://github.com/donetick/donetick/releases/tag/v0.1.34) does not work with OpenID on self-hosted Donetick instances. See [issue #268](https://github.com/donetick/donetick/issues/268) for details.
+Please note that versions of the Donetick app prior to
+[0.1.74](https://github.com/donetick/donetick/releases/tag/v0.1.74) do not support OpenID Connect with self-hosted
+Donetick instances. See [issue #268](https://github.com/donetick/donetick/issues/268) for details.
 
 ## See Also
 

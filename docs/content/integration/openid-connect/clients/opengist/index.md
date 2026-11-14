@@ -47,9 +47,9 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ## Configuration
 
-### Opengist
+### Authelia
 
-The following YAML configuration is an example Opengist [client configuration] for use with [Opengist] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Opengist] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -113,7 +113,7 @@ services:
 
 #### Configuration file
 
-```yaml {title="configuration.yml"}
+```yaml {title="config.yml"}
 oidc.provider-name: authelia
 oidc.client-key: opengist
 oidc.secret: insecure_secret

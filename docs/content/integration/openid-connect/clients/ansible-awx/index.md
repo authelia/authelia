@@ -90,7 +90,7 @@ To configure [Ansible AWX] there is one method, using the [Web GUI](#web-gui).
 To configure [Ansible AWX] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Login to [Ansible AWX] as an administrator.
-2. Click `Settings` from the left navifation bar.
+2. Click `Settings` from the left navigation bar.
 3. Click `Generic OIDC settings` on the left side of the settings window.
 4. Click `Edit` and configure the following options:
    - OIDC Key: `awx`

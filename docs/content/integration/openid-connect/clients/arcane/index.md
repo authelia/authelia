@@ -38,7 +38,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    `https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/callback`.
     This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `arcane`
@@ -133,7 +133,7 @@ To configure [Arcane] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    - Client ID: `arcane`
    - Client Secret: `insecure_secret`
-   - Redirect URI: 'https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/callback'
+   - Redirect URI: `https://arcane.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/callback`
 4. Click Save.
 
 ## See Also

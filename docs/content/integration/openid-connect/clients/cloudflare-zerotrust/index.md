@@ -87,7 +87,7 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
+It is a requirement that the Authelia URLs can be requested by Cloudflare's servers. This usually
 means that the URLs are accessible to foreign clients on the internet. There may be a way to configure this without
 accessibility to foreign clients on the internet on Cloudflare's end, but this is beyond the scope of this document.
 {{< /callout >}}
@@ -112,7 +112,7 @@ instructions:
    - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
    - Certificate URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
    - Enable `Proof Key for Code Exchange (PKCE)`
-   - Add the following OIDC Claims: `preferred_username`, `mail`
+   - Add the following OIDC Claims: `preferred_username`, `email`
 7. Click Save
 
 ## See Also

@@ -68,8 +68,8 @@ the time to understand it before you attempt to do it. Some notes about this are
    header as one of the possible ways to authenticate, but still allows cookie-based authorization.
 
 See more information about the server authz endpoints section in the
-[Configuration Guide](../../../configuration/miscellaneous/server-endpoints-authz.md) and
-[Reference Guide](../../../reference/guides/proxy-authorization.md).
+[Configuration Guide](../../../../configuration/miscellaneous/server-endpoints-authz.md) and
+[Reference Guide](../../../../reference/guides/proxy-authorization.md).
 
 ## Configuration
 
@@ -83,7 +83,7 @@ server:
   endpoints:
     authz:
       endpoint_name:
-        implementation: ''
+        implementation: 'ForwardAuth'  # Change this to the implementation for your proxy.
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -151,7 +151,7 @@ See the following screenshot for an authentication example of the above:
 
 [Authelia]: https://www.authelia.com
 [Uptime Kuma]: https://github.com/louislam/uptime-kuma
-[OpenID Connect 1.0]: ../introduction.md
-[requested_audience_mode]: ../../configuration/identity-providers/openid-connect/clients/#requested_audience_mode
-[Server Authz Endpoints]: ../../configuration/miscellaneous/server-endpoints-authz/
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[requested_audience_mode]: ../../../../configuration/identity-providers/openid-connect/clients.md#requested_audience_mode
+[Server Authz Endpoints]: ../../../../configuration/miscellaneous/server-endpoints-authz.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

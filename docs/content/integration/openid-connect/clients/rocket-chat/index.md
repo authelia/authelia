@@ -120,11 +120,11 @@ To configure [Rocket.Chat] to utilize Authelia as an [OpenID Connect 1.0] Provid
 
 ### Group Mapping
 
-[Rocket.Chat] has a means of mapping identity provider groups or roles to internal roles. For this option to take effect
-you must enable the `Map Roles/Groups to channels` option and fill in the `OAuth Group Channel Map` field with a JSON
+[Rocket.Chat] has a means of mapping identity provider groups or roles to rooms. For this option to take effect you
+must enable the `Map Roles/Groups to channels` option and fill in the `OAuth Group Channel Map` field with a JSON
 object. The key for this object is the Authelia group name, and the value is a JSON array of [Rocket.Chat] room names.
 
-The following example shows matching the Authelia group `admins` to the groups `administration` and `moderators`, and
+The following example shows matching the Authelia group `admins` to the rooms `administration` and `moderators`, and
 the `users` group to the `community` room.
 
 ```json
@@ -132,7 +132,6 @@ the `users` group to the `community` room.
   "admins": ["administration", "moderators"],
   "users": ["community"]
 }
-
 ```
 
 ## See Also

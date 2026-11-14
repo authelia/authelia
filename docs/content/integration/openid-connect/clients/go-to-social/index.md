@@ -93,7 +93,7 @@ To configure [GoToSocial] there is one method, using the [Configuration File](#c
 
 #### Configuration File
 
-```shell
+```yaml {title="config.yaml"}
 oidc-enabled: true
 oidc-idp-name: 'Authelia'
 oidc-issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'

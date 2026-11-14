@@ -46,6 +46,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
+## Configuration
+
 ### Authelia
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Jellyseerr] which will
@@ -115,4 +117,4 @@ A login button is also added to the Jellyseerr login page, which will redirect t
 
 [Authelia]: https://www.authelia.com
 [Jellyseerr]: https://github.com/fallenbagel/jellyseerr
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

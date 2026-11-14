@@ -204,7 +204,7 @@ PROXY_AUTOPROVISION_CLAIM_GROUPS=groups
 
 ```yaml {title="compose.yml"}
 services:
-  oics:
+  ocis:
     environment:
       WEB_OIDC_CLIENT_ID: 'ocis'
       PROXY_OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'

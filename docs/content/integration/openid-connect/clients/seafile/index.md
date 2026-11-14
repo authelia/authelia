@@ -129,7 +129,8 @@ OAUTH_ATTRIBUTE_MAP = {
 
 ### Existing Users
 
-When using [Seafile] with external authentication you may have to perform manual steps to achieve this.
+When using [Seafile] with external authentication you may have to perform manual steps to link existing local users
+to their Authelia accounts.
 
 The [See Also](#see-also) has a link to the [Seafile] `migrating from local user database to external authentication` guide which has been verified to work.
 

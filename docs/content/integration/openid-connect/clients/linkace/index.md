@@ -76,7 +76,6 @@ identity_providers:
           - 'code'
         grant_types:
           - 'authorization_code'
-          - 'refresh_token'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
@@ -95,7 +94,7 @@ To configure [LinkAce] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 ```shell {title=".env"}
 SSO_ENABLED=true
 SSO_OIDC_ENABLED=true
-SSO_OIDC_BASE_URL=https://auth.{{< sitevar name="domain" nojs="example.com" >}}
+SSO_OIDC_BASE_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 SSO_OIDC_CLIENT_ID=linkace
 SSO_OIDC_CLIENT_SECRET=insecure_secret
 ```
@@ -108,7 +107,7 @@ services:
     environment:
       SSO_ENABLED: 'true'
       SSO_OIDC_ENABLED: 'true'
-      SSO_OIDC_BASE_URL: 'https://auth.{{< sitevar name="domain" nojs="example.com" >}}'
+      SSO_OIDC_BASE_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       SSO_OIDC_CLIENT_ID: 'linkace'
       SSO_OIDC_CLIENT_SECRET: 'insecure_secret'
 

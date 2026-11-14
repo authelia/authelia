@@ -53,32 +53,14 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-The `vaultwarden_roles` user attribute renders the value `["admin"]` if the user is in the `vaultwarden_admins` group
-within Authelia, renders the value `["user"]` if they are in the `vaultwarden_users` group, otherwise it renders `""`.
-You can adjust this to your preference to assign a role to the appropriate user groups.
-{{< /callout >}}
-
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Vaultwarden] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
-definitions:
-  user_attributes:
-    vaultwarden_roles:
-      expression: '"vaultwarden_admins" in groups ? ["admin"] : "vaultwarden_users" in groups ? ["user"] : [""]'
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
-    claims_policies:
-      vaultwarden:
-        id_token: ['vaultwarden_roles']
-        custom_claims:
-          vaultwarden_roles: {}
-    scopes:
-      vaultwarden:
-        claims: ['vaultwarden_roles']
     clients:
     - client_id: 'vaultwarden'
       client_name: 'Vaultwarden'
@@ -88,7 +70,6 @@ identity_providers:
       authorization_policy: 'two_factor'
       require_pkce: true
       pkce_challenge_method: 'S256'
-      claims_policy: 'vaultwarden'
       redirect_uris:
         - 'https://vault.{{< sitevar name="domain" nojs="example.com" >}}/identity/connect/oidc-signin'
       scopes:
@@ -96,7 +77,6 @@ identity_providers:
         - 'offline_access'
         - 'profile'
         - 'email'
-        - 'vaultwarden'
       response_types:
         - 'code'
       grant_types:
@@ -122,13 +102,10 @@ variables:
 SSO_ENABLED=true
 SSO_ONLY=false
 SSO_AUTHORITY=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
-SSO_SCOPES=profile email offline_access vaultwarden
+SSO_SCOPES=profile email offline_access
 SSO_PKCE=true
 SSO_CLIENT_ID=vaultwarden
 SSO_CLIENT_SECRET=insecure_secret
-SSO_ROLES_ENABLED=true
-SSO_ROLES_DEFAULT_TO_USER=true
-SSO_ROLES_TOKEN_PATH=/vaultwarden_roles
 ```
 
 ##### Docker Compose
@@ -140,20 +117,61 @@ services:
       - SSO_ENABLED=true
       - SSO_ONLY=false
       - SSO_AUTHORITY=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
-      - SSO_SCOPES=profile email offline_access vaultwarden
+      - SSO_SCOPES=profile email offline_access
       - SSO_PKCE=true
       - SSO_CLIENT_ID=vaultwarden
       - SSO_CLIENT_SECRET=insecure_secret
-      - SSO_ROLES_ENABLED=true
-      - SSO_ROLES_DEFAULT_TO_USER=true
-      - SSO_ROLES_TOKEN_PATH=/vaultwarden_roles
+```
+
+### OIDCWarden Role Mapping
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Role mapping via the `SSO_ROLES_*` environment variables is only available in the [OIDCWarden] fork and is not
+supported by [Vaultwarden] itself. Skip this section if you are using [Vaultwarden].
+{{< /callout >}}
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+The `vaultwarden_roles` user attribute renders the value `["admin"]` if the user is in the `vaultwarden_admins` group
+within Authelia, renders the value `["user"]` if they are in the `vaultwarden_users` group, otherwise it renders `[""]`.
+You can adjust this to your preference to assign a role to the appropriate user groups.
+{{< /callout >}}
+
+To map roles with [OIDCWarden], add the following to the **Authelia** configuration above, then add
+`claims_policy: 'vaultwarden'` and the `vaultwarden` scope to the client:
+
+```yaml {title="configuration.yml"}
+definitions:
+  user_attributes:
+    vaultwarden_roles:
+      expression: '"vaultwarden_admins" in groups ? ["admin"] : "vaultwarden_users" in groups ? ["user"] : [""]'
+identity_providers:
+  oidc:
+    claims_policies:
+      vaultwarden:
+        id_token: ['vaultwarden_roles']
+        custom_claims:
+          vaultwarden_roles: {}
+    scopes:
+      vaultwarden:
+        claims: ['vaultwarden_roles']
+```
+
+Then add the `vaultwarden` scope to `SSO_SCOPES` and set the following additional environment variables:
+
+```shell {title=".env"}
+SSO_SCOPES=profile email offline_access vaultwarden
+SSO_ROLES_ENABLED=true
+SSO_ROLES_DEFAULT_TO_USER=true
+SSO_ROLES_TOKEN_PATH=/vaultwarden_roles
 ```
 
 ## See Also
 
-- [SSO using OpenId Connect](https://github.com/Timshel/OIDCWarden/blob/main/SSO.md)
+- [Vaultwarden SSO using OpenID Connect](https://github.com/dani-garcia/vaultwarden/wiki/Enabling-SSO-support-using-OpenId-Connect)
+- [OIDCWarden SSO using OpenID Connect](https://github.com/Timshel/OIDCWarden/blob/main/SSO.md)
 
 [Authelia]: https://www.authelia.com
-[Vaultwarden]: https://github.com/Timshel/OIDCWarden/
+[Vaultwarden]: https://github.com/dani-garcia/vaultwarden
+[OIDCWarden]: https://github.com/Timshel/OIDCWarden
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -68,7 +68,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://vault.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
+          - 'http://localhost:8250/oidc/callback'
           - 'https://vault.{{< sitevar name="domain" nojs="example.com" >}}/ui/vault/auth/oidc/oidc/callback'
         scopes:
           - 'openid'
@@ -94,7 +94,7 @@ Below are Terraform code snippets that describe how to configure the OIDC auth b
 Terraform Vault Provider v5.11 was used with this example.
 
 ```hcl {title="vault_jwt_auth_backend resource"}
-resource "vault_jwt_auth_backend" "anthelia" {
+resource "vault_jwt_auth_backend" "authelia" {
   description                   = ""
   path                          = "oidc"
   type                          = "oidc"
@@ -109,14 +109,14 @@ resource "vault_jwt_auth_backend" "anthelia" {
 ```
 
 ```hcl {title="vault_jwt_auth_backend_role resource"}
-resource "vault_jwt_auth_backend_role" "anthelia" {
+resource "vault_jwt_auth_backend_role" "authelia" {
   backend    = vault_jwt_auth_backend.authelia.path
   role_name  = "authelia"
   role_type  = "oidc"
   user_claim = "sub" # REQUIRED
   allowed_redirect_uris = [
-    "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback",
-    "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/ui/vault/auth/oidc/callback"
+    "http://localhost:8250/oidc/callback",
+    "https://vault.{{< sitevar name="domain" nojs="example.com" >}}/ui/vault/auth/oidc/oidc/callback"
   ]
   oidc_scopes = [
     "profile",

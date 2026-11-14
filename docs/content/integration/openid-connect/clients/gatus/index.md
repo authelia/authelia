@@ -84,8 +84,7 @@ identity_providers:
 
 ### Application
 
-To configure [Gatus] there are three methods, using the [Configuration File](#configuration-file), using
-[Environment Variables](#environment-variables), or using the [Web GUI](#web-gui).
+To configure [Gatus] there is one method, using the [Configuration File](#configuration-file).
 
 #### Configuration File
 

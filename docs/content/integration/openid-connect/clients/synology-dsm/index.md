@@ -36,7 +36,7 @@ seo:
 ### Specific Notes
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-[Synology DSM](https://www.synology.com/en-global/dsm) does not support automatically creating users via [OpenID Connect 1.0](../../openid-connect/introduction.md). It is therefore
+[Synology DSM](https://www.synology.com/en-global/dsm) does not support automatically creating users via [OpenID Connect 1.0](../../introduction.md). It is therefore
 recommended that you ensure Authelia and [Synology DSM](https://www.synology.com/en-global/dsm) share an LDAP server (for DSM v7.1).
 With DSM v7.2+ you have the possibility to also use local DSM accounts (see `Account type` below) and do not need to set
 up a shared LDAP.
@@ -102,21 +102,19 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provi
 
 1. Go to DSM.
 2. Go to `Control Panel`.
-3. Go To `Domain/LDAP`.
+3. Go to `Domain/LDAP`.
 4. Go to `SSO Client`.
 5. Check the `Enable OpenID Connect SSO service` checkbox in the `OpenID Connect SSO Service` section.
 6. Configure the following options:
-
-- Profile: `OIDC`
-- Account type: `Domain/LDAP/local`
-- Name: `Authelia`
-- Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-- Application ID: `synology-dsm`
-- Application Key: `insecure_secret`
-- Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
-- Authorization Scope: `openid profile groups email`
-- Username Claim: `preferred_username`
-
+   - Profile: `OIDC`
+   - Account type: `Domain/LDAP/local`
+   - Name: `Authelia`
+   - Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+   - Application ID: `synology-dsm`
+   - Application Key: `insecure_secret`
+   - Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Authorization Scope: `openid profile groups email`
+   - Username Claim: `preferred_username`
 7. Save the settings.
 
 {{< figure src="client.png" alt="Synology" width="736" >}}

@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Roundcube]
   - [v1.7.1](https://github.com/roundcube/roundcubemail/releases/tag/1.7.1)
 - [Dovecot]
@@ -90,7 +90,7 @@ identity_providers:
 
 To configure [Roundcube OAuth2] there is one method, using the [Configuration File](#configuration-file).
 
-##### Configuration File
+#### Configuration File
 
 ##### Roundcube
 
@@ -140,6 +140,8 @@ Generally the configuration file is named `/etc/dovecot/dovecot.conf` or is one 
 `/etc/dovecot/conf.d/`.
 {{< /callout >}}
 
+The following configuration uses the [Dovecot] 2.4 syntax:
+
 ```ext {title="/etc/dovecot/conf.d/auth.conf"}
 
 auth_mechanisms {
@@ -149,7 +151,7 @@ auth_mechanisms {
 
 oauth2 {
   introspection_mode = post
-  introspection_url = https://roundcube:insecure_secret@auth.example.com/api/oidc/introspection
+  introspection_url = https://roundcube:insecure_secret@{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/introspection
   username_attribute = username
 
   active_attribute = active
@@ -183,6 +185,9 @@ service auth {
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 Generally the configuration file is named `/etc/dovecot/dovecot-oauth2.conf.ext`.
 {{< /callout >}}
+
+The following configuration is only required for [Dovecot] 2.3 which does not support the `oauth2` block shown above,
+and instead reads these options from the file referenced by the `args` option of the `oauth2` passdb:
 
 ```ext {title="/etc/dovecot/dovecot-oauth2.conf.ext"}
 introspection_mode = post
@@ -223,9 +228,9 @@ smtpd_sasl_type = dovecot
 [Authelia]: https://www.authelia.com
 [Roundcube]: https://roundcube.net/
 [Roundcube OAuth2]: https://github.com/roundcube/roundcubemail/wiki/Configuration:-OAuth2
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [Dovecot]: https://dovecot.org/
 [Dovecot OAuth2]: https://doc.dovecot.org/main/core/config/auth/databases/oauth2.html
 [Postfix]: https://www.postfix.org/
 [Postfix SASL]: https://www.postfix.org/SASL_README.html
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

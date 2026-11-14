@@ -48,7 +48,7 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-This is a developer guide which can be used to create your open application. It's worth noting that some applications
+This is a developer guide which can be used to create your own application. It's worth noting that some applications
 may also use the associated libraries so the configurations may be adaptable to those applications.
 {{< /callout >}}
 
@@ -141,7 +141,7 @@ app.get('/', requiresAuth(), (req, res) => {
         refreshToken: req.oidc.refreshToken,
         idToken: req.oidc.idToken,
         claims: {
-          id_token: req.oidc.idToken,
+          id_token: req.oidc.idTokenClaims,
           userinfo: userInfo,
         },
         scopes: req.oidc.scope,

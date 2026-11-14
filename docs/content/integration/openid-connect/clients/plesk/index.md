@@ -119,7 +119,7 @@ To configure [Plesk] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
 
 ## See Also
 
-- [Plesk OIDC documentation](https://ljpc.solutions/contact)
+- [OAuth login Extension]
 
 [Authelia]: https://www.authelia.com
 [Plesk]: https://www.plesk.com

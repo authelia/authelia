@@ -138,9 +138,9 @@ OAUTH_PROVIDERS = [
             'client_id': 'superset',
             'client_secret': 'insecure_secret',
             'server_metadata_url': 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration',
-            'code_challenge_method': 'S256',
             'client_kwargs': {
                 'scope': 'openid profile email groups',
+                'code_challenge_method': 'S256',
             },
         },
     },

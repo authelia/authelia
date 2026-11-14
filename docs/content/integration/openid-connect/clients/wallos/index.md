@@ -88,7 +88,9 @@ To configure [Wallos] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 1. Login to [Wallos] using the admin account.
 2. Navigate to the Admin panel.
 3. Scroll down to Security Settings.
-4. Enter `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` in the form and click `Save`.
+4. Enter `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` in the local
+   address allowlist text field (the only field in the section, with the placeholder `e.g., 192.168.1.5:8123, homeassistant.local`)
+   and click `Save`.
 5. Scroll up to OIDC Settings.
 6. Click `Enable OIDC/OAuth`.
 7. Configure the following options:

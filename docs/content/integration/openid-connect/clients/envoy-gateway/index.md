@@ -68,6 +68,7 @@ identity_providers:
         pkce_challenge_method: ''
         redirect_uris:
           - 'https://envoy.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
+          - 'https://envoy-oidc.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
         scopes:
           - 'openid'
           - 'offline_access'
@@ -104,10 +105,10 @@ following instructions:
    - `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
 2. Apply the below manifests for the example application.
 
-The following example [HTTPRoute] is a example real application just for the purposes of showcasing this. The important
+The following example [HTTPRoute] is an example application used only to showcase this. The important
 factors are the `name` value being `envoy`.
 
-```yaml {title="httproute.yaml
+```yaml {title="httproute.yaml"}
 ---
 apiVersion: 'gateway.networking.k8s.io/v1'
 kind: 'HTTPRoute'
@@ -177,7 +178,7 @@ following instructions:
 
 The following example [HTTPRoute] is a fake application just for the redirection behavior.
 
-```yaml {title="httproute.yaml
+```yaml {title="httproute.yaml"}
 ---
 apiVersion: 'gateway.networking.k8s.io/v1'
 kind: 'HTTPRoute'

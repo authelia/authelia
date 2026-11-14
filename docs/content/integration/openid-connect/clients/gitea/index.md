@@ -41,7 +41,7 @@ This example makes the following assumptions:
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `gitea`
 - **Client Secret:** `insecure_secret`
-- **Authentication Name (Gitea):** `authelia`:
+- **Authentication Name (Gitea):** `authelia`
   - This option determines the redirect URI in the format of
     `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
     This means if you change this value you need to update the redirect URI.
@@ -124,15 +124,13 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
 
 ### Automatic User Creation
 
-To configure [Gitea] to perform automatic user creation for the `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` domain via [OpenID Connect 1.0]:
+To configure [Gitea] to perform automatic user creation for users who log in via [OpenID Connect 1.0]:
 
 1. Edit the following values in the [Gitea] `app.ini`:
 
 ```ini
-[openid]
-ENABLE_OPENID_SIGNIN = false
-ENABLE_OPENID_SIGNUP = true
-WHITELISTED_URIS     = {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+[oauth2_client]
+ENABLE_AUTO_REGISTRATION = true
 
 [service]
 DISABLE_REGISTRATION                          = false
