@@ -473,8 +473,6 @@ func TestResetPasswordPOST(t *testing.T) {
 
 				mock.Ctx.Request.SetBodyString(`{"password":"password123"}`)
 
-				// No GetDetails or Send expectation: a cause the user cannot act on must not reach their mailbox,
-				// and gomock fails the test if the handler attempts either.
 				mock.UserProviderMock.
 					EXPECT().
 					UpdatePassword(testUsername, "password123").
