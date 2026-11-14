@@ -94,7 +94,6 @@ func TestCmdCtx_StorageBansList(t *testing.T) {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
-			//gitleaks:allow // This is not an actual secret.
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(dir, "db.sqlite3"),
@@ -341,7 +340,6 @@ func TestRunStorageSchemaEncryptionChangeKey(t *testing.T) {
 		},
 		{
 			"ShouldSucceedChangeKey",
-			//gitleaks:allow // This is not an actual secret.
 			"authelia-new-test-key-not-a-secret-authelia",
 			false,
 			"",
@@ -2195,7 +2193,6 @@ func TestStorageSchemaEncryptionChangeKeyRunE(t *testing.T) {
 	}{
 		{
 			"ShouldSucceedChangeKey",
-			//gitleaks:allow // This is not an actual secret.
 			map[string]string{cmdFlagNameNewEncryptionKey: "authelia-new-test-key-not-a-secret-authelia"},
 			"",
 			"Completed the encryption key change.",
@@ -2397,7 +2394,6 @@ func TestStorageSchemaInfoRunE(t *testing.T) {
 				dir := t.TempDir()
 
 				cmdCtx.config.Storage = schema.Storage{
-					//gitleaks:allow // This is not an actual secret.
 					EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 					Local: &schema.StorageLocal{
 						Path: filepath.Join(dir, "db.sqlite3"),
@@ -3372,7 +3368,6 @@ func newTestSQLiteStore(t *testing.T) storage.Provider {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
-			//gitleaks:allow // This is not an actual secret.
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(dir, "db.sqlite3"),
@@ -3396,7 +3391,6 @@ func newTestCmdCtx(t *testing.T) *CmdCtx {
 	ctx := NewCmdCtx()
 
 	ctx.config.Storage = schema.Storage{
-		//gitleaks:allow // This is not an actual secret.
 		EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 		Local: &schema.StorageLocal{
 			Path: filepath.Join(dir, "db.sqlite3"),
@@ -3497,7 +3491,6 @@ func TestRunStorageUserRecoveryCodesGenerateShouldBeRedeemable(t *testing.T) {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
-			//gitleaks:allow // This is not an actual secret.
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(dir, "db.sqlite3"),
