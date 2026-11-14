@@ -113,9 +113,10 @@ type Config struct {
 	DisableRefreshTokenRotation   bool
 	OmitRedirectScopeParameter    bool
 
-	DPoPEnabled       bool
-	DPoPEnforce       bool
-	DPoPNonceRequired bool
+	DPoPEnabled        bool
+	DPoPEnforce        bool
+	DPoPNonceRequired  bool
+	DPoPNonceStateless bool
 
 	DPoPAllowedJWSAlgorithms []string
 	DPoPClockSkew            time.Duration
@@ -1059,6 +1060,11 @@ func (c *Config) GetDPoPNonceRequired(ctx context.Context) (required bool) {
 // GetDPoPNonceLifespan returns the DPoP nonce lifespan.
 func (c *Config) GetDPoPNonceLifespan(ctx context.Context) (lifespan time.Duration) {
 	return c.DPoPNonceLifespan
+}
+
+// GetDPoPNonceStateless returns the DPoP nonce stateless flag.
+func (c *Config) GetDPoPNonceStateless(ctx context.Context) (stateless bool) {
+	return c.DPoPNonceStateless
 }
 
 // GetDPoPStrategy returns the DPoP strategy.
