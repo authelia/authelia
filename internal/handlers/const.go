@@ -54,6 +54,13 @@ const (
 	queryArgSubflow   = "subflow"
 	queryArgUserCode  = oidc.FormParameterUserCode
 	queryArgFlowID    = oidc.FormParameterFlowID
+	queryArgEC        = "ec"
+)
+
+const (
+	queryValueECForbidden = "forbidden"
+
+	pathError = "error"
 )
 
 var (
@@ -105,7 +112,8 @@ const (
 )
 
 const (
-	logFmtAuthzRedirect = "Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s"
+	logFmtAuthzRedirect          = "Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s"
+	logFmtAuthzForbiddenRedirect = "Access to %s (method %s) is forbidden to user %s, responding with status code %d with location redirect to %s"
 
 	logFmtAuthorizationPrefix = "Authorization Request with id '%s' on client with id '%s' "
 

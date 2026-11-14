@@ -53,6 +53,8 @@ type ServerEndpointsAuthz struct {
 	Headers map[string]ServerEndpointsAuthzHeader `koanf:"headers" yaml:"headers,omitempty" toml:"headers,omitempty" json:"headers,omitempty" jsonschema:"title=Headers" jsonschema_description:"The specific Authorization headers to use for this endpoint."`
 
 	AuthnStrategies []ServerEndpointsAuthzAuthnStrategy `koanf:"authn_strategies" yaml:"authn_strategies,omitempty" toml:"authn_strategies,omitempty" json:"authn_strategies,omitempty" jsonschema:"title=Authn Strategies" jsonschema_description:"The specific Authorization strategies to use for this endpoint."`
+
+	DisableAccessDeniedRedirect bool `koanf:"disable_access_denied_redirect" yaml:"disable_access_denied_redirect" toml:"disable_access_denied_redirect" json:"disable_access_denied_redirect" jsonschema:"default=false,title=Disable Access Denied Redirect" jsonschema_description:"Disables redirecting users denied by an access control rule to the access denied page, responding with the Forbidden status instead."`
 }
 
 // ServerEndpointsAuthzHeader is the Authz endpoint response header configuration for the HTTP server.

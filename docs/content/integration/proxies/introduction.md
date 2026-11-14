@@ -139,7 +139,24 @@ redirected to the portal with:
   conditions is met.
 
 When the user is denied either by a default policy, or by an explicit policy we respond with a HTTP
-[403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
+[403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status. When the user was identified by
+their session cookie the portal can instead show them an access denied page:
+
+- The `ForwardAuth` and `ExtAuthz` implementations redirect the user to the portal with the same
+  [302 Found](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302) or
+  [303 See Other](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303) status as above, provided the original
+  request was not an [XMLHTTPRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) and accepts a
+  `text/html` response.
+- The `AuthRequest` implementation keeps the
+  [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status, because the proxies which use it
+  do not accept any other, and includes the location of the access denied page for the proxy to redirect to if it is
+  configured to.
+- The `Legacy` implementation always responds with a plain
+  [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
+
+The access denied page can be turned off per endpoint with the
+[disable_access_denied_redirect](../../configuration/miscellaneous/server-endpoints-authz.md#disable_access_denied_redirect)
+option, which restores the plain [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
 
 #### Navigation Detection
 
@@ -177,10 +194,10 @@ constructed request is not a navigation and will receive a
 
 ### Response Headers
 
-With the exception of the [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) and
-[200 OK](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200) status responses above,
-Authelia responds with a [Location](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location) header to
-redirect the user to the authentication portal.
+With the exception of the [200 OK](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200) status response and a
+[403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status response not described above as
+including one, Authelia responds with a [Location](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location)
+header to redirect the user to the authentication portal.
 
 All responses include the [Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
 header with the value `no-store` and the [Pragma](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma)

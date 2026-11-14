@@ -1,6 +1,7 @@
 {
 	"A notification has been sent to your smartphone": "A notification has been sent to your smartphone",
 	"Accept": "Accept",
+	"Access Denied": "Access Denied",
 	"Access protected resources logged in as you": "Access protected resources logged in as you",
 	"Access your email addresses": "Access your email addresses",
 	"Access your group membership": "Access your group membership",
@@ -126,6 +127,8 @@
 	"Username is required": "Username is required",
 	"Warning": "Warning",
 	"You cancelled the assertion request": "You cancelled the assertion request",
+	"You do not have permission to access this resource": "You do not have permission to access this resource",
+	"You do not have permission to access {{host}}": "You do not have permission to access {{host}}",
 	"You have made too many requests": "You have made too many requests",
 	"You have made too many requests, try again in {{count}} seconds_one": "You have made too many requests, try again in {{count}} second",
 	"You have made too many requests, try again in {{count}} seconds_other": "You have made too many requests, try again in {{count}} seconds",

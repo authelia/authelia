@@ -144,14 +144,17 @@
         # implementation: 'ForwardAuth'
         # headers: ~
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # ext-authz:
         # implementation: 'ExtAuthz'
         # headers: ~
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # auth-request:
         # implementation: 'AuthRequest'
         # headers: ~
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # legacy:
         # implementation: 'Legacy'
         # authn_strategies: []
