@@ -129,6 +129,16 @@ vi.mock("@views/LoginPortal/SecondFactor/PasswordMethod", () => ({
     ),
 }));
 
+vi.mock("@views/LoginPortal/SecondFactor/RecoveryCodeMethod", () => ({
+    default: (props: any) => (
+        <div data-testid="recovery-code-method" id={props.id}>
+            <button data-testid="recovery-error" onClick={() => props.onSignInError(new Error("recovery failed"))} />
+            <button data-testid="recovery-success" onClick={() => props.onSignInSuccess("https://example.com")} />
+            <button data-testid="recovery-cancel" onClick={() => props.onCancel()} />
+        </div>
+    ),
+}));
+
 const setPreferredMock = vi.mocked(setPreferred2FAMethod);
 
 const defaultProps = {
@@ -405,5 +415,49 @@ describe("method selection", () => {
         await waitFor(() =>
             expect(screen.getByTestId("method-selection-dialog")).toHaveAttribute("data-open", "false"),
         );
+    });
+});
+
+describe("recovery code mode", () => {
+    const recoveryUserInfo = { ...defaultProps.userInfo, has_recovery_codes: true };
+
+    it("switches to the recovery code method from the link", async () => {
+        renderForm({ userInfo: recoveryUserInfo }, "/totp");
+        await screen.findByTestId("otp-method");
+
+        fireEvent.click(screen.getByText("Use a recovery code instead"));
+
+        expect(await screen.findByTestId("recovery-code-method")).toHaveAttribute("id", "recovery-code-method");
+        expect(screen.queryByTestId("otp-method")).not.toBeInTheDocument();
+        expect(screen.queryByText("Use a recovery code instead")).not.toBeInTheDocument();
+    });
+
+    it("surfaces recovery code errors as notifications", async () => {
+        renderForm({ userInfo: recoveryUserInfo }, "/totp");
+
+        fireEvent.click(await screen.findByText("Use a recovery code instead"));
+        fireEvent.click(await screen.findByTestId("recovery-error"));
+
+        expect(mocks.createErrorNotification).toHaveBeenCalledWith("recovery failed");
+    });
+
+    it("forwards a successful recovery code sign in", async () => {
+        const { props } = renderForm({ userInfo: recoveryUserInfo }, "/totp");
+
+        fireEvent.click(await screen.findByText("Use a recovery code instead"));
+        fireEvent.click(await screen.findByTestId("recovery-success"));
+
+        expect(props.onAuthenticationSuccess).toHaveBeenCalledWith("https://example.com");
+    });
+
+    it("returns to the second factor method when cancelled", async () => {
+        renderForm({ userInfo: recoveryUserInfo }, "/totp");
+
+        fireEvent.click(await screen.findByText("Use a recovery code instead"));
+        fireEvent.click(await screen.findByTestId("recovery-cancel"));
+
+        expect(await screen.findByTestId("otp-method")).toBeInTheDocument();
+        expect(screen.queryByTestId("recovery-code-method")).not.toBeInTheDocument();
+        expect(screen.getByText("Use a recovery code instead")).toBeInTheDocument();
     });
 });

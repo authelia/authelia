@@ -6,6 +6,7 @@ package model
 
 import (
 	"context"
+	"errors"
 	"net"
 	"strings"
 	"testing"
@@ -44,6 +45,28 @@ func TestNewRecoveryCode(t *testing.T) {
 	for _, c := range strings.Join(parts, "") {
 		assert.True(t, strings.ContainsRune(random.CharSetUnambiguousUpper, c), "code char %q must be in the unambiguous upper alphabet", c)
 	}
+}
+
+type testRecoveryCodeErrRandom struct {
+	random.Provider
+}
+
+func (r *testRecoveryCodeErrRandom) BytesCustomErr(n int, charset []byte) ([]byte, error) {
+	return nil, errors.New("entropy exhausted")
+}
+
+func TestNewRecoveryCodeRandomError(t *testing.T) {
+	ctx := &TestContext{
+		Context: context.Background(),
+		ip:      net.ParseIP("127.0.0.1"),
+		clock:   clock.NewFixed(time.Unix(1700000000, 0)),
+		random:  &testRecoveryCodeErrRandom{Provider: random.NewMathematical()},
+	}
+
+	code, err := NewRecoveryCode(ctx, "alice")
+
+	assert.Nil(t, code)
+	assert.EqualError(t, err, "failed to generate recovery code random bytes: entropy exhausted")
 }
 
 func TestRecoveryCodeConsume(t *testing.T) {

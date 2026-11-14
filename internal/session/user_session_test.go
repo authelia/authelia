@@ -99,6 +99,25 @@ func TestUserSession_SetFactors(t *testing.T) {
 				},
 			},
 		},
+		{
+			"ShouldSetOneFactorPasswordAndTwoFactorRecoveryCode",
+			func(session *UserSession) {
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), false)
+				session.SetTwoFactorRecoveryCode(time.Unix(20000, 0))
+			},
+			&UserSession{
+				Username:                   "john",
+				LastActivity:               20000,
+				FirstFactorAuthnTimestamp:  10000,
+				SecondFactorAuthnTimestamp: 20000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					KnowledgeBasedAuthentication: true,
+					UsernameAndPassword:          true,
+					RecoveryCode:                 true,
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

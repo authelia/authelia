@@ -39,6 +39,11 @@ func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
 			[]string{"kba", "pop", "hwk", "mca", "mfa", "pwd", "sms", "user", "pin"},
 			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserPresence: true, WebAuthnUserVerified: true, KnowledgeBasedAuthentication: true},
 		},
+		{
+			"ShouldHandleRecoveryCodeWithPassword",
+			[]string{"pwd", "kba", "rc", "mfa"},
+			authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, KnowledgeBasedAuthentication: true, RecoveryCode: true},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -181,6 +186,34 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 				ChannelService:             false,
 				MultiChannelAuthentication: false,
 				RFC8176:                    []string{"hwk", "pop", "user", "pin"},
+			},
+		},
+		{
+			name: "RecoveryCode",
+
+			have: authorization.AuthenticationMethodsReferences{RecoveryCode: true},
+			expected: testAMRWant{
+				FactorKnowledge:            false,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  false,
+				ChannelBrowser:             true,
+				ChannelService:             false,
+				MultiChannelAuthentication: false,
+				RFC8176:                    []string{"rc"},
+			},
+		},
+		{
+			name: "UsernameAndPasswordWithRecoveryCode",
+
+			have: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, RecoveryCode: true},
+			expected: testAMRWant{
+				FactorKnowledge:            true,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  true,
+				ChannelBrowser:             true,
+				ChannelService:             false,
+				MultiChannelAuthentication: false,
+				RFC8176:                    []string{"pwd", "rc", "mfa"},
 			},
 		},
 		{

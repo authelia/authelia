@@ -329,6 +329,54 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 	}
 }
 
+func TestPopulateRecoveryCodesUserInfo(t *testing.T) {
+	testCases := []struct {
+		name         string
+		disable      bool
+		count        int
+		err          error
+		expectedHas  bool
+		expectedLow  bool
+		expectedLog  string
+		expectedCall bool
+	}{
+		{"ShouldSkipWhenDisabled", true, 0, nil, false, false, "", false},
+		{"ShouldHandleCountError", false, 0, errors.New("query failed"), false, false, "Error counting unused recovery codes for user 'john'", true},
+		{"ShouldHandleNoCodes", false, 0, nil, false, false, "", true},
+		{"ShouldHandleOneCode", false, 1, nil, true, true, "", true},
+		{"ShouldHandleTwoCodes", false, 2, nil, true, true, "", true},
+		{"ShouldHandleThreeCodes", false, 3, nil, true, false, "", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.RecoveryCodes.Disable = tc.disable
+
+			if tc.expectedCall {
+				mock.StorageMock.EXPECT().
+					CountUnusedRecoveryCodesByUsername(gomock.Any(), gomock.Eq(testUsername)).
+					Return(tc.count, tc.err)
+			}
+
+			info := model.UserInfo{HasRecoveryCodes: tc.disable, LowRecoveryCodes: tc.disable}
+
+			populateRecoveryCodesUserInfo(mock.Ctx, testUsername, &info)
+
+			assert.Equal(t, tc.disable || tc.expectedHas, info.HasRecoveryCodes)
+			assert.Equal(t, tc.disable || tc.expectedLow, info.LowRecoveryCodes)
+
+			if tc.expectedLog == "" {
+				assert.Nil(t, mock.Hook.LastEntry())
+			} else {
+				mock.AssertLogEntryAdvanced(t, 0, logrus.ErrorLevel, tc.expectedLog, map[string]any{"error": tc.err.Error()})
+			}
+		})
+	}
+}
+
 func TestFetchSuite(t *testing.T) {
 	suite.Run(t, &FetchSuite{})
 }
