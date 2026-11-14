@@ -66,7 +66,7 @@ func TestHandleAuthzGetObjectExtAuthz(t *testing.T) {
 
 			setRequestExtAuthz(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-			object, err := handleAuthzGetObjectExtAuthz(mock.Ctx)
+			object, err := handleAuthzGetObjectExtAuthz(mock.Ctx, utils.DefaultURIParser())
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.expectedURL, object.URL.String())

@@ -8,9 +8,10 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func handleAuthzGetObjectForwardAuth(ctx AuthzContext) (object authorization.Object, err error) {
+func handleAuthzGetObjectForwardAuth(ctx AuthzContext, parser *utils.URIParser) (object authorization.Object, err error) {
 	var (
 		method          []byte
 		requestedObject *authorization.Object
@@ -20,7 +21,7 @@ func handleAuthzGetObjectForwardAuth(ctx AuthzContext) (object authorization.Obj
 		return object, fmt.Errorf("header 'X-Forwarded-Method' is empty")
 	}
 
-	if requestedObject, err = authorization.NewObjectMethodSchemeHostPath(method, ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()); err != nil {
+	if requestedObject, err = authorization.NewObjectMethodSchemeHostPath(parser, method, ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()); err != nil {
 		return object, err
 	}
 

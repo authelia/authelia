@@ -578,7 +578,7 @@ func TestHandleAuthzGetObjectForwardAuth(t *testing.T) {
 				mock.Ctx.Request.Header.Set("X-Forwarded-Method", tc.method)
 			}
 
-			object, err := handleAuthzGetObjectForwardAuth(mock.Ctx)
+			object, err := handleAuthzGetObjectForwardAuth(mock.Ctx, utils.DefaultURIParser())
 
 			if tc.err == "" {
 				assert.NoError(t, err)

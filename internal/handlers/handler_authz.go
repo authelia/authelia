@@ -159,7 +159,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 		err         error
 	)
 
-	if object, err = authz.handleGetObject(ctx); err != nil {
+	if object, err = authz.handleGetObject(ctx, authz.config.URIParser); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error getting Target URL and Request Method")
 
 		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
@@ -168,7 +168,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	}
 
 	if !utils.IsURISecure(object.URL) {
-		ctx.GetLogger().Errorf("Target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.String(), object.URL.Scheme)
+		ctx.GetLogger().Errorf("Target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.Redacted(), object.URL.Scheme)
 
 		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
@@ -176,7 +176,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	}
 
 	if manager, err = ctx.GetSessionManagerByTargetURI(object.URL); err != nil || manager.GetSessionConfig().Domain == "" {
-		ctx.GetLogger().WithError(err).WithField("target_url", object.URL.String()).Error("Target URL does not appear to have a relevant session cookies configuration")
+		ctx.GetLogger().WithError(err).WithField("target_url", object.URL.Redacted()).Error("Target URL does not appear to have a relevant session cookies configuration")
 
 		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
@@ -184,7 +184,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	}
 
 	if autheliaURL, err = authz.getAutheliaURL(ctx, manager); err != nil {
-		ctx.GetLogger().WithError(err).WithField("target_url", object.URL.String()).Error("Error occurred trying to determine the external Authelia URL for Target URL")
+		ctx.GetLogger().WithError(err).WithField("target_url", object.URL.Redacted()).Error("Error occurred trying to determine the external Authelia URL for Target URL")
 
 		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
@@ -217,7 +217,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
 	case AuthzResultForbidden:
-		ctx.GetLogger().Infof("Access to '%s' is forbidden to user '%s'", object.URL.String(), authn.Username)
+		ctx.GetLogger().Infof("Access to '%s' is forbidden to user '%s'", object.URL.Redacted(), authn.Username)
 		ctx.ReplyForbidden()
 	case AuthzResultUnauthorized:
 		var handler HandlerAuthzUnauthorized
@@ -262,7 +262,7 @@ func (authz *Authz) handleAuthnError(ctx AuthzContext, authn *Authn, strategy Au
 }
 
 func (authz *Authz) getAutheliaURL(ctx AuthzContext, manager session.Manager) (autheliaURL *url.URL, err error) {
-	if autheliaURL, err = authz.handleGetAutheliaURL(ctx); err != nil {
+	if autheliaURL, err = authz.handleGetAutheliaURL(ctx, authz.config.URIParser); err != nil {
 		return nil, err
 	}
 
@@ -287,7 +287,9 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 		return nil
 	}
 
-	redirectionURL, _ = url.ParseRequestURI(autheliaURL.String())
+	u := *autheliaURL
+
+	redirectionURL = &u
 
 	if redirectionURL.Path == "" {
 		redirectionURL.Path = "/"

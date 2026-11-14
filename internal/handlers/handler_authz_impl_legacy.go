@@ -10,9 +10,10 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func handleAuthzGetObjectLegacy(ctx AuthzContext) (object authorization.Object, err error) {
+func handleAuthzGetObjectLegacy(ctx AuthzContext, parser *utils.URIParser) (object authorization.Object, err error) {
 	var (
 		method          []byte
 		requestedObject *authorization.Object
@@ -22,7 +23,7 @@ func handleAuthzGetObjectLegacy(ctx AuthzContext) (object authorization.Object, 
 		method = ctx.Method()
 	}
 
-	if requestedObject, err = authorization.NewObjectMethodURLOrSchemeHostPath(method, ctx.XOriginalURL(), ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.GetXForwardedURI()); err != nil {
+	if requestedObject, err = authorization.NewObjectMethodURLOrSchemeHostPath(parser, method, ctx.XOriginalURL(), ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.GetXForwardedURI()); err != nil {
 		return object, err
 	}
 

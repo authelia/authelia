@@ -1255,6 +1255,16 @@
           "type": "object",
           "title": "User Attributes",
           "description": "User attributes derived from other attributes."
+        },
+        "uri_parsers": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/URIParser"
+            }
+          },
+          "type": "object",
+          "title": "URI Parsers",
+          "description": "URI parsers which can be used by the authz endpoints."
         }
       },
       "additionalProperties": false,
@@ -3664,6 +3674,11 @@
           "type": "array",
           "title": "Authn Strategies",
           "description": "The specific Authorization strategies to use for this endpoint."
+        },
+        "uri_parser": {
+          "type": "string",
+          "title": "URI Parser",
+          "description": "The name of the URI parser definition used for the request URI of this endpoint."
         }
       },
       "additionalProperties": false,
@@ -4560,6 +4575,29 @@
       "additionalProperties": false,
       "type": "object",
       "description": "TelemetryMetrics represents the telemetry metrics config."
+    },
+    "URIParser": {
+      "properties": {
+        "allow": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Allow",
+          "description": "The URI ambiguity classes to allow which are otherwise rejected by default."
+        },
+        "reject": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Reject",
+          "description": "The URI ambiguity classes to reject which are otherwise allowed by default."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "URIParser represents a URI parser definition."
     },
     "UUID": {
       "items": {

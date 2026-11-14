@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestValidateDefinitions(t *testing.T) {
@@ -180,5 +181,64 @@ func TestValidateDefinitions(t *testing.T) {
 
 		assert.Len(t, validator.Warnings(), 0)
 		assert.Len(t, validator.Errors(), 0)
+	})
+
+	t.Run("ShouldAddDefaultURIParser", func(t *testing.T) {
+		config := &schema.Configuration{}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		assert.Len(t, validator.Errors(), 0)
+		assert.Equal(t, map[string]schema.URIParser{schema.DefinitionURIParserDefault: {}}, config.Definitions.URIParsers)
+	})
+
+	t.Run("ShouldNotReplaceConfiguredDefaultURIParser", func(t *testing.T) {
+		config := &schema.Configuration{
+			Definitions: schema.Definitions{
+				URIParsers: map[string]schema.URIParser{
+					schema.DefinitionURIParserDefault: {Allow: []string{"user_info"}},
+				},
+			},
+		}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		assert.Len(t, validator.Errors(), 0)
+		assert.Equal(t, map[string]schema.URIParser{schema.DefinitionURIParserDefault: {Allow: []string{"user_info"}}}, config.Definitions.URIParsers)
+	})
+
+	t.Run("ShouldErrUnknownURIParserClass", func(t *testing.T) {
+		config := &schema.Configuration{
+			Definitions: schema.Definitions{
+				URIParsers: map[string]schema.URIParser{
+					"custom": {Allow: []string{"nope"}, Reject: []string{"nope"}},
+				},
+			},
+		}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		require.Len(t, validator.Errors(), 2)
+		assert.EqualError(t, validator.Errors()[0], "definitions: uri_parsers: custom: option 'allow' must only include the values "+utils.StringJoinOr(utils.URLAmbiguityNames())+" but has 'nope'")
+		assert.EqualError(t, validator.Errors()[1], "definitions: uri_parsers: custom: option 'reject' must only include the values "+utils.StringJoinOr(utils.URLAmbiguityNames())+" but has 'nope'")
+	})
+
+	t.Run("ShouldErrConflictingURIParserClass", func(t *testing.T) {
+		config := &schema.Configuration{
+			Definitions: schema.Definitions{
+				URIParsers: map[string]schema.URIParser{
+					"custom": {Allow: []string{"user_info"}, Reject: []string{"user_info"}},
+				},
+			},
+		}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		require.Len(t, validator.Errors(), 1)
+		assert.EqualError(t, validator.Errors()[0], "definitions: uri_parsers: custom: the value 'user_info' can't be in both the 'allow' and 'reject' options")
 	})
 }

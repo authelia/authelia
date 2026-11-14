@@ -780,6 +780,29 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			[]string{},
 		},
 		{
+			"ShouldRaiseErrorOnUndefinedURIParser",
+			map[string]schema.ServerEndpointsAuthz{
+				"forward-auth": {Implementation: "ForwardAuth", URIParser: "nope"},
+			},
+			[]string{
+				"server: endpoints: authz: forward-auth: option 'uri_parser' must be the name of a uri parser definition but it's configured as 'nope'",
+			},
+		},
+		{
+			"ShouldAllowDefaultURIParserWithoutDefinition",
+			map[string]schema.ServerEndpointsAuthz{
+				"forward-auth": {Implementation: "ForwardAuth", URIParser: "default"},
+			},
+			nil,
+		},
+		{
+			"ShouldAllowDefinedURIParserOnLegacy",
+			map[string]schema.ServerEndpointsAuthz{
+				"legacy": {Implementation: "Legacy", URIParser: "custom"},
+			},
+			nil,
+		},
+		{
 			"ShouldErrorOnInvalidChars",
 			map[string]schema.ServerEndpointsAuthz{
 				"/abc":  {Implementation: "ForwardAuth"},
@@ -840,6 +863,7 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 
 			config := newDefaultConfig()
 
+			config.Definitions.URIParsers = map[string]schema.URIParser{"custom": {}}
 			config.Server.Endpoints.Authz = tc.have
 
 			ValidateServerEndpoints(&config, validator)
@@ -880,6 +904,7 @@ func TestServerAuthzEndpointDefaults(t *testing.T) {
 				"example": {
 					Implementation: "ForwardAuth",
 					Headers:        schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers,
+					URIParser:      schema.DefinitionURIParserDefault,
 					AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
 						{
 							Name:    "HeaderAuthorization",
@@ -899,6 +924,7 @@ func TestServerAuthzEndpointDefaults(t *testing.T) {
 				"example": {
 					Implementation: "ForwardAuth",
 					Headers:        schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers,
+					URIParser:      schema.DefinitionURIParserDefault,
 					AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
 						{
 							Name:    "HeaderAuthorization",

@@ -134,6 +134,12 @@ var htmlEscaper = strings.NewReplacer(
 // ErrTimeoutReached error thrown when a timeout is reached.
 var ErrTimeoutReached = errors.New("timeout reached")
 
+// ErrURLAmbiguous error returned when a URL is rejected due to ambiguity.
+var ErrURLAmbiguous = errors.New("url is ambiguous")
+
+// ErrURLNotAbsolutePath error returned when a URL does not have an absolute path.
+var ErrURLNotAbsolutePath = errors.New("url does not have an absolute path")
+
 const (
 	windows               = "windows"
 	errFmtLinuxNotFound   = "%s %%s: no such file or directory"

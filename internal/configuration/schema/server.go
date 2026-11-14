@@ -53,6 +53,8 @@ type ServerEndpointsAuthz struct {
 	Headers map[string]ServerEndpointsAuthzHeader `koanf:"headers" yaml:"headers,omitempty" toml:"headers,omitempty" json:"headers,omitempty" jsonschema:"title=Headers" jsonschema_description:"The specific Authorization headers to use for this endpoint."`
 
 	AuthnStrategies []ServerEndpointsAuthzAuthnStrategy `koanf:"authn_strategies" yaml:"authn_strategies,omitempty" toml:"authn_strategies,omitempty" json:"authn_strategies,omitempty" jsonschema:"title=Authn Strategies" jsonschema_description:"The specific Authorization strategies to use for this endpoint."`
+
+	URIParser string `koanf:"uri_parser" yaml:"uri_parser,omitempty" toml:"uri_parser,omitempty" json:"uri_parser,omitempty" jsonschema:"title=URI Parser" jsonschema_description:"The name of the URI parser definition used for the request URI of this endpoint."`
 }
 
 // ServerEndpointsAuthzHeader is the Authz endpoint response header configuration for the HTTP server.

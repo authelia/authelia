@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Authz is a type which is a effectively is a middlewares.RequestHandler for authorization requests. This should NOT be
@@ -51,13 +52,13 @@ type HandlerAuthzUnauthorized func(ctx AuthzContext, authn *Authn, redirectionUR
 type HandlerAuthzAuthorized func(ctx AuthzContext, headers []AuthzHeader, authn *Authn)
 
 // HandlerAuthzGetAutheliaURL is a Authz handler func that handles retrieval of the Portal URL.
-type HandlerAuthzGetAutheliaURL func(ctx AuthzContext) (portalURL *url.URL, err error)
+type HandlerAuthzGetAutheliaURL func(ctx AuthzContext, parser *utils.URIParser) (portalURL *url.URL, err error)
 
 // HandlerAuthzGetRedirectionURL is a Authz handler func that handles retrieval of the Redirection URL.
 type HandlerAuthzGetRedirectionURL func(ctx AuthzContext, object *authorization.Object) (redirectionURL *url.URL, err error)
 
 // HandlerAuthzGetObject is a Authz handler func that handles retrieval of the authorization.Object to authorize.
-type HandlerAuthzGetObject func(ctx AuthzContext) (object authorization.Object, err error)
+type HandlerAuthzGetObject func(ctx AuthzContext, parser *utils.URIParser) (object authorization.Object, err error)
 
 // HandlerAuthzVerifyObject is a Authz handler func that handles authorization of the authorization.Object.
 type HandlerAuthzVerifyObject func(ctx AuthzContext, object authorization.Object) (err error)
@@ -105,6 +106,9 @@ type HeaderAuthorization struct {
 type AuthzConfig struct {
 	RefreshInterval schema.RefreshIntervalDuration
 
+	// URIParser is the parser used for the request URI of the endpoint. It is set by the builder.
+	URIParser *utils.URIParser
+
 	// StatusCodeBadRequest is sent for configuration issues prior to performing authorization checks. It's set by the
 	// builder.
 	StatusCodeBadRequest int
@@ -116,6 +120,7 @@ type AuthzBuilder struct {
 	implementation AuthzImplementation
 	strategies     []AuthnStrategy
 	headers        map[string]schema.ServerEndpointsAuthzHeader
+	uriParsers     map[string]schema.URIParser
 }
 
 // AuthnStrategy is a strategy used for Authz authentication.
@@ -185,9 +190,10 @@ func (i AuthzImplementation) String() string {
 
 // AuthzBearerIntrospectionProvider is the provider used to introspect bearer tokens during authorization.
 type AuthzBearerIntrospectionProvider interface {
+	oauthelia2.AudienceStrategyProvider
+	oauthelia2.ResourceStrategyProvider
+
 	GetRegisteredClient(ctx context.Context, id string) (client oidc.Client, err error)
-	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceStrategy)
-	GetResourceStrategy(ctx context.Context) (strategy oauthelia2.ResourceStrategy)
 	IntrospectToken(ctx context.Context, token string, tokenUse oauthelia2.TokenUse, session oauthelia2.Session, scope ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error)
 }
 

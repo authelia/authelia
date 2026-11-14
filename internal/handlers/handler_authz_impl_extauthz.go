@@ -6,14 +6,15 @@ package handlers
 
 import (
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func handleAuthzGetObjectExtAuthz(ctx AuthzContext) (object authorization.Object, err error) {
+func handleAuthzGetObjectExtAuthz(ctx AuthzContext, parser *utils.URIParser) (object authorization.Object, err error) {
 	var requestedObject *authorization.Object
 
 	host := ctx.Host()
 
-	if requestedObject, err = authorization.NewObjectMethodSchemeHostPath(ctx.Method(), ctx.XForwardedProto(), host, ctx.AuthzPath()); err != nil {
+	if requestedObject, err = authorization.NewObjectMethodSchemeHostPath(parser, ctx.Method(), ctx.XForwardedProto(), host, ctx.AuthzPath()); err != nil {
 		return object, err
 	}
 

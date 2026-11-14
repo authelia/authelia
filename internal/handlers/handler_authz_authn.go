@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"path"
 	"strings"
 	"time"
 
@@ -663,7 +662,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("token is not an access token")
 	}
 
-	audience := []string{authzBearerTarget(object.URL)}
+	audience := []string{authzBearerTarget(object)}
 
 	fsession := requester.GetSession()
 
@@ -714,20 +713,8 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 	return osession.Username, "", false, level, nil
 }
 
-func authzBearerTarget(u *url.URL) (target string) {
-	if u == nil {
-		return ""
-	}
+func authzBearerTarget(object *authorization.Object) (target string) {
+	target, _, _ = strings.Cut(object.CanonicalURI, "?")
 
-	clean := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: "/"}
-
-	if p := u.Path; p != "" && p != "/" {
-		clean.Path = path.Clean(p)
-
-		if strings.HasSuffix(p, "/") && clean.Path != "/" {
-			clean.Path += "/"
-		}
-	}
-
-	return clean.String()
+	return target
 }

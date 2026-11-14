@@ -11,6 +11,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewAuthzBuilder creates a new AuthzBuilder.
@@ -66,9 +67,8 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 		return b
 	}
 
-	b.config = AuthzConfig{
-		RefreshInterval: config.AuthenticationBackend.RefreshInterval,
-	}
+	b.config.RefreshInterval = config.AuthenticationBackend.RefreshInterval
+	b.uriParsers = config.Definitions.URIParsers
 
 	return b
 }
@@ -76,6 +76,22 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 // WithEndpointHeaders configures the AuthzBuilder with the response headers for this endpoint.
 func (b *AuthzBuilder) WithEndpointHeaders(headers map[string]schema.ServerEndpointsAuthzHeader) *AuthzBuilder {
 	b.headers = headers
+
+	return b
+}
+
+// WithURIParser configures the AuthzBuilder with the named URI parser definition, falling back to the default URI parser
+// definition when the name is empty. Should be called AFTER WithConfig.
+func (b *AuthzBuilder) WithURIParser(name string) *AuthzBuilder {
+	if name == "" {
+		name = schema.DefinitionURIParserDefault
+	}
+
+	if definition, ok := b.uriParsers[name]; ok {
+		b.config.URIParser = utils.NewURIParserFromNames(definition.Allow, definition.Reject)
+	} else {
+		b.config.URIParser = utils.DefaultURIParser()
+	}
 
 	return b
 }
@@ -97,6 +113,8 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *A
 	}
 
 	b.WithStrategies()
+
+	b.WithURIParser(config.URIParser)
 
 	for _, strategy := range config.AuthnStrategies {
 		switch strategy.Name {
@@ -126,6 +144,10 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	}
 
 	authz.config.StatusCodeBadRequest = fasthttp.StatusBadRequest
+
+	if authz.config.URIParser == nil {
+		authz.config.URIParser = utils.DefaultURIParser()
+	}
 
 	if len(authz.strategies) == 0 {
 		switch b.implementation {

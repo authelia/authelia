@@ -38,7 +38,7 @@ func NewAuthorizerTester(config schema.AccessControl) *AuthorizerTester {
 }
 
 func (s *AuthorizerTester) CheckAuthorizations(t *testing.T, subject Subject, requestURI, method string, expectedLevel Level) {
-	requestedObject, err := NewObjectMethodURL([]byte(method), []byte(requestURI))
+	requestedObject, err := NewObjectMethodURL(utils.DefaultURIParser(), []byte(method), []byte(requestURI))
 	require.NoError(t, err)
 
 	object := *requestedObject
@@ -959,10 +959,6 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 		{"ShouldRequireTwoFactorExactPath", John, "https://resource.example.com/an/exact/path/", fasthttp.MethodGet, TwoFactor},
 		{"ShouldResolveLiteralDotDot", John, "https://resource.example.com/bypass/../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
 		{"ShouldResolveLiteralDotDotDoubleSlash", John, "https://resource.example.com/bypass/..//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
-		{"ShouldResolveEncodedDotDotLower", John, "https://resource.example.com/bypass/%2e%2e/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
-		{"ShouldResolveEncodedDotDotLowerDoubleSlash", John, "https://resource.example.com/bypass/%2e%2e//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
-		{"ShouldResolveEncodedDotDotUpper", John, "https://resource.example.com/bypass/%2E%2E/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
-		{"ShouldResolveEncodedDotDotUpperDoubleSlash", John, "https://resource.example.com/bypass/%2E%2E//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
 		{"ShouldMergeSlashesLeadingBypass", John, "https://resource.example.com//bypass/abc", fasthttp.MethodGet, Bypass},
 		{"ShouldMergeSlashesWithinBypass", John, "https://resource.example.com/bypass//abc", fasthttp.MethodGet, Bypass},
 		{"ShouldMergeSlashesMultipleWithinBypass", John, "https://resource.example.com/bypass///abc", fasthttp.MethodGet, Bypass},
@@ -970,8 +966,6 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 		{"ShouldMergeSlashesTrailingExactPath", John, "https://resource.example.com/an/exact/path//", fasthttp.MethodGet, TwoFactor},
 		{"ShouldResolveSingleDot", John, "https://resource.example.com/bypass/./abc", fasthttp.MethodGet, Bypass},
 		{"ShouldResolveSingleDotOneFactor", John, "https://resource.example.com/one_factor/./abc", fasthttp.MethodGet, OneFactor},
-		{"ShouldResolveEncodedSingleDotLower", John, "https://resource.example.com/one_factor/%2e/abc", fasthttp.MethodGet, OneFactor},
-		{"ShouldResolveEncodedSingleDotUpper", John, "https://resource.example.com/one_factor/%2E/abc", fasthttp.MethodGet, OneFactor},
 		{"ShouldResolveTrailingSingleDot", John, "https://resource.example.com/one_factor/abc/.", fasthttp.MethodGet, OneFactor},
 		{"ShouldResolveDotDotToRoot", John, "https://resource.example.com/bypass/..", fasthttp.MethodGet, Bypass},
 		{"ShouldResolveDotDotAboveRoot", John, "https://resource.example.com/../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
@@ -991,13 +985,6 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 		{"ShouldMatchGroupResourceForMixedCaseGroup", John, "https://resource.example.com/group/Dev/abc", fasthttp.MethodGet, TwoFactor},
 		{"ShouldMatchGroupResourceForUppercaseGroup", John, "https://resource.example.com/group/ADMINS/abc", fasthttp.MethodGet, TwoFactor},
 		{"ShouldMatchGroupResourceForAnonymous", AnonymousUser, "https://resource.example.com/group/dev/abc", fasthttp.MethodGet, TwoFactor},
-		{"ShouldNotTraverseWithDoubleEncodedDotDot", John, "https://resource.example.com/bypass/%252e%252e/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
-		{"ShouldNotTraverseWithOverlongEncodedDotDot", John, "https://resource.example.com/bypass/%c0%ae%c0%ae/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
-		{"ShouldNotTraverseWithEncodedBackslashSeparator", John, "https://resource.example.com/bypass/..%5c/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
-		{"ShouldNotTraverseWithLiteralBackslashSeparator", John, "https://resource.example.com/bypass/..\\/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
-		{"ShouldNotTraverseWithEncodedDotDotEncodedBackslash", John, "https://resource.example.com/bypass/%2e%2e%5c/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
-		{"ShouldNotTraverseWithNullByte", John, "https://resource.example.com/bypass/%00/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
-		{"ShouldNotTraverseWithSemicolonParameter", John, "https://resource.example.com/bypass/..;/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
 		{"ShouldResolveDotDotRegardlessOfPrefixCase", John, "https://resource.example.com/BYPASS/../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
 		{"ShouldMatchOneFactorWithQueryString", John, "https://resource.example.com/one_factor/abc?foo=bar", fasthttp.MethodGet, OneFactor},
 		{"ShouldNotMatchExactPathWithQueryString", John, "https://resource.example.com/an/exact/path/?foo=bar", fasthttp.MethodGet, Denied},
@@ -1008,12 +995,40 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
-			requestedObject, err := NewObjectMethodURL([]byte(tc.method), []byte(tc.have))
+			requestedObject, err := NewObjectMethodURL(utils.DefaultURIParser(), []byte(tc.method), []byte(tc.have))
 			require.NoError(t, err)
 
 			_, level := tester.GetRequiredLevel(tc.subject, *requestedObject)
 
 			assert.Equal(t, tc.expected, level)
+		})
+	}
+
+	rejected := []struct {
+		name string
+		have string
+	}{
+		{"ShouldRejectEncodedDotDotLower", "https://resource.example.com/bypass/%2e%2e/a/longer/rule/abc"},
+		{"ShouldRejectEncodedDotDotLowerDoubleSlash", "https://resource.example.com/bypass/%2e%2e//a/longer/rule/abc"},
+		{"ShouldRejectEncodedDotDotUpper", "https://resource.example.com/bypass/%2E%2E/a/longer/rule/abc"},
+		{"ShouldRejectEncodedDotDotUpperDoubleSlash", "https://resource.example.com/bypass/%2E%2E//a/longer/rule/abc"},
+		{"ShouldRejectEncodedSingleDotLower", "https://resource.example.com/one_factor/%2e/abc"},
+		{"ShouldRejectEncodedSingleDotUpper", "https://resource.example.com/one_factor/%2E/abc"},
+		{"ShouldRejectDoubleEncodedDotDot", "https://resource.example.com/bypass/%252e%252e/a/longer/rule/abc"},
+		{"ShouldRejectOverlongEncodedDotDot", "https://resource.example.com/bypass/%c0%ae%c0%ae/a/longer/rule/abc"},
+		{"ShouldRejectEncodedBackslashSeparator", "https://resource.example.com/bypass/..%5c/a/longer/rule/abc"},
+		{"ShouldRejectLiteralBackslashSeparator", "https://resource.example.com/bypass/..\\/a/longer/rule/abc"},
+		{"ShouldRejectEncodedDotDotEncodedBackslash", "https://resource.example.com/bypass/%2e%2e%5c/a/longer/rule/abc"},
+		{"ShouldRejectNullByte", "https://resource.example.com/bypass/%00/a/longer/rule/abc"},
+		{"ShouldRejectSemicolonParameter", "https://resource.example.com/bypass/..;/a/longer/rule/abc"},
+	}
+
+	for _, tc := range rejected {
+		s.T().Run(tc.name, func(t *testing.T) {
+			requestedObject, err := NewObjectMethodURL(utils.DefaultURIParser(), []byte(fasthttp.MethodGet), []byte(tc.have))
+
+			assert.Nil(t, requestedObject)
+			assert.ErrorIs(t, err, utils.ErrURLAmbiguous)
 		})
 	}
 }

@@ -11,9 +11,10 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func handleAuthzGetObjectAuthRequest(ctx AuthzContext) (object authorization.Object, err error) {
+func handleAuthzGetObjectAuthRequest(ctx AuthzContext, parser *utils.URIParser) (object authorization.Object, err error) {
 	var (
 		method          []byte
 		originalURL     []byte
@@ -28,7 +29,7 @@ func handleAuthzGetObjectAuthRequest(ctx AuthzContext) (object authorization.Obj
 		return object, fmt.Errorf("header 'X-Original-URL' is empty")
 	}
 
-	if requestedObject, err = authorization.NewObjectMethodURL(method, originalURL); err != nil {
+	if requestedObject, err = authorization.NewObjectMethodURL(parser, method, originalURL); err != nil {
 		return object, err
 	}
 

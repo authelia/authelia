@@ -9,30 +9,32 @@ import (
 	"strings"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func handleAuthzUnauthorizedCommon(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
 	doAuthzRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
 }
 
-func handleAuthzPortalURLLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
-	if portalURL, err = handleAuthzPortalURLFromQueryLegacy(ctx); err != nil || portalURL != nil {
+func handleAuthzPortalURLLegacy(ctx AuthzContext, parser *utils.URIParser) (portalURL *url.URL, err error) {
+	if portalURL, err = handleAuthzPortalURLFromQueryLegacy(ctx, parser); err != nil || portalURL != nil {
 		return portalURL, err
 	}
 
-	return handleAuthzPortalURLFromHeader(ctx)
+	return handleAuthzPortalURLFromHeader(ctx, parser)
 }
 
-func handleAuthzPortalURLFromHeader(ctx AuthzContext) (portalURL *url.URL, err error) {
-	return parseAuthzPortalURL(ctx.XAutheliaURL())
+func handleAuthzPortalURLFromHeader(ctx AuthzContext, parser *utils.URIParser) (portalURL *url.URL, err error) {
+	return parseAuthzPortalURL(ctx.XAutheliaURL(), parser)
 }
 
-func handleAuthzPortalURLFromQuery(ctx AuthzContext) (portalURL *url.URL, err error) {
-	return parseAuthzPortalURL(ctx.QueryArgAutheliaURL())
+func handleAuthzPortalURLFromQuery(ctx AuthzContext, parser *utils.URIParser) (portalURL *url.URL, err error) {
+	return parseAuthzPortalURL(ctx.QueryArgAutheliaURL(), parser)
 }
 
-func handleAuthzPortalURLFromQueryLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
-	return parseAuthzPortalURL(ctx.GetRequestQueryArgValue(qryArgRD))
+func handleAuthzPortalURLFromQueryLegacy(ctx AuthzContext, parser *utils.URIParser) (portalURL *url.URL, err error) {
+	return parseAuthzPortalURL(ctx.GetRequestQueryArgValue(qryArgRD), parser)
 }
 
 func handleAuthzAuthorizedStandard(ctx AuthzContext, headers []AuthzHeader, authn *Authn) {
@@ -74,7 +76,7 @@ func handleAuthzAuthorizedLegacy(ctx AuthzContext, _ []AuthzHeader, authn *Authn
 }
 
 func handleAuthzUnauthorizedAuthorizationBasic(ctx AuthzContext, authn *Authn) {
-	ctx.GetLogger().Infof("Access to '%s' is not authorized to user '%s', sending 401 response with WWW-Authenticate header requesting Basic scheme", authn.Object.URL.String(), authn.Username)
+	ctx.GetLogger().Infof("Access to '%s' is not authorized to user '%s', sending 401 response with WWW-Authenticate header requesting Basic scheme", authn.Object.URL.Redacted(), authn.Username)
 
 	ctx.ReplyUnauthorized()
 

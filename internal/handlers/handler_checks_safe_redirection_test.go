@@ -58,6 +58,34 @@ func TestCheckSafeRedirection(t *testing.T) {
 			fasthttp.StatusOK,
 			false,
 		},
+		{
+			"ShouldReturnFalseOnHostnameWithFullwidthSolidus",
+			session.UserSession{CookieDomain: "example.com", Username: "john", AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true}},
+			"https://evil.com\uFF0F.example.com/",
+			fasthttp.StatusOK,
+			false,
+		},
+		{
+			"ShouldReturnFalseOnHostnameWithEncodedFullwidthSolidus",
+			session.UserSession{CookieDomain: "example.com", Username: "john", AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true}},
+			"https://evil.com%EF%BC%8F.example.com/",
+			fasthttp.StatusOK,
+			false,
+		},
+		{
+			"ShouldReturnFalseOnHostnameWithEmptyLabel",
+			session.UserSession{CookieDomain: "example.com", Username: "john", AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true}},
+			"https://.example.com/",
+			fasthttp.StatusOK,
+			false,
+		},
+		{
+			"ShouldReturnFalseOnHostnameWithUnderscore",
+			session.UserSession{CookieDomain: "example.com", Username: "john", AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true}},
+			"https://my_app.example.com/",
+			fasthttp.StatusOK,
+			false,
+		},
 	}
 
 	for _, tc := range testCases {

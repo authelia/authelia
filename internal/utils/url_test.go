@@ -13,12 +13,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestURLPathFullClean(t *testing.T) {
+func TestURIAccessPath(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     string
 		expected string
 	}{
+		{"ShouldReturnSlashForEmptyPath", "https://example.com", "/"},
+		{"ShouldReturnSlashForEmptyPathWithQuery", "https://example.com?query=1&alt=2", "/?query=1&alt=2"},
 		{"ShouldReturnFullPathSingleSlash", "https://example.com/", "/"},
 		{"ShouldReturnFullPathSingleSlashWithQuery", "https://example.com/?query=1&alt=2", "/?query=1&alt=2"},
 		{"ShouldReturnFullPathNormal", "https://example.com/test", "/test"},
@@ -28,8 +30,8 @@ func TestURLPathFullClean(t *testing.T) {
 		{"ShouldReturnCleanedPath", "https://example.com/five/../test?query=1&alt=2", "/test?query=1&alt=2"},
 		{"ShouldReturnCleanedPathEscaped", "https://example.com/five/..%2ftest?query=1&alt=2", "/test?query=1&alt=2"},
 		{"ShouldReturnCleanedPathEscapedExtra", "https://example.com/five/..%2ftest?query=1&alt=2", "/test?query=1&alt=2"},
-		{"ShouldReturnCleanedPathEscapedExtraSurrounding", "https://example.com/five/%2f..%2f/test?query=1&alt=2", "/test?query=1&alt=2"},
-		{"ShouldReturnCleanedPathEscapedPeriods", "https://example.com/five/%2f%2e%2e%2f/test?query=1&alt=2", "/test?query=1&alt=2"},
+		{"ShouldReturnCleanedPathEscapedExtraSurrounding", "https://example.com/five/%2f..%2f/test?query=1&alt=2", "/five/test?query=1&alt=2"},
+		{"ShouldReturnCleanedPathEscapedPeriods", "https://example.com/five/%2f%2e%2e%2f/test?query=1&alt=2", "/five/test?query=1&alt=2"},
 	}
 
 	for _, tc := range testCases {
@@ -37,32 +39,18 @@ func TestURLPathFullClean(t *testing.T) {
 			u, err := url.ParseRequestURI(tc.have)
 			require.NoError(t, err)
 
-			actual := URLPathFullClean(u)
+			actual := URIAccessPath(u)
 
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }
 
-func isURLSafe(requestURI string, domain string) bool { //nolint:unparam
-	u, _ := url.ParseRequestURI(requestURI)
-	return IsURISafeRedirection(u, domain)
-}
-
-func TestIsRedirectionSafe_ShouldReturnTrueOnExactDomain(t *testing.T) {
-	assert.True(t, isURLSafe("https://example.com", "example.com"))
-}
-
-func TestIsRedirectionSafe_ShouldReturnFalseOnBadScheme(t *testing.T) {
-	assert.False(t, isURLSafe("http://secure.example.com", "example.com"))
-	assert.False(t, isURLSafe("ftp://secure.example.com", "example.com"))
-	assert.True(t, isURLSafe("https://secure.example.com", "example.com"))
-}
-
-func TestIsRedirectionSafe_ShouldReturnFalseOnBadDomain(t *testing.T) {
-	assert.False(t, isURLSafe("https://secure.example.com.c", "example.com"))
-	assert.False(t, isURLSafe("https://secure.example.comc", "example.com"))
-	assert.False(t, isURLSafe("https://secure.example.co", "example.com"))
+func TestIsURISecure(t *testing.T) {
+	assert.True(t, IsURISecure(&url.URL{Scheme: "https", Host: "example.com"}))
+	assert.True(t, IsURISecure(&url.URL{Scheme: "wss", Host: "example.com"}))
+	assert.False(t, IsURISecure(&url.URL{Scheme: "http", Host: "example.com"}))
+	assert.False(t, IsURISecure(&url.URL{Scheme: "ftp", Host: "example.com"}))
 }
 
 func TestHasURIDomainSuffix(t *testing.T) {
@@ -93,6 +81,9 @@ func TestHasDomainSuffix(t *testing.T) {
 		{"ShouldNotMatchPartialLabel", "xexample.com", "example.com", false},
 		{"ShouldNotMatchPartialLabelWithPeriodPrefix", "xexample.com", ".example.com", false},
 		{"ShouldNotMatchSuffixLongerThanDomain", "com", "example.com", false},
+		{"ShouldNotMatchExtraLabel", "secure.example.com.c", "example.com", false},
+		{"ShouldNotMatchExtendedTLD", "secure.example.comc", "example.com", false},
+		{"ShouldNotMatchTruncatedTLD", "secure.example.co", "example.com", false},
 	}
 
 	for _, tc := range testCases {
@@ -133,6 +124,13 @@ func TestIsHostnameValid(t *testing.T) {
 		{"ShouldNotAllowNonASCII", "authé.example.com", false},
 		{"ShouldNotAllowPort", "example.com:443", false},
 		{"ShouldNotAllowBracketedIPv6", "[2001:db8::1]", false},
+		{"ShouldAllowPunycode", "xn--bcher-kva.example.com", true},
+		{"ShouldNotAllowFullwidthSolidus", "evil.com／.example.com", false},
+		{"ShouldNotAllowAccountOfSymbol", "evil.com℀.example.com", false},
+		{"ShouldNotAllowLongS", "ſample.com", false},
+		{"ShouldNotAllowSlash", "evil.com/.example.com", false},
+		{"ShouldNotAllowBackslash", "evil.com\\.example.com", false},
+		{"ShouldNotAllowNullByte", "evil.com\x00.example.com", false},
 	}
 
 	for _, tc := range testCases {
