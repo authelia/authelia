@@ -37,6 +37,7 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 						ResponseMode:            "query",
 						TokenEndpointAuthMethod: "client_secret_basic",
 						PKCE:                    schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+						AuthorizationParameters: map[string]string{"prompt": "login"},
 					},
 				},
 			},
@@ -66,6 +67,7 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 						TokenEndpointAuthMethod:  "client_secret_basic",
 						IDTokenSignedResponseAlg: "RS256",
 						PKCE:                     schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+						AuthorizationParameters:  map[string]string{"prompt": "login"},
 						Discovery:                schema.AuthenticationBackendExternalIdentityProviderDiscovery{Disable: true},
 						Endpoints: schema.AuthenticationBackendExternalIdentityProviderEndpoints{ //nolint:gosec // Test URLs.
 							Authorization: "https://accounts.google.com/authorize",
@@ -92,6 +94,7 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 						ResponseMode:            "query",
 						TokenEndpointAuthMethod: "client_secret_basic",
 						PKCE:                    schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+						AuthorizationParameters: map[string]string{"prompt": "login"},
 					},
 				},
 			},
@@ -507,6 +510,81 @@ func TestValidateAuthenticationBackendExternalIdentityAuthenticationMethodsRefer
 			}
 
 			assert.Equal(t, tc.Have, config.Providers[0].AuthenticationMethodsReference)
+		})
+	}
+}
+
+func TestValidateAuthenticationBackendExternalIdentityAuthorizationParameters(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     map[string]string
+		Expected map[string]string
+		Errors   []string
+	}{
+		{
+			Name:     "ShouldDefaultPromptLogin",
+			Expected: map[string]string{"prompt": "login"},
+		},
+		{
+			Name:     "ShouldDefaultPromptLoginAlongsideOtherParameters",
+			Have:     map[string]string{"hd": "example.com"},
+			Expected: map[string]string{"hd": "example.com", "prompt": "login"},
+		},
+		{
+			Name:     "ShouldKeepEmptyPrompt",
+			Have:     map[string]string{"prompt": ""},
+			Expected: map[string]string{"prompt": ""},
+		},
+		{
+			Name:     "ShouldKeepConfiguredPrompt",
+			Have:     map[string]string{"prompt": "select_account"},
+			Expected: map[string]string{"prompt": "select_account"},
+		},
+		{
+			Name:     "ShouldRaiseErrorOnReservedParameters",
+			Have:     map[string]string{"state": "abc", "client_id": "abc", "prompt": ""},
+			Expected: map[string]string{"state": "abc", "client_id": "abc", "prompt": ""},
+			Errors: []string{
+				"authentication_backend: external_identity: providers: provider 'example': authorization_parameters: parameter 'client_id' must not be configured as it's set by Authelia",
+				"authentication_backend: external_identity: providers: provider 'example': authorization_parameters: parameter 'state' must not be configured as it's set by Authelia",
+			},
+		},
+		{
+			Name:     "ShouldRaiseErrorOnInvalidName",
+			Have:     map[string]string{"bad name": "abc"},
+			Expected: map[string]string{"bad name": "abc", "prompt": "login"},
+			Errors: []string{
+				"authentication_backend: external_identity: providers: provider 'example': authorization_parameters: parameter 'bad name' must match the pattern '^[A-Za-z0-9_-]+$'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			config := &schema.AuthenticationBackendExternalIdentity{Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+				{
+					ID: "example", Name: "Example", Issuer: "https://id.example.com", ClientID: "abc", ClientSecret: "secret",
+					AuthorizationParameters: tc.Have,
+				},
+			}}
+
+			val := schema.NewStructValidator()
+
+			ValidateAuthenticationBackendExternalIdentity(config, val)
+
+			errs := make([]string, 0, len(val.Errors()))
+
+			for _, err := range val.Errors() {
+				errs = append(errs, err.Error())
+			}
+
+			if len(tc.Errors) == 0 {
+				assert.Empty(t, errs)
+			} else {
+				assert.Equal(t, tc.Errors, errs)
+			}
+
+			assert.Equal(t, tc.Expected, config.Providers[0].AuthorizationParameters)
 		})
 	}
 }

@@ -46,8 +46,9 @@ an elevated session.
 A flow started from the login page reaches the same place by a different route. Nothing describing the external
 identity is carried across the sign in which must follow it: the validated identity is discarded and the user is
 returned to the login page carrying only the Provider identifier, and the portal performs the flow again on their
-behalf once the authentication their policy requires is complete. The Provider does not usually prompt a second time,
-so this is not normally visible to the user.
+behalf once the authentication their policy requires is complete. Authorization requests include `prompt=login` by
+default, so the Provider asks the user to authenticate again at that point unless the `prompt` authorization parameter
+is configured with an empty value.
 
 See the
 [FAQ](../../integration/openid-connect/frequently-asked-questions.md#how-should-i-link-user-accounts-to-authelia-openid-connect-10-responses-in-the-application-im-designing)

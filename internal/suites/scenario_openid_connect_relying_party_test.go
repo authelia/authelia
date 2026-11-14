@@ -85,6 +85,8 @@ func (s *OpenIDConnectRelyingPartyScenario) TestShouldLinkFromUnauthenticatedSta
 
 	s.doFillLoginPageAndClick(s.T(), page, "john", testPassword, false)
 
+	s.doReauthenticateAtProvider(s.T(), page)
+
 	s.waitURLHasPrefix(s.T(), page, LinkedAccountsURL)
 
 	s.doAcceptPendingLink(s.T(), page)
@@ -247,6 +249,18 @@ func (s *OpenIDConnectRelyingPartyScenario) doAuthenticateAtProvider(t *testing.
 
 	// Where the browser lands depends on the callback: the portal for a link that does not exist, the target for one
 	// that does. All that is known here is that it leaves the provider.
+	s.waitURLLacksPrefix(t, page, UpstreamBaseURL)
+}
+
+func (s *OpenIDConnectRelyingPartyScenario) doReauthenticateAtProvider(t *testing.T, page *rod.Page) {
+	s.waitURLHasPrefix(t, page, UpstreamBaseURL)
+	s.verifyIsOpenIDConsentDecisionStage(t, page)
+
+	s.ClickElementLocatedByID(t, page, "openid-consent-accept")
+	s.WaitElementLocatedByID(t, page, "openid-consent-prompt-login")
+	s.TypeElementLocatedByID(t, page, "password-textfield", testPassword)
+	s.ClickElementLocatedByID(t, page, "openid-consent-authenticate")
+
 	s.waitURLLacksPrefix(t, page, UpstreamBaseURL)
 }
 

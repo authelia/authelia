@@ -131,6 +131,8 @@ const (
 	errFmtExternalIdentityProviderSecretRequired  = "authentication_backend: external_identity: providers: provider '%s': option 'client_secret' is required when the 'token_endpoint_auth_method' is '%s' but it's not configured"
 	errFmtExternalIdentityProviderAMROverride     = "authentication_backend: external_identity: providers: provider '%s': authentication_methods_reference: option 'default' is required when 'override' is enabled but it's not configured"
 	errFmtExternalIdentityProviderAMRDefaultEmpty = "authentication_backend: external_identity: providers: provider '%s': authentication_methods_reference: option 'default' must not contain empty values"
+	errFmtExternalIdentityProviderParamName       = "authentication_backend: external_identity: providers: provider '%s': authorization_parameters: parameter '%s' must match the pattern '%s'"
+	errFmtExternalIdentityProviderParamReserved   = "authentication_backend: external_identity: providers: provider '%s': authorization_parameters: parameter '%s' must not be configured as it's set by Authelia"
 
 	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"
@@ -763,6 +765,10 @@ var (
 	validExternalIdentityAuthMethods           = []string{"client_secret_basic", "client_secret_post", "none"}
 	validExternalIdentityResponseModes         = []string{"query", "form_post"}
 	defaultExternalIdentityOpenIDConnectScopes = []string{"openid", "profile", "email"}
+	reservedExternalIdentityAuthParams         = []string{
+		"client_assertion", "client_assertion_type", "client_id", "client_secret", "code_challenge", "code_challenge_method",
+		"nonce", "redirect_uri", "request", "request_uri", "response_mode", "response_type", "scope", "state", "ui_locales",
+	}
 )
 
 var (
@@ -775,6 +781,7 @@ var (
 
 	reExternalIdentityProviderID       = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,31}$`)
 	reExternalIdentityLogoURIDataImage = regexp.MustCompile(`^data:image/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*[;,]`)
+	reExternalIdentityAuthParamName    = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 )
 
 const (
