@@ -27,6 +27,7 @@ type configurationBody struct {
 	AvailableMethods       MethodList `json:"available_methods"`
 	PasswordChangeDisabled bool       `json:"password_change_disabled"`
 	PasswordResetDisabled  bool       `json:"password_reset_disabled"`
+	RecoveryCodesDisabled  bool       `json:"recovery_codes_disabled"`
 }
 
 type bodySignTOTPRequest struct {
@@ -46,6 +47,15 @@ type bodyRegisterTOTP struct {
 
 type bodyRegisterFinishTOTP struct {
 	Token string `json:"token" valid:"required"`
+}
+
+type bodySignRecoveryCodeRequest struct {
+	Code      string `json:"code" valid:"required"`
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
 }
 
 type bodySignWebAuthnRequest struct {

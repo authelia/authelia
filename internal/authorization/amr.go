@@ -22,6 +22,8 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 			amr.TOTP = true
 		case AMRShortMessageService:
 			amr.Duo = true
+		case AMRRecoveryCode:
+			amr.RecoveryCode = true
 		case AMRProofOfPossession:
 			amr.WebAuthn = true
 		case AMRHardwareSecuredKey:
@@ -72,6 +74,7 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
+	RecoveryCode                 bool
 	Extra                        []string
 }
 
@@ -82,7 +85,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.RecoveryCode
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -92,7 +95,7 @@ func (r AuthenticationMethodsReferences) MultiFactorAuthentication() bool {
 
 // ChannelBrowser returns true if a browser was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
-	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.RecoveryCode
 }
 
 // ChannelService returns true if a non-browser service was used to authenticate.
@@ -146,6 +149,10 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 
 	if r.WebAuthnUserVerified {
 		amr = append(amr, AMRPersonalIdentificationNumber)
+	}
+
+	if r.RecoveryCode {
+		amr = append(amr, AMRRecoveryCode)
 	}
 
 	if r.MultiFactorAuthentication() {

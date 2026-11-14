@@ -52,6 +52,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
 	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionPostgreSQL, tableSession)
+	provider.sqlLockRecoveryCodesByUsername = fmt.Sprintf(queryFmtLockRecoveryCodesByUsernamePostgreSQL, tableRecoveryCodesLock)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
@@ -75,6 +76,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOneTimeCodeBySignature = provider.db.Rebind(provider.sqlSelectOneTimeCodeBySignature)
 	provider.sqlSelectOneTimeCodeByID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByID)
 	provider.sqlSelectOneTimeCodeByPublicID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByPublicID)
+
+	provider.sqlInsertRecoveryCode = provider.db.Rebind(provider.sqlInsertRecoveryCode)
+	provider.sqlSelectRecoveryCodeBySignatureAndUsername = provider.db.Rebind(provider.sqlSelectRecoveryCodeBySignatureAndUsername)
+	provider.sqlSelectRecoveryCodesByUsername = provider.db.Rebind(provider.sqlSelectRecoveryCodesByUsername)
+	provider.sqlConsumeRecoveryCode = provider.db.Rebind(provider.sqlConsumeRecoveryCode)
+	provider.sqlRevokeRecoveryCodesByUsername = provider.db.Rebind(provider.sqlRevokeRecoveryCodesByUsername)
+	provider.sqlCountUnusedRecoveryCodesByUsername = provider.db.Rebind(provider.sqlCountUnusedRecoveryCodesByUsername)
 
 	provider.sqlSelectTOTPConfig = provider.db.Rebind(provider.sqlSelectTOTPConfig)
 	provider.sqlUpdateTOTPConfigRecordSignIn = provider.db.Rebind(provider.sqlUpdateTOTPConfigRecordSignIn)

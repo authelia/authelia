@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -93,7 +94,6 @@ func TestCmdCtx_StorageBansList(t *testing.T) {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
-			//gitleaks:allow // This is not an actual secret.
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(dir, "db.sqlite3"),
@@ -340,7 +340,6 @@ func TestRunStorageSchemaEncryptionChangeKey(t *testing.T) {
 		},
 		{
 			"ShouldSucceedChangeKey",
-			//gitleaks:allow // This is not an actual secret.
 			"authelia-new-test-key-not-a-secret-authelia",
 			false,
 			"",
@@ -2194,7 +2193,6 @@ func TestStorageSchemaEncryptionChangeKeyRunE(t *testing.T) {
 	}{
 		{
 			"ShouldSucceedChangeKey",
-			//gitleaks:allow // This is not an actual secret.
 			map[string]string{cmdFlagNameNewEncryptionKey: "authelia-new-test-key-not-a-secret-authelia"},
 			"",
 			"Completed the encryption key change.",
@@ -2396,7 +2394,6 @@ func TestStorageSchemaInfoRunE(t *testing.T) {
 				dir := t.TempDir()
 
 				cmdCtx.config.Storage = schema.Storage{
-					//gitleaks:allow // This is not an actual secret.
 					EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 					Local: &schema.StorageLocal{
 						Path: filepath.Join(dir, "db.sqlite3"),
@@ -3371,7 +3368,6 @@ func newTestSQLiteStore(t *testing.T) storage.Provider {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
-			//gitleaks:allow // This is not an actual secret.
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(dir, "db.sqlite3"),
@@ -3395,7 +3391,6 @@ func newTestCmdCtx(t *testing.T) *CmdCtx {
 	ctx := NewCmdCtx()
 
 	ctx.config.Storage = schema.Storage{
-		//gitleaks:allow // This is not an actual secret.
 		EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 		Local: &schema.StorageLocal{
 			Path: filepath.Join(dir, "db.sqlite3"),
@@ -3489,4 +3484,50 @@ func newFlagSetWithInt(name string, value int) *pflag.FlagSet {
 	flags.Int(name, value, "")
 
 	return flags
+}
+
+func TestRunStorageUserRecoveryCodesGenerateShouldBeRedeemable(t *testing.T) {
+	dir := t.TempDir()
+
+	config := &schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(dir, "db.sqlite3"),
+			},
+		},
+	}
+
+	ctx := NewCmdCtx()
+	ctx.config = config
+
+	var err error
+
+	ctx.providers.StorageProvider, err = storage.NewProvider(config, nil)
+	require.NoError(t, err)
+
+	require.NoError(t, ctx.providers.StorageProvider.SchemaMigrate(ctx, true, storage.SchemaLatest))
+
+	cmd, buf := newTestCmdWithBuf()
+
+	require.NoError(t, ctx.StorageUserRecoveryCodesGenerateRunE(cmd, []string{"john"}))
+
+	_, list, found := strings.Cut(buf.String(), "\n\n")
+	require.True(t, found)
+
+	codes := strings.Fields(list)
+	require.Len(t, codes, model.RecoveryCodeBatchSize)
+
+	store, err := storage.NewProvider(config, nil)
+	require.NoError(t, err)
+
+	defer store.Close()
+
+	require.NoError(t, store.LoadRecoveryCodeHMACKey(ctx))
+
+	code, err := store.LoadRecoveryCode(ctx, "john", codes[0])
+	require.NoError(t, err)
+	require.NotNil(t, code)
+
+	assert.NoError(t, store.ConsumeRecoveryCode(ctx, code.ID, model.NullIP{}))
 }

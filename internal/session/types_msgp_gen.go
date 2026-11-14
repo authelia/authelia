@@ -526,6 +526,12 @@ func (z *MessagePackAMR) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "WebAuthnUserVerified")
 				return
 			}
+		case "rc":
+			z.RecoveryCode, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "RecoveryCode")
+				return
+			}
 		case "extra":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
@@ -559,12 +565,12 @@ func (z *MessagePackAMR) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(10)
-	var zb0001Mask uint16 /* 10 bits */
+	zb0001Len := uint32(11)
+	var zb0001Mask uint16 /* 11 bits */
 	_ = zb0001Mask
 	if z.Extra == nil {
 		zb0001Len--
-		zb0001Mask |= 0x200
+		zb0001Mask |= 0x400
 	}
 	// variable map header, size zb0001Len
 	err = en.Append(0x80 | uint8(zb0001Len))
@@ -664,7 +670,17 @@ func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "WebAuthnUserVerified")
 			return
 		}
-		if (zb0001Mask & 0x200) == 0 { // if not omitted
+		// write "rc"
+		err = en.Append(0xa2, 0x72, 0x63)
+		if err != nil {
+			return
+		}
+		err = en.WriteBool(z.RecoveryCode)
+		if err != nil {
+			err = msgp.WrapError(err, "RecoveryCode")
+			return
+		}
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
 			// write "extra"
 			err = en.Append(0xa5, 0x65, 0x78, 0x74, 0x72, 0x61)
 			if err != nil {
@@ -691,12 +707,12 @@ func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *MessagePackAMR) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(10)
-	var zb0001Mask uint16 /* 10 bits */
+	zb0001Len := uint32(11)
+	var zb0001Mask uint16 /* 11 bits */
 	_ = zb0001Mask
 	if z.Extra == nil {
 		zb0001Len--
-		zb0001Mask |= 0x200
+		zb0001Mask |= 0x400
 	}
 	// variable map header, size zb0001Len
 	o = append(o, 0x80|uint8(zb0001Len))
@@ -730,7 +746,10 @@ func (z *MessagePackAMR) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "uv"
 		o = append(o, 0xa2, 0x75, 0x76)
 		o = msgp.AppendBool(o, z.WebAuthnUserVerified)
-		if (zb0001Mask & 0x200) == 0 { // if not omitted
+		// string "rc"
+		o = append(o, 0xa2, 0x72, 0x63)
+		o = msgp.AppendBool(o, z.RecoveryCode)
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
 			// string "extra"
 			o = append(o, 0xa5, 0x65, 0x78, 0x74, 0x72, 0x61)
 			o = msgp.AppendArrayHeader(o, uint32(len(z.Extra)))
@@ -814,6 +833,12 @@ func (z *MessagePackAMR) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "WebAuthnUserVerified")
 				return
 			}
+		case "rc":
+			z.RecoveryCode, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "RecoveryCode")
+				return
+			}
 		case "extra":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
@@ -847,7 +872,7 @@ func (z *MessagePackAMR) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *MessagePackAMR) Msgsize() (s int) {
-	s = 1 + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 6 + msgp.ArrayHeaderSize
+	s = 1 + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 6 + msgp.ArrayHeaderSize
 	for za0001 := range z.Extra {
 		s += msgp.StringPrefixSize + len(z.Extra[za0001])
 	}

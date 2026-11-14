@@ -95,6 +95,13 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 						{Period: 2 * time.Minute, Requests: 15},
 					},
 				},
+				SecondFactorRecoveryCode: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 2 * time.Minute, Requests: 15},
+					},
+				},
 				SecondFactorPassword: schema.ServerEndpointRateLimit{
 					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
@@ -267,6 +274,9 @@ func TestValidateRateLimitIPv6Mask(t *testing.T) {
 		}},
 		{"second_factor_duo", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
 			return &limits.SecondFactorDuo
+		}},
+		{"second_factor_recovery_code", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.SecondFactorRecoveryCode
 		}},
 		{"second_factor_password", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
 			return &limits.SecondFactorPassword

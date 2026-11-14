@@ -111,6 +111,17 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectOneTimeCodeByID:        fmt.Sprintf(queryFmtSelectOTCByID, tableOneTimeCode),
 		sqlSelectOneTimeCodeByPublicID:  fmt.Sprintf(queryFmtSelectOTCByPublicID, tableOneTimeCode),
 
+		sqlInsertRecoveryCode:                       fmt.Sprintf(queryFmtInsertRecoveryCode, tableRecoveryCodes),
+		sqlSelectRecoveryCodeBySignatureAndUsername: fmt.Sprintf(queryFmtSelectRecoveryCodeBySignatureAndUsername, tableRecoveryCodes),
+		sqlSelectRecoveryCodesByUsername:            fmt.Sprintf(queryFmtSelectRecoveryCodesByUsername, tableRecoveryCodes),
+		sqlConsumeRecoveryCode:                      fmt.Sprintf(queryFmtConsumeRecoveryCode, tableRecoveryCodes),
+		sqlRevokeRecoveryCodesByUsername:            fmt.Sprintf(queryFmtRevokeRecoveryCodesByUsername, tableRecoveryCodes),
+		sqlLockRecoveryCodesByUsername:              fmt.Sprintf(queryFmtLockRecoveryCodesByUsername, tableRecoveryCodesLock),
+		sqlCountUnusedRecoveryCodesByUsername:       fmt.Sprintf(queryFmtCountUnusedRecoveryCodesByUsername, tableRecoveryCodes),
+		sqlCountUsersWithRecoveryCodes:              fmt.Sprintf(queryFmtCountUsersWithRecoveryCodes, tableRecoveryCodes),
+		sqlCountUsersWithLowRecoveryCodes:           fmt.Sprintf(queryFmtCountUsersWithLowRecoveryCodes, tableRecoveryCodes),
+		sqlCountUsersWithDepletedRecoveryCodes:      fmt.Sprintf(queryFmtCountUsersWithDepletedRecoveryCodes, tableRecoveryCodes),
+
 		sqlUpsertTOTPConfig:  fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
 		sqlDeleteTOTPConfig:  fmt.Sprintf(queryFmtDeleteTOTPConfiguration, tableTOTPConfigurations),
 		sqlSelectTOTPConfig:  fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
@@ -294,6 +305,18 @@ type SQLProvider struct {
 	sqlSelectOneTimeCodeByID        string
 	sqlSelectOneTimeCodeByPublicID  string
 
+	// Table: recovery_codes.
+	sqlInsertRecoveryCode                       string
+	sqlSelectRecoveryCodeBySignatureAndUsername string
+	sqlSelectRecoveryCodesByUsername            string
+	sqlConsumeRecoveryCode                      string
+	sqlRevokeRecoveryCodesByUsername            string
+	sqlLockRecoveryCodesByUsername              string
+	sqlCountUnusedRecoveryCodesByUsername       string
+	sqlCountUsersWithRecoveryCodes              string
+	sqlCountUsersWithLowRecoveryCodes           string
+	sqlCountUsersWithDepletedRecoveryCodes      string
+
 	// Table: totp_configurations.
 	sqlUpsertTOTPConfig  string
 	sqlDeleteTOTPConfig  string
@@ -432,9 +455,10 @@ type SQLProvider struct {
 
 // SQLProviderKeys are the cryptography keys used by a SQLProvider.
 type SQLProviderKeys struct {
-	encryption []byte
-	otcHMAC    []byte
-	otpHMAC    []byte
+	encryption       []byte
+	otcHMAC          []byte
+	otpHMAC          []byte
+	recoveryCodeHMAC []byte
 }
 
 func (p *SQLProvider) conn(ctx context.Context) (conn SQLXConnection) {
@@ -493,6 +517,10 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	if p.keys.otpHMAC, err = p.getHMACOneTimePassword(ctx); err != nil {
 		return fmt.Errorf("failed to initialize the hmac one-time password signature key during startup: %w", err)
+	}
+
+	if p.keys.recoveryCodeHMAC, err = p.getHMACRecoveryCode(ctx); err != nil {
+		return fmt.Errorf("failed to initialize the hmac recovery code signature key during startup: %w", err)
 	}
 
 	return nil

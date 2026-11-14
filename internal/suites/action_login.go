@@ -88,7 +88,7 @@ func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, user
 	}
 }
 
-func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
+func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) { //nolint:unparam
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, "")
 	rs.doOpenSettingsAndRegisterTOTP(t, page, username)
 

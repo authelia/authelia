@@ -970,6 +970,11 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC"
   },
   {
+    "path": "identity_providers.oidc.audience_strategy",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_AUDIENCE_STRATEGY"
+  },
+  {
     "path": "identity_providers.oidc.cors.allowed_origins_from_client_redirect_uris",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_CORS_ALLOWED_ORIGINS_FROM_CLIENT_REDIRECT_URIS"
@@ -988,6 +993,11 @@
     "path": "identity_providers.oidc.discovery_signed_response_key_id",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_KEY_ID"
+  },
+  {
+    "path": "identity_providers.oidc.enable_client_assertion_legacy_audience",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_CLIENT_ASSERTION_LEGACY_AUDIENCE"
   },
   {
     "path": "identity_providers.oidc.enable_client_debug_messages",
@@ -1045,6 +1055,11 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN"
   },
   {
+    "path": "identity_providers.oidc.lifespans.refresh_token_maximum",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN_MAXIMUM"
+  },
+  {
     "path": "identity_providers.oidc.minimum_parameter_entropy",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_MINIMUM_PARAMETER_ENTROPY"
@@ -1058,6 +1073,11 @@
     "path": "identity_providers.oidc.require_signed_request_object",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_REQUIRE_SIGNED_REQUEST_OBJECT"
+  },
+  {
+    "path": "identity_providers.oidc.resource_strategy",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_RESOURCE_STRATEGY"
   },
   {
     "path": "identity_validation.elevated_session.characters",
@@ -1310,6 +1330,11 @@
     "env": "AUTHELIA_PRIVACY_POLICY_REQUIRE_USER_ACCEPTANCE"
   },
   {
+    "path": "recovery_codes.disable",
+    "secret": false,
+    "env": "AUTHELIA_RECOVERY_CODES_DISABLE"
+  },
+  {
     "path": "regulation.ban_time",
     "secret": false,
     "env": "AUTHELIA_REGULATION_BAN_TIME"
@@ -1483,6 +1508,16 @@
     "path": "server.endpoints.rate_limits.second_factor_password.ipv6_mask",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_PASSWORD_IPV6_MASK"
+  },
+  {
+    "path": "server.endpoints.rate_limits.second_factor_recovery_code.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_RECOVERY_CODE_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.second_factor_recovery_code.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_RECOVERY_CODE_IPV6_MASK"
   },
   {
     "path": "server.endpoints.rate_limits.second_factor_totp.enable",

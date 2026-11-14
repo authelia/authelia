@@ -92,5 +92,6 @@ type MessagePackAMR struct {
 	WebAuthnSoftware             bool     `msg:"swk"`
 	WebAuthnUserPresence         bool     `msg:"up"`
 	WebAuthnUserVerified         bool     `msg:"uv"`
+	RecoveryCode                 bool     `msg:"rc"`
 	Extra                        []string `msg:"extra,omitempty"`
 }

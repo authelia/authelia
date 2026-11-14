@@ -392,6 +392,8 @@ func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []
 		table = "one_time_code"
 	case "otp":
 		table = "totp_history"
+	case "rc":
+		table = "recovery_codes"
 	case "session":
 		table = "session"
 	}

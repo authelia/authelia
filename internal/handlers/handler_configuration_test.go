@@ -276,6 +276,30 @@ func (s *ConfigurationHandlerFixture) TestDisablePasswordResetChangeOptions() {
 	}
 }
 
+func (s *ConfigurationHandlerFixture) TestShouldReportRecoveryCodesDisabled() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		DuoAPI: schema.DuoAPI{
+			Disable: true,
+		},
+		TOTP: schema.TOTP{
+			Disable: true,
+		},
+		WebAuthn: schema.WebAuthn{
+			Disable: true,
+		},
+		RecoveryCodes: schema.RecoveryCodes{
+			Disable: true,
+		},
+	}
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods:      []string{},
+		RecoveryCodesDisabled: true,
+	})
+}
+
 func TestRunSuite(t *testing.T) {
 	s := new(ConfigurationHandlerFixture)
 	suite.Run(t, s)

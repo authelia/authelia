@@ -22,12 +22,14 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 
 	body.PasswordChangeDisabled = ctx.Configuration.AuthenticationBackend.PasswordChange.Disable
 	body.PasswordResetDisabled = ctx.Configuration.AuthenticationBackend.PasswordReset.Disable
+	body.RecoveryCodesDisabled = ctx.Configuration.RecoveryCodes.Disable
 
 	ctx.Logger.WithFields(
 		map[string]any{
 			"available_methods":        body.AvailableMethods,
 			"password_change_disabled": body.PasswordChangeDisabled,
 			"password_reset_disabled":  body.PasswordResetDisabled,
+			"recovery_codes_disabled":  body.RecoveryCodesDisabled,
 		}).Trace("Authelia configuration requested")
 
 	if err := ctx.SetJSONBody(body); err != nil {
