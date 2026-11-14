@@ -49,6 +49,12 @@ type UserSession struct {
 	RefreshTTL time.Time `msg:"ttl"`
 
 	Elevations Elevations `msg:"e"`
+
+	// ExternalIdentity holds the in-flight external identity authorization state.
+	ExternalIdentity *ExternalIdentityFlow `msg:"eid,omitempty"`
+
+	// ExternalIdentityPending holds the validated claims of an unlinked external identity awaiting the users decision.
+	ExternalIdentityPending *ExternalIdentityPending `msg:"eidp,omitempty"`
 }
 
 // WebAuthn holds the standard WebAuthn session data plus some extra.
@@ -92,5 +98,41 @@ type MessagePackAMR struct {
 	WebAuthnSoftware             bool     `msg:"swk"`
 	WebAuthnUserPresence         bool     `msg:"up"`
 	WebAuthnUserVerified         bool     `msg:"uv"`
+	FederatedIdentity            bool     `msg:"fed"`
 	Extra                        []string `msg:"extra,omitempty"`
+}
+
+// ExternalIdentityFlow holds the in-flight external identity authorization state. It never leaves the
+// server-side session store.
+type ExternalIdentityFlow struct {
+	Provider       string    `msg:"p"`
+	State          string    `msg:"s"`
+	Nonce          string    `msg:"n"`
+	CodeVerifier   string    `msg:"cv"`
+	Handle         string    `msg:"h"`
+	Language       string    `msg:"l"`
+	TargetURL      string    `msg:"t"`
+	RequestMethod  string    `msg:"m"`
+	KeepMeLoggedIn bool      `msg:"r"`
+	Expires        time.Time `msg:"exp"`
+
+	// FlowID, Flow, SubFlow, and UserCode identify the flow the user is resumed into once they have signed in, exactly
+	// as the parameters of the same names do for a password sign in.
+	FlowID   string `msg:"fid,omitempty"`
+	Flow     string `msg:"f,omitempty"`
+	SubFlow  string `msg:"sf,omitempty"`
+	UserCode string `msg:"uc,omitempty"`
+}
+
+// ExternalIdentityPending holds validated claims from an unlinked external identity awaiting the user's decision. It
+// holds no tokens.
+type ExternalIdentityPending struct {
+	Provider       string    `msg:"p"`
+	Type           string    `msg:"typ"`
+	Issuer         string    `msg:"iss"`
+	Subject        string    `msg:"sub"`
+	RemoteUsername string    `msg:"u"`
+	DisplayName    string    `msg:"dn"`
+	Email          string    `msg:"e"`
+	Expires        time.Time `msg:"exp"`
 }

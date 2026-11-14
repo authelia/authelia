@@ -225,6 +225,15 @@ Every user is signed out by this rotation as the session cookies they hold no lo
 	cmdAutheliaStorageEncryptionRotateHMACSessionExample = `authelia storage encryption rotate hmac session --config config.yml
 authelia storage encryption rotate hmac session --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkShort = "Rotate the external identity link HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkLong = `Rotate the external identity link HMAC key.
+
+This subcommand allows rotation of the HMAC key used to sign external identity links. In addition it signs every link in the 'user_external_identity_links' table again with the new key, deleting any link whose signature is not valid for the current key.`
+
+	cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkExample = `authelia storage encryption rotate hmac external-identity-link --config config.yml
+authelia storage encryption rotate hmac external-identity-link --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 
 	cmdAutheliaStorageBansLong = `Manages user and ip bans.
@@ -907,6 +916,8 @@ const (
 )
 
 const (
+	cmdUseStorageEncryptionRotateHMACExternalIdentityLink = "external-identity-link"
+
 	cmdUseHash          = "hash"
 	cmdUseHashArgon2    = "argon2"
 	cmdUseHashSHA2Crypt = "sha2crypt"

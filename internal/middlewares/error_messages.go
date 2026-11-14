@@ -32,6 +32,11 @@ var (
 	ErrorMessageIdentityTokenNotYetValid        = ErrorMessage{Code: "identity_token_not_yet_valid", Message: "The identity verification token is only valid in the future"}
 	ErrorMessageIdentityTokenInvalidSignature   = ErrorMessage{Code: "identity_token_invalid_signature", Message: "The identity verification token has an invalid signature"}
 	ErrorMessageIdentityTokenUsed               = ErrorMessage{Code: "identity_token_used", Message: "The identity verification token has already been used"}
+	ErrorMessageExternalIdentityLoginFailed     = ErrorMessage{Code: "external_identity_login_failed", Message: "Could not start the external login."}
+	ErrorMessageExternalIdentityLinkFailed      = ErrorMessage{Code: "external_identity_link_failed", Message: "Unable to link the external account."}
+	ErrorMessageExternalIdentityLinkNonePending = ErrorMessage{Code: "external_identity_link_none_pending", Message: "There is no external account awaiting a decision."}
+	ErrorMessageExternalIdentityLinkConflict    = ErrorMessage{Code: "external_identity_link_conflict", Message: "That external account is already linked."}
+	ErrorMessageExternalIdentityUnlinkFailed    = ErrorMessage{Code: "external_identity_unlink_failed", Message: "Unable to remove the external account link."}
 )
 
 // ErrorMessages is every ErrorMessage returned by the API.
@@ -56,4 +61,9 @@ var ErrorMessages = []ErrorMessage{
 	ErrorMessageIdentityTokenNotYetValid,
 	ErrorMessageIdentityTokenInvalidSignature,
 	ErrorMessageIdentityTokenUsed,
+	ErrorMessageExternalIdentityLoginFailed,
+	ErrorMessageExternalIdentityLinkFailed,
+	ErrorMessageExternalIdentityLinkNonePending,
+	ErrorMessageExternalIdentityLinkConflict,
+	ErrorMessageExternalIdentityUnlinkFailed,
 }
