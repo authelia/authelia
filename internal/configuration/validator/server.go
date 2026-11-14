@@ -426,7 +426,25 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 		validateServerEndpointsAuthzEndpointHeaders(config, name, endpoint, validator)
 	}
 
+	validateServerEndpointsAuthzEndpointURIParser(config, name, &endpoint, validator)
+
 	config.Server.Endpoints.Authz[name] = endpoint
+}
+
+func validateServerEndpointsAuthzEndpointURIParser(config *schema.Configuration, name string, endpoint *schema.ServerEndpointsAuthz, validator *schema.StructValidator) {
+	if endpoint.URIParser == "" {
+		endpoint.URIParser = schema.DefinitionURIParserDefault
+
+		return
+	}
+
+	if endpoint.URIParser == schema.DefinitionURIParserDefault {
+		return
+	}
+
+	if _, ok := config.Definitions.URIParsers[endpoint.URIParser]; !ok {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzURIParser, name, endpoint.URIParser))
+	}
 }
 
 func validateServerEndpointsAuthzEndpointHeaders(config *schema.Configuration, name string, endpoint schema.ServerEndpointsAuthz, validator *schema.StructValidator) {

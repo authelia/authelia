@@ -21,6 +21,8 @@ MITRE = "MITRE"
 Hashi = "Hashi"
 # Go variadic parameter name
 datas = "datas"
+# Start of the percent-encoded UTF-8 test path caf%C3%A9
+caf = "caf"
 # Contributor initials (FlorianObermayer)
 fo = "fo"
 Fo = "Fo"

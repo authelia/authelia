@@ -33,6 +33,10 @@ const (
 	SessionStorageCache = "cache"
 )
 
+// DefinitionURIParserDefault is the name of the URI parser definition which always exists and is used by any authz
+// endpoint which doesn't configure a URI parser.
+const DefinitionURIParserDefault = "default"
+
 // ProviderNames are every provider which can be probed by name.
 var ProviderNames = []string{
 	ProviderNameStorage, ProviderNameCache, ProviderNameUser, ProviderNameNotification,
