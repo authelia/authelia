@@ -48,6 +48,17 @@ type IdentityClaims struct {
 	Name                           string
 	Email                          string
 	AuthenticationMethodsReference []string
+
+	// RawIDToken is the claims of the ID Token, which only the claims mapping expressions consume.
+	RawIDToken map[string]any
+
+	// RawUserInfo is the claims of the UserInfo Response, or the equivalent response of a provider which is not an
+	// OpenID Connect 1.0 Provider, which only the claims mapping expressions consume.
+	RawUserInfo map[string]any
+
+	// RawProviders is the claims specific to the type of a provider by the name of their source, which only the claims
+	// mapping expressions consume.
+	RawProviders map[string]map[string]any
 }
 
 // KeySet resolves a JSON Web Key Set for a location, optionally bypassing any cache.
