@@ -29,4 +29,7 @@ const (
 
 	// NameImplicitFormPost is the builder name of the Implicit OP profile using the form post response mode.
 	NameImplicitFormPost = "implicit-form-post"
+
+	// NameRPInitiatedLogout is the builder name of the RP-Initiated Logout OP profile.
+	NameRPInitiatedLogout = "rp-initiated-logout"
 )

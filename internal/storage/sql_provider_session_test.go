@@ -64,6 +64,24 @@ func TestStorageSessionShouldReturnNoDataWhenUnknown(t *testing.T) {
 	assert.Nil(t, record)
 }
 
+func TestStorageSessionShouldNotReturnDeletedSessionByPublicID(t *testing.T) {
+	ctx, provider := newTestSessionProvider(t)
+
+	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data")))
+
+	record, err := provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id")
+
+	require.NoError(t, err)
+	require.NotNil(t, record)
+
+	require.NoError(t, provider.SessionDelete(ctx, "an-issuer", "a-signature", "a-public-id", "john"))
+
+	record, err = provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id")
+
+	require.NoError(t, err)
+	assert.Nil(t, record)
+}
+
 func TestStorageSessionShouldNotReturnDataForAnotherIssuer(t *testing.T) {
 	ctx, provider := newTestSessionProvider(t)
 

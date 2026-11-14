@@ -166,7 +166,7 @@ type IdentityProvidersOpenIDConnectLifespanToken struct {
 
 // IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config.
 type IdentityProvidersOpenIDConnectCORS struct {
-	Endpoints      []string   `koanf:"endpoints" yaml:"endpoints,omitempty" toml:"endpoints,omitempty" json:"endpoints,omitempty" jsonschema:"uniqueItems,enum=device-authorization,enum=pushed-authorization-request,enum=token,enum=introspection,enum=revocation,enum=userinfo,title=Endpoints" jsonschema_description:"List of endpoints to enable CORS handling for."`
+	Endpoints      []string   `koanf:"endpoints" yaml:"endpoints,omitempty" toml:"endpoints,omitempty" json:"endpoints,omitempty" jsonschema:"uniqueItems,enum=device-authorization,enum=pushed-authorization-request,enum=token,enum=introspection,enum=revocation,enum=userinfo,enum=end-session,title=Endpoints" jsonschema_description:"List of endpoints to enable CORS handling for."`
 	AllowedOrigins []*url.URL `koanf:"allowed_origins" yaml:"allowed_origins,omitempty" toml:"allowed_origins,omitempty" json:"allowed_origins,omitempty" jsonschema:"format=uri,title=Allowed Origins" jsonschema_description:"List of arbitrary allowed origins for CORS requests."`
 
 	AllowedOriginsFromClientRedirectURIs bool `koanf:"allowed_origins_from_client_redirect_uris" yaml:"allowed_origins_from_client_redirect_uris" toml:"allowed_origins_from_client_redirect_uris" json:"allowed_origins_from_client_redirect_uris" jsonschema:"default=false,title=Allowed Origins From Client Redirect URIs" jsonschema_description:"Automatically include the redirect URIs from the registered clients."`
@@ -181,8 +181,9 @@ type IdentityProvidersOpenIDConnectClient struct {
 	Public              bool            `koanf:"public" yaml:"public" toml:"public" json:"public" jsonschema:"default=false,title=Public" jsonschema_description:"Enables the Public Client Type."`
 	ApplicationType     string          `koanf:"application_type" yaml:"application_type,omitempty" toml:"application_type,omitempty" json:"application_type,omitempty" jsonschema:"default=web,enum=web,enum=native,title=Application Type" jsonschema_description:"The Application Type of the client which determines if the client is a native application."`
 
-	RedirectURIs IdentityProvidersOpenIDConnectClientURIs `koanf:"redirect_uris" yaml:"redirect_uris,omitempty" toml:"redirect_uris,omitempty" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of whitelisted redirect URIs."`
-	RequestURIs  IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
+	RedirectURIs           IdentityProvidersOpenIDConnectClientURIs `koanf:"redirect_uris" yaml:"redirect_uris,omitempty" toml:"redirect_uris,omitempty" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of whitelisted redirect URIs."`
+	RequestURIs            IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
+	PostLogoutRedirectURIs IdentityProvidersOpenIDConnectClientURIs `koanf:"post_logout_redirect_uris" yaml:"post_logout_redirect_uris,omitempty" toml:"post_logout_redirect_uris,omitempty" json:"post_logout_redirect_uris" jsonschema:"title=Post Logout Redirect URIs" jsonschema_description:"List of whitelisted post logout redirect URIs."`
 
 	Audience              []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audience values."`
 	Resource              []string `koanf:"resource" yaml:"resource,omitempty" toml:"resource,omitempty" json:"resource" jsonschema:"uniqueItems,title=Resource" jsonschema_description:"List of authorized resource values."`

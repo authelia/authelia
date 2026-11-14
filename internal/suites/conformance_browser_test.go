@@ -17,70 +17,88 @@ import (
 
 func TestConformanceClassifyPage(t *testing.T) {
 	testCases := []struct {
-		name                                string
-		url                                 string
-		firstFactor, consent, autheliaError bool
-		expected                            ConformancePageState
+		name                                         string
+		url                                          string
+		firstFactor, consent, signOut, autheliaError bool
+		expected                                     ConformancePageState
 	}{
 		{
 			"ShouldDetectTheCallbackByPath",
 			"https://conformance.example.com:8443/test/a/conformance-basic-authelia1a2b3c4d/callback?code=abc",
-			false, false, false,
+			false, false, false, false,
 			ConformancePageCallback,
 		},
 		{
 			"ShouldPreferTheCallbackOverAnyStageStillInTheDOM",
 			"https://conformance.example.com:8443/test/a/alias/callback",
-			true, false, false,
+			true, false, false, false,
 			ConformancePageCallback,
 		},
 		{
 			"ShouldNotMistakeAnAuthorizationRequestCarryingTheCallbackForTheCallback",
 			"https://login.example.com:8080/api/oidc/authorization?client_id=abc&redirect_uri=https://conformance.example.com:8443/test/a/alias/callback",
-			false, false, false,
+			false, false, false, false,
 			ConformancePageUnknown,
 		},
 		{
 			"ShouldDetectTheFirstFactorPage",
 			"https://login.example.com:8080/",
-			true, false, false,
+			true, false, false, false,
 			ConformancePageFirstFactor,
 		},
 		{
 			"ShouldDetectTheConsentPage",
 			"https://login.example.com:8080/consent/openid/decision",
-			false, true, false,
+			false, true, false, false,
 			ConformancePageConsent,
 		},
 		{
 			"ShouldDetectAnAutheliaError",
 			"https://login.example.com:8080/",
-			false, false, true,
+			false, false, false, true,
 			ConformancePageAutheliaError,
 		},
 		{
 			"ShouldPreferTheFirstFactorPageOverACoexistingErrorToast",
 			"https://login.example.com:8080/",
-			true, false, true,
+			true, false, false, true,
 			ConformancePageFirstFactor,
 		},
 		{
 			"ShouldPreferTheConsentPageOverACoexistingErrorToast",
 			"https://login.example.com:8080/consent/openid/decision",
-			false, true, true,
+			false, true, false, true,
 			ConformancePageConsent,
+		},
+		{
+			"ShouldDetectTheSignOutConfirmation",
+			"https://login.example.com:8080/logout",
+			false, false, true, false,
+			ConformancePageSignOutConfirmation,
+		},
+		{
+			"ShouldPreferTheSignOutConfirmationOverACoexistingErrorToast",
+			"https://login.example.com:8080/logout",
+			false, false, true, true,
+			ConformancePageSignOutConfirmation,
+		},
+		{
+			"ShouldPreferThePostLogoutCallbackOverTheSignOutConfirmation",
+			"https://conformance.example.com:8443/test/a/alias/post_logout_redirect?state=abc",
+			false, false, true, false,
+			ConformancePageCallback,
 		},
 		{
 			"ShouldReportUnknownWhenNothingMatches",
 			"https://login.example.com:8080/",
-			false, false, false,
+			false, false, false, false,
 			ConformancePageUnknown,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, ConformanceClassifyPage(tc.url, tc.firstFactor, tc.consent, tc.autheliaError))
+			assert.Equal(t, tc.expected, ConformanceClassifyPage(tc.url, tc.firstFactor, tc.consent, tc.signOut, tc.autheliaError))
 		})
 	}
 }

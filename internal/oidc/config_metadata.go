@@ -37,6 +37,7 @@ func (c *Config) GetEndpointURLs(ctx context.Context) (urls oauthelia2.EndpointU
 		Introspection:              fmt.Sprintf("%s%s", issuer, EndpointPathIntrospection),
 		PushedAuthorizationRequest: fmt.Sprintf("%s%s", issuer, EndpointPathPushedAuthorizationRequest),
 		DeviceAuthorization:        fmt.Sprintf("%s%s", issuer, EndpointPathDeviceAuthorization),
+		EndSession:                 fmt.Sprintf("%s%s", issuer, EndpointPathEndSession),
 	}
 }
 
@@ -232,6 +233,12 @@ func (c *Config) GetAllowInsecureRedirectURIForPublicClients(ctx context.Context
 	return false
 }
 
+// GetAllowPostLogoutRedirectWithoutIDTokenHint returns true as every RP-Initiated Logout request must be confirmed by the
+// End-User before the registered post logout redirect URI is used, which confirms the legitimacy of the target.
+func (c *Config) GetAllowPostLogoutRedirectWithoutIDTokenHint(ctx context.Context) (allow bool) {
+	return true
+}
+
 // GetAuthorizationDetailsTypeHandlers returns nil as RFC 9396 Rich Authorization Requests are not supported.
 func (c *Config) GetAuthorizationDetailsTypeHandlers(ctx context.Context) (handlers map[string]oauthelia2.AuthorizationDetailsTypeHandler) {
 	return nil
@@ -369,6 +376,7 @@ func (c *Config) GetJWTProfileAccessTokenDefaultAudience(ctx context.Context) (a
 var (
 	_ oauthelia2.JWTProfileAccessTokenDefaultAudienceProvider = (*Config)(nil)
 	_ oauthelia2.ClaimsParameterEnforcementProvider           = (*Config)(nil)
+	_ oauthelia2.PostLogoutRedirectWithoutIDTokenHintProvider = (*Config)(nil)
 )
 
 // NewDiscoverySigningClient returns a jwt.Client which selects the issuer key used to sign the discovery metadata by
@@ -430,7 +438,7 @@ type discoveryMetadataHook struct{}
 
 func (discoveryMetadataHook) HandleDiscoveryMetadata(ctx context.Context, metadata *oauthelia2.OpenIDConnectProviderMetadata) (err error) {
 	metadata.ClaimsSupported = slices.DeleteFunc(metadata.ClaimsSupported, func(claim string) bool {
-		return claim == ClaimAuthenticationContextClassReference || claim == ClaimSessionID
+		return claim == ClaimAuthenticationContextClassReference
 	})
 
 	if metadata.IntrospectionEndpoint != "" {

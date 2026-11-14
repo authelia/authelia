@@ -6,6 +6,7 @@ package model
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -39,4 +40,29 @@ type UserOpaqueIdentifier struct {
 // UserOpaqueIdentifiersExport represents a UserOpaqueIdentifier export file.
 type UserOpaqueIdentifiersExport struct {
 	Identifiers []UserOpaqueIdentifier `yaml:"identifiers" toml:"identifiers" json:"identifiers" jsonschema:"title=Identifiers" jsonschema_description:"The list of opaque identifiers."`
+}
+
+// OAuth2SessionID is the mapping of an Authelia session's public identifier to the 'sid' claim issued to a sector.
+type OAuth2SessionID struct {
+	ID        int       `db:"id"`
+	Issuer    string    `db:"issuer"`
+	SectorID  string    `db:"sector_id"`
+	PublicID  string    `db:"public_id"`
+	SessionID uuid.UUID `db:"sid"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
+// OAuth2LogoutSession is a validated OpenID Connect RP-Initiated Logout 1.0 request awaiting the confirmation of the
+// End-User. It is identified by the flow id rather than kept in the session, as the request is made cross-site and the
+// session cookie isn't available when the session cookie has the SameSite attribute set to Strict, or for a POST.
+type OAuth2LogoutSession struct {
+	ID          int       `db:"id"`
+	FlowID      uuid.UUID `db:"flow_id"`
+	ClientID    string    `db:"client_id"`
+	Subject     string    `db:"subject"`
+	SessionID   string    `db:"sid"`
+	RedirectURI string    `db:"redirect_uri"`
+	State       string    `db:"state"`
+	CreatedAt   time.Time `db:"created_at"`
+	ExpiresAt   time.Time `db:"expires_at"`
 }

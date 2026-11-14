@@ -806,6 +806,7 @@ option is at least in this list. The potential endpoints which this can be enabl
 - revocation
 - introspection
 - userinfo
+- end-session
 
 The `authorization` endpoint is not permitted as Cross-Origin Resource Sharing must not be supported by the
 Authorization Endpoint as the client does not access this endpoint directly, instead the client redirects the user-agent
