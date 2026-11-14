@@ -20,6 +20,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -57,7 +58,9 @@ func TestLogoutPOSTShouldNotEndAnotherSessionFromAnAnonymousSession(t *testing.T
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clients := []schema.IdentityProvidersOpenIDConnectClient{{ID: "notified"}}
+	rp := newTestBackChannelLogoutRP(t)
+
+	clients := []schema.IdentityProvidersOpenIDConnectClient{{ID: "notified", BackChannelLogoutURI: rp.URL}}
 
 	config := newTestOIDCConfig(t)
 	config.Clients = clients
@@ -81,6 +84,7 @@ func TestLogoutPOSTShouldNotEndAnotherSessionFromAnAnonymousSession(t *testing.T
 
 	assert.Equal(t, http.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false,"redirectURL":"https://app.example.com/logged-out"}}`, string(mock.Ctx.Response.Body()))
+	assert.Empty(t, rp.Received())
 
 	record, err := repository.GetByPublicID(mock.Ctx, issuer, "remote-public-id")
 	require.NoError(t, err)
@@ -92,23 +96,28 @@ func TestLogoutPOSTShouldNotEndTheSubjectSessionsFromAnAnonymousSession(t *testi
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	rp := newTestBackChannelLogoutRP(t)
+
 	_, _ = setupTestOIDCLogoutPending(t, mock, "", model.OAuth2LogoutSession{ClientID: "requester", Subject: "pairwise-subject"},
-		schema.IdentityProvidersOpenIDConnectClient{ID: "requester"},
-		schema.IdentityProvidersOpenIDConnectClient{ID: "sibling"},
+		schema.IdentityProvidersOpenIDConnectClient{ID: "requester", BackChannelLogoutURI: rp.URL},
+		schema.IdentityProvidersOpenIDConnectClient{ID: "sibling", BackChannelLogoutURI: rp.URL},
 	)
 
 	LogoutPOST(mock.Ctx)
 
 	assert.Equal(t, http.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Empty(t, rp.Received())
 }
 
 func TestLogoutPOSTShouldEndTheEndedHintSessionOfTheAuthenticatedEndUser(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	rp := newTestBackChannelLogoutRP(t)
+
 	clients := []schema.IdentityProvidersOpenIDConnectClient{
-		{ID: "requester"},
-		{ID: "sibling"},
+		{ID: "requester", BackChannelLogoutURI: rp.URL},
+		{ID: "sibling", BackChannelLogoutURI: rp.URL},
 	}
 
 	config := newTestOIDCConfig(t)
@@ -125,6 +134,7 @@ func TestLogoutPOSTShouldEndTheEndedHintSessionOfTheAuthenticatedEndUser(t *test
 	userSession, issuer := setupTestOIDCLogoutPending(t, mock, testUsername, model.OAuth2LogoutSession{ClientID: "requester", Subject: subject.String(), SessionID: sid.String()}, clients...)
 
 	mock.StorageMock.EXPECT().LoadOAuth2SessionIDBySessionID(gomock.Any(), issuer, sid.String()).AnyTimes().Return(nil, nil)
+	mock.StorageMock.EXPECT().LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil, nil)
 	mock.StorageMock.EXPECT().LoadOAuth2SessionIDsByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil, nil)
 	mock.StorageMock.EXPECT().DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil)
 	mock.StorageMock.EXPECT().RevokeOAuth2SessionsBySessionID(gomock.Any(), sid.String()).Return(nil)
@@ -132,13 +142,27 @@ func TestLogoutPOSTShouldEndTheEndedHintSessionOfTheAuthenticatedEndUser(t *test
 	LogoutPOST(mock.Ctx)
 
 	assert.Equal(t, http.StatusOK, mock.Ctx.Response.StatusCode())
+
+	requests := rp.Requests()
+
+	require.Len(t, requests, 1)
+
+	issuerURL, err := mock.Ctx.IssuerURL()
+	require.NoError(t, err)
+
+	assertTestBackChannelLogoutRequest(t, requests[0], issuerURL.String(), "requester")
+
+	assert.Equal(t, sid.String(), requests[0].claims[oidc.ClaimSessionID])
+	assert.Equal(t, subject.String(), requests[0].claims[oidc.ClaimSubject])
 }
 
 func TestLogoutPOSTShouldIgnoreTheEndedHintSessionOfAnotherEndUser(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clients := []schema.IdentityProvidersOpenIDConnectClient{{ID: "requester"}}
+	rp := newTestBackChannelLogoutRP(t)
+
+	clients := []schema.IdentityProvidersOpenIDConnectClient{{ID: "requester", BackChannelLogoutURI: rp.URL}}
 
 	config := newTestOIDCConfig(t)
 	config.Clients = clients
@@ -154,12 +178,14 @@ func TestLogoutPOSTShouldIgnoreTheEndedHintSessionOfAnotherEndUser(t *testing.T)
 	userSession, issuer := setupTestOIDCLogoutPending(t, mock, testUsername, model.OAuth2LogoutSession{ClientID: "requester", Subject: subject.String(), SessionID: sid.String()}, clients...)
 
 	mock.StorageMock.EXPECT().LoadOAuth2SessionIDBySessionID(gomock.Any(), issuer, sid.String()).AnyTimes().Return(nil, nil)
+	mock.StorageMock.EXPECT().LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil, nil)
 	mock.StorageMock.EXPECT().LoadOAuth2SessionIDsByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil, nil)
 	mock.StorageMock.EXPECT().DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil)
 
 	LogoutPOST(mock.Ctx)
 
 	assert.Equal(t, http.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Empty(t, rp.Received())
 }
 
 func TestOIDCLogoutEndedSessionID(t *testing.T) {
@@ -252,10 +278,13 @@ func TestLogoutPOSTShouldDiscardAHintOfAnotherEndUser(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	rp := newTestBackChannelLogoutRP(t)
+
 	userSession, issuer := setupTestOIDCLogoutPending(t, mock, testUsername, model.OAuth2LogoutSession{ClientID: "requester", Subject: "not-a-uuid", RedirectURI: "https://app.example.com/logged-out"},
-		schema.IdentityProvidersOpenIDConnectClient{ID: "requester"},
+		schema.IdentityProvidersOpenIDConnectClient{ID: "requester", BackChannelLogoutURI: rp.URL},
 	)
 
+	mock.StorageMock.EXPECT().LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil, nil)
 	mock.StorageMock.EXPECT().LoadOAuth2SessionIDsByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil, nil)
 	mock.StorageMock.EXPECT().DeleteOAuth2SessionIDByPublicID(gomock.Any(), issuer, userSession.PublicID).Return(nil)
 
@@ -263,6 +292,7 @@ func TestLogoutPOSTShouldDiscardAHintOfAnotherEndUser(t *testing.T) {
 
 	assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
 	assert.True(t, strings.HasPrefix(string(mock.Ctx.Response.Header.PeekCookie("authelia_session")), "authelia_session=;"))
+	assert.Empty(t, rp.Received())
 }
 
 func TestOIDCLogoutValidate(t *testing.T) {

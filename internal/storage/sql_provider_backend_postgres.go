@@ -206,6 +206,11 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2SessionIDsOldest = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDsOldest)
 	provider.sqlDeleteOAuth2SessionID = provider.db.Rebind(provider.sqlDeleteOAuth2SessionID)
 	provider.sqlDeleteOAuth2SessionIDByPublicID = provider.db.Rebind(provider.sqlDeleteOAuth2SessionIDByPublicID)
+	provider.sqlInsertOAuth2SessionIDClient = provider.db.Rebind(provider.sqlInsertOAuth2SessionIDClient)
+	provider.sqlSelectOAuth2SessionIDClientExists = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDClientExists)
+	provider.sqlSelectOAuth2SessionIDClientsByPublicID = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDClientsByPublicID)
+	provider.sqlDeleteOAuth2SessionIDClient = provider.db.Rebind(provider.sqlDeleteOAuth2SessionIDClient)
+	provider.sqlDeleteOAuth2SessionIDClientByPublicID = provider.db.Rebind(provider.sqlDeleteOAuth2SessionIDClientByPublicID)
 	provider.sqlOAuth2Logout = newSQLOAuth2LogoutQueries(provider.db.Rebind)
 
 	provider.schema = config.Storage.PostgreSQL.Schema

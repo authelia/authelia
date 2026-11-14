@@ -11,6 +11,12 @@ import (
 	oauthelia2 "authelia.com/provider/oauth2"
 )
 
+const (
+	httpClientRetryMax     = 3
+	httpClientRetryWaitMin = time.Millisecond * 500
+	httpClientRetryWaitMax = time.Second * 4
+)
+
 // Scope strings.
 const (
 	ScopeOfflineAccess = "offline_access"

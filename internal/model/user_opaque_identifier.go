@@ -52,6 +52,17 @@ type OAuth2SessionID struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+// OAuth2SessionIDClient records a client which was issued the 'sid' claim for an Authelia session, and which is
+// therefore a participant in that session for the purpose of OpenID Connect Back-Channel Logout 1.0.
+type OAuth2SessionIDClient struct {
+	ID        int       `db:"id"`
+	Issuer    string    `db:"issuer"`
+	PublicID  string    `db:"public_id"`
+	SessionID uuid.UUID `db:"sid"`
+	ClientID  string    `db:"client_id"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
 // OAuth2LogoutSession is a validated OpenID Connect RP-Initiated Logout 1.0 request awaiting the confirmation of the
 // End-User. It is identified by the flow id rather than kept in the session, as the request is made cross-site and the
 // session cookie isn't available when the session cookie has the SameSite attribute set to Strict, or for a POST.

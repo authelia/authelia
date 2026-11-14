@@ -508,8 +508,8 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 ## Logout
 
-Authelia implements [OpenID Connect RP-Initiated Logout 1.0]. [OpenID Connect Back-Channel Logout 1.0],
-[OpenID Connect Front-Channel Logout 1.0], and [OpenID Connect Session Management 1.0], including the
+Authelia implements [OpenID Connect RP-Initiated Logout 1.0] and [OpenID Connect Back-Channel Logout 1.0].
+[OpenID Connect Front-Channel Logout 1.0] and [OpenID Connect Session Management 1.0], including the
 `check_session_iframe`, are not supported.
 
 ### End Session
@@ -543,16 +543,19 @@ other session, as an ID Token alone does not prove the browser belongs to the En
 ### Session Termination
 
 When the End-User logs out of Authelia, either directly or via the [End Session] endpoint, the OpenID Connect sessions
-they participated in are ended. The access tokens, authorization codes, and refresh tokens issued for the session are
-revoked, except refresh tokens granted the `offline_access` or `offline` scope which remain valid until they expire or
-are revoked by the client. Refresh tokens obtained by refreshing a token issued for the session belong to the same
-session.
+they participated in are ended:
+
+1. Every client configured with a [backchannel_logout_uri] which was issued an ID Token for the session is sent a Logout
+   Token including the `sid` claim from those ID Tokens.
+2. The access tokens, authorization codes, and refresh tokens issued for the session are revoked, except refresh tokens
+   granted the `offline_access` or `offline` scope which remain valid until they expire or are revoked by the client.
+   Refresh tokens obtained by refreshing a token issued for the session belong to the same session.
 
 When the `id_token_hint` identifies an OpenID Connect session of the same End-User which outlived the Authelia session it
-was issued for, the tokens of that session are also revoked.
+was issued for, the tokens of that session are also revoked and the requesting client is sent a Logout Token for it.
 
-Sessions which end by expiring or through inactivity, rather than by the End-User logging out, don't revoke their
-tokens.
+Sessions which end by expiring or through inactivity, rather than by the End-User logging out, don't notify the clients
+or revoke their tokens.
 
 The revocation of access tokens applies to the default configuration. When
 [enable_jwt_access_token_stateless_introspection] is enabled, JWT access tokens are introspected without checking
@@ -680,7 +683,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                                [OpenID Connect Relying Party Metadata Choices 1.0]                                 |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Session Management 1.0]                                       |     None      |                                              N/A                                              |
 |                                     [OpenID Connect Front-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
-|                                      [OpenID Connect Back-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
+|                                      [OpenID Connect Back-Channel Logout 1.0]                                      |   Complete    |                                              N/A                                              |
 |                                       [OpenID Connect 1.0 User Registration]                                       |     None      |                                              N/A                                              |
 |                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |     None      |                                              N/A                                              |
 |                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |     None      |                                              N/A                                              |
@@ -783,6 +786,7 @@ either implemented, have our eye on, or are refusing to implement.
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
 [End Session]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
 [post_logout_redirect_uris]: ../../configuration/identity-providers/openid-connect/clients.md#post_logout_redirect_uris
+[backchannel_logout_uri]: ../../configuration/identity-providers/openid-connect/clients.md#backchannel_logout_uri
 [enable_jwt_access_token_stateless_introspection]: ../../configuration/identity-providers/openid-connect/provider.md#enable_jwt_access_token_stateless_introspection
 [Proof Key for Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
 [Client Authentication]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3

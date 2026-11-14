@@ -349,6 +349,11 @@ func (s *OIDCConformanceSuite) TestRPInitiatedLogout() {
 	s.assertPlan(conformance.NameRPInitiatedLogout)
 }
 
+// TestBackChannelLogout runs the Back-Channel Logout OP certification profile.
+func (s *OIDCConformanceSuite) TestBackChannelLogout() {
+	s.assertPlan(conformance.NameBackChannelLogout)
+}
+
 func TestOIDCConformanceSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
@@ -377,6 +382,7 @@ func TestOIDCConformanceGenerateRoundTrip(t *testing.T) {
 		conformance.NameImplicit:          {"oidcc-implicit-certification-test-plan", true},
 		conformance.NameImplicitFormPost:  {"oidcc-formpost-implicit-certification-test-plan", true},
 		conformance.NameRPInitiatedLogout: {"oidcc-rp-initiated-logout-certification-test-plan", true},
+		conformance.NameBackChannelLogout: {"oidcc-backchannel-rp-initiated-logout-certification-test-plan", true},
 	}
 
 	require.Len(t, plans, len(expected))
@@ -408,7 +414,7 @@ func TestOIDCConformanceGenerateRoundTrip(t *testing.T) {
 			require.NotNilf(t, plan.Variant, "the '%s' profile lost its variant", plan.Name)
 			assert.Equal(t, "static_client", plan.Variant.ClientRegistration)
 
-			if plan.Name == conformance.NameRPInitiatedLogout {
+			if plan.Name == conformance.NameRPInitiatedLogout || plan.Name == conformance.NameBackChannelLogout {
 				assert.Empty(t, plan.Variant.ServerMetadata, "the logout plan fixes the server metadata itself and rejects it being set again")
 				assert.Equal(t, "code", plan.Variant.ResponseType, "the logout plan does not fix the response type itself")
 			} else {

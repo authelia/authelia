@@ -509,6 +509,11 @@ func setupTestOIDCSessionIDStore(t *testing.T, mock *mocks.MockAutheliaCtx) (rec
 			return &value, nil
 		})
 
+	mock.StorageMock.EXPECT().
+		SaveOAuth2SessionIDClient(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().
+		Return(nil)
+
 	return records
 }
 
