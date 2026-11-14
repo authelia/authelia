@@ -94,29 +94,22 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx, provider session.Strategy, userSession *session.UserSession, client oidc.Client, policy oidc.ClientAuthorizationPolicy, rw http.ResponseWriter, requester oauthelia2.Requester) (handled bool) {
 	var err error
 
-	if modified, invalid := handleAuthnCookieValidate(ctx, session.NewEncapsulatedSession(provider, ctx), userSession); invalid {
-		if err = ctx.DestroySession(); err != nil {
-			ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while destroying session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
-		}
+	if !handleAuthnCookieValidate(ctx, userSession) {
+		return false
+	}
 
-		*userSession = provider.NewDefault()
-		userSession.LastActivity = ctx.GetClock().Now().Unix()
+	if err = ctx.DestroySession(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while destroying session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
+	}
 
-		if err = provider.Save(ctx, userSession); err != nil {
-			ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
+	*userSession = provider.NewDefault()
 
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
+	if err = provider.Save(ctx, userSession); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
 
-			return true
-		}
-	} else if modified {
-		if err = provider.Save(ctx, userSession); err != nil {
-			ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
 
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
-
-			return true
-		}
+		return true
 	}
 
 	return false

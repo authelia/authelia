@@ -92,8 +92,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectSession:                     fmt.Sprintf(queryFmtSelectSession, tableSession),
 		sqlSelectSessionByPublicID:           fmt.Sprintf(queryFmtSelectSessionByPublicID, tableSession),
 		sqlSelectSessionSignatureByPublicID:  fmt.Sprintf(queryFmtSelectSessionSignatureByPublicID, tableSession),
+		sqlSelectSessionLive:                 fmt.Sprintf(queryFmtSelectSessionLive, tableSession),
 		sqlSelectSessionSignaturesByUsername: fmt.Sprintf(queryFmtSelectSessionSignaturesByUsername, tableSession),
 		sqlUpdateSessionData:                 fmt.Sprintf(queryFmtUpdateSessionData, tableSession),
+		sqlUpdateSessionDataIfUnchanged:      fmt.Sprintf(queryFmtUpdateSessionDataIfUnchanged, tableSession),
+		sqlUpdateSessionExpiration:           fmt.Sprintf(queryFmtUpdateSessionExpiration, tableSession),
 		sqlUpdateSessionSignature:            fmt.Sprintf(queryFmtUpdateSessionSignature, tableSession),
 		sqlUpdateSessionDestroyed:            fmt.Sprintf(queryFmtUpdateSessionDestroyed, tableSession),
 		sqlDeleteSessionExpired:              fmt.Sprintf(queryFmtDeleteSessionExpired, tableSession),
@@ -284,8 +287,11 @@ type SQLProvider struct {
 	sqlSelectSession                     string
 	sqlSelectSessionByPublicID           string
 	sqlSelectSessionSignatureByPublicID  string
+	sqlSelectSessionLive                 string
 	sqlSelectSessionSignaturesByUsername string
 	sqlUpdateSessionData                 string
+	sqlUpdateSessionDataIfUnchanged      string
+	sqlUpdateSessionExpiration           string
 	sqlUpdateSessionSignature            string
 	sqlUpdateSessionDestroyed            string
 	sqlDeleteSessionExpired              string

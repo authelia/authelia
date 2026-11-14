@@ -484,15 +484,15 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldHandleErrorSaveHistory() {
@@ -713,15 +713,15 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidValue() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error occurred validating the user input", "invalid")
 }
@@ -757,15 +757,15 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBoolean() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 
 	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 1), "Error occurred validating a TOTP authentication for user 'john': error occurred validating the user input", "the user input wasn't valid")
 }
@@ -798,15 +798,15 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErr() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unsuccessful TOTP authentication attempt by user 'john'", "")
 }
@@ -814,15 +814,15 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErr() {
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidJSON() {
 	s.mock.Ctx.Request.SetBody([]byte(`{"token:"1234"}`))
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error parsing the request body", "unable to parse body: invalid character '1' after object key")
 }
@@ -872,8 +872,8 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnErrorOnInvalidBooleanMarkErrSu
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
@@ -882,7 +882,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnErrorOnInvalidBooleanMarkErrSu
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to record TOTP authentication attempt", "failed to insert")
 }
@@ -900,15 +900,15 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidConfig() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error occurred retrieving the configuration from the storage backend", "not found")
 }
@@ -920,15 +920,15 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidTokenLength() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.AssertKO(s.T(), messageMFAValidationFailed, fasthttp.StatusBadRequest)
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': expected code length is 6 or 8 but the user provided code was 3 characters in length", "")
 }

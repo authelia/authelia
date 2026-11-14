@@ -37,12 +37,12 @@ func TestStorageSessionShouldRoundTrip(t *testing.T) {
 	actual, err := provider.SessionGet(ctx, issuer, signature)
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord(signature, data), actual)
+	assertRecord(t, session.NewRecord(signature, data), actual)
 
 	actual, err = provider.SessionGetByPublicID(ctx, issuer, publicID)
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord(signature, data), actual)
+	assertRecord(t, session.NewRecord(signature, data), actual)
 
 	ids, err := provider.SessionGetIDsByUsername(ctx, issuer, username)
 
@@ -97,19 +97,83 @@ func TestStorageSessionSaveShouldReplaceExistingSession(t *testing.T) {
 	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("a-signature", []byte("second")), record)
+	assertRecord(t, session.NewRecord("a-signature", []byte("second")), record)
 }
 
 func TestStorageSessionSaveDataShouldUpdateData(t *testing.T) {
 	ctx, provider := newTestSessionProvider(t)
 
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("first")))
-	require.NoError(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("second")))
+	require.NoError(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, nil, []byte("second")))
 
 	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("a-signature", []byte("second")), record)
+	assertRecord(t, session.NewRecord("a-signature", []byte("second")), record)
+}
+
+func TestStorageSessionSaveDataShouldOnlyUpdateUnchangedData(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(t *testing.T, ctx context.Context, provider *SQLiteProvider)
+		previous []byte
+		expected []byte
+		err      error
+	}{
+		{"ShouldUpdateWhenUnchanged", nil, []byte("first"), []byte("second"), nil},
+		{"ShouldNotUpdateWhenChanged", nil, []byte("stale"), []byte("first"), session.ErrSessionSuperseded},
+		{
+			"ShouldNotUpdateWhenDestroyed",
+			func(t *testing.T, ctx context.Context, provider *SQLiteProvider) {
+				require.NoError(t, provider.SessionDelete(ctx, "an-issuer", "a-signature", "a-public-id", "john"))
+			},
+			[]byte("first"),
+			nil,
+			session.ErrSessionSuperseded,
+		},
+		{
+			"ShouldNotUpdateWhenMoved",
+			func(t *testing.T, ctx context.Context, provider *SQLiteProvider) {
+				require.NoError(t, provider.SessionChangeID(ctx, "an-issuer", "a-signature", "another-signature", "a-public-id", "john", time.Hour, []byte("first")))
+			},
+			[]byte("first"),
+			nil,
+			session.ErrSessionSuperseded,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, provider := newTestSessionProvider(t)
+
+			require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("first")))
+
+			if tc.setup != nil {
+				tc.setup(t, ctx, provider)
+			}
+
+			err := provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, tc.previous, []byte("second"))
+
+			if tc.err != nil {
+				assert.ErrorIs(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+
+			require.NoError(t, err)
+
+			if tc.expected == nil {
+				assert.True(t, record == nil || len(record.GetSessionData()) == 0)
+
+				return
+			}
+
+			require.NotNil(t, record)
+			assert.Equal(t, tc.expected, record.GetSessionData())
+		})
+	}
 }
 
 func TestStorageSessionChangeIDShouldMoveSession(t *testing.T) {
@@ -126,12 +190,12 @@ func TestStorageSessionChangeIDShouldMoveSession(t *testing.T) {
 	record, err = provider.SessionGet(ctx, "an-issuer", "new-signature")
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("new-signature", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("new-signature", []byte("resealed")), record)
 
 	record, err = provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id")
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("new-signature", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("new-signature", []byte("resealed")), record)
 }
 
 func TestStorageSessionSaveShouldDiscardStaleSaveAfterChangeID(t *testing.T) {
@@ -150,12 +214,12 @@ func TestStorageSessionSaveShouldDiscardStaleSaveAfterChangeID(t *testing.T) {
 	record, err = provider.SessionGet(ctx, "an-issuer", "new-signature")
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("new-signature", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("new-signature", []byte("resealed")), record)
 
 	record, err = provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id")
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("new-signature", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("new-signature", []byte("resealed")), record)
 }
 
 func TestStorageSessionSaveShouldReplacePublicIDOfExistingSignature(t *testing.T) {
@@ -167,7 +231,7 @@ func TestStorageSessionSaveShouldReplacePublicIDOfExistingSignature(t *testing.T
 	record, err := provider.SessionGetByPublicID(ctx, "an-issuer", "another-public-id")
 
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("a-signature", []byte("data")), record)
+	assertRecord(t, session.NewRecord("a-signature", []byte("data")), record)
 
 	record, err = provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id")
 
@@ -217,12 +281,24 @@ func TestStorageSessionSaveShouldDiscardStaleSaveAfterDelete(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, record)
 
-	require.NoError(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("stale")))
+	require.NoError(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, nil, []byte("stale")))
 
 	record, err = provider.SessionGet(ctx, "an-issuer", "a-signature")
 
 	require.NoError(t, err)
 	assert.Nil(t, record)
+}
+
+func TestStorageSessionSaveShouldAcceptAnUnchangedSession(t *testing.T) {
+	ctx, provider := newTestSessionProvider(t)
+
+	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "", 0, []byte("data")))
+	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "", 0, []byte("data")))
+
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+
+	require.NoError(t, err)
+	assertRecord(t, session.NewRecord("a-signature", []byte("data")), record)
 }
 
 func TestStorageSessionGarbageCollectionShouldRemoveExpiredDestroyedSessions(t *testing.T) {
@@ -249,18 +325,18 @@ func TestStorageSessionStrategyShouldNotRestoreASessionDestroyedByAnotherRequest
 
 	require.NoError(t, strategy.Save(login, &userSession))
 
-	cookie := login.cookies["authelia_session"]
+	cookie := login.cookies["__Host-Http-authelia_session"]
 
 	require.NotEmpty(t, cookie)
 
-	stale := &testSessionContext{Context: t.Context(), cookies: map[string]string{"authelia_session": cookie}}
+	stale := &testSessionContext{Context: t.Context(), cookies: map[string]string{"__Host-Http-authelia_session": cookie}}
 
 	loaded, err := strategy.Get(stale)
 
 	require.NoError(t, err)
 	require.Equal(t, "john", loaded.Username)
 
-	logout := &testSessionContext{Context: t.Context(), cookies: map[string]string{"authelia_session": cookie}}
+	logout := &testSessionContext{Context: t.Context(), cookies: map[string]string{"__Host-Http-authelia_session": cookie}}
 
 	require.NoError(t, strategy.Destroy(logout))
 
@@ -270,7 +346,7 @@ func TestStorageSessionStrategyShouldNotRestoreASessionDestroyedByAnotherRequest
 
 	assert.Equal(t, 0, stale.set)
 
-	fresh := &testSessionContext{Context: t.Context(), cookies: map[string]string{"authelia_session": cookie}}
+	fresh := &testSessionContext{Context: t.Context(), cookies: map[string]string{"__Host-Http-authelia_session": cookie}}
 
 	actual, err := strategy.Get(fresh)
 
@@ -300,7 +376,7 @@ func TestStorageSessionRepositoryShouldBackSessionStrategy(t *testing.T) {
 		},
 	}
 
-	sessionProvider, err := session.NewProvider(config, []byte("an-hmac-key"), clock.New(), random.NewMathematical(), NewSessionRepository(provider))
+	sessionProvider, err := session.NewProvider(config, session.HMACKeys{Session: []byte("an-hmac-key"), SessionAuthz: []byte("an-authz-hmac-key"), SessionCSRF: []byte("a-csrf-hmac-key")}, clock.New(), random.NewMathematical(), NewSessionRepository(provider))
 	require.NoError(t, err)
 
 	strategy, err := sessionProvider.GetStrategy("example.com")
@@ -312,7 +388,7 @@ func TestStorageSessionRepositoryShouldBackSessionStrategy(t *testing.T) {
 	userSession.Username = "john"
 
 	require.NoError(t, strategy.Save(sctx, &userSession))
-	require.NotEmpty(t, sctx.cookies["authelia_session"])
+	require.NotEmpty(t, sctx.cookies["__Host-Http-authelia_session"])
 
 	actual, err := strategy.Get(sctx)
 
@@ -328,15 +404,69 @@ func TestStorageSessionRepositoryShouldBackSessionStrategy(t *testing.T) {
 	assert.True(t, actual.IsAnonymous())
 }
 
+func TestSQLProvider_SessionShouldResolveThroughTheAuthzCookie(t *testing.T) {
+	strategy := newTestSessionStrategy(t)
+
+	sctx := &testSessionContext{Context: t.Context(), cookies: map[string]string{}}
+
+	userSession := strategy.New("john")
+
+	userSession.SetOneFactorPassword(time.Now(), false)
+
+	require.NoError(t, strategy.Save(sctx, &userSession))
+	require.NotEmpty(t, sctx.cookies["__Secure-authelia_session_authz"])
+
+	actx := &testSessionContext{Context: t.Context(), authz: true, cookies: map[string]string{"__Secure-authelia_session_authz": sctx.cookies["__Secure-authelia_session_authz"]}}
+
+	view := strategy.Authz()
+
+	actual, err := view.Get(actx)
+
+	require.NoError(t, err)
+	assert.Equal(t, "john", actual.Username)
+
+	refresh := time.Unix(200, 0)
+
+	actual.RefreshTTL = refresh
+
+	require.NoError(t, view.SaveActivity(actx, actual))
+	require.NoError(t, strategy.Regenerate(sctx))
+
+	actual, err = view.Get(actx)
+
+	require.NoError(t, err)
+	assert.True(t, actual.IsAnonymous())
+
+	actx.cookies["__Secure-authelia_session_authz"] = sctx.cookies["__Secure-authelia_session_authz"]
+
+	actual, err = view.Get(actx)
+
+	require.NoError(t, err)
+	assert.Equal(t, "john", actual.Username)
+	assert.True(t, refresh.Equal(actual.RefreshTTL))
+
+	require.NoError(t, view.Destroy(actx))
+
+	actual, err = strategy.Get(sctx)
+
+	require.NoError(t, err)
+	assert.True(t, actual.IsAnonymous())
+}
+
 type testSessionContext struct {
 	context.Context
 
 	cookies map[string]string
 	set     int
+	authz   bool
 }
 
 func (c *testSessionContext) GetCookie(name string) string {
 	return c.cookies[name]
+}
+
+func (c *testSessionContext) IsAuthzEndpointRequest() bool {
+	return c.authz
 }
 
 func (c *testSessionContext) SetCookie(cookie *http.Cookie) {
@@ -372,7 +502,7 @@ func newTestSessionStrategy(t *testing.T) session.Strategy {
 		},
 	}
 
-	sessionProvider, err := session.NewProvider(config, []byte("an-hmac-key"), clock.New(), random.NewMathematical(), NewSessionRepository(provider))
+	sessionProvider, err := session.NewProvider(config, session.HMACKeys{Session: []byte("an-hmac-key"), SessionAuthz: []byte("an-authz-hmac-key"), SessionCSRF: []byte("a-csrf-hmac-key")}, clock.New(), random.NewMathematical(), NewSessionRepository(provider))
 	require.NoError(t, err)
 
 	strategy, err := sessionProvider.GetStrategy("example.com")
@@ -408,4 +538,87 @@ func newTestSessionProvider(t *testing.T) (ctx context.Context, provider *SQLite
 	})
 
 	return ctx, provider
+}
+
+func assertRecord(t *testing.T, expected, actual session.Record) {
+	t.Helper()
+
+	if expected == nil {
+		assert.Nil(t, actual)
+
+		return
+	}
+
+	require.NotNil(t, actual)
+	assert.Equal(t, expected.GetSessionSignature(), actual.GetSessionSignature())
+	assert.Equal(t, expected.GetSessionData(), actual.GetSessionData())
+}
+
+func TestStorageSessionGetShouldReportTheTTL(t *testing.T) {
+	ctx, provider := newTestSessionProvider(t)
+
+	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data")))
+
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+
+	require.NoError(t, err)
+	require.NotNil(t, record)
+	assert.InDelta(t, time.Hour.Seconds(), record.GetSessionTTL().Seconds(), 2)
+}
+
+func TestStorageSessionTouch(t *testing.T) {
+	testCases := []struct {
+		name     string
+		initial  time.Duration
+		destroy  bool
+		touch    time.Duration
+		expected time.Duration
+	}{
+		{"ShouldExtendTheSession", time.Minute, false, time.Hour, time.Hour},
+		{"ShouldNotShortenTheSession", time.Hour, false, time.Minute, time.Hour},
+		{"ShouldIgnoreAZeroExpiration", time.Minute, false, 0, time.Minute},
+		{"ShouldNotExtendADestroyedSession", time.Minute, true, time.Hour, 0},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, provider := newTestSessionProvider(t)
+
+			require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", tc.initial, []byte("data")))
+
+			if tc.destroy {
+				require.NoError(t, provider.SessionDelete(ctx, "an-issuer", "a-signature", "a-public-id", "john"))
+			}
+
+			require.NoError(t, provider.SessionTouch(ctx, "an-issuer", "a-signature", "a-public-id", "john", tc.touch))
+
+			record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+
+			require.NoError(t, err)
+
+			if tc.expected == 0 {
+				assert.Nil(t, record)
+
+				return
+			}
+
+			require.NotNil(t, record)
+			assert.InDelta(t, tc.expected.Seconds(), record.GetSessionTTL().Seconds(), 2)
+		})
+	}
+}
+
+func TestStorageSessionTouchShouldNotReviveAnExpiredSession(t *testing.T) {
+	ctx, provider := newTestSessionProvider(t)
+
+	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Millisecond, []byte("data")))
+
+	time.Sleep(time.Millisecond * 5)
+
+	require.NoError(t, provider.SessionTouch(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour))
+
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+
+	require.NoError(t, err)
+	assert.Nil(t, record)
 }

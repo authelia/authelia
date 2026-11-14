@@ -695,6 +695,50 @@ func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'NONe'")
 }
 
+func TestShouldRaiseErrorWhenCookieNameHasPrefix(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    string
+		expected string
+	}{
+		{"ShouldRejectHostPrefix", "__Host-authelia_session", "session: domain config #1 (domain 'example.com'): option 'name' must not start with '__Host-' as the cookie name prefixes are added automatically but it's configured as '__Host-authelia_session'"},
+		{"ShouldRejectHostHTTPPrefix", "__Host-Http-authelia_session", "session: domain config #1 (domain 'example.com'): option 'name' must not start with '__Host-' as the cookie name prefixes are added automatically but it's configured as '__Host-Http-authelia_session'"},
+		{"ShouldRejectHTTPPrefix", "__Http-authelia_session", "session: domain config #1 (domain 'example.com'): option 'name' must not start with '__Http-' as the cookie name prefixes are added automatically but it's configured as '__Http-authelia_session'"},
+		{"ShouldRejectHTTPPrefixCaseInsensitive", "__http-authelia_session", "session: domain config #1 (domain 'example.com'): option 'name' must not start with '__Http-' as the cookie name prefixes are added automatically but it's configured as '__http-authelia_session'"},
+		{"ShouldRejectSecurePrefix", "__Secure-authelia_session", "session: domain config #1 (domain 'example.com'): option 'name' must not start with '__Secure-' as the cookie name prefixes are added automatically but it's configured as '__Secure-authelia_session'"},
+		{"ShouldRejectHostPrefixCaseInsensitive", "__host-authelia_session", "session: domain config #1 (domain 'example.com'): option 'name' must not start with '__Host-' as the cookie name prefixes are added automatically but it's configured as '__host-authelia_session'"},
+		{"ShouldRejectSecurePrefixCaseInsensitive", "__SECURE-authelia_session", "session: domain config #1 (domain 'example.com'): option 'name' must not start with '__Secure-' as the cookie name prefixes are added automatically but it's configured as '__SECURE-authelia_session'"},
+		{"ShouldRejectInheritedPrefix", "", "session: domain config #1 (domain 'example.com'): option 'name' must not start with '__Host-' as the cookie name prefixes are added automatically but it's configured as '__Host-global'"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := newDefaultSessionConfig()
+			config.Session.Name = "__Host-global"
+			config.Session.Cookies[0].Name = tc.value
+
+			ValidateSession(&config, validator)
+
+			assert.False(t, validator.HasWarnings())
+			require.Len(t, validator.Errors(), 1)
+
+			assert.EqualError(t, validator.Errors()[0], tc.expected)
+		})
+	}
+}
+
+func TestShouldNotRaiseErrorWhenCookieNameContainsPrefixNotAtStart(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Cookies[0].Name = "authelia__Host-session"
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	assert.Len(t, validator.Errors(), 0)
+}
+
 func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
 	validator := schema.NewStructValidator()
 

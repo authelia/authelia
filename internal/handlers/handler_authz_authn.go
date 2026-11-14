@@ -97,9 +97,7 @@ type CookieSessionAuthnStrategy struct {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-//
-//nolint:gocyclo
-func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manager, _ *authorization.Object) (authn *Authn, err error) {
+func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.AuthzManager, _ *authorization.Object) (authn *Authn, err error) {
 	var userSession session.UserSession
 
 	authn = &Authn{
@@ -121,15 +119,14 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 		}
 
 		userSession = manager.NewDefaultUserSession()
-
-		if err = manager.SaveSession(&userSession); err != nil {
-			ctx.GetLogger().WithError(err).Error("Error occurred trying to save the new session cookie")
-		}
 	}
 
-	modified, invalid := handleAuthnCookieValidate(ctx, manager, &userSession)
+	var (
+		details  authentication.UserDetailsExtended
+		modified bool
+	)
 
-	var details authentication.UserDetailsExtended
+	invalid := handleAuthnCookieValidate(ctx, &userSession)
 
 	if !invalid {
 		details, err = handleGetSessionUserDetails(ctx, userSession.Username, s.extended)
@@ -146,7 +143,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 
 			invalid = true
 		default:
-			modified = handleAuthnCookieRefreshTTL(ctx, &userSession, s.refresh) || modified
+			modified = handleAuthnCookieRefreshTTL(ctx, &userSession, s.refresh)
 		}
 	}
 
@@ -155,18 +152,11 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 			ctx.GetLogger().WithError(err).Errorf("Unable to destroy user session")
 		}
 
-		userSession = manager.NewDefaultUserSession()
-		userSession.LastActivity = ctx.GetClock().Now().Unix()
-
-		if err = manager.SaveSession(&userSession); err != nil {
-			ctx.GetLogger().WithError(err).Error("Unable to save updated user session")
-		}
-
 		return authn, nil
 	}
 
 	if modified {
-		if err = manager.SaveSession(&userSession); err != nil {
+		if err = manager.SaveSessionActivity(&userSession); err != nil {
 			ctx.GetLogger().WithError(err).Error("Unable to save updated user session")
 		}
 	}
@@ -240,7 +230,7 @@ func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *authorization.Object) (authn *Authn, err error) {
+func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.AuthzManager, object *authorization.Object) (authn *Authn, err error) {
 	var value []byte
 
 	authn = &Authn{
@@ -354,7 +344,7 @@ type HeaderLegacyAuthnStrategy struct {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *authorization.Object) (authn *Authn, err error) {
+func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.AuthzManager, object *authorization.Object) (authn *Authn, err error) {
 	var (
 		value, header []byte
 	)
@@ -518,65 +508,23 @@ func handleAuthnCookieRefreshTTL(ctx AuthzContext, userSession *session.UserSess
 	return true
 }
 
-func handleAuthnCookieValidate(ctx AuthzContext, manager session.Manager, userSession *session.UserSession) (modified, invalid bool) {
+// handleAuthnCookieValidate returns true when the session must not be honored. Inactivity isn't checked here as a
+// session which has been inactive for longer than the inactivity timeout is no longer held by the session Repository.
+func handleAuthnCookieValidate(ctx AuthzContext, userSession *session.UserSession) (invalid bool) {
 	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
-	isAnonymous := userSession.IsAnonymous()
-
-	if isAnonymous && userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
+	if userSession.IsAnonymous() && userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
 		ctx.GetLogger().WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
 
-		return modified, true
-	}
-
-	if invalid = handleAuthnCookieValidateInactivity(ctx, manager, userSession, isAnonymous); invalid {
-		ctx.GetLogger().WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
-
-		return modified, true
+		return true
 	}
 
 	if username := ctx.GetRequestHeaderValue(headerSessionUsername); username != nil && !strings.EqualFold(string(username), userSession.Username) {
 		ctx.GetLogger().WithField("username", userSession.Username).Warnf("Session for user does not match the Session-Username header with value '%s' which could be a sign of a cookie hijack", username)
 
-		return modified, true
+		return true
 	}
 
-	if handleAuthnCookieValidateActivityRefresh(ctx, manager, userSession, isAnonymous) {
-		modified = true
-
-		userSession.LastActivity = ctx.GetClock().Now().Unix()
-	}
-
-	return modified, false
-}
-
-func handleAuthnCookieValidateActivityRefresh(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, isAnonymous bool) (refresh bool) {
-	config := manager.GetSessionConfig()
-
-	if isAnonymous || userSession.KeepMeLoggedIn || config.Inactivity <= 0 {
-		return false
-	}
-
-	interval := config.Inactivity
-
-	if config.Expiration > 0 {
-		interval = min(interval, config.Expiration)
-	}
-
-	interval = max(interval/sessionActivityRefreshDivisor, time.Second)
-
-	return ctx.GetClock().Now().Sub(time.Unix(userSession.LastActivity, 0)) >= interval
-}
-
-func handleAuthnCookieValidateInactivity(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
-	config := manager.GetSessionConfig()
-
-	if isAnonymous || userSession.KeepMeLoggedIn || int64(config.Inactivity.Seconds()) == 0 {
-		return false
-	}
-
-	ctx.GetLogger().WithField("username", userSession.Username).Tracef("Inactivity report for user. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", ctx.GetClock().Now().Unix(), userSession.LastActivity, int(config.Inactivity.Seconds()))
-
-	return time.Unix(userSession.LastActivity, 0).Add(config.Inactivity).Before(ctx.GetClock().Now())
+	return false
 }
 
 func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *authorization.Object, extended bool) (details *authentication.UserDetailsExtended, clientID string, ccs bool, level authentication.Level, err error) {

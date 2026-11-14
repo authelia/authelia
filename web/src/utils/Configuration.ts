@@ -15,6 +15,10 @@ export function getCSPNonce() {
     return document.querySelector<HTMLMetaElement>('meta[property="csp-nonce"]')?.content ?? "";
 }
 
+export function getCSRFCookieName() {
+    return getEmbeddedVariable("csrfcookiename");
+}
+
 export function getDuoSelfEnrollment() {
     return getEmbeddedVariable("duoselfenrollment") === "true";
 }

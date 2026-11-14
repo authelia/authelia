@@ -39,11 +39,11 @@ func TestMemory_SessionGetExpiry(t *testing.T) {
 
 			record, err := provider.SessionGet(ctx, "example.com", "id")
 			assert.NoError(t, err)
-			assert.Equal(t, tc.Expected, record)
+			assertRecord(t, tc.Expected, record)
 
 			record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
 			assert.NoError(t, err)
-			assert.Equal(t, tc.Expected, record)
+			assertRecord(t, tc.Expected, record)
 
 			ids, err := provider.SessionGetIDsByUsername(ctx, "example.com", "john")
 			assert.NoError(t, err)
@@ -67,7 +67,7 @@ func TestMemory_SessionNeverExpiresWithZeroExpiration(t *testing.T) {
 
 	record, err := provider.SessionGet(ctx, "example.com", "id")
 	assert.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id", []byte("data")), record)
+	assertRecord(t, session.NewRecord("id", []byte("data")), record)
 }
 
 func TestMemory_SessionSaveDataRefreshesExpiry(t *testing.T) {
@@ -78,17 +78,36 @@ func TestMemory_SessionSaveDataRefreshesExpiry(t *testing.T) {
 
 	provider.session[provider.key("example.com", "id")].expires = time.Now().Add(-time.Second)
 
-	require.NoError(t, provider.SessionSaveData(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("updated")))
+	require.NoError(t, provider.SessionSaveData(ctx, "example.com", "id", "pid", "john", time.Hour, nil, []byte("updated")))
 
 	record, err := provider.SessionGet(ctx, "example.com", "id")
 	assert.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id", []byte("updated")), record)
+	assertRecord(t, session.NewRecord("id", []byte("updated")), record)
+}
+
+func TestMemory_SessionSaveDataShouldOnlyUpdateUnchangedData(t *testing.T) {
+	ctx := t.Context()
+	provider := NewMemory()
+
+	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
+
+	assert.ErrorIs(t, provider.SessionSaveData(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("stale"), []byte("lost")), session.ErrSessionSuperseded)
+
+	record, err := provider.SessionGet(ctx, "example.com", "id")
+	require.NoError(t, err)
+	assertRecord(t, session.NewRecord("id", []byte("data")), record)
+
+	require.NoError(t, provider.SessionSaveData(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data"), []byte("updated")))
+
+	record, err = provider.SessionGet(ctx, "example.com", "id")
+	require.NoError(t, err)
+	assertRecord(t, session.NewRecord("id", []byte("updated")), record)
 }
 
 func TestMemory_SessionSaveDataNotFound(t *testing.T) {
 	provider := NewMemory()
 
-	err := provider.SessionSaveData(t.Context(), "example.com", "id", "pid", "john", time.Hour, []byte("data"))
+	err := provider.SessionSaveData(t.Context(), "example.com", "id", "pid", "john", time.Hour, nil, []byte("data"))
 	assert.EqualError(t, err, "session not found: example.com:id")
 }
 
@@ -141,7 +160,7 @@ func TestMemory_SessionSavePublicIDLookup(t *testing.T) {
 
 			record, err := provider.SessionGetByPublicID(ctx, "example.com", tc.PublicID)
 			assert.NoError(t, err)
-			assert.Equal(t, session.NewRecord("id", []byte("replaced")), record)
+			assertRecord(t, session.NewRecord("id", []byte("replaced")), record)
 
 			record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
 			assert.NoError(t, err)
@@ -150,7 +169,7 @@ func TestMemory_SessionSavePublicIDLookup(t *testing.T) {
 				assert.Nil(t, record)
 				assert.Len(t, provider.lookupPublicID, 1)
 			} else {
-				assert.Equal(t, session.NewRecord("id", []byte("replaced")), record)
+				assertRecord(t, session.NewRecord("id", []byte("replaced")), record)
 			}
 		})
 	}
@@ -182,7 +201,7 @@ func TestMemory_SessionChangeID(t *testing.T) {
 
 	record, err := provider.SessionGet(ctx, "example.com", "id2")
 	assert.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id2", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("id2", []byte("resealed")), record)
 
 	record, err = provider.SessionGet(ctx, "example.com", "id")
 	assert.NoError(t, err)
@@ -190,7 +209,7 @@ func TestMemory_SessionChangeID(t *testing.T) {
 
 	record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid2")
 	assert.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id2", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("id2", []byte("resealed")), record)
 
 	record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
 	assert.NoError(t, err)
@@ -224,11 +243,11 @@ func TestMemory_SessionSaveShouldDiscardStaleSaveAfterChangeID(t *testing.T) {
 
 	record, err = provider.SessionGet(ctx, "example.com", "id2")
 	assert.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id2", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("id2", []byte("resealed")), record)
 
 	record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
 	assert.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id2", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("id2", []byte("resealed")), record)
 
 	assert.Len(t, provider.session, 1)
 	assert.Equal(t, []string{"id2"}, provider.lookupUsername[provider.key("example.com", "john")])
@@ -242,7 +261,7 @@ func TestMemory_SessionSaveShouldDiscardStaleSaveAfterDelete(t *testing.T) {
 	require.NoError(t, provider.SessionDelete(ctx, "example.com", "id", "pid", "john"))
 
 	assert.ErrorIs(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
-	assert.ErrorIs(t, provider.SessionSaveData(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("stale")), session.ErrSessionSuperseded)
+	assert.ErrorIs(t, provider.SessionSaveData(ctx, "example.com", "id", "pid", "john", time.Hour, nil, []byte("stale")), session.ErrSessionSuperseded)
 
 	record, err := provider.SessionGet(ctx, "example.com", "id")
 	assert.NoError(t, err)
@@ -311,7 +330,7 @@ func TestMemory_SessionSaveShouldNotDiscardWhenThePublicIDLookupIsStale(t *testi
 
 	record, err := provider.SessionGetByPublicID(ctx, "example.com", "pid")
 	assert.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id", []byte("data")), record)
+	assertRecord(t, session.NewRecord("id", []byte("data")), record)
 }
 
 func TestMemory_SessionSaveShouldNotDiscardWhenThePublicIDBelongsToAnotherIssuer(t *testing.T) {
@@ -323,7 +342,7 @@ func TestMemory_SessionSaveShouldNotDiscardWhenThePublicIDBelongsToAnotherIssuer
 
 	record, err := provider.SessionGet(ctx, "example.com", "id")
 	assert.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id", []byte("data")), record)
+	assertRecord(t, session.NewRecord("id", []byte("data")), record)
 }
 
 func TestMemory_SessionDelete(t *testing.T) {
@@ -382,7 +401,7 @@ func TestMemory_SessionConcurrentAccess(t *testing.T) {
 			for range 50 {
 				_, _ = provider.SessionGet(ctx, "example.com", id)
 				_, _ = provider.SessionGetIDsByUsername(ctx, "example.com", "john")
-				_ = provider.SessionSaveData(ctx, "example.com", id, "pid", "john", time.Hour, []byte("updated"))
+				_ = provider.SessionSaveData(ctx, "example.com", id, "pid", "john", time.Hour, nil, []byte("updated"))
 				_ = provider.SessionGarbageCollection(ctx)
 			}
 		})
@@ -393,4 +412,86 @@ func TestMemory_SessionConcurrentAccess(t *testing.T) {
 	ids, err := provider.SessionGetIDsByUsername(ctx, "example.com", "john")
 	assert.NoError(t, err)
 	assert.Len(t, ids, 8)
+}
+
+func assertRecord(t *testing.T, expected, actual session.Record) {
+	t.Helper()
+
+	if expected == nil {
+		assert.Nil(t, actual)
+
+		return
+	}
+
+	require.NotNil(t, actual)
+	assert.Equal(t, expected.GetSessionSignature(), actual.GetSessionSignature())
+	assert.Equal(t, expected.GetSessionData(), actual.GetSessionData())
+}
+
+func TestMemory_SessionGetShouldReportTheTTL(t *testing.T) {
+	ctx := t.Context()
+	provider := NewMemory()
+
+	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
+
+	record, err := provider.SessionGet(ctx, "example.com", "id")
+	require.NoError(t, err)
+	require.NotNil(t, record)
+
+	assert.InDelta(t, time.Hour.Seconds(), record.GetSessionTTL().Seconds(), 1)
+	assert.LessOrEqual(t, record.GetSessionTTL(), time.Hour)
+
+	require.NoError(t, provider.SessionSave(ctx, "example.com", "forever", "pid2", "john", 0, []byte("data")))
+
+	record, err = provider.SessionGet(ctx, "example.com", "forever")
+	require.NoError(t, err)
+	require.NotNil(t, record)
+
+	assert.Equal(t, time.Duration(0), record.GetSessionTTL())
+}
+
+func TestMemory_SessionTouch(t *testing.T) {
+	testCases := []struct {
+		name     string
+		initial  time.Duration
+		setup    func(provider *Memory)
+		touch    time.Duration
+		expected time.Duration
+	}{
+		{"ShouldExtendTheSession", time.Minute, nil, time.Hour, time.Hour},
+		{"ShouldNotShortenTheSession", time.Hour, nil, time.Minute, time.Hour},
+		{"ShouldNotExtendASessionWhichDoesNotExpire", 0, nil, time.Hour, 0},
+		{"ShouldNotExtendADestroyedSession", time.Minute, func(provider *Memory) {
+			provider.session[provider.key("example.com", "id")].destroyed = true
+		}, time.Hour, time.Minute},
+		{"ShouldNotExtendAnExpiredSession", time.Minute, func(provider *Memory) {
+			provider.session[provider.key("example.com", "id")].expires = time.Now().Add(-time.Second)
+		}, time.Hour, -time.Second},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := t.Context()
+			provider := NewMemory()
+
+			require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", tc.initial, []byte("data")))
+
+			if tc.setup != nil {
+				tc.setup(provider)
+			}
+
+			require.NoError(t, provider.SessionTouch(ctx, "example.com", "id", "pid", "john", tc.touch))
+
+			item := provider.session[provider.key("example.com", "id")]
+
+			assert.InDelta(t, tc.expected.Seconds(), item.ttl(time.Now()).Seconds(), 1)
+		})
+	}
+}
+
+func TestMemory_SessionTouchShouldIgnoreAMissingSession(t *testing.T) {
+	provider := NewMemory()
+
+	assert.NoError(t, provider.SessionTouch(t.Context(), "example.com", "id", "pid", "john", time.Hour))
+	assert.Empty(t, provider.session)
 }

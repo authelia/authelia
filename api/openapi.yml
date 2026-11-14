@@ -405,7 +405,7 @@ paths:
         {{- end }}
       security:
         {{- if $secCookie }}
-        - authelia_auth: []
+        - authelia_authz: []
         {{- end }}
         {{- if $secBasic }}
         - authorization_basic: []
@@ -522,7 +522,7 @@ paths:
         {{- end }}
       security:
         {{- if $secCookie }}
-        - authelia_auth: []
+        - authelia_authz: []
         {{- end }}
         {{- if $secBasic }}
         - authorization_basic: []
@@ -635,7 +635,7 @@ paths:
         {{- end }}
       security:
         {{- if $secCookie }}
-        - authelia_auth: []
+        - authelia_authz: []
         {{- end }}
         {{- if $secBasic }}
         - authorization_basic: []
@@ -719,7 +719,7 @@ paths:
         {{- end }}
       security:
         {{- if $secCookie }}
-        - authelia_auth: []
+        - authelia_authz: []
         {{- end }}
         {{- if $secBasic }}
         - authorization_basic: []
@@ -756,6 +756,10 @@ paths:
                 $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
+      security:
+        - {}
+        - authelia_auth: []
+          csrf_token: []
   /api/firstfactor/reauthenticate:
     post:
       operationId: postFirstFactorReauthenticate
@@ -791,6 +795,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- if .Passkeys }}
   /api/firstfactor/passkey:
     get:
@@ -855,6 +860,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - {}
+        - authelia_auth: []
+          csrf_token: []
   {{- end }}
   /api/checks/safe-redirection:
     post:
@@ -903,6 +912,7 @@ paths:
                 $ref: '#/components/schemas/handlers.logoutResponseBody'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- if .PasswordChange }}
   /api/change-password:
     post:
@@ -954,6 +964,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .PasswordReset }}
   /api/reset-password/identity/start:
@@ -996,6 +1007,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/reset-password/identity/finish:
     post:
       operationId: postResetPasswordIdentityFinish
@@ -1035,6 +1047,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/reset-password:
     post:
       operationId: postResetPassword
@@ -1061,6 +1074,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.OK'
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteResetPassword
       tags:
@@ -1096,6 +1110,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   /api/user/info:
     get:
@@ -1148,6 +1163,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/user/info/2fa_method:
     post:
       operationId: postUserInfoSecondFactorMethod
@@ -1177,6 +1193,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/user/session/elevation:
     get:
       operationId: getUserSessionElevation
@@ -1240,6 +1257,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
     put:
       operationId: putUserSessionElevation
       tags:
@@ -1289,6 +1307,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/user/session/elevation/{id}:
     delete:
       operationId: deleteUserSessionElevation
@@ -1313,7 +1332,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.API'
-      security: []
+      security:
+        - {}
+        - authelia_auth: []
+          csrf_token: []
   {{- if .TOTP }}
   /api/secondfactor/totp/register:
     get:
@@ -1383,6 +1405,7 @@ paths:
                   - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
     post:
       operationId: postSecondFactorTOTPRegistration
       tags:
@@ -1420,6 +1443,7 @@ paths:
                   - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteSecondFactorTOTPRegistration
       tags:
@@ -1446,6 +1470,7 @@ paths:
                   - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/totp:
     get:
       operationId: getSecondFactorTOTPConfiguration
@@ -1540,6 +1565,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteSecondFactorTOTP
       tags:
@@ -1565,6 +1591,7 @@ paths:
                   - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .WebAuthn }}
   /api/secondfactor/webauthn:
@@ -1638,6 +1665,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/webauthn/credentials:
     get:
       operationId: getSecondFactorWebAuthnCredentials
@@ -1713,6 +1741,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
     post:
       operationId: postSecondFactorWebAuthnCredentialRegistration
       tags:
@@ -1752,6 +1781,7 @@ paths:
                   - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteSecondFactorWebAuthnCredentialRegistration
       tags:
@@ -1778,6 +1808,7 @@ paths:
                   - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/webauthn/credential/{credentialID}:
     put:
       operationId: putSecondFactorWebAuthnCredential
@@ -1825,6 +1856,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteSecondFactorWebAuthnCredential
       tags:
@@ -1859,6 +1891,7 @@ paths:
                   - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .Duo }}
   /api/secondfactor/duo:
@@ -1935,6 +1968,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/duo_devices:
     get:
       operationId: getSecondFactorDuoDevices
@@ -1995,6 +2029,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .Passkeys }}
   /api/secondfactor/password:
@@ -2041,7 +2076,8 @@ paths:
                 minimum: 0
               description: The number of seconds to wait before the request can be retried.
       security:
-        - authelia_auth: [ ]
+        - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .RecoveryCodes }}
   /api/secondfactor/recovery-codes:
@@ -2637,6 +2673,7 @@ paths:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/oidc/pushed-authorization-request:
     post:
       operationId: postOAuth2PushedAuthorizationRequest
@@ -3105,6 +3142,7 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
 components:
   parameters:
@@ -7560,6 +7598,25 @@ components:
       type: apiKey
       name: '{{ .Session }}'
       in: cookie
+      description: >
+        The session cookie. It is host only, so it is only sent to the Authelia host, and it is only accepted by the
+        portal and API endpoints, not by the authorization endpoints.
+    authelia_authz:
+      type: apiKey
+      name: '{{ .SessionAuthz }}'
+      in: cookie
+      description: >
+        The authorization cookie. It is scoped to the session cookie domain so it is sent to the protected
+        applications, and it is only accepted by the authorization endpoints using the CookieSession strategy.
+    csrf_token:
+      type: apiKey
+      name: X-CSRF-Token
+      in: header
+      description: >
+        The CSRF token of the session, which is the value of the '{{ .CSRFCookieName }}' cookie. It is required by
+        operations which change state whenever the request carries a session, and the request is rejected with a 403
+        Forbidden status when it is missing or invalid. The cookie is issued alongside the session cookie, and by the
+        state endpoint when it is missing.
     authorization_basic:
       type: http
       scheme: basic

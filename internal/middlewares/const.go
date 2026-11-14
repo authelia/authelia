@@ -33,8 +33,10 @@ var (
 	headerXOriginalMethod  = []byte("X-Original-Method")
 	headerXForwardedMethod = []byte("X-Forwarded-Method")
 
-	headerVary   = []byte(fasthttp.HeaderVary)
-	headerOrigin = []byte(fasthttp.HeaderOrigin)
+	headerVary         = []byte(fasthttp.HeaderVary)
+	headerOrigin       = []byte(fasthttp.HeaderOrigin)
+	headerSecFetchSite = []byte("Sec-Fetch-Site")
+	headerXCSRFToken   = []byte("X-CSRF-Token")
 
 	headerAccessControlAllowCredentials = []byte(fasthttp.HeaderAccessControlAllowCredentials)
 	headerAccessControlAllowHeaders     = []byte(fasthttp.HeaderAccessControlAllowHeaders)
@@ -92,6 +94,7 @@ var (
 	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")
 	headerValueDENY                    = []byte("DENY")
 	headerValueSameOrigin              = []byte("same-origin")
+	headerValueNone                    = []byte("none")
 	headerValueCrossOrigin             = []byte("cross-origin")
 	headerValueSameSite                = []byte("same-site")
 	headerValueUnsafeNone              = []byte("unsafe-none")
@@ -127,6 +130,7 @@ const (
 	UserValueKeyOpenIDConnectResponseModeFormPost
 	UserValueKeyRawURI
 	UserValueRateLimitExempt
+	UserValueKeyAuthzEndpoint
 )
 
 // Router user value keys.

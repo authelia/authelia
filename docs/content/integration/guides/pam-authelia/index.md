@@ -236,7 +236,7 @@ The authentication level to enforce. Must be one of `1FA`, `2FA`, or `1FA+2FA` (
 
 {{< confkey type="string" default="authelia_session" required="no" >}}
 
-The name of the session cookie Authelia issues on successful 1FA. Must match the server-side [`session.cookies[].name`](../../../configuration/session/introduction.md#name) value in your Authelia configuration. Only change this if your Authelia deployment has a non-default session cookie name.
+The base name of the session cookie Authelia issues on successful 1FA. Must match the server-side [`session.cookies[].name`](../../../configuration/session/introduction.md#name-1) value in your Authelia configuration. Only change this if your Authelia deployment has a non-default session cookie name. The module derives the cookie names Authelia uses from this value, `__Host-Http-<name>` for the session and `__Host-<name>_csrf` for the CSRF token it includes with every request which changes state, and falls back to the bare name for versions of Authelia which don't add these prefixes. Earlier versions of the module which use the bare name alone, and which don't send the CSRF token, can't be used with versions of Authelia which add them.
 
 ### ca-cert
 

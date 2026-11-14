@@ -45,7 +45,7 @@ func TestRedis_SessionGet(t *testing.T) {
 				assert.EqualError(t, err, tc.Error)
 			}
 
-			assert.Equal(t, tc.Expected, record)
+			assertRecord(t, tc.Expected, record)
 		})
 	}
 }
@@ -98,7 +98,7 @@ func TestRedis_SessionGetByPublicID(t *testing.T) {
 				assert.EqualError(t, err, tc.Error)
 			}
 
-			assert.Equal(t, tc.Expected, record)
+			assertRecord(t, tc.Expected, record)
 		})
 	}
 }
@@ -174,7 +174,7 @@ func TestRedis_SessionChangeID(t *testing.T) {
 				require.Len(t, client.evals, 2)
 
 				assert.Equal(t, mockRedisEval{script: redisSessionMove, keys: []string{keyOld}, args: []any{"new", int64(3600000)}}, client.evals[0])
-				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keyNew}, args: []any{[]byte("resealed"), int64(3600000), "pid", "john"}}, client.evals[1])
+				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keyNew}, args: []any{[]byte("resealed"), int64(3600000), "pid", "john", "0", []byte(nil)}}, client.evals[1])
 
 				assert.Equal(t, []mockRedisSet{{key: getSessionPublicKey("example.com", "pid"), value: "new", expiration: time.Hour}}, client.sets)
 				require.Len(t, client.added[getSessionUserKey("example.com", "john")], 1)
@@ -418,6 +418,12 @@ func (m *mockRedisCmdable) EvalSha(ctx context.Context, sha1 string, keys []stri
 	switch {
 	case m.err != nil:
 		cmd.SetErr(m.err)
+	case eval.script == redisSessionGet && len(m.evalResults) == 0:
+		if value, ok := m.values[keys[0]]; ok {
+			cmd.SetVal([]any{value, m.ttl.Milliseconds()})
+		} else {
+			cmd.SetVal([]any{})
+		}
 	case len(m.evalResults) != 0:
 		result := m.evalResults[0]
 		m.evalResults = m.evalResults[1:]
@@ -586,4 +592,127 @@ func (m *mockRedisPipeliner) ZRange(ctx context.Context, key string, start, stop
 
 func (m *mockRedisPipeliner) Exec(ctx context.Context) (cmds []redis.Cmder, err error) {
 	return nil, m.err
+}
+
+func TestRedis_SessionGetShouldReportTheTTL(t *testing.T) {
+	key := getSessionKey("example.com", "id")
+
+	testCases := []struct {
+		Name     string
+		TTL      time.Duration
+		Expected time.Duration
+	}{
+		{"ShouldReportTheTTL", time.Hour, time.Hour},
+		{"ShouldReportNoTTLWhenItDoesNotExpire", -time.Millisecond, 0},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			client := &mockRedisCmdable{values: map[string]string{key: "data"}, ttl: tc.TTL}
+			provider := NewRedis(client, "standalone")
+
+			record, err := provider.SessionGet(t.Context(), "example.com", "id")
+
+			require.NoError(t, err)
+			require.NotNil(t, record)
+			assert.Equal(t, tc.Expected, record.GetSessionTTL())
+
+			require.Len(t, client.evals, 1)
+			assert.Equal(t, mockRedisEval{script: redisSessionGet, keys: []string{key}}, client.evals[0])
+		})
+	}
+}
+
+func TestRedis_SessionTouch(t *testing.T) {
+	key := getSessionKey("example.com", "id")
+
+	testCases := []struct {
+		Name       string
+		Expiration time.Duration
+		Results    []any
+		Error      string
+		Assert     func(t *testing.T, client *mockRedisCmdable)
+	}{
+		{
+			"ShouldExtendTheSessionAndItsIndexes",
+			time.Hour,
+			[]any{int64(1)},
+			"",
+			func(t *testing.T, client *mockRedisCmdable) {
+				require.Len(t, client.evals, 3)
+				assert.Equal(t, mockRedisEval{script: redisSessionTouch, keys: []string{key}, args: []any{int64(3600000)}}, client.evals[0])
+				assert.Equal(t, mockRedisEval{script: redisSessionTouchPublicID, keys: []string{getSessionPublicKey("example.com", "pid")}, args: []any{"id", int64(3600000)}}, client.evals[1])
+				assert.Equal(t, redisSessionTouchUsername, client.evals[2].script)
+				assert.Equal(t, []string{getSessionUserKey("example.com", "john")}, client.evals[2].keys)
+				require.Len(t, client.evals[2].args, 2)
+				assert.Equal(t, "id", client.evals[2].args[0])
+				assert.Empty(t, client.sets)
+				assert.Empty(t, client.added)
+			},
+		},
+		{
+			"ShouldReturnTheErrorExtendingThePublicIDIndex",
+			time.Hour,
+			[]any{int64(1), errors.New("connection refused")},
+			"error extending the session public id index: connection refused",
+			func(t *testing.T, client *mockRedisCmdable) {
+				require.Len(t, client.evals, 2)
+			},
+		},
+		{
+			"ShouldReturnTheErrorExtendingTheUsernameIndex",
+			time.Hour,
+			[]any{int64(1), int64(1), errors.New("connection refused")},
+			"error extending the session username index: connection refused",
+			func(t *testing.T, client *mockRedisCmdable) {
+				require.Len(t, client.evals, 3)
+			},
+		},
+		{
+			"ShouldNotExtendTheIndexesWhenTheSessionWasNotExtended",
+			time.Hour,
+			[]any{int64(0)},
+			"",
+			func(t *testing.T, client *mockRedisCmdable) {
+				require.Len(t, client.evals, 1)
+				assert.Empty(t, client.sets)
+				assert.Empty(t, client.added)
+			},
+		},
+		{
+			"ShouldIgnoreAZeroExpiration",
+			0,
+			nil,
+			"",
+			func(t *testing.T, client *mockRedisCmdable) {
+				assert.Empty(t, client.evals)
+			},
+		},
+		{
+			"ShouldReturnTheError",
+			time.Hour,
+			[]any{errors.New("connection refused")},
+			"connection refused",
+			func(t *testing.T, client *mockRedisCmdable) {
+				assert.Empty(t, client.sets)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			client := &mockRedisCmdable{evalResults: tc.Results}
+			provider := NewRedis(client, "standalone")
+
+			err := provider.SessionTouch(t.Context(), "example.com", "id", "pid", "john", tc.Expiration)
+
+			if tc.Error == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.Error)
+			}
+
+			tc.Assert(t, client)
+		})
+	}
 }

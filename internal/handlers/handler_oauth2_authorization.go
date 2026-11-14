@@ -24,6 +24,10 @@ import (
 //
 //nolint:gocyclo
 func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+	if handleOAuth2AuthorizationBounce(ctx, rw, r) {
+		return
+	}
+
 	var (
 		issuer    *url.URL
 		responder oauthelia2.AuthorizeResponder
@@ -205,7 +209,6 @@ func handleOAuth2AuthorizationUserNotFound(ctx *middlewares.AutheliaCtx, provide
 	}
 
 	*userSession = provider.NewDefault()
-	userSession.LastActivity = ctx.GetClock().Now().Unix()
 
 	if err = provider.Save(ctx, userSession); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name)

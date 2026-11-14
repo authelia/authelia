@@ -62,7 +62,7 @@ func TestDefaultStrategy_SaveShouldReturnErrors(t *testing.T) {
 			"ShouldReturnErrorSavingSessionToRepository",
 			nil,
 			func(repository *erroringRepository) { repository.errSave = errTestFailure },
-			"error occurred saving session to registry: bad stuff",
+			"error occurred saving session authz index: bad stuff",
 		},
 	}
 
@@ -84,11 +84,62 @@ func TestDefaultStrategy_SaveShouldReturnErrors(t *testing.T) {
 
 			userSession := strategy.NewDefault()
 			userSession.Username = testUsername
+			userSession.SetOneFactorPassword(time.Now(), false)
 
 			assert.EqualError(t, strategy.Save(ctx, &userSession), tc.expected)
-			assert.NotContains(t, ctx.cookies, testName)
+			assert.NotContains(t, ctx.cookies, testNameSession)
 		})
 	}
+}
+
+func TestDefaultStrategy_SaveShouldNotPersistTheSessionWhenTheAuthzIndexCannotBeSaved(t *testing.T) {
+	repository := &erroringRepository{testRepository: newTestRepository(), errSave: errTestFailure, errSaveAt: 1}
+	strategy := newTestStrategyWithCodec(t, newTestCodec(t), repository)
+	ctx := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	userSession.SetOneFactorPassword(time.Now(), false)
+
+	err := strategy.Save(ctx, &userSession)
+
+	assert.ErrorIs(t, err, errTestFailure)
+	assert.ErrorContains(t, err, "error occurred saving session authz index")
+	assert.Empty(t, ctx.cookies)
+	assert.Empty(t, repository.data)
+}
+
+func TestDefaultStrategy_RegenerateShouldIssueTheSessionCookieWhenTheAuthzIndexCannotBeSaved(t *testing.T) {
+	repository := &erroringRepository{testRepository: newTestRepository()}
+	strategy := newTestStrategyWithCodec(t, newTestCodec(t), repository)
+	ctx := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	userSession.SetOneFactorPassword(time.Now(), false)
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	original, authz := ctx.cookies[testNameSession], ctx.cookies[testNameAuthz]
+
+	repository.errSave = errTestFailure
+	repository.errSaveAt = repository.saves + 1
+
+	require.NoError(t, strategy.Regenerate(ctx))
+
+	assert.NotEqual(t, original, ctx.cookies[testNameSession])
+	assert.Equal(t, authz, ctx.cookies[testNameAuthz])
+
+	actual, err := strategy.Get(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, actual.Username)
+	assert.NotEqual(t, authz, ctx.cookies[testNameAuthz])
+
+	resolved, err := strategy.Authz().Get(newTestAuthzContext(ctx))
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, resolved.Username)
 }
 
 func TestDefaultStrategy_RegenerateShouldReturnErrorWhenTheSessionCannotBeRetrieved(t *testing.T) {
@@ -97,12 +148,12 @@ func TestDefaultStrategy_RegenerateShouldReturnErrorWhenTheSessionCannotBeRetrie
 
 	cookie := newTestCookie("an-identifier-which-cannot-be-retrieved")
 
-	ctx.cookies[testName] = cookie
+	ctx.cookies[testNameSession] = cookie
 
 	err := strategy.Regenerate(ctx)
 
 	assert.ErrorIs(t, err, ErrRepositoryGet)
-	assert.Equal(t, cookie, ctx.cookies[testName])
+	assert.Equal(t, cookie, ctx.cookies[testNameSession])
 }
 
 func TestDefaultStrategy_RegenerateShouldReturnErrors(t *testing.T) {
@@ -147,11 +198,12 @@ func TestDefaultStrategy_RegenerateShouldReturnErrors(t *testing.T) {
 			if tc.persist {
 				userSession := strategy.NewDefault()
 				userSession.Username = testUsername
+				userSession.SetOneFactorPassword(time.Now(), false)
 
 				require.NoError(t, strategy.Save(ctx, &userSession))
 			}
 
-			original := ctx.cookies[testName]
+			original := ctx.cookies[testNameSession]
 
 			if tc.codec != nil {
 				tc.codec(codec)
@@ -162,7 +214,7 @@ func TestDefaultStrategy_RegenerateShouldReturnErrors(t *testing.T) {
 			}
 
 			assert.EqualError(t, strategy.Regenerate(ctx), tc.expected)
-			assert.Equal(t, original, ctx.cookies[testName])
+			assert.Equal(t, original, ctx.cookies[testNameSession])
 		})
 	}
 }
@@ -174,6 +226,7 @@ func TestDefaultStrategy_DestroyShouldReturnErrorWhenTheRepositoryFailsToDelete(
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
@@ -181,14 +234,14 @@ func TestDefaultStrategy_DestroyShouldReturnErrorWhenTheRepositoryFailsToDelete(
 
 	assert.EqualError(t, strategy.Destroy(ctx), "error occurred deleting session from backend: bad stuff")
 
-	assert.Contains(t, ctx.cookies, testName)
+	assert.Contains(t, ctx.cookies, testNameSession)
 	assert.Nil(t, ctx.cleared)
 
 	repository.errDelete = nil
 
 	require.NoError(t, strategy.Destroy(ctx))
 
-	assert.NotContains(t, ctx.cookies, testName)
+	assert.NotContains(t, ctx.cookies, testNameSession)
 	assert.NotNil(t, ctx.cleared)
 	assert.Empty(t, repository.data)
 }
@@ -204,7 +257,7 @@ func TestDefaultStrategy_SaveShouldNotSetCookieOrCacheWhenTheSessionIsSuperseded
 	require.NoError(t, strategy.Save(previous, &userSession))
 
 	ctx := newTestCachingContext()
-	ctx.cookies[testName] = previous.cookies[testName]
+	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
 
 	loaded, err := strategy.Get(ctx)
 	require.NoError(t, err)
@@ -216,7 +269,7 @@ func TestDefaultStrategy_SaveShouldNotSetCookieOrCacheWhenTheSessionIsSuperseded
 	require.NoError(t, strategy.Save(ctx, loaded))
 
 	assert.Equal(t, 0, ctx.set)
-	assert.Equal(t, previous.cookies[testName], ctx.cookies[testName])
+	assert.Equal(t, previous.cookies[testNameSession], ctx.cookies[testNameSession])
 
 	cached, ok := ctx.CachedSession(testDomain)
 	require.True(t, ok)
@@ -241,23 +294,12 @@ func TestDefaultStrategy_GetShouldRejectSessionRecordingAnotherCookieDomain(t *t
 
 	require.NoError(t, repository.Save(ctx, codec.Sign([]byte(testDomain)), sid, "a-public-id", testUsername, testExpiration, data))
 
-	ctx.cookies[testName] = encodeCookieID(id)
+	ctx.cookies[testNameSession] = encodeCookieID(id)
 
 	actual, err := strategy.Get(ctx)
 
 	assert.Nil(t, actual)
 	assert.EqualError(t, err, "error occurred getting session: domain does not match cookie domain")
-}
-
-func TestDefaultStrategy_GetExpires(t *testing.T) {
-	strategy, ok := newTestStrategy(t, nil).(*DefaultStrategy)
-	require.True(t, ok)
-
-	assert.Equal(t, expireUnlimited, strategy.getExpires(0))
-
-	now := time.Now()
-
-	assert.WithinDuration(t, now.Add(testExpiration), strategy.getExpires(testExpiration), time.Second*5)
 }
 
 func TestNewSameSite(t *testing.T) {
@@ -290,9 +332,9 @@ func TestDefaultStrategy_SaveShouldIssueNewIdentifierWhenNewAnonymousSessionIsSu
 	strategy := newTestStrategyWithRepository(t, repository, nil)
 
 	ctx := newTestCachingContext()
-	ctx.cookies[testName] = encodeCookieID(make([]byte, sessionIDLength))
+	ctx.cookies[testNameSession] = encodeCookieID(make([]byte, sessionIDLength))
 
-	dead := ctx.cookies[testName]
+	dead := ctx.cookies[testNameSession]
 
 	repository.tombstoned = func(id string) bool {
 		return id == strategy.(*DefaultStrategy).codec.Sign(make([]byte, sessionIDLength))
@@ -305,11 +347,11 @@ func TestDefaultStrategy_SaveShouldIssueNewIdentifierWhenNewAnonymousSessionIsSu
 
 	require.NoError(t, strategy.Save(ctx, loaded))
 
-	assert.Equal(t, 1, ctx.set)
-	assert.NotEqual(t, dead, ctx.cookies[testName])
+	assert.Equal(t, 2, ctx.set)
+	assert.NotEqual(t, dead, ctx.cookies[testNameSession])
 
 	next := newTestContext()
-	next.cookies[testName] = ctx.cookies[testName]
+	next.cookies[testNameSession] = ctx.cookies[testNameSession]
 
 	reloaded, err := strategy.Get(next)
 	require.NoError(t, err)
@@ -322,7 +364,7 @@ func TestDefaultStrategy_SaveShouldErrorWhenNewAnonymousSessionIsSupersededTwice
 	strategy := newTestStrategyWithRepository(t, repository, nil)
 
 	ctx := newTestCachingContext()
-	ctx.cookies[testName] = encodeCookieID(make([]byte, sessionIDLength))
+	ctx.cookies[testNameSession] = encodeCookieID(make([]byte, sessionIDLength))
 
 	loaded, err := strategy.Get(ctx)
 	require.NoError(t, err)
@@ -345,7 +387,7 @@ func TestDefaultStrategy_SaveShouldDiscardStaleAnonymousSessionLoadedFromRecord(
 	require.NoError(t, strategy.Save(previous, &userSession))
 
 	ctx := newTestCachingContext()
-	ctx.cookies[testName] = previous.cookies[testName]
+	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
 
 	loaded, err := strategy.Get(ctx)
 	require.NoError(t, err)
@@ -356,7 +398,7 @@ func TestDefaultStrategy_SaveShouldDiscardStaleAnonymousSessionLoadedFromRecord(
 	require.NoError(t, strategy.Save(ctx, loaded))
 
 	assert.Equal(t, 0, ctx.set)
-	assert.Equal(t, previous.cookies[testName], ctx.cookies[testName])
+	assert.Equal(t, previous.cookies[testNameSession], ctx.cookies[testNameSession])
 }
 
 func TestDefaultStrategy_RegenerateShouldReplaceUnreadableSession(t *testing.T) {
@@ -374,7 +416,7 @@ func TestDefaultStrategy_RegenerateShouldReplaceUnreadableSession(t *testing.T) 
 	}
 
 	ctx := newTestCachingContext()
-	ctx.cookies[testName] = previous.cookies[testName]
+	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
 
 	_, err := strategy.Get(ctx)
 	require.Error(t, err)
@@ -382,9 +424,9 @@ func TestDefaultStrategy_RegenerateShouldReplaceUnreadableSession(t *testing.T) 
 
 	require.NoError(t, strategy.Regenerate(ctx))
 
-	assert.Equal(t, 1, repository.deleted)
+	assert.Equal(t, 2, repository.deleted)
 	assert.Equal(t, 1, ctx.set)
-	assert.NotEqual(t, previous.cookies[testName], ctx.cookies[testName])
+	assert.NotEqual(t, previous.cookies[testNameSession], ctx.cookies[testNameSession])
 
 	current, err := strategy.Get(ctx)
 	require.NoError(t, err)
@@ -408,11 +450,11 @@ func TestDefaultStrategy_RegenerateShouldErrorWhenUnreadableSessionCannotBeDelet
 	repository.errDelete = errTestFailure
 
 	ctx := newTestCachingContext()
-	ctx.cookies[testName] = previous.cookies[testName]
+	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
 
 	assert.ErrorIs(t, strategy.Regenerate(ctx), errTestFailure)
 	assert.Equal(t, 0, ctx.set)
-	assert.Equal(t, previous.cookies[testName], ctx.cookies[testName])
+	assert.Equal(t, previous.cookies[testNameSession], ctx.cookies[testNameSession])
 }
 
 func TestDefaultStrategy_RegenerateShouldErrorWhenRepositoryIsUnavailable(t *testing.T) {
@@ -420,13 +462,13 @@ func TestDefaultStrategy_RegenerateShouldErrorWhenRepositoryIsUnavailable(t *tes
 	strategy := newTestStrategyWithRepository(t, &failingRepository{testRepository: repository}, nil)
 
 	ctx := newTestCachingContext()
-	ctx.cookies[testName] = encodeCookieID(make([]byte, sessionIDLength))
+	ctx.cookies[testNameSession] = encodeCookieID(make([]byte, sessionIDLength))
 
-	cookie := ctx.cookies[testName]
+	cookie := ctx.cookies[testNameSession]
 
 	assert.ErrorIs(t, strategy.Regenerate(ctx), ErrRepositoryGet)
 	assert.Equal(t, 0, ctx.set)
-	assert.Equal(t, cookie, ctx.cookies[testName])
+	assert.Equal(t, cookie, ctx.cookies[testNameSession])
 }
 
 type deleteRecordingRepository struct {
@@ -491,12 +533,17 @@ type erroringRepository struct {
 	*testRepository
 
 	errSave     error
+	errSaveAt   int
 	errChangeID error
 	errDelete   error
+
+	saves int
 }
 
 func (r *erroringRepository) Save(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	if r.errSave != nil {
+	r.saves++
+
+	if r.errSave != nil && (r.errSaveAt == 0 || r.errSaveAt == r.saves) {
 		return r.errSave
 	}
 

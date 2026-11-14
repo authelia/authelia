@@ -129,6 +129,8 @@ const (
 	hmacNameOneTimePassword = "otp"
 	hmacNameRecoveryCode    = "rc"
 	hmacNameSession         = "session"
+	hmacNameSessionAuthz    = "session_authz"
+	hmacNameSessionCSRF     = "session_csrf"
 )
 
 const (

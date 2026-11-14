@@ -292,6 +292,8 @@ func TestPostgreSQLProviderSessionQueriesShouldUseOrdinalPlaceholders(t *testing
 		{"ShouldUseOrdinalPlaceholdersForSelectSessionByPublicID", provider.sqlSelectSessionByPublicID},
 		{"ShouldUseOrdinalPlaceholdersForSelectSessionSignaturesByUsername", provider.sqlSelectSessionSignaturesByUsername},
 		{"ShouldUseOrdinalPlaceholdersForUpdateSessionData", provider.sqlUpdateSessionData},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionDataIfUnchanged", provider.sqlUpdateSessionDataIfUnchanged},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionExpiration", provider.sqlUpdateSessionExpiration},
 		{"ShouldUseOrdinalPlaceholdersForUpdateSessionSignature", provider.sqlUpdateSessionSignature},
 		{"ShouldUseOrdinalPlaceholdersForUpdateSessionDestroyed", provider.sqlUpdateSessionDestroyed},
 		{"ShouldUseOrdinalPlaceholdersForDeleteSessionExpired", provider.sqlDeleteSessionExpired},
