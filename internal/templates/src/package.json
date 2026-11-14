@@ -13,12 +13,12 @@
   "dependencies": {
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-email": "6.11.11"
+    "react-email": "6.11.12"
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "5.30.2",
     "@eslint/js": "10.0.1",
-    "@react-email/ui": "6.11.11",
+    "@react-email/ui": "6.11.12",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@typescript-eslint/eslint-plugin": "8.72.2",
