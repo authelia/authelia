@@ -388,6 +388,17 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		return
 	}
 
+	if err = validateOAuth2DeviceCodeSessionEnterable(ctx, device); err != nil {
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
+			Error("Failed to handle flow response as the user code can't be entered")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, device.ClientID); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 

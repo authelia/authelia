@@ -314,8 +314,14 @@ type Provider interface {
 	UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
 	// DecideOAuth2DeviceCodeSession updates an OAuth2.0 device code session data in the storage provider only while it
-	// is undecided. It returns ErrNoRowsAffected when no undecided session exists for the signature.
+	// is undecided and claimed by the consent session with the challenge id of the given session. It returns
+	// ErrNoRowsAffected when no such session exists for the signature.
 	DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
+	// ClaimOAuth2DeviceCodeSession records the consent session and new status of an OAuth2.0 device code session in the
+	// storage provider only while it is new, active, not revoked, and unclaimed. It returns ErrNoRowsAffected when no
+	// such session exists for the signature.
+	ClaimOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
 	// DeactivateOAuth2DeviceCodeSession marks an OAuth2.0 device code session as inactive in the storage provider.
 	DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error)

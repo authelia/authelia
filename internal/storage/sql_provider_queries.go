@@ -777,7 +777,15 @@ const (
 			granted_resource = ?,
 			form_data = ?,
 			session_data = ?
-		WHERE signature = ? AND status IN (?, ?);`
+		WHERE signature = ? AND status = ? AND challenge_id = ?;`
+
+	queryFmtClaimOAuth2DeviceCodeSession = `
+		UPDATE %s
+		SET
+			challenge_id = ?,
+			status = ?,
+			active = ?
+		WHERE signature = ? AND status = ? AND challenge_id IS NULL AND active = TRUE AND revoked = FALSE;`
 
 	queryFmtSelectOAuth2PARContext = `
 		SELECT id, signature, request_id, client_id, requested_at, scopes, audience, resource,

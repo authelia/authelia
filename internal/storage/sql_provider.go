@@ -169,6 +169,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpdateOAuth2RefreshTokenSessionRequest: fmt.Sprintf(queryFmtUpdateOAuth2RefreshTokenSessionRequest, tableOAuth2RefreshTokenSession),
 		sqlDecideOAuth2DeviceCodeSession:          fmt.Sprintf(queryFmtDecideOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlClaimOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtClaimOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2BlacklistedJTI:             fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
@@ -452,6 +453,7 @@ type SQLProvider struct {
 
 	sqlUpdateOAuth2RefreshTokenSessionRequest string
 	sqlDecideOAuth2DeviceCodeSession          string
+	sqlClaimOAuth2DeviceCodeSession           string
 	sqlSelectOAuth2BlacklistedJTI             string
 
 	// Utility.
@@ -1633,8 +1635,8 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 }
 
 // DecideOAuth2DeviceCodeSession updates the session data of an OAuth2.0 Device Code session in the storage provider
-// only while the stored session is undecided, i.e. it has the new or claimed status. It returns ErrNoRowsAffected when
-// no undecided session exists for the signature.
+// only while the stored session is undecided and claimed by the consent session of the given session, i.e. it has the
+// claimed status and the same challenge id. It returns ErrNoRowsAffected when no such session exists for the signature.
 func (p *SQLProvider) DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
 	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
 		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
@@ -1647,12 +1649,31 @@ func (p *SQLProvider) DecideOAuth2DeviceCodeSession(ctx context.Context, session
 		session.RequestedScopes, session.RequestedAudience, session.RequestedResource,
 		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
 		session.Form, session.Session, session.Signature,
-		model.OAuth2DeviceCodeStatusNew, model.OAuth2DeviceCodeStatusClaimed); err != nil {
+		model.OAuth2DeviceCodeStatusClaimed, session.ChallengeID); err != nil {
 		return fmt.Errorf("error deciding oauth2 device code session with signature '%s': %w", session.Signature, err)
 	}
 
 	if err = checkSingleUpdateResult(result); err != nil {
 		return fmt.Errorf("error deciding oauth2 device code session with signature '%s': %w", session.Signature, err)
+	}
+
+	return nil
+}
+
+// ClaimOAuth2DeviceCodeSession records the consent session of an OAuth2.0 Device Code session and its new status in the
+// storage provider only while the stored session is new, active, not revoked, and not yet claimed by a consent session,
+// checking and writing it in one atomic operation so the user code can only be entered once. It returns
+// ErrNoRowsAffected when no such session exists for the signature.
+func (p *SQLProvider) ClaimOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlClaimOAuth2DeviceCodeSession,
+		session.ChallengeID, session.Status, session.Active, session.Signature, model.OAuth2DeviceCodeStatusNew); err != nil {
+		return fmt.Errorf("error claiming oauth2 device code session with signature '%s': %w", session.Signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error claiming oauth2 device code session with signature '%s': %w", session.Signature, err)
 	}
 
 	return nil

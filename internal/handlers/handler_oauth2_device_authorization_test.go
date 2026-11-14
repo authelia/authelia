@@ -300,6 +300,8 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 
 		consent := newTestOIDCConsentSession(t, mock, subject)
 		consent.ClientID = testOIDCDeviceCodeID
+
+		mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, consent)
 		consent.Authorized = true
 		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
 
@@ -350,6 +352,8 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 
 		consent = newTestOIDCConsentSession(t, mock, subject)
 		consent.ClientID = testOIDCDeviceCodeID
+
+		mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, consent)
 		consent.Authorized = true
 		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
 
@@ -552,6 +556,8 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 		consent := newTestOIDCConsentSession(t, mock, subject)
 		consent.ClientID = testOIDCDeviceCodeID
 
+		mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, consent)
+
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			AnyTimes().
@@ -587,6 +593,8 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 
 		consent := newTestOIDCConsentSession(t, mock, subject)
 		consent.ClientID = testOIDCDeviceCodeID
+
+		mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, consent)
 		consent.Authorized = true
 		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
 

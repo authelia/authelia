@@ -178,6 +178,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpdateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSession)
 	provider.sqlUpdateOAuth2DeviceCodeSessionData = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSessionData)
 	provider.sqlDecideOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDecideOAuth2DeviceCodeSession)
+	provider.sqlClaimOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlClaimOAuth2DeviceCodeSession)
 	provider.sqlDeactivateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDeactivateOAuth2DeviceCodeSession)
 	provider.sqlSelectOAuth2DeviceCodeSessionByUserCode = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSessionByUserCode)
 

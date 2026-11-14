@@ -380,7 +380,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to determine if the device code session is active during the Consent Flow stage of the Device Authorization Flow", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the user code can't be entered", "the device code session is inactive or revoked")
 	})
 
 	t.Run("ShouldHandleDeviceCodeSessionWithExistingChallenge", func(t *testing.T) {
@@ -395,7 +395,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the device code session already has a challenge id", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the user code can't be entered", "the user code has already been entered")
 	})
 
 	t.Run("ShouldHandleInsufficientAuthenticationLevel", func(t *testing.T) {
@@ -507,7 +507,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred saving the consent session response to the database during the Consent Flow stage of the Device Authorization Flow", regexpAnyError)
 	})
 
-	t.Run("ShouldHandleUpdateDeviceCodeSessionError", func(t *testing.T) {
+	t.Run("ShouldHandleClaimDeviceCodeSessionError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
@@ -552,7 +552,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 			Return(nil)
 
 		mock.StorageMock.EXPECT().
-			UpdateOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+			ClaimOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
 			Return(fmt.Errorf("error in db"))
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
@@ -564,7 +564,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred saving the device code session challenge id to the database during the Consent Flow stage of the Device Authorization Flow", regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred claiming the device code session during the Consent Flow stage of the Device Authorization Flow as the user code has already been entered or can no longer be used", "error in db")
 	})
 }
 
@@ -925,7 +925,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTCorruptSession(t *testing.T) 
 
 	mock.Assert200KO(t, messageOperationFailed)
 
-	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to restore the requester during the Consent Flow stage of the Device Authorization Flow", regexpAnyError)
+	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the user code can't be entered", "error occurred restoring the device code session data: invalid character 'o' in literal null (expecting 'u')")
 }
 
 func setupTestOIDCConsent(t *testing.T, mock *mocks.MockAutheliaCtx, consent *model.OAuth2ConsentSession) {

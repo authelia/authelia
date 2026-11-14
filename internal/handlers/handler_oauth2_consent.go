@@ -469,20 +469,11 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
-	if !device.Active || device.Revoked {
+	if err = validateOAuth2DeviceCodeSessionEnterable(ctx, device); err != nil {
 		ctx.GetLogger().
+			WithError(err).
 			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to determine if the device code session is active during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if device.ChallengeID.Valid {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the device code session already has a challenge id")
+			Error("Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the user code can't be entered")
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -622,16 +613,18 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 
 	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
 
-	if !bodyJSON.Consent {
+	if bodyJSON.Consent {
+		device.Status = model.OAuth2DeviceCodeStatusClaimed
+	} else {
 		device.Active = false
 		device.Status = int(oauth2.DeviceAuthorizeStatusDenied)
 	}
 
-	if err = ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSession(ctx, device); err != nil {
+	if err = ctx.Providers.StorageProvider.ClaimOAuth2DeviceCodeSession(ctx, device); err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred saving the device code session challenge id to the database during the Consent Flow stage of the Device Authorization Flow")
+			Error("Error occurred claiming the device code session during the Consent Flow stage of the Device Authorization Flow as the user code has already been entered or can no longer be used")
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -780,10 +773,11 @@ func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares
 		return userSession, device, nil, true
 	}
 
-	if device.Status != int(oauth2.DeviceAuthorizeStatusNew) || device.Revoked || !device.Active {
+	if err = validateOAuth2DeviceCodeSessionEnterable(ctx, device); err != nil {
 		ctx.GetLogger().
+			WithError(err).
 			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username}).
-			Error("Device Authorization Flow failed to retrieve Consent Flow data as device code session is not active or has been revoked")
+			Error("Device Authorization Flow failed to retrieve Consent Flow data as the user code can't be entered")
 
 		ctx.SetJSONError(messageOperationFailed)
 

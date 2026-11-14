@@ -210,6 +210,16 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
+	if err = validateOAuth2DeviceAuthorizationConsent(ctx, requester, consent); err != nil {
+		log.
+			WithError(err).
+			Error("Device Authorization Request failed to match the consent session to the device code session during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrInvalidGrant.WithHint("Cannot process the request, the user_code is either invalid or expired."))
+
+		return
+	}
+
 	var requests *oidc.ClaimsRequests
 
 	extra := map[string]any{}

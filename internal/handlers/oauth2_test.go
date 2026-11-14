@@ -613,11 +613,26 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
 			stored := bySignature(session.Signature)
 
-			if stored == nil || (stored.Status != model.OAuth2DeviceCodeStatusNew && stored.Status != model.OAuth2DeviceCodeStatusClaimed) {
+			if stored == nil || stored.Status != model.OAuth2DeviceCodeStatusClaimed || stored.ChallengeID != session.ChallengeID {
 				return storage.ErrNoRowsAffected
 			}
 
 			store(session)
+
+			return nil
+		})
+
+	mock.StorageMock.EXPECT().
+		ClaimOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+			stored := bySignature(session.Signature)
+
+			if stored == nil || stored.Status != model.OAuth2DeviceCodeStatusNew || stored.ChallengeID.Valid || !stored.Active || stored.Revoked {
+				return storage.ErrNoRowsAffected
+			}
+
+			stored.ChallengeID, stored.Status, stored.Active = session.ChallengeID, session.Status, session.Active
 
 			return nil
 		})
@@ -657,6 +672,24 @@ func mustGetTestOIDCUserCode(t *testing.T, mock *mocks.MockAutheliaCtx) (userCod
 	require.NotEmpty(t, userCode)
 
 	return userCode
+}
+
+func mustClaimTestOIDCDeviceCodeSession(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, consent *model.OAuth2ConsentSession) {
+	t.Helper()
+
+	signature, err := mock.Ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(mock.Ctx, userCode)
+	require.NoError(t, err)
+
+	device, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(mock.Ctx, signature)
+	require.NoError(t, err)
+
+	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
+	device.Status = model.OAuth2DeviceCodeStatusClaimed
+
+	require.NoError(t, mock.Ctx.Providers.StorageProvider.ClaimOAuth2DeviceCodeSession(mock.Ctx, device))
+
+	consent.Authorized = true
+	consent.SetRespondedAt(mock.Ctx.GetClock().Now(), 0)
 }
 
 func mustGetTestOIDCAuthorizationCode(t *testing.T, mock *mocks.MockAutheliaCtx, values url.Values) (code string) {
