@@ -783,7 +783,7 @@ func TestFirstFactorExternalIdentityCallbackGETShouldRegenerateTheSession(t *tes
 
 	require.NoError(t, mock.Ctx.SaveSession(&userSession))
 
-	before := string(mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+	before := string(mock.Ctx.Response.Header.PeekCookie(session.SessionCookieName("authelia_session")))
 
 	require.NotEmpty(t, before)
 
@@ -791,7 +791,7 @@ func TestFirstFactorExternalIdentityCallbackGETShouldRegenerateTheSession(t *tes
 
 	FirstFactorExternalIdentityCallbackGET(mock.Ctx)
 
-	after := string(mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+	after := string(mock.Ctx.Response.Header.PeekCookie(session.SessionCookieName("authelia_session")))
 
 	require.NotEmpty(t, after)
 

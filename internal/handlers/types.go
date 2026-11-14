@@ -84,6 +84,10 @@ type configurationBody struct {
 	RecoveryCodesDisabled  bool       `json:"recovery_codes_disabled"`
 }
 
+type bodyOAuth2ConsentUserCode struct {
+	UserCode string `json:"user_code"`
+}
+
 type bodySignTOTPRequest struct {
 	Token     string `json:"token" valid:"required"`
 	TargetURL string `json:"targetURL"`
@@ -294,3 +298,7 @@ type handlerAuthorizationConsent func(
 	userSession session.UserSession, details *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)
+
+type oauth2AuthorizationBounceData struct {
+	Target string
+}

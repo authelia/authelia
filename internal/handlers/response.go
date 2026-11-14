@@ -291,7 +291,7 @@ func resolveFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, use
 		return newFlowResponseFailure(messageAuthenticationFailed)
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, flowID); err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
@@ -364,10 +364,7 @@ func resolveFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, use
 
 	switch {
 	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level), level == authorization.Denied:
-		targetURL := issuer.JoinPath(oidc.EndpointPathAuthorization)
-
-		form.Set(queryArgConsentID, flowID.String())
-		targetURL.RawQuery = form.Encode()
+		targetURL := handleOAuth2AuthorizationConsentReferenceURL(issuer, consent)
 
 		return newFlowResponseRedirect(targetURL.String())
 	default:
@@ -444,6 +441,15 @@ func resolveFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.Authelia
 		return newFlowResponseFailure(messageOperationFailed)
 	}
 
+	if err = validateOAuth2DeviceCodeSessionEnterable(ctx, device); err != nil {
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
+			Error("Failed to handle flow response as the user code can't be entered")
+
+		return newFlowResponseFailure(messageOperationFailed)
+	}
+
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, device.ClientID); err != nil {
 		ctx.GetLogger().
 			WithError(err).
@@ -461,7 +467,7 @@ func resolveFlowResponseOpenIDConnectDeviceAuthSubflowUserCode(ctx *middlewares.
 
 	switch {
 	case authorization.IsAuthLevelSufficient(level, required), required == authorization.Denied:
-		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDecision)
+		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDeviceAuthorization)
 
 		query := targetURL.Query()
 

@@ -173,7 +173,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred using the signature of the user code session to retrieve the device code session preventing a successful flow response", "sql: no rows in result set")
 	})
 
-	t.Run("ShouldRedirectToConsentDecisionWithUserCode", func(t *testing.T) {
+	t.Run("ShouldRedirectToUserCodeEntryWithUserCode", func(t *testing.T) {
 		mock, userSession := newMockWithSession(t, 1)
 		defer mock.Close()
 
@@ -197,7 +197,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		require.NoError(t, err)
 
-		assert.Equal(t, oidc.FrontendEndpointPathConsentDecision, target.Path)
+		assert.Equal(t, oidc.FrontendEndpointPathConsentDeviceAuthorization, target.Path)
 		assert.Equal(t, userCode, target.Query().Get(queryArgUserCode))
 		assert.Equal(t, flowOpenIDConnectSubFlowNameDeviceAuthorization, target.Query().Get(queryArgSubflow))
 	})

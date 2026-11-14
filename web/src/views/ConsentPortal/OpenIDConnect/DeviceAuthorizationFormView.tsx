@@ -19,14 +19,17 @@ import { UserCodeLength } from "@constants/OpenIDConnect";
 import { ConsentDecisionSubRoute, ConsentOpenIDSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import {
     Flow,
+    FlowID,
     FlowNameOpenIDConnect,
     SubFlow,
     SubFlowNameDeviceAuthorization,
     UserCode,
 } from "@constants/SearchParams";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
+import { postConsentUserCode } from "@services/ConsentOpenIDConnect";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
@@ -44,24 +47,40 @@ function DeviceAuthorizationFormView({ state }: Props) {
     const [code, setCode] = useState(() => (userCode ? normalizeUserCode(userCode) : ""));
 
     const navigate = useRouterNavigate();
+    const { createErrorNotification } = useNotifications();
 
     const autoSubmittedRef = useRef(false);
 
     const handleCode = useCallback(
-        (code: string) => {
+        async (code: string) => {
             if (code === "") {
+                return;
+            }
+
+            let flowID: string | undefined;
+
+            try {
+                flowID = (await postConsentUserCode(code)).flow_id;
+            } catch (err) {
+                console.error(err);
+            }
+
+            if (!flowID) {
+                createErrorNotification(translate("Failed to submit the user code"));
+
                 return;
             }
 
             const params = new URLSearchParams();
 
+            params.set(FlowID, flowID);
             params.set(UserCode, code);
             params.set(Flow, FlowNameOpenIDConnect);
             params.set(SubFlow, SubFlowNameDeviceAuthorization);
 
             navigate(`${ConsentRoute}${ConsentOpenIDSubRoute}${ConsentDecisionSubRoute}`, true, true, true, params);
         },
-        [navigate],
+        [createErrorNotification, navigate, translate],
     );
 
     useEffect(() => {
@@ -93,11 +112,11 @@ function DeviceAuthorizationFormView({ state }: Props) {
         }
 
         autoSubmittedRef.current = true;
-        handleCode(normalizeUserCode(userCode));
+        void handleCode(normalizeUserCode(userCode));
     }, [handleCode, state.authentication_level, userCode]);
 
-    const submitCode = useCallback(() => {
-        handleCode(code);
+    const submitCode = useCallback(async () => {
+        await handleCode(code);
     }, [code, handleCode]);
 
     if (state.authentication_level === AuthenticationLevel.Unauthenticated) {

@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"net/url"
@@ -121,12 +122,17 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 	log = log.WithField(logging.FieldFlowID, flowID)
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, flowID); err != nil {
 		log.
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request failed with error to load the consent session during the User Authorization Flow")
 
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError)
+		switch {
+		case errors.Is(err, errOAuth2ConsentSessionNotBound), errors.Is(err, sql.ErrNoRows):
+			ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrInvalidGrant.WithHint("The consent session doesn't exist or isn't bound to this user agent."))
+		default:
+			ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError)
+		}
 
 		return
 	}
@@ -205,7 +211,17 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 	if subject != consent.Subject.UUID {
 		log.Error("Device Authorization Request failed to match the session to the subject during the User Authorization Flow")
 
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not match the consent session to the subject."))
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The consent session doesn't belong to the user."))
+
+		return
+	}
+
+	if err = validateOAuth2DeviceAuthorizationConsent(ctx, requester, consent); err != nil {
+		log.
+			WithError(err).
+			Error("Device Authorization Request failed to match the consent session to the device code session during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrInvalidGrant.WithHint("Cannot process the request, the user_code is either invalid or expired."))
 
 		return
 	}

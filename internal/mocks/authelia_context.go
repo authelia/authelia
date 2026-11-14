@@ -33,7 +33,7 @@ import (
 )
 
 func newMockSessionProvider(config *schema.Configuration, clock clock.Provider, random random.Provider) (provider session.Provider, err error) {
-	return session.NewProvider(config, testSessionHMACKey, clock, random, cache.NewSessionRepository(cache.NewMemory()))
+	return session.NewProvider(config, testSessionHMACKeys, clock, random, cache.NewSessionRepository(cache.NewMemory()))
 }
 
 // NewSessionProvider returns a session.Provider backed by an in-memory repository for use in tests.
@@ -69,6 +69,10 @@ type MockAutheliaCtx struct {
 
 	Clock clock.Fixed
 }
+
+// AuthorizationBinding is the value of the authorization binding cookie every request of a MockAutheliaCtx carries,
+// which binds the consent sessions in fixtures to the mock user agent.
+const AuthorizationBinding = "YXV0aGVsaWEtb2F1dGgyLWJpbmRpbmctZml4dHVyZSE"
 
 // NewMockAutheliaCtx create an instance of AutheliaCtx mock.
 func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
@@ -265,6 +269,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	request.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	request.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
+	request.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), AuthorizationBinding)
 
 	ctx := middlewares.NewAutheliaCtx(request, config, providers)
 	mockAuthelia.Ctx = ctx

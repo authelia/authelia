@@ -1012,7 +1012,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSession
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{RespondedAt: sql.NullTime{Valid: true, Time: time.Now().Add(-time.Minute)}}, nil),
+			Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBinding, RespondedAt: sql.NullTime{Valid: true, Time: time.Now().Add(-time.Minute)}}, nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1057,7 +1057,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{ClientID: "abc"}, nil),
+			Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBinding, ClientID: "abc"}, nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1118,7 +1118,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: form.Encode()}, nil),
+			Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBinding, ClientID: "abc", Form: form.Encode()}, nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1174,7 +1174,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: "1238y12978y189gb128g1287g12807g128702g38172%1"}, nil),
+			Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBinding, ClientID: "abc", Form: "1238y12978y189gb128g1287g12807g128702g38172%1"}, nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1232,7 +1232,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: ""}, nil),
+			Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBinding, ClientID: "abc", Form: ""}, nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1290,12 +1290,12 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: "grant_type=authorization_code"}, nil),
+			Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBinding, ChallengeID: uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")), ClientID: "abc", Form: "grant_type=authorization_code"}, nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://login.example.com:8080/api/oidc/authorization?consent_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c&grant_type=authorization_code"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://login.example.com:8080/api/oidc/authorization?client_id=abc&consent_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c"})
 }
 
 type FirstFactorReauthenticateSuite struct {

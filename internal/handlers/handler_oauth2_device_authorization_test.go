@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -212,6 +213,37 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed with error to load the consent session during the User Authorization Flow", regexpAnyError)
+		assertTestOAuth2DeviceAuthorizationError(t, rw, "invalid_grant")
+	})
+
+	t.Run("ShouldHandleConsentSessionBoundToAnotherUserAgent", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCDeviceCodeStore(t, mock)
+
+		userCode := mustGetTestOIDCUserCode(t, mock)
+
+		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent.Binding = testOAuth2AuthorizationBindingAnotherUserAgent
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodPut, testOIDCDeviceAuthorizationEndpoint, url.Values{
+			oidc.FormParameterUserCode: []string{userCode},
+			oidc.FormParameterFlowID:   []string{consent.ChallengeID.String()},
+		})
+
+		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed with error to load the consent session during the User Authorization Flow", "the consent session is not bound to the user agent")
+		assertTestOAuth2DeviceAuthorizationError(t, rw, "invalid_grant")
 	})
 
 	t.Run("ShouldHandleSubjectMismatch", func(t *testing.T) {
@@ -244,6 +276,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed to match the session to the subject during the User Authorization Flow", nil)
+		assertTestOAuth2DeviceAuthorizationError(t, rw, "access_denied")
 	})
 
 	t.Run("ShouldHandleInsufficientAuthenticationLevel", func(t *testing.T) {
@@ -300,6 +333,8 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 
 		consent := newTestOIDCConsentSession(t, mock, subject)
 		consent.ClientID = testOIDCDeviceCodeID
+
+		mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, consent)
 		consent.Authorized = true
 		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
 
@@ -350,6 +385,8 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 
 		consent = newTestOIDCConsentSession(t, mock, subject)
 		consent.ClientID = testOIDCDeviceCodeID
+
+		mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, consent)
 		consent.Authorized = true
 		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
 
@@ -482,7 +519,8 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed to obtain the user session during the User Authorization Flow", regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed with error to load the consent session during the User Authorization Flow", regexpAnyError)
+		assertTestOAuth2DeviceAuthorizationError(t, rw, "server_error")
 	})
 
 	t.Run("ShouldHandleSubjectLookupError", func(t *testing.T) {
@@ -552,6 +590,8 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 		consent := newTestOIDCConsentSession(t, mock, subject)
 		consent.ClientID = testOIDCDeviceCodeID
 
+		mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, consent)
+
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			AnyTimes().
@@ -587,6 +627,8 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 
 		consent := newTestOIDCConsentSession(t, mock, subject)
 		consent.ClientID = testOIDCDeviceCodeID
+
+		mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, consent)
 		consent.Authorized = true
 		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
 
@@ -632,4 +674,14 @@ func newTestOIDCDeviceCodeClient(t *testing.T) schema.IdentityProvidersOpenIDCon
 		RedirectURIs:            []string{testOIDCRedirectURI},
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 	}
+}
+
+func assertTestOAuth2DeviceAuthorizationError(t *testing.T, rw *httptest.ResponseRecorder, expected string) {
+	t.Helper()
+
+	body := map[string]any{}
+
+	require.NoError(t, json.Unmarshal(rw.Body.Bytes(), &body), rw.Body.String())
+
+	assert.Equal(t, expected, body["error"])
 }

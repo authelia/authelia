@@ -27,13 +27,13 @@ func TestSessionRepositoryShouldDelegateToProvider(t *testing.T) {
 
 	record, err := repository.Get(ctx, "example.com", "id")
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id", []byte("first")), record)
+	assertRecord(t, session.NewRecord("id", []byte("first")), record)
 
-	require.NoError(t, repository.SaveData(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("second")))
+	require.NoError(t, repository.SaveData(ctx, "example.com", "id", "pid", "john", time.Hour, nil, []byte("second")))
 
 	record, err = repository.GetByPublicID(ctx, "example.com", "pid")
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("id", []byte("second")), record)
+	assertRecord(t, session.NewRecord("id", []byte("second")), record)
 
 	ids, err := repository.GetIDsByUsername(ctx, "example.com", "john")
 	require.NoError(t, err)
@@ -47,7 +47,7 @@ func TestSessionRepositoryShouldDelegateToProvider(t *testing.T) {
 
 	record, err = repository.Get(ctx, "example.com", "new")
 	require.NoError(t, err)
-	assert.Equal(t, session.NewRecord("new", []byte("resealed")), record)
+	assertRecord(t, session.NewRecord("new", []byte("resealed")), record)
 
 	require.NoError(t, repository.GarbageCollection(ctx))
 

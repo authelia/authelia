@@ -131,6 +131,8 @@ const (
 	hmacNameRecoveryCode         = "rc"
 	hmacNameExternalIdentityLink = "external_identity_link"
 	hmacNameSession              = "session"
+	hmacNameSessionAuthz         = "session_authz"
+	hmacNameSessionCSRF          = "session_csrf"
 )
 
 const (

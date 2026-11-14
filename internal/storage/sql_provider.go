@@ -97,8 +97,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectSession:                     fmt.Sprintf(queryFmtSelectSession, tableSession),
 		sqlSelectSessionByPublicID:           fmt.Sprintf(queryFmtSelectSessionByPublicID, tableSession),
 		sqlSelectSessionSignatureByPublicID:  fmt.Sprintf(queryFmtSelectSessionSignatureByPublicID, tableSession),
+		sqlSelectSessionLive:                 fmt.Sprintf(queryFmtSelectSessionLive, tableSession),
 		sqlSelectSessionSignaturesByUsername: fmt.Sprintf(queryFmtSelectSessionSignaturesByUsername, tableSession),
 		sqlUpdateSessionData:                 fmt.Sprintf(queryFmtUpdateSessionData, tableSession),
+		sqlUpdateSessionDataIfUnchanged:      fmt.Sprintf(queryFmtUpdateSessionDataIfUnchanged, tableSession),
+		sqlUpdateSessionExpiration:           fmt.Sprintf(queryFmtUpdateSessionExpiration, tableSession),
 		sqlUpdateSessionSignature:            fmt.Sprintf(queryFmtUpdateSessionSignature, tableSession),
 		sqlUpdateSessionDestroyed:            fmt.Sprintf(queryFmtUpdateSessionDestroyed, tableSession),
 		sqlDeleteSessionExpired:              fmt.Sprintf(queryFmtDeleteSessionExpired, tableSession),
@@ -178,6 +181,8 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpdateOAuth2RefreshTokenSessionRequest: fmt.Sprintf(queryFmtUpdateOAuth2RefreshTokenSessionRequest, tableOAuth2RefreshTokenSession),
 		sqlDecideOAuth2DeviceCodeSession:          fmt.Sprintf(queryFmtDecideOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlClaimOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtClaimOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlDenyOAuth2DeviceCodeSession:            fmt.Sprintf(queryFmtDenyOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2BlacklistedJTI:             fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
@@ -208,12 +213,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeactivateOAuth2AuthorizeCodeSession:            fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2AuthorizeCodeSession),
 		sqlDeactivateOAuth2AuthorizeCodeSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2AuthorizeCodeSession),
 
-		sqlInsertOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtInsertOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
-		sqlSelectOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
-		sqlUpdateOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
-		sqlUpdateOAuth2DeviceCodeSessionData:       fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionData, tableOAuth2DeviceCodeSession),
-		sqlDeactivateOAuth2DeviceCodeSession:       fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2DeviceCodeSession),
-		sqlSelectOAuth2DeviceCodeSessionByUserCode: fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByUserCode, tableOAuth2DeviceCodeSession),
+		sqlInsertOAuth2DeviceCodeSession:              fmt.Sprintf(queryFmtInsertOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlSelectOAuth2DeviceCodeSession:              fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlUpdateOAuth2DeviceCodeSession:              fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlUpdateOAuth2DeviceCodeSessionData:          fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionData, tableOAuth2DeviceCodeSession),
+		sqlDeactivateOAuth2DeviceCodeSession:          fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2DeviceCodeSession),
+		sqlSelectOAuth2DeviceCodeSessionByUserCode:    fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByUserCode, tableOAuth2DeviceCodeSession),
+		sqlSelectOAuth2DeviceCodeSessionByChallengeID: fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByChallengeID, tableOAuth2DeviceCodeSession),
 
 		sqlInsertOAuth2OpenIDConnectSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2OpenIDConnectSession),
 		sqlSelectOAuth2OpenIDConnectSession:                fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2OpenIDConnectSession),
@@ -300,8 +306,11 @@ type SQLProvider struct {
 	sqlSelectSession                     string
 	sqlSelectSessionByPublicID           string
 	sqlSelectSessionSignatureByPublicID  string
+	sqlSelectSessionLive                 string
 	sqlSelectSessionSignaturesByUsername string
 	sqlUpdateSessionData                 string
+	sqlUpdateSessionDataIfUnchanged      string
+	sqlUpdateSessionExpiration           string
 	sqlUpdateSessionSignature            string
 	sqlUpdateSessionDestroyed            string
 	sqlDeleteSessionExpired              string
@@ -419,12 +428,13 @@ type SQLProvider struct {
 	sqlDeactivateOAuth2AuthorizeCodeSessionByRequestID string
 
 	// Table: oauth2_device_code_session.
-	sqlInsertOAuth2DeviceCodeSession           string
-	sqlSelectOAuth2DeviceCodeSession           string
-	sqlUpdateOAuth2DeviceCodeSession           string
-	sqlUpdateOAuth2DeviceCodeSessionData       string
-	sqlDeactivateOAuth2DeviceCodeSession       string
-	sqlSelectOAuth2DeviceCodeSessionByUserCode string
+	sqlInsertOAuth2DeviceCodeSession              string
+	sqlSelectOAuth2DeviceCodeSession              string
+	sqlUpdateOAuth2DeviceCodeSession              string
+	sqlUpdateOAuth2DeviceCodeSessionData          string
+	sqlDeactivateOAuth2DeviceCodeSession          string
+	sqlSelectOAuth2DeviceCodeSessionByUserCode    string
+	sqlSelectOAuth2DeviceCodeSessionByChallengeID string
 
 	// Table: oauth2_access_token_session.
 	sqlInsertOAuth2AccessTokenSession                string
@@ -470,6 +480,8 @@ type SQLProvider struct {
 
 	sqlUpdateOAuth2RefreshTokenSessionRequest string
 	sqlDecideOAuth2DeviceCodeSession          string
+	sqlClaimOAuth2DeviceCodeSession           string
+	sqlDenyOAuth2DeviceCodeSession            string
 	sqlSelectOAuth2BlacklistedJTI             string
 
 	// Utility.
@@ -1399,7 +1411,7 @@ func (p *SQLProvider) LoadOAuth2ConsentPreConfigurations(ctx context.Context, cl
 // SaveOAuth2ConsentSession inserts an OAuth2.0 consent session to the storage provider.
 func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
 	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
-		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Granted,
+		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Binding, consent.Authorized, consent.Granted,
 		consent.RequestedAt, consent.ExpiresAt, consent.RespondedAt, consent.Form,
 		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience,
 		consent.RequestedResource, consent.GrantedResource, consent.GrantedClaims, consent.PreConfiguration); err != nil {
@@ -1752,8 +1764,9 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 }
 
 // DecideOAuth2DeviceCodeSession updates the session data of an OAuth2.0 Device Code session in the storage provider
-// only while the stored session is undecided, i.e. it has the new or claimed status. It returns ErrNoRowsAffected when
-// no undecided session exists for the signature.
+// only while the stored session is undecided, claimed by the consent session of the given session, active, and not
+// revoked, i.e. it has the claimed status and the same challenge id. It returns ErrNoRowsAffected when no such session
+// exists for the signature.
 func (p *SQLProvider) DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
 	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
 		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
@@ -1766,12 +1779,49 @@ func (p *SQLProvider) DecideOAuth2DeviceCodeSession(ctx context.Context, session
 		session.RequestedScopes, session.RequestedAudience, session.RequestedResource,
 		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
 		session.Form, session.Session, session.Signature,
-		model.OAuth2DeviceCodeStatusNew, model.OAuth2DeviceCodeStatusClaimed); err != nil {
+		model.OAuth2DeviceCodeStatusClaimed, session.ChallengeID); err != nil {
 		return fmt.Errorf("error deciding oauth2 device code session with signature '%s': %w", session.Signature, err)
 	}
 
 	if err = checkSingleUpdateResult(result); err != nil {
 		return fmt.Errorf("error deciding oauth2 device code session with signature '%s': %w", session.Signature, err)
+	}
+
+	return nil
+}
+
+// DenyOAuth2DeviceCodeSession records the denial of an OAuth2.0 Device Code session in the storage provider only while it
+// is claimed by the consent session with the given challenge id, active, and not revoked, checking and writing it in one
+// atomic operation. It returns ErrNoRowsAffected when no such session exists for the signature.
+func (p *SQLProvider) DenyOAuth2DeviceCodeSession(ctx context.Context, signature string, challengeID uuid.UUID) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlDenyOAuth2DeviceCodeSession,
+		model.OAuth2DeviceCodeStatusDenied, signature, model.OAuth2DeviceCodeStatusClaimed, challengeID); err != nil {
+		return fmt.Errorf("error denying oauth2 device code session with signature '%s': %w", signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error denying oauth2 device code session with signature '%s': %w", signature, err)
+	}
+
+	return nil
+}
+
+// ClaimOAuth2DeviceCodeSession records the consent session of an OAuth2.0 Device Code session and its new status in the
+// storage provider only while the stored session is new, active, not revoked, and not yet claimed by a consent session,
+// checking and writing it in one atomic operation so the user code can only be entered once. It returns
+// ErrNoRowsAffected when no such session exists for the signature.
+func (p *SQLProvider) ClaimOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlClaimOAuth2DeviceCodeSession,
+		session.ChallengeID, session.Status, session.Active, session.Signature, model.OAuth2DeviceCodeStatusNew); err != nil {
+		return fmt.Errorf("error claiming oauth2 device code session with signature '%s': %w", session.Signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error claiming oauth2 device code session with signature '%s': %w", session.Signature, err)
 	}
 
 	return nil
@@ -1817,6 +1867,22 @@ func (p *SQLProvider) LoadOAuth2DeviceCodeSessionByUserCode(ctx context.Context,
 
 	if session.Session, err = utils.Decrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
 		return nil, fmt.Errorf("error decrypting the oauth2 device code session data with user code signature '%s' for subject '%s' and request id '%s': %w", signature, session.Subject.String, session.RequestID, err)
+	}
+
+	return session, nil
+}
+
+// LoadOAuth2DeviceCodeSessionByChallengeID loads an OAuth2.0 Device Code session from the storage provider given the
+// challenge id of the consent session which claimed it.
+func (p *SQLProvider) LoadOAuth2DeviceCodeSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (session *model.OAuth2DeviceCodeSession, err error) {
+	session = &model.OAuth2DeviceCodeSession{}
+
+	if err = p.conn(ctx).GetContext(ctx, session, p.sqlSelectOAuth2DeviceCodeSessionByChallengeID, challengeID); err != nil {
+		return nil, fmt.Errorf("error selecting oauth2 device code session with challenge id '%s': %w", challengeID, err)
+	}
+
+	if session.Session, err = utils.Decrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
+		return nil, fmt.Errorf("error decrypting the oauth2 device code session data with challenge id '%s' for subject '%s' and request id '%s': %w", challengeID, session.Subject.String, session.RequestID, err)
 	}
 
 	return session, nil

@@ -41,11 +41,15 @@ func TestSQLProviderSessionSaveShouldCheckTheAffectedRows(t *testing.T) {
 	testCases := []struct {
 		name   string
 		result sql.Result
+		live   int
+		getErr error
 		err    string
 	}{
-		{"ShouldSucceedWhenARowWasWritten", driver.RowsAffected(1), ""},
-		{"ShouldReturnSupersededWhenNoRowWasWritten", driver.RowsAffected(0), session.ErrSessionSuperseded.Error()},
-		{"ShouldReturnErrorWhenTheAffectedRowsAreUnavailable", driver.ResultNoRows, "error determining whether the session was saved: no RowsAffected available after DDL statement"},
+		{"ShouldSucceedWhenARowWasWritten", driver.RowsAffected(1), -1, nil, ""},
+		{"ShouldReturnSupersededWhenNoRowWasWrittenForADestroyedSession", driver.RowsAffected(0), 0, nil, session.ErrSessionSuperseded.Error()},
+		{"ShouldSucceedWhenNoRowWasWrittenForAnUnchangedSession", driver.RowsAffected(0), 1, nil, ""},
+		{"ShouldReturnErrorWhenTheSessionCannotBeChecked", driver.RowsAffected(0), 0, errors.New("boom"), "error determining whether the session was saved: boom"},
+		{"ShouldReturnErrorWhenTheAffectedRowsAreUnavailable", driver.ResultNoRows, -1, nil, "error determining whether the session was saved: no RowsAffected available after DDL statement"},
 	}
 
 	for _, tc := range testCases {
@@ -55,6 +59,14 @@ func TestSQLProviderSessionSaveShouldCheckTheAffectedRows(t *testing.T) {
 			db := mocks.NewMockSQLXDB(ctrl)
 
 			db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "an-issuer", "a-signature", "a-public-id", "john", gomock.Any(), []byte("data")).Return(tc.result, nil)
+
+			if tc.live >= 0 {
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "an-issuer", "a-signature").DoAndReturn(func(_ context.Context, dest any, _ string, _ ...any) error {
+					*(dest.(*int)) = tc.live
+
+					return tc.getErr
+				})
+			}
 
 			p := storage.NewSQLProviderForTesting(db)
 

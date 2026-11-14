@@ -212,7 +212,8 @@ paths:
       summary: User Application State
       description: >
         The state endpoint provides detailed information including the user, current authenticate level and Authelia's
-        configured default redirection URL.
+        configured default redirection URL. When the request has a session, the '{{ .CSRFCookieName }}' cookie is also
+        issued so the CSRF token is available to operations which change state.
       responses:
         "200":
           description: Successful Operation
@@ -405,7 +406,7 @@ paths:
         {{- end }}
       security:
         {{- if $secCookie }}
-        - authelia_auth: []
+        - authelia_authz: []
         {{- end }}
         {{- if $secBasic }}
         - authorization_basic: []
@@ -522,7 +523,7 @@ paths:
         {{- end }}
       security:
         {{- if $secCookie }}
-        - authelia_auth: []
+        - authelia_authz: []
         {{- end }}
         {{- if $secBasic }}
         - authorization_basic: []
@@ -635,7 +636,7 @@ paths:
         {{- end }}
       security:
         {{- if $secCookie }}
-        - authelia_auth: []
+        - authelia_authz: []
         {{- end }}
         {{- if $secBasic }}
         - authorization_basic: []
@@ -719,7 +720,7 @@ paths:
         {{- end }}
       security:
         {{- if $secCookie }}
-        - authelia_auth: []
+        - authelia_authz: []
         {{- end }}
         {{- if $secBasic }}
         - authorization_basic: []
@@ -756,6 +757,18 @@ paths:
                 $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+      security:
+        - {}
+        - authelia_auth: []
+          csrf_token: []
   /api/firstfactor/reauthenticate:
     post:
       operationId: postFirstFactorReauthenticate
@@ -791,6 +804,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- if .Passkeys }}
   /api/firstfactor/passkey:
     get:
@@ -855,6 +869,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+      security:
+        - {}
+        - authelia_auth: []
+          csrf_token: []
   {{- end }}
   /api/checks/safe-redirection:
     post:
@@ -879,6 +902,14 @@ paths:
                 $ref: '#/components/schemas/handlers.checkURIWithinDomainResponseBody'
         "401":
           description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   /api/logout:
@@ -901,8 +932,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.logoutResponseBody'
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
+        - {}
         - authelia_auth: []
+          csrf_token: []
   {{- if .PasswordChange }}
   /api/change-password:
     post:
@@ -946,6 +987,11 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "500":
           description: Internal Server Error
           content:
@@ -954,6 +1000,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .PasswordReset }}
   /api/reset-password/identity/start:
@@ -982,6 +1029,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "429":
           description: Too Many Requests
           content:
@@ -995,7 +1050,9 @@ paths:
                 minimum: 0
               description: The number of seconds to wait before the request can be retried.
       security:
+        - {}
         - authelia_auth: []
+          csrf_token: []
   /api/reset-password/identity/finish:
     post:
       operationId: postResetPasswordIdentityFinish
@@ -1021,6 +1078,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "429":
           description: Too Many Requests
           content:
@@ -1034,7 +1099,9 @@ paths:
                 minimum: 0
               description: The number of seconds to wait before the request can be retried.
       security:
+        - {}
         - authelia_auth: []
+          csrf_token: []
   /api/reset-password:
     post:
       operationId: postResetPassword
@@ -1059,8 +1126,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteResetPassword
       tags:
@@ -1082,6 +1158,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.API'
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "429":
           description: Too Many Requests
           content:
@@ -1095,7 +1179,9 @@ paths:
                 minimum: 0
               description: The number of seconds to wait before the request can be retried.
       security:
+        - {}
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   /api/user/info:
     get:
@@ -1148,6 +1234,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/user/info/2fa_method:
     post:
       operationId: postUserInfoSecondFactorMethod
@@ -1177,6 +1264,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/user/session/elevation:
     get:
       operationId: getUserSessionElevation
@@ -1240,6 +1328,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
     put:
       operationId: putUserSessionElevation
       tags:
@@ -1289,6 +1378,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/user/session/elevation/{id}:
     delete:
       operationId: deleteUserSessionElevation
@@ -1313,7 +1403,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.API'
-      security: []
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+      security:
+        - {}
+        - authelia_auth: []
+          csrf_token: []
   {{- if .TOTP }}
   /api/secondfactor/totp/register:
     get:
@@ -1381,8 +1482,14 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
     post:
       operationId: postSecondFactorTOTPRegistration
       tags:
@@ -1418,8 +1525,14 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteSecondFactorTOTPRegistration
       tags:
@@ -1444,8 +1557,14 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/totp:
     get:
       operationId: getSecondFactorTOTPConfiguration
@@ -1540,6 +1659,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteSecondFactorTOTP
       tags:
@@ -1563,8 +1683,14 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .WebAuthn }}
   /api/secondfactor/webauthn:
@@ -1638,6 +1764,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/webauthn/credentials:
     get:
       operationId: getSecondFactorWebAuthnCredentials
@@ -1705,6 +1832,11 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "409":
           description: Conflict
           content:
@@ -1713,6 +1845,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
     post:
       operationId: postSecondFactorWebAuthnCredentialRegistration
       tags:
@@ -1750,8 +1883,14 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteSecondFactorWebAuthnCredentialRegistration
       tags:
@@ -1776,8 +1915,14 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/webauthn/credential/{credentialID}:
     put:
       operationId: putSecondFactorWebAuthnCredential
@@ -1817,6 +1962,11 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "409":
           description: Conflict
           content:
@@ -1825,6 +1975,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
     delete:
       operationId: deleteSecondFactorWebAuthnCredential
       tags:
@@ -1857,8 +2008,14 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/middlewares.Response.Elevation'
                   - $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .Duo }}
   /api/secondfactor/duo:
@@ -1935,6 +2092,7 @@ paths:
               description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/duo_devices:
     get:
       operationId: getSecondFactorDuoDevices
@@ -1995,6 +2153,7 @@ paths:
                   - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .Passkeys }}
   /api/secondfactor/password:
@@ -2041,7 +2200,8 @@ paths:
                 minimum: 0
               description: The number of seconds to wait before the request can be retried.
       security:
-        - authelia_auth: [ ]
+        - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .RecoveryCodes }}
   /api/secondfactor/recovery-codes:
@@ -2100,6 +2260,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "500":
           description: Internal Server Error
           content:
@@ -2108,6 +2273,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/secondfactor/recovery-code:
     post:
       operationId: postSecondFactorRecoveryCode
@@ -2143,8 +2309,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
   {{- end }}
   {{- if .OpenIDConnect }}
   /.well-known/openid-configuration:
@@ -2217,7 +2389,11 @@ paths:
         - in: query
           name: consent_id
           required: false
-          description: The OpenID Connect 1.0 consent workflow ID.
+          description: >
+            The OpenID Connect 1.0 consent workflow ID. When it and the client_id are the only parameters, the
+            Authorization Request stored in the consent session is processed in place of the query parameters. The
+            consent session must belong to the client and be bound to the user agent by the
+            '{{ .SessionBinding }}' cookie.
           schema:
             type: string
             format: uuid
@@ -2468,11 +2644,14 @@ paths:
         "200":
           description: >
             OK Response. It should be noted that it is not possible to properly describe responses for this endpoint.
+            When a cross-site navigation, or a request from a user agent which doesn't send the fetch metadata request
+            headers and has a referrer, arrives without the session cookie, the response is a page which repeats the
+            request from the Authelia origin so the session cookie is sent with it.
           content:
             text/html:
               schema:
                 type: string
-                description: The Form Post Response Mode content.
+                description: The Form Post Response Mode content, or the page which repeats the request.
         "303":
           description: >
             See Other. It should be noted that it is not possible to properly describe responses for this endpoint.
@@ -2497,6 +2676,7 @@ paths:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - authelia_auth: []
+        - {}
     post:
       operationId: postOpenIDConnectAuthorization
       tags:
@@ -2504,7 +2684,11 @@ paths:
         - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Authorization Endpoint
       description: >
-        This endpoint performs OpenID Connect 1.0 Authorization.
+        This endpoint accepts an OpenID Connect 1.0 Authorization Request using the HTTP POST method. The session
+        cookie is not used. The request is validated and stored in a consent session bound to the user agent by the
+        '{{ .SessionBinding }}' cookie, and the user agent is redirected to this endpoint with only the client_id and
+        consent_id parameters, where the GET operation processes the stored request. This keeps the parameters of the
+        request out of the URL.
       requestBody:
         description: Authorize Request Parameters.
         required: true
@@ -2527,14 +2711,14 @@ paths:
               schema:
                 type: string
               description: >
-                Redirection location for the consent flow, or the authorization response callback location when using
-                the Query or Fragment Response Modes.
+                The Authorization Endpoint with the client_id and consent_id parameters, or the authorization error
+                response callback location when using the Query or Fragment Response Modes.
         "400":
           description: Bad Request
         "500":
           description: Internal Server Error
       security:
-        - authelia_auth: []
+        - {}
   /api/oidc/device-authorization:
     post:
       operationId: postOAuth2DeviceAuthorization
@@ -2599,7 +2783,8 @@ paths:
         - OpenID Connect 1.0
       summary: RFC8628 OAuth 2.0 Device Authorization Grant Endpoint
       description: >
-        This endpoint performs the user interaction for the Device Authorization Flow.
+        This endpoint performs the user interaction for the Device Authorization Flow. The consent session
+        identified by the flow_id must be bound to the user agent by the '{{ .SessionBinding }}' cookie.
       requestBody:
         description: Device Authorize Request (User Code Flow) Parameters.
         required: true
@@ -2623,6 +2808,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "404":
           description: Not Found
           content:
@@ -2637,6 +2830,7 @@ paths:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - authelia_auth: []
+          csrf_token: []
   /api/oidc/pushed-authorization-request:
     post:
       operationId: postOAuth2PushedAuthorizationRequest
@@ -2822,6 +3016,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
           content:
@@ -3062,13 +3268,21 @@ paths:
       summary: OpenID Connect 1.0 Consent Information
       description: >
         This endpoint retrieves the consent information about a specific consent ID during the consent workflow.
-
-
-        Either the flow_id or user_code parameter must be provided. The user_code parameter is used by the
-        RFC8628 OAuth 2.0 Device Authorization Grant sub-flow.
+        The consent session identified by the flow_id must be bound to the user agent by the '{{ .SessionBinding }}'
+        cookie, and a consent session which already has a subject can only be read by that user. When the subflow is
+        device_authorization the consent session must also have claimed a device code session which is pending a
+        decision, and pre-configuration is never offered. Failures are reported in the body of a 200 response with a
+        status of KO.
       parameters:
         - $ref: '#/components/parameters/flowIDParam'
-        - $ref: '#/components/parameters/userCodeParam'
+        - in: query
+          name: subflow
+          required: false
+          description: The name of the subflow if applicable.
+          schema:
+            type: string
+            enum:
+              - 'device_authorization'
       responses:
         "200":
           description: OK
@@ -3076,8 +3290,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.request.consent'
-        "403":
-          description: Forbidden
       security:
         - authelia_auth: []
     post:
@@ -3087,7 +3299,15 @@ paths:
         - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Consent Response
       description: >
-        This endpoint retrieves the consent response for a specific consent ID during the consent workflow.
+        This endpoint submits the consent response for a specific consent ID during the consent workflow. The consent
+        session must be bound to the user agent by the '{{ .SessionBinding }}' cookie, which is issued, or extended when
+        the user agent already holds one, whenever a new consent session is created, including when a user code is
+        exchanged for a consent session during the RFC8628 OAuth 2.0 Device Authorization Grant sub-flow. A consent
+        session which already has a subject can only be responded to by that user. In the device_authorization subflow
+        the consent session must have claimed a device code session which is pending a decision, and denying it denies
+        the device code session. Without the subflow, a consent session which belongs to the Device Authorization
+        Grant is refused. Failures other than the rejection of the request with a 403 status are reported in the body
+        of a 200 response with a status of KO.
       requestBody:
         required: true
         content:
@@ -3103,8 +3323,64 @@ paths:
                 $ref: '#/components/schemas/openid.response.consent'
         "403":
           description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
+          csrf_token: []
+  /api/oidc/consent/user-code:
+    post:
+      operationId: postOpenIDConnectConsentUserCode
+      tags:
+        - OAuth 2.0
+        - OpenID Connect 1.0
+      summary: RFC8628 OAuth 2.0 Device Authorization Grant User Code Exchange
+      description: >
+        This endpoint exchanges the user code of the RFC8628 OAuth 2.0 Device Authorization Grant for a consent
+        session, which claims the device code session so the user code can't be entered by another user agent. The
+        consent session is bound to the user agent by the '{{ .SessionBinding }}' cookie. A user code the user agent
+        already exchanged for a consent session which is still pending a response is exchanged for that consent session
+        again. Requests which fail to exchange a user code are rate limited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/openid.request.consent.user_code.body'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.response.consent'
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
+      security:
+        - authelia_auth: []
+          csrf_token: []
   {{- end }}
 components:
   parameters:
@@ -3261,24 +3537,14 @@ components:
       name: flow_id
       in: query
       description: >
-        The Flow ID that's being requested. Required unless the user_code parameter is provided.
-      required: false
+        The Flow ID that's being requested.
+      required: true
       schema:
         type: string
         format: uuid
         pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
         examples:
           - '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
-    userCodeParam:
-      name: user_code
-      in: query
-      description: >
-        The RFC8628 OAuth 2.0 Device Authorization Grant user code. Required unless the flow_id parameter is provided.
-      required: false
-      schema:
-        type: string
-        examples:
-          - 'XGQWWFMM'
   schemas:
     handlers.checkURIWithinDomainRequestBody:
       type: object
@@ -4839,11 +5105,12 @@ components:
     openid.request.consent.body:
       description: The consent decision submitted by the user during the consent workflow.
       type: object
+      required:
+        - flow_id
+        - client_id
       properties:
         flow_id:
-          description: >
-            The identifier of the consent flow session. Required unless the device_authorization subflow is being
-            used, in which case the user_code is used instead.
+          description: The identifier of the consent flow session.
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
@@ -4876,9 +5143,17 @@ components:
             - 'device_authorization'
           enum:
             - 'device_authorization'
+    openid.request.consent.user_code.body:
+      description: The user code entered by the user during the Device Authorization Flow.
+      type: object
+      required:
+        - user_code
+      properties:
         user_code:
-          description: The user code from the Device Authorization Flow if applicable.
+          description: The user code displayed by the device.
           type: string
+          minLength: 1
+          maxLength: 32
           examples:
             - 'XGQWWFMM'
     openid.response.consent:
@@ -7565,6 +7840,31 @@ components:
       type: apiKey
       name: '{{ .Session }}'
       in: cookie
+      description: >
+        The session cookie. It is host only, so it is only sent to the Authelia host, and it is only accepted by the
+        portal and API endpoints, not by the authorization endpoints.
+    authelia_authz:
+      type: apiKey
+      name: '{{ .SessionAuthz }}'
+      in: cookie
+      description: >
+        The authorization cookie. It is scoped to the session cookie domain so it is sent to the protected
+        applications, and it is only accepted by the authorization endpoints using the CookieSession strategy.
+    csrf_token:
+      type: apiKey
+      name: X-CSRF-Token
+      in: header
+      description: >
+        The CSRF token of the session, which is the value of the '{{ .CSRFCookieName }}' cookie. Operations which
+        change state require it whenever the session cookie of the request resolves to a stored session, and don't
+        require it otherwise, such as when signing in without an existing session. The request is rejected with a 403
+        Forbidden status when the token is missing or invalid, or when the session can't be retrieved to verify it. The
+        cookie is issued whenever the session cookie is issued, and the state endpoint issues it again on every request
+        whose session cookie resolves to a stored session. The token changes whenever the session is regenerated, such
+        as after each authentication step, so it must be read from the cookie again for each request. Independently of
+        the token, requests using a method other than GET, HEAD, OPTIONS, or TRACE are rejected with a 403 Forbidden
+        status when the Sec-Fetch-Site header is present and is neither same-origin nor none, or when it is absent and
+        the Origin header is present and doesn't match the origin of the request.
     authorization_basic:
       type: http
       scheme: basic

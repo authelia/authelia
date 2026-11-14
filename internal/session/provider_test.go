@@ -32,7 +32,7 @@ func TestNewProvider(t *testing.T) {
 		},
 	}
 
-	provider, err := NewProvider(config, []byte(testHMACKey), clock.New(), random.NewMathematical(), newTestRepository())
+	provider, err := NewProvider(config, newTestHMACKeys(), clock.New(), random.NewMathematical(), newTestRepository())
 
 	require.NoError(t, err)
 	require.NotNil(t, provider)
@@ -70,7 +70,7 @@ func TestNewProvider(t *testing.T) {
 }
 
 func TestDefaultProvider_StartupCheck(t *testing.T) {
-	provider, err := NewProvider(&schema.Configuration{Session: schema.Session{Secret: testSecret}}, []byte(testHMACKey), clock.New(), random.NewMathematical(), newTestRepository())
+	provider, err := NewProvider(&schema.Configuration{Session: schema.Session{Secret: testSecret}}, newTestHMACKeys(), clock.New(), random.NewMathematical(), newTestRepository())
 
 	require.NoError(t, err)
 
@@ -81,4 +81,14 @@ func TestDefaultProvider_StartupCheck(t *testing.T) {
 
 	_, err = defaultProvider.GetStrategy(testDomain)
 	assert.EqualError(t, err, "not found")
+}
+
+func TestNewProviderShouldReturnCodecErrors(t *testing.T) {
+	keys := newTestHMACKeys()
+	keys.SessionCSRF = nil
+
+	provider, err := NewProvider(&schema.Configuration{Session: schema.Session{Secret: testSecret}}, keys, clock.New(), random.NewMathematical(), newTestRepository())
+
+	assert.Nil(t, provider)
+	assert.EqualError(t, err, "error occurred creating the session codec: every hmac key is required")
 }

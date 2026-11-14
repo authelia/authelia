@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"io"
 
 	"github.com/google/uuid"
 
@@ -17,8 +18,29 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewCodec returns a new SecureCodec.
-func NewCodec(rawKey string, hmacKey []byte, random random.Provider) (codec Codec, err error) {
+// HMACKeys are the HMAC keys a SecureCodec signs values with. Each is used for a single purpose so that a signature
+// made for one purpose is never valid for another, and each can be rotated independently of the others.
+type HMACKeys struct {
+	// Session is the key the session cookie value is signed with to derive the identifier the session is stored
+	// against.
+	Session []byte
+
+	// SessionAuthz is the key the authz cookie value is derived and signed with.
+	SessionAuthz []byte
+
+	// SessionCSRF is the key the CSRF token is derived from the CSRF secret of a session with.
+	SessionCSRF []byte
+}
+
+// NewCodec returns a new SecureCodec. Every HMAC key is required and each must be distinct.
+func NewCodec(rawKey string, keys HMACKeys, random random.Provider) (codec Codec, err error) {
+	switch {
+	case len(keys.Session) == 0, len(keys.SessionAuthz) == 0, len(keys.SessionCSRF) == 0:
+		return nil, fmt.Errorf("error occurred creating the session codec: every hmac key is required")
+	case hmac.Equal(keys.Session, keys.SessionAuthz), hmac.Equal(keys.Session, keys.SessionCSRF), hmac.Equal(keys.SessionAuthz, keys.SessionCSRF):
+		return nil, fmt.Errorf("error occurred creating the session codec: every hmac key must be distinct")
+	}
+
 	var key []byte
 
 	if key, err = hkdf.Key(sha256.New, []byte(rawKey), nil, hkdfKeyInfoCodec, 32); err != nil {
@@ -26,17 +48,21 @@ func NewCodec(rawKey string, hmacKey []byte, random random.Provider) (codec Code
 	}
 
 	return &SecureCodec{
-		encKey:  key,
-		hmacKey: hmacKey,
-		random:  random,
+		encKey:       key,
+		hmacKey:      keys.Session,
+		hmacKeyAuthz: keys.SessionAuthz,
+		hmacKeyCSRF:  keys.SessionCSRF,
+		random:       random,
 	}, nil
 }
 
-// SecureCodec is the default Codec which signs session identifiers with a HMAC key and seals session data with an
-// authenticated encryption key derived from the session secret.
+// SecureCodec is the default Codec which signs values with a HMAC key specific to their purpose and seals session data
+// with an authenticated encryption key derived from the session secret.
 type SecureCodec struct {
-	encKey  []byte
-	hmacKey []byte
+	encKey       []byte
+	hmacKey      []byte
+	hmacKeyAuthz []byte
+	hmacKeyCSRF  []byte
 
 	random random.Provider
 }
@@ -64,25 +90,54 @@ func (c *SecureCodec) GenerateSessionID() (id []byte, err error) {
 	return id, nil
 }
 
+// GenerateCSRFSecret returns a new random CSRF secret which is stored in the session and signed to derive the CSRF token.
+func (c *SecureCodec) GenerateCSRFSecret() (secret []byte, err error) {
+	secret = make([]byte, 32)
+
+	if _, err = io.ReadFull(c.random, secret); err != nil {
+		return nil, err
+	}
+
+	return secret, nil
+}
+
 // Verify returns true if the given signature is the signature of the given data, comparing them in constant time.
 func (c *SecureCodec) Verify(data []byte, signature string) bool {
+	return verify(c.hmacKey, data, signature)
+}
+
+// Sign returns the hex encoded HMAC signature of the given data using the session key.
+func (c *SecureCodec) Sign(data []byte) string {
+	return hex.EncodeToString(sign(c.hmacKey, data))
+}
+
+// SignAuthz returns the hex encoded HMAC signature of the given data using the session authz key.
+func (c *SecureCodec) SignAuthz(data []byte) string {
+	return hex.EncodeToString(sign(c.hmacKeyAuthz, data))
+}
+
+// SignCSRF returns the hex encoded HMAC signature of the given data using the session CSRF key.
+func (c *SecureCodec) SignCSRF(data []byte) string {
+	return hex.EncodeToString(sign(c.hmacKeyCSRF, data))
+}
+
+// VerifyCSRF returns true if the given signature is the CSRF signature of the given data, comparing them in constant
+// time.
+func (c *SecureCodec) VerifyCSRF(data []byte, signature string) bool {
+	return verify(c.hmacKeyCSRF, data, signature)
+}
+
+func verify(key, data []byte, signature string) bool {
 	actual, err := hex.DecodeString(signature)
 	if err != nil {
 		return false
 	}
 
-	expected := c.sign(data)
-
-	return hmac.Equal(expected, actual)
+	return hmac.Equal(sign(key, data), actual)
 }
 
-// Sign returns the hex encoded HMAC signature of the given data.
-func (c *SecureCodec) Sign(data []byte) string {
-	return hex.EncodeToString(c.sign(data))
-}
-
-func (c *SecureCodec) sign(data []byte) []byte {
-	mac := hmac.New(sha256.New, c.hmacKey)
+func sign(key, data []byte) []byte {
+	mac := hmac.New(sha256.New, key)
 	mac.Write(data)
 
 	return mac.Sum(nil)
@@ -121,6 +176,30 @@ func (c *SecureCodec) Open(domain string, record Record, session *UserSession) (
 	return err
 }
 
+// SealForward encrypts the session identifier a session was moved to, binding the ciphertext to the domain and the
+// session identifier it was moved from so it cannot be replayed against another domain or session.
+func (c *SecureCodec) SealForward(domain, from string, to []byte) (data []byte, err error) {
+	if data, err = utils.Encrypt(to, getAADForward(domain, from), c.encKey); err != nil {
+		return nil, fmt.Errorf("unable to encrypt session forward: %w", err)
+	}
+
+	return data, nil
+}
+
+// OpenForward decrypts the session identifier a session was moved to from data sealed by SealForward for the same
+// domain and the session identifier it was moved from.
+func (c *SecureCodec) OpenForward(domain, from string, data []byte) (to []byte, err error) {
+	if to, err = utils.Decrypt(data, getAADForward(domain, from), c.encKey); err != nil {
+		return nil, fmt.Errorf("unable to decrypt session forward: %w", err)
+	}
+
+	return to, nil
+}
+
 func getAAD(domain, id string) []byte {
 	return []byte("authelia:session:v2:" + domain + ":" + id)
+}
+
+func getAADForward(domain, from string) []byte {
+	return []byte("authelia:session:forward:v1:" + domain + ":" + from)
 }
