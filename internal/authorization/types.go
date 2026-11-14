@@ -76,30 +76,33 @@ type Object struct {
 	Domain string
 	Path   string
 	Method string
+
+	// CanonicalURI is the normalized form of the URL, see [utils.URICanonical].
+	CanonicalURI string
 }
 
-// String is a string representation of the Object.
+// String is a string representation of the Object with any password in the URL redacted.
 func (o Object) String() string {
 	if o.URL == nil {
 		return ""
 	}
 
-	return o.URL.String()
+	return o.URL.Redacted()
 }
 
 // NewObjectMethodURLOrSchemeHostPath creates a new [Object] from the raw method and raw URL, falling back to the raw
 // scheme, host, and path when the raw URL is absent.
-func NewObjectMethodURLOrSchemeHostPath(rawMethod, rawURL, rawScheme, rawHost, rawPath []byte) (object *Object, err error) {
+func NewObjectMethodURLOrSchemeHostPath(parser *utils.URIParser, rawMethod, rawURL, rawScheme, rawHost, rawPath []byte) (object *Object, err error) {
 	if len(rawURL) > 0 {
-		return NewObjectMethodURL(rawMethod, rawURL)
+		return NewObjectMethodURL(parser, rawMethod, rawURL)
 	}
 
-	return NewObjectMethodSchemeHostPath(rawMethod, rawScheme, rawHost, rawPath)
+	return NewObjectMethodSchemeHostPath(parser, rawMethod, rawScheme, rawHost, rawPath)
 }
 
 // NewObjectMethodSchemeHostPath creates a new [Object] from the raw method and the raw scheme, host, and path which are
 // joined to form the request URL.
-func NewObjectMethodSchemeHostPath(rawMethod, rawScheme, rawHost, rawPath []byte) (object *Object, err error) {
+func NewObjectMethodSchemeHostPath(parser *utils.URIParser, rawMethod, rawScheme, rawHost, rawPath []byte) (object *Object, err error) {
 	if len(rawScheme) == 0 {
 		return nil, fmt.Errorf("missing scheme value")
 	}
@@ -110,13 +113,13 @@ func NewObjectMethodSchemeHostPath(rawMethod, rawScheme, rawHost, rawPath []byte
 
 	rawURL := utils.BytesJoin(rawScheme, sepSchemeHost, rawHost, rawPath)
 
-	return NewObjectMethodURL(rawMethod, rawURL)
+	return NewObjectMethodURL(parser, rawMethod, rawURL)
 }
 
-// NewObjectMethodURL creates a new [Object] from the raw method and raw URL, validating the method and applying request
-// URI normalization to the URL.
-func NewObjectMethodURL(rawMethod, rawURL []byte) (object *Object, err error) {
-	var objectURL *url.URL
+// NewObjectMethodURL creates a new [Object] from the raw method and raw URL, validating the method and parsing the URL with
+// the provided [utils.URIParser], or [utils.DefaultURIParser] if it is nil.
+func NewObjectMethodURL(parser *utils.URIParser, rawMethod, rawURL []byte) (object *Object, err error) {
+	var parsed *utils.ParsedURI
 
 	if len(rawMethod) > MethodMaxLength {
 		return nil, fmt.Errorf("method header with length %d exceeds the maximum length of %d", len(rawMethod), MethodMaxLength)
@@ -128,11 +131,15 @@ func NewObjectMethodURL(rawMethod, rawURL []byte) (object *Object, err error) {
 
 	method := string(rawMethod)
 
-	if objectURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
+	if parser == nil {
+		parser = utils.DefaultURIParser()
+	}
+
+	if parsed, err = parser.Parse(string(rawURL)); err != nil {
 		return nil, fmt.Errorf("error occurred parsing object url: %w", err)
 	}
 
-	o := NewObject(objectURL, method)
+	o := newObject(parsed.URL, method, parsed.AccessPath, parsed.Canonical)
 
 	return &o, nil
 }
@@ -144,14 +151,20 @@ func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 
 // NewObject creates a new Object type from a URL and a method header.
 func NewObject(targetURL *url.URL, method string) (object Object) {
+	return newObject(targetURL, method, utils.URIAccessPath(targetURL), utils.URICanonical(targetURL))
+}
+
+func newObject(targetURL *url.URL, method, accessPath, canonical string) (object Object) {
 	targetURL.Scheme = strings.ToLower(targetURL.Scheme)
 	targetURL.Host = strings.ToLower(targetURL.Host)
 
 	return Object{
 		URL:    targetURL,
 		Domain: targetURL.Hostname(),
-		Path:   utils.URLPathFullClean(targetURL),
+		Path:   accessPath,
 		Method: strings.ToUpper(method),
+
+		CanonicalURI: canonical,
 	}
 }
 
