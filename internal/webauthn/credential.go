@@ -37,7 +37,7 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 		credential.AttestationType = c.AttestationType
 	}
 
-	if config.Filtering.ProhibitBackupEligibility && credential.BackupEligible {
+	if config.Filtering.IsProhibitBackupEligibility() && credential.BackupEligible {
 		result.IsProhibitedBackupEligibility = true
 	}
 

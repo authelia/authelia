@@ -276,7 +276,7 @@ func TestShouldValidateConfigurationWithOverriddenDefaults(t *testing.T) {
 	validator.ValidateWebAuthn(config, val)
 
 	assert.Equal(t, protocol.ResidentKeyRequirement(""), config.WebAuthn.SelectionCriteria.Discoverability)
-	assert.Equal(t, protocol.AuthenticatorAttachment(""), config.WebAuthn.SelectionCriteria.Attachment)
+	assert.Equal(t, new(protocol.AuthenticatorAttachment("")), config.WebAuthn.SelectionCriteria.Attachment)
 	assert.Equal(t, protocol.UserVerificationRequirement(""), config.WebAuthn.SelectionCriteria.UserVerification)
 }
 
@@ -289,7 +289,7 @@ func TestShouldValidateConfigurationWithoutOverriddenDefaults(t *testing.T) {
 	validator.ValidateWebAuthn(config, val)
 
 	assert.Equal(t, protocol.ResidentKeyRequirementPreferred, config.WebAuthn.SelectionCriteria.Discoverability)
-	assert.Equal(t, protocol.AuthenticatorAttachment(""), config.WebAuthn.SelectionCriteria.Attachment)
+	assert.Nil(t, config.WebAuthn.SelectionCriteria.Attachment)
 	assert.Equal(t, protocol.VerificationPreferred, config.WebAuthn.SelectionCriteria.UserVerification)
 }
 
