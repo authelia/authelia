@@ -14,6 +14,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -122,6 +123,8 @@ func TestFirstFactorPasswordPOSTSessionErrors(t *testing.T) {
 
 			mock.Ctx.Request.SetBodyString(`{"username":"test","password":"hello","requestMethod":"GET","keepMeLoggedIn":false}`)
 
+			expectAuthnSuccess(mock, testValue, events.StageFirstFactor, events.MethodPassword)
+
 			tc.setup(t, mock, repository)
 
 			FirstFactorPasswordPOST(nil)(mock.Ctx)
@@ -176,6 +179,8 @@ func TestFirstFactorReauthenticatePOSTShouldHandleFlow(t *testing.T) {
 
 	mock.Ctx.Request.SetBodyString(`{"password":"hello","flow":"not-a-flow"}`)
 
+	expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorReauthenticatePOST(nil)(mock.Ctx)
 
 	assert.NotEqual(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
@@ -227,6 +232,8 @@ func TestFirstFactorPasskeyPOSTSessionErrors(t *testing.T) {
 
 		mock.Ctx.Request.SetBodyString(`{`)
 
+		expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+
 		FirstFactorPasskeyPOST(mock.Ctx)
 
 		assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
@@ -259,6 +266,8 @@ func TestFirstFactorPasskeyPOSTSessionErrors(t *testing.T) {
 			Return(nil)
 
 		mock.Ctx.Request.SetBodyString(`{`)
+
+		expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
 
 		FirstFactorPasskeyPOST(mock.Ctx)
 

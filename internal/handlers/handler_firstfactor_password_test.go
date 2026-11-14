@@ -22,6 +22,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -104,6 +105,9 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Unsuccessful 1FA authentication attempt by user 'test'", "failed")
@@ -144,6 +148,8 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
@@ -191,6 +197,8 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 		"keepMeLoggedIn": true
 	}`)
 
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonInvalidCredentials)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 }
 
@@ -217,9 +225,41 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 		"keepMeLoggedIn": true
 	}`)
 
+	expectAuthnFailure(s.mock, "", events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
+}
+
+func (s *FirstFactorSuite) TestShouldEmitUserNotFoundWhenUserProviderReportsTheUserIsMissing() {
+	attempt := model.AuthenticationAttempt{Time: s.mock.Clock.Now(), Type: regulation.AuthType1FA, RemoteIP: model.NewNullIPFromString("0.0.0.0")}
+
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(nil, authentication.ErrUserNotFound),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+			Return(nil),
+	)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	expectAuthnFailure(s.mock, "", events.StageFirstFactor, events.MethodPassword, events.ReasonUserNotFound)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
 	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
@@ -245,6 +285,8 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFailAndGetIPFai
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
+	expectAuthnFailure(s.mock, "", events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
@@ -286,6 +328,8 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFailAndGetIPBan
 		"keepMeLoggedIn": true
 	}`)
 
+	expectAuthnFailure(s.mock, "", events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed")
@@ -323,6 +367,9 @@ func (s *FirstFactorSuite) TestShouldNotFailIfAuthenticationMarkFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to record 1FA authentication attempt", "failed")
@@ -362,6 +409,9 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
@@ -409,6 +459,9 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
+
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
@@ -457,6 +510,8 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 		"keepMeLoggedIn": true
 	}`)
 
+	expectAuthnSuccess(s.mock, "Test", events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
@@ -503,6 +558,8 @@ func (s *FirstFactorSuite) TestShouldFailIfUserIsBanned() {
 		"username": "test",
 		"password": "hello"
 	}`)
+
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
@@ -596,6 +653,8 @@ func (s *FirstFactorSuite) TestShouldFailIfSessionProviderUnavailableWithDelayer
 		"password": "hello"
 	}`)
 
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorPasswordPOST(middlewares.NewTimingAttackDelay(10, time.Millisecond))(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to get session provider during 1FA attempt", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -638,6 +697,8 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
+
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
 }
 
 func (s *FirstFactorRedirectionSuite) TearDownTest() {
@@ -1373,6 +1434,9 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfUserProviderCheckPasswo
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
+
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
+
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Unsuccessful 1FA authentication attempt by user 'test'", "failed")
@@ -1402,6 +1466,8 @@ func (s *FirstFactorReauthenticateSuite) TestShouldCheckAuthenticationIsNotMarke
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
+
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
 
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 }
@@ -1433,6 +1499,8 @@ func (s *FirstFactorReauthenticateSuite) TestShouldCheckUserNotBanned() {
 				Type:       regulation.AuthType1FA,
 				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 			})))
+
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
 
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 }
@@ -1468,6 +1536,35 @@ func (s *FirstFactorReauthenticateSuite) TestShouldCheckBannedUser() {
 				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 			})))
 
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
+
+	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
+
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
+}
+
+func (s *FirstFactorReauthenticateSuite) TestShouldNameTheUserWhenTheAddressIsBanned() {
+	s.mock.Ctx.Providers.Regulator = regulation.NewRegulator(schema.Regulation{MaxRetries: 2, FindTime: time.Hour, BanTime: time.Hour}, s.mock.StorageMock, &s.mock.Clock)
+
+	expires := s.mock.Clock.Now().Add(time.Hour)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	gomock.InOrder(
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).
+			Return([]model.BannedIP{{ID: 1, IP: model.NewIP(s.mock.Ctx.RemoteIP()), Expires: sql.NullTime{Time: expires, Valid: true}}}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(gomock.Eq(s.mock.Ctx), gomock.Any()))
+
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
+
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
@@ -1496,6 +1593,8 @@ func (s *FirstFactorReauthenticateSuite) TestShouldCheckAuthenticationIsMarkedWh
 		"password": "hello"
 	}`)
 
+	expectAuthnFailure(s.mock, testValue, events.StageFirstFactor, events.MethodPassword, events.ReasonInvalidCredentials)
+
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 }
 
@@ -1520,6 +1619,9 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfUserProviderGetDetailsF
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
+
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Could not obtain profile details during 1FA authentication for user 'test'", "failed")
@@ -1551,6 +1653,9 @@ func (s *FirstFactorReauthenticateSuite) TestShouldNotFailIfAuthenticationMarkFa
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
+
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to record 1FA authentication attempt", "failed")
@@ -1583,6 +1688,9 @@ func (s *FirstFactorReauthenticateSuite) TestShouldSaveUsernameFromAuthenticatio
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
+
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
+
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
@@ -1669,6 +1777,8 @@ func (s *FirstFactorReauthenticateRedirectionSuite) SetupTest() {
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
+
+	expectAuthnSuccess(s.mock, testValue, events.StageFirstFactor, events.MethodPassword)
 }
 
 func (s *FirstFactorReauthenticateRedirectionSuite) TearDownTest() {

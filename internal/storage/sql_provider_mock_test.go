@@ -2080,6 +2080,27 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 			},
 		},
 		{
+			name:     "ShouldSucceedForWebhookCallback",
+			hmacName: "whc",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_whc", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "wh-%").Return(nil, nil)
+				tx.EXPECT().Commit().Return(nil)
+			},
+		},
+		{
+			name:     "ShouldErrDeleteForWebhookCallbackAndRollback",
+			hmacName: "whc",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_whc", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "wh-%").Return(nil, errors.New("delete failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error deleting webhook callback confirmations: delete failed",
+		},
+		{
 			name:     "ShouldErrBeginTransactionForOneTimePassword",
 			hmacName: "otp",
 			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {

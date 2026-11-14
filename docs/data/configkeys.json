@@ -1125,6 +1125,11 @@
     "env": "AUTHELIA_LOG_LEVEL"
   },
   {
+    "path": "notifier.disable",
+    "secret": false,
+    "env": "AUTHELIA_NOTIFIER_DISABLE"
+  },
+  {
     "path": "notifier.disable_startup_check",
     "secret": false,
     "env": "AUTHELIA_NOTIFIER_DISABLE_STARTUP_CHECK"
@@ -1513,6 +1518,16 @@
     "path": "server.endpoints.rate_limits.session_elevation_start.ipv6_mask",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_START_IPV6_MASK"
+  },
+  {
+    "path": "server.endpoints.rate_limits.webhook_confirm.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_WEBHOOK_CONFIRM_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.webhook_confirm.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_WEBHOOK_CONFIRM_IPV6_MASK"
   },
   {
     "path": "server.headers.csp_template",
@@ -1938,5 +1953,10 @@
     "path": "webauthn.timeout",
     "secret": false,
     "env": "AUTHELIA_WEBAUTHN_TIMEOUT"
+  },
+  {
+    "path": "webhooks.startup_check",
+    "secret": false,
+    "env": "AUTHELIA_WEBHOOKS_STARTUP_CHECK"
   }
 ]

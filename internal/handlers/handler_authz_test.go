@@ -23,6 +23,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -251,6 +252,8 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 		GetDetailsCached(gomock.Eq("john")).
 		Return(&authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}, nil)
 
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
+
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
@@ -363,6 +366,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 			Groups:   []string{"dev", "admins"},
 		}, nil)
 
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
+
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -438,6 +443,8 @@ func (s *AuthzSuite) TestShouldMarkAuthenticationAttemptWhenUserNotFoundUsingBas
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, targetURI.String()))).Return(nil),
 	)
 
+	expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodPassword, events.ReasonUserNotFound)
+
 	authz.Handler(mock.Ctx)
 
 	switch s.implementation {
@@ -478,6 +485,8 @@ func (s *AuthzSuite) TestShouldMarkAuthenticationAttemptWhenUserDetailsNilUsingB
 			EXPECT().
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, targetURI.String()))).Return(nil),
 	)
+
+	expectAuthnFailure(mock, "", events.StageFirstFactor, events.MethodPassword, events.ReasonInvalidCredentials)
 
 	authz.Handler(mock.Ctx)
 
@@ -535,6 +544,8 @@ func (s *AuthzSuite) TestShouldCacheBasicSchemeUsingCanonicalUsername() {
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 	)
 
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
+
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -565,6 +576,8 @@ func (s *AuthzSuite) TestShouldCacheBasicSchemeUsingCanonicalUsername() {
 				EXPECT().
 				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 		)
+
+		expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
 	}
 
 	authz.Handler(mock.Ctx)
@@ -682,6 +695,8 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 	)
 
+	expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonInvalidCredentials)
+
 	authz.Handler(mock.Ctx)
 
 	switch s.implementation {
@@ -720,6 +735,8 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 			EXPECT().
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 	)
+
+	expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonInvalidCredentials)
 
 	authz.Handler(mock.Ctx)
 
@@ -784,6 +801,8 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 	)
 
+	expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
+
 	authz.Handler(mock.Ctx)
 
 	switch s.implementation {
@@ -822,6 +841,8 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 			EXPECT().
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 	)
+
+	expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonInternalError)
 
 	authz.Handler(mock.Ctx)
 
@@ -884,6 +905,8 @@ func (s *AuthzSuite) TestShouldRejectBannedUserUsingBasicScheme() {
 			Return(nil),
 	)
 
+	expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
+
 	authz.Handler(mock.Ctx)
 
 	switch s.implementation {
@@ -941,6 +964,8 @@ func (s *AuthzSuite) TestShouldRejectBannedIPUsingBasicScheme() {
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).
 			Return(nil),
 	)
+
+	expectAuthnFailure(mock, testUsername, events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
 
 	authz.Handler(mock.Ctx)
 
@@ -1002,6 +1027,8 @@ func (s *AuthzSuite) TestShouldRejectBannedCanonicalUserUsingBasicScheme() {
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).
 			Return(nil),
 	)
+
+	expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonBanned)
 
 	authz.Handler(mock.Ctx)
 
@@ -1864,6 +1891,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 			Groups:   []string{"dev", "admins"},
 		}, nil)
 
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
+
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -1979,6 +2008,12 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 		)
 	}
 
+	if s.implementation == AuthzImplLegacy {
+		expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword).Times(2)
+	} else {
+		expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
+	}
+
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -2064,6 +2099,8 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 					Groups:   []string{"dev", "admins"},
 				}, nil)
 
+			expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
+
 			authz.Handler(mock.Ctx)
 
 			s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -2126,6 +2163,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 			Emails:   []string{"john@example.com"},
 			Groups:   []string{"dev", "admins"},
 		}, nil)
+
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
 
 	authz.Handler(mock.Ctx)
 
@@ -2194,6 +2233,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 			Emails:   []string{"john@example.com"},
 			Groups:   []string{"dev", "admins"},
 		}, nil)
+
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
 
 	authz.Handler(mock.Ctx)
 
@@ -2274,6 +2315,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 			Emails:   []string{"john@example.com"},
 			Groups:   []string{"dev", "admins"},
 		}, nil)
+
+	expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
 
 	authz.Handler(mock.Ctx)
 
@@ -2422,6 +2465,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 	mock.UserProviderMock.EXPECT().
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(false, nil)
+
+	expectAuthnFailure(mock, "john", events.StageFirstFactor, events.MethodPassword, events.ReasonInvalidCredentials)
 
 	authz.Handler(mock.Ctx)
 

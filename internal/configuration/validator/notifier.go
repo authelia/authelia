@@ -12,8 +12,27 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// ValidateNotifier validates and update notifier configuration.
-func ValidateNotifier(config *schema.Notifier, validator *schema.StructValidator) {
+// ValidateNotifier validates and update notifier configuration. The webhooks configuration is required because a
+// notifier may only be disabled when at least one webhook destination exists to carry the notifications in its place.
+func ValidateNotifier(config *schema.Notifier, webhooks *schema.Webhooks, validator *schema.StructValidator) {
+	if config.Disable {
+		if config.SMTP != nil || config.FileSystem != nil {
+			validator.Push(errors.New(errFmtNotifierDisabledWithProvider))
+
+			return
+		}
+
+		if len(webhooks.Destinations) == 0 {
+			validator.Push(errors.New(errFmtNotifierDisabledWithoutWebhooks))
+
+			return
+		}
+
+		validateNotifierTemplates(config, validator)
+
+		return
+	}
+
 	if config.SMTP == nil && config.FileSystem == nil {
 		validator.Push(errors.New(errFmtNotifierNotConfigured))
 

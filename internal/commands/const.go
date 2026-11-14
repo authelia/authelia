@@ -224,6 +224,14 @@ Every user is signed out by this rotation as the session cookies they hold no lo
 
 	cmdAutheliaStorageEncryptionRotateHMACSessionExample = `authelia storage encryption rotate hmac session --config config.yml
 authelia storage encryption rotate hmac session --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+	cmdAutheliaStorageEncryptionRotateHMACWHCShort = "Rotate the webhook callback HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACWHCLong = `Rotate the webhook callback HMAC key.
+
+This subcommand allows rotation of the HMAC key used to derive the key in the callback address given to each webhook destination, for example when a callback address has leaked. In addition it deletes the recorded webhook callback confirmations, so every destination which confirmed using the callback has to confirm again using its new callback address. Restart Authelia after the rotation.`
+
+	cmdAutheliaStorageEncryptionRotateHMACWHCExample = `authelia storage encryption rotate hmac whc --config config.yml
+authelia storage encryption rotate hmac whc --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 

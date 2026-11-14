@@ -43,7 +43,8 @@
     },
     "subject": {
       "type": "string",
-      "title": "Subject"
+      "title": "Subject",
+      "description": "What the occurrence concerns within the source: the username, or the banned value for a ban. Omitted when there is none."
     },
     "data": {
       "title": "Data"

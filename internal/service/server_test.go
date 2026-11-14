@@ -33,7 +33,7 @@ func TestNewMainServer(t *testing.T) {
 	providers.Templates, err = templates.New(templates.Config{})
 	require.NoError(t, err)
 
-	address, err := schema.NewAddress("tcp://:9091")
+	address, err := schema.NewAddress("tcp://127.0.0.1:0")
 	require.NoError(t, err)
 
 	config := &schema.Configuration{
@@ -78,7 +78,7 @@ func TestNewMetricsServer(t *testing.T) {
 	providers.Metrics, err = metrics.NewPrometheus()
 	require.NoError(t, err)
 
-	address, err := schema.NewAddress("tcp://:9891/metrics")
+	address, err := schema.NewAddress("tcp://127.0.0.1:0/metrics")
 	require.NoError(t, err)
 
 	config := &schema.Configuration{

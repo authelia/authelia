@@ -21,7 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// SchemaEncryptionRotateHMACKey rotates the HMAC key with the given name, truncating the table it protects.
+// SchemaEncryptionRotateHMACKey rotates the HMAC key with the given name, removing the data it protects.
 func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error) {
 	var (
 		size  int
@@ -36,6 +36,8 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		size, table, desc = sha256.BlockSize, tableTOTPHistory, "totp history"
 	case hmacNameSession:
 		size, table, desc = sha256.BlockSize, tableSession, "sessions"
+	case hmacNameWebhookCallback:
+		size, desc = sha256.BlockSize, "webhook callback confirmations"
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
 	}
@@ -54,9 +56,22 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		return fmt.Errorf("error setting the hmac key: %w", err)
 	}
 
-	if err = p.truncate(ctx, tx, table); err != nil {
+	// The webhook callback key derives the callback addresses, so a confirmation given using an address which may have
+	// leaked is withdrawn along with it. The confirmations share their table with other data, so they are deleted
+	// rather than the table truncated.
+	if table == "" {
+		_, err = tx.ExecContext(ctx, p.sqlDeleteCachedDataPrefix, CachedDataNamePrefixWebhookConfirmation+"%")
+	} else {
+		err = p.truncate(ctx, tx, table)
+	}
+
+	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+		}
+
+		if table == "" {
+			return fmt.Errorf("error deleting %s: %w", desc, err)
 		}
 
 		return fmt.Errorf("error truncating %s: %w", desc, err)
@@ -660,6 +675,27 @@ func (p *SQLProvider) otpHMACSignature(values ...[]byte) string {
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// WebhookCallbackSignature returns the signature of the values under the webhook callback HMAC key, which is used to
+// derive the key in the callback address given to a webhook destination. It returns an empty string when the key has
+// not been loaded, which is the case before the startup check has run.
+func (p *SQLProvider) WebhookCallbackSignature(values ...[]byte) (signature string) {
+	if len(p.keys.whcHMAC) == 0 {
+		return ""
+	}
+
+	h := hmac.New(sha256.New, p.keys.whcHMAC)
+
+	for i := range values {
+		h.Write(values[i])
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (p *SQLProvider) getHMACWebhookCallback(ctx context.Context) (key []byte, err error) {
+	return p.getHMACKey(ctx, hmacNameWebhookCallback, sha256.BlockSize)
 }
 
 func (p *SQLProvider) getHMACOneTimeCode(ctx context.Context) (key []byte, err error) {
