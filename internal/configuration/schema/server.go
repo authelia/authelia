@@ -98,6 +98,10 @@ type ServerEndpointRateLimits struct {
 	SecondFactorTOTP                        ServerEndpointRateLimit `koanf:"second_factor_totp" yaml:"second_factor_totp,omitempty" toml:"second_factor_totp,omitempty" json:"second_factor_totp,omitempty" jsonschema:"title=Second Factor TOTP" jsonschema_description:"Configures the rate limiter which applies to the TOTP endpoint code submissions for the second factor flow."`
 	SecondFactorDuo                         ServerEndpointRateLimit `koanf:"second_factor_duo" yaml:"second_factor_duo,omitempty" toml:"second_factor_duo,omitempty" json:"second_factor_duo,omitempty" jsonschema:"title=Second Factor Duo" jsonschema_description:"Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."`
 	SecondFactorRecoveryCode                ServerEndpointRateLimit `koanf:"second_factor_recovery_code" yaml:"second_factor_recovery_code,omitempty" toml:"second_factor_recovery_code,omitempty" json:"second_factor_recovery_code,omitempty" jsonschema:"title=Second Factor Recovery Code" jsonschema_description:"Configures the rate limiter which applies to the Recovery Code endpoint code submissions for the second factor flow."`
+	AppAuthenticatorRegistration            ServerEndpointRateLimit `koanf:"app_authenticator_registration" yaml:"app_authenticator_registration,omitempty" toml:"app_authenticator_registration,omitempty" json:"app_authenticator_registration,omitempty" jsonschema:"title=App Authenticator Registration" jsonschema_description:"Configures the rate limiter which applies to the app authenticator device registration endpoint."`
+	AppAuthenticatorCheck                   ServerEndpointRateLimit `koanf:"app_authenticator_check" yaml:"app_authenticator_check,omitempty" toml:"app_authenticator_check,omitempty" json:"app_authenticator_check,omitempty" jsonschema:"title=App Authenticator Check" jsonschema_description:"Configures the rate limiter which applies to the app authenticator device pending challenge check endpoint."`
+	AppAuthenticatorConfirmation            ServerEndpointRateLimit `koanf:"app_authenticator_confirmation" yaml:"app_authenticator_confirmation,omitempty" toml:"app_authenticator_confirmation,omitempty" json:"app_authenticator_confirmation,omitempty" jsonschema:"title=App Authenticator Confirmation" jsonschema_description:"Configures the rate limiter which applies to the app authenticator device challenge confirmation endpoint."`
+	SecondFactorApp                         ServerEndpointRateLimit `koanf:"second_factor_app" yaml:"second_factor_app,omitempty" toml:"second_factor_app,omitempty" json:"second_factor_app,omitempty" jsonschema:"title=Second Factor App" jsonschema_description:"Configures the rate limiter which applies to the app authenticator endpoint which initializes the challenge for the second factor flow."`
 	SecondFactorPassword                    ServerEndpointRateLimit `koanf:"second_factor_password" yaml:"second_factor_password,omitempty" toml:"second_factor_password,omitempty" json:"second_factor_password,omitempty" jsonschema:"title=Second Factor Password" jsonschema_description:"Configures the rate limiter which applies to the Password endpoint for the second factor flow."`
 	SessionElevationStart                   ServerEndpointRateLimit `koanf:"session_elevation_start" yaml:"session_elevation_start,omitempty" toml:"session_elevation_start,omitempty" json:"session_elevation_start,omitempty" jsonschema:"title=Session Elevation Start" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."`
 	Health                                  ServerEndpointRateLimit `koanf:"health" yaml:"health,omitempty" toml:"health,omitempty" json:"health,omitempty" jsonschema:"title=Health" jsonschema_description:"Configures the rate limiter which applies to the verbose health check endpoint."`
@@ -117,6 +121,10 @@ func (r *ServerEndpointRateLimits) Endpoints() []ServerEndpointRateLimitEndpoint
 		{Name: "second_factor_totp", Config: &r.SecondFactorTOTP},
 		{Name: "second_factor_duo", Config: &r.SecondFactorDuo},
 		{Name: "second_factor_recovery_code", Config: &r.SecondFactorRecoveryCode},
+		{Name: "app_authenticator_registration", Config: &r.AppAuthenticatorRegistration},
+		{Name: "app_authenticator_check", Config: &r.AppAuthenticatorCheck},
+		{Name: "app_authenticator_confirmation", Config: &r.AppAuthenticatorConfirmation},
+		{Name: "second_factor_app", Config: &r.SecondFactorApp},
 		{Name: "second_factor_password", Config: &r.SecondFactorPassword},
 		{Name: "session_elevation_start", Config: &r.SessionElevationStart, Weight: weightElevatedSessionCodeLifespan},
 		{Name: "health", Config: &r.Health},
@@ -310,10 +318,34 @@ var DefaultServerConfiguration = Server{
 					{Period: 10 * time.Minute, Requests: 50},
 				},
 			},
+			SecondFactorApp: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 2 * time.Minute, Requests: 15},
+				},
+			},
 			SecondFactorRecoveryCode: ServerEndpointRateLimit{
 				Buckets: []ServerEndpointRateLimitBucket{
 					{Period: 1 * time.Minute, Requests: 10},
 					{Period: 2 * time.Minute, Requests: 15},
+				},
+			},
+			AppAuthenticatorRegistration: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 10 * time.Minute, Requests: 20},
+				},
+			},
+			AppAuthenticatorCheck: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 30},
+					{Period: 10 * time.Minute, Requests: 120},
+				},
+			},
+			AppAuthenticatorConfirmation: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 10 * time.Minute, Requests: 30},
 				},
 			},
 			SecondFactorPassword: ServerEndpointRateLimit{

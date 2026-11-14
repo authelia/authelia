@@ -36,3 +36,26 @@ it("gets configuration and transforms available methods", async () => {
     expect(result.password_change_disabled).toBe(false);
     expect(result.password_reset_disabled).toBe(true);
 });
+
+it("defaults the app authenticator registration to false", async () => {
+    (Get as any).mockResolvedValue({
+        available_methods: [],
+        password_change_disabled: false,
+        password_reset_disabled: false,
+    });
+
+    const result = await getConfiguration();
+    expect(result.app_authenticator_registration).toBe(false);
+});
+
+it("passes the app authenticator registration through", async () => {
+    (Get as any).mockResolvedValue({
+        app_authenticator_registration: true,
+        available_methods: [],
+        password_change_disabled: false,
+        password_reset_disabled: false,
+    });
+
+    const result = await getConfiguration();
+    expect(result.app_authenticator_registration).toBe(true);
+});

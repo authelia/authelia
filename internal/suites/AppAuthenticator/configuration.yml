@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+certificates_directory: '/certs/'
+
+server:
+  address: 'tcp://:9091'
+  timeouts:
+    read: '30s'
+  tls:
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
+  endpoints:
+    rate_limits:
+      session_elevation_start:
+        buckets:
+          - period: '20 seconds'
+            requests: 20
+          - period: '30 seconds'
+            requests: 30
+      session_elevation_finish:
+        buckets:
+          - period: '20 seconds'
+            requests: 20
+          - period: '30 seconds'
+            requests: 30
+
+log:
+  level: 'trace'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/tmp/db.sqlite3'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
+
+regulation:
+  max_retries: 3
+  find_time: '5 minutes'
+  ban_time: '15 minutes'
+
+session:
+  secret: 'unsecure_session_secret'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: 'https://home.example.com:8080/'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
+
+authentication_backend:
+  file:
+    path: '/config/users.yml'
+
+totp:
+  issuer: 'example.com'
+  disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
+  display_name: 'Authelia'
+  timeout: '60 seconds'
+
+app_authenticator:
+  display_name: 'Authelia Suite'
+  nonce_length: 2
+  attestation:
+    mode: 'none'
+
+access_control:
+  default_policy: 'deny'
+
+  rules:
+    - domain: ['home.example.com', 'public.example.com']
+      policy: 'bypass'
+
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
+
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
+...

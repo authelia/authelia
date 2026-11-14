@@ -30,6 +30,9 @@ const (
 
 	// AuthTypeRecoveryCode is the string representing an auth log for second-factor authentication via a Recovery Code.
 	AuthTypeRecoveryCode = "Recovery"
+
+	// AuthTypeApp is the string representing an auth log for second-factor authentication via the Authelia app.
+	AuthTypeApp = "App"
 )
 
 const (

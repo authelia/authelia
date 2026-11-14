@@ -46,4 +46,8 @@ Below is a list of the Authentication Method Reference Values and how we current
 |  vbm   |                           _Unsupported_                           |    N/A     |   N/A    |
 |  wia   |                           _Unsupported_                           |    N/A     |   N/A    |
 
+The [App Authenticator](../../overview/authentication/app-authenticator/index.md) reports `pop` as a Possession factor
+over the External channel, with `hwk` when the device was attested, `swk` when it was not, and `user` when the device
+was attested.
+
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176

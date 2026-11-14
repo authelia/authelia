@@ -11,7 +11,7 @@ import (
 // ConfigurationGET get the configuration accessible to authenticated users.
 func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	body := configurationBody{
-		AvailableMethods:       make(MethodList, 0, 3),
+		AvailableMethods:       make(MethodList, 0, 4),
 		PasswordChangeDisabled: false,
 		PasswordResetDisabled:  false,
 	}
@@ -23,6 +23,7 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	body.PasswordChangeDisabled = ctx.Configuration.AuthenticationBackend.PasswordChange.Disable
 	body.PasswordResetDisabled = ctx.Configuration.AuthenticationBackend.PasswordReset.Disable
 	body.RecoveryCodesDisabled = ctx.Configuration.RecoveryCodes.Disable
+	body.AppAuthenticatorRegistration = appRegistrationAvailable(ctx)
 
 	ctx.Logger.WithFields(
 		map[string]any{
@@ -30,6 +31,7 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 			"password_change_disabled": body.PasswordChangeDisabled,
 			"password_reset_disabled":  body.PasswordResetDisabled,
 			"recovery_codes_disabled":  body.RecoveryCodesDisabled,
+			"app_registration":         body.AppAuthenticatorRegistration,
 		}).Trace("Authelia configuration requested")
 
 	if err := ctx.SetJSONBody(body); err != nil {

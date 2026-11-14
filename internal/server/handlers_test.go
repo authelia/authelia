@@ -9,11 +9,14 @@ import (
 	"net"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+	logtest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -101,6 +104,53 @@ func TestHandleError(t *testing.T) {
 			handler(&ctx, tc.err)
 
 			assert.Equal(t, tc.expectedStatusCode, ctx.Response.StatusCode())
+		})
+	}
+}
+
+func TestHandleErrorShouldRedactAppAuthenticatorDevicePaths(t *testing.T) {
+	logger := logging.Logger()
+
+	hooks := logrus.LevelHooks{}
+
+	for level, h := range logger.Hooks {
+		hooks[level] = append(hooks[level], h...)
+	}
+
+	hook := logtest.NewLocal(logger)
+
+	t.Cleanup(func() { logger.ReplaceHooks(hooks) })
+
+	handler := handleError("server", schema.ServerHeadersTrustedProxies{})
+
+	testCases := []struct {
+		name     string
+		path     string
+		expected string
+	}{
+		{"ShouldRedactChallenge", "/api/secondfactor/app/challenge/secretpullid", "/api/secondfactor/app/challenge/{redacted}"},
+		{"ShouldRedactUnderBasePath", "/auth/api/register/app/secretcode", "/auth/api/register/app/{redacted}"},
+		{"ShouldNotRedactOtherPaths", "/api/health", "/api/health"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			hook.Reset()
+
+			var (
+				ctx fasthttp.RequestCtx
+				req fasthttp.Request
+			)
+
+			req.SetRequestURI(tc.path)
+
+			ctx.Init(&req, &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080}, nil)
+
+			handler(&ctx, fmt.Errorf("some error"))
+
+			entry := hook.LastEntry()
+			require.NotNil(t, entry)
+			assert.Equal(t, tc.expected, entry.Data[logging.FieldPath])
 		})
 	}
 }
@@ -375,3 +425,146 @@ func (e *timeoutError) Error() string { return "i/o timeout" }
 func (e *timeoutError) Timeout() bool { return true }
 
 func (e *timeoutError) Temporary() bool { return true }
+
+func TestIsAppAuthenticatorDevicePathShouldMatchDevicePaths(t *testing.T) {
+	testCases := []struct {
+		path     string
+		expected bool
+	}{
+		{"/api/register/app", true},
+		{"/api/register/app/abc", true},
+		{"/api/register/app/confirm/abc/extra", true},
+		{"/api/secondfactor/app/challenge/abc", true},
+		{"/api/secondfactor/app/confirmation/abc", true},
+		{"/api/secondfactor/app/device", true},
+		{"/api/secondfactor/app/device/extra", true},
+		{"/api/secondfactor/app", false},
+		{"/api/secondfactor/app/status", false},
+		{"/api/secondfactor/app/registration", false},
+		{"/api/register/application", false},
+		{"/api/secondfactor/totp", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.path, func(t *testing.T) {
+			assert.Equal(t, tc.expected, middlewares.IsAppAuthenticatorDevicePath(tc.path))
+		})
+	}
+}
+
+func TestHandlerMainShouldRouteAppAuthenticatorDevicePaths(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	testCases := []struct {
+		name         string
+		disable      bool
+		method       string
+		path         string
+		expectedCode int
+		expectedBody string
+	}{
+		{"ShouldAnswerUnknownRoute", false, fasthttp.MethodPost, "/api/register/app/confirm/a/b", fasthttp.StatusNotFound, `"error":"unknown"`},
+		{"ShouldAnswerUnknownMethod", false, fasthttp.MethodGet, "/api/secondfactor/app/device", fasthttp.StatusNotFound, `"error":"unknown"`},
+		{"ShouldAnswerDefaultWhenDisabled", true, fasthttp.MethodPost, "/api/register/app/abc", fasthttp.StatusNotFound, "404 Not Found"},
+		{"ShouldAnswerDefaultForOtherRoutes", false, fasthttp.MethodPost, "/api/secondfactor/unknown", fasthttp.StatusNotFound, "404 Not Found"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{
+				Server: schema.Server{
+					Address:   schema.DefaultServerConfiguration.Address,
+					Endpoints: schema.DefaultServerConfiguration.Endpoints,
+				},
+				AppAuthenticator: schema.AppAuthenticator{Disable: tc.disable},
+				DuoAPI:           schema.DuoAPI{Disable: true},
+			}
+
+			providers := middlewares.NewProvidersBasic()
+			providers.Random = random.NewMathematical()
+			providers.Templates = provider
+
+			handler, err := handlerMain(config, providers)
+			require.NoError(t, err)
+
+			var (
+				ctx fasthttp.RequestCtx
+				req fasthttp.Request
+			)
+
+			req.Header.SetMethod(tc.method)
+			req.SetRequestURI(tc.path)
+			req.Header.SetHost("auth.example.com")
+			ctx.Init(&req, &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080}, nil)
+
+			handler(&ctx)
+
+			assert.Equal(t, tc.expectedCode, ctx.Response.StatusCode())
+			assert.Contains(t, string(ctx.Response.Body()), tc.expectedBody)
+		})
+	}
+}
+
+func TestHandlerMainShouldRouteAppAuthenticatorPortalPaths(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	routes := []struct {
+		method string
+		path   string
+	}{
+		{fasthttp.MethodPut, "/api/secondfactor/app/registration"},
+		{fasthttp.MethodGet, "/api/secondfactor/app/registration"},
+		{fasthttp.MethodDelete, "/api/secondfactor/app/registration"},
+		{fasthttp.MethodPost, "/api/secondfactor/app"},
+		{fasthttp.MethodPost, "/api/secondfactor/app/status"},
+		{fasthttp.MethodGet, "/api/secondfactor/app/devices"},
+		{fasthttp.MethodPut, "/api/secondfactor/app/devices/1"},
+		{fasthttp.MethodDelete, "/api/secondfactor/app/devices/1"},
+	}
+
+	for _, disable := range []bool{false, true} {
+		config := &schema.Configuration{
+			Server: schema.Server{
+				Address:   schema.DefaultServerConfiguration.Address,
+				Endpoints: schema.DefaultServerConfiguration.Endpoints,
+			},
+			AppAuthenticator: schema.AppAuthenticator{Disable: disable},
+			DuoAPI:           schema.DuoAPI{Disable: true},
+		}
+
+		providers := middlewares.NewProvidersBasic()
+		providers.Random = random.NewMathematical()
+		providers.Templates = provider
+
+		handler, err := handlerMain(config, providers)
+		require.NoError(t, err)
+
+		for _, route := range routes {
+			t.Run(fmt.Sprintf("Disable%t/%s%s", disable, route.method, route.path), func(t *testing.T) {
+				var (
+					ctx fasthttp.RequestCtx
+					req fasthttp.Request
+				)
+
+				req.Header.SetMethod(route.method)
+				req.SetRequestURI(route.path)
+				req.Header.SetHost("auth.example.com")
+				ctx.Init(&req, &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080}, nil)
+
+				handler(&ctx)
+
+				if disable {
+					assert.Equal(t, fasthttp.StatusNotFound, ctx.Response.StatusCode())
+				} else {
+					assert.Equal(t, fasthttp.StatusForbidden, ctx.Response.StatusCode())
+				}
+			})
+		}
+	}
+}

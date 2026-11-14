@@ -46,7 +46,8 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     const [state, dispatch] = useReducer(reducer, initialState);
     const { method } = state;
 
-    const hasMethods = props.info.has_totp || props.info.has_webauthn || props.info.has_duo;
+    const hasMethods =
+        props.info.has_totp || props.info.has_webauthn || props.info.has_duo || props.info.has_mobile_app;
 
     useEffect(() => {
         if (props.info === undefined) return;
@@ -65,11 +66,20 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                     return props.info.has_totp;
                 case SecondFactorMethod.MobilePush:
                     return props.info.has_duo;
+                case SecondFactorMethod.MobileApp:
+                    return props.info.has_mobile_app;
                 default:
                     return false;
             }
         });
-    }, [props.config, hasMethods, props.info.has_webauthn, props.info.has_totp, props.info.has_duo]);
+    }, [
+        props.config,
+        hasMethods,
+        props.info.has_webauthn,
+        props.info.has_totp,
+        props.info.has_duo,
+        props.info.has_mobile_app,
+    ]);
 
     const handleMethodAccountChanged = (method: string) => {
         if (isMethod2FA(method)) {

@@ -10,6 +10,7 @@ import { Route, Routes, useLocation } from "react-router";
 import {
     AuthenticatedRoute,
     IndexRoute,
+    SecondFactorAppSubRoute,
     SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
     SecondFactorRoute,
@@ -136,6 +137,8 @@ const LoginPortal = function (props: Props) {
                     navigate(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
                 } else if (method === SecondFactorMethod.MobilePush) {
                     navigate(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
+                } else if (method === SecondFactorMethod.MobileApp) {
+                    navigate(`${SecondFactorRoute}${SecondFactorAppSubRoute}`);
                 } else {
                     navigate(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`);
                 }

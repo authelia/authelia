@@ -112,6 +112,54 @@ func TestUserSessionElevationGET(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldHandleOneFactorRequireSecondFactorMobileAppOnly",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.RequireSecondFactor = true
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{
+					DisplayName:  testDisplayName,
+					Method:       "mobile_app",
+					HasMobileApp: true,
+				}, nil)
+			},
+			`{"status":"OK","data":{"require_second_factor":true,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0}}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+		{
+			"ShouldHandleOneFactorSkipSecondFactorMobileAppOnly",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.SkipSecondFactor = true
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, testUsername).Return(model.UserInfo{
+					DisplayName:  testDisplayName,
+					Method:       "mobile_app",
+					HasMobileApp: true,
+				}, nil)
+			},
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":true,"factor_knowledge":true,"elevated":false,"expires":0}}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+		{
 			"ShouldHandleOneFactorSkipSecondFactor",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Configuration.IdentityValidation.ElevatedSession.SkipSecondFactor = true

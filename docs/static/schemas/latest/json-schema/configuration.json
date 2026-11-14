@@ -328,6 +328,147 @@
       "pattern": "^(udp[46]?:\\/\\/)?([^:\\/]*(:\\d+)|[^:\\/]+(:\\d+)?)(\\/.*)?$",
       "format": "uri"
     },
+    "AppAuthenticator": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the app authenticator second factor method.",
+          "default": false
+        },
+        "display_name": {
+          "type": "string",
+          "title": "Display Name",
+          "description": "The name shown in the app for this server.",
+          "default": "Authelia"
+        },
+        "registration_token_lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Registration Token Lifespan",
+          "description": "How long the registration QR code remains valid."
+        },
+        "challenge_lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Challenge Lifespan",
+          "description": "How long a sign in challenge remains valid."
+        },
+        "nonce_length": {
+          "type": "integer",
+          "maximum": 4,
+          "minimum": 2,
+          "title": "Nonce Length",
+          "description": "The number of digits in the number matching prompt.",
+          "default": 2
+        },
+        "attestation": {
+          "$ref": "#/$defs/AppAuthenticatorAttestation",
+          "title": "Attestation",
+          "description": "Device attestation settings."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AppAuthenticator represents the configuration related to the Authelia mobile app authenticator."
+    },
+    "AppAuthenticatorAndroidIdentity": {
+      "properties": {
+        "package_name": {
+          "type": "string",
+          "title": "Package Name",
+          "description": "The Android package name."
+        },
+        "signing_certificate_digests": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Signing Certificate Digests",
+          "description": "The SHA-256 digests of the trusted signing certificates."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AppAuthenticatorAndroidIdentity represents a trusted Android app identity."
+    },
+    "AppAuthenticatorAppleIdentity": {
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "title": "Team ID",
+          "description": "The Apple developer team identifier."
+        },
+        "bundle_id": {
+          "type": "string",
+          "title": "Bundle ID",
+          "description": "The app bundle identifier."
+        },
+        "environment": {
+          "type": "string",
+          "enum": [
+            "production",
+            "development"
+          ],
+          "title": "Environment",
+          "description": "The App Attest environment.",
+          "default": "production"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AppAuthenticatorAppleIdentity represents a trusted Apple app identity."
+    },
+    "AppAuthenticatorAttestation": {
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "required",
+            "preferred",
+            "none"
+          ],
+          "title": "Mode",
+          "description": "The attestation mode.",
+          "default": "required"
+        },
+        "apple": {
+          "items": {
+            "$ref": "#/$defs/AppAuthenticatorAppleIdentity"
+          },
+          "type": "array",
+          "title": "Apple",
+          "description": "The trusted Apple app identities."
+        },
+        "android": {
+          "items": {
+            "$ref": "#/$defs/AppAuthenticatorAndroidIdentity"
+          },
+          "type": "array",
+          "title": "Android",
+          "description": "The trusted Android app identities."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AppAuthenticatorAttestation represents the attestation configuration of the app authenticator."
+    },
     "AuthenticationBackend": {
       "properties": {
         "password_reset": {
@@ -1117,7 +1258,8 @@
           "enum": [
             "totp",
             "webauthn",
-            "mobile_push"
+            "mobile_push",
+            "mobile_app"
           ],
           "title": "Default 2FA method",
           "description": "When a user logs in for the first time this is the 2FA method configured for them."
@@ -1151,6 +1293,11 @@
           "$ref": "#/$defs/RecoveryCodes",
           "title": "Recovery Codes",
           "description": "Recovery Codes Configuration."
+        },
+        "app_authenticator": {
+          "$ref": "#/$defs/AppAuthenticator",
+          "title": "App Authenticator",
+          "description": "App Authenticator Configuration."
         },
         "duo_api": {
           "$ref": "#/$defs/DuoAPI",
@@ -3577,6 +3724,26 @@
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "Second Factor Recovery Code",
           "description": "Configures the rate limiter which applies to the Recovery Code endpoint code submissions for the second factor flow."
+        },
+        "app_authenticator_registration": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "App Authenticator Registration",
+          "description": "Configures the rate limiter which applies to the app authenticator device registration endpoint."
+        },
+        "app_authenticator_check": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "App Authenticator Check",
+          "description": "Configures the rate limiter which applies to the app authenticator device pending challenge check endpoint."
+        },
+        "app_authenticator_confirmation": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "App Authenticator Confirmation",
+          "description": "Configures the rate limiter which applies to the app authenticator device challenge confirmation endpoint."
+        },
+        "second_factor_app": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Second Factor App",
+          "description": "Configures the rate limiter which applies to the app authenticator endpoint which initializes the challenge for the second factor flow."
         },
         "second_factor_password": {
           "$ref": "#/$defs/ServerEndpointRateLimit",

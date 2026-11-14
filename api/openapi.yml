@@ -52,11 +52,15 @@ tags:
     description: First Factor Authentication
     externalDocs:
       url: https://www.authelia.com/configuration/first-factor/introduction/
-  {{- if (or .TOTP .WebAuthn .Duo .Passkeys .RecoveryCodes) }}
+  {{- if (or .TOTP .WebAuthn .Duo .AppAuthenticator .Passkeys .RecoveryCodes) }}
   - name: Second Factor
-    description: TOTP, WebAuthn, Duo and Recovery Code endpoints
+    description: TOTP, WebAuthn, Duo, App Authenticator and Recovery Code endpoints
     externalDocs:
       url: https://www.authelia.com/configuration/second-factor/introduction/
+  {{- end }}
+  {{- if .AppAuthenticator }}
+  - name: App Authenticator Device
+    description: Endpoints used by the Authelia mobile app
   {{- end }}
   {{- if .OpenIDConnect }}
   - name: OAuth 2.0
@@ -1996,6 +2000,443 @@ paths:
       security:
         - authelia_auth: []
   {{- end }}
+  {{- if .AppAuthenticator }}
+  /api/secondfactor/app/registration:
+    put:
+      operationId: putSecondFactorAppRegistration
+      tags:
+        - Second Factor
+        - Authentication
+      summary: App Authenticator - Start Device Registration
+      description: >
+        This endpoint starts the registration of a mobile app device and returns the content for the QR code the app
+        scans. The session must be elevated. Registration is unavailable (403) when the attestation mode is required and
+        no trusted app identities are configured. Starting a new registration cancels any previous one for the session.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppRegistrationStartResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    get:
+      operationId: getSecondFactorAppRegistration
+      tags:
+        - Second Factor
+        - Authentication
+      summary: App Authenticator - Poll Device Registration
+      description: >
+        This endpoint reports the state of the device registration started by this session. When the state is
+        confirm_number the number must be entered in the app.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppRegistrationStateResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "404":
+          description: No registration exists for this session or it was cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    delete:
+      operationId: deleteSecondFactorAppRegistration
+      tags:
+        - Second Factor
+        - Authentication
+      summary: App Authenticator - Cancel Device Registration
+      description: >
+        This endpoint cancels the device registration started by this session. It succeeds when there is nothing to
+        cancel.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/app:
+    post:
+      operationId: postSecondFactorApp
+      tags:
+        - Second Factor
+        - Authentication
+      summary: Second Factor Authentication - App Authenticator
+      description: >
+        This endpoint creates a sign in challenge for the user and returns the number the user must enter in the app.
+        Any previous pending challenge of the session is voided. The body is optional.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.bodySignAppRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppChallengeResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
+      security:
+        - authelia_auth: []
+  /api/secondfactor/app/status:
+    post:
+      operationId: postSecondFactorAppStatus
+      tags:
+        - Second Factor
+        - Authentication
+      summary: Second Factor Authentication - App Authenticator Status
+      description: >
+        This endpoint polls the challenge created by this session. While the challenge is not approved it returns the
+        state. On the first poll after the user approves in the app it upgrades the session and replies like the Duo
+        endpoint does, without a state. Only the session which created the challenge can poll it.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.bodySignAppRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/handlers.AppChallengeStateResponse'
+                  - $ref: '#/components/schemas/handlers.redirectResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/app/devices:
+    get:
+      operationId: getSecondFactorAppDevices
+      tags:
+        - Second Factor
+        - Authentication
+      summary: App Authenticator - List Devices
+      description: This endpoint lists the app devices registered by the user.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppDevicesResponse'
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+  /api/secondfactor/app/devices/{id}:
+    put:
+      operationId: putSecondFactorAppDevice
+      tags:
+        - Second Factor
+        - Authentication
+      summary: App Authenticator - Rename Device
+      description: This endpoint renames an app device. The session must be elevated.
+      parameters:
+        - $ref: '#/components/parameters/appDeviceID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                  examples:
+                    - 'Work phone'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    delete:
+      operationId: deleteSecondFactorAppDevice
+      tags:
+        - Second Factor
+        - Authentication
+      summary: App Authenticator - Delete Device
+      description: This endpoint deletes an app device. The session must be elevated.
+      parameters:
+        - $ref: '#/components/parameters/appDeviceID'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  /api/register/app/{random}:
+    post:
+      operationId: postRegisterApp
+      tags:
+        - App Authenticator Device
+      summary: App Authenticator Device - Begin Registration
+      description: >
+        This endpoint is used by the mobile app. It is not authenticated: the random value from the QR code is the
+        credential. The body is limited to 64 KiB. Errors use the bare JSON error body, not the status and data
+        envelope.
+      parameters:
+        - $ref: '#/components/parameters/appRandom'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.AppRegisterBeginRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppRegisterBeginResponse'
+        "400":
+          $ref: '#/components/responses/appError'
+        "404":
+          $ref: '#/components/responses/appError'
+        "409":
+          $ref: '#/components/responses/appError'
+        "410":
+          $ref: '#/components/responses/appError'
+        "429":
+          $ref: '#/components/responses/appError'
+  /api/register/app/confirm/{id}:
+    post:
+      operationId: postRegisterAppConfirm
+      tags:
+        - App Authenticator Device
+      summary: App Authenticator Device - Confirm Registration
+      description: >
+        This endpoint is used by the mobile app. It is not authenticated by header. Every failure after the request is
+        well formed voids the registration session and answers 401 bad_signature, including a wrong number or an
+        unacceptable attestation. Errors use the bare JSON error body.
+      parameters:
+        - $ref: '#/components/parameters/appID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.AppRegisterConfirmRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppRegisterConfirmResponse'
+        "400":
+          $ref: '#/components/responses/appError'
+        "401":
+          $ref: '#/components/responses/appError'
+        "404":
+          $ref: '#/components/responses/appError'
+        "409":
+          $ref: '#/components/responses/appError'
+        "410":
+          $ref: '#/components/responses/appError'
+        "429":
+          $ref: '#/components/responses/appError'
+  /api/secondfactor/app/challenge/{pull_id}:
+    post:
+      operationId: postSecondFactorAppChallenge
+      tags:
+        - App Authenticator Device
+      summary: App Authenticator Device - Check for a Challenge
+      description: >
+        This endpoint is used by the mobile app to pull the pending challenge of its user. The pull identifier rotates
+        on every call. Requests are signed with the device transport key and carry an AutheliaApp Authorization
+        header. Errors use the bare JSON error body.
+      parameters:
+        - $ref: '#/components/parameters/appPullID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.AppCodeChallengeRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppCheckResponse'
+        "400":
+          $ref: '#/components/responses/appError'
+        "401":
+          $ref: '#/components/responses/appError'
+        "404":
+          $ref: '#/components/responses/appError'
+        "429":
+          $ref: '#/components/responses/appError'
+      security:
+        - authelia_app: []
+  /api/secondfactor/app/confirmation/{id}:
+    post:
+      operationId: postSecondFactorAppConfirmation
+      tags:
+        - App Authenticator Device
+      summary: App Authenticator Device - Confirm a Challenge
+      description: >
+        This endpoint is used by the mobile app to approve or deny a challenge. The challenge gets exactly one attempt:
+        a wrong number, bad signature or mismatched verifier voids it and answers 200 with the result rejected.
+        Requests are signed with the device transport key and carry an AutheliaApp Authorization header. Errors use the
+        bare JSON error body.
+      parameters:
+        - $ref: '#/components/parameters/appID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.AppConfirmationRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppConfirmationResponse'
+        "400":
+          $ref: '#/components/responses/appError'
+        "401":
+          $ref: '#/components/responses/appError'
+        "404":
+          $ref: '#/components/responses/appError'
+        "429":
+          $ref: '#/components/responses/appError'
+      security:
+        - authelia_app: []
+  /api/secondfactor/app/device:
+    delete:
+      operationId: deleteSecondFactorAppDeviceSelf
+      tags:
+        - App Authenticator Device
+      summary: App Authenticator Device - Remove Device
+      description: >
+        This endpoint is used by the mobile app to remove its own registration. The request has no body and is signed
+        with the device transport key. Errors use the bare JSON error body.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.AppServerTime'
+        "401":
+          $ref: '#/components/responses/appError'
+        "429":
+          $ref: '#/components/responses/appError'
+      security:
+        - authelia_app: []
+  {{- end }}
   {{- if .Passkeys }}
   /api/secondfactor/password:
     post:
@@ -3108,6 +3549,39 @@ paths:
   {{- end }}
 components:
   parameters:
+    {{- if .AppAuthenticator }}
+    appDeviceID:
+      in: path
+      name: id
+      schema:
+        type: integer
+      required: true
+      description: Numeric app authenticator device identifier
+    appRandom:
+      in: path
+      name: random
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{1,256}$'
+      required: true
+      description: The random value from the registration QR code
+    appID:
+      in: path
+      name: id
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{1,256}$'
+      required: true
+      description: The registration session or challenge confirmation identifier
+    appPullID:
+      in: path
+      name: pull_id
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{1,256}$'
+      required: true
+      description: The current or previous pull identifier of the device
+    {{- end }}
     credentialID:
       in: path
       name: credentialID
@@ -3279,7 +3753,380 @@ components:
         type: string
         examples:
           - 'XGQWWFMM'
+  {{- if .AppAuthenticator }}
+  responses:
+    appError:
+      description: >
+        The bare JSON error body used by the app device endpoints, not the status and data envelope. A rate limited
+        request answers 429 with the error rate_limited.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/handlers.AppError'
+  {{- end }}
   schemas:
+    {{- if .AppAuthenticator }}
+    handlers.bodySignAppRequest:
+      type: object
+      properties:
+        targetURL:
+          type: string
+          examples:
+            - 'https://secure.{{ .Domain | default "example.com" }}'
+        flowID:
+          type: string
+          format: uuid
+        flow:
+          type: string
+          enum:
+            - 'openid_connect'
+        subflow:
+          type: string
+          enum:
+            - 'device_authorization'
+        userCode:
+          type: string
+          examples:
+            - 'XGQWWFMM'
+    handlers.AppRegistrationStartResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            qr:
+              type: string
+              description: The content of the QR code the app scans.
+              examples:
+                - 'authelia-app://{{ .Domain | default "example.com" }}/api/register/app/RANDOM'
+            expires_at:
+              type: integer
+              description: Unix time at which the QR code expires.
+    handlers.AppRegistrationStateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            state:
+              type: string
+              enum:
+                - waiting
+                - confirm_number
+                - registered
+                - failed
+                - expired
+            number:
+              type: string
+              description: The number to enter in the app. Present when the state is confirm_number.
+              examples:
+                - '07'
+            nonce_length:
+              type: integer
+              minimum: 2
+              maximum: 4
+            device:
+              type: object
+              description: The self reported device details. Present when the state is confirm_number.
+              properties:
+                platform:
+                  type: string
+                model:
+                  type: string
+                name:
+                  type: string
+            id:
+              type: integer
+              description: The identifier of the new device. Present when the state is registered.
+            expires_at:
+              type: integer
+              description: Unix time at which the code or the registration session expires.
+    handlers.AppChallengeResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            number:
+              type: string
+              examples:
+                - '42'
+            nonce_length:
+              type: integer
+              minimum: 2
+              maximum: 4
+            expires_at:
+              type: integer
+    handlers.AppChallengeStateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            state:
+              type: string
+              enum:
+                - pending
+                - denied
+                - rejected
+                - expired
+    handlers.AppDevicesResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              created_at:
+                type: string
+                format: date-time
+              last_used_at:
+                type: string
+                format: date-time
+              name:
+                type: string
+              model:
+                type: string
+              platform:
+                type: string
+              attestation_format:
+                type: string
+                enum:
+                  - none
+                  - apple-appattest
+                  - android-key
+              attestation_identity:
+                type: string
+              attestation_detail:
+                type: string
+    handlers.AppServerTime:
+      type: object
+      properties:
+        server_time:
+          type: integer
+          description: The server time in unix seconds.
+    handlers.AppError:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - invalid_request
+            - bad_signature
+            - stale_timestamp
+            - replay
+            - unknown
+            - already_used
+            - expired
+            - rate_limited
+            - internal
+        server_time:
+          type: integer
+    handlers.AppRegisterBeginRequest:
+      type: object
+      required:
+        - code_challenge
+        - code_challenge_method
+        - device
+      properties:
+        code_challenge:
+          type: string
+          description: The base64url SHA-256 of a fresh verifier, 43 characters.
+        code_challenge_method:
+          type: string
+          enum:
+            - S256
+        device:
+          type: object
+          properties:
+            platform:
+              type: string
+              enum:
+                - ios
+                - android
+                - node
+            model:
+              type: string
+            name:
+              type: string
+    handlers.AppRegisterBeginResponse:
+      type: object
+      properties:
+        challenge:
+          type: string
+        confirmation_url:
+          type: string
+        expires_at:
+          type: integer
+        attestation:
+          type: string
+          enum:
+            - required
+            - preferred
+            - none
+        nonce_length:
+          type: integer
+          minimum: 2
+          maximum: 4
+        server_time:
+          type: integer
+    handlers.AppRegisterConfirmRequest:
+      type: object
+      required:
+        - verifier
+        - approval_public_key
+        - transport_public_key
+        - approval_signature
+        - transport_signature
+        - attestation
+      properties:
+        verifier:
+          type: string
+        approval_public_key:
+          type: string
+          description: Base64url SPKI DER.
+        transport_public_key:
+          type: string
+          description: Base64url SPKI DER.
+        approval_signature:
+          type: string
+        transport_signature:
+          type: string
+        attestation:
+          type: object
+          required:
+            - format
+          properties:
+            format:
+              type: string
+              enum:
+                - none
+                - apple-appattest
+                - android-key
+            key_id:
+              type: string
+            attestation_object:
+              type: string
+            approval_certificate_chain:
+              type: array
+              items:
+                type: string
+            transport_certificate_chain:
+              type: array
+              items:
+                type: string
+    handlers.AppRegisterConfirmResponse:
+      type: object
+      properties:
+        base_url:
+          type: string
+        device_id:
+          type: string
+        pull_id:
+          type: string
+        username:
+          type: string
+        display_name:
+          type: string
+        server_time:
+          type: integer
+    handlers.AppCodeChallengeRequest:
+      type: object
+      required:
+        - code_challenge
+        - code_challenge_method
+      properties:
+        code_challenge:
+          type: string
+        code_challenge_method:
+          type: string
+          enum:
+            - S256
+    handlers.AppCheckResponse:
+      type: object
+      properties:
+        pull_id:
+          type: string
+        challenge:
+          type: object
+          nullable: true
+          properties:
+            challenge:
+              type: string
+            confirmation_id:
+              type: string
+            expires_at:
+              type: integer
+            nonce_length:
+              type: integer
+              minimum: 2
+              maximum: 4
+            details:
+              type: object
+              properties:
+                portal_url:
+                  type: string
+                requested_url:
+                  type: string
+                remote_ip:
+                  type: string
+                user_agent:
+                  type: string
+                requested_at:
+                  type: integer
+        server_time:
+          type: integer
+    handlers.AppConfirmationRequest:
+      type: object
+      required:
+        - decision
+        - verifier
+      properties:
+        decision:
+          type: string
+          enum:
+            - approve
+            - deny
+        verifier:
+          type: string
+        signature:
+          type: string
+          description: Base64url DER signature of the approval string. Required for approve.
+    handlers.AppConfirmationResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          enum:
+            - approved
+            - denied
+            - rejected
+        server_time:
+          type: integer
+    {{- end }}
     handlers.checkURIWithinDomainRequestBody:
       type: object
       properties:
@@ -7580,6 +8427,15 @@ components:
         The credentials of a user, or an OAuth 2.0 Access Token where the bearer scheme is enabled, in the
         Proxy-Authorization header. Accepted by authorization endpoints using the HeaderProxyAuthorization,
         HeaderAuthRequestProxyAuthorization, or HeaderLegacy strategies.
+    {{- if .AppAuthenticator }}
+    authelia_app:
+      type: apiKey
+      name: Authorization
+      in: header
+      description: >
+        The AutheliaApp scheme: AutheliaApp device_id="...", ts="...", nonce="...", sig="...". The signature is made
+        with the device transport key over the request.
+    {{- end }}
     {{- if .OpenIDConnect }}
     openid:
       type: openIdConnect

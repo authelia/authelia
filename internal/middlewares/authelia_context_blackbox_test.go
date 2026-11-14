@@ -1262,6 +1262,9 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo, model.SecondFactorMethodMobileApp}, mock.Ctx.AvailableSecondFactorMethods())
+
+	mock.Ctx.Configuration.AppAuthenticator.Disable = true
 	mock.Ctx.Configuration.DuoAPI.Disable = true
 
 	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn}, mock.Ctx.AvailableSecondFactorMethods())
@@ -1281,6 +1284,10 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 	mock.Ctx.Configuration.DuoAPI.Disable = true
 
 	assert.Equal(t, []string{}, mock.Ctx.AvailableSecondFactorMethods())
+
+	mock.Ctx.Configuration.AppAuthenticator.Disable = false
+
+	assert.Equal(t, []string{model.SecondFactorMethodMobileApp}, mock.Ctx.AvailableSecondFactorMethods())
 }
 
 func TestAutheliaCtx_QueryFuncs(t *testing.T) {

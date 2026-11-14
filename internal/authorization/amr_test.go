@@ -272,6 +272,62 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 				RFC8176:                    []string{"pwd", "sms", "mfa", "mca"},
 			},
 		},
+		{
+			name: "App",
+
+			have: authorization.AuthenticationMethodsReferences{App: true},
+			expected: testAMRWant{
+				FactorKnowledge:            false,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  false,
+				ChannelBrowser:             false,
+				ChannelService:             true,
+				MultiChannelAuthentication: false,
+				RFC8176:                    []string{"pop", "swk"},
+			},
+		},
+		{
+			name: "AppHardwareUserVerified",
+
+			have: authorization.AuthenticationMethodsReferences{App: true, AppHardware: true, AppUserVerified: true},
+			expected: testAMRWant{
+				FactorKnowledge:            false,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  false,
+				ChannelBrowser:             false,
+				ChannelService:             true,
+				MultiChannelAuthentication: false,
+				RFC8176:                    []string{"pop", "hwk", "user"},
+			},
+		},
+		{
+			name: "UsernameAndPasswordWithApp",
+
+			have: authorization.AuthenticationMethodsReferences{App: true, UsernameAndPassword: true},
+			expected: testAMRWant{
+				FactorKnowledge:            true,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  true,
+				ChannelBrowser:             true,
+				ChannelService:             true,
+				MultiChannelAuthentication: true,
+				RFC8176:                    []string{"pwd", "pop", "swk", "mfa", "mca"},
+			},
+		},
+		{
+			name: "AppWithWebAuthn",
+
+			have: authorization.AuthenticationMethodsReferences{App: true, AppHardware: true, AppUserVerified: true, WebAuthn: true, WebAuthnHardware: true, WebAuthnUserPresence: true},
+			expected: testAMRWant{
+				FactorKnowledge:            false,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  false,
+				ChannelBrowser:             true,
+				ChannelService:             true,
+				MultiChannelAuthentication: true,
+				RFC8176:                    []string{"pop", "hwk", "user", "mca"},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -296,6 +352,41 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 					assert.Contains(t, tc.expected.RFC8176, amr)
 				})
 			}
+		})
+	}
+}
+
+func TestAuthenticationMethodsReferencesShouldNotDuplicateAppValues(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     authorization.AuthenticationMethodsReferences
+		expected []string
+	}{
+		{
+			"ShouldEmitSoftwareKey",
+			authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, App: true},
+			[]string{"pwd", "pop", "swk", "mfa", "mca"},
+		},
+		{
+			"ShouldEmitHardwareKeyAndUser",
+			authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, App: true, AppHardware: true, AppUserVerified: true},
+			[]string{"pwd", "pop", "hwk", "user", "mfa", "mca"},
+		},
+		{
+			"ShouldNotDuplicateWithWebAuthn",
+			authorization.AuthenticationMethodsReferences{App: true, AppHardware: true, AppUserVerified: true, WebAuthn: true, WebAuthnHardware: true, WebAuthnUserPresence: true},
+			[]string{"pop", "hwk", "user", "mca"},
+		},
+		{
+			"ShouldEmitBothKeyTypes",
+			authorization.AuthenticationMethodsReferences{App: true, WebAuthn: true, WebAuthnHardware: true},
+			[]string{"pop", "hwk", "swk", "mca"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.ElementsMatch(t, tc.expected, tc.have.MarshalRFC8176())
 		})
 	}
 }

@@ -83,7 +83,7 @@ func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.Us
 			return
 		}
 
-		if info.HasTOTP || info.HasWebAuthn || info.HasDuo {
+		if info.HasTOTP || info.HasWebAuthn || info.HasDuo || info.HasMobileApp {
 			ctx.Logger.WithFields(map[string]any{"user": userSession.Username}).Info("The user session elevation was not checked as the user must have also performed second factor authentication.")
 
 			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {

@@ -33,6 +33,9 @@ type UserInfo struct {
 
 	// True if the user has 2 or fewer unused recovery codes (used by the frontend to show a low-codes nudge).
 	LowRecoveryCodes bool `db:"-" json:"low_recovery_codes"`
+
+	// True if at least one Authelia app device has been registered.
+	HasMobileApp bool `db:"has_mobile_app" json:"has_mobile_app"`
 }
 
 // SetDefaultPreferred2FAMethod configures the default method based on what is configured as available and the users available methods.
@@ -45,6 +48,7 @@ func (i *UserInfo) SetDefaultPreferred2FAMethod(methods []string, fallback strin
 	before := i.Method
 
 	totp, webauthn, duo := utils.IsStringInSlice(SecondFactorMethodTOTP, methods), utils.IsStringInSlice(SecondFactorMethodWebAuthn, methods), utils.IsStringInSlice(SecondFactorMethodDuo, methods)
+	app := utils.IsStringInSlice(SecondFactorMethodMobileApp, methods)
 
 	if i.Method == "" && utils.IsStringInSlice(fallback, methods) {
 		i.Method = fallback
@@ -53,13 +57,13 @@ func (i *UserInfo) SetDefaultPreferred2FAMethod(methods []string, fallback strin
 	}
 
 	if i.Method == "" {
-		i.setMethod(totp, webauthn, duo, methods, fallback)
+		i.setMethod(totp, webauthn, duo, app, methods, fallback)
 	}
 
 	return before != i.Method
 }
 
-func (i *UserInfo) setMethod(totp, webauthn, duo bool, methods []string, fallback string) {
+func (i *UserInfo) setMethod(totp, webauthn, duo, app bool, methods []string, fallback string) {
 	switch {
 	case i.HasTOTP && totp:
 		i.Method = SecondFactorMethodTOTP
@@ -67,6 +71,8 @@ func (i *UserInfo) setMethod(totp, webauthn, duo bool, methods []string, fallbac
 		i.Method = SecondFactorMethodWebAuthn
 	case i.HasDuo && duo:
 		i.Method = SecondFactorMethodDuo
+	case i.HasMobileApp && app:
+		i.Method = SecondFactorMethodMobileApp
 	case fallback != "" && utils.IsStringInSlice(fallback, methods):
 		i.Method = fallback
 	case totp:
@@ -75,5 +81,7 @@ func (i *UserInfo) setMethod(totp, webauthn, duo bool, methods []string, fallbac
 		i.Method = SecondFactorMethodWebAuthn
 	case duo:
 		i.Method = SecondFactorMethodDuo
+	case app:
+		i.Method = SecondFactorMethodMobileApp
 	}
 }

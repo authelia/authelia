@@ -73,7 +73,7 @@ func handleError(cpath string, trustedProxies schema.ServerHeadersTrustedProxies
 
 		logging.Logger().WithFields(logrus.Fields{
 			logging.FieldMethod:     string(ctx.Method()),
-			logging.FieldPath:       string(ctx.Path()),
+			logging.FieldPath:       middlewares.RedactAppAuthenticatorDevicePath(string(ctx.Path())),
 			logging.FieldRemoteIP:   middlewares.TrustedProxiesRemoteIP(ctx, trustedProxies).String(),
 			logging.FieldStatusCode: statusCode,
 		}).WithError(err).Error(message)
@@ -356,6 +356,28 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
+	handlerNotFound, handlerMethodNotAllowed := handleNotFound(bridge(serveIndexHandler)), fasthttp.RequestHandler(handleMethodNotAllowed)
+
+	if !config.AppAuthenticator.Disable {
+		middlewareRateLimitApp := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorApp), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
+			Build()
+
+		r.PUT("/api/secondfactor/app/registration", middlewareElevated1FA(handlers.AppAuthenticatorRegistrationPUT))
+		r.GET("/api/secondfactor/app/registration", middlewareElevated1FA(handlers.AppAuthenticatorRegistrationGET))
+		r.DELETE("/api/secondfactor/app/registration", middlewareElevated1FA(handlers.AppAuthenticatorRegistrationDELETE))
+
+		r.POST("/api/secondfactor/app", middlewareRateLimitApp(handlers.AppAuthenticatorPOST))
+		r.POST("/api/secondfactor/app/status", middleware1FA(handlers.AppAuthenticatorStatusPOST))
+
+		r.GET("/api/secondfactor/app/devices", middleware1FA(handlers.AppAuthenticatorDevicesGET))
+		r.PUT("/api/secondfactor/app/devices/{id}", middlewareElevated1FA(handlers.AppAuthenticatorDevicePUT))
+		r.DELETE("/api/secondfactor/app/devices/{id}", middlewareElevated1FA(handlers.AppAuthenticatorDeviceRemoveDELETE))
+
+		handlerNotFound, handlerMethodNotAllowed = registerAppAuthenticatorDeviceRoutes(r, config, providers, handlerNotFound, handlerMethodNotAllowed)
+	}
+
 	if config.Server.Endpoints.EnablePprof {
 		r.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 	}
@@ -370,8 +392,8 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	r.RedirectFixedPath = false
 	r.HandleMethodNotAllowed = true
-	r.MethodNotAllowed = handleMethodNotAllowed
-	r.NotFound = handleNotFound(bridge(serveIndexHandler))
+	r.MethodNotAllowed = handlerMethodNotAllowed
+	r.NotFound = handlerNotFound
 
 	handler = middlewares.LogRequest(r.Handler)
 
@@ -382,6 +404,51 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	middleware := middlewares.NewTrustedProxies(config.Server.Headers.TrustedProxies)
 
 	return middleware(handler), nil
+}
+
+func registerAppAuthenticatorDeviceRoutes(r *router.Router, config *schema.Configuration, providers middlewares.Providers, notFound, methodNotAllowed fasthttp.RequestHandler) (fasthttp.RequestHandler, fasthttp.RequestHandler) {
+	newBridge := func(limit schema.ServerEndpointRateLimit) middlewares.Bridge {
+		return middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimiter(
+				middlewares.WithRateLimitConfig(limit),
+				middlewares.WithRateLimitErrorHandler(handlers.AppAuthenticatorDeviceRateLimited),
+				middlewares.WithRateLimitCollector(providers.GarbageCollector),
+			).Middleware()).
+			Build()
+	}
+
+	bridgeRegistration := newBridge(config.Server.Endpoints.RateLimits.AppAuthenticatorRegistration)
+	bridgeCheck := newBridge(config.Server.Endpoints.RateLimits.AppAuthenticatorCheck)
+	bridgeConfirmation := newBridge(config.Server.Endpoints.RateLimits.AppAuthenticatorConfirmation)
+
+	r.POST("/api/register/app/{random}", bridgeRegistration(handlers.AppAuthenticatorRegistrationBeginPOST))
+	r.POST("/api/register/app/confirm/{id}", bridgeRegistration(handlers.AppAuthenticatorRegistrationConfirmPOST))
+	r.POST("/api/secondfactor/app/challenge/{pull_id}", bridgeCheck(handlers.AppAuthenticatorChallengeCheckPOST))
+	r.POST("/api/secondfactor/app/confirmation/{id}", bridgeConfirmation(handlers.AppAuthenticatorChallengeConfirmPOST))
+	r.DELETE("/api/secondfactor/app/device", bridgeConfirmation(handlers.AppAuthenticatorDeviceDELETE))
+
+	unknown := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		Build()(handlers.AppAuthenticatorDeviceUnknown)
+
+	for _, path := range []string{"/api/register/app/{random}", "/api/register/app/confirm/{id}", "/api/secondfactor/app/challenge/{pull_id}", "/api/secondfactor/app/confirmation/{id}", "/api/secondfactor/app/device"} {
+		r.OPTIONS(path, unknown)
+	}
+
+	return handleAppAuthenticatorDeviceUnknown(unknown, notFound), handleAppAuthenticatorDeviceUnknown(unknown, methodNotAllowed)
+}
+
+func handleAppAuthenticatorDeviceUnknown(unknown, next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		if middlewares.IsAppAuthenticatorDevicePath(string(ctx.Path())) {
+			unknown(ctx)
+
+			return
+		}
+
+		next(ctx)
+	}
 }
 
 // RegisterOpenIDConnectRoutes handles registration of OpenID Connect 1.0 routes.

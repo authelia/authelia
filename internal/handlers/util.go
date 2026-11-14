@@ -42,6 +42,7 @@ const (
 
 	eventLogCategoryOneTimePassword    = "One-Time Password"
 	eventLogCategoryWebAuthnCredential = "WebAuthn Credential" //nolint:gosec
+	eventLogCategoryAppAuthenticator   = "Authelia app"
 )
 
 func passwordResetFailureReason(err error) string {

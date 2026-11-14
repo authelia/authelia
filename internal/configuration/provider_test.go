@@ -194,7 +194,7 @@ func TestShouldHandleSubPathVariations(t *testing.T) {
 				}
 			}
 
-			require.Len(t, val.Warnings(), 0)
+			require.Len(t, val.Warnings(), 1)
 
 			assert.Equal(t, tc.expectedPath, config.Server.Address.RouterPath())
 		})
@@ -628,7 +628,7 @@ func TestShouldHandleNoAddressMySQLWithHostEnv(t *testing.T) {
 
 	validator.ValidateConfiguration(config, val)
 
-	require.Len(t, val.Warnings(), 1)
+	require.Len(t, val.Warnings(), 2)
 	require.Len(t, val.Errors(), 1)
 
 	assert.EqualError(t, val.Warnings()[0], "configuration keys 'storage.mysql.host' and 'storage.mysql.port' are deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://mysql:3306', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
@@ -645,7 +645,7 @@ func TestShouldHandleNoAddressPostgreSQLWithHostEnv(t *testing.T) {
 
 	validator.ValidateConfiguration(config, val)
 
-	assert.Len(t, val.Warnings(), 1)
+	assert.Len(t, val.Warnings(), 2)
 	assert.Len(t, val.Errors(), 1)
 
 	assert.Equal(t, "tcp://postgres:5432", config.Storage.PostgreSQL.Address.String())
@@ -661,7 +661,7 @@ func TestShouldHandleNoAddressSMTPWithHostEnv(t *testing.T) {
 
 	validator.ValidateConfiguration(config, val)
 
-	assert.Len(t, val.Warnings(), 1)
+	assert.Len(t, val.Warnings(), 2)
 	assert.Len(t, val.Errors(), 1)
 
 	assert.Equal(t, "smtp://smtp:25", config.Notifier.SMTP.Address.String())
@@ -1077,7 +1077,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 
 	validator.ValidateConfiguration(config, val)
 
-	assert.Len(t, val.Warnings(), 0)
+	assert.Len(t, val.Warnings(), 1)
 
 	require.Len(t, val.Errors(), 3)
 	assert.EqualError(t, val.Errors()[0], "access_control: rule #14 (domain 'dev.example.com'): option 'subject' with value 'oauth2:client:not_a_client' is invalid: the client id 'not_a_client' does not belong to a registered client")

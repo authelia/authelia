@@ -486,7 +486,7 @@ func TestSQLProviderLoadErrors(t *testing.T) {
 		{
 			name: "ShouldReturnErrLoadUserInfo",
 			setup: func(db *mocks.MockSQLXDB) {
-				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "john", "john", "john", "john").Return(errors.New("boom"))
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "john", "john", "john", "john", "john").Return(errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
 				_, err := p.LoadUserInfo(context.Background(), "john")

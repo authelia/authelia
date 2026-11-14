@@ -119,6 +119,23 @@ func TestRequireElevated(t *testing.T) {
 			false,
 		},
 		{
+			"ShouldRequire2FAWhenElevatedMobileAppOnly",
+			authentication.OneFactor,
+			&elevation{
+				1, time.Minute, net.ParseIP("127.0.0.1"),
+			},
+			true,
+			false,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().LoadUserInfo(mock.Ctx, john).
+					Return(model.UserInfo{HasMobileApp: true}, nil)
+			},
+			fasthttp.StatusForbidden,
+			false,
+			true,
+			false,
+		},
+		{
 			"ShouldNotRequire2FAWhenNotSetup",
 			authentication.OneFactor,
 			&elevation{

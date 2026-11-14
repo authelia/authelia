@@ -24,6 +24,10 @@ func (s UserSession) deepCopy() (session UserSession) {
 		session.TOTP = new(*s.TOTP)
 	}
 
+	if s.AppAuthenticator != nil {
+		session.AppAuthenticator = new(*s.AppAuthenticator)
+	}
+
 	return session
 }
 

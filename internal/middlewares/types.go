@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/appauthenticator"
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/cache"
@@ -63,6 +64,7 @@ type Providers struct {
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
 	Duo                   duo.Provider
+	AppAuthenticator      *appauthenticator.Verifier
 
 	GarbageCollector *GarbageCollector
 

@@ -17,6 +17,7 @@ interface Props {
     icon?: ReactNode;
     description: string;
     qualifier: string;
+    details?: ReactNode;
     problem?: boolean;
     created_at: Date;
     last_used_at?: Date;
@@ -49,6 +50,7 @@ const CredentialItem = function (props: Props) {
                                     <span className="hidden sm:inline text-sm px-4">{props.qualifier}</span>
                                 ) : null}
                             </div>
+                            {props.details}
                             <span className="hidden sm:block text-xs text-muted-foreground">
                                 {`${translate("Added")} ${timeSinceAdded}`}
                             </span>

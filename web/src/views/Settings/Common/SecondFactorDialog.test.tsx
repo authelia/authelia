@@ -58,6 +58,14 @@ vi.mock("@views/Settings/Common/SecondFactorMethodMobilePush", () => ({
     ),
 }));
 
+vi.mock("@views/Settings/Common/SecondFactorMethodMobileApp", () => ({
+    default: (props: any) => (
+        <div data-testid="method-app">
+            <button data-testid="app-success" onClick={() => props.onSecondFactorSuccess()} />
+        </div>
+    ),
+}));
+
 const elevation = {
     can_skip_second_factor: true,
     elevated: false,
@@ -112,6 +120,13 @@ describe("rendering", () => {
         expect(screen.getByText("One-Time Password")).toBeInTheDocument();
         expect(screen.getByText("WebAuthn")).toBeInTheDocument();
         expect(screen.queryByText("Mobile Push")).not.toBeInTheDocument();
+        expect(screen.queryByText("Authelia app")).not.toBeInTheDocument();
+    });
+
+    it("renders the Authelia app option when a device is registered", () => {
+        renderDialog({ info: { has_duo: false, has_mobile_app: true, has_totp: false, has_webauthn: false } });
+        expect(screen.getByText("Authelia app")).toBeInTheDocument();
+        expect(screen.queryByText("One-Time Password")).not.toBeInTheDocument();
     });
 
     it("does not render content when not opening", () => {
@@ -213,6 +228,14 @@ describe("method selection", () => {
         fireEvent.click(screen.getByText("Mobile Push"));
 
         expect(await screen.findByTestId("method-push")).toBeInTheDocument();
+    });
+
+    it("shows the Authelia app method", async () => {
+        renderDialog({ info: { has_duo: false, has_mobile_app: true, has_totp: false, has_webauthn: false } });
+
+        fireEvent.click(screen.getByText("Authelia app"));
+
+        expect(await screen.findByTestId("method-app")).toBeInTheDocument();
     });
 
     it("closes with a successful, unchanged result for the email one-time code", () => {

@@ -12,6 +12,7 @@ import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
 import { Button } from "@components/UI/Button";
 import {
+    SecondFactorAppSubRoute,
     SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
@@ -31,6 +32,7 @@ import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
 
+const AppAuthenticatorMethod = lazy(() => import("@views/LoginPortal/SecondFactor/AppAuthenticatorMethod"));
 const OneTimePasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor/OneTimePasswordMethod"));
 const PushNotificationMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PushNotificationMethod"));
 const WebAuthnMethod = lazy(() => import("@views/LoginPortal/SecondFactor/WebAuthnMethod"));
@@ -84,7 +86,11 @@ const SecondFactorForm = function (props: Props) {
         }
     };
 
-    const showMethods = props.factorKnowledge && props.configuration.available_methods.size > 1;
+    const appUsable = props.userInfo.has_mobile_app || props.configuration.app_authenticator_registration;
+    const methods = appUsable
+        ? props.configuration.available_methods
+        : new Set([...props.configuration.available_methods].filter((m) => m !== SecondFactorMethod.MobileApp));
+    const showMethods = props.factorKnowledge && methods.size > 1;
 
     return (
         <LoginLayout
@@ -95,7 +101,7 @@ const SecondFactorForm = function (props: Props) {
             {showMethods ? (
                 <MethodSelectionDialog
                     open={methodSelectionOpen}
-                    methods={props.configuration.available_methods}
+                    methods={methods}
                     webauthn={stateWebAuthnSupported}
                     onClose={() => setMethodSelectionOpen(false)}
                     onClick={handleMethodSelected}
@@ -180,6 +186,21 @@ const SecondFactorForm = function (props: Props) {
                                         duoSelfEnrollment={props.duoSelfEnrollment}
                                         registered={props.userInfo.has_duo}
                                         onSelectionClick={props.onMethodChanged}
+                                        onSignInError={(err) => createErrorNotification(err.message)}
+                                        onSignInSuccess={props.onAuthenticationSuccess}
+                                    />
+                                }
+                            />
+                            <Route
+                                path={SecondFactorAppSubRoute}
+                                element={
+                                    <AppAuthenticatorMethod
+                                        id={"app-authenticator-method"}
+                                        authenticationLevel={props.authenticationLevel}
+                                        registered={props.userInfo.has_mobile_app}
+                                        onRegisterClick={() => {
+                                            navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                                        }}
                                         onSignInError={(err) => createErrorNotification(err.message)}
                                         onSignInSuccess={props.onAuthenticationSuccess}
                                     />

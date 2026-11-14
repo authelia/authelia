@@ -7,6 +7,7 @@ package validator
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -80,6 +81,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidatePasswordPolicy(&config.PasswordPolicy, validator)
 
 	ValidatePrivacyPolicy(&config.PrivacyPolicy, validator)
+
+	ValidateAppAuthenticator(config, validator)
 }
 
 func validateDefault2FAMethod(config *schema.Configuration, validator *schema.StructValidator) {
@@ -107,8 +110,27 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 		enabledMethods = append(enabledMethods, "mobile_push")
 	}
 
+	if !config.AppAuthenticator.Disable {
+		enabledMethods = append(enabledMethods, "mobile_app")
+	}
+
 	if !utils.IsStringInSlice(config.Default2FAMethod, enabledMethods) {
 		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethodDisabled, utils.StringJoinOr(enabledMethods), config.Default2FAMethod))
+
+		return
+	}
+
+	if config.Default2FAMethod == "mobile_app" && !appAuthenticatorRegistrationAvailable(&config.AppAuthenticator) {
+		validator.PushWarning(errors.New(errDefault2FAMethodMobileAppUnavailable))
+	}
+}
+
+func appAuthenticatorRegistrationAvailable(c *schema.AppAuthenticator) bool {
+	switch c.Attestation.Mode {
+	case "", schema.AppAuthenticatorAttestationModeRequired:
+		return c.Attestation.HasIdentities()
+	default:
+		return true
 	}
 }
 

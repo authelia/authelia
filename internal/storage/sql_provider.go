@@ -152,9 +152,38 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
 		sqlSelectDuoDevice: fmt.Sprintf(queryFmtSelectDuoDevice, tableDuoDevices),
 
+		sqlInsertAppAuthenticatorDevice:                       fmt.Sprintf(queryFmtInsertAppAuthenticatorDevice, tableAppAuthenticatorDevices),
+		sqlSelectAppAuthenticatorDeviceByDeviceID:             fmt.Sprintf(queryFmtSelectAppAuthenticatorDeviceByDeviceID, tableAppAuthenticatorDevices),
+		sqlSelectAppAuthenticatorDeviceByID:                   fmt.Sprintf(queryFmtSelectAppAuthenticatorDeviceByID, tableAppAuthenticatorDevices),
+		sqlSelectAppAuthenticatorDevicesByUsername:            fmt.Sprintf(queryFmtSelectAppAuthenticatorDevicesByUsername, tableAppAuthenticatorDevices),
+		sqlUpdateAppAuthenticatorDevicePullIDs:                fmt.Sprintf(queryFmtUpdateAppAuthenticatorDevicePullIDs, tableAppAuthenticatorDevices),
+		sqlUpdateAppAuthenticatorDeviceName:                   fmt.Sprintf(queryFmtUpdateAppAuthenticatorDeviceName, tableAppAuthenticatorDevices),
+		sqlUpdateAppAuthenticatorDeviceLastUsed:               fmt.Sprintf(queryFmtUpdateAppAuthenticatorDeviceLastUsed, tableAppAuthenticatorDevices),
+		sqlDeleteAppAuthenticatorDevice:                       fmt.Sprintf(queryFmtDeleteAppAuthenticatorDevice, tableAppAuthenticatorDevices),
+		sqlDeleteAppAuthenticatorRequestNoncesByDeviceID:      fmt.Sprintf(queryFmtDeleteAppAuthenticatorRequestNoncesByDeviceID, tableAppAuthenticatorRequestNonces),
+		sqlClearAppAuthenticatorChallengeBindings:             fmt.Sprintf(queryFmtClearAppAuthenticatorChallengeBindingsByDeviceID, tableAppAuthenticatorChallenges),
+		sqlInsertAppAuthenticatorRegistration:                 fmt.Sprintf(queryFmtInsertAppAuthenticatorRegistration, tableAppAuthenticatorRegistrations),
+		sqlSelectAppAuthenticatorRegistrationByCode:           fmt.Sprintf(queryFmtSelectAppAuthenticatorRegistrationByCode, tableAppAuthenticatorRegistrations),
+		sqlSelectAppAuthenticatorRegistrationByConfirmationID: fmt.Sprintf(queryFmtSelectAppAuthenticatorRegistrationByConfirmationID, tableAppAuthenticatorRegistrations),
+		sqlSelectAppAuthenticatorRegistrationByPortalBinding:  fmt.Sprintf(queryFmtSelectAppAuthenticatorRegistrationByPortalBinding, tableAppAuthenticatorRegistrations),
+		sqlUpdateAppAuthenticatorRegistration:                 fmt.Sprintf(queryFmtUpdateAppAuthenticatorRegistration, tableAppAuthenticatorRegistrations),
+		sqlCancelAppAuthenticatorRegistrations:                fmt.Sprintf(queryFmtCancelAppAuthenticatorRegistrations, tableAppAuthenticatorRegistrations),
+		sqlInsertAppAuthenticatorChallenge:                    fmt.Sprintf(queryFmtInsertAppAuthenticatorChallenge, tableAppAuthenticatorChallenges),
+		sqlSelectAppAuthenticatorChallengeByConfirmationID:    fmt.Sprintf(queryFmtSelectAppAuthenticatorChallengeByConfirmationID, tableAppAuthenticatorChallenges),
+		sqlSelectAppAuthenticatorChallengeByPortalBinding:     fmt.Sprintf(queryFmtSelectAppAuthenticatorChallengeByPortalBinding, tableAppAuthenticatorChallenges),
+		sqlSelectAppAuthenticatorChallengePending:             fmt.Sprintf(queryFmtSelectAppAuthenticatorChallengePending, tableAppAuthenticatorChallenges),
+		sqlConsumeAppAuthenticatorChallenge:                   fmt.Sprintf(queryFmtConsumeAppAuthenticatorChallenge, tableAppAuthenticatorChallenges),
+		sqlUpdateAppAuthenticatorChallengeDecision:            fmt.Sprintf(queryFmtUpdateAppAuthenticatorChallengeDecision, tableAppAuthenticatorChallenges),
+		sqlUpdateAppAuthenticatorChallenge:                    fmt.Sprintf(queryFmtUpdateAppAuthenticatorChallenge, tableAppAuthenticatorChallenges),
+		sqlVoidAppAuthenticatorChallengesByPortalBinding:      fmt.Sprintf(queryFmtVoidAppAuthenticatorChallengesByPortalBinding, tableAppAuthenticatorChallenges),
+		sqlInsertAppAuthenticatorRequestNonce:                 fmt.Sprintf(queryFmtInsertAppAuthenticatorRequestNonce, tableAppAuthenticatorRequestNonces),
+		sqlDeleteAppAuthenticatorRequestNoncesExpired:         fmt.Sprintf(queryFmtDeleteAppAuthenticatorRequestNoncesExpired, tableAppAuthenticatorRequestNonces),
+		sqlDeleteAppAuthenticatorRegistrationsStale:           fmt.Sprintf(queryFmtDeleteAppAuthenticatorRegistrationsStale, tableAppAuthenticatorRegistrations),
+		sqlDeleteAppAuthenticatorChallengesStale:              fmt.Sprintf(queryFmtDeleteAppAuthenticatorChallengesStale, tableAppAuthenticatorChallenges),
+
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
-		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableAppAuthenticatorDevices, tableUserPreferences),
 
 		sqlInsertUserOpaqueIdentifier:            fmt.Sprintf(queryFmtInsertUserOpaqueIdentifier, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifier:            fmt.Sprintf(queryFmtSelectUserOpaqueIdentifier, tableUserOpaqueIdentifier),
@@ -353,6 +382,36 @@ type SQLProvider struct {
 	sqlUpsertDuoDevice string
 	sqlDeleteDuoDevice string
 	sqlSelectDuoDevice string
+
+	// Tables: app_authenticator_*.
+	sqlInsertAppAuthenticatorDevice                       string
+	sqlSelectAppAuthenticatorDeviceByDeviceID             string
+	sqlSelectAppAuthenticatorDeviceByID                   string
+	sqlSelectAppAuthenticatorDevicesByUsername            string
+	sqlUpdateAppAuthenticatorDevicePullIDs                string
+	sqlUpdateAppAuthenticatorDeviceName                   string
+	sqlUpdateAppAuthenticatorDeviceLastUsed               string
+	sqlDeleteAppAuthenticatorDevice                       string
+	sqlDeleteAppAuthenticatorRequestNoncesByDeviceID      string
+	sqlClearAppAuthenticatorChallengeBindings             string
+	sqlInsertAppAuthenticatorRegistration                 string
+	sqlSelectAppAuthenticatorRegistrationByCode           string
+	sqlSelectAppAuthenticatorRegistrationByConfirmationID string
+	sqlSelectAppAuthenticatorRegistrationByPortalBinding  string
+	sqlUpdateAppAuthenticatorRegistration                 string
+	sqlCancelAppAuthenticatorRegistrations                string
+	sqlInsertAppAuthenticatorChallenge                    string
+	sqlSelectAppAuthenticatorChallengeByConfirmationID    string
+	sqlSelectAppAuthenticatorChallengeByPortalBinding     string
+	sqlSelectAppAuthenticatorChallengePending             string
+	sqlConsumeAppAuthenticatorChallenge                   string
+	sqlUpdateAppAuthenticatorChallengeDecision            string
+	sqlUpdateAppAuthenticatorChallenge                    string
+	sqlVoidAppAuthenticatorChallengesByPortalBinding      string
+	sqlInsertAppAuthenticatorRequestNonce                 string
+	sqlDeleteAppAuthenticatorRequestNoncesExpired         string
+	sqlDeleteAppAuthenticatorRegistrationsStale           string
+	sqlDeleteAppAuthenticatorChallengesStale              string
 
 	// Table: user_preferences.
 	sqlUpsertPreferred2FAMethod string
@@ -589,7 +648,7 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 
 // LoadUserInfo loads the model.UserInfo from the storage provider.
 func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error) {
-	err = p.conn(ctx).GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
+	err = p.conn(ctx).GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username, username)
 
 	switch {
 	case err == nil, errors.Is(err, sql.ErrNoRows):

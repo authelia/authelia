@@ -19,12 +19,11 @@ import (
 	reflect "reflect"
 	time "time"
 
-	uuid "github.com/google/uuid"
-	gomock "go.uber.org/mock/gomock"
-
 	model "github.com/authelia/authelia/v4/internal/model"
 	session "github.com/authelia/authelia/v4/internal/session"
 	storage "github.com/authelia/authelia/v4/internal/storage"
+	uuid "github.com/google/uuid"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -80,6 +79,20 @@ func (mr *MockStorageMockRecorder) BeginTX(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTX", reflect.TypeOf((*MockStorage)(nil).BeginTX), ctx)
 }
 
+// CancelAppAuthenticatorRegistrations mocks base method.
+func (m *MockStorage) CancelAppAuthenticatorRegistrations(ctx context.Context, binding []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancelAppAuthenticatorRegistrations", ctx, binding)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CancelAppAuthenticatorRegistrations indicates an expected call of CancelAppAuthenticatorRegistrations.
+func (mr *MockStorageMockRecorder) CancelAppAuthenticatorRegistrations(ctx, binding any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelAppAuthenticatorRegistrations", reflect.TypeOf((*MockStorage)(nil).CancelAppAuthenticatorRegistrations), ctx, binding)
+}
+
 // Close mocks base method.
 func (m *MockStorage) Close() error {
 	m.ctrl.T.Helper()
@@ -106,6 +119,21 @@ func (m *MockStorage) Commit(ctx context.Context) error {
 func (mr *MockStorageMockRecorder) Commit(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockStorage)(nil).Commit), ctx)
+}
+
+// ConsumeAppAuthenticatorChallenge mocks base method.
+func (m *MockStorage) ConsumeAppAuthenticatorChallenge(ctx context.Context, id int, at, expiresNotBefore time.Time) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeAppAuthenticatorChallenge", ctx, id, at, expiresNotBefore)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConsumeAppAuthenticatorChallenge indicates an expected call of ConsumeAppAuthenticatorChallenge.
+func (mr *MockStorageMockRecorder) ConsumeAppAuthenticatorChallenge(ctx, id, at, expiresNotBefore any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeAppAuthenticatorChallenge", reflect.TypeOf((*MockStorage)(nil).ConsumeAppAuthenticatorChallenge), ctx, id, at, expiresNotBefore)
 }
 
 // ConsumeIdentityVerification mocks base method.
@@ -266,6 +294,20 @@ func (mr *MockStorageMockRecorder) DecideOAuth2DeviceCodeSession(ctx, arg1 any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecideOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).DecideOAuth2DeviceCodeSession), ctx, arg1)
 }
 
+// DeleteAppAuthenticatorDevice mocks base method.
+func (m *MockStorage) DeleteAppAuthenticatorDevice(ctx context.Context, deviceID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAppAuthenticatorDevice", ctx, deviceID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAppAuthenticatorDevice indicates an expected call of DeleteAppAuthenticatorDevice.
+func (mr *MockStorageMockRecorder) DeleteAppAuthenticatorDevice(ctx, deviceID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAppAuthenticatorDevice", reflect.TypeOf((*MockStorage)(nil).DeleteAppAuthenticatorDevice), ctx, deviceID)
+}
+
 // DeleteCachedData mocks base method.
 func (m *MockStorage) DeleteCachedData(ctx context.Context, name string) error {
 	m.ctrl.T.Helper()
@@ -364,6 +406,141 @@ func (m *MockStorage) FindIdentityVerification(ctx context.Context, jti string) 
 func (mr *MockStorageMockRecorder) FindIdentityVerification(ctx, jti any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockStorage)(nil).FindIdentityVerification), ctx, jti)
+}
+
+// LoadAppAuthenticatorChallengeByConfirmationID mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorChallengeByConfirmationID(ctx context.Context, id string) (*model.AppAuthenticatorChallenge, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorChallengeByConfirmationID", ctx, id)
+	ret0, _ := ret[0].(*model.AppAuthenticatorChallenge)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorChallengeByConfirmationID indicates an expected call of LoadAppAuthenticatorChallengeByConfirmationID.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorChallengeByConfirmationID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorChallengeByConfirmationID", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorChallengeByConfirmationID), ctx, id)
+}
+
+// LoadAppAuthenticatorChallengeByPortalBinding mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorChallengeByPortalBinding(ctx context.Context, binding []byte) (*model.AppAuthenticatorChallenge, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorChallengeByPortalBinding", ctx, binding)
+	ret0, _ := ret[0].(*model.AppAuthenticatorChallenge)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorChallengeByPortalBinding indicates an expected call of LoadAppAuthenticatorChallengeByPortalBinding.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorChallengeByPortalBinding(ctx, binding any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorChallengeByPortalBinding", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorChallengeByPortalBinding), ctx, binding)
+}
+
+// LoadAppAuthenticatorChallengePending mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorChallengePending(ctx context.Context, username string, now time.Time) (*model.AppAuthenticatorChallenge, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorChallengePending", ctx, username, now)
+	ret0, _ := ret[0].(*model.AppAuthenticatorChallenge)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorChallengePending indicates an expected call of LoadAppAuthenticatorChallengePending.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorChallengePending(ctx, username, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorChallengePending", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorChallengePending), ctx, username, now)
+}
+
+// LoadAppAuthenticatorDeviceByDeviceID mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorDeviceByDeviceID(ctx context.Context, deviceID string) (*model.AppAuthenticatorDevice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorDeviceByDeviceID", ctx, deviceID)
+	ret0, _ := ret[0].(*model.AppAuthenticatorDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorDeviceByDeviceID indicates an expected call of LoadAppAuthenticatorDeviceByDeviceID.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorDeviceByDeviceID(ctx, deviceID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorDeviceByDeviceID", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorDeviceByDeviceID), ctx, deviceID)
+}
+
+// LoadAppAuthenticatorDeviceByID mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorDeviceByID(ctx context.Context, id int) (*model.AppAuthenticatorDevice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorDeviceByID", ctx, id)
+	ret0, _ := ret[0].(*model.AppAuthenticatorDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorDeviceByID indicates an expected call of LoadAppAuthenticatorDeviceByID.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorDeviceByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorDeviceByID", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorDeviceByID), ctx, id)
+}
+
+// LoadAppAuthenticatorDevicesByUsername mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorDevicesByUsername(ctx context.Context, username string) ([]model.AppAuthenticatorDevice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorDevicesByUsername", ctx, username)
+	ret0, _ := ret[0].([]model.AppAuthenticatorDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorDevicesByUsername indicates an expected call of LoadAppAuthenticatorDevicesByUsername.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorDevicesByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorDevicesByUsername", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorDevicesByUsername), ctx, username)
+}
+
+// LoadAppAuthenticatorRegistrationByCode mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorRegistrationByCode(ctx context.Context, code []byte) (*model.AppAuthenticatorRegistration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorRegistrationByCode", ctx, code)
+	ret0, _ := ret[0].(*model.AppAuthenticatorRegistration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorRegistrationByCode indicates an expected call of LoadAppAuthenticatorRegistrationByCode.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorRegistrationByCode(ctx, code any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorRegistrationByCode", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorRegistrationByCode), ctx, code)
+}
+
+// LoadAppAuthenticatorRegistrationByConfirmationID mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorRegistrationByConfirmationID(ctx context.Context, id []byte) (*model.AppAuthenticatorRegistration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorRegistrationByConfirmationID", ctx, id)
+	ret0, _ := ret[0].(*model.AppAuthenticatorRegistration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorRegistrationByConfirmationID indicates an expected call of LoadAppAuthenticatorRegistrationByConfirmationID.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorRegistrationByConfirmationID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorRegistrationByConfirmationID", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorRegistrationByConfirmationID), ctx, id)
+}
+
+// LoadAppAuthenticatorRegistrationByPortalBinding mocks base method.
+func (m *MockStorage) LoadAppAuthenticatorRegistrationByPortalBinding(ctx context.Context, binding []byte) (*model.AppAuthenticatorRegistration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAppAuthenticatorRegistrationByPortalBinding", ctx, binding)
+	ret0, _ := ret[0].(*model.AppAuthenticatorRegistration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAppAuthenticatorRegistrationByPortalBinding indicates an expected call of LoadAppAuthenticatorRegistrationByPortalBinding.
+func (mr *MockStorageMockRecorder) LoadAppAuthenticatorRegistrationByPortalBinding(ctx, binding any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAppAuthenticatorRegistrationByPortalBinding", reflect.TypeOf((*MockStorage)(nil).LoadAppAuthenticatorRegistrationByPortalBinding), ctx, binding)
 }
 
 // LoadBannedIP mocks base method.
@@ -965,6 +1142,20 @@ func (mr *MockStorageMockRecorder) LoadWebAuthnUserByUserID(ctx, rpid, userID an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUserByUserID", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUserByUserID), ctx, rpid, userID)
 }
 
+// PruneAppAuthenticator mocks base method.
+func (m *MockStorage) PruneAppAuthenticator(ctx context.Context, now time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PruneAppAuthenticator", ctx, now)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PruneAppAuthenticator indicates an expected call of PruneAppAuthenticator.
+func (mr *MockStorageMockRecorder) PruneAppAuthenticator(ctx, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PruneAppAuthenticator", reflect.TypeOf((*MockStorage)(nil).PruneAppAuthenticator), ctx, now)
+}
+
 // ReplaceRecoveryCodesByUsername mocks base method.
 func (m *MockStorage) ReplaceRecoveryCodesByUsername(ctx context.Context, username string, codes []*model.RecoveryCode, ip model.NullIP) error {
 	m.ctrl.T.Helper()
@@ -1103,6 +1294,63 @@ func (m *MockStorage) Rollback(ctx context.Context) error {
 func (mr *MockStorageMockRecorder) Rollback(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockStorage)(nil).Rollback), ctx)
+}
+
+// SaveAppAuthenticatorChallenge mocks base method.
+func (m *MockStorage) SaveAppAuthenticatorChallenge(ctx context.Context, c model.AppAuthenticatorChallenge) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveAppAuthenticatorChallenge", ctx, c)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveAppAuthenticatorChallenge indicates an expected call of SaveAppAuthenticatorChallenge.
+func (mr *MockStorageMockRecorder) SaveAppAuthenticatorChallenge(ctx, c any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveAppAuthenticatorChallenge", reflect.TypeOf((*MockStorage)(nil).SaveAppAuthenticatorChallenge), ctx, c)
+}
+
+// SaveAppAuthenticatorDevice mocks base method.
+func (m *MockStorage) SaveAppAuthenticatorDevice(ctx context.Context, d model.AppAuthenticatorDevice) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveAppAuthenticatorDevice", ctx, d)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveAppAuthenticatorDevice indicates an expected call of SaveAppAuthenticatorDevice.
+func (mr *MockStorageMockRecorder) SaveAppAuthenticatorDevice(ctx, d any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveAppAuthenticatorDevice", reflect.TypeOf((*MockStorage)(nil).SaveAppAuthenticatorDevice), ctx, d)
+}
+
+// SaveAppAuthenticatorRegistration mocks base method.
+func (m *MockStorage) SaveAppAuthenticatorRegistration(ctx context.Context, r model.AppAuthenticatorRegistration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveAppAuthenticatorRegistration", ctx, r)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveAppAuthenticatorRegistration indicates an expected call of SaveAppAuthenticatorRegistration.
+func (mr *MockStorageMockRecorder) SaveAppAuthenticatorRegistration(ctx, r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveAppAuthenticatorRegistration", reflect.TypeOf((*MockStorage)(nil).SaveAppAuthenticatorRegistration), ctx, r)
+}
+
+// SaveAppAuthenticatorRequestNonce mocks base method.
+func (m *MockStorage) SaveAppAuthenticatorRequestNonce(ctx context.Context, deviceID, nonce string, expires time.Time) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveAppAuthenticatorRequestNonce", ctx, deviceID, nonce, expires)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SaveAppAuthenticatorRequestNonce indicates an expected call of SaveAppAuthenticatorRequestNonce.
+func (mr *MockStorageMockRecorder) SaveAppAuthenticatorRequestNonce(ctx, deviceID, nonce, expires any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveAppAuthenticatorRequestNonce", reflect.TypeOf((*MockStorage)(nil).SaveAppAuthenticatorRequestNonce), ctx, deviceID, nonce, expires)
 }
 
 // SaveBannedIP mocks base method.
@@ -1705,6 +1953,94 @@ func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
 }
 
+// UpdateAppAuthenticatorChallenge mocks base method.
+func (m *MockStorage) UpdateAppAuthenticatorChallenge(ctx context.Context, challenge model.AppAuthenticatorChallenge, expectedState string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAppAuthenticatorChallenge", ctx, challenge, expectedState)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAppAuthenticatorChallenge indicates an expected call of UpdateAppAuthenticatorChallenge.
+func (mr *MockStorageMockRecorder) UpdateAppAuthenticatorChallenge(ctx, challenge, expectedState any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAppAuthenticatorChallenge", reflect.TypeOf((*MockStorage)(nil).UpdateAppAuthenticatorChallenge), ctx, challenge, expectedState)
+}
+
+// UpdateAppAuthenticatorChallengeDecision mocks base method.
+func (m *MockStorage) UpdateAppAuthenticatorChallengeDecision(ctx context.Context, challenge model.AppAuthenticatorChallenge) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAppAuthenticatorChallengeDecision", ctx, challenge)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAppAuthenticatorChallengeDecision indicates an expected call of UpdateAppAuthenticatorChallengeDecision.
+func (mr *MockStorageMockRecorder) UpdateAppAuthenticatorChallengeDecision(ctx, challenge any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAppAuthenticatorChallengeDecision", reflect.TypeOf((*MockStorage)(nil).UpdateAppAuthenticatorChallengeDecision), ctx, challenge)
+}
+
+// UpdateAppAuthenticatorDeviceLastUsed mocks base method.
+func (m *MockStorage) UpdateAppAuthenticatorDeviceLastUsed(ctx context.Context, id int, at time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAppAuthenticatorDeviceLastUsed", ctx, id, at)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAppAuthenticatorDeviceLastUsed indicates an expected call of UpdateAppAuthenticatorDeviceLastUsed.
+func (mr *MockStorageMockRecorder) UpdateAppAuthenticatorDeviceLastUsed(ctx, id, at any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAppAuthenticatorDeviceLastUsed", reflect.TypeOf((*MockStorage)(nil).UpdateAppAuthenticatorDeviceLastUsed), ctx, id, at)
+}
+
+// UpdateAppAuthenticatorDeviceName mocks base method.
+func (m *MockStorage) UpdateAppAuthenticatorDeviceName(ctx context.Context, username string, id int, name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAppAuthenticatorDeviceName", ctx, username, id, name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAppAuthenticatorDeviceName indicates an expected call of UpdateAppAuthenticatorDeviceName.
+func (mr *MockStorageMockRecorder) UpdateAppAuthenticatorDeviceName(ctx, username, id, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAppAuthenticatorDeviceName", reflect.TypeOf((*MockStorage)(nil).UpdateAppAuthenticatorDeviceName), ctx, username, id, name)
+}
+
+// UpdateAppAuthenticatorDevicePullIDs mocks base method.
+func (m *MockStorage) UpdateAppAuthenticatorDevicePullIDs(ctx context.Context, id int, expectedCurrent, current, previous []byte) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAppAuthenticatorDevicePullIDs", ctx, id, expectedCurrent, current, previous)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAppAuthenticatorDevicePullIDs indicates an expected call of UpdateAppAuthenticatorDevicePullIDs.
+func (mr *MockStorageMockRecorder) UpdateAppAuthenticatorDevicePullIDs(ctx, id, expectedCurrent, current, previous any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAppAuthenticatorDevicePullIDs", reflect.TypeOf((*MockStorage)(nil).UpdateAppAuthenticatorDevicePullIDs), ctx, id, expectedCurrent, current, previous)
+}
+
+// UpdateAppAuthenticatorRegistration mocks base method.
+func (m *MockStorage) UpdateAppAuthenticatorRegistration(ctx context.Context, registration model.AppAuthenticatorRegistration, expectedState string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAppAuthenticatorRegistration", ctx, registration, expectedState)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAppAuthenticatorRegistration indicates an expected call of UpdateAppAuthenticatorRegistration.
+func (mr *MockStorageMockRecorder) UpdateAppAuthenticatorRegistration(ctx, registration, expectedState any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAppAuthenticatorRegistration", reflect.TypeOf((*MockStorage)(nil).UpdateAppAuthenticatorRegistration), ctx, registration, expectedState)
+}
+
 // UpdateOAuth2DeviceCodeSession mocks base method.
 func (m *MockStorage) UpdateOAuth2DeviceCodeSession(ctx context.Context, arg1 *model.OAuth2DeviceCodeSession) error {
 	m.ctrl.T.Helper()
@@ -1801,4 +2137,18 @@ func (m *MockStorage) UpdateWebAuthnCredentialSignIn(ctx context.Context, creden
 func (mr *MockStorageMockRecorder) UpdateWebAuthnCredentialSignIn(ctx, credential any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebAuthnCredentialSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateWebAuthnCredentialSignIn), ctx, credential)
+}
+
+// VoidAppAuthenticatorChallengesByPortalBinding mocks base method.
+func (m *MockStorage) VoidAppAuthenticatorChallengesByPortalBinding(ctx context.Context, binding []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VoidAppAuthenticatorChallengesByPortalBinding", ctx, binding)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VoidAppAuthenticatorChallengesByPortalBinding indicates an expected call of VoidAppAuthenticatorChallengesByPortalBinding.
+func (mr *MockStorageMockRecorder) VoidAppAuthenticatorChallengesByPortalBinding(ctx, binding any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VoidAppAuthenticatorChallengesByPortalBinding", reflect.TypeOf((*MockStorage)(nil).VoidAppAuthenticatorChallengesByPortalBinding), ctx, binding)
 }

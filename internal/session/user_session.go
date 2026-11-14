@@ -49,6 +49,7 @@ func (s *UserSession) RequiresPersistence() bool {
 		len(s.AuthenticationMethodRefs.Extra) != 0,
 		s.WebAuthn != nil,
 		s.TOTP != nil,
+		s.AppAuthenticator != nil,
 		s.PasswordResetUsername != nil,
 		s.Elevations.User != nil:
 		return true
@@ -112,6 +113,15 @@ func (s *UserSession) SetTwoFactorTOTP(now time.Time) {
 func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 	s.setTwoFactor(now)
 	s.AuthenticationMethodRefs.Duo = true
+}
+
+// SetTwoFactorApp sets the relevant Authelia app AMR's and sets the factor to 2FA.
+func (s *UserSession) SetTwoFactorApp(now time.Time, hardware, userVerified bool) {
+	s.setTwoFactor(now)
+
+	s.AuthenticationMethodRefs.App = true
+	s.AuthenticationMethodRefs.AppHardware = hardware
+	s.AuthenticationMethodRefs.AppUserVerified = userVerified
 }
 
 // SetTwoFactorWebAuthn sets the relevant WebAuthn AMR's and sets the factor to 2FA.

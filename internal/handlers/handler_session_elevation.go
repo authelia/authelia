@@ -65,7 +65,7 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 
 		info, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
 
-		has = info.HasTOTP || info.HasWebAuthn || info.HasDuo
+		has = info.HasTOTP || info.HasWebAuthn || info.HasDuo || info.HasMobileApp
 
 		if ctx.Configuration.IdentityValidation.ElevatedSession.RequireSecondFactor {
 			if err != nil || has {

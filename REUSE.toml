@@ -26,6 +26,7 @@ path = [
 	"docs/static/images/contributors/**",
 	"docs/static/keys/**",
 	"docs/static/schemas/webhooks/**",
+	"internal/appauthenticator/roots/**",
 	"internal/authentication/users_database.template.json",
 	"internal/configuration/test_resources/**",
 	"internal/storage/migrations/**",
@@ -127,3 +128,15 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "OpenID Foundation"
 SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "internal/appauthenticator/testdata/apple/**"
+precedence = "override"
+SPDX-FileCopyrightText = "2002-2026 the webauthn4j authors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "internal/appauthenticator/testdata/android/tee_chain.txt"
+precedence = "override"
+SPDX-FileCopyrightText = "2025 github.com/go-webauthn/webauthn authors"
+SPDX-License-Identifier = "BSD-3-Clause"

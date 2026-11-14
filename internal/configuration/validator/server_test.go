@@ -95,11 +95,39 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 						{Period: 2 * time.Minute, Requests: 15},
 					},
 				},
+				SecondFactorApp: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 2 * time.Minute, Requests: 15},
+					},
+				},
 				SecondFactorRecoveryCode: schema.ServerEndpointRateLimit{
 					IPv6Mask: 64,
 					Buckets: []schema.ServerEndpointRateLimitBucket{
 						{Period: 1 * time.Minute, Requests: 10},
 						{Period: 2 * time.Minute, Requests: 15},
+					},
+				},
+				AppAuthenticatorRegistration: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 10 * time.Minute, Requests: 20},
+					},
+				},
+				AppAuthenticatorCheck: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 10 * time.Minute, Requests: 120},
+					},
+				},
+				AppAuthenticatorConfirmation: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 10 * time.Minute, Requests: 30},
 					},
 				},
 				SecondFactorPassword: schema.ServerEndpointRateLimit{

@@ -137,6 +137,34 @@ it("calls onClick with MobilePush", () => {
     expect(onClick).toHaveBeenCalledWith(SecondFactorMethod.MobilePush);
 });
 
+it("calls onClick with MobileApp", () => {
+    const onClick = vi.fn();
+    render(
+        <MethodSelectionDialog
+            open={true}
+            methods={new Set([SecondFactorMethod.MobileApp])}
+            webauthn={false}
+            onClose={vi.fn()}
+            onClick={onClick}
+        />,
+    );
+    fireEvent.click(screen.getByText("Authelia app"));
+    expect(onClick).toHaveBeenCalledWith(SecondFactorMethod.MobileApp);
+});
+
+it("does not render the Authelia app option when unavailable", () => {
+    render(
+        <MethodSelectionDialog
+            open={true}
+            methods={new Set([SecondFactorMethod.TOTP])}
+            webauthn={false}
+            onClose={vi.fn()}
+            onClick={vi.fn()}
+        />,
+    );
+    expect(screen.queryByText("Authelia app")).not.toBeInTheDocument();
+});
+
 it("renders every available method together", () => {
     render(
         <MethodSelectionDialog

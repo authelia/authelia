@@ -202,6 +202,34 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
+			name: "ShouldSetMethodToMobileAppWhenItIsTheOnlyRegisteredMethod",
+			db: &model.UserInfo{
+				Method:       "",
+				HasMobileApp: true,
+			},
+			api: &model.UserInfo{
+				Method:       "mobile_app",
+				HasMobileApp: true,
+			},
+			config:  &schema.Configuration{},
+			loadErr: nil,
+			saveErr: nil,
+		},
+		{
+			name: "ShouldClearMobileAppWhenAppAuthenticatorIsDisabled",
+			db: &model.UserInfo{
+				Method:       "mobile_app",
+				HasMobileApp: true,
+			},
+			api: &model.UserInfo{
+				Method:       "totp",
+				HasMobileApp: false,
+			},
+			config:  &schema.Configuration{AppAuthenticator: schema.AppAuthenticator{Disable: true}},
+			loadErr: nil,
+			saveErr: nil,
+		},
+		{
 			name: "ShouldDefaultNewUsersToTOTPIfAllEnabled",
 			db: &model.UserInfo{
 				Method:      "",
@@ -312,6 +340,10 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 
 				t.Run("registered duo", func(t *testing.T) {
 					assert.Equal(t, resp.api.HasDuo, actualPreferences.HasDuo)
+				})
+
+				t.Run("registered mobile app", func(t *testing.T) {
+					assert.Equal(t, resp.api.HasMobileApp, actualPreferences.HasMobileApp)
 				})
 			} else {
 				t.Run("expected status code", func(t *testing.T) {
@@ -594,7 +626,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), messageOperationFailed)
-	s.mock.AssertLastLogMessage(s.T(), "Error occurred setting the second factor method preference as the method 'abc' is unknown or unavailable, it should be one of totp, webauthn, mobile_push", "")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred setting the second factor method preference as the method 'abc' is unknown or unavailable, it should be one of totp, webauthn, mobile_push, mobile_app", "")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 

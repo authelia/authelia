@@ -15,6 +15,7 @@ import {
 
 vi.mock("@models/Methods", () => ({
     SecondFactorMethod: {
+        MobileApp: "mobile_app",
         MobilePush: "mobile_push",
         TOTP: "totp",
         WebAuthn: "webauthn",
@@ -34,6 +35,7 @@ it("checks if method is 2fa", () => {
     expect(isMethod2FA("webauthn")).toBe(true);
     expect(isMethod2FA("totp")).toBe(true);
     expect(isMethod2FA("mobile_push")).toBe(true);
+    expect(isMethod2FA("mobile_app")).toBe(true);
     expect(isMethod2FA("unknown")).toBe(false);
 });
 
@@ -41,12 +43,14 @@ it("converts to second factor method", () => {
     expect(toSecondFactorMethod("totp")).toBe(SecondFactorMethod.TOTP);
     expect(toSecondFactorMethod("webauthn")).toBe(SecondFactorMethod.WebAuthn);
     expect(toSecondFactorMethod("mobile_push")).toBe(SecondFactorMethod.MobilePush);
+    expect(toSecondFactorMethod("mobile_app")).toBe(SecondFactorMethod.MobileApp);
 });
 
 it("converts to method 2fa", () => {
     expect(toMethod2FA(SecondFactorMethod.TOTP)).toBe("totp");
     expect(toMethod2FA(SecondFactorMethod.WebAuthn)).toBe("webauthn");
     expect(toMethod2FA(SecondFactorMethod.MobilePush)).toBe("mobile_push");
+    expect(toMethod2FA(SecondFactorMethod.MobileApp)).toBe("mobile_app");
 });
 
 it("posts user info", async () => {

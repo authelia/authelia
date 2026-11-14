@@ -78,6 +78,38 @@ server:
             requests: 10
           - period: '2 minutes'
             requests: 15
+      second_factor_app:
+        enable: true
+        ipv6_mask: 64
+        buckets:
+          - period: '1 minute'
+            requests: 10
+          - period: '2 minutes'
+            requests: 15
+      app_authenticator_registration:
+        enable: true
+        ipv6_mask: 64
+        buckets:
+          - period: '1 minute'
+            requests: 10
+          - period: '10 minutes'
+            requests: 20
+      app_authenticator_check:
+        enable: true
+        ipv6_mask: 64
+        buckets:
+          - period: '1 minute'
+            requests: 30
+          - period: '10 minutes'
+            requests: 120
+      app_authenticator_confirmation:
+        enable: true
+        ipv6_mask: 64
+        buckets:
+          - period: '1 minute'
+            requests: 10
+          - period: '10 minutes'
+            requests: 30
       session_elevation_start:
         enable: true
         ipv6_mask: 64
@@ -238,6 +270,34 @@ See [Common Options](#common-options) for the individual options for this sectio
 
 Configures the rate limiter which applies to the [Recovery Codes](../second-factor/recovery-codes.md) endpoint code
 submissions for the second factor flow.
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### second_factor_app
+
+Configures the rate limiter which applies to the [App Authenticator](../second-factor/app-authenticator.md) endpoint
+which creates the challenge for the second factor flow.
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### app_authenticator_registration
+
+Configures the rate limiter which applies to the [App Authenticator](../second-factor/app-authenticator.md) endpoints the
+app uses to register a device.
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### app_authenticator_check
+
+Configures the rate limiter which applies to the [App Authenticator](../second-factor/app-authenticator.md) endpoint the
+app uses to check for a pending challenge.
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### app_authenticator_confirmation
+
+Configures the rate limiter which applies to the [App Authenticator](../second-factor/app-authenticator.md) endpoints the
+app uses to confirm a challenge and to remove a device.
 
 See [Common Options](#common-options) for the individual options for this section.
 

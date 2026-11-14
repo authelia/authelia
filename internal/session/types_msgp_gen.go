@@ -14,6 +14,109 @@ import (
 )
 
 // DecodeMsg implements msgp.Decodable
+func (z *AppAuthenticator) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "b":
+			z.Binding, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Binding")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z AppAuthenticator) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 1
+	// write "b"
+	err = en.Append(0x81, 0xa1, 0x62)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Binding)
+	if err != nil {
+		err = msgp.WrapError(err, "Binding")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z AppAuthenticator) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 1
+	// string "b"
+	o = append(o, 0x81, 0xa1, 0x62)
+	o = msgp.AppendString(o, z.Binding)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *AppAuthenticator) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "b":
+			z.Binding, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Binding")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z AppAuthenticator) Msgsize() (s int) {
+	s = 1 + 2 + msgp.StringPrefixSize + len(z.Binding)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
 func (z *Elevation) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
@@ -532,6 +635,24 @@ func (z *MessagePackAMR) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "RecoveryCode")
 				return
 			}
+		case "app":
+			z.App, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "App")
+				return
+			}
+		case "apphw":
+			z.AppHardware, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "AppHardware")
+				return
+			}
+		case "appuv":
+			z.AppUserVerified, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "AppUserVerified")
+				return
+			}
 		case "extra":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
@@ -565,12 +686,12 @@ func (z *MessagePackAMR) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(11)
-	var zb0001Mask uint16 /* 11 bits */
+	zb0001Len := uint32(14)
+	var zb0001Mask uint16 /* 14 bits */
 	_ = zb0001Mask
 	if z.Extra == nil {
 		zb0001Len--
-		zb0001Mask |= 0x400
+		zb0001Mask |= 0x2000
 	}
 	// variable map header, size zb0001Len
 	err = en.Append(0x80 | uint8(zb0001Len))
@@ -680,7 +801,37 @@ func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "RecoveryCode")
 			return
 		}
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		// write "app"
+		err = en.Append(0xa3, 0x61, 0x70, 0x70)
+		if err != nil {
+			return
+		}
+		err = en.WriteBool(z.App)
+		if err != nil {
+			err = msgp.WrapError(err, "App")
+			return
+		}
+		// write "apphw"
+		err = en.Append(0xa5, 0x61, 0x70, 0x70, 0x68, 0x77)
+		if err != nil {
+			return
+		}
+		err = en.WriteBool(z.AppHardware)
+		if err != nil {
+			err = msgp.WrapError(err, "AppHardware")
+			return
+		}
+		// write "appuv"
+		err = en.Append(0xa5, 0x61, 0x70, 0x70, 0x75, 0x76)
+		if err != nil {
+			return
+		}
+		err = en.WriteBool(z.AppUserVerified)
+		if err != nil {
+			err = msgp.WrapError(err, "AppUserVerified")
+			return
+		}
+		if (zb0001Mask & 0x2000) == 0 { // if not omitted
 			// write "extra"
 			err = en.Append(0xa5, 0x65, 0x78, 0x74, 0x72, 0x61)
 			if err != nil {
@@ -707,12 +858,12 @@ func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *MessagePackAMR) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(11)
-	var zb0001Mask uint16 /* 11 bits */
+	zb0001Len := uint32(14)
+	var zb0001Mask uint16 /* 14 bits */
 	_ = zb0001Mask
 	if z.Extra == nil {
 		zb0001Len--
-		zb0001Mask |= 0x400
+		zb0001Mask |= 0x2000
 	}
 	// variable map header, size zb0001Len
 	o = append(o, 0x80|uint8(zb0001Len))
@@ -749,7 +900,16 @@ func (z *MessagePackAMR) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "rc"
 		o = append(o, 0xa2, 0x72, 0x63)
 		o = msgp.AppendBool(o, z.RecoveryCode)
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		// string "app"
+		o = append(o, 0xa3, 0x61, 0x70, 0x70)
+		o = msgp.AppendBool(o, z.App)
+		// string "apphw"
+		o = append(o, 0xa5, 0x61, 0x70, 0x70, 0x68, 0x77)
+		o = msgp.AppendBool(o, z.AppHardware)
+		// string "appuv"
+		o = append(o, 0xa5, 0x61, 0x70, 0x70, 0x75, 0x76)
+		o = msgp.AppendBool(o, z.AppUserVerified)
+		if (zb0001Mask & 0x2000) == 0 { // if not omitted
 			// string "extra"
 			o = append(o, 0xa5, 0x65, 0x78, 0x74, 0x72, 0x61)
 			o = msgp.AppendArrayHeader(o, uint32(len(z.Extra)))
@@ -839,6 +999,24 @@ func (z *MessagePackAMR) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "RecoveryCode")
 				return
 			}
+		case "app":
+			z.App, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "App")
+				return
+			}
+		case "apphw":
+			z.AppHardware, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "AppHardware")
+				return
+			}
+		case "appuv":
+			z.AppUserVerified, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "AppUserVerified")
+				return
+			}
 		case "extra":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
@@ -872,7 +1050,7 @@ func (z *MessagePackAMR) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *MessagePackAMR) Msgsize() (s int) {
-	s = 1 + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 6 + msgp.ArrayHeaderSize
+	s = 1 + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 4 + msgp.BoolSize + 6 + msgp.BoolSize + 6 + msgp.BoolSize + 6 + msgp.ArrayHeaderSize
 	for za0001 := range z.Extra {
 		s += msgp.StringPrefixSize + len(z.Extra[za0001])
 	}
@@ -1283,6 +1461,47 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
+		case "app":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "AppAuthenticator")
+					return
+				}
+				z.AppAuthenticator = nil
+			} else {
+				if z.AppAuthenticator == nil {
+					z.AppAuthenticator = new(AppAuthenticator)
+				}
+				var zb0003 uint32
+				zb0003, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "AppAuthenticator")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "AppAuthenticator")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "b":
+						z.AppAuthenticator.Binding, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "AppAuthenticator", "Binding")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "AppAuthenticator")
+							return
+						}
+					}
+				}
+			}
 		case "pru":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -1327,8 +1546,8 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(13)
-	var zb0001Mask uint16 /* 13 bits */
+	zb0001Len := uint32(14)
+	var zb0001Mask uint16 /* 14 bits */
 	_ = zb0001Mask
 	if z.Username == "" {
 		zb0001Len--
@@ -1350,9 +1569,13 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 		zb0001Len--
 		zb0001Mask |= 0x200
 	}
-	if z.PasswordResetUsername == nil {
+	if z.AppAuthenticator == nil {
 		zb0001Len--
 		zb0001Mask |= 0x400
+	}
+	if z.PasswordResetUsername == nil {
+		zb0001Len--
+		zb0001Mask |= 0x800
 	}
 	// variable map header, size zb0001Len
 	err = en.Append(0x80 | uint8(zb0001Len))
@@ -1528,6 +1751,31 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			}
 		}
 		if (zb0001Mask & 0x400) == 0 { // if not omitted
+			// write "app"
+			err = en.Append(0xa3, 0x61, 0x70, 0x70)
+			if err != nil {
+				return
+			}
+			if z.AppAuthenticator == nil {
+				err = en.WriteNil()
+				if err != nil {
+					return
+				}
+			} else {
+				// map header, size 1
+				// write "b"
+				err = en.Append(0x81, 0xa1, 0x62)
+				if err != nil {
+					return
+				}
+				err = en.WriteString(z.AppAuthenticator.Binding)
+				if err != nil {
+					err = msgp.WrapError(err, "AppAuthenticator", "Binding")
+					return
+				}
+			}
+		}
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
 			// write "pru"
 			err = en.Append(0xa3, 0x70, 0x72, 0x75)
 			if err != nil {
@@ -1574,8 +1822,8 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(13)
-	var zb0001Mask uint16 /* 13 bits */
+	zb0001Len := uint32(14)
+	var zb0001Mask uint16 /* 14 bits */
 	_ = zb0001Mask
 	if z.Username == "" {
 		zb0001Len--
@@ -1597,9 +1845,13 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 		zb0001Len--
 		zb0001Mask |= 0x200
 	}
-	if z.PasswordResetUsername == nil {
+	if z.AppAuthenticator == nil {
 		zb0001Len--
 		zb0001Mask |= 0x400
+	}
+	if z.PasswordResetUsername == nil {
+		zb0001Len--
+		zb0001Mask |= 0x800
 	}
 	// variable map header, size zb0001Len
 	o = append(o, 0x80|uint8(zb0001Len))
@@ -1692,6 +1944,18 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 			}
 		}
 		if (zb0001Mask & 0x400) == 0 { // if not omitted
+			// string "app"
+			o = append(o, 0xa3, 0x61, 0x70, 0x70)
+			if z.AppAuthenticator == nil {
+				o = msgp.AppendNil(o)
+			} else {
+				// map header, size 1
+				// string "b"
+				o = append(o, 0x81, 0xa1, 0x62)
+				o = msgp.AppendString(o, z.AppAuthenticator.Binding)
+			}
+		}
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
 			// string "pru"
 			o = append(o, 0xa3, 0x70, 0x72, 0x75)
 			if z.PasswordResetUsername == nil {
@@ -1854,6 +2118,46 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
+		case "app":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.AppAuthenticator = nil
+			} else {
+				if z.AppAuthenticator == nil {
+					z.AppAuthenticator = new(AppAuthenticator)
+				}
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "AppAuthenticator")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "AppAuthenticator")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "b":
+						z.AppAuthenticator.Binding, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "AppAuthenticator", "Binding")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "AppAuthenticator")
+							return
+						}
+					}
+				}
+			}
 		case "pru":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -1914,6 +2218,12 @@ func (z *UserSession) Msgsize() (s int) {
 		s += msgp.NilSize
 	} else {
 		s += z.TOTP.Msgsize()
+	}
+	s += 4
+	if z.AppAuthenticator == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 2 + msgp.StringPrefixSize + len(z.AppAuthenticator.Binding)
 	}
 	s += 4
 	if z.PasswordResetUsername == nil {

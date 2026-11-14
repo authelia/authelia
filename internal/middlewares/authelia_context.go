@@ -41,8 +41,20 @@ func NewRequestLogger(ctx *fasthttp.RequestCtx) (entry *logrus.Entry) {
 		logging.FieldPath:     string(ctx.Path()),
 	}
 
-	if uri, ok := ctx.UserValue(UserValueKeyRawURI).(string); ok {
+	uri, hasRawURI := ctx.UserValue(UserValueKeyRawURI).(string)
+
+	if hasRawURI {
 		fields[logging.FieldPathRaw] = uri
+	}
+
+	if redacted, ok := appAuthenticatorDevicePathRedacted(string(ctx.Path())); ok {
+		fields[logging.FieldPath] = redacted
+
+		if hasRawURI {
+			base, _ := ctx.UserValue(UserValueKeyBaseURL).(string)
+
+			fields[logging.FieldPathRaw] = base + redacted
+		}
 	}
 
 	return logging.Logger().WithFields(fields)
@@ -61,7 +73,7 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 
 // AvailableSecondFactorMethods returns the available 2FA methods.
 func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
-	methods = make([]string, 0, 3)
+	methods = make([]string, 0, 4)
 
 	if !ctx.Configuration.TOTP.Disable {
 		methods = append(methods, model.SecondFactorMethodTOTP)
@@ -73,6 +85,10 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 
 	if !ctx.Configuration.DuoAPI.Disable {
 		methods = append(methods, model.SecondFactorMethodDuo)
+	}
+
+	if !ctx.Configuration.AppAuthenticator.Disable {
+		methods = append(methods, model.SecondFactorMethodMobileApp)
 	}
 
 	return methods

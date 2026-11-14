@@ -49,6 +49,7 @@ vi.mock("@hooks/RouterNavigate", () => ({
 }));
 
 vi.mock("@constants/Routes", () => ({
+    SecondFactorAppSubRoute: "/app",
     SecondFactorPasswordSubRoute: "/password",
     SecondFactorPushSubRoute: "/push",
     SecondFactorTOTPSubRoute: "/totp",
@@ -121,6 +122,16 @@ vi.mock("@views/LoginPortal/SecondFactor/PushNotificationMethod", () => ({
     ),
 }));
 
+vi.mock("@views/LoginPortal/SecondFactor/AppAuthenticatorMethod", () => ({
+    default: (props: any) => (
+        <div data-testid="app-method" data-registered={String(props.registered)}>
+            <button data-testid="app-register" onClick={() => props.onRegisterClick()} />
+            <button data-testid="app-error" onClick={() => props.onSignInError(new Error("app failed"))} />
+            <button data-testid="app-success" onClick={() => props.onSignInSuccess("https://example.com")} />
+        </div>
+    ),
+}));
+
 vi.mock("@views/LoginPortal/SecondFactor/PasswordMethod", () => ({
     default: (props: any) => (
         <div data-testid="password-method">
@@ -151,6 +162,7 @@ const defaultProps = {
     userInfo: {
         display_name: "John",
         has_duo: false,
+        has_mobile_app: true,
         has_totp: true,
         has_webauthn: true,
     },
@@ -205,6 +217,67 @@ describe("rendering", () => {
         renderForm({ configuration: { available_methods: new Set([SecondFactorMethod.TOTP]) } });
         expect(screen.queryByText("Methods")).not.toBeInTheDocument();
         expect(screen.queryByTestId("method-selection-dialog")).not.toBeInTheDocument();
+    });
+
+    it("hides the Authelia app when the user has no device and registration is unavailable", () => {
+        renderForm({
+            configuration: {
+                app_authenticator_registration: false,
+                available_methods: new Set([SecondFactorMethod.TOTP, SecondFactorMethod.MobileApp]),
+            },
+            userInfo: { ...defaultProps.userInfo, has_mobile_app: false },
+        });
+        expect(screen.queryByText("Methods")).not.toBeInTheDocument();
+        expect(screen.queryByTestId("method-selection-dialog")).not.toBeInTheDocument();
+    });
+
+    it("excludes the Authelia app from the dialog when the user has no device and registration is unavailable", () => {
+        renderForm({
+            configuration: {
+                app_authenticator_registration: false,
+                available_methods: new Set([
+                    SecondFactorMethod.TOTP,
+                    SecondFactorMethod.WebAuthn,
+                    SecondFactorMethod.MobileApp,
+                ]),
+            },
+            userInfo: { ...defaultProps.userInfo, has_mobile_app: false },
+        });
+        expect(screen.getByText("Methods")).toBeInTheDocument();
+        expect(screen.getByTestId("method-selection-dialog")).toHaveAttribute(
+            "data-methods",
+            `${SecondFactorMethod.TOTP},${SecondFactorMethod.WebAuthn}`,
+        );
+    });
+
+    it("shows the Authelia app when the user has a device", () => {
+        renderForm({
+            configuration: {
+                app_authenticator_registration: false,
+                available_methods: new Set([SecondFactorMethod.TOTP, SecondFactorMethod.MobileApp]),
+            },
+            userInfo: { ...defaultProps.userInfo, has_mobile_app: true },
+        });
+        expect(screen.getByText("Methods")).toBeInTheDocument();
+        expect(screen.getByTestId("method-selection-dialog")).toHaveAttribute(
+            "data-methods",
+            `${SecondFactorMethod.TOTP},${SecondFactorMethod.MobileApp}`,
+        );
+    });
+
+    it("shows the Authelia app when registration is available", () => {
+        renderForm({
+            configuration: {
+                app_authenticator_registration: true,
+                available_methods: new Set([SecondFactorMethod.TOTP, SecondFactorMethod.MobileApp]),
+            },
+            userInfo: { ...defaultProps.userInfo, has_mobile_app: false },
+        });
+        expect(screen.getByText("Methods")).toBeInTheDocument();
+        expect(screen.getByTestId("method-selection-dialog")).toHaveAttribute(
+            "data-methods",
+            `${SecondFactorMethod.TOTP},${SecondFactorMethod.MobileApp}`,
+        );
     });
 
     it("does not render methods button without the knowledge factor", () => {
@@ -265,6 +338,11 @@ describe("method routes", () => {
         expect(await screen.findByTestId("push-method")).toHaveAttribute("data-self-enrollment", "true");
     });
 
+    it("renders the Authelia app method", async () => {
+        renderForm({}, "/app");
+        expect(await screen.findByTestId("app-method")).toHaveAttribute("data-registered", "true");
+    });
+
     it("renders the password method", async () => {
         renderForm({}, "/password");
         expect(await screen.findByTestId("password-method")).toBeInTheDocument();
@@ -288,6 +366,33 @@ describe("method callbacks", () => {
         fireEvent.click(screen.getByTestId("webauthn-register"));
 
         expect(mocks.navigate).toHaveBeenCalledWith("/settings/2fa");
+    });
+
+    it("navigates to the settings page to register an Authelia app device", async () => {
+        renderForm({}, "/app");
+        await screen.findByTestId("app-method");
+
+        fireEvent.click(screen.getByTestId("app-register"));
+
+        expect(mocks.navigate).toHaveBeenCalledWith("/settings/2fa");
+    });
+
+    it("surfaces Authelia app errors as notifications", async () => {
+        renderForm({}, "/app");
+        await screen.findByTestId("app-method");
+
+        fireEvent.click(screen.getByTestId("app-error"));
+
+        expect(mocks.createErrorNotification).toHaveBeenCalledWith("app failed");
+    });
+
+    it("forwards a successful Authelia app sign in", async () => {
+        const { props } = renderForm({}, "/app");
+        await screen.findByTestId("app-method");
+
+        fireEvent.click(screen.getByTestId("app-success"));
+
+        expect(props.onAuthenticationSuccess).toHaveBeenCalledWith("https://example.com");
     });
 
     it("surfaces one-time password errors as notifications", async () => {

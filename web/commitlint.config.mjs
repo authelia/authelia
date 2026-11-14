@@ -22,6 +22,7 @@ export default {
             "always",
             [
                 "api",
+                "appauthenticator",
                 "autheliabot",
                 "authentication",
                 "authorization",

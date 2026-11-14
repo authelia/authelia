@@ -5,6 +5,36 @@
     "env": "AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY"
   },
   {
+    "path": "app_authenticator.attestation.mode",
+    "secret": false,
+    "env": "AUTHELIA_APP_AUTHENTICATOR_ATTESTATION_MODE"
+  },
+  {
+    "path": "app_authenticator.challenge_lifespan",
+    "secret": false,
+    "env": "AUTHELIA_APP_AUTHENTICATOR_CHALLENGE_LIFESPAN"
+  },
+  {
+    "path": "app_authenticator.disable",
+    "secret": false,
+    "env": "AUTHELIA_APP_AUTHENTICATOR_DISABLE"
+  },
+  {
+    "path": "app_authenticator.display_name",
+    "secret": false,
+    "env": "AUTHELIA_APP_AUTHENTICATOR_DISPLAY_NAME"
+  },
+  {
+    "path": "app_authenticator.nonce_length",
+    "secret": false,
+    "env": "AUTHELIA_APP_AUTHENTICATOR_NONCE_LENGTH"
+  },
+  {
+    "path": "app_authenticator.registration_token_lifespan",
+    "secret": false,
+    "env": "AUTHELIA_APP_AUTHENTICATOR_REGISTRATION_TOKEN_LIFESPAN"
+  },
+  {
     "path": "authentication_backend.file.password.algorithm",
     "secret": false,
     "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ALGORITHM"
@@ -1410,6 +1440,36 @@
     "env": "AUTHELIA_SERVER_ENDPOINTS_HEALTH_VERBOSE"
   },
   {
+    "path": "server.endpoints.rate_limits.app_authenticator_check.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_APP_AUTHENTICATOR_CHECK_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.app_authenticator_check.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_APP_AUTHENTICATOR_CHECK_IPV6_MASK"
+  },
+  {
+    "path": "server.endpoints.rate_limits.app_authenticator_confirmation.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_APP_AUTHENTICATOR_CONFIRMATION_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.app_authenticator_confirmation.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_APP_AUTHENTICATOR_CONFIRMATION_IPV6_MASK"
+  },
+  {
+    "path": "server.endpoints.rate_limits.app_authenticator_registration.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_APP_AUTHENTICATOR_REGISTRATION_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.app_authenticator_registration.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_APP_AUTHENTICATOR_REGISTRATION_IPV6_MASK"
+  },
+  {
     "path": "server.endpoints.rate_limits.health.enable",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_HEALTH_ENABLE"
@@ -1488,6 +1548,16 @@
     "path": "server.endpoints.rate_limits.reset_password_start.ipv6_mask",
     "secret": false,
     "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_RESET_PASSWORD_START_IPV6_MASK"
+  },
+  {
+    "path": "server.endpoints.rate_limits.second_factor_app.enable",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_APP_ENABLE"
+  },
+  {
+    "path": "server.endpoints.rate_limits.second_factor_app.ipv6_mask",
+    "secret": false,
+    "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_APP_IPV6_MASK"
   },
   {
     "path": "server.endpoints.rate_limits.second_factor_duo.enable",

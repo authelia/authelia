@@ -135,6 +135,80 @@ type Provider interface {
 	// LoadWebAuthnCredentialByID loads a WebAuthn credential registration from the storage provider for a given id.
 	LoadWebAuthnCredentialByID(ctx context.Context, id int) (credential *model.WebAuthnCredential, err error)
 
+	// SaveAppAuthenticatorRegistration saves an Authelia app registration to the storage provider.
+	SaveAppAuthenticatorRegistration(ctx context.Context, r model.AppAuthenticatorRegistration) (err error)
+
+	// LoadAppAuthenticatorRegistrationByCode loads an Authelia app registration by the hash of its code.
+	LoadAppAuthenticatorRegistrationByCode(ctx context.Context, code []byte) (registration *model.AppAuthenticatorRegistration, err error)
+
+	// LoadAppAuthenticatorRegistrationByConfirmationID loads an Authelia app registration by the hash of its confirmation id.
+	LoadAppAuthenticatorRegistrationByConfirmationID(ctx context.Context, id []byte) (registration *model.AppAuthenticatorRegistration, err error)
+
+	// LoadAppAuthenticatorRegistrationByPortalBinding loads the newest Authelia app registration for a portal binding.
+	LoadAppAuthenticatorRegistrationByPortalBinding(ctx context.Context, binding []byte) (registration *model.AppAuthenticatorRegistration, err error)
+
+	// UpdateAppAuthenticatorRegistration updates the mutable columns of an Authelia app registration by id only if it is still in the expected state.
+	UpdateAppAuthenticatorRegistration(ctx context.Context, registration model.AppAuthenticatorRegistration, expectedState string) (updated bool, err error)
+
+	// CancelAppAuthenticatorRegistrations cancels all non-terminal Authelia app registrations for a portal binding.
+	CancelAppAuthenticatorRegistrations(ctx context.Context, binding []byte) (err error)
+
+	// SaveAppAuthenticatorDevice saves an Authelia app device to the storage provider.
+	SaveAppAuthenticatorDevice(ctx context.Context, d model.AppAuthenticatorDevice) (err error)
+
+	// LoadAppAuthenticatorDeviceByDeviceID loads an Authelia app device by its public device id.
+	LoadAppAuthenticatorDeviceByDeviceID(ctx context.Context, deviceID string) (device *model.AppAuthenticatorDevice, err error)
+
+	// LoadAppAuthenticatorDeviceByID loads an Authelia app device by its row id.
+	LoadAppAuthenticatorDeviceByID(ctx context.Context, id int) (device *model.AppAuthenticatorDevice, err error)
+
+	// LoadAppAuthenticatorDevicesByUsername loads all Authelia app devices for a user.
+	LoadAppAuthenticatorDevicesByUsername(ctx context.Context, username string) (devices []model.AppAuthenticatorDevice, err error)
+
+	// UpdateAppAuthenticatorDevicePullIDs rotates the pull id hashes of a device if the current hash still equals expectedCurrent.
+	UpdateAppAuthenticatorDevicePullIDs(ctx context.Context, id int, expectedCurrent, current, previous []byte) (updated bool, err error)
+
+	// UpdateAppAuthenticatorDeviceName updates the display name of an Authelia app device owned by the user.
+	UpdateAppAuthenticatorDeviceName(ctx context.Context, username string, id int, name string) (err error)
+
+	// UpdateAppAuthenticatorDeviceLastUsed updates the last used time of an Authelia app device.
+	UpdateAppAuthenticatorDeviceLastUsed(ctx context.Context, id int, at time.Time) (err error)
+
+	// DeleteAppAuthenticatorDevice deletes an Authelia app device, its request nonces and clears pending challenge bindings to it.
+	DeleteAppAuthenticatorDevice(ctx context.Context, deviceID string) (err error)
+
+	// SaveAppAuthenticatorChallenge saves an Authelia app challenge to the storage provider.
+	SaveAppAuthenticatorChallenge(ctx context.Context, c model.AppAuthenticatorChallenge) (err error)
+
+	// LoadAppAuthenticatorChallengeByConfirmationID loads an Authelia app challenge by its confirmation id.
+	LoadAppAuthenticatorChallengeByConfirmationID(ctx context.Context, id string) (challenge *model.AppAuthenticatorChallenge, err error)
+
+	// LoadAppAuthenticatorChallengeByPortalBinding loads the newest Authelia app challenge for a portal binding.
+	LoadAppAuthenticatorChallengeByPortalBinding(ctx context.Context, binding []byte) (challenge *model.AppAuthenticatorChallenge, err error)
+
+	// LoadAppAuthenticatorChallengePending loads the oldest pending unexpired Authelia app challenge for a user.
+	LoadAppAuthenticatorChallengePending(ctx context.Context, username string, now time.Time) (challenge *model.AppAuthenticatorChallenge, err error)
+
+	// UpdateAppAuthenticatorChallenge updates the mutable columns of an Authelia app challenge by id only if it is still in the expected state.
+	UpdateAppAuthenticatorChallenge(ctx context.Context, challenge model.AppAuthenticatorChallenge, expectedState string) (updated bool, err error)
+
+	// UpdateAppAuthenticatorChallengeDecision settles a pending Authelia app challenge with the state, decision time and
+	// deciding device of the given challenge only if its binding still equals the binding of the given challenge.
+	UpdateAppAuthenticatorChallengeDecision(ctx context.Context, challenge model.AppAuthenticatorChallenge) (updated bool, err error)
+
+	// ConsumeAppAuthenticatorChallenge marks an approved Authelia app challenge as consumed at the given time, returning
+	// false if it was not approved, was already consumed, or its expiration is before expiresNotBefore.
+	ConsumeAppAuthenticatorChallenge(ctx context.Context, id int, at, expiresNotBefore time.Time) (consumed bool, err error)
+
+	// VoidAppAuthenticatorChallengesByPortalBinding voids all pending Authelia app challenges for a portal binding.
+	VoidAppAuthenticatorChallengesByPortalBinding(ctx context.Context, binding []byte) (err error)
+
+	// SaveAppAuthenticatorRequestNonce records a request nonce, returning false if it was already present.
+	SaveAppAuthenticatorRequestNonce(ctx context.Context, deviceID, nonce string, expires time.Time) (inserted bool, err error)
+
+	// PruneAppAuthenticator deletes expired request nonces and stale registrations and challenges.
+	PruneAppAuthenticator(ctx context.Context, now time.Time) (err error)
+
 	// SavePreferredDuoDevice saves a Duo device to the storage provider.
 	SavePreferredDuoDevice(ctx context.Context, device model.DuoDevice) (err error)
 

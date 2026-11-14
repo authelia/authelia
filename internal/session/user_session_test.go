@@ -118,6 +118,48 @@ func TestUserSession_SetFactors(t *testing.T) {
 				},
 			},
 		},
+		{
+			"ShouldSetOneFactorPasswordAndTwoFactorApp",
+			func(session *UserSession) {
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
+				session.SetTwoFactorApp(time.Unix(20000, 0), false, false)
+			},
+			&UserSession{
+				Username:                   "john",
+				KeepMeLoggedIn:             true,
+				LastActivity:               20000,
+				FirstFactorAuthnTimestamp:  10000,
+				SecondFactorAuthnTimestamp: 20000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					KnowledgeBasedAuthentication: true,
+					UsernameAndPassword:          true,
+					App:                          true,
+				},
+			},
+		},
+		{
+			"ShouldSetOneFactorPasswordAndTwoFactorAppAttested",
+			func(session *UserSession) {
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
+				session.SetTwoFactorApp(time.Unix(20000, 0), true, true)
+			},
+			&UserSession{
+				Username:                   "john",
+				KeepMeLoggedIn:             true,
+				LastActivity:               20000,
+				FirstFactorAuthnTimestamp:  10000,
+				SecondFactorAuthnTimestamp: 20000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					KnowledgeBasedAuthentication: true,
+					UsernameAndPassword:          true,
+					App:                          true,
+					AppHardware:                  true,
+					AppUserVerified:              true,
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

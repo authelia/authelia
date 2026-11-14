@@ -547,15 +547,27 @@ const (
 )
 
 const (
-	errFmtDuoMissingOption               = "duo_api: option '%s' is required when duo is enabled but it's absent"
-	errFmtDuoDisableCAPinningDuoHostname = "duo_api: option 'experimental_disable_ca_pinning' must be false when the option 'hostname' is a Duo hostname but it's configured as '%s'"
-	errDuoDisableCAPinningWarning        = "duo_api: option 'experimental_disable_ca_pinning' is enabled: this option is experimental, insecure, not recommended, and may be removed at any time"
+	errFmtAppAuthenticatorLifespan              = "app_authenticator: option '%s' must be greater than 0 but it's configured as '%s'"
+	errFmtAppAuthenticatorChallengeLifespanLong = "app_authenticator: option 'challenge_lifespan' is configured as '%s' which is longer than the recommended maximum of 5 minutes"
+	errFmtAppAuthenticatorNonceLength           = "app_authenticator: option 'nonce_length' must be between 2 and 4 but it's configured as '%d'"
+	errFmtAppAuthenticatorMode                  = "app_authenticator: attestation: option 'mode' must be one of %s but it's configured as '%s'"
+	errFmtAppAuthenticatorAppleTeamID           = "app_authenticator: attestation: apple: identity %d: option 'team_id' must match the pattern '^[A-Z0-9]{10}$' but it's configured as '%s'"
+	errFmtAppAuthenticatorAppleEnvironment      = "app_authenticator: attestation: apple: identity %d: option 'environment' must be one of 'production' or 'development' but it's configured as '%s'"
+	errFmtAppAuthenticatorIdentityMissing       = "app_authenticator: attestation: %s: identity %d: option '%s' is required"
+	errFmtAppAuthenticatorAndroidNoDigests      = "app_authenticator: attestation: android: identity %d: option 'signing_certificate_digests' must have at least one value"
+	errFmtAppAuthenticatorAndroidDigest         = "app_authenticator: attestation: android: identity %d: option 'signing_certificate_digests' value %d must be 32 bytes as 64 hex characters or 32 colon separated hex pairs"
+	errAppAuthenticatorNoIdentities             = "app_authenticator: attestation: no trusted app identities are configured; app registration is unavailable until 'app_authenticator.attestation.apple' or 'app_authenticator.attestation.android' is set, or 'mode' is set to 'preferred' or 'none'"
+	errAppAuthenticatorModeNone                 = "app_authenticator: attestation: option 'mode' is 'none' which means devices are not attested and this is not recommended"
+	errFmtDuoMissingOption                      = "duo_api: option '%s' is required when duo is enabled but it's absent"
+	errFmtDuoDisableCAPinningDuoHostname        = "duo_api: option 'experimental_disable_ca_pinning' must be false when the option 'hostname' is a Duo hostname but it's configured as '%s'"
+	errDuoDisableCAPinningWarning               = "duo_api: option 'experimental_disable_ca_pinning' is enabled: this option is experimental, insecure, not recommended, and may be removed at any time"
 )
 
 // Error constants.
 const (
-	errFmtInvalidDefault2FAMethod         = "option 'default_2fa_method' must be one of %s but it's configured as '%s'"
-	errFmtInvalidDefault2FAMethodDisabled = "option 'default_2fa_method' must be one of the enabled options %s but it's configured as '%s'"
+	errFmtInvalidDefault2FAMethod           = "option 'default_2fa_method' must be one of %s but it's configured as '%s'"
+	errFmtInvalidDefault2FAMethodDisabled   = "option 'default_2fa_method' must be one of the enabled options %s but it's configured as '%s'"
+	errDefault2FAMethodMobileAppUnavailable = "option 'default_2fa_method' is configured as 'mobile_app' but app registration is unavailable as 'app_authenticator.attestation.mode' is 'required' and no trusted app identities are configured"
 
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
@@ -642,7 +654,7 @@ var (
 	validACLRuleOperators = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
 )
 
-var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
+var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push", "mobile_app"}
 
 const (
 	attrOIDCKey                           = "key"

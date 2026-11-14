@@ -61,6 +61,13 @@ const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) 
                                     <Label htmlFor={`${props.id}-duo`}>{translate("Mobile Push")}</Label>
                                 </div>
                             );
+                        case SecondFactorMethod.MobileApp:
+                            return (
+                                <div key={v} className="flex items-center gap-2" id={`method-${props.id}-default-app`}>
+                                    <RadioGroupItem value={v} id={`${props.id}-app`} />
+                                    <Label htmlFor={`${props.id}-app`}>{translate("Authelia app")}</Label>
+                                </div>
+                            );
                         default:
                             return null;
                     }

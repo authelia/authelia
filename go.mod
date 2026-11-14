@@ -18,6 +18,7 @@ require (
 	github.com/duosecurity/duo_api_golang v0.3.0
 	github.com/fasthttp/router v1.5.4
 	github.com/fsnotify/fsnotify v1.10.1
+	github.com/fxamacker/cbor/v2 v2.9.4
 	github.com/go-asn1-ber/asn1-ber v1.5.8
 	github.com/go-crypt/crypt v0.14.15
 	github.com/go-ldap/ldap/v3 v3.4.15
@@ -75,7 +76,6 @@ require (
 	github.com/dgraph-io/ristretto/v2 v2.4.2 // indirect
 	github.com/dlclark/regexp2 v1.12.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-crypt/x v0.4.16 // indirect
 	github.com/go-webauthn/x v0.3.1 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect

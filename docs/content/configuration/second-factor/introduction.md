@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Second Factor"
-description: "An introduction to configuring Authelia second factor authentication with available methods including Time-based One-Time Passwords, WebAuthn, and Duo Push."
+description: "An introduction to configuring Authelia second factor authentication with available methods including Time-based One-Time Passwords, WebAuthn, the Authelia mobile app, and Duo Push."
 summary: "Authelia provides a number of 2FA methods. This section describes these methods."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -25,6 +25,11 @@ Authelia supports configuring [Time-based One-Time Password](time-based-one-time
 ## Security Key
 
 Authelia supports configuring [WebAuthn](webauthn.md) Security Keys.
+
+## App Authenticator
+
+Authelia supports configuring the [App Authenticator](app-authenticator.md) to approve sign in requests in the Authelia
+mobile app.
 
 ## Mobile Push
 

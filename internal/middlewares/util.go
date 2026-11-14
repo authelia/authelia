@@ -11,6 +11,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/appauthenticator"
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/cache"
@@ -66,6 +67,14 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
 	providers.Duo = duo.New(config)
+
+	if !config.AppAuthenticator.Disable {
+		providers.AppAuthenticator = appauthenticator.NewVerifier(config.AppAuthenticator.Attestation, appauthenticator.WithClock(providers.Clock))
+
+		if providers.StorageProvider != nil {
+			providers.GarbageCollector.Register(NewAppAuthenticatorGarbageCollector(providers.StorageProvider, providers.Clock))
+		}
+	}
 
 	switch {
 	case config.Cache.Redis != nil:

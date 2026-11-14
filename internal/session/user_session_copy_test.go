@@ -29,6 +29,7 @@ func TestUserSessionDeepCopyShouldPreserveNilReferences(t *testing.T) {
 	assert.Nil(t, session.AuthenticationMethodRefs.Extra)
 	assert.Nil(t, session.PasswordResetUsername)
 	assert.Nil(t, session.TOTP)
+	assert.Nil(t, session.AppAuthenticator)
 	assert.Nil(t, session.WebAuthn)
 	assert.Nil(t, session.Elevations.User)
 
@@ -71,6 +72,7 @@ func TestStrategyCacheShouldIsolateMutationsBetweenConsumers(t *testing.T) {
 	first.AuthenticationMethodRefs.Extra[0] = "mutated"
 	*first.PasswordResetUsername = "mutated"
 	first.TOTP.Issuer = "mutated"
+	first.AppAuthenticator.Binding = "mutated"
 	first.WebAuthn.Description = "mutated"
 	first.WebAuthn.UserID[0] = 'z'
 	first.WebAuthn.AllowedCredentialIDs[0][0] = 'z'
@@ -85,6 +87,7 @@ func TestStrategyCacheShouldIsolateMutationsBetweenConsumers(t *testing.T) {
 	assert.Equal(t, "extra", second.AuthenticationMethodRefs.Extra[0])
 	assert.Equal(t, "reset", *second.PasswordResetUsername)
 	assert.Equal(t, "issuer", second.TOTP.Issuer)
+	assert.Equal(t, "binding", second.AppAuthenticator.Binding)
 	assert.Equal(t, "description", second.WebAuthn.Description)
 	assert.Equal(t, []byte("userid"), second.WebAuthn.UserID)
 	assert.Equal(t, []byte("credential"), second.WebAuthn.AllowedCredentialIDs[0])
@@ -92,6 +95,27 @@ func TestStrategyCacheShouldIsolateMutationsBetweenConsumers(t *testing.T) {
 	assert.Equal(t, "value", second.WebAuthn.Extensions.Extra["extension"])
 	assert.Equal(t, 1, second.Elevations.User.ID)
 	assert.Equal(t, "192.0.2.1", second.Elevations.User.RemoteIP.String())
+}
+
+func TestDefaultStrategy_RegenerateShouldPreserveAppAuthenticatorBinding(t *testing.T) {
+	strategy := newTestStrategyWithRepository(t, newTestRepository(), nil)
+	ctx := newTestContext()
+
+	userSession := strategy.New(testUsername)
+	userSession.AppAuthenticator = &AppAuthenticator{Binding: "binding"}
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	before := ctx.cookies[testName]
+
+	require.NoError(t, strategy.Regenerate(ctx))
+
+	assert.NotEqual(t, before, ctx.cookies[testName])
+
+	regenerated, err := strategy.Get(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, regenerated.AppAuthenticator)
+	assert.Equal(t, "binding", regenerated.AppAuthenticator.Binding)
 }
 
 func newPopulatedUserSession() (session UserSession) {
@@ -104,6 +128,7 @@ func newPopulatedUserSession() (session UserSession) {
 	session.AuthenticationMethodRefs.Extra = []string{"extra"}
 	session.PasswordResetUsername = &reset
 	session.TOTP = &TOTP{Issuer: "issuer", Algorithm: "SHA1", Digits: 6, Period: 30, Secret: "secret"}
+	session.AppAuthenticator = &AppAuthenticator{Binding: "binding"}
 	session.Elevations.User = &Elevation{ID: 1, RemoteIP: net.ParseIP("192.0.2.1"), Expires: time.Unix(1700000000, 0).UTC()}
 	session.WebAuthn = &WebAuthn{
 		Description: "description",

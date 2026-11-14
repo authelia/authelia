@@ -25,6 +25,7 @@ import { UserSessionElevation } from "@services/UserSessionElevation";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import PasswordForm from "@views/LoginPortal/SecondFactor/PasswordForm";
 
+const SecondFactorMethodMobileApp = lazy(() => import("@views/Settings/Common/SecondFactorMethodMobileApp"));
 const SecondFactorMethodMobilePush = lazy(() => import("@views/Settings/Common/SecondFactorMethodMobilePush"));
 const SecondFactorMethodOneTimePassword = lazy(
     () => import("@views/Settings/Common/SecondFactorMethodOneTimePassword"),
@@ -135,6 +136,10 @@ const SecondFactorDialog = function (props: Props) {
         handleClick(SecondFactorMethod.MobilePush);
     };
 
+    const handleClickMobileApp = () => {
+        handleClick(SecondFactorMethod.MobileApp);
+    };
+
     const handleClick = (method: SecondFactorMethod) => {
         if (closing) return;
 
@@ -186,6 +191,8 @@ const SecondFactorDialog = function (props: Props) {
                 return <SecondFactorMethodOneTimePassword onSecondFactorSuccess={handleSuccess} />;
             case SecondFactorMethod.MobilePush:
                 return <SecondFactorMethodMobilePush onSecondFactorSuccess={handleSuccess} />;
+            case SecondFactorMethod.MobileApp:
+                return <SecondFactorMethodMobileApp onSecondFactorSuccess={handleSuccess} />;
             default:
                 return null;
         }
@@ -230,6 +237,11 @@ const SecondFactorDialog = function (props: Props) {
                     {info.has_duo ? (
                         <Button variant={"outline"} onClick={handleClickMobilePush}>
                             {translate("Mobile Push")}
+                        </Button>
+                    ) : null}
+                    {info.has_mobile_app ? (
+                        <Button variant={"outline"} onClick={handleClickMobileApp}>
+                            {translate("Authelia app")}
                         </Button>
                     ) : null}
                 </div>

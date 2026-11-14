@@ -24,6 +24,9 @@ const (
 
 	// SecondFactorMethodDuo method using Duo application to receive push notifications.
 	SecondFactorMethodDuo = "mobile_push"
+
+	// SecondFactorMethodMobileApp method using the Authelia mobile app to approve a number matching challenge.
+	SecondFactorMethodMobileApp = "mobile_app"
 )
 
 var (

@@ -87,6 +87,10 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		userInfo.HasDuo = false
 	}
 
+	if ctx.Configuration.AppAuthenticator.Disable {
+		userInfo.HasMobileApp = false
+	}
+
 	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
 
 	userInfo.DisplayName = details.DisplayName

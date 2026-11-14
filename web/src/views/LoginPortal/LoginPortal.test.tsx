@@ -28,6 +28,7 @@ vi.mock("react-i18next", () => ({
 vi.mock("@constants/Routes", () => ({
     AuthenticatedRoute: "/authenticated",
     IndexRoute: "/",
+    SecondFactorAppSubRoute: "/app",
     SecondFactorPasswordSubRoute: "/password",
     SecondFactorPushSubRoute: "/push",
     SecondFactorRoute: "/2fa",
@@ -188,6 +189,7 @@ it("OneFactor with no 2FA methods navigates to /authenticated", async () => {
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
         {
+            app_authenticator_registration: false,
             available_methods: new Set(),
             password_change_disabled: false,
             password_reset_disabled: false,
@@ -198,7 +200,15 @@ it("OneFactor with no 2FA methods navigates to /authenticated", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: false, method: 1 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_mobile_app: false,
+            has_totp: false,
+            has_webauthn: false,
+            method: 1,
+        },
         vi.fn(),
         false,
         undefined,
@@ -225,6 +235,7 @@ it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
         {
+            app_authenticator_registration: false,
             available_methods: new Set([1]),
             password_change_disabled: false,
             password_reset_disabled: false,
@@ -235,7 +246,15 @@ it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_mobile_app: false,
+            has_totp: true,
+            has_webauthn: false,
+            method: 1,
+        },
         vi.fn(),
         false,
         undefined,
@@ -262,6 +281,7 @@ it("OneFactor with WebAuthn preferred navigates to /2fa/webauthn", async () => {
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
         {
+            app_authenticator_registration: false,
             available_methods: new Set([2]),
             password_change_disabled: false,
             password_reset_disabled: false,
@@ -272,7 +292,15 @@ it("OneFactor with WebAuthn preferred navigates to /2fa/webauthn", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: true, method: 2 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_mobile_app: false,
+            has_totp: false,
+            has_webauthn: true,
+            method: 2,
+        },
         vi.fn(),
         false,
         undefined,
@@ -299,6 +327,7 @@ it("OneFactor with MobilePush preferred navigates to /2fa/push", async () => {
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
         {
+            app_authenticator_registration: false,
             available_methods: new Set([3]),
             password_change_disabled: false,
             password_reset_disabled: false,
@@ -309,7 +338,15 @@ it("OneFactor with MobilePush preferred navigates to /2fa/push", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: true, has_totp: false, has_webauthn: false, method: 3 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: true,
+            has_mobile_app: false,
+            has_totp: false,
+            has_webauthn: false,
+            method: 3,
+        },
         vi.fn(),
         false,
         undefined,
@@ -327,6 +364,52 @@ it("OneFactor with MobilePush preferred navigates to /2fa/push", async () => {
     expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/push");
 });
 
+it("OneFactor with MobileApp preferred navigates to /2fa/app", async () => {
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        {
+            app_authenticator_registration: false,
+            available_methods: new Set([4]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_mobile_app: true,
+            has_totp: false,
+            has_webauthn: false,
+            method: 4,
+        },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/app");
+});
+
 it("OneFactor with factor_knowledge false navigates to /2fa/password", async () => {
     vi.mocked(useAutheliaState).mockReturnValue([
         { authentication_level: 1, factor_knowledge: false, username: "test" },
@@ -336,6 +419,7 @@ it("OneFactor with factor_knowledge false navigates to /2fa/password", async () 
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
         {
+            app_authenticator_registration: false,
             available_methods: new Set([1]),
             password_change_disabled: false,
             password_reset_disabled: false,
@@ -346,7 +430,15 @@ it("OneFactor with factor_knowledge false navigates to /2fa/password", async () 
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_mobile_app: false,
+            has_totp: true,
+            has_webauthn: false,
+            method: 1,
+        },
         vi.fn(),
         false,
         undefined,
@@ -373,6 +465,7 @@ it("localStorageMethod overrides userInfo.method", async () => {
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
         {
+            app_authenticator_registration: false,
             available_methods: new Set([1, 2]),
             password_change_disabled: false,
             password_reset_disabled: false,
@@ -383,7 +476,15 @@ it("localStorageMethod overrides userInfo.method", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_mobile_app: false,
+            has_totp: true,
+            has_webauthn: false,
+            method: 1,
+        },
         vi.fn(),
         false,
         undefined,
@@ -469,6 +570,7 @@ describe("safe redirection", () => {
         display_name: "test",
         emails: [],
         has_duo: false,
+        has_mobile_app: false,
         has_totp: true,
         has_webauthn: false,
         method: 1,
@@ -521,6 +623,7 @@ describe("safe redirection", () => {
         vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
         vi.mocked(useConfiguration).mockReturnValue([
             {
+                app_authenticator_registration: false,
                 available_methods: new Set(),
                 password_change_disabled: false,
                 password_reset_disabled: false,
@@ -632,6 +735,7 @@ describe("second factor route", () => {
         display_name: "test",
         emails: [],
         has_duo: false,
+        has_mobile_app: false,
         has_totp: true,
         has_webauthn: false,
         method: 1,
@@ -641,6 +745,7 @@ describe("second factor route", () => {
         vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
         vi.mocked(useConfiguration).mockReturnValue([
             {
+                app_authenticator_registration: false,
                 available_methods: new Set([1]),
                 password_change_disabled: false,
                 password_reset_disabled: false,
@@ -697,6 +802,7 @@ describe("second factor route", () => {
         vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
         vi.mocked(useConfiguration).mockReturnValue([
             {
+                app_authenticator_registration: false,
                 available_methods: new Set([1]),
                 password_change_disabled: false,
                 password_reset_disabled: false,
@@ -725,6 +831,7 @@ describe("authenticated route", () => {
         display_name: "test",
         emails: [],
         has_duo: false,
+        has_mobile_app: false,
         has_totp: true,
         has_webauthn: false,
         method: 1,
@@ -739,6 +846,7 @@ describe("authenticated route", () => {
         ]);
         vi.mocked(useConfiguration).mockReturnValue([
             {
+                app_authenticator_registration: false,
                 available_methods: new Set(),
                 password_change_disabled: false,
                 password_reset_disabled: false,

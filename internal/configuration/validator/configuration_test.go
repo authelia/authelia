@@ -102,7 +102,7 @@ func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 2)
-	require.Len(t, validator.Warnings(), 1)
+	require.Len(t, validator.Warnings(), 2)
 
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' is not absolute with a value of '//localhost'")
 	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example.com' with a value of '//localhost'")
@@ -116,7 +116,7 @@ func TestShouldRaiseErrorWithLegacyDefaultRedirectionURL(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	require.Len(t, validator.Warnings(), 1)
+	require.Len(t, validator.Warnings(), 2)
 
 	assert.EqualError(t, validator.Errors()[0], "session: option 'cookies' must be configured with the per cookie option 'default_redirection_url' but the global one is configured which is not supported")
 	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
@@ -133,7 +133,7 @@ func TestShouldAllowLegacyDefaultRedirectionURL(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 0)
-	require.Len(t, validator.Warnings(), 2)
+	require.Len(t, validator.Warnings(), 3)
 
 	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 	assert.EqualError(t, validator.Warnings()[1], "session: option 'domain' is deprecated in v4.38.0 and has been replaced by a multi-domain configuration: this has automatically been mapped for you but you will need to adjust your configuration to remove this message and receive the latest messages")
@@ -149,7 +149,7 @@ func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing
 	ValidateConfiguration(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	require.Len(t, validator.Warnings(), 1)
+	require.Len(t, validator.Warnings(), 2)
 
 	require.Equal(t, "", config.CertificatesDirectory)
 
@@ -164,7 +164,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	require.Len(t, validator.Warnings(), 1)
+	require.Len(t, validator.Warnings(), 2)
 
 	if runtime.GOOS == "windows" {
 		assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' could not be inspected: CreateFile not-a-real-file.go: The system cannot find the file specified.")
@@ -182,7 +182,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	require.Len(t, validator.Warnings(), 1)
+	require.Len(t, validator.Warnings(), 2)
 
 	assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' refers to 'const.go' is not a directory")
 	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
@@ -196,16 +196,17 @@ func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	require.Len(t, validator.Warnings(), 1)
+	require.Len(t, validator.Warnings(), 2)
 
 	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
 func TestValidateDefault2FAMethod(t *testing.T) {
 	testCases := []struct {
-		desc         string
-		have         *schema.Configuration
-		expectedErrs []string
+		desc             string
+		have             *schema.Configuration
+		expectedErrs     []string
+		expectedWarnings []string
 	}{
 		{
 			desc: "ShouldAllowConfiguredMethodTOTP",
@@ -252,7 +253,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 				TOTP: schema.TOTP{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' must be one of the enabled options 'webauthn' or 'mobile_push' but it's configured as 'totp'",
+				"option 'default_2fa_method' must be one of the enabled options 'webauthn', 'mobile_push', or 'mobile_app' but it's configured as 'totp'",
 			},
 		},
 		{
@@ -267,7 +268,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 				WebAuthn: schema.WebAuthn{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'mobile_push' but it's configured as 'webauthn'",
+				"option 'default_2fa_method' must be one of the enabled options 'totp', 'mobile_push', or 'mobile_app' but it's configured as 'webauthn'",
 			},
 		},
 		{
@@ -277,7 +278,71 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 				DuoAPI:           schema.DuoAPI{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'webauthn' but it's configured as 'mobile_push'",
+				"option 'default_2fa_method' must be one of the enabled options 'totp', 'webauthn', or 'mobile_app' but it's configured as 'mobile_push'",
+			},
+		},
+		{
+			desc: "ShouldWarnConfiguredMethodMobileAppWithoutRegistration",
+			have: &schema.Configuration{
+				Default2FAMethod: "mobile_app",
+				DuoAPI:           schema.DuoAPI{Disable: true},
+			},
+			expectedWarnings: []string{
+				"option 'default_2fa_method' is configured as 'mobile_app' but app registration is unavailable as 'app_authenticator.attestation.mode' is 'required' and no trusted app identities are configured",
+			},
+		},
+		{
+			desc: "ShouldWarnConfiguredMethodMobileAppWithoutRegistrationModeRequired",
+			have: &schema.Configuration{
+				Default2FAMethod: "mobile_app",
+				DuoAPI:           schema.DuoAPI{Disable: true},
+				AppAuthenticator: schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModeRequired}},
+			},
+			expectedWarnings: []string{
+				"option 'default_2fa_method' is configured as 'mobile_app' but app registration is unavailable as 'app_authenticator.attestation.mode' is 'required' and no trusted app identities are configured",
+			},
+		},
+		{
+			desc: "ShouldAllowConfiguredMethodMobileAppWithAppleIdentity",
+			have: &schema.Configuration{
+				Default2FAMethod: "mobile_app",
+				DuoAPI:           schema.DuoAPI{Disable: true},
+				AppAuthenticator: schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModeRequired, Apple: []schema.AppAuthenticatorAppleIdentity{{}}}},
+			},
+		},
+		{
+			desc: "ShouldAllowConfiguredMethodMobileAppWithAndroidIdentity",
+			have: &schema.Configuration{
+				Default2FAMethod: "mobile_app",
+				DuoAPI:           schema.DuoAPI{Disable: true},
+				AppAuthenticator: schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Android: []schema.AppAuthenticatorAndroidIdentity{{}}}},
+			},
+		},
+		{
+			desc: "ShouldAllowConfiguredMethodMobileAppModePreferred",
+			have: &schema.Configuration{
+				Default2FAMethod: "mobile_app",
+				DuoAPI:           schema.DuoAPI{Disable: true},
+				AppAuthenticator: schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModePreferred}},
+			},
+		},
+		{
+			desc: "ShouldAllowConfiguredMethodMobileAppModeNone",
+			have: &schema.Configuration{
+				Default2FAMethod: "mobile_app",
+				DuoAPI:           schema.DuoAPI{Disable: true},
+				AppAuthenticator: schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModeNone}},
+			},
+		},
+		{
+			desc: "ShouldNotAllowDisabledMethodMobileApp",
+			have: &schema.Configuration{
+				Default2FAMethod: "mobile_app",
+				DuoAPI:           schema.DuoAPI{Disable: true},
+				AppAuthenticator: schema.AppAuthenticator{Disable: true},
+			},
+			expectedErrs: []string{
+				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'webauthn' but it's configured as 'mobile_app'",
 			},
 		},
 		{
@@ -286,7 +351,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 				Default2FAMethod: "duo",
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' must be one of 'totp', 'webauthn', or 'mobile_push' but it's configured as 'duo'",
+				"option 'default_2fa_method' must be one of 'totp', 'webauthn', 'mobile_push', or 'mobile_app' but it's configured as 'duo'",
 			},
 		},
 	}
@@ -297,7 +362,13 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 
 			validateDefault2FAMethod(tc.have, validator)
 
-			assert.Len(t, validator.Warnings(), 0)
+			warnings := validator.Warnings()
+
+			require.Len(t, warnings, len(tc.expectedWarnings))
+
+			for i, expected := range tc.expectedWarnings {
+				assert.EqualError(t, warnings[i], expected)
+			}
 
 			errs := validator.Errors()
 

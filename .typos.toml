@@ -64,6 +64,10 @@ peom = "peom"
 calibre = "calibre"
 Calibre = "Calibre"
 
+[default.extend-identifiers]
+# Body hash from the app authenticator protocol worked example
+hPv5ytNt4r5MEYTeJjhAPdlNU8tOhOQDOXXdi4QpoAs = "hPv5ytNt4r5MEYTeJjhAPdlNU8tOhOQDOXXdi4QpoAs"
+
 [files]
 ignore-hidden = false
 extend-exclude = [
@@ -81,6 +85,8 @@ extend-exclude = [
 	"docs/hugo_stats.json",
     "docs/static/schemas/",
     "docs/static/keys/",
+    "internal/appauthenticator/roots/",
+    "internal/appauthenticator/testdata/",
     "**/locales/*/",
     "!**/locales/en/",
     # Third-party config files (not ours to fix)

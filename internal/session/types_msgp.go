@@ -43,6 +43,9 @@ type UserSession struct {
 	WebAuthn *WebAuthn `msg:"wa,omitempty"`
 	TOTP     *TOTP     `msg:"otp,omitempty"`
 
+	// AppAuthenticator holds the Authelia app portal binding for this session.
+	AppAuthenticator *AppAuthenticator `msg:"app,omitempty"`
+
 	// PasswordResetUsername is given a value when a session exists where the password is being reset.
 	PasswordResetUsername *string `msg:"pru,omitempty"`
 
@@ -81,6 +84,12 @@ type TOTP struct {
 	Expires time.Time `msg:"exp"`
 }
 
+// AppAuthenticator holds the Authelia app state of a session.
+type AppAuthenticator struct {
+	// Binding is the random portal binding token which ties registrations and challenges to this session.
+	Binding string `msg:"b"`
+}
+
 // MessagePackAMR is the MessagePack representation of the authentication method references of a session.
 type MessagePackAMR struct {
 	KnowledgeBasedAuthentication bool     `msg:"kba"`
@@ -93,5 +102,8 @@ type MessagePackAMR struct {
 	WebAuthnUserPresence         bool     `msg:"up"`
 	WebAuthnUserVerified         bool     `msg:"uv"`
 	RecoveryCode                 bool     `msg:"rc"`
+	App                          bool     `msg:"app"`
+	AppHardware                  bool     `msg:"apphw"`
+	AppUserVerified              bool     `msg:"appuv"`
 	Extra                        []string `msg:"extra,omitempty"`
 }

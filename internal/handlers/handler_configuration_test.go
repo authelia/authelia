@@ -58,7 +58,7 @@ func (s *ConfigurationHandlerFixture) TestShouldHaveAllConfiguredMethods() {
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
+		AvailableMethods: []string{"totp", "webauthn", "mobile_push", "mobile_app"},
 	})
 }
 
@@ -88,7 +88,7 @@ func (s *ConfigurationHandlerFixture) TestShouldRemoveTOTPFromAvailableMethodsWh
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"webauthn", "mobile_push"},
+		AvailableMethods: []string{"webauthn", "mobile_push", "mobile_app"},
 	})
 }
 
@@ -118,7 +118,7 @@ func (s *ConfigurationHandlerFixture) TestShouldRemoveWebAuthnFromAvailableMetho
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"totp", "mobile_push"},
+		AvailableMethods: []string{"totp", "mobile_push", "mobile_app"},
 	})
 }
 
@@ -148,7 +148,7 @@ func (s *ConfigurationHandlerFixture) TestShouldRemoveDuoFromAvailableMethodsWhe
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"totp", "webauthn"},
+		AvailableMethods: []string{"totp", "webauthn", "mobile_app"},
 	})
 }
 
@@ -191,6 +191,9 @@ func (s *ConfigurationHandlerFixture) TestShouldRemoveAllMethodsWhenAllDisabledO
 			Disable: true,
 		},
 		WebAuthn: schema.WebAuthn{
+			Disable: true,
+		},
+		AppAuthenticator: schema.AppAuthenticator{
 			Disable: true,
 		},
 		AccessControl: schema.AccessControl{
@@ -263,6 +266,9 @@ func (s *ConfigurationHandlerFixture) TestDisablePasswordResetChangeOptions() {
 				WebAuthn: schema.WebAuthn{
 					Disable: true,
 				},
+				AppAuthenticator: schema.AppAuthenticator{
+					Disable: true,
+				},
 			}
 
 			ConfigurationGET(mock.Ctx)
@@ -290,6 +296,9 @@ func (s *ConfigurationHandlerFixture) TestShouldReportRecoveryCodesDisabled() {
 		RecoveryCodes: schema.RecoveryCodes{
 			Disable: true,
 		},
+		AppAuthenticator: schema.AppAuthenticator{
+			Disable: true,
+		},
 	}
 
 	ConfigurationGET(s.mock.Ctx)
@@ -298,6 +307,73 @@ func (s *ConfigurationHandlerFixture) TestShouldReportRecoveryCodesDisabled() {
 		AvailableMethods:      []string{},
 		RecoveryCodesDisabled: true,
 	})
+}
+
+func (s *ConfigurationHandlerFixture) TestShouldExposeAppAuthenticatorRegistration() {
+	testCases := []struct {
+		name     string
+		have     schema.AppAuthenticator
+		methods  []string
+		expected bool
+	}{
+		{
+			"ShouldBeUnavailableWhenRequiredWithoutIdentities",
+			schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModeRequired}},
+			[]string{"mobile_app"},
+			false,
+		},
+		{
+			"ShouldBeAvailableWhenRequiredWithAppleIdentity",
+			schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModeRequired, Apple: []schema.AppAuthenticatorAppleIdentity{{}}}},
+			[]string{"mobile_app"},
+			true,
+		},
+		{
+			"ShouldBeAvailableWhenRequiredWithAndroidIdentity",
+			schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModeRequired, Android: []schema.AppAuthenticatorAndroidIdentity{{}}}},
+			[]string{"mobile_app"},
+			true,
+		},
+		{
+			"ShouldBeAvailableWhenPreferred",
+			schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModePreferred}},
+			[]string{"mobile_app"},
+			true,
+		},
+		{
+			"ShouldBeAvailableWhenNone",
+			schema.AppAuthenticator{Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModeNone}},
+			[]string{"mobile_app"},
+			true,
+		},
+		{
+			"ShouldBeUnavailableWhenDisabled",
+			schema.AppAuthenticator{Disable: true, Attestation: schema.AppAuthenticatorAttestation{Mode: schema.AppAuthenticatorAttestationModeNone}},
+			[]string{},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration = schema.Configuration{
+				DuoAPI:           schema.DuoAPI{Disable: true},
+				TOTP:             schema.TOTP{Disable: true},
+				WebAuthn:         schema.WebAuthn{Disable: true},
+				AppAuthenticator: tc.have,
+			}
+
+			ConfigurationGET(mock.Ctx)
+
+			mock.Assert200OK(t, configurationBody{
+				AvailableMethods:             tc.methods,
+				AppAuthenticatorRegistration: tc.expected,
+			})
+		})
+	}
 }
 
 func TestRunSuite(t *testing.T) {
@@ -342,7 +418,7 @@ func (s *ConfigurationHandlerFixture) TestShouldHaveMethodsWhenElevationRequires
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
+		AvailableMethods: []string{"totp", "webauthn", "mobile_push", "mobile_app"},
 	})
 }
 
@@ -364,7 +440,7 @@ func (s *ConfigurationHandlerFixture) TestShouldHaveMethodsWhenElevationSkipsOnA
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
+		AvailableMethods: []string{"totp", "webauthn", "mobile_push", "mobile_app"},
 	})
 }
 
@@ -386,6 +462,6 @@ func (s *ConfigurationHandlerFixture) TestShouldRespectDisabledMethodsWhenOnlyEl
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"webauthn"},
+		AvailableMethods: []string{"webauthn", "mobile_app"},
 	})
 }

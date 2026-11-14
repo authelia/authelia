@@ -30,7 +30,7 @@
 
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
 ## disabled. This setting must be a method that is enabled.
-## Options are totp, webauthn, mobile_push.
+## Options are totp, webauthn, mobile_push, mobile_app.
 # default_2fa_method: ''
 
 ##
@@ -386,6 +386,48 @@
   ## Duo Auth API can be used. Can't be enabled for a Duo hostname. See:
   ## https://www.authelia.com/configuration/second-factor/duo/#experimental_disable_ca_pinning
   # experimental_disable_ca_pinning: false
+
+##
+## App Authenticator Configuration
+##
+## The Authelia mobile app second factor method. Users register the app by scanning a QR code and approve sign in
+## requests by matching a number displayed in the browser.
+# app_authenticator:
+  ## Disables the method. The method is enabled by default.
+  # disable: false
+
+  ## The name shown in the app for this server.
+  # display_name: 'Authelia'
+
+  ## How long the registration QR code remains valid in the duration common syntax.
+  # registration_token_lifespan: '5 minutes'
+
+  ## How long a sign in challenge remains valid in the duration common syntax. Values over 5 minutes are not
+  ## recommended.
+  # challenge_lifespan: '2 minutes'
+
+  ## The number of digits in the number matching prompt. Must be between 2 and 4.
+  # nonce_length: 2
+
+  ## Device attestation settings.
+  # attestation:
+    ## The attestation mode. Options are 'required', 'preferred', and 'none'. When 'required' at least one of the
+    ## trusted identities below must be configured for app registration to be available.
+    # mode: 'required'
+
+    ## The trusted Apple app identities.
+    # apple:
+      # - team_id: 'ABCDE12345'
+        # bundle_id: 'com.example.app'
+        ## Options are 'production' and 'development'.
+        # environment: 'production'
+
+    ## The trusted Android app identities. Digests are SHA-256 signing certificate digests as 64 hex characters or
+    ## 32 colon separated hex pairs.
+    # android:
+      # - package_name: 'com.example.app'
+        # signing_certificate_digests:
+          # - 'AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89'
 
 ##
 ## Identity Validation Configuration

@@ -4,6 +4,7 @@
 
 import { ReactNode } from "react";
 
+import { Smartphone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -60,6 +61,14 @@ const MethodSelectionDialog = function (props: Props) {
                             method={translate("Push Notification")}
                             icon={<PushNotificationIcon width={32} height={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.MobilePush)}
+                        />
+                    ) : null}
+                    {props.methods.has(SecondFactorMethod.MobileApp) ? (
+                        <MethodItem
+                            id="app-authenticator-option"
+                            method={translate("Authelia app")}
+                            icon={<Smartphone size={32} />}
+                            onClick={() => props.onClick(SecondFactorMethod.MobileApp)}
                         />
                     ) : null}
                 </div>

@@ -8,11 +8,14 @@ import { SecondFactorMethod } from "@models/Methods";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
 
 const mocks = vi.hoisted(() => ({
+    appDevices: [] as any,
+    appDevicesError: null as Error | null,
     configuration: undefined as any,
     configurationError: null as Error | null,
     createErrorNotification: vi.fn(),
     credentials: [] as any,
     credentialsError: null as Error | null,
+    fetchAppDevices: vi.fn(),
     fetchConfiguration: vi.fn(),
     fetchCredentials: vi.fn(),
     fetchTOTPConfig: vi.fn(),
@@ -59,6 +62,18 @@ vi.mock("@hooks/WebAuthnCredentials", () => ({
     useUserWebAuthnCredentials: () => [mocks.credentials, mocks.fetchCredentials, false, mocks.credentialsError],
 }));
 
+vi.mock("@hooks/AppAuthenticatorDevices", () => ({
+    useAppAuthenticatorDevices: () => [mocks.appDevices, mocks.fetchAppDevices, false, mocks.appDevicesError],
+}));
+
+vi.mock("@views/Settings/TwoFactorAuthentication/AppAuthenticatorPanel", () => ({
+    default: (props: any) => (
+        <div data-testid="app-panel" data-registration={String(props.registrationAvailable)}>
+            <button data-testid="app-refresh" onClick={() => props.handleRefreshState()} />
+        </div>
+    ),
+}));
+
 vi.mock("@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel", () => ({
     default: (props: any) => (
         <div data-testid="otp-panel">
@@ -98,6 +113,8 @@ const userInfo = {
 beforeEach(() => {
     vi.clearAllMocks();
     mocks.configuration = bothMethods;
+    mocks.appDevices = [];
+    mocks.appDevicesError = null;
     mocks.configurationError = null;
     mocks.credentials = [];
     mocks.credentialsError = null;
@@ -167,6 +184,67 @@ describe("rendering", () => {
         render(<TwoFactorAuthenticationView />);
 
         expect(screen.queryByTestId("options-panel")).not.toBeInTheDocument();
+    });
+});
+
+describe("Authelia app", () => {
+    it("hides the Authelia app panel when the method is not available", () => {
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.queryByTestId("app-panel")).not.toBeInTheDocument();
+        expect(mocks.fetchAppDevices).not.toHaveBeenCalled();
+    });
+
+    it("shows the Authelia app panel and fetches devices when the method is available", () => {
+        mocks.configuration = {
+            app_authenticator_registration: false,
+            available_methods: new Set([SecondFactorMethod.MobileApp]),
+        };
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.getByTestId("app-panel")).toHaveAttribute("data-registration", "false");
+        expect(mocks.fetchAppDevices).toHaveBeenCalled();
+        expect(
+            screen.queryByText("There are no protected applications that require a second factor method"),
+        ).not.toBeInTheDocument();
+    });
+
+    it("passes the registration availability to the panel", () => {
+        mocks.configuration = {
+            app_authenticator_registration: true,
+            available_methods: new Set([SecondFactorMethod.MobileApp]),
+        };
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.getByTestId("app-panel")).toHaveAttribute("data-registration", "true");
+    });
+
+    it("refetches the devices when the panel refreshes", async () => {
+        mocks.configuration = {
+            app_authenticator_registration: true,
+            available_methods: new Set([SecondFactorMethod.MobileApp]),
+        };
+
+        render(<TwoFactorAuthenticationView />);
+        mocks.fetchAppDevices.mockClear();
+
+        fireEvent.click(screen.getByTestId("app-refresh"));
+
+        await waitFor(() => expect(mocks.fetchAppDevices).toHaveBeenCalled());
+    });
+
+    it("notifies when the devices cannot be retrieved", () => {
+        mocks.configuration = {
+            app_authenticator_registration: true,
+            available_methods: new Set([SecondFactorMethod.MobileApp]),
+        };
+        mocks.appDevicesError = new Error("failed");
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(mocks.createErrorNotification).toHaveBeenCalledWith("There was an issue retrieving the {{item}}");
     });
 });
 

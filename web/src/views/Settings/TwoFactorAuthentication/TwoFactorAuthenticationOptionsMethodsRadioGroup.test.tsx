@@ -18,7 +18,7 @@ it("renders radio options for all provided methods", () => {
     render(
         <TwoFactorAuthenticationOptionsMethodsRadioGroup
             id="test"
-            methods={[1, 2, 3]}
+            methods={[1, 2, 3, 4]}
             method={1}
             name="Default Method"
             handleMethodChanged={vi.fn()}
@@ -27,6 +27,7 @@ it("renders radio options for all provided methods", () => {
     expect(screen.getByText("WebAuthn")).toBeInTheDocument();
     expect(screen.getByText("One-Time Password")).toBeInTheDocument();
     expect(screen.getByText("Mobile Push")).toBeInTheDocument();
+    expect(screen.getByText("Authelia app")).toBeInTheDocument();
 });
 
 it("renders correct number of radio buttons", () => {

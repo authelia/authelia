@@ -39,7 +39,7 @@ const (
 
 const (
 	queryFmtSelectUserInfo = `
-		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_webauthn, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
+		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_webauthn, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_mobile_app
 		FROM %s
 		WHERE username = ?;`
 
@@ -871,4 +871,155 @@ const (
 	queryFmtSelectUserOpaqueIdentifiers = `
 		SELECT id, service, sector_id, username, identifier
 		FROM %s;`
+)
+
+const (
+	queryFmtInsertAppAuthenticatorDevice = `
+		INSERT INTO %s (created_at, last_used_at, device_id, username, base_url, name, model, platform, approval_public_key, transport_public_key, attestation_format, attestation_identity, attestation_detail, attestation_key_id, pull_id_current, pull_id_previous)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtSelectAppAuthenticatorDeviceByDeviceID = `
+		SELECT id, created_at, last_used_at, device_id, username, base_url, name, model, platform, approval_public_key, transport_public_key, attestation_format, attestation_identity, attestation_detail, attestation_key_id, pull_id_current, pull_id_previous
+		FROM %s
+		WHERE device_id = ?;`
+
+	queryFmtSelectAppAuthenticatorDeviceByID = `
+		SELECT id, created_at, last_used_at, device_id, username, base_url, name, model, platform, approval_public_key, transport_public_key, attestation_format, attestation_identity, attestation_detail, attestation_key_id, pull_id_current, pull_id_previous
+		FROM %s
+		WHERE id = ?;`
+
+	queryFmtSelectAppAuthenticatorDevicesByUsername = `
+		SELECT id, created_at, last_used_at, device_id, username, base_url, name, model, platform, approval_public_key, transport_public_key, attestation_format, attestation_identity, attestation_detail, attestation_key_id, pull_id_current, pull_id_previous
+		FROM %s
+		WHERE username = ?
+		ORDER BY id;`
+
+	queryFmtUpdateAppAuthenticatorDevicePullIDs = `
+		UPDATE %s
+		SET pull_id_current = ?, pull_id_previous = ?
+		WHERE id = ? AND pull_id_current = ?;`
+
+	queryFmtUpdateAppAuthenticatorDeviceName = `
+		UPDATE %s
+		SET name = ?
+		WHERE username = ? AND id = ?;`
+
+	queryFmtUpdateAppAuthenticatorDeviceLastUsed = `
+		UPDATE %s
+		SET last_used_at = ?
+		WHERE id = ?;`
+
+	queryFmtDeleteAppAuthenticatorDevice = `
+		DELETE FROM %s
+		WHERE device_id = ?;`
+
+	queryFmtDeleteAppAuthenticatorRequestNoncesByDeviceID = `
+		DELETE FROM %s
+		WHERE device_id = ?;`
+
+	queryFmtClearAppAuthenticatorChallengeBindingsByDeviceID = `
+		UPDATE %s
+		SET bound_device_id = NULL, bound_code_challenge = NULL
+		WHERE bound_device_id = ? AND state = 'pending';`
+
+	queryFmtInsertAppAuthenticatorRegistration = `
+		INSERT INTO %s (created_at, expires_at, code, username, portal_binding, base_url, number, nonce_length, state, begun_at, session_expires_at, confirmation_id, challenge, code_challenge, device_platform, device_model, device_name, device_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtSelectAppAuthenticatorRegistrationByCode = `
+		SELECT id, created_at, expires_at, code, username, portal_binding, base_url, number, nonce_length, state, begun_at, session_expires_at, confirmation_id, challenge, code_challenge, device_platform, device_model, device_name, device_id
+		FROM %s
+		WHERE code = ?;`
+
+	queryFmtSelectAppAuthenticatorRegistrationByConfirmationID = `
+		SELECT id, created_at, expires_at, code, username, portal_binding, base_url, number, nonce_length, state, begun_at, session_expires_at, confirmation_id, challenge, code_challenge, device_platform, device_model, device_name, device_id
+		FROM %s
+		WHERE confirmation_id = ?;`
+
+	queryFmtSelectAppAuthenticatorRegistrationByPortalBinding = `
+		SELECT id, created_at, expires_at, code, username, portal_binding, base_url, number, nonce_length, state, begun_at, session_expires_at, confirmation_id, challenge, code_challenge, device_platform, device_model, device_name, device_id
+		FROM %s
+		WHERE portal_binding = ?
+		ORDER BY id DESC
+		LIMIT 1;`
+
+	queryFmtUpdateAppAuthenticatorRegistration = `
+		UPDATE %s
+		SET expires_at = ?, portal_binding = ?, state = ?, begun_at = ?, session_expires_at = ?, confirmation_id = ?, challenge = ?, code_challenge = ?, device_platform = ?, device_model = ?, device_name = ?, device_id = ?
+		WHERE id = ? AND state = ?;`
+
+	queryFmtCancelAppAuthenticatorRegistrations = `
+		UPDATE %s
+		SET state = 'cancelled'
+		WHERE portal_binding = ? AND state IN ('issued', 'begun');`
+
+	queryFmtInsertAppAuthenticatorChallenge = `
+		INSERT INTO %s (created_at, expires_at, confirmation_id, username, portal_binding, challenge, number, nonce_length, state, bound_device_id, bound_code_challenge, decided_at, decided_device_id, portal_url, requested_url, remote_ip, user_agent, consumed_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtSelectAppAuthenticatorChallengeByConfirmationID = `
+		SELECT id, created_at, expires_at, confirmation_id, username, portal_binding, challenge, number, nonce_length, state, bound_device_id, bound_code_challenge, decided_at, decided_device_id, portal_url, requested_url, remote_ip, user_agent, consumed_at
+		FROM %s
+		WHERE confirmation_id = ?;`
+
+	queryFmtSelectAppAuthenticatorChallengeByPortalBinding = `
+		SELECT id, created_at, expires_at, confirmation_id, username, portal_binding, challenge, number, nonce_length, state, bound_device_id, bound_code_challenge, decided_at, decided_device_id, portal_url, requested_url, remote_ip, user_agent, consumed_at
+		FROM %s
+		WHERE portal_binding = ?
+		ORDER BY id DESC
+		LIMIT 1;`
+
+	queryFmtSelectAppAuthenticatorChallengePending = `
+		SELECT id, created_at, expires_at, confirmation_id, username, portal_binding, challenge, number, nonce_length, state, bound_device_id, bound_code_challenge, decided_at, decided_device_id, portal_url, requested_url, remote_ip, user_agent, consumed_at
+		FROM %s
+		WHERE username = ? AND state = 'pending' AND expires_at >= ?
+		ORDER BY id
+		LIMIT 1;`
+
+	queryFmtUpdateAppAuthenticatorChallenge = `
+		UPDATE %s
+		SET expires_at = ?, portal_binding = ?, state = ?, bound_device_id = ?, bound_code_challenge = ?, decided_at = ?, decided_device_id = ?, portal_url = ?, requested_url = ?, remote_ip = ?, user_agent = ?, consumed_at = ?
+		WHERE id = ? AND state = ?;`
+
+	queryFmtUpdateAppAuthenticatorChallengeDecision = `
+		UPDATE %s
+		SET state = ?, decided_at = ?, decided_device_id = ?
+		WHERE id = ? AND state = 'pending' AND COALESCE(bound_device_id, '') = ? AND COALESCE(bound_code_challenge, '') = ?;`
+
+	queryFmtConsumeAppAuthenticatorChallenge = `
+		UPDATE %s
+		SET consumed_at = ?
+		WHERE id = ? AND state = 'approved' AND consumed_at IS NULL AND expires_at >= ?;`
+
+	queryFmtVoidAppAuthenticatorChallengesByPortalBinding = `
+		UPDATE %s
+		SET state = 'voided'
+		WHERE portal_binding = ? AND state = 'pending';`
+
+	queryFmtInsertAppAuthenticatorRequestNonce = `
+		INSERT INTO %s (device_id, nonce, expires_at)
+		VALUES (?, ?, ?)
+			ON DUPLICATE KEY UPDATE device_id = device_id;`
+
+	queryFmtInsertAppAuthenticatorRequestNonceSQLite = `
+		INSERT OR IGNORE INTO %s (device_id, nonce, expires_at)
+		VALUES (?, ?, ?);`
+
+	queryFmtInsertAppAuthenticatorRequestNoncePostgreSQL = `
+		INSERT INTO %s (device_id, nonce, expires_at)
+		VALUES ($1, $2, $3)
+			ON CONFLICT (device_id, nonce)
+			DO NOTHING;`
+
+	queryFmtDeleteAppAuthenticatorRequestNoncesExpired = `
+		DELETE FROM %s
+		WHERE expires_at < ?;`
+
+	queryFmtDeleteAppAuthenticatorRegistrationsStale = `
+		DELETE FROM %s
+		WHERE expires_at < ? AND (session_expires_at IS NULL OR session_expires_at < ?);`
+
+	queryFmtDeleteAppAuthenticatorChallengesStale = `
+		DELETE FROM %s
+		WHERE expires_at < ?;`
 )

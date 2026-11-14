@@ -56,7 +56,12 @@ vi.mock("@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsM
 const setPreferredMock = vi.mocked(setPreferred2FAMethod);
 
 const config = {
-    available_methods: new Set([SecondFactorMethod.TOTP, SecondFactorMethod.WebAuthn, SecondFactorMethod.MobilePush]),
+    available_methods: new Set([
+        SecondFactorMethod.TOTP,
+        SecondFactorMethod.WebAuthn,
+        SecondFactorMethod.MobilePush,
+        SecondFactorMethod.MobileApp,
+    ]),
 } as any;
 
 const info = {
@@ -159,6 +164,15 @@ describe("available methods", () => {
         expect(screen.getByTestId("radio-group-account")).toHaveAttribute(
             "data-methods",
             `${SecondFactorMethod.TOTP},${SecondFactorMethod.MobilePush}`,
+        );
+    });
+
+    it("offers the Authelia app when a device is registered", () => {
+        renderPanel({ info: { ...info, has_mobile_app: true, has_totp: false, has_webauthn: false } });
+
+        expect(screen.getByTestId("radio-group-account")).toHaveAttribute(
+            "data-methods",
+            String(SecondFactorMethod.MobileApp),
         );
     });
 

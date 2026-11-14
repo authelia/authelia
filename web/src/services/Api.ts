@@ -30,6 +30,10 @@ export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_
 export const RecoveryCodesStatusPath = basePath + "/api/secondfactor/recovery-codes";
 export const RecoveryCodesGeneratePath = basePath + "/api/secondfactor/recovery-codes/generate";
 export const CompleteRecoveryCodeSignInPath = basePath + "/api/secondfactor/recovery-code";
+export const AppAuthenticatorSignInPath = basePath + "/api/secondfactor/app";
+export const AppAuthenticatorSignInStatusPath = basePath + "/api/secondfactor/app/status";
+export const AppAuthenticatorRegistrationPath = basePath + "/api/secondfactor/app/registration";
+export const AppAuthenticatorDevicesPath = basePath + "/api/secondfactor/app/devices";
 
 export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo";
 export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";

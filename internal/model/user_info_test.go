@@ -24,7 +24,7 @@ func TestUserInfo_SetDefaultMethod(t *testing.T) {
 
 		has := ""
 
-		if have.HasTOTP || have.HasDuo || have.HasWebAuthn {
+		if have.HasTOTP || have.HasDuo || have.HasWebAuthn || have.HasMobileApp {
 			has += " has"
 
 			if have.HasTOTP {
@@ -37,6 +37,10 @@ func TestUserInfo_SetDefaultMethod(t *testing.T) {
 
 			if have.HasWebAuthn {
 				has += " " + SecondFactorMethodWebAuthn
+			}
+
+			if have.HasMobileApp {
+				has += " " + SecondFactorMethodMobileApp
 			}
 		}
 
@@ -303,6 +307,62 @@ func TestUserInfo_SetDefaultMethod(t *testing.T) {
 			methods:  []string{SecondFactorMethodTOTP, SecondFactorMethodDuo},
 			fallback: SecondFactorMethodDuo,
 			changed:  true,
+		},
+		{
+			have: UserInfo{
+				HasMobileApp: true,
+			},
+			want: UserInfo{
+				Method:       SecondFactorMethodMobileApp,
+				HasMobileApp: true,
+			},
+			methods:  []string{SecondFactorMethodTOTP, SecondFactorMethodWebAuthn, SecondFactorMethodDuo, SecondFactorMethodMobileApp},
+			fallback: "",
+			changed:  true,
+		},
+		{
+			have: UserInfo{
+				Method:       SecondFactorMethodTOTP,
+				HasMobileApp: true,
+			},
+			want: UserInfo{
+				Method:       SecondFactorMethodMobileApp,
+				HasMobileApp: true,
+			},
+			methods: []string{SecondFactorMethodWebAuthn, SecondFactorMethodMobileApp},
+			changed: true,
+		},
+		{
+			have: UserInfo{
+				HasDuo:       true,
+				HasMobileApp: true,
+			},
+			want: UserInfo{
+				Method:       SecondFactorMethodDuo,
+				HasDuo:       true,
+				HasMobileApp: true,
+			},
+			methods: []string{SecondFactorMethodDuo, SecondFactorMethodMobileApp},
+			changed: true,
+		},
+		{
+			have: UserInfo{
+				HasMobileApp: true,
+			},
+			want: UserInfo{
+				Method:       SecondFactorMethodTOTP,
+				HasMobileApp: true,
+			},
+			methods: []string{SecondFactorMethodTOTP},
+			changed: true,
+		},
+		{
+			have: UserInfo{},
+			want: UserInfo{
+				Method: SecondFactorMethodMobileApp,
+			},
+			methods: []string{SecondFactorMethodMobileApp},
+			changed: true,
 		},
 	}
 

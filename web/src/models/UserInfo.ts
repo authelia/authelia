@@ -13,4 +13,5 @@ export interface UserInfo {
     has_duo: boolean;
     has_recovery_codes?: boolean;
     low_recovery_codes?: boolean;
+    has_mobile_app: boolean;
 }

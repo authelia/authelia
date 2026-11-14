@@ -219,30 +219,31 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 // NewTemplatedFileOptions returns a new *TemplatedFileOptions.
 func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileOptions) {
 	opts = &TemplatedFileOptions{
-		AssetPath:               config.Server.AssetPath,
-		DuoSelfEnrollment:       strFalse,
-		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
-		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
-		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
-		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
-		TOTPAppAppleStore:       totpAppStoreLink(config.TOTP.Apps.AppleStore),
-		TOTPAppGooglePlay:       totpAppStoreLink(config.TOTP.Apps.GooglePlay),
-		RegistrationURL:         config.AuthenticationBackend.Registration.CustomURL.String(),
-		PasswordChange:          strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
-		PrivacyPolicyURL:        "",
-		PrivacyPolicyAccept:     strFalse,
-		Session:                 "",
-		Theme:                   config.Theme,
-		EndpointsPasswordReset:  !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "",
-		EndpointsPasswordChange: !config.AuthenticationBackend.PasswordChange.Disable,
-		EndpointsWebAuthn:       !config.WebAuthn.Disable,
-		EndpointsPasskeys:       !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
-		EndpointsTOTP:           !config.TOTP.Disable,
-		EndpointsDuo:            !config.DuoAPI.Disable,
-		EndpointsRecoveryCodes:  !config.RecoveryCodes.Disable,
-		EndpointsOpenIDConnect:  config.IdentityProviders.OIDC != nil,
-		EndpointsHealthVerbose:  config.Server.Endpoints.Health.Verbose,
-		EndpointsAuthz:          config.Server.Endpoints.Authz,
+		AssetPath:                 config.Server.AssetPath,
+		DuoSelfEnrollment:         strFalse,
+		PasskeyLogin:              strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
+		RememberMe:                strconv.FormatBool(!config.Session.DisableRememberMe),
+		ResetPassword:             strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
+		ResetPasswordCustomURL:    config.AuthenticationBackend.PasswordReset.CustomURL.String(),
+		TOTPAppAppleStore:         totpAppStoreLink(config.TOTP.Apps.AppleStore),
+		TOTPAppGooglePlay:         totpAppStoreLink(config.TOTP.Apps.GooglePlay),
+		RegistrationURL:           config.AuthenticationBackend.Registration.CustomURL.String(),
+		PasswordChange:            strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
+		PrivacyPolicyURL:          "",
+		PrivacyPolicyAccept:       strFalse,
+		Session:                   "",
+		Theme:                     config.Theme,
+		EndpointsPasswordReset:    !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "",
+		EndpointsPasswordChange:   !config.AuthenticationBackend.PasswordChange.Disable,
+		EndpointsWebAuthn:         !config.WebAuthn.Disable,
+		EndpointsPasskeys:         !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
+		EndpointsTOTP:             !config.TOTP.Disable,
+		EndpointsDuo:              !config.DuoAPI.Disable,
+		EndpointsAppAuthenticator: !config.AppAuthenticator.Disable,
+		EndpointsRecoveryCodes:    !config.RecoveryCodes.Disable,
+		EndpointsOpenIDConnect:    config.IdentityProviders.OIDC != nil,
+		EndpointsHealthVerbose:    config.Server.Endpoints.Health.Verbose,
+		EndpointsAuthz:            config.Server.Endpoints.Authz,
 	}
 
 	if config.PrivacyPolicy.Enabled {
@@ -283,15 +284,16 @@ type TemplatedFileOptions struct {
 	Session                string
 	Theme                  string
 
-	EndpointsPasswordReset  bool
-	EndpointsPasswordChange bool
-	EndpointsWebAuthn       bool
-	EndpointsPasskeys       bool
-	EndpointsTOTP           bool
-	EndpointsDuo            bool
-	EndpointsRecoveryCodes  bool
-	EndpointsOpenIDConnect  bool
-	EndpointsHealthVerbose  bool
+	EndpointsPasswordReset    bool
+	EndpointsPasswordChange   bool
+	EndpointsWebAuthn         bool
+	EndpointsPasskeys         bool
+	EndpointsTOTP             bool
+	EndpointsDuo              bool
+	EndpointsAppAuthenticator bool
+	EndpointsRecoveryCodes    bool
+	EndpointsOpenIDConnect    bool
+	EndpointsHealthVerbose    bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
@@ -356,21 +358,22 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, cookie, 
 	}
 
 	return TemplatedFileOpenAPIData{
-		Base:           base,
-		BaseURL:        baseURL,
-		Domain:         domain,
-		CSPNonce:       nonce,
-		Session:        cookie,
-		PasswordReset:  options.EndpointsPasswordReset,
-		PasswordChange: options.EndpointsPasswordChange,
-		WebAuthn:       options.EndpointsWebAuthn,
-		Passkeys:       options.EndpointsPasskeys,
-		TOTP:           options.EndpointsTOTP,
-		Duo:            options.EndpointsDuo,
-		RecoveryCodes:  options.EndpointsRecoveryCodes,
-		OpenIDConnect:  options.EndpointsOpenIDConnect,
-		HealthVerbose:  options.EndpointsHealthVerbose,
-		EndpointsAuthz: options.EndpointsAuthz,
+		Base:             base,
+		BaseURL:          baseURL,
+		Domain:           domain,
+		CSPNonce:         nonce,
+		Session:          cookie,
+		PasswordReset:    options.EndpointsPasswordReset,
+		PasswordChange:   options.EndpointsPasswordChange,
+		WebAuthn:         options.EndpointsWebAuthn,
+		Passkeys:         options.EndpointsPasskeys,
+		TOTP:             options.EndpointsTOTP,
+		Duo:              options.EndpointsDuo,
+		AppAuthenticator: options.EndpointsAppAuthenticator,
+		RecoveryCodes:    options.EndpointsRecoveryCodes,
+		OpenIDConnect:    options.EndpointsOpenIDConnect,
+		HealthVerbose:    options.EndpointsHealthVerbose,
+		EndpointsAuthz:   options.EndpointsAuthz,
 	}
 }
 
@@ -398,20 +401,21 @@ type TemplatedFileCommonData struct {
 
 // TemplatedFileOpenAPIData is a struct which is used for the OpenAPI spec file.
 type TemplatedFileOpenAPIData struct {
-	Base           string
-	BaseURL        string
-	Domain         string
-	CSPNonce       string
-	Session        string
-	PasswordReset  bool
-	PasswordChange bool
-	WebAuthn       bool
-	Passkeys       bool
-	TOTP           bool
-	Duo            bool
-	RecoveryCodes  bool
-	OpenIDConnect  bool
-	HealthVerbose  bool
+	Base             string
+	BaseURL          string
+	Domain           string
+	CSPNonce         string
+	Session          string
+	PasswordReset    bool
+	PasswordChange   bool
+	WebAuthn         bool
+	Passkeys         bool
+	TOTP             bool
+	Duo              bool
+	AppAuthenticator bool
+	RecoveryCodes    bool
+	OpenIDConnect    bool
+	HealthVerbose    bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
