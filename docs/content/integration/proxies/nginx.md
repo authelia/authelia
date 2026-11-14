@@ -433,9 +433,9 @@ proxy_set_header X-Real-IP $remote_addr;
 client_body_buffer_size 128k;
 proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; ## Timeout if the real server is dead.
 proxy_http_version 1.1;
-## Replace authelia_session with the session cookie name if it has been changed.
-proxy_cache_bypass $cookie_authelia_session;
-proxy_no_cache $cookie_authelia_session;
+## Never cache a response to a request which carries cookies, as it may carry an Authelia session cookie.
+proxy_cache_bypass $http_cookie;
+proxy_no_cache $http_cookie;
 proxy_buffers 64 256k;
 
 ## Trusted Proxies Configuration
@@ -508,9 +508,9 @@ location /internal/authelia/authz {
     proxy_pass_request_body off;
     proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; # Timeout if the real server is dead
     proxy_http_version 1.1;
-    ## Replace authelia_session with the session cookie name if it has been changed.
-    proxy_cache_bypass $cookie_authelia_session;
-    proxy_no_cache $cookie_authelia_session;
+    ## Never cache a response to a request which carries cookies, as it may carry an Authelia session cookie.
+    proxy_cache_bypass $http_cookie;
+    proxy_no_cache $http_cookie;
     proxy_buffers 4 32k;
     client_body_buffer_size 128k;
 
@@ -645,9 +645,9 @@ location /internal/authelia/authz/basic {
     proxy_pass_request_body off;
     proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; # Timeout if the real server is dead
     proxy_http_version 1.1;
-    ## Replace authelia_session with the session cookie name if it has been changed.
-    proxy_cache_bypass $cookie_authelia_session;
-    proxy_no_cache $cookie_authelia_session;
+    ## Never cache a response to a request which carries cookies, as it may carry an Authelia session cookie.
+    proxy_cache_bypass $http_cookie;
+    proxy_no_cache $http_cookie;
     proxy_buffers 4 32k;
     client_body_buffer_size 128k;
 

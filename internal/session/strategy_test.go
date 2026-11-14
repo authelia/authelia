@@ -5,6 +5,7 @@
 package session
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
@@ -73,7 +74,7 @@ func TestDefaultStrategy_GetShouldReturnDefaultSessionForUnknownCookie(t *testin
 	strategy := newTestStrategy(t, nil)
 	ctx := newTestContext()
 
-	ctx.cookies[testName] = newTestCookie("an-identifier-which-was-never-saved")
+	ctx.cookies[testNameSession] = newTestCookie("an-identifier-which-was-never-saved")
 
 	userSession, err := strategy.Get(ctx)
 
@@ -89,10 +90,11 @@ func TestDefaultStrategy_SaveAndGetShouldRoundTrip(t *testing.T) {
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	cookie, ok := ctx.cookies[testName]
+	cookie, ok := ctx.cookies[testNameSession]
 	require.True(t, ok)
 	assert.NotEmpty(t, cookie)
 
@@ -114,10 +116,11 @@ func TestDefaultStrategy_SaveShouldEncodeCookieAsUnpaddedBase64URL(t *testing.T)
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	cookie := ctx.cookies[testName]
+	cookie := ctx.cookies[testNameSession]
 
 	assert.Len(t, cookie, base64.RawURLEncoding.EncodedLen(32))
 	assert.NotContains(t, cookie, "=")
@@ -140,10 +143,11 @@ func TestDefaultStrategy_GetShouldReturnDefaultSessionForMalformedCookie(t *test
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	ctx.cookies[testName] += "="
+	ctx.cookies[testNameSession] += "="
 
 	actual, err := strategy.Get(ctx)
 
@@ -156,13 +160,13 @@ func TestDefaultStrategy_SaveShouldReplaceMalformedCookie(t *testing.T) {
 	strategy := newTestStrategy(t, nil)
 	ctx := newTestContext()
 
-	ctx.cookies[testName] = "not!valid"
+	ctx.cookies[testNameSession] = "not!valid"
 
 	userSession := newTestAnonymousSessionWithState(strategy)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	id, err := base64.RawURLEncoding.DecodeString(ctx.cookies[testName])
+	id, err := base64.RawURLEncoding.DecodeString(ctx.cookies[testNameSession])
 
 	require.NoError(t, err)
 	assert.Len(t, id, 32)
@@ -195,17 +199,19 @@ func TestDefaultStrategy_ShouldTreatInvalidCookieAsNewAnonymousSession(t *testin
 
 			authenticated := strategy.New(testUsername)
 
+			authenticated.SetOneFactorPassword(time.Now(), false)
+
 			seed := newTestContext()
-			seed.cookies[testName] = encodeCookieID(existing)
+			seed.cookies[testNameSession] = encodeCookieID(existing)
 
 			require.NoError(t, strategy.Save(seed, &authenticated))
-			require.Equal(t, encodeCookieID(existing), seed.cookies[testName])
+			require.Equal(t, encodeCookieID(existing), seed.cookies[testNameSession])
 
 			repository.reads, repository.changes, repository.deletes = 0, 0, 0
 
 			t.Run("Get", func(t *testing.T) {
 				ctx := newTestContext()
-				ctx.cookies[testName] = tc.cookie
+				ctx.cookies[testNameSession] = tc.cookie
 
 				actual, err := strategy.Get(ctx)
 
@@ -217,7 +223,7 @@ func TestDefaultStrategy_ShouldTreatInvalidCookieAsNewAnonymousSession(t *testin
 
 			t.Run("Save", func(t *testing.T) {
 				ctx := newTestContext()
-				ctx.cookies[testName] = tc.cookie
+				ctx.cookies[testNameSession] = tc.cookie
 
 				userSession := newTestAnonymousSessionWithState(strategy)
 
@@ -228,7 +234,7 @@ func TestDefaultStrategy_ShouldTreatInvalidCookieAsNewAnonymousSession(t *testin
 
 			t.Run("Regenerate", func(t *testing.T) {
 				ctx := newTestContext()
-				ctx.cookies[testName] = tc.cookie
+				ctx.cookies[testNameSession] = tc.cookie
 
 				require.NoError(t, strategy.Regenerate(ctx))
 
@@ -237,11 +243,11 @@ func TestDefaultStrategy_ShouldTreatInvalidCookieAsNewAnonymousSession(t *testin
 
 			t.Run("Destroy", func(t *testing.T) {
 				ctx := newTestContext()
-				ctx.cookies[testName] = tc.cookie
+				ctx.cookies[testNameSession] = tc.cookie
 
 				require.NoError(t, strategy.Destroy(ctx))
 
-				assert.NotContains(t, ctx.cookies, testName)
+				assert.NotContains(t, ctx.cookies, testNameSession)
 				assert.NotNil(t, ctx.cleared)
 			})
 
@@ -280,6 +286,7 @@ func TestDefaultStrategy_SaveShouldSetCookieDomainWhenEmpty(t *testing.T) {
 
 	userSession := NewDefaultUserSession()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
@@ -328,11 +335,12 @@ func TestDefaultStrategy_SaveShouldApplyRememberMeExpiration(t *testing.T) {
 
 			userSession := strategy.NewDefault()
 			userSession.Username = testUsername
+			userSession.SetOneFactorPassword(time.Now(), false)
 			userSession.KeepMeLoggedIn = tc.keepMeLoggedIn
 
 			require.NoError(t, strategy.Save(ctx, &userSession))
 
-			require.Len(t, repository.expirations, 1)
+			require.Len(t, repository.expirations, 2)
 
 			for _, expiration := range repository.expirations {
 				assert.Equal(t, tc.expected, expiration)
@@ -347,14 +355,15 @@ func TestDefaultStrategy_RegenerateShouldChangeCookieAndPreserveSession(t *testi
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
-	original := ctx.cookies[testName]
+	original := ctx.cookies[testNameSession]
 
 	require.NoError(t, strategy.Regenerate(ctx))
 
-	regenerated := ctx.cookies[testName]
+	regenerated := ctx.cookies[testNameSession]
 
 	assert.NotEqual(t, original, regenerated)
 
@@ -370,7 +379,7 @@ func TestDefaultStrategy_RegenerateShouldNotErrorForAnonymousRequest(t *testing.
 
 	require.NoError(t, strategy.Regenerate(ctx))
 
-	assert.NotEmpty(t, ctx.cookies[testName])
+	assert.NotEmpty(t, ctx.cookies[testNameSession])
 }
 
 func TestDefaultStrategy_DestroyShouldClearSession(t *testing.T) {
@@ -379,11 +388,12 @@ func TestDefaultStrategy_DestroyShouldClearSession(t *testing.T) {
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 	require.NoError(t, strategy.Destroy(ctx))
 
-	assert.NotContains(t, ctx.cookies, testName)
+	assert.NotContains(t, ctx.cookies, testNameSession)
 
 	actual, err := strategy.Get(ctx)
 
@@ -398,17 +408,25 @@ func TestDefaultStrategy_DestroyShouldDeleteBackendRecordWhenSessionCannotBeDeco
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
-	require.Len(t, repository.data, 1)
+	require.Len(t, repository.data, 2)
 
-	for key := range repository.data {
-		repository.data[key] = []byte("not-a-decodable-session")
-	}
+	p, ok := strategy.(*DefaultStrategy)
+
+	require.True(t, ok)
+
+	cookieID, err := base64.RawURLEncoding.DecodeString(ctx.cookies[testNameSession])
+
+	require.NoError(t, err)
+
+	repository.data[repository.key(p.codec.Sign(cookieID), p.issuer)] = []byte("not-a-decodable-session")
 
 	require.NoError(t, strategy.Destroy(ctx))
 
-	assert.NotContains(t, ctx.cookies, testName)
+	assert.NotContains(t, ctx.cookies, testNameSession)
+	assert.NotContains(t, ctx.cookies, testNameAuthz)
 	assert.Empty(t, repository.data)
 }
 
@@ -432,20 +450,352 @@ func TestDefaultStrategy_DestroyShouldClearCookieMatchingTheCookieItSet(t *testi
 
 			userSession := strategy.NewDefault()
 			userSession.Username = testUsername
+			userSession.SetOneFactorPassword(time.Now(), false)
 
 			require.NoError(t, strategy.Save(ctx, &userSession))
 			require.NoError(t, strategy.Destroy(ctx))
 
-			require.NotNil(t, ctx.cleared)
+			require.Len(t, ctx.cleared, 3)
 
-			assert.Equal(t, testName, ctx.cleared.Name)
-			assert.Equal(t, tc.Expected, ctx.cleared.Domain)
-			assert.Equal(t, "/", ctx.cleared.Path)
-			assert.True(t, ctx.cleared.Secure)
-			assert.True(t, ctx.cleared.HttpOnly)
-			assert.True(t, ctx.cleared.Expires.Before(time.Now()))
+			assert.Equal(t, testNameSession, ctx.cleared[0].Name)
+			assert.Empty(t, ctx.cleared[0].Domain)
+			assert.Equal(t, "/", ctx.cleared[0].Path)
+			assert.True(t, ctx.cleared[0].Secure)
+			assert.True(t, ctx.cleared[0].HttpOnly)
+			assert.True(t, ctx.cleared[0].Expires.Before(time.Now()))
+
+			assert.Equal(t, testNameAuthz, ctx.cleared[1].Name)
+			assert.Equal(t, tc.Expected, ctx.cleared[1].Domain)
+
+			assert.Equal(t, testNameCSRF, ctx.cleared[2].Name)
 		})
 	}
+}
+
+func TestDefaultStrategy_CSRFTokenShouldBeEmptyForAnonymousRequest(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	token, err := strategy.CSRFToken(ctx)
+
+	assert.Empty(t, token)
+	assert.ErrorIs(t, err, ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, ""), ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, "not-a-token"), ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.RegenerateCSRFToken(ctx), ErrCSRFTokenNoSession)
+
+	assert.NoError(t, strategy.SetCSRFCookie(ctx))
+
+	assert.NotContains(t, ctx.cookies, testNameCSRF)
+}
+
+func TestDefaultStrategy_CSRFTokenShouldReturnNoSessionForUnknownSessionCookie(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	ctx.cookies[testNameSession] = "an-unknown-session-cookie-value"
+
+	token, err := strategy.CSRFToken(ctx)
+
+	assert.Empty(t, token)
+	assert.ErrorIs(t, err, ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, "not-a-token"), ErrCSRFTokenNoSession)
+
+	assert.NoError(t, strategy.SetCSRFCookie(ctx))
+
+	assert.NotContains(t, ctx.cookies, testNameCSRF)
+}
+
+func TestDefaultStrategy_CSRFTokenShouldReturnNoSessionForUnreadableSession(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	previous := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	require.NoError(t, strategy.Save(previous, &userSession))
+
+	for key := range repository.data {
+		repository.data[key] = []byte("unreadable")
+	}
+
+	ctx := newTestContext()
+	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
+
+	token, err := strategy.CSRFToken(ctx)
+
+	assert.Empty(t, token)
+	assert.ErrorIs(t, err, ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, previous.cookies[testNameCSRF]), ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.RegenerateCSRFToken(ctx), ErrCSRFTokenNoSession)
+	assert.NoError(t, strategy.SetCSRFCookie(ctx))
+}
+
+func TestDefaultStrategy_VerifyCSRFTokenShouldReturnRepositoryFailure(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	previous := newTestContext()
+
+	userSession := strategy.New(testUsername)
+
+	require.NoError(t, strategy.Save(previous, &userSession))
+
+	failing := newTestStrategyWithRepository(t, &failingRepository{testRepository: repository}, nil)
+
+	ctx := newTestContext()
+	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
+
+	err := failing.VerifyCSRFToken(ctx, previous.cookies[testNameCSRF])
+
+	assert.ErrorIs(t, err, ErrRepositoryGet)
+	assert.NotErrorIs(t, err, ErrCSRFTokenNoSession)
+}
+
+func TestDefaultStrategy_SaveShouldDeliverVerifiableCSRFToken(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	token := ctx.cookies[testNameCSRF]
+
+	require.NotEmpty(t, token)
+	assert.Len(t, userSession.CSRF, 32)
+
+	actual, err := strategy.CSRFToken(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, actual, token)
+	assert.NoError(t, strategy.VerifyCSRFToken(ctx, token))
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, ""), ErrCSRFTokenInvalid)
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, token+"00"), ErrCSRFTokenInvalid)
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, ctx.cookies[testNameSession]), ErrCSRFTokenInvalid)
+
+	assert.NotContains(t, token, string(userSession.CSRF))
+
+	assert.NotEqual(t, ctx.cookies[testNameSession], token)
+
+	for key := range repository.data {
+		assert.NotContains(t, key, token)
+	}
+
+	cookie := ctx.jar[testNameCSRF]
+
+	require.NotNil(t, cookie)
+	assert.Equal(t, "", cookie.Domain)
+	assert.Equal(t, "/", cookie.Path)
+	assert.True(t, cookie.Secure)
+	assert.False(t, cookie.HttpOnly)
+	assert.Equal(t, http.SameSiteStrictMode, cookie.SameSite)
+	assert.False(t, cookie.Expires.IsZero())
+	assert.Equal(t, ctx.jar[testNameSession].Expires, cookie.Expires)
+}
+
+func TestDefaultStrategy_VerifyCSRFTokenShouldRejectTokenOfAnotherCookieDomain(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	other := newTestStrategy(t, func(config *schema.SessionCookie) {
+		config.Domain = "example.org"
+	})
+
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	token := ctx.cookies[testNameCSRF]
+
+	require.NotEmpty(t, token)
+	assert.NoError(t, strategy.VerifyCSRFToken(ctx, token))
+
+	assert.NotEqual(t, strategy.(*DefaultStrategy).csrfToken(userSession.CSRF), other.(*DefaultStrategy).csrfToken(userSession.CSRF))
+	assert.Error(t, other.VerifyCSRFToken(ctx, token))
+}
+
+func TestDefaultStrategy_RegenerateShouldRotateCSRFToken(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	original := ctx.cookies[testNameCSRF]
+
+	require.NoError(t, strategy.Regenerate(ctx))
+
+	regenerated := ctx.cookies[testNameCSRF]
+
+	require.NotEmpty(t, regenerated)
+	assert.NotEqual(t, original, regenerated)
+	assert.NoError(t, strategy.VerifyCSRFToken(ctx, regenerated))
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, original), ErrCSRFTokenInvalid)
+}
+
+func TestDefaultStrategy_DestroyShouldClearCSRFToken(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	token := ctx.cookies[testNameCSRF]
+
+	require.NoError(t, strategy.Destroy(ctx))
+
+	assert.NotContains(t, ctx.cookies, testNameCSRF)
+
+	actual, err := strategy.CSRFToken(ctx)
+
+	assert.Empty(t, actual)
+	assert.ErrorIs(t, err, ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, token), ErrCSRFTokenNoSession)
+}
+
+func TestDefaultStrategy_SetCSRFCookieShouldDeliverTokenForExistingSession(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	token := ctx.cookies[testNameCSRF]
+
+	delete(ctx.cookies, testNameCSRF)
+
+	require.NoError(t, strategy.SetCSRFCookie(ctx))
+
+	assert.Equal(t, token, ctx.cookies[testNameCSRF])
+	assert.NoError(t, strategy.VerifyCSRFToken(ctx, ctx.cookies[testNameCSRF]))
+}
+
+func TestDefaultStrategy_CSRFTokenShouldNotHonorTheSessionCookieOnAuthzEndpointRequest(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	token := ctx.cookies[testNameCSRF]
+
+	delete(ctx.cookies, testNameCSRF)
+
+	ctx.authz = true
+	ctx.cleared = nil
+
+	set := ctx.set
+
+	actual, err := strategy.CSRFToken(ctx)
+
+	assert.Empty(t, actual)
+	assert.ErrorIs(t, err, ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, token), ErrCSRFTokenNoSession)
+	assert.ErrorIs(t, strategy.RegenerateCSRFToken(ctx), ErrCSRFTokenNoSession)
+	assert.NoError(t, strategy.SetCSRFCookie(ctx))
+	assert.Equal(t, set, ctx.set)
+	assert.NotContains(t, ctx.cookies, testNameCSRF)
+}
+
+func TestDefaultStrategy_SaveShouldPreserveCSRFSecret(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	original := ctx.cookies[testNameCSRF]
+
+	userSession.KeepMeLoggedIn = true
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	assert.Equal(t, original, ctx.cookies[testNameCSRF])
+	assert.NoError(t, strategy.VerifyCSRFToken(ctx, original))
+}
+
+func TestDefaultStrategy_RegenerateCSRFTokenShouldRotateWithoutChangingSessionIdentifier(t *testing.T) {
+	strategy := newTestStrategy(t, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	sessionCookie := ctx.cookies[testNameSession]
+	original := ctx.cookies[testNameCSRF]
+
+	require.NoError(t, strategy.RegenerateCSRFToken(ctx))
+
+	regenerated := ctx.cookies[testNameCSRF]
+
+	assert.Equal(t, sessionCookie, ctx.cookies[testNameSession])
+	require.NotEmpty(t, regenerated)
+	assert.NotEqual(t, original, regenerated)
+	assert.NoError(t, strategy.VerifyCSRFToken(ctx, regenerated))
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, original), ErrCSRFTokenInvalid)
+
+	actual, err := strategy.Get(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, actual.Username)
+
+	fresh := newTestContext()
+	fresh.cookies[testNameSession] = sessionCookie
+
+	assert.NoError(t, strategy.VerifyCSRFToken(fresh, regenerated))
+	assert.ErrorIs(t, strategy.VerifyCSRFToken(fresh, original), ErrCSRFTokenInvalid)
+}
+
+func TestDefaultStrategy_SetCSRFCookieShouldGenerateSecretForSessionWithoutOne(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	concrete := strategy.(*DefaultStrategy)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	userSession.CSRF = nil
+
+	sid := getTestSessionSignature(t, strategy, ctx)
+
+	data, err := concrete.codec.Seal(testDomain, sid, userSession)
+	require.NoError(t, err)
+
+	repository.data[repository.key(sid, concrete.issuer)] = data
+
+	delete(ctx.cookies, testNameCSRF)
+
+	token, err := strategy.CSRFToken(ctx)
+
+	assert.Empty(t, token)
+	assert.ErrorIs(t, err, ErrCSRFTokenInvalid)
+
+	require.NoError(t, strategy.SetCSRFCookie(ctx))
+
+	token = ctx.cookies[testNameCSRF]
+
+	require.NotEmpty(t, token)
+	assert.NoError(t, strategy.VerifyCSRFToken(ctx, token))
 }
 
 func TestDefaultStrategy_DestroyShouldNotErrorForAnonymousRequest(t *testing.T) {
@@ -464,6 +814,7 @@ func TestDefaultStrategy_SaveShouldPropagateGeneratedPublicID(t *testing.T) {
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.Empty(t, userSession.PublicID)
 	require.NoError(t, strategy.Save(ctx, &userSession))
@@ -486,12 +837,13 @@ func TestDefaultStrategy_SaveShouldNotOrphanPublicIDAcrossRegenerate(t *testing.
 	require.NoError(t, strategy.Regenerate(ctx))
 
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
 	assert.Equal(t, pid, userSession.PublicID)
-	assert.Len(t, repository.data, 1)
-	assert.Len(t, repository.publicIDs, 1)
+	assert.Len(t, repository.data, 2)
+	assert.Len(t, repository.publicIDs, 2)
 }
 
 func TestDefaultStrategy_GetShouldNotReadSessionOfAnotherDomain(t *testing.T) {
@@ -506,6 +858,7 @@ func TestDefaultStrategy_GetShouldNotReadSessionOfAnotherDomain(t *testing.T) {
 
 	userSession := first.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, first.Save(ctx, &userSession))
 
@@ -533,6 +886,7 @@ func TestDefaultStrategy_GetShouldRejectSessionSealedForAnotherDomain(t *testing
 
 	userSession := first.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, first.Save(ctx, &userSession))
 
@@ -549,9 +903,10 @@ func TestDefaultStrategy_GetShouldRejectSessionMovedToAnotherRecord(t *testing.T
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
-	require.Len(t, repository.data, 1)
+	require.Len(t, repository.data, 2)
 
 	var data []byte
 
@@ -564,7 +919,7 @@ func TestDefaultStrategy_GetShouldRejectSessionMovedToAnotherRecord(t *testing.T
 
 	require.NoError(t, repository.Save(ctx, codec.Sign([]byte(testDomain)), codec.Sign(id), "a-public-id", testUsername, testExpiration, data))
 
-	ctx.cookies[testName] = encodeCookieID(id)
+	ctx.cookies[testNameSession] = encodeCookieID(id)
 
 	_, err := strategy.Get(ctx)
 
@@ -577,6 +932,7 @@ func TestDefaultStrategy_GetShouldRejectSessionWhenTheBackendReportsAnotherSigna
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
@@ -590,7 +946,7 @@ func TestDefaultStrategy_GetShouldReturnRepositoryErrorWhenTheBackendFails(t *te
 	strategy := newTestStrategyWithRepository(t, &failingRepository{testRepository: newTestRepository()}, nil)
 	ctx := newTestContext()
 
-	ctx.cookies[testName] = newTestCookie("an-identifier-which-cannot-be-retrieved")
+	ctx.cookies[testNameSession] = newTestCookie("an-identifier-which-cannot-be-retrieved")
 
 	_, err := strategy.Get(ctx)
 
@@ -606,6 +962,7 @@ func TestRepositoryShouldReturnASignatureWhichOpensASessionFoundByPublicID(t *te
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
 
@@ -631,9 +988,10 @@ func TestDefaultStrategy_RegenerateShouldResealSessionAgainstTheNewIdentifier(t 
 
 	userSession := strategy.NewDefault()
 	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(time.Now(), false)
 
 	require.NoError(t, strategy.Save(ctx, &userSession))
-	require.Len(t, repository.data, 1)
+	require.Len(t, repository.data, 2)
 
 	var sealed []byte
 
@@ -642,7 +1000,7 @@ func TestDefaultStrategy_RegenerateShouldResealSessionAgainstTheNewIdentifier(t 
 	}
 
 	require.NoError(t, strategy.Regenerate(ctx))
-	require.Len(t, repository.data, 1)
+	require.Len(t, repository.data, 2)
 
 	var resealed []byte
 
@@ -676,25 +1034,31 @@ type testContext struct {
 	context.Context
 
 	cookies map[string]string
-	expires time.Time
+	jar     map[string]*http.Cookie
 	set     int
-	cleared *http.Cookie
+	cleared []*http.Cookie
+	authz   bool
 }
 
 func (c *testContext) GetCookie(name string) string {
 	return c.cookies[name]
 }
 
+func (c *testContext) IsAuthzEndpointRequest() bool {
+	return c.authz
+}
+
 func (c *testContext) SetCookie(cookie *http.Cookie) {
 	c.set++
 	c.cookies[cookie.Name] = cookie.Value
-	c.expires = cookie.Expires
+	c.jar[cookie.Name] = cookie
 }
 
 func (c *testContext) ClearCookie(cookie *http.Cookie) {
-	c.cleared = cookie
+	c.cleared = append(c.cleared, cookie)
 
 	delete(c.cookies, cookie.Name)
+	delete(c.jar, cookie.Name)
 }
 
 type testRepository struct {
@@ -702,6 +1066,7 @@ type testRepository struct {
 	publicIDs   map[string]string
 	usernames   map[string][]string
 	expirations map[string]time.Duration
+	touches     int
 }
 
 func (r *testRepository) key(id, issuer string) string {
@@ -709,12 +1074,30 @@ func (r *testRepository) key(id, issuer string) string {
 }
 
 func (r *testRepository) Get(_ context.Context, issuer, id string) (record Record, err error) {
-	data, ok := r.data[r.key(id, issuer)]
+	key := r.key(id, issuer)
+
+	data, ok := r.data[key]
 	if !ok {
 		return nil, nil
 	}
 
-	return NewRecord(id, data), nil
+	return NewRecordWithTTL(id, data, r.expirations[key]), nil
+}
+
+func (r *testRepository) Touch(_ context.Context, issuer, id, _, _ string, expiration time.Duration) (err error) {
+	key := r.key(id, issuer)
+
+	if _, ok := r.data[key]; !ok {
+		return nil
+	}
+
+	r.touches++
+
+	if expiration > r.expirations[key] {
+		r.expirations[key] = expiration
+	}
+
+	return nil
 }
 
 func (r *testRepository) GetByPublicID(_ context.Context, issuer, pid string) (record Record, err error) {
@@ -750,8 +1133,14 @@ func (r *testRepository) Save(_ context.Context, issuer, id, pid, username strin
 	return nil
 }
 
-func (r *testRepository) SaveData(_ context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
+func (r *testRepository) SaveData(_ context.Context, issuer, id, _, _ string, expiration time.Duration, previous, data []byte) (err error) {
 	key := r.key(id, issuer)
+
+	if previous != nil {
+		if current, ok := r.data[key]; !ok || !bytes.Equal(current, previous) {
+			return ErrSessionSuperseded
+		}
+	}
 
 	r.data[key] = data
 	r.expirations[key] = expiration
@@ -841,7 +1230,7 @@ func newTestStrategyWithRepository(t *testing.T, repository Repository, modify f
 func newTestCodec(t *testing.T) Codec {
 	t.Helper()
 
-	codec, err := NewCodec(testSecret, []byte(testHMACKey), random.NewMathematical())
+	codec, err := NewCodec(testSecret, newTestHMACKeys(), random.NewMathematical())
 	require.NoError(t, err)
 
 	return codec
@@ -858,6 +1247,14 @@ func newTestAnonymousSessionWithState(strategy Strategy) UserSession {
 	return userSession
 }
 
+func newTestHMACKeys() HMACKeys {
+	return HMACKeys{
+		Session:      []byte(testHMACKey),
+		SessionAuthz: []byte(testHMACKeyAuthz),
+		SessionCSRF:  []byte(testHMACKeyCSRF),
+	}
+}
+
 func newTestCookieID(label string) []byte {
 	id := sha256.Sum256([]byte(label))
 
@@ -869,7 +1266,7 @@ func newTestCookie(label string) string {
 }
 
 func newTestContext() *testContext {
-	return &testContext{Context: context.Background(), cookies: map[string]string{}}
+	return &testContext{Context: context.Background(), cookies: map[string]string{}, jar: map[string]*http.Cookie{}}
 }
 
 func newTestRepository() *testRepository {
@@ -884,7 +1281,19 @@ func newTestRepository() *testRepository {
 type observingRepository struct {
 	*testRepository
 
-	reads, changes, deletes int
+	reads, changes, deletes, saves int
+}
+
+func (r *observingRepository) Save(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	r.saves++
+
+	return r.testRepository.Save(ctx, issuer, id, pid, username, expiration, data)
+}
+
+func (r *observingRepository) SaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error) {
+	r.saves++
+
+	return r.testRepository.SaveData(ctx, issuer, id, pid, username, expiration, previous, data)
 }
 
 func (r *observingRepository) Get(ctx context.Context, issuer, id string) (record Record, err error) {
@@ -908,7 +1317,7 @@ func (r *observingRepository) Delete(ctx context.Context, issuer, id, pid, usern
 func assertNewSessionCookie(t *testing.T, ctx *testContext, presented string, existing []byte) {
 	t.Helper()
 
-	cookie := ctx.cookies[testName]
+	cookie := ctx.cookies[testNameSession]
 
 	assert.NotEqual(t, presented, cookie)
 	assert.NotEqual(t, encodeCookieID(existing), cookie)
@@ -937,6 +1346,44 @@ func TestNewDomain(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, newDomain(tc.value, tc.sameSite))
+		})
+	}
+}
+
+func TestDefaultStrategy_GetCookieExpires(t *testing.T) {
+	now := time.Unix(1700000000, 0)
+
+	testCases := []struct {
+		name       string
+		expiration time.Duration
+		rememberMe time.Duration
+		disabled   bool
+		expected   time.Time
+	}{
+		{"ShouldUseTheMinimumLifetime", time.Hour, time.Hour * 24, false, now.Add(sessionCookieLifetimeMinimum)},
+		{"ShouldUseTheMinimumLifetimeWhenRememberMeIsDisabled", time.Hour, time.Hour * 24 * 90, true, now.Add(sessionCookieLifetimeMinimum)},
+		{"ShouldUseALongerRememberMe", time.Hour, time.Hour * 24 * 90, false, now.Add(time.Hour * 24 * 90)},
+		{"ShouldUseALongerExpiration", time.Hour * 24 * 60, time.Hour * 24, false, now.Add(time.Hour * 24 * 60)},
+		{"ShouldIssueABrowserSessionCookieForAnUnlimitedExpiration", 0, time.Hour * 24 * 90, false, expireUnlimited},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := schema.SessionCookie{
+				SessionCookieCommon: schema.SessionCookieCommon{
+					Name:              testName,
+					Expiration:        tc.expiration,
+					RememberMe:        tc.rememberMe,
+					DisableRememberMe: tc.disabled,
+				},
+				Domain: testDomain,
+			}
+
+			strategy, ok := NewStrategy(config, clock.NewFixed(now), newTestCodec(t), newTestRepository()).(*DefaultStrategy)
+
+			require.True(t, ok)
+
+			assert.Equal(t, tc.expected, strategy.getCookieExpires(tc.expiration))
 		})
 	}
 }

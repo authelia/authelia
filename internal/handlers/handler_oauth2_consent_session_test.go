@@ -199,16 +199,16 @@ func TestHandleOAuth2AuthorizationConsentSessionUpdates(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		elapsed   time.Duration
+		username  string
 		errSave   []error
 		handled   bool
 		anonymous bool
 		expected  *regexp.Regexp
 	}{
-		{"ShouldResetInactiveSession", time.Hour, nil, false, true, nil},
-		{"ShouldNotSaveResetInactiveSession", time.Hour, []error{errTestSessionBackend}, false, true, nil},
-		{"ShouldHandleRefreshedSessionSaveError", time.Minute, []error{errTestSessionBackend}, true, false, regexp.MustCompile(`had an error while saving updated session$`)},
-		{"ShouldNotSaveCurrentSession", 0, []error{errTestSessionBackend}, false, false, nil},
+		{"ShouldResetInvalidSession", "harry", nil, false, true, regexp.MustCompile(`could be a sign of a cookie hijack$`)},
+		{"ShouldNotSaveResetInvalidSession", "harry", []error{errTestSessionBackend}, false, true, nil},
+		{"ShouldNotSaveValidSession", testUsername, []error{errTestSessionBackend}, false, false, nil},
+		{"ShouldNotSaveSessionWithoutHeader", "", []error{errTestSessionBackend}, false, false, nil},
 	}
 
 	for _, tc := range testCases {
@@ -245,7 +245,10 @@ func TestHandleOAuth2AuthorizationConsentSessionUpdates(t *testing.T) {
 			userSession := session.NewUserSession(testUsername)
 			userSession.CookieDomain = "example.com"
 			userSession.SetOneFactorPassword(mock.Clock.Now(), false)
-			userSession.LastActivity = mock.Clock.Now().Add(-tc.elapsed).Unix()
+
+			if tc.username != "" {
+				mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, tc.username)
+			}
 
 			repository.errSave = tc.errSave
 

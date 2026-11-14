@@ -23,15 +23,15 @@ type MultiCookieDomainSuite struct {
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainFirstDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(BaseDomain, Example2DotCom, []string{"authelia_session", "language"}, true))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(BaseDomain, Example2DotCom, []string{"__Host-Http-authelia_session", "__Secure-authelia_session_authz", "__Host-authelia_session_csrf", "language"}, true))
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainSecondDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(Example2DotCom, BaseDomain, []string{"example2_session", "language"}, false))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(Example2DotCom, BaseDomain, []string{"__Host-Http-example2_session", "__Secure-example2_session_authz", "__Host-example2_session_csrf", "language"}, false))
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainThirdDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(Example3DotCom, BaseDomain, []string{"authelia_session", "language"}, true))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(Example3DotCom, BaseDomain, []string{"__Host-Http-authelia_session", "__Secure-authelia_session_authz", "__Host-authelia_session_csrf", "language"}, true))
 }
 
 func TestMultiCookieDomainSuite(t *testing.T) {

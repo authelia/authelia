@@ -1528,14 +1528,14 @@ func TestUserSessionElevationPOSTShouldRegenerateSessionForPreventingSessionFixa
 			Return(nil),
 	)
 
-	before := string(mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+	before := string(mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session"))
 
 	require.NotEmpty(t, before)
 
 	UserSessionElevationPOST(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-	assert.NotEqual(t, before, string(mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+	assert.NotEqual(t, before, string(mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")))
 }
 
 func TestUserSessionElevationPUTShouldRegenerateSessionForPreventingSessionFixation(t *testing.T) {
@@ -1585,7 +1585,7 @@ func TestUserSessionElevationPUTShouldRegenerateSessionForPreventingSessionFixat
 
 	mock.Ctx.Request.SetBodyString(`{"otc":"ABC123ABC1"}`)
 
-	before := string(mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+	before := string(mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session"))
 
 	require.NotEmpty(t, before)
 
@@ -1593,7 +1593,7 @@ func TestUserSessionElevationPUTShouldRegenerateSessionForPreventingSessionFixat
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, `{"status":"OK"}`, string(mock.Ctx.Response.Body()))
-	assert.NotEqual(t, before, string(mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+	assert.NotEqual(t, before, string(mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")))
 
 	after, err := mock.Ctx.GetSession()
 

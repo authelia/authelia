@@ -25,7 +25,9 @@ func NewSessionRepository(provider Provider) session.Repository {
 func (p *SQLProvider) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
 	var row sessionRow
 
-	if err = p.db.GetContext(ctx, &row, p.sqlSelectSession, issuer, id, time.Now()); err != nil {
+	now := time.Now()
+
+	if err = p.db.GetContext(ctx, &row, p.sqlSelectSession, issuer, id, now); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -33,7 +35,7 @@ func (p *SQLProvider) SessionGet(ctx context.Context, issuer, id string) (record
 		return nil, fmt.Errorf("error selecting session: %w", err)
 	}
 
-	return session.NewRecord(row.Signature, row.Data), nil
+	return session.NewRecordWithTTL(row.Signature, row.Data, row.ttl(now)), nil
 }
 
 // SessionGetByPublicID returns the session for the given public id and issuer.
@@ -79,13 +81,23 @@ func (p *SQLProvider) SessionSave(ctx context.Context, issuer, id, pid, username
 
 	var affected int64
 
-	// This is not safe if encryption is changed to be deterministic i.e. no AAD due to how MySQL treats the
-	// ON DUPLICATE KEY UPDATE statements.
 	if affected, err = result.RowsAffected(); err != nil {
 		return fmt.Errorf("error determining whether the session was saved: %w", err)
 	}
 
-	if affected == 0 {
+	if affected != 0 {
+		return nil
+	}
+
+	// MySQL reports a row which an ON DUPLICATE KEY UPDATE statement left unchanged as unaffected, which is the case
+	// for both a destroyed session and a session saved with identical values, so only a destroyed session is superseded.
+	var live int
+
+	if err = p.db.GetContext(ctx, &live, p.sqlSelectSessionLive, issuer, id); err != nil {
+		return fmt.Errorf("error determining whether the session was saved: %w", err)
+	}
+
+	if live == 0 {
 		return session.ErrSessionSuperseded
 	}
 
@@ -103,10 +115,52 @@ func (p *SQLProvider) sessionPublicIDMoved(ctx context.Context, issuer, id, pid 
 }
 
 // SessionSaveData updates the data and expiration of an existing session. The public id and username are unused as
-// they are columns of the session row itself rather than separate records with their own expiry.
-func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionData, p.sessionExpires(expiration), data, issuer, id); err != nil {
+// they are columns of the session row itself rather than separate records with their own expiry. When previous isn't
+// nil the session is only updated if its data is still exactly previous, and otherwise session.ErrSessionSuperseded is
+// returned. The data written always differs from previous as sealing it uses a random nonce, so the row is reported as
+// affected by every backend when the update applies.
+func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, previous, data []byte) (err error) {
+	if previous == nil {
+		if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionData, p.sessionExpires(expiration), data, issuer, id); err != nil {
+			return fmt.Errorf("error updating session data: %w", err)
+		}
+
+		return nil
+	}
+
+	var (
+		result   sql.Result
+		affected int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlUpdateSessionDataIfUnchanged, p.sessionExpires(expiration), data, issuer, id, previous); err != nil {
 		return fmt.Errorf("error updating session data: %w", err)
+	}
+
+	if affected, err = result.RowsAffected(); err != nil {
+		return fmt.Errorf("error updating session data: %w", err)
+	}
+
+	if affected == 0 {
+		return session.ErrSessionSuperseded
+	}
+
+	return nil
+}
+
+// SessionTouch extends the expiration of an existing session which hasn't expired or been destroyed. The public id and
+// username are unused as they are columns of the session row itself. The expiration is only ever extended, so a touch
+// which raced a save which set a later expiration leaves it as it is.
+func (p *SQLProvider) SessionTouch(ctx context.Context, issuer, id, _, _ string, expiration time.Duration) (err error) {
+	if expiration <= 0 {
+		return nil
+	}
+
+	now := time.Now()
+	expires := now.Add(expiration)
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionExpiration, expires, issuer, id, now, expires); err != nil {
+		return fmt.Errorf("error updating session expiration: %w", err)
 	}
 
 	return nil

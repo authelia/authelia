@@ -445,7 +445,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(&us))
 
-				fixated = string(mock.Ctx.Request.Header.Cookie("authelia_session"))
+				fixated = string(mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session"))
 
 				require.NotEmpty(t, fixated)
 
@@ -518,7 +518,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				assert.Nil(t, us.WebAuthn)
 				assert.Equal(t, testUsername, us.Username)
 
-				cookie := string(mock.Ctx.Request.Header.Cookie("authelia_session"))
+				cookie := string(mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session"))
 
 				assert.NotEmpty(t, cookie)
 				assert.NotEqual(t, fixated, cookie)

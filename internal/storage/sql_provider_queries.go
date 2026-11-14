@@ -397,7 +397,7 @@ const (
 			WHERE LENGTH(%[1]s.data) > 0;`
 
 	queryFmtSelectSession = `
-		SELECT signature, data
+		SELECT signature, expiration, data
 		FROM %s
 		WHERE issuer = ? AND signature = ? AND expiration > ? AND LENGTH(data) > 0;`
 
@@ -405,6 +405,11 @@ const (
 		SELECT signature, data
 		FROM %s
 		WHERE issuer = ? AND public_id = ? AND expiration > ? AND LENGTH(data) > 0;`
+
+	queryFmtSelectSessionLive = `
+		SELECT COUNT(*)
+		FROM %s
+		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
 
 	queryFmtSelectSessionSignatureByPublicID = `
 		SELECT signature
@@ -420,6 +425,16 @@ const (
 		UPDATE %s
 		SET expiration = ?, data = ?
 		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
+
+	queryFmtUpdateSessionDataIfUnchanged = `
+		UPDATE %s
+		SET expiration = ?, data = ?
+		WHERE issuer = ? AND signature = ? AND data = ? AND LENGTH(data) > 0;`
+
+	queryFmtUpdateSessionExpiration = `
+		UPDATE %s
+		SET expiration = ?
+		WHERE issuer = ? AND signature = ? AND expiration > ? AND expiration < ? AND LENGTH(data) > 0;`
 
 	queryFmtUpdateSessionSignature = `
 		UPDATE %s
