@@ -86,6 +86,8 @@ const (
 
 const (
 	errFmtDefinitionsUserAttributesReservedOrDefined = "definitions: user_attributes: %s: attribute name '%s' is either reserved or already defined in the authentication backend"
+	errFmtDefinitionsURIParsersName                  = "definitions: uri_parsers: %s: option '%s' must only include the values %s but has '%s'"
+	errFmtDefinitionsURIParsersConflict              = "definitions: uri_parsers: %s: the value '%s' can't be in both the 'allow' and 'reject' options"
 )
 
 // Authentication Backend Error constants.
@@ -530,6 +532,7 @@ const (
 	errFmtServerEndpointsRateLimitsBucketPeriodTooLow    = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
 	errFmtServerEndpointsRateLimitsBucketRequestsZero    = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
 	errFmtServerEndpointsRateLimitsIPv6Mask              = "server: endpoints: rate_limits: %s: option 'ipv6_mask' has a value of '%d' but it must be between %d and %d"
+	errFmtServerEndpointsAuthzURIParser                  = "server: endpoints: authz: %s: option 'uri_parser' must be the name of a uri parser definition but it's configured as '%s'"
 	errFmtServerEndpointsAuthzInvalidName                = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"

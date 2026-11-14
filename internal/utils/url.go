@@ -11,34 +11,27 @@ import (
 	"strings"
 )
 
-// URLPathFullClean returns a URL path with the query parameters appended (full path) with the path portion parsed
-// through [path.Clean] given a *[url.URL].
-func URLPathFullClean(u *url.URL) (output string) {
-	lengthPath := len(u.Path)
-	lengthQuery := len(u.RawQuery)
-	appendForwardSlash := lengthPath > 1 && u.Path[lengthPath-1] == '/'
+// URIAccessPath returns a URL path with the query parameters appended (full path) with the path portion parsed
+// through [path.Clean] after dot segments are removed per RFC 3986 section 5.2.4 given a *[url.URL]. An empty path is
+// treated as '/' per RFC 3986 section 6.2.3 and RFC 9110 section 4.2.3.
+func URIAccessPath(u *url.URL) (output string) {
+	p := u.Path
 
-	switch {
-	case lengthPath == 1 && lengthQuery == 0:
-		return u.Path
-	case lengthPath == 1:
-		return path.Clean(u.Path) + "?" + u.RawQuery
-	case lengthQuery != 0 && appendForwardSlash:
-		return path.Clean(u.Path) + "/?" + u.RawQuery
-	case lengthQuery != 0:
-		return path.Clean(u.Path) + "?" + u.RawQuery
-	case appendForwardSlash:
-		return path.Clean(u.Path) + "/"
-	default:
-		return path.Clean(u.Path)
+	if p == "" {
+		p = "/"
 	}
-}
 
-// IsURISafeRedirection returns true if the URI passes the IsURISecure and HasURIDomainSuffix, i.e. if the scheme is
-// secure and the given URI has a hostname that is either exactly equal to the given domain or if it has a suffix of the
-// domain prefixed with a period.
-func IsURISafeRedirection(uri *url.URL, domain string) bool {
-	return IsURISecure(uri) && HasURIDomainSuffix(uri, domain)
+	output = path.Clean(urlRemoveDotSegments(p))
+
+	if output != "/" && len(p) > 1 && p[len(p)-1] == '/' {
+		output += "/"
+	}
+
+	if len(u.RawQuery) != 0 {
+		output += "?" + u.RawQuery
+	}
+
+	return output
 }
 
 // IsURISecure returns true if the URI has a secure schemes (https or wss).

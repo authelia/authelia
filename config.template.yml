@@ -143,17 +143,21 @@
       # forward-auth:
         # implementation: 'ForwardAuth'
         # headers: ~
+        # uri_parser: 'default'
         # authn_strategies: []
       # ext-authz:
         # implementation: 'ExtAuthz'
         # headers: ~
+        # uri_parser: 'default'
         # authn_strategies: []
       # auth-request:
         # implementation: 'AuthRequest'
         # headers: ~
+        # uri_parser: 'default'
         # authn_strategies: []
       # legacy:
         # implementation: 'Legacy'
+        # uri_parser: 'default'
         # authn_strategies: []
 
 ##
@@ -459,6 +463,16 @@ identity_validation:
     # definition_name:
       ## The common expression language expression for this definition.
       # expression: ''
+
+  ## The URI parser definitions used by the authz endpoints. The 'default' definition always exists and is used by any
+  ## authz endpoint which doesn't configure a URI parser.
+  # uri_parsers:
+    ## The name of the definition.
+    # default:
+      ## The URI ambiguity classes to allow which are otherwise rejected by default.
+      # allow: []
+      ## The URI ambiguity classes to reject which are otherwise allowed by default.
+      # reject: []
 
   ## The network definitions.
   # network:

@@ -48,6 +48,7 @@ server:
               - 'Basic'
             scheme_basic_cache_lifespan: 0
           - name: 'CookieSession'
+        uri_parser: 'default'
       ext-authz:
         implementation: 'ExtAuthz'
         headers:
@@ -163,3 +164,65 @@ with the `legacy` endpoint which only uses `Basic`.
 The lifespan to cache username and password combinations when using the `Basic` scheme. This option enables the use
 of the caching which is completely disabled by default. This option must only be used when the `Basic` scheme is
 configured, and like all new options may not be used with the `Legacy` implementation.
+
+### uri_parser
+
+{{< confkey type="string" default="default" required="no" >}}
+
+The name of the [URI Parser Definition](../definitions/uri-parsers.md) used to parse the request URI of this endpoint. A
+URI containing a pattern which is ambiguous, meaning different systems may interpret it differently, is rejected by
+default. This option is available for all implementations including `Legacy`.
+
+A rejected request results in a `400 Bad Request` response for the `ForwardAuth`, `AuthRequest`, and `ExtAuthz`
+implementations, and a `401 Unauthorized` response for the `Legacy` implementation, and the log entry states which
+ambiguity classes matched.
+
+```yaml {title=configuration.yml}
+definitions:
+  uri_parsers:
+    legacy_application:
+      allow: ['path_parameter']
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: 'ForwardAuth'
+        uri_parser: 'legacy_application'
+```
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The URI parser definitions apply to the authz endpoints and the `authelia access-control check-policy` CLI command, which
+uses the `default` definition unless the `--uri-parser` flag names another one. The post-login redirect handling allows
+every ambiguity class as the authz endpoint applies the configured rules when the browser follows the redirect.
+{{< /callout >}}
+
+#### Security Hardening
+
+The inclusion of this customizable URI parser system introduced intentional defaults to prevent likely ambiguity between
+Authelia and a proxy or application which does not parse URI's per the HTTP standard. This may break some setups which
+is why we've made them customizable.
+
+Generally speaking this should not affect any users, but if it does it's likely it will only be a single application. As
+such we recommend configuring a separate authz endpoint for those applications.
+
+Previously these requests were normalized and evaluated against the access control rules, and they now fail with the
+response described above. Requests which previously relied on, for example, `/foo/..%2fbar` being normalized must either
+be fixed or the relevant class added to the `allow` option of the
+[URI Parser Definition](../definitions/uri-parsers.md#allow) used by the endpoint.
+
+A request URI with an empty path, such as `https://app.example.com` or `https://app.example.com?x=1`, is now evaluated
+against the access control rules as the path `/` as it is the same resource per RFC 3986 and RFC 9110. Previously the
+path was evaluated as `.`, so rules such as `^/$` didn't match these requests.
+
+The following ambiguity classes are rejected by default, and every other class is allowed by default:
+
+- `user_info`
+- `control_character`
+- `fragment`
+- `path_encoded_dot_segment`
+- `path_parameter_dot_segment`
+- `path_double_encoded_dot_segment`
+- `path_empty_dot_segment`
+- `path_backslash`
+- `path_invalid_utf8`
+- `path_parameter`

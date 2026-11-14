@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -24,7 +25,16 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+var redirectTargetURIParser = utils.NewURIParser(utils.WithURLAllowAmbiguity(utils.URLAmbiguityAll))
+
+func parseRedirectTarget(method, targetURI string) (object *authorization.Object, err error) {
+	target, _, _ := strings.Cut(targetURI, "#")
+
+	return authorization.NewObjectMethodURL(redirectTargetURIParser, []byte(method), []byte(target))
+}
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) {
@@ -46,8 +56,8 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 
 	var object *authorization.Object
 
-	if object, err = authorization.NewObjectMethodURL([]byte(requestMethod), []byte(targetURI)); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred parsing the target URL '%s'", targetURI)
+	if object, err = parseRedirectTarget(requestMethod, targetURI); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred parsing the target URL '%s'", redactedURIString(targetURI))
 		ctx.SetJSONError(messageAuthenticationFailed)
 
 		return
@@ -61,17 +71,17 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		},
 		*object)
 
-	ctx.GetLogger().Debugf("Required level for the URL %s is %s", targetURI, requiredLevel)
+	ctx.GetLogger().Debugf("Required level for the URL %s is %s", object, requiredLevel)
 
 	if requiredLevel == authorization.TwoFactor {
-		ctx.GetLogger().Warnf("%s requires 2FA, cannot be redirected yet", object.URL)
+		ctx.GetLogger().Warnf("%s requires 2FA, cannot be redirected yet", object)
 		ctx.ReplyOK()
 
 		return
 	}
 
 	if !ctx.IsSafeRedirectionTargetURI(object.URL) {
-		ctx.GetLogger().Debugf("Redirection URL %s is not safe", object.URL)
+		ctx.GetLogger().Debugf("Redirection URL %s is not safe", object)
 
 		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
 
@@ -88,7 +98,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	ctx.GetLogger().Debugf("Redirection URL %s is safe", object.URL)
+	ctx.GetLogger().Debugf("Redirection URL %s is safe", object)
 
 	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
 		ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)
@@ -115,22 +125,17 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		return
 	}
 
-	var (
-		parsedURI *url.URL
-		safe      bool
-	)
+	var object *authorization.Object
 
-	if parsedURI, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred determining if the URI '%s' is safe to redirect to as it could not be parsed", targetURI)
+	if object, err = parseRedirectTarget(fasthttp.MethodGet, targetURI); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred determining if the URI '%s' is safe to redirect to as it could not be parsed", redactedURIString(targetURI))
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
 	}
 
-	safe = ctx.IsSafeRedirectionTargetURI(parsedURI)
-
-	if safe {
-		ctx.GetLogger().Debugf("Redirection URL %s is safe", targetURI)
+	if ctx.IsSafeRedirectionTargetURI(object.URL) {
+		ctx.GetLogger().Debugf("Redirection URL %s is safe", object)
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
 			ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)

@@ -110,12 +110,18 @@ func isAuthzResult(level authentication.Level, required authorization.Level, rul
 	}
 }
 
-func parseAuthzPortalURL(rawURL []byte) (portalURL *url.URL, err error) {
+func parseAuthzPortalURL(rawURL []byte, parser *utils.URIParser) (portalURL *url.URL, err error) {
 	if rawURL == nil {
 		return nil, nil
 	}
 
-	return url.ParseRequestURI(string(rawURL))
+	var parsed *utils.ParsedURI
+
+	if parsed, err = parser.Parse(string(rawURL)); err != nil {
+		return nil, err
+	}
+
+	return parsed.URL, nil
 }
 
 func getAuthzRedirectStatusCode(ctx AuthzContext, method string) (statusCode int) {
@@ -132,7 +138,7 @@ func getAuthzRedirectStatusCode(ctx AuthzContext, method string) (statusCode int
 }
 
 func doAuthzRedirect(ctx AuthzContext, authn *Authn, redirectionURL *url.URL, statusCode int) {
-	ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+	ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redactedURL(redirectionURL))
 
 	switch authn.Object.Method {
 	case fasthttp.MethodHead:
@@ -144,9 +150,49 @@ func doAuthzRedirect(ctx AuthzContext, authn *Authn, redirectionURL *url.URL, st
 
 func getSafeAutheliaURL(autheliaURL *url.URL, domain string) (*url.URL, error) {
 	switch {
-	case utils.HasURIDomainSuffix(autheliaURL, domain):
-		return autheliaURL, nil
+	case !utils.HasURIDomainSuffix(autheliaURL, domain):
+		return nil, fmt.Errorf("authelia url '%s' is not valid for detected domain '%s' as the url does not have the domain as a suffix", autheliaURL.Redacted(), domain)
+	case autheliaURL.Scheme != "https" || autheliaURL.User != nil:
+		return nil, fmt.Errorf("authelia url '%s' is not valid as the url has one or more invalid parts", autheliaURL.Redacted())
 	default:
-		return nil, fmt.Errorf("authelia url '%s' is not valid for detected domain '%s' as the url does not have the domain as a suffix", autheliaURL.String(), domain)
+		return autheliaURL, nil
 	}
+}
+
+func redactedURIString(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return utils.URIRemoveUserInfo(raw)
+	}
+
+	return redactedURL(u)
+}
+
+func redactedURL(u *url.URL) string {
+	if u == nil {
+		return ""
+	}
+
+	c := *u
+
+	if c.RawQuery != "" {
+		qry := c.Query()
+
+		for key, values := range qry {
+			for i, value := range values {
+				switch parsed, err := url.Parse(value); {
+				case err != nil:
+					values[i] = utils.URIRemoveUserInfo(value)
+				case parsed.User != nil:
+					values[i] = parsed.Redacted()
+				}
+			}
+
+			qry[key] = values
+		}
+
+		c.RawQuery = qry.Encode()
+	}
+
+	return c.Redacted()
 }

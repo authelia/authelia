@@ -1070,6 +1070,18 @@ func TestAutheliaCtx_GetSessionProviderByTargetURI(t *testing.T) {
 			"unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://app.notexample.com'",
 		},
 		{
+			"ShouldRedactPasswordForUnmatchedDomain",
+			"https://user:secret@app.notexample.com",
+			&schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain: "example.com",
+					},
+				},
+			},
+			"unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://user:xxxxx@app.notexample.com'",
+		},
+		{
 			"ShouldHandleUnconfiguredProvider",
 			"https://app.example.com",
 			nil,
@@ -1374,6 +1386,17 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 			true,
 		},
 		{
+			"ShouldReturnDomainSubdomainWithPort",
+			&url.URL{Scheme: "https", Host: "auth.example.com:8443"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"example.com",
+			true,
+		},
+		{
 			"ShouldReturnDomainIPv4",
 			&url.URL{Scheme: "https", Host: "192.168.1.1:9091"},
 			[]schema.SessionCookie{
@@ -1382,6 +1405,17 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 				},
 			},
 			"192.168.1.1",
+			true,
+		},
+		{
+			"ShouldReturnDomainIPv6",
+			&url.URL{Scheme: "https", Host: "[2001:db8::1]:8443"},
+			[]schema.SessionCookie{
+				{
+					Domain: "2001:db8::1",
+				},
+			},
+			"2001:db8::1",
 			true,
 		},
 		{
@@ -1398,6 +1432,39 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 		{
 			"ShouldReturnEmptyInvalidHostnameEmptyLabel",
 			&url.URL{Scheme: "https", Host: "auth..example.com"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"",
+			false,
+		},
+		{
+			"ShouldReturnEmptyInvalidHostnameLeadingPeriod",
+			&url.URL{Scheme: "https", Host: ".example.com"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"",
+			false,
+		},
+		{
+			"ShouldReturnEmptyInvalidHostnameFullwidthSolidus",
+			&url.URL{Scheme: "https", Host: "evil.com／.example.com"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"",
+			false,
+		},
+		{
+			"ShouldReturnEmptyInvalidHostnameAccountOfSymbol",
+			&url.URL{Scheme: "https", Host: "evil.com℀.example.com"},
 			[]schema.SessionCookie{
 				{
 					Domain: "example.com",

@@ -55,13 +55,14 @@ authelia access-control check-policy --config config.yml --url https://example.c
 ### Options
 
 ```
-      --groups strings    the groups of the subject
-  -h, --help              help for check-policy
-      --ip string         the ip of the subject
-      --method string     the HTTP method of the object (default "GET")
-      --url string        the url of the object
-      --username string   the username of the subject
-      --verbose           enables verbose output
+      --groups strings      the groups of the subject
+  -h, --help                help for check-policy
+      --ip string           the ip of the subject
+      --method string       the HTTP method of the object (default "GET")
+      --uri-parser string   the name of the uri parser definition used to parse the url (default "default")
+      --url string          the url of the object
+      --username string     the username of the subject
+      --verbose             enables verbose output
 ```
 
 ### Options inherited from parent commands

@@ -16,7 +16,9 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func newAccessControlCommand(ctx *CmdCtx) (cmd *cobra.Command) {
@@ -56,6 +58,7 @@ func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.Flags().StringSlice("groups", nil, "the groups of the subject")
 	cmd.Flags().String("ip", "", "the ip of the subject")
 	cmd.Flags().Bool("verbose", false, "enables verbose output")
+	cmd.Flags().String("uri-parser", schema.DefinitionURIParserDefault, "the name of the uri parser definition used to parse the url")
 
 	return cmd
 }
@@ -67,15 +70,26 @@ func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err e
 		return err
 	}
 
+	name, err := cmd.Flags().GetString("uri-parser")
+	if err != nil {
+		return err
+	}
+
 	validator.ValidateAccessControl(ctx.config, ctx.cconfig.validator)
+	validator.ValidateDefinitions(ctx.config, ctx.cconfig.validator)
 
 	if ctx.cconfig.validator.HasErrors() {
 		return errors.New("failed to execute command due to errors in the configuration")
 	}
 
+	definition, ok := ctx.config.Definitions.URIParsers[name]
+	if !ok {
+		return fmt.Errorf("failed to execute command: the uri parser definition '%s' doesn't exist", name)
+	}
+
 	authorizer := authorization.NewAuthorizer(ctx.config)
 
-	subject, object, err := getSubjectAndObjectFromFlags(cmd)
+	subject, object, err := getSubjectAndObjectFromFlags(cmd, utils.NewURIParserFromNames(definition.Allow, definition.Reject))
 	if err != nil {
 		return err
 	}
@@ -187,7 +201,7 @@ func hitMissMay(in ...bool) (out string) {
 	}
 }
 
-func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Subject, object authorization.Object, err error) {
+func getSubjectAndObjectFromFlags(cmd *cobra.Command, parser *utils.URIParser) (subject authorization.Subject, object authorization.Object, err error) {
 	requestURL, err := cmd.Flags().GetString("url")
 	if err != nil {
 		return subject, object, err
@@ -217,7 +231,7 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 
 	var requestedObject *authorization.Object
 
-	if requestedObject, err = authorization.NewObjectMethodURL([]byte(method), []byte(requestURL)); err != nil {
+	if requestedObject, err = authorization.NewObjectMethodURL(parser, []byte(method), []byte(requestURL)); err != nil {
 		return subject, object, err
 	}
 

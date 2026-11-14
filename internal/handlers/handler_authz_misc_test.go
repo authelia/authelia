@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"testing"
@@ -15,12 +16,15 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -395,4 +399,95 @@ func TestHandleGetSessionUserDetailsShouldHonorExtendedFlag(t *testing.T) {
 	details, err = handleGetSessionUserDetails(mock.Ctx, testUsername, true)
 	require.NoError(t, err)
 	assert.Equal(t, testUsername, details.GetUsername())
+}
+
+type testBearerIntrospectionProvider struct {
+	client    oidc.Client
+	requester oauthelia2.AccessRequester
+}
+
+func (p *testBearerIntrospectionProvider) GetAudienceStrategy(_ context.Context) oauthelia2.AudienceStrategy {
+	return nil
+}
+
+func (p *testBearerIntrospectionProvider) GetResourceStrategy(_ context.Context) oauthelia2.ResourceStrategy {
+	return nil
+}
+
+func (p *testBearerIntrospectionProvider) GetRegisteredClient(_ context.Context, _ string) (oidc.Client, error) {
+	return p.client, nil
+}
+
+func (p *testBearerIntrospectionProvider) IntrospectToken(_ context.Context, _ string, _ oauthelia2.TokenUse, _ oauthelia2.Session, _ ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error) {
+	return oauthelia2.AccessToken, p.requester, nil
+}
+
+func TestHandleVerifyGETAuthorizationBearerIntrospectionAudience(t *testing.T) {
+	testCases := []struct {
+		name           string
+		url            string
+		strategy       string
+		grantAudience  []string
+		grantResource  []string
+		clientAudience []string
+		clientResource []string
+		expected       string
+	}{
+		{"ShouldAcceptCanonicalTargetWithoutQuery", "https://A.example.com:443/api/?page=2#frag", "", []string{"https://a.example.com/api/"}, nil, []string{"https://a.example.com/api/"}, nil, ""},
+		{"ShouldAcceptCanonicalTargetWithoutUserInfo", "https://user:pass@a.example.com/api/", "", []string{"https://a.example.com/api/"}, nil, []string{"https://a.example.com/api/"}, nil, ""},
+		{"ShouldAcceptResourceSubpathWithPrefixStrategy", "https://a.example.com/api/v1", oidc.StrategyPrefix, nil, []string{"https://a.example.com/api"}, nil, []string{"https://a.example.com/api"}, ""},
+		{"ShouldRejectResourceSubpathByDefault", "https://a.example.com/api/v1", "", nil, []string{"https://a.example.com/api"}, nil, []string{"https://a.example.com/api"}, "the granted audience and resource does not match the request"},
+		{"ShouldRejectGrantMismatchWithClientMatch", "https://a.example.com/api/a%2Fb", "", []string{"https://a.example.com/api/a/b"}, nil, []string{"https://a.example.com/api/a%2Fb"}, nil, "the granted audience and resource does not match the request"},
+		{"ShouldRejectClientMismatchWithGrantMatch", "https://a.example.com/api/a%2Fb", "", []string{"https://a.example.com/api/a%2Fb"}, nil, []string{"https://a.example.com/api/a/b"}, nil, "is registered but does not permit an audience for the url"},
+		{"ShouldRejectClientResourceMismatchWithGrantMatch", "https://a.example.com/api/v1", oidc.StrategyPrefix, nil, []string{"https://a.example.com/api"}, nil, []string{"https://a.example.com/other"}, "is registered but does not permit an audience for the url"},
+		{"ShouldAcceptResourceForRFC3986Path", "https://a.example.com/public//../admin", oidc.StrategyPrefix, nil, []string{"https://a.example.com/public"}, nil, []string{"https://a.example.com/"}, ""},
+		{"ShouldRejectResourceForMergedPath", "https://a.example.com/public//../admin", oidc.StrategyPrefix, nil, []string{"https://a.example.com/admin"}, nil, []string{"https://a.example.com/"}, "the granted audience and resource does not match the request"},
+		{"ShouldAcceptAudienceForRFC3986Path", "https://a.example.com/public//../admin", "", []string{"https://a.example.com/public/admin"}, nil, []string{"https://a.example.com/public/admin"}, nil, ""},
+		{"ShouldRejectClientResourceForMergedPath", "https://a.example.com/public//../admin", oidc.StrategyPrefix, nil, []string{"https://a.example.com/"}, nil, []string{"https://a.example.com/admin"}, "does not permit an audience for the url"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			target, err := url.ParseRequestURI(tc.url)
+			require.NoError(t, err)
+
+			object := authorization.NewObject(target, "GET")
+
+			session := oidc.NewSession()
+			session.ClientID = "client"
+			session.ClientCredentials = true
+
+			requester := &oauthelia2.AccessRequest{
+				Request: oauthelia2.Request{
+					GrantedAudience: tc.grantAudience,
+					GrantedResource: tc.grantResource,
+					Session:         session,
+				},
+			}
+
+			provider := &testBearerIntrospectionProvider{
+				client: &oidc.RegisteredClient{
+					ID:               "client",
+					Scopes:           []string{oidc.ScopeAutheliaBearerAuthz},
+					Audience:         tc.clientAudience,
+					Resource:         tc.clientResource,
+					ResourceStrategy: oidc.NewResourceStrategy(tc.strategy),
+				},
+				requester: requester,
+			}
+
+			authn := &Authn{Header: HeaderAuthorization{Authorization: &model.Authorization{}}}
+
+			require.NoError(t, authn.Header.Authorization.ParseBearer("abc123"))
+
+			_, clientID, _, _, err := handleVerifyGETAuthorizationBearerIntrospection(context.Background(), provider, authn, &object)
+
+			if tc.expected == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, "client", clientID)
+			} else {
+				assert.ErrorContains(t, err, tc.expected)
+			}
+		})
+	}
 }

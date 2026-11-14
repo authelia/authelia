@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestParseAuthzPortalURL(t *testing.T) {
@@ -56,6 +57,11 @@ func TestParseAuthzPortalURL(t *testing.T) {
 			Expected: "https://auth.example.com/?rd=https%3A%2F%2Fapp.example.com",
 		},
 		{
+			Name:  "ShouldReturnErrorForUserInfo",
+			Have:  []byte("https://u@auth.example.com/"),
+			Error: "url is ambiguous: url contains userinfo",
+		},
+		{
 			Name:     "ShouldParseAbsolutePath",
 			Have:     []byte("/path"),
 			Expected: "/path",
@@ -74,7 +80,7 @@ func TestParseAuthzPortalURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual, err := parseAuthzPortalURL(tc.Have)
+			actual, err := parseAuthzPortalURL(tc.Have, utils.DefaultURIParser())
 
 			switch {
 			case tc.Error != "":
@@ -393,10 +399,58 @@ func TestGetSafeAutheliaURL(t *testing.T) {
 			Expected: "https://auth.example.com:9091/",
 		},
 		{
-			Name:     "ShouldAllowInsecureScheme",
-			Have:     "http://auth.example.com",
+			Name:     "ShouldAllowUppercaseScheme",
+			Have:     "HTTPS://auth.example.com",
 			Domain:   "example.com",
-			Expected: "http://auth.example.com",
+			Expected: "https://auth.example.com",
+		},
+		{
+			Name:   "ShouldNotAllowSecureWebSocketScheme",
+			Have:   "wss://auth.example.com",
+			Domain: "example.com",
+			Error:  "authelia url 'wss://auth.example.com' is not valid as the url has one or more invalid parts",
+		},
+		{
+			Name:   "ShouldNotAllowUsername",
+			Have:   "https://user@auth.example.com",
+			Domain: "example.com",
+			Error:  "authelia url 'https://user@auth.example.com' is not valid as the url has one or more invalid parts",
+		},
+		{ //nolint:gosec // Test Credentials.
+			Name:   "ShouldNotAllowUsernameAndPasswordAndShouldRedactPassword",
+			Have:   "https://user:secret@auth.example.com",
+			Domain: "example.com",
+			Error:  "authelia url 'https://user:xxxxx@auth.example.com' is not valid as the url has one or more invalid parts",
+		},
+		{
+			Name:   "ShouldNotAllowEmptyUserinfo",
+			Have:   "https://@auth.example.com",
+			Domain: "example.com",
+			Error:  "authelia url 'https://@auth.example.com' is not valid as the url has one or more invalid parts",
+		},
+		{
+			Name:   "ShouldNotAllowInsecureScheme",
+			Have:   "http://auth.example.com",
+			Domain: "example.com",
+			Error:  "authelia url 'http://auth.example.com' is not valid as the url has one or more invalid parts",
+		},
+		{
+			Name:   "ShouldNotAllowInsecureWebSocketScheme",
+			Have:   "ws://auth.example.com",
+			Domain: "example.com",
+			Error:  "authelia url 'ws://auth.example.com' is not valid as the url has one or more invalid parts",
+		},
+		{
+			Name:   "ShouldReportDomainMismatchBeforeInvalidParts",
+			Have:   "http://user@auth.example.org",
+			Domain: "example.com",
+			Error:  "authelia url 'http://user@auth.example.org' is not valid for detected domain 'example.com' as the url does not have the domain as a suffix",
+		},
+		{
+			Name:   "ShouldNotAllowEmptyScheme",
+			Have:   "//auth.example.com",
+			Domain: "example.com",
+			Error:  "authelia url '//auth.example.com' is not valid as the url has one or more invalid parts",
 		},
 		{
 			Name:   "ShouldNotAllowDifferentDomain",
@@ -599,4 +653,38 @@ func TestAuthzHeadersRequireExtendedUserDetails(t *testing.T) {
 			assert.Equal(t, tc.Expected, authzHeadersRequireExtendedUserDetails(tc.Have))
 		})
 	}
+}
+
+func TestRedactedURL(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *url.URL
+		expected string
+	}{
+		{"ShouldReturnEmptyForNil", nil, ""},
+		{"ShouldNotChangeWithoutCredentials", &url.URL{Scheme: "https", Host: "e.com", Path: "/a", RawQuery: "x=1"}, "https://e.com/a?x=1"},
+		{"ShouldRedactUserInfo", &url.URL{Scheme: "https", User: url.UserPassword("u", "pw"), Host: "e.com"}, "https://u:xxxxx@e.com"},
+		{"ShouldRedactQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "rd=https%3A%2F%2Fu%3Apw%40a.com%2F"}, "https://e.com?rd=https%3A%2F%2Fu%3Axxxxx%40a.com%2F"},
+		{"ShouldRedactEachQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "a=https%3A%2F%2Fu%3Apw%40a.com&a=https%3A%2F%2Fv%3Apw%40b.com"}, "https://e.com?a=https%3A%2F%2Fu%3Axxxxx%40a.com&a=https%3A%2F%2Fv%3Axxxxx%40b.com"},
+		{"ShouldRemoveUserInfoFromUnparsableQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "rd=https%3A%2F%2Fu%3Apw%40a.com%2F%25zz"}, "https://e.com?rd=https%3A%2F%2Fa.com%2F%25zz"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, redactedURL(tc.have))
+		})
+	}
+}
+
+func TestRedactedURLDoesNotMutateInput(t *testing.T) {
+	have := &url.URL{Scheme: "https", User: url.UserPassword("u", "pw"), Host: "e.com", RawQuery: "rd=https%3A%2F%2Fu%3Apw%40a.com"}
+
+	redactedURL(have)
+
+	assert.Equal(t, "rd=https%3A%2F%2Fu%3Apw%40a.com", have.RawQuery)
+
+	password, ok := have.User.Password()
+
+	assert.True(t, ok)
+	assert.Equal(t, "pw", password)
 }
