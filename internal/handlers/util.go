@@ -37,7 +37,7 @@ const (
 
 	eventEmailReasonPasswordPolicy   = "was unsuccessful because the new password does not meet the password policy."
 	eventEmailReasonPasswordBackend  = "was unsuccessful because the new password does not meet the requirements of the authentication backend."
-	eventEmailReasonPasswordReuse    = "was unsuccessful because the new password must be different to the password currently set on your account."
+	eventEmailReasonPasswordReuse    = "was unsuccessful because the new password must be different to the password currently set on your account and any previously used passwords."
 	eventEmailReasonPasswordTooYoung = "was unsuccessful because your password was changed too recently to be changed again."
 
 	eventLogCategoryOneTimePassword    = "One-Time Password"
