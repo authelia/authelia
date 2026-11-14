@@ -141,3 +141,18 @@ it("logs a rejected deletion", async () => {
 
     expect(console.error).toHaveBeenCalled();
 });
+
+it("shows error notification when deletion fails with reauthentication required", async () => {
+    const { deleteUserWebAuthnCredential } = await import("@services/WebAuthn");
+    vi.mocked(deleteUserWebAuthnCredential).mockResolvedValue({
+        data: { elevation: false, reauthentication: true, status: "KO" },
+    } as any);
+
+    render(<WebAuthnCredentialDeleteDialog open={true} credential={credential} handleClose={vi.fn()} />);
+
+    await act(async () => {
+        fireEvent.click(screen.getByText("Remove"));
+    });
+
+    expect(mockCreateError).toHaveBeenCalledWith("You must reauthenticate to {{action}} a {{item}}");
+});

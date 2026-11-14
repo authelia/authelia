@@ -37,6 +37,8 @@ type UserSession struct {
 	FirstFactorAuthnTimestamp  int64 `msg:"ffa,omitempty"`
 	SecondFactorAuthnTimestamp int64 `msg:"mfa,omitempty"`
 
+	SecondFactorPossessionAuthnTimestamp int64 `msg:"mfap,omitempty"`
+
 	AuthenticationMethodRefs authorization.AuthenticationMethodsReferences `msg:"amr"`
 
 	// WebAuthn holds the session registration data for this session.
