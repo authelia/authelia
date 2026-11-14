@@ -8,6 +8,6 @@ overrides:
   fast-uri: 4.2.3
   glob: 14.0.6
   minimatch: 11.0.8
-  postcss: 8.5.32
+  postcss: 8.5.33
   source-map-js: 1.2.2
   zod: 4.6.7
