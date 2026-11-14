@@ -71,10 +71,10 @@ HMAC-keyed feature stop validating until you either:
 
 ### Pepper rotation
 
-`authelia storage encryption rotate-hmac-key --name rc` rotates the HMAC pepper for recovery codes. The rotation
+`authelia storage encryption rotate hmac rc` rotates the HMAC pepper for recovery codes. The rotation
 truncates the `recovery_codes` table because the existing signatures cannot be regenerated without the plaintext
-codes. All users will need to regenerate their recovery codes from the Settings page after rotation. Use this command
-sparingly and communicate to your users in advance.
+codes. All instances will need a restart and all users will need to regenerate their recovery codes from the Settings
+page after rotation. Use this command sparingly and communicate to your users in advance.
 
 ### Manual administration
 

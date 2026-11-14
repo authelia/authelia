@@ -726,6 +726,20 @@ func (mr *MockStorageMockRecorder) LoadRecoveryCode(ctx, username, raw any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadRecoveryCode", reflect.TypeOf((*MockStorage)(nil).LoadRecoveryCode), ctx, username, raw)
 }
 
+// LoadRecoveryCodeHMACKey mocks base method.
+func (m *MockStorage) LoadRecoveryCodeHMACKey(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadRecoveryCodeHMACKey", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// LoadRecoveryCodeHMACKey indicates an expected call of LoadRecoveryCodeHMACKey.
+func (mr *MockStorageMockRecorder) LoadRecoveryCodeHMACKey(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadRecoveryCodeHMACKey", reflect.TypeOf((*MockStorage)(nil).LoadRecoveryCodeHMACKey), ctx)
+}
+
 // LoadRecoveryCodesByUsername mocks base method.
 func (m *MockStorage) LoadRecoveryCodesByUsername(ctx context.Context, username string) ([]model.RecoveryCode, error) {
 	m.ctrl.T.Helper()

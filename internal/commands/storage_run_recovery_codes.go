@@ -151,6 +151,10 @@ func (ctx *CmdCtx) StorageUserRecoveryCodesGenerateRunE(cmd *cobra.Command, args
 		return storageWrapCheckSchemaErr(err)
 	}
 
+	if err = ctx.providers.StorageProvider.LoadRecoveryCodeHMACKey(ctx); err != nil {
+		return err
+	}
+
 	user := args[0]
 
 	mc := cmdRecoveryCodeContext{Context: ctx, clk: ctx.GetClock(), rnd: ctx.GetRandom()}

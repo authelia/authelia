@@ -199,6 +199,11 @@ type Provider interface {
 		Implementation for User Recovery Codes.
 	*/
 
+	// LoadRecoveryCodeHMACKey loads the persisted recovery code HMAC key into the storage provider, generating and
+	// persisting it when it does not exist. This is performed by StartupCheck and must be called by consumers which
+	// do not perform the StartupCheck before saving or loading recovery codes.
+	LoadRecoveryCodeHMACKey(ctx context.Context) (err error)
+
 	// SaveRecoveryCode saves a recovery code to the storage provider after computing its HMAC signature from the
 	// transient plaintext on the model. The plaintext is never persisted.
 	SaveRecoveryCode(ctx context.Context, code *model.RecoveryCode) (err error)

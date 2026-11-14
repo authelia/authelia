@@ -20,6 +20,16 @@ func (p *SQLProvider) getHMACRecoveryCode(ctx context.Context) (key []byte, err 
 	return p.getHMACKey(ctx, "rc", sha256.BlockSize)
 }
 
+// LoadRecoveryCodeHMACKey loads the persisted recovery code HMAC key into the storage provider, generating and
+// persisting it when it does not exist.
+func (p *SQLProvider) LoadRecoveryCodeHMACKey(ctx context.Context) (err error) {
+	if p.keys.recoveryCodeHMAC, err = p.getHMACRecoveryCode(ctx); err != nil {
+		return fmt.Errorf("failed to initialize the hmac recovery code signature key: %w", err)
+	}
+
+	return nil
+}
+
 func (p *SQLProvider) recoveryCodeHMACSignature(values ...[]byte) string {
 	h := hmac.New(sha256.New, p.keys.recoveryCodeHMAC)
 
