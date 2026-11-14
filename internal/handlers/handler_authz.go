@@ -118,11 +118,8 @@ type AuthzContext interface {
 	// AuthzPath should return the path of the authorization request.
 	AuthzPath() (uri []byte)
 
-	// IsXHR should return true if the request is an XHR.
-	IsXHR() (xhr bool)
-
-	// AcceptsMIME should return true if the request accepts the given MIME type.
-	AcceptsMIME(mime string) (ok bool)
+	// IsNavigation should return true if the request is a top-level browser navigation.
+	IsNavigation() (navigation bool)
 
 	// ReplyStatusCode should reply with the given status code.
 	ReplyStatusCode(statusCode int)
@@ -150,7 +147,7 @@ type AuthzContext interface {
 	RemoteIP() net.IP
 
 	// GetSessionProviderByTargetURI should return the session provider for the target URL.
-	GetSessionProviderByTargetURI(targetURL *url.URL) (provider *session.Session, err error)
+	GetSessionProviderByTargetURI(targetURL *url.URL) (provider session.Strategy, err error)
 }
 
 // Handler is the middlewares.RequestHandler for Authz.
@@ -214,32 +211,15 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 		object,
 	)
 
-	if err != nil {
-		authn.Object = object
-
-		if !ruleHasSubject {
-			switch required {
-			case authorization.Bypass:
-				ctx.GetLogger().WithError(err).Debug("The matched rule was a bypass rule however an error occurred processing the authorization request")
-			default:
-				switch {
-				case strategy == nil:
-					ctx.ReplyUnauthorized()
-				case strategy.HeaderStrategy():
-					ctx.GetLogger().WithError(err).Error("Error occurred while attempting to authenticate a request")
-
-					strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
-
-					return
-				}
-			}
-		}
+	if err != nil && authz.handleAuthnError(ctx, authn, strategy, &object, autheliaURL, err, ruleHasSubject, required) {
+		return
 	}
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
 	case AuthzResultForbidden:
 		ctx.GetLogger().Infof("Access to '%s' is forbidden to user '%s'", object.URL.String(), authn.Username)
-		ctx.ReplyForbidden()
+
+		authz.handleForbidden(ctx, authn, authz.getForbiddenRedirectionURL(&object, autheliaURL))
 	case AuthzResultUnauthorized:
 		var handler HandlerAuthzUnauthorized
 
@@ -253,6 +233,33 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	case AuthzResultAuthorized:
 		authz.handleAuthorized(ctx, authz.headers, authn)
 	}
+}
+
+func (authz *Authz) handleAuthnError(ctx AuthzContext, authn *Authn, strategy AuthnStrategy, object *authorization.Object, autheliaURL *url.URL, err error, ruleHasSubject bool, required authorization.Level) (handled bool) {
+	authn.Object = *object
+
+	bypass := !ruleHasSubject && required == authorization.Bypass
+
+	if bypass {
+		ctx.GetLogger().WithError(err).Debug("The matched rule was a bypass rule however an error occurred processing the authorization request")
+	} else {
+		ctx.GetLogger().WithError(err).Error("Error occurred while attempting to authenticate a request")
+	}
+
+	if ruleHasSubject || bypass {
+		return false
+	}
+
+	switch {
+	case strategy == nil:
+		ctx.ReplyUnauthorized()
+	case strategy.HeaderStrategy():
+		strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(object, autheliaURL))
+
+		return true
+	}
+
+	return false
 }
 
 func (authz *Authz) getAutheliaURL(ctx AuthzContext, manager session.Manager) (autheliaURL *url.URL, err error) {
@@ -300,6 +307,22 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 	return redirectionURL
 }
 
+func (authz *Authz) getForbiddenRedirectionURL(object *authorization.Object, autheliaURL *url.URL) (redirectionURL *url.URL) {
+	if redirectionURL = authz.getRedirectionURL(object, autheliaURL); redirectionURL == nil {
+		return nil
+	}
+
+	redirectionURL = redirectionURL.JoinPath(pathError)
+
+	qry := redirectionURL.Query()
+
+	qry.Set(queryArgEC, queryValueECForbidden)
+
+	redirectionURL.RawQuery = qry.Encode()
+
+	return redirectionURL
+}
+
 func (authz *Authz) authn(ctx AuthzContext, manager session.Manager, object *authorization.Object) (authn *Authn, strategy AuthnStrategy, err error) {
 	for _, strategy = range authz.strategies {
 		if authn, err = strategy.Get(ctx, manager, object); err != nil {
@@ -307,7 +330,7 @@ func (authz *Authz) authn(ctx AuthzContext, manager session.Manager, object *aut
 			authn.Level = authentication.NotAuthenticated
 			authn.Username = anonymous
 			authn.ClientID = ""
-			authn.Details = &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
+			authn.Details = authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
 
 			if strategy.CanHandleUnauthorized() {
 				return authn, strategy, err

@@ -11,6 +11,11 @@ info:
     management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO) for
     your applications via a web portal. Authelia is an OpenID Connect 1.0 Provider which is OpenID Certified™ allowing
     comprehensive integrations, and acts as a companion for common reverse proxies.
+
+
+    This document describes the API used by the web portal, reverse proxies, and OpenID Connect 1.0 Relying Parties.
+    The web portal routes and their static assets and locales, this document and its viewer, the metrics listener, and
+    the debug endpoints are intentionally not described.
   contact:
     name: Support
     url: https://www.authelia.com/contact/
@@ -82,6 +87,12 @@ paths:
                 $ref: '#/components/schemas/handlers.configuration.ConfigurationBody'
         "403":
           description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   /api/configuration/password-policy:
@@ -122,6 +133,77 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+  {{- if .HealthVerbose }}
+  /api/health/verbose:
+    head:
+      operationId: headHealthVerbose
+      tags:
+        - State
+      summary: Application Health (Verbose)
+      description: >
+        The verbose health check endpoint probes each configured provider and reports the outcome of each. The result
+        is cached for the configured duration, and the cached property of the response indicates if it was served from
+        the cache. The error of a provider is only included when the endpoint is configured as detailed.
+      responses:
+        "200":
+          description: All of the probed providers are healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.HealthVerboseResponse'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
+        "503":
+          description: One or more of the probed providers is unhealthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.HealthVerboseResponse'
+    get:
+      operationId: getHealthVerbose
+      tags:
+        - State
+      summary: Application Health (Verbose)
+      description: >
+        The verbose health check endpoint probes each configured provider and reports the outcome of each. The result
+        is cached for the configured duration, and the cached property of the response indicates if it was served from
+        the cache. The error of a provider is only included when the endpoint is configured as detailed.
+      responses:
+        "200":
+          description: All of the probed providers are healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.HealthVerboseResponse'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
+        "503":
+          description: One or more of the probed providers is unhealthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.HealthVerboseResponse'
+  {{- end }}
   /api/state:
     get:
       operationId: getState
@@ -138,6 +220,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.StateResponse'
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
   {{- $app := "" }}{{ if .Domain }}{{ $app = printf "https://%s/" .Domain }}{{ else if .BaseURL }}{{ $app = .BaseURL }}{{ else }}{{ $app = "https://app.example.com" }}{{ end }}
   {{- $redir := printf "%s?rd=%s&rm=GET" (.BaseURL | default "https://auth.example.com/") (urlquery $app) }}
   {{- range $name, $config := .EndpointsAuthz }}
@@ -147,6 +237,17 @@ paths:
   {{- range $part := splitList "-" ($name | replace "/" "-" | replace "." "-" | replace "_" "-") }}
   {{- if gt (len $part) 0 }}{{ $opidAuthz = printf "%s%s%s" $opidAuthz (upper (slice $part 0 1)) (slice $part 1) }}{{ end }}
   {{- end }}
+  {{- $secCookie := false }}{{ $secBasic := false }}{{ $secBearer := false }}{{ $secProxy := false }}{{ $status407 := false }}
+  {{- range $strategy := $config.AuthnStrategies }}
+  {{- if eq $strategy.Name "CookieSession" }}{{ $secCookie = true }}
+  {{- else if eq $strategy.Name "HeaderAuthorization" }}
+  {{- range $scheme := (default (list "basic") $strategy.Schemes) }}{{ if eq (lower $scheme) "bearer" }}{{ $secBearer = true }}{{ else }}{{ $secBasic = true }}{{ end }}{{ end }}
+  {{- else if eq $strategy.Name "HeaderLegacy" }}{{ $secProxy = true }}{{ $secBasic = true }}
+  {{- else if eq $strategy.Name "HeaderProxyAuthorization" }}{{ $secProxy = true }}{{ $status407 = true }}
+  {{- else }}{{ $secProxy = true }}
+  {{- end }}
+  {{- end }}
+  {{- if not $config.AuthnStrategies }}{{ $secCookie = true }}{{ end }}
   {{ $uri }}:
     {{- if (eq $config.Implementation "Legacy") }}
     {{- range $method := list "get" "head" "options" "post" "put" "patch" "delete" "trace" }}
@@ -202,94 +303,7 @@ paths:
             type: string
         - $ref: '#/components/parameters/forwardedForParam'
         - $ref: '#/components/parameters/authParam'
-      responses:
-        "200":
-          description: Successful Operation
-          headers:
-            remote-user:
-              description: Username
-              schema:
-                type: string
-                examples:
-                  - john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                examples:
-                  - John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                examples:
-                  - john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                examples:
-                  - admin,devs
-            set-cookie:
-              description: Sets a new cookie value
-              schema:
-                type: string
-        "302":
-          description: Found
-          headers:
-            location:
-              description: Redirect Location for user authorization
-              example: '{{ $redir }}'
-              schema:
-                type: string
-                format: uri
-            set-cookie:
-              description: Sets a new cookie value
-              schema:
-                type: string
-        "303":
-          description: See Other
-          headers:
-            location:
-              description: Redirect Location for user authorization
-              example: '{{ $redir }}'
-              schema:
-                type: string
-                format: uri
-            set-cookie:
-              description: Sets a new cookie value
-              schema:
-                type: string
-        "401":
-          description: Unauthorized
-          headers:
-            set-cookie:
-              description: Sets a new cookie value
-              schema:
-                type: string
-      security:
-        - authelia_auth: []
-    {{- end }}
-    {{- else if (eq $config.Implementation "ExtAuthz") }}
-    {{- range $method := list "get" "head" "options" "post" "put" "patch" "delete" "trace" }}
-    {{ $method }}:
-      operationId: {{ $method }}Authz{{ $opidAuthz }}
-      tags:
-        - Authorization
-      summary: Authorization Verification (ExtAuthz)
-      description: >
-        The ExtAuthz authorization verification endpoint provides the ability to verify if a user has the necessary
-        permissions to access a specified resource with the Envoy proxy.
-
-
-        Any arbitrary sub-path of this endpoint is also routed to the same handler, i.e. `{{ $uri }}/{path}`, as Envoy
-        forwards the original request path to this endpoint.
-      parameters:
-        - $ref: '#/components/parameters/forwardedMethodParam'
-        - $ref: '#/components/parameters/forwardedProtoParam'
-        - $ref: '#/components/parameters/forwardedHostParam'
-        - $ref: '#/components/parameters/forwardedURIParam'
-        - $ref: '#/components/parameters/forwardedForParam'
+        - $ref: '#/components/parameters/rdParam'
         - $ref: '#/components/parameters/autheliaURLParam'
       responses:
         "200":
@@ -349,57 +363,91 @@ paths:
               description: Sets a new cookie value
               schema:
                 type: string
-        "400":
-          description: Bad Request
         "401":
           description: Unauthorized
+          headers:
+            location:
+              description: >
+                Redirect Location for user authorization. Sent when the request is not a navigation request and the
+                Authelia Portal URL is known.
+              example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
+            WWW-Authenticate:
+              description: The authentication challenge, sent when a header authentication strategy rejects the request.
+              schema:
+                type: string
+                examples:
+                  - 'Basic realm="Authorization Required"'
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "403":
+          description: Forbidden. The access control rules deny the request.
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+        {{- if $status407 }}
+        "407":
+          description: Proxy Authentication Required
+          headers:
+            Proxy-Authenticate:
+              description: The authentication challenge for the Proxy-Authorization header.
+              schema:
+                type: string
+                examples:
+                  - 'Basic realm="Authorization Required"'
+        {{- end }}
       security:
+        {{- if $secCookie }}
         - authelia_auth: []
+        {{- end }}
+        {{- if $secBasic }}
+        - authorization_basic: []
+        {{- end }}
+        {{- if $secBearer }}
+        - authorization_bearer: []
+        {{- end }}
+        {{- if $secProxy }}
+        - proxy_authorization: []
+        {{- end }}
     {{- end }}
-    {{- else if (eq $config.Implementation "ForwardAuth") }}
-    {{- range $method := list "get" "head" }}
+    {{- else if (eq $config.Implementation "ExtAuthz") }}
+    {{- range $method := list "get" "head" "options" "post" "put" "patch" "delete" "trace" }}
     {{ $method }}:
       operationId: {{ $method }}Authz{{ $opidAuthz }}
       tags:
         - Authorization
-      summary: Authorization Verification (ForwardAuth)
+      summary: Authorization Verification (ExtAuthz)
       description: >
-        The ForwardAuth authorization verification endpoint provides the ability to verify if a user has the necessary
-        permissions to access a specified resource with the Traefik, Caddy, or Skipper proxies.
+        The ExtAuthz authorization verification endpoint provides the ability to verify if a user has the necessary
+        permissions to access a specified resource with the Envoy proxy.
+
+
+        Any arbitrary sub-path of this endpoint is also routed to the same handler, i.e. `{{ $uri }}/{path}`, as Envoy
+        forwards the original request path to this endpoint.
       parameters:
         - $ref: '#/components/parameters/forwardedMethodParam'
         - $ref: '#/components/parameters/forwardedProtoParam'
         - $ref: '#/components/parameters/forwardedHostParam'
         - $ref: '#/components/parameters/forwardedURIParam'
         - $ref: '#/components/parameters/forwardedForParam'
+        - $ref: '#/components/parameters/autheliaURLParam'
       responses:
         "200":
           description: Successful Operation
           headers:
-            remote-user:
-              description: Username
+            {{- range $header, $headerConfig := $config.Headers }}
+            {{ $header }}:
+              description: The value of the '{{ $headerConfig.UserAttribute }}' user attribute.
               schema:
                 type: string
-                examples:
-                  - john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                examples:
-                  - John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                examples:
-                  - john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                examples:
-                  - admin,devs
+            {{- end }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -434,8 +482,170 @@ paths:
           description: Bad Request
         "401":
           description: Unauthorized
+          headers:
+            location:
+              description: >
+                Redirect Location for user authorization. Sent when the request is not a navigation request and the
+                Authelia Portal URL is known.
+              example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
+            WWW-Authenticate:
+              description: The authentication challenge, sent when a header authentication strategy rejects the request.
+              schema:
+                type: string
+                examples:
+                  - 'Basic realm="Authorization Required"'
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "403":
+          description: Forbidden. The access control rules deny the request.
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+        {{- if $status407 }}
+        "407":
+          description: Proxy Authentication Required
+          headers:
+            Proxy-Authenticate:
+              description: The authentication challenge for the Proxy-Authorization header.
+              schema:
+                type: string
+                examples:
+                  - 'Basic realm="Authorization Required"'
+        {{- end }}
       security:
+        {{- if $secCookie }}
         - authelia_auth: []
+        {{- end }}
+        {{- if $secBasic }}
+        - authorization_basic: []
+        {{- end }}
+        {{- if $secBearer }}
+        - authorization_bearer: []
+        {{- end }}
+        {{- if $secProxy }}
+        - proxy_authorization: []
+        {{- end }}
+    {{- end }}
+    {{- else if (eq $config.Implementation "ForwardAuth") }}
+    {{- range $method := list "get" "head" }}
+    {{ $method }}:
+      operationId: {{ $method }}Authz{{ $opidAuthz }}
+      tags:
+        - Authorization
+      summary: Authorization Verification (ForwardAuth)
+      description: >
+        The ForwardAuth authorization verification endpoint provides the ability to verify if a user has the necessary
+        permissions to access a specified resource with the Traefik, Caddy, or Skipper proxies.
+      parameters:
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/forwardedProtoParam'
+        - $ref: '#/components/parameters/forwardedHostParam'
+        - $ref: '#/components/parameters/forwardedURIParam'
+        - $ref: '#/components/parameters/forwardedForParam'
+        - $ref: '#/components/parameters/autheliaURLQueryParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            {{- range $header, $headerConfig := $config.Headers }}
+            {{ $header }}:
+              description: The value of the '{{ $headerConfig.UserAttribute }}' user attribute.
+              schema:
+                type: string
+            {{- end }}
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "302":
+          description: Found
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "303":
+          description: See Other
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+          headers:
+            location:
+              description: >
+                Redirect Location for user authorization. Sent when the request is not a navigation request and the
+                Authelia Portal URL is known.
+              example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
+            WWW-Authenticate:
+              description: The authentication challenge, sent when a header authentication strategy rejects the request.
+              schema:
+                type: string
+                examples:
+                  - 'Basic realm="Authorization Required"'
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "403":
+          description: Forbidden. The access control rules deny the request.
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+        {{- if $status407 }}
+        "407":
+          description: Proxy Authentication Required
+          headers:
+            Proxy-Authenticate:
+              description: The authentication challenge for the Proxy-Authorization header.
+              schema:
+                type: string
+                examples:
+                  - 'Basic realm="Authorization Required"'
+        {{- end }}
+      security:
+        {{- if $secCookie }}
+        - authelia_auth: []
+        {{- end }}
+        {{- if $secBasic }}
+        - authorization_basic: []
+        {{- end }}
+        {{- if $secBearer }}
+        - authorization_bearer: []
+        {{- end }}
+        {{- if $secProxy }}
+        - proxy_authorization: []
+        {{- end }}
     {{- end }}
     {{- else if (eq $config.Implementation "AuthRequest") }}
     {{- range $method := list "get" "head" }}
@@ -450,34 +660,17 @@ paths:
       parameters:
         - $ref: '#/components/parameters/originalMethodParam'
         - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/autheliaURLQueryParam'
       responses:
         "200":
           description: Successful Operation
           headers:
-            remote-user:
-              description: Username
+            {{- range $header, $headerConfig := $config.Headers }}
+            {{ $header }}:
+              description: The value of the '{{ $headerConfig.UserAttribute }}' user attribute.
               schema:
                 type: string
-                examples:
-                  - john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                examples:
-                  - John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                examples:
-                  - john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                examples:
-                  - admin,devs
+            {{- end }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -488,17 +681,55 @@ paths:
           description: Unauthorized
           headers:
             location:
-              description: Redirect Location for user authorization
+              description: >
+                Redirect Location for user authorization. Sent when the request is not a navigation request and the
+                Authelia Portal URL is known.
               example: '{{ $redir }}'
               schema:
                 type: string
                 format: uri
+            WWW-Authenticate:
+              description: The authentication challenge, sent when a header authentication strategy rejects the request.
+              schema:
+                type: string
+                examples:
+                  - 'Basic realm="Authorization Required"'
             set-cookie:
               description: Sets a new cookie value
               schema:
                 type: string
+        "403":
+          description: Forbidden. The access control rules deny the request.
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+        {{- if $status407 }}
+        "407":
+          description: Proxy Authentication Required
+          headers:
+            Proxy-Authenticate:
+              description: The authentication challenge for the Proxy-Authorization header.
+              schema:
+                type: string
+                examples:
+                  - 'Basic realm="Authorization Required"'
+        {{- end }}
       security:
+        {{- if $secCookie }}
         - authelia_auth: []
+        {{- end }}
+        {{- if $secBasic }}
+        - authorization_basic: []
+        {{- end }}
+        {{- if $secBearer }}
+        - authorization_bearer: []
+        {{- end }}
+        {{- if $secProxy }}
+        - proxy_authorization: []
+        {{- end }}
     {{- end }}
     {{- end }}
     {{- end }}
@@ -550,6 +781,14 @@ paths:
                 $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   {{- if .Passkeys }}
@@ -598,6 +837,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.redirectResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
         "403":
           description: Forbidden
           content:
@@ -675,6 +926,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   {{- end }}
@@ -714,9 +991,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password/identity/finish:
@@ -753,9 +1030,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password:
@@ -782,18 +1059,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
-        "429":
-          description: Too Many Requests
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
-          headers:
-            Retry-After:
-              schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -826,9 +1091,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   {{- end }}
@@ -850,6 +1115,12 @@ paths:
                 $ref: '#/components/schemas/handlers.UserInfo'
         "403":
           description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
     post:
@@ -869,6 +1140,12 @@ paths:
                 $ref: '#/components/schemas/handlers.UserInfo'
         "403":
           description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   /api/user/info/2fa_method:
@@ -892,6 +1169,12 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   /api/user/session/elevation:
@@ -912,6 +1195,12 @@ paths:
                 $ref: '#/components/schemas/handlers.ElevationStatus.Response'
         "403":
           description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
     post:
@@ -931,6 +1220,12 @@ paths:
                 $ref: '#/components/schemas/handlers.ElevationStart.Response'
         "403":
           description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "429":
           description: Too Many Requests
           content:
@@ -940,9 +1235,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     put:
@@ -974,6 +1269,12 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
         "403":
           description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "429":
           description: Too Many Requests
           content:
@@ -983,9 +1284,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/user/session/elevation/{id}:
@@ -1012,8 +1313,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.API'
-      security:
-        - authelia_auth: []
+      security: []
   {{- if .TOTP }}
   /api/secondfactor/totp/register:
     get:
@@ -1038,7 +1338,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     put:
@@ -1076,7 +1378,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     post:
@@ -1111,7 +1415,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     delete:
@@ -1135,7 +1441,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   /api/secondfactor/totp:
@@ -1161,6 +1469,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "404":
           description: Not Found
           content:
@@ -1196,12 +1509,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.redirectResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
         "403":
           description: Forbidden
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "429":
           description: Too Many Requests
           content:
@@ -1211,9 +1535,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -1236,7 +1560,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   {{- end }}
@@ -1264,6 +1590,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
     post:
@@ -1288,12 +1619,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.redirectResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
         "403":
           description: Forbidden
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   /api/secondfactor/webauthn/credentials:
@@ -1318,6 +1660,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   /api/secondfactor/webauthn/credential/register:
@@ -1355,7 +1702,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
         "409":
           description: Conflict
           content:
@@ -1398,7 +1747,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     delete:
@@ -1422,7 +1773,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   /api/secondfactor/webauthn/credential/{credentialID}:
@@ -1461,7 +1814,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
         "409":
           description: Conflict
           content:
@@ -1499,7 +1854,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.KO'
+                oneOf:
+                  - $ref: '#/components/schemas/middlewares.Response.Elevation'
+                  - $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   {{- end }}
@@ -1525,6 +1882,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
     post:
@@ -1546,9 +1908,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/handlers.redirectResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/handlers.redirectResponse'
+                  - $ref: '#/components/schemas/handlers.DuoSignResponse'
         "401":
           description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
         "429":
           description: Too Many Requests
           content:
@@ -1558,9 +1930,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: []
   /api/secondfactor/duo_devices:
@@ -1580,6 +1952,14 @@ paths:
                 $ref: '#/components/schemas/handlers.DuoDevicesResponse'
         "401":
           description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   /api/secondfactor/duo_device:
@@ -1605,6 +1985,14 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.OK'
         "401":
           description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
       security:
         - authelia_auth: []
   {{- end }}
@@ -1629,9 +2017,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.Response.OK'
+                $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  - '403 Forbidden'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
       security:
         - authelia_auth: [ ]
   {{- end }}
@@ -1716,7 +2124,7 @@ paths:
         - in: query
           name: scope
           description: The requested scope.
-          required: true
+          required: false
           schema:
             type: string
             examples:
@@ -1724,7 +2132,7 @@ paths:
         - in: query
           name: response_type
           description: The OAuth 2.0 response type.
-          required: true
+          required: false
           schema:
             $ref: '#/components/schemas/openid.spec.ResponseType'
         - in: query
@@ -1745,7 +2153,7 @@ paths:
             defined in Section 2.1 of OAuth 2.0, and provided the OP allows the use of http Redirection URIs in this
             case. The Redirection URI MAY use an alternate scheme, such as one that is intended to identify a callback
             into a native application.
-          required: true
+          required: false
           schema:
             type: string
             format: uri
@@ -1794,8 +2202,8 @@ paths:
         - in: query
           name: prompt
           description: >
-            Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether the
-            Authorization Server prompts the End-User for reauthentication and consent.
+            Space delimited, case sensitive list of ASCII string values that specifies whether the Authorization
+            Server prompts the End-User for reauthentication and consent.
           required: false
           schema:
             $ref: '#/components/schemas/openid.spec.Prompt'
@@ -1840,7 +2248,7 @@ paths:
           name: id_token_hint
           required: false
           description: >
-            Not Supported: ID Token previously issued by the Authorization Server being passed as a hint about the
+            ID Token previously issued by the Authorization Server being passed as a hint about the
             End-User's current or past authenticated session with the Client. If the End-User identified by the ID Token
             is logged in or is logged in by the request, then the Authorization Server returns a positive response;
             otherwise, it SHOULD return an error, such as login_required. When possible, an id_token_hint SHOULD be
@@ -1850,7 +2258,8 @@ paths:
             received by the RP from the OP is encrypted, to use it as an id_token_hint, the Client MUST decrypt the
             signed ID Token contained within the encrypted ID Token. The Client MAY re-encrypt the signed ID token to
             the Authentication Server using a key that enables the server to decrypt the ID Token, and use the
-            re-encrypted ID token as the id_token_hint value.
+            re-encrypted ID token as the id_token_hint value. The authorization fails if the subject of this ID Token
+            does not match the authenticated End-User. An expired ID Token is accepted.
           schema:
             type: string
         - in: query
@@ -1879,7 +2288,7 @@ paths:
         - in: query
           name: claims
           description: >
-            Not Supported: The claims parameter value, as specified in Section 5.5.
+            The claims parameter value, as specified in Section 5.5.
           required: false
           schema:
             type: string
@@ -1894,7 +2303,7 @@ paths:
         - in: query
           name: request
           description: >
-            Not Supported: Request Object value, as specified in Section 6.1. The Request Object MAY be encrypted to
+            Request Object value, as specified in Section 6.1. The Request Object MAY be encrypted to
             the Self-Issued OP by the Client. In this case, the sub (subject) of a previously issued ID Token for this
             Client MUST be sent as the kid (Key ID) of the JWE. Encrypting content to Self-Issued OPs is currently only
             supported when the OP's JWK key type is RSA and the encryption algorithm used is RSA1_5.
@@ -1916,6 +2325,42 @@ paths:
             Code verifier transformation method is "S256" or "plain".
           schema:
             $ref: '#/components/schemas/openid.spec.CodeChallengeMethod'
+        - in: query
+          name: request_uri
+          description: >
+            The request URI returned by the Pushed Authorization Request endpoint, or a URI referencing a Request
+            Object. When present the scope, response_type and redirect_uri parameters are not required as they are
+            taken from the referenced request. See RFC9126 Section 4 and OpenID Connect Core 1.0 Section 6.2.
+          required: false
+          schema:
+            type: string
+            examples:
+              - 'urn:ietf:params:oauth:request_uri:lXtUUGsLrMxI5cogDk6Zk1pc5-Zw95lT4fzY0eAbdiU'
+        - in: query
+          name: resource
+          description: >
+            The RFC8707 Resource Indicator. An absolute URI of the protected resource the requested tokens are intended
+            for. This parameter may be repeated. The value must be permitted by the resource option of the client.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uri
+            examples:
+              - - 'https://api.example.com/'
+        - in: query
+          name: audience
+          description: >
+            Space delimited list of the audience values requested for the tokens. The values must be permitted by the
+            audience option of the client.
+          required: false
+          schema:
+            type: string
+            examples:
+              - 'https://app.example.com'
       responses:
         "200":
           description: >
@@ -2042,7 +2487,8 @@ paths:
         "500":
           description: Internal Server Error
       security:
-        - authelia_auth: []
+        - oauth2_client_basic: []
+        - {}
     put:
       operationId: putOAuth2DeviceAuthorization
       tags:
@@ -2070,8 +2516,22 @@ paths:
           description: OK
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - authelia_auth: []
   /api/oidc/pushed-authorization-request:
@@ -2093,8 +2553,8 @@ paths:
                 - $ref: '#/components/schemas/openid.spec.AuthorizeRequest'
                 - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           content:
             application/json:
               schema:
@@ -2141,9 +2601,9 @@ paths:
           headers:
             Retry-After:
               schema:
-                type: string
-                format: http-date
-              description: The date time that the request can be retried.
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
           content:
@@ -2151,7 +2611,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
-        - openid: []
+        - oauth2_client_basic: []
+        - {}
   /api/oidc/token:
     post:
       operationId: postOpenIDConnectToken
@@ -2180,6 +2641,12 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/openid.spec.AccessResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "401":
           description: Unauthorized
           content:
@@ -2192,6 +2659,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
           content:
@@ -2199,7 +2678,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
-        - openid: []
+        - oauth2_client_basic: []
+        - {}
   /api/oidc/revocation:
     post:
       operationId: postOAuth2Revocation
@@ -2221,6 +2701,12 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "401":
           description: Unauthorized
           content:
@@ -2240,7 +2726,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
-        - openid: []
+        - oauth2_client_basic: []
+        - {}
   /api/oidc/introspection:
     post:
       operationId: postOAuth2Introspection
@@ -2274,6 +2761,12 @@ paths:
                 type: string
                 examples:
                   - 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vIiwiYXVkIjoiaHR0cHM6Ly9hcHAuZXhhbXBsZS5jb20vcmVzb3VyY2UiLCJpYXQiOjE1MTQ3OTc4OTIsInRva2VuX2ludHJvc3BlY3Rpb24iOnsiYWN0aXZlIjp0cnVlLCJleHAiOjE1MTQ3OTc5NDIsImNsaWVudF9pZCI6ImV4YW1wbGUiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIiwiaWF0IjoxNTE0Nzk3ODIyLCJzdWIiOiI5Y2JhMzJhMC02M2EyLTQyZDUtODNlYi1kZmM3NTc4OGEyMjIiLCJhdWQiOiJodHRwczovL2FwcC5leGFtcGxlLmNvbS9yZXNvdXJjZSIsInVzZXJuYW1lIjoiam9obiJ9fQ.9rN-G3uaj28Geiktfvknl-G6EnZxOGJjpXcemvsllYA'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "401":
           description: Unauthorized
           content:
@@ -2286,6 +2779,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
           content:
@@ -2293,7 +2798,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
-        - openid: []
+        - oauth2_client_basic: []
+        - {}
   /api/oidc/userinfo:
     get:
       operationId: getOpenIDConnectUserInfo
@@ -2318,14 +2824,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.implementation.Claims.Object'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            WWW-Authenticate:
+              description: The RFC6750 Bearer authentication challenge describing the error.
+              schema:
+                type: string
+                examples:
+                  - 'Bearer error="invalid_token",error_description="The access token is invalid."'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
-        - openid: []
+        - oauth2_bearer: []
+        - {}
     post:
       operationId: postOpenIDConnectUserInfo
       tags:
@@ -2360,14 +2904,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.implementation.Claims.Object'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            WWW-Authenticate:
+              description: The RFC6750 Bearer authentication challenge describing the error.
+              schema:
+                type: string
+                examples:
+                  - 'Bearer error="invalid_token",error_description="The access token is invalid."'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 0
+              description: The number of seconds to wait before the request can be retried.
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
-        - openid: []
+        - oauth2_bearer: []
+        - {}
   /api/oidc/consent:
     get:
       operationId: getOpenIDConnectConsent
@@ -2541,6 +3123,28 @@ components:
       example: '{{ .BaseURL | default "https://auth.example.com/" }}'
       schema:
         type: string
+    autheliaURLQueryParam:
+      name: authelia_url
+      in: query
+      description: >
+        Authelia Portal URL. Unauthorized navigation requests are redirected to this URL. It must be a URL for the
+        session cookie domain of the request.
+      required: false
+      example: '{{ .BaseURL | default "https://auth.example.com/" }}'
+      schema:
+        type: string
+        format: uri
+    rdParam:
+      name: rd
+      in: query
+      description: >
+        Authelia Portal URL. Unauthorized navigation requests are redirected to this URL. When absent the
+        X-Authelia-URL header is used, and when neither is present an unauthorized request receives a 401 response.
+      required: false
+      example: '{{ .BaseURL | default "https://auth.example.com/" }}'
+      schema:
+        type: string
+        format: uri
     authParam:
       name: auth
       in: query
@@ -2711,6 +3315,56 @@ components:
               type: string
               examples:
                 - push
+    handlers.DuoSignResponse:
+      type: object
+      required:
+        - 'status'
+        - 'data'
+      properties:
+        status:
+          type: string
+          enum:
+            - 'OK'
+        data:
+          type: object
+          required:
+            - 'result'
+          properties:
+            result:
+              type: string
+              description: >
+                The result of the Duo pre-authentication. The auth result means the user must select a device, enroll
+                means the user must enroll with Duo, and deny means Duo denied the authentication.
+              enum:
+                - 'auth'
+                - 'enroll'
+                - 'deny'
+                - 'allow'
+            devices:
+              type: array
+              items:
+                type: object
+                properties:
+                  device:
+                    type: string
+                    examples:
+                      - ABCDE123456789FGHIJK
+                  display_name:
+                    type: string
+                    examples:
+                      - iOS (+XX XXX XXX 123)
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                      examples:
+                        - push
+            enroll_url:
+              type: string
+              format: uri
+            redirect:
+              type: string
+              format: uri
     {{- end }}
     {{- if .Passkeys }}
     handlers.bodyPasswordRequest:
@@ -2863,6 +3517,55 @@ components:
               type: boolean
               examples:
                 - true
+    handlers.HealthVerboseResponse:
+      type: object
+      description: >
+        The verbose health check response. This response is not wrapped in the status and data envelope used by the
+        other endpoints.
+      required:
+        - 'status'
+        - 'checked_at'
+        - 'cached'
+        - 'providers'
+      properties:
+        status:
+          type: string
+          description: >
+            The overall status. It is ok when every provider is healthy, degraded when some providers are unhealthy,
+            and error when every provider is unhealthy.
+          enum:
+            - 'ok'
+            - 'degraded'
+            - 'error'
+        checked_at:
+          type: string
+          format: date-time
+          description: The time the providers were probed.
+        cached:
+          type: boolean
+          description: True if the response was served from the cache.
+        providers:
+          type: object
+          description: The outcome of each probed provider keyed by the provider name.
+          additionalProperties:
+            type: object
+            required:
+              - 'status'
+              - 'took'
+            properties:
+              status:
+                type: string
+                enum:
+                  - 'ok'
+                  - 'error'
+              took:
+                type: string
+                description: The duration of the probe.
+                examples:
+                  - '1.2ms'
+              error:
+                type: string
+                description: The error of the provider. Only included when the endpoint is configured as detailed.
     handlers.redirectResponse:
       type: object
       properties:
@@ -3025,10 +3728,67 @@ components:
           type: string
           examples:
             - 'KO'
+        code:
+          type: string
+          description: 'A stable machine readable code identifying the error.'
+          enum:
+            - 'authentication_failed'
+            - 'identity_token_expired'
+            - 'identity_token_invalid_signature'
+            - 'identity_token_not_yet_valid'
+            - 'identity_token_used'
+            - 'mfa_validation_failed'
+            - 'operation_failed'
+            - 'password_backend_complexity'
+            - 'password_change_failed'
+            - 'password_incorrect'
+            - 'password_policy'
+            - 'password_reset_failed'
+            - 'rate_limited'
+            - 'totp_configuration_not_found'
+            - 'totp_delete_failed'
+            - 'totp_options_failed'
+            - 'totp_register_failed'
+            - 'totp_register_session_delete_failed'
+            - 'webauthn_duplicate_name'
+            - 'webauthn_register_failed'
+          examples:
+            - 'operation_failed'
         message:
           type: string
           examples:
             - 'Operation Failed.'
+    middlewares.Response.Elevation:
+      type: object
+      description: >
+        The response to a request which requires an elevated session. Exactly one of the data properties is true and
+        indicates what the user must do before retrying the request.
+      required:
+        - 'status'
+        - 'data'
+      properties:
+        status:
+          enum:
+            - 'KO'
+          type: string
+          examples:
+            - 'KO'
+        data:
+          type: object
+          required:
+            - 'elevation'
+            - 'first_factor'
+            - 'second_factor'
+          properties:
+            elevation:
+              type: boolean
+              description: The user must elevate their session with a One-Time Code.
+            first_factor:
+              type: boolean
+              description: The user must authenticate with the first factor.
+            second_factor:
+              type: boolean
+              description: The user must authenticate with the second factor.
     handlers.UserInfo:
       type: object
       properties:
@@ -3933,9 +4693,7 @@ components:
       required:
         - 'issuer'
         - 'authorization_endpoint'
-        - 'subject_types_supported'
         - 'response_types_supported'
-        - 'require_pushed_authorization_requests'
       properties:
         authorization_endpoint:
           description: >
@@ -3945,47 +4703,6 @@ components:
           format: uri
           examples:
             - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/authorization'
-        claims_supported:
-          description: >
-            JSON array containing a list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply
-            values for. Note that for privacy or other reasons, this might not be an exhaustive list.
-          type: array
-          examples:
-            - - 'amr'
-              - 'aud'
-              - 'azp'
-              - 'client_id'
-              - 'exp'
-              - 'iat'
-              - 'iss'
-              - 'jti'
-              - 'rat'
-              - 'auth_time'
-              - 'nonce'
-              - 'groups'
-              - 'sub'
-              - 'name'
-              - 'given_name'
-              - 'family_name'
-              - 'middle_name'
-              - 'nickname'
-              - 'preferred_username'
-              - 'profile'
-              - 'picture'
-              - 'website'
-              - 'email'
-              - 'email_verified'
-              - 'alt_emails'
-              - 'gender'
-              - 'birthdate'
-              - 'zoneinfo'
-              - 'locale'
-              - 'phone_number'
-              - 'phone_number_verified'
-              - 'address'
-              - 'updated_at'
-          items:
-            $ref: '#/components/schemas/openid.implementation.Claims.Name'
         code_challenge_methods_supported:
           description: >
             JSON array containing a list of PKCE [RFC7636] code challenge methods supported by this authorization
@@ -4120,6 +4837,13 @@ components:
           type: boolean
           examples:
             - false
+        require_signed_request_object:
+          description: >
+            Indicates where authorization request needs to be protected as Request Object and provided through either
+            request or request_uri parameter. If omitted, the default value is "false".
+          type: boolean
+          examples:
+            - false
         response_modes_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
@@ -4225,16 +4949,6 @@ components:
           type: string
           examples:
             - 'https://authelia.com'
-        subject_types_supported:
-          description: >
-            JSON array containing a list of the Subject Identifier types that this OP supports.
-            Valid types include pairwise and public.
-          type: array
-          examples:
-            - - 'public'
-              - 'pairwise'
-          items:
-            $ref: '#/components/schemas/openid.spec.SubjectIdentifier'
         token_endpoint:
           description: >
             URL of the OP's OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
@@ -4298,6 +5012,201 @@ components:
           type: boolean
           examples:
             - true
+        request_object_signing_alg_values_supported:
+          description: >
+            JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request
+            Objects, which are described in Section 6.1 of OpenID Connect Core 1.0 [OpenID.Core]. These algorithms are
+            used both when the Request Object is passed by value (using the request parameter) and when it is passed by
+            reference (using the request_uri parameter). Servers SHOULD support none and RS256.
+          type: array
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
+              - 'none'
+          items:
+            $ref: '#/components/schemas/jose.spec.JWS.None'
+        request_object_encryption_alg_values_supported:
+          description: >
+            JSON array containing a list of the JWE encryption algorithms (alg values) supported by the OP for Request
+            Objects. These algorithms are used both when the Request Object is passed by value and when it is passed by
+            reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
+          type: array
+          examples:
+            - - 'RSA1_5'
+              - 'RSA-OAEP'
+              - 'RSA-OAEP-256'
+              - 'A128KW'
+              - 'A192KW'
+              - 'A256KW'
+              - 'dir'
+              - 'ECDH-ES'
+              - 'ECDH-ES+A128KW'
+              - 'ECDH-ES+A192KW'
+              - 'ECDH-ES+A256KW'
+              - 'A128GCMKW'
+              - 'A192GCMKW'
+              - 'A256GCMKW'
+              - 'PBES2-HS256+A128KW'
+              - 'PBES2-HS384+A192KW'
+              - 'PBES2-HS512+A256KW'
+          items:
+            $ref: '#/components/schemas/jose.spec.JWE.alg'
+        request_object_encryption_enc_values_supported:
+          description: >
+            JSON array containing a list of the JWE encryption algorithms (enc values) supported by the OP for Request
+            Objects. These algorithms are used both when the Request Object is passed by value and when it is passed by
+            reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
+            JWT: https://datatracker.ietf.org/doc/html/rfc7519
+          type: array
+          examples:
+            - - 'A128CBC-HS256'
+              - 'A192CBC-HS384'
+              - 'A256CBC-HS512'
+              - 'A128GCM'
+              - 'A192GCM'
+              - 'A256GCM'
+          items:
+            $ref: '#/components/schemas/jose.spec.JWE.enc'
+        authorization_signing_alg_values_supported:
+          description: >
+            OPTIONAL. A JSON array containing a list of the JWS [RFC7515] signing algorithms (alg values) supported by
+            the authorization endpoint to sign the response.
+          type: array
+          examples:
+            - ["RS256"]
+          items:
+            $ref: '#/components/schemas/jose.spec.JWS'
+        authorization_encryption_alg_values_supported:
+          description: >
+            OPTIONAL. A JSON array containing a list of the JWE [RFC7516] encryption algorithms (alg values) supported
+            by the authorization endpoint to encrypt the response.
+          type: array
+          examples:
+            - - 'RSA1_5'
+              - 'RSA-OAEP'
+              - 'RSA-OAEP-256'
+              - 'A128KW'
+              - 'A192KW'
+              - 'A256KW'
+              - 'dir'
+              - 'ECDH-ES'
+              - 'ECDH-ES+A128KW'
+              - 'ECDH-ES+A192KW'
+              - 'ECDH-ES+A256KW'
+              - 'A128GCMKW'
+              - 'A192GCMKW'
+              - 'A256GCMKW'
+              - 'PBES2-HS256+A128KW'
+              - 'PBES2-HS384+A192KW'
+              - 'PBES2-HS512+A256KW'
+          items:
+            $ref: '#/components/schemas/jose.spec.JWE.alg'
+        authorization_encryption_enc_values_supported:
+          description: >
+            OPTIONAL. A JSON array containing a list of the JWE [RFC7516] encryption algorithms (enc values) supported
+            by the authorization endpoint to encrypt the response.
+          type: array
+          examples:
+            - - 'A128CBC-HS256'
+              - 'A192CBC-HS384'
+              - 'A256CBC-HS512'
+              - 'A128GCM'
+              - 'A192GCM'
+              - 'A256GCM'
+          items:
+            $ref: '#/components/schemas/jose.spec.JWE.enc'
+        introspection_signing_alg_values_supported:
+          description: >
+            OPTIONAL. JSON array containing a list of the JWS [RFC7515] signing algorithms (alg values), as defined in
+            JWA [RFC7518], supported by the introspection endpoint to sign the response.
+          type: array
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+          items:
+            $ref: '#/components/schemas/jose.spec.JWS'
+        introspection_encryption_alg_values_supported:
+          description: >
+            OPTIONAL. JSON array containing a list of the JWE [RFC7516] encryption algorithms (alg values), as defined
+            in JWA [RFC7518], supported by the introspection endpoint to encrypt the content encryption key for
+            introspection responses (content key encryption).
+          type: array
+          examples:
+            - - 'RSA1_5'
+              - 'RSA-OAEP'
+              - 'RSA-OAEP-256'
+              - 'A128KW'
+              - 'A192KW'
+              - 'A256KW'
+              - 'dir'
+              - 'ECDH-ES'
+              - 'ECDH-ES+A128KW'
+              - 'ECDH-ES+A192KW'
+              - 'ECDH-ES+A256KW'
+              - 'A128GCMKW'
+              - 'A192GCMKW'
+              - 'A256GCMKW'
+              - 'PBES2-HS256+A128KW'
+              - 'PBES2-HS384+A192KW'
+              - 'PBES2-HS512+A256KW'
+          items:
+            $ref: '#/components/schemas/jose.spec.JWE.alg'
+        introspection_encryption_enc_values_supported:
+          description: >
+            OPTIONAL. JSON array containing a list of the JWE [RFC7516] encryption algorithms (enc values), as defined
+            in JWA [RFC7518], supported by the introspection endpoint to encrypt the response (content encryption).
+          type: array
+          examples:
+            - - 'A128CBC-HS256'
+              - 'A192CBC-HS384'
+              - 'A256CBC-HS512'
+              - 'A128GCM'
+              - 'A192GCM'
+              - 'A256GCM'
+          items:
+            $ref: '#/components/schemas/jose.spec.JWE.enc'
+        refresh_token_expiration_types_supported:
+          description: >
+            OPTIONAL. JSON array containing the refresh token expiration types the authorization server can convey
+            in a token response using the refresh_token_expires_in and refresh_token_expiration_type parameters.
+            The value authorization indicates the refresh token expires with the authorization grant, and the value
+            token_timeout indicates the refresh token expires after a period of inactivity.
+          type: array
+          examples:
+            - - 'authorization'
+              - 'token_timeout'
+          items:
+            type: string
+            enum:
+              - 'authorization'
+              - 'token_timeout'
+        signed_metadata:
+          description: >
+            OPTIONAL. A JWT containing metadata values about the authorization server as claims, signed using the
+            algorithm configured by the discovery_signed_response_alg option. Values in the signed metadata take
+            precedence over the corresponding plain JSON values. Only present when signed discovery metadata is
+            configured. See Also: RFC8414 Section 2.1: https://datatracker.ietf.org/doc/html/rfc8414#section-2.1
+          type: string
     openid.spec.Metadata.OpenIDConfiguration:
       type: object
       required:
@@ -4305,14 +5214,9 @@ components:
         - 'authorization_endpoint'
         - 'subject_types_supported'
         - 'response_types_supported'
-        - 'require_pushed_authorization_requests'
         - 'request_uri_parameter_supported'
         - 'require_request_uri_registration'
         - 'claims_parameter_supported'
-        - 'frontchannel_logout_supported'
-        - 'frontchannel_logout_session_supported'
-        - 'backchannel_logout_supported'
-        - 'backchannel_logout_session_supported'
       properties:
         acr_values_supported:
           description:
@@ -4722,6 +5626,13 @@ components:
           type: boolean
           examples:
             - false
+        require_signed_request_object:
+          description: >
+            Indicates where authorization request needs to be protected as Request Object and provided through either
+            request or request_uri parameter. If omitted, the default value is "false".
+          type: boolean
+          examples:
+            - false
         require_request_uri_registration:
           description: >
             Boolean value specifying whether the OP requires any request_uri values used to be pre-registered using the
@@ -5091,6 +6002,28 @@ components:
               - 'A256GCM'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.enc'
+        refresh_token_expiration_types_supported:
+          description: >
+            OPTIONAL. JSON array containing the refresh token expiration types the authorization server can convey
+            in a token response using the refresh_token_expires_in and refresh_token_expiration_type parameters.
+            The value authorization indicates the refresh token expires with the authorization grant, and the value
+            token_timeout indicates the refresh token expires after a period of inactivity.
+          type: array
+          examples:
+            - - 'authorization'
+              - 'token_timeout'
+          items:
+            type: string
+            enum:
+              - 'authorization'
+              - 'token_timeout'
+        signed_metadata:
+          description: >
+            OPTIONAL. A JWT containing metadata values about the authorization server as claims, signed using the
+            algorithm configured by the discovery_signed_response_alg option. Values in the signed metadata take
+            precedence over the corresponding plain JSON values. Only present when signed discovery metadata is
+            configured. See Also: RFC8414 Section 2.1: https://datatracker.ietf.org/doc/html/rfc8414#section-2.1
+          type: string
     openid.spec.IntrospectionResponse:
       type: object
       required:
@@ -5176,6 +6109,8 @@ components:
         - 'rat'
         - 'auth_time'
         - 'nonce'
+        - 'at_hash'
+        - 'c_hash'
         - 'groups'
         - 'sub'
         - 'name'
@@ -5332,23 +6267,49 @@ components:
             - 'invalid_client'
             - 'invalid_grant'
             - 'invalid_scope'
+            - 'invalid_target'
+            - 'invalid_token'
             - 'invalid_request_uri'
             - 'invalid_request_object'
+            - 'invalid_redirect_uri'
+            - 'invalid_state'
+            - 'invalid_dpop_proof'
+            - 'invalid_authorization_details'
+            - 'invalid_client_metadata'
+            - 'invalid_software_statement'
+            - 'unapproved_software_statement'
             - 'unauthorized_client'
             - 'unsupported_grant_type'
             - 'unsupported_response_type'
-            - 'unsupported_token_type'
+            - 'unsupported_response_mode'
             - 'request_not_supported'
             - 'request_uri_not_supported'
             - 'registration_not_supported'
+            - 'request_unauthorized'
             - 'access_denied'
-            - 'server_error'
-            - 'temporarily_unavailable'
+            - 'insufficient_scope'
+            - 'insufficient_user_authentication'
             - 'unmet_authentication_requirements'
             - 'interaction_required'
             - 'login_required'
-            - 'account_selection_required'
             - 'consent_required'
+            - 'authorization_pending'
+            - 'slow_down'
+            - 'expired_token'
+            - 'use_dpop_nonce'
+            - 'too_many_requests'
+            - 'temporarily_unavailable'
+            - 'server_error'
+            - 'misconfiguration'
+            - 'insufficient_entropy'
+            - 'scope_not_granted'
+            - 'jti_known'
+            - 'token_claim'
+            - 'token_inactive'
+            - 'token_signature_mismatch'
+            - 'not_found'
+            - 'conflict'
+            - 'error'
         error_description:
           description: >
             OPTIONAL. Human-readable ASCII [USASCII] text providing additional information, used to assist the client
@@ -5502,6 +6463,24 @@ components:
               examples:
                 - 'https://app.{{ .Domain | default "example.com" }}/oidc/callback'
               type: string
+            resource:
+              description: >
+                The RFC8707 Resource Indicator. Narrows the issued tokens to a subset of the granted resources. When
+                both this and the audience parameter are omitted the tokens are issued for all granted values. This
+                parameter may be repeated.
+              oneOf:
+                - type: string
+                  format: uri
+                - type: array
+                  items:
+                    type: string
+                    format: uri
+            audience:
+              description: >
+                Space delimited list of audience values which narrows the issued tokens to a subset of the granted
+                audience. When both this and the resource parameter are omitted the tokens are issued for all granted
+                values.
+              type: string
     openid.spec.AccessRequest.DeviceCodeFlow:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -5519,6 +6498,24 @@ components:
               description: The Device Authorization Code.
               examples:
                 - 'authelia_dc_oqLXXUv2pvCDgBJLBav63ZduL4CxKP7JpYZ6ldHp39Y.u3XxwV3O-uYOA5TSv44iQyB27YjUGawJLlwOMuC770E'
+              type: string
+            resource:
+              description: >
+                The RFC8707 Resource Indicator. Narrows the issued tokens to a subset of the granted resources. When
+                both this and the audience parameter are omitted the tokens are issued for all granted values. This
+                parameter may be repeated.
+              oneOf:
+                - type: string
+                  format: uri
+                - type: array
+                  items:
+                    type: string
+                    format: uri
+            audience:
+              description: >
+                Space delimited list of audience values which narrows the issued tokens to a subset of the granted
+                audience. When both this and the resource parameter are omitted the tokens are issued for all granted
+                values.
               type: string
     openid.spec.AccessRequest.RefreshTokenFlow:
       allOf:
@@ -5548,6 +6545,24 @@ components:
               examples:
                 - 'openid profile groups'
               type: string
+            resource:
+              description: >
+                The RFC8707 Resource Indicator. Narrows the issued tokens to a subset of the granted resources. When
+                both this and the audience parameter are omitted the tokens are issued for all granted values. This
+                parameter may be repeated.
+              oneOf:
+                - type: string
+                  format: uri
+                - type: array
+                  items:
+                    type: string
+                    format: uri
+            audience:
+              description: >
+                Space delimited list of audience values which narrows the issued tokens to a subset of the granted
+                audience. When both this and the resource parameter are omitted the tokens are issued for all granted
+                values.
+              type: string
     openid.spec.AccessRequest.ClientCredentialsFlow:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -5569,6 +6584,22 @@ components:
                 resource owner.
               examples:
                 - 'openid profile groups'
+              type: string
+            resource:
+              description: >
+                The RFC8707 Resource Indicator. The values must be permitted by the resource option of the client.
+                This parameter may be repeated.
+              oneOf:
+                - type: string
+                  format: uri
+                - type: array
+                  items:
+                    type: string
+                    format: uri
+            audience:
+              description: >
+                Space delimited list of the audience values requested for the tokens. The values must be permitted by
+                the audience option of the client.
               type: string
     openid.spec.AccessResponse:
       type: object
@@ -5630,10 +6661,7 @@ components:
     openid.spec.AuthorizeRequest:
       type: object
       required:
-        - 'scope'
-        - 'response_type'
         - 'client_id'
-        - 'redirect_uri'
       properties:
         scope:
           description: The requested scope.
@@ -5755,6 +6783,28 @@ components:
             Self-Issued OPs is currently only supported when the OP's JWK key type is RSA and the encryption
             algorithm used is RSA1_5.
           type: string
+        request_uri:
+          description: >
+            The request URI returned by the Pushed Authorization Request endpoint, or a URI referencing a Request
+            Object. When present the scope, response_type and redirect_uri parameters are not required as they are
+            taken from the referenced request. Not permitted in a Pushed Authorization Request.
+          type: string
+        resource:
+          description: >
+            The RFC8707 Resource Indicator. An absolute URI of the protected resource the requested tokens are intended
+            for. This parameter may be repeated. The value must be permitted by the resource option of the client.
+          oneOf:
+            - type: string
+              format: uri
+            - type: array
+              items:
+                type: string
+                format: uri
+        audience:
+          description: >
+            Space delimited list of the audience values requested for the tokens. The values must be permitted by the
+            audience option of the client.
+          type: string
     openid.spec.DeviceAuthorizeRequest:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -5811,8 +6861,6 @@ components:
         - 'client_secret_basic'
         - 'client_secret_jwt'
         - 'private_key_jwt'
-        - 'tls_client_auth'
-        - 'self_signed_tls_client_auth'
       type: string
     openid.spec.DisplayType:
       description: >
@@ -5828,8 +6876,8 @@ components:
       type: string
     openid.spec.Prompt:
       description: >
-        Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether the
-        Authorization Server prompts the End-User for reauthentication and consent.
+        Space delimited, case sensitive list of ASCII string values that specifies whether the Authorization Server
+        prompts the End-User for reauthentication and consent.
       enum:
         - 'none'
         - 'login'
@@ -5851,7 +6899,6 @@ components:
         - 'code id_token'
         - 'id_token token'
         - 'code id_token token'
-        - 'none'
       examples:
         - 'code'
       type: string
@@ -5925,6 +6972,11 @@ components:
         - 'PS256'
         - 'PS384'
         - 'PS512'
+        - 'Ed25519'
+        - 'EdDSA'
+        - 'ML-DSA-44'
+        - 'ML-DSA-65'
+        - 'ML-DSA-87'
       type: string
     jose.spec.JWE.alg:
       description: The JSON Web Encryption Algorithm (CEK)
@@ -6299,9 +7351,42 @@ components:
       type: apiKey
       name: '{{ .Session }}'
       in: cookie
+    authorization_basic:
+      type: http
+      scheme: basic
+      description: >
+        The credentials of a user in the Authorization header. Accepted by authorization endpoints using the
+        HeaderAuthorization strategy, or the HeaderLegacy strategy when the auth query parameter is basic.
+    authorization_bearer:
+      type: http
+      scheme: bearer
+      description: >
+        An OAuth 2.0 Access Token granted the authelia.bearer.authz scope in the Authorization header. Accepted by
+        authorization endpoints using the HeaderAuthorization strategy with the bearer scheme.
+    proxy_authorization:
+      type: apiKey
+      in: header
+      name: Proxy-Authorization
+      description: >
+        The credentials of a user, or an OAuth 2.0 Access Token where the bearer scheme is enabled, in the
+        Proxy-Authorization header. Accepted by authorization endpoints using the HeaderProxyAuthorization,
+        HeaderAuthRequestProxyAuthorization, or HeaderLegacy strategies.
     {{- if .OpenIDConnect }}
     openid:
       type: openIdConnect
       openIdConnectUrl: '{{ .BaseURL | default "https://auth.example.com/" }}.well-known/openid-configuration'
+    oauth2_client_basic:
+      type: http
+      scheme: basic
+      description: >
+        OAuth 2.0 client authentication using the client_secret_basic method, where the client identifier and secret
+        are sent in the Authorization header. Clients using the client_secret_post, client_secret_jwt, private_key_jwt,
+        or none methods send their client identifier and credentials in the request body instead.
+    oauth2_bearer:
+      type: http
+      scheme: bearer
+      description: >
+        An OAuth 2.0 Access Token sent in the Authorization header as described by RFC6750 Section 2.1. The token may
+        instead be sent in the access_token form parameter.
     {{- end }}
 ...

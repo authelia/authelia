@@ -54,12 +54,12 @@ for, and the structure it must have.
   │       │             │
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
   │       │
-  │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|clock|
-  │                          cmd|codecov|commands|configuration|deps|docker|duo|expression|go|
-  │                          golangci-lint|handlers|lefthook|logging|metrics|middlewares|mocks|
+  │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|cache|
+  │                          clock|cmd|codecov|commands|configuration|deps|docker|duo|expression|
+  │                          go|golangci-lint|handlers|lefthook|logging|metrics|middlewares|mocks|
   │                          model|notification|npm|ntp|oidc|random|regulation|renovate|reviewdog|
-  │                          server|service|session|storage|suites|templates|totp|utils|web|
-  │                          webauthn
+  │                          server|service|session|storage|suites|systemd|templates|totp|utils|
+  │                          web|webauthn
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test
 ```
@@ -88,6 +88,7 @@ commit messages).
 
 - authentication
 - authorization
+- cache
 - clock
 - commands
 - configuration
@@ -109,6 +110,7 @@ commit messages).
 - session
 - storage
 - suites
+- systemd
 - templates
 - totp
 - utils

@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { postSecondFactor } from "@services/Password";
+import { RateLimitedError } from "@services/RateLimit";
 import PasswordForm from "@views/LoginPortal/SecondFactor/PasswordForm";
 
 const mocks = vi.hoisted(() => ({
@@ -111,7 +112,7 @@ describe("validation", () => {
 
 describe("sign in", () => {
     it("posts the password and reports success", async () => {
-        postSecondFactorMock.mockResolvedValue({ redirect: "https://example.com" } as any);
+        postSecondFactorMock.mockResolvedValue({ redirect: "https://example.com" });
 
         const { onAuthenticationSuccess } = renderForm();
 
@@ -186,6 +187,39 @@ describe("sign in", () => {
         expect(getPassword()).toHaveFocus();
         expect(getSubmit()).not.toBeDisabled();
         expect(onAuthenticationSuccess).not.toHaveBeenCalled();
+    });
+
+    it("notifies and disables the form until the retry period elapses when rate limited", async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+
+        try {
+            postSecondFactorMock.mockRejectedValue(new RateLimitedError(30));
+
+            const { onAuthenticationSuccess } = renderForm();
+
+            fireEvent.change(getPassword(), { target: { value: "secret" } });
+            fireEvent.click(getSubmit());
+
+            await waitFor(() =>
+                expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
+            );
+            expect(getPassword()).toHaveValue("");
+            expect(getPassword()).toBeDisabled();
+            expect(getSubmit()).toBeDisabled();
+            expect(onAuthenticationSuccess).not.toHaveBeenCalled();
+            expect(document.getElementById("rate-limit-countdown")).toBeInTheDocument();
+
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(30000);
+            });
+
+            await waitFor(() => expect(getPassword()).not.toBeDisabled());
+            expect(getPassword()).toHaveFocus();
+            expect(getSubmit()).not.toBeDisabled();
+            expect(document.getElementById("rate-limit-countdown")).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
     });
 });
 

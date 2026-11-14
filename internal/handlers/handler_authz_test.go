@@ -11,7 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
@@ -21,6 +23,7 @@ import (
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -50,7 +53,7 @@ func (s *AuthzSuite) GetMock(config *schema.Configuration, targetURI *url.URL, s
 		provider, err := mock.Ctx.GetCookieDomainSessionProvider(domain)
 		s.Require().NoError(err)
 
-		s.Require().NoError(provider.SaveSession(mock.Ctx.RequestCtx, *session))
+		s.Require().NoError(provider.Save(mock.Ctx, session))
 	}
 
 	return mock
@@ -64,25 +67,12 @@ func (s *AuthzSuite) RequireParseRequestURI(rawURL string) *url.URL {
 	return u
 }
 
-func attemptUnknownUser(mock *mocks.MockAutheliaCtx, requestURI string) model.AuthenticationAttempt {
-	return model.AuthenticationAttempt{
-		Time:          mock.Ctx.Providers.Clock.Now(),
-		Successful:    false,
-		Banned:        false,
-		Username:      "",
-		Type:          regulation.AuthType1FA,
-		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    requestURI,
-		RequestMethod: fasthttp.MethodGet,
-	}
-}
-
 func (s *AuthzSuite) ConfigureMockSessionProviderWithoutAutheliaURLs(mock *mocks.MockAutheliaCtx) {
 	for i := range mock.Ctx.Configuration.Session.Cookies {
 		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = nil
 	}
 
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 }
 
 func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
@@ -260,7 +250,8 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 
 	mock.UserProviderMock.
 		EXPECT().
-		GetDetails(gomock.Eq("john")).Return(&authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}, nil)
+		GetDetailsCached(gomock.Eq("john")).
+		Return(&authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -285,6 +276,14 @@ func (s *AuthzSuite) TestShouldDenyObject() {
 		{
 			"Insecure",
 			"http://test.example.com",
+		},
+		{
+			"InvalidHostnameUnderscore",
+			"https://foo_bar.example.com",
+		},
+		{
+			"InvalidHostnameEmptyLabel",
+			"https://test..example.com",
 		},
 	}
 
@@ -359,7 +358,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 		Return(true, nil)
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsCached(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Username: "john",
 			Emails:   []string{"john@example.com"},
@@ -393,7 +392,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsCached(gomock.Eq("john")).
 		Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
@@ -431,7 +430,7 @@ func (s *AuthzSuite) TestShouldMarkAuthenticationAttemptWhenUserNotFoundUsingBas
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
+			GetDetailsCached(gomock.Eq("john")).
 			Return(nil, authentication.ErrUserNotFound),
 		mock.StorageMock.
 			EXPECT().
@@ -472,7 +471,7 @@ func (s *AuthzSuite) TestShouldMarkAuthenticationAttemptWhenUserDetailsNilUsingB
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
+			GetDetailsCached(gomock.Eq("john")).
 			Return(nil, nil),
 		mock.StorageMock.
 			EXPECT().
@@ -524,7 +523,7 @@ func (s *AuthzSuite) TestShouldCacheBasicSchemeUsingCanonicalUsername() {
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("John")).Return(&authentication.UserDetails{Username: "john"}, nil),
+			GetDetailsCached(gomock.Eq("John")).Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.
 			EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
@@ -551,7 +550,7 @@ func (s *AuthzSuite) TestShouldCacheBasicSchemeUsingCanonicalUsername() {
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).Return(&authentication.UserDetails{Username: "john"}, nil),
+			GetDetailsCached(gomock.Eq("john")).Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.
 			EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
@@ -595,7 +594,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsCached(gomock.Eq("john")).
 		Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
@@ -619,7 +618,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsCached(gomock.Eq("john")).
 		Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
@@ -669,7 +668,8 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 	gomock.InOrder(
 		mock.UserProviderMock.
 			EXPECT().
-			GetDetails(gomock.Eq("john")).Return(&authentication.UserDetails{Username: "john"}, nil),
+			GetDetailsCached(gomock.Eq("john")).
+			Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.
 			EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
@@ -707,7 +707,8 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 	gomock.InOrder(
 		mock.UserProviderMock.
 			EXPECT().
-			GetDetails(gomock.Eq("john")).Return(&authentication.UserDetails{Username: "john"}, nil),
+			GetDetailsCached(gomock.Eq("john")).
+			Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.
 			EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
@@ -769,7 +770,8 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 	gomock.InOrder(
 		mock.UserProviderMock.
 			EXPECT().
-			GetDetails(gomock.Eq("john")).Return(&authentication.UserDetails{Username: "john"}, nil),
+			GetDetailsCached(gomock.Eq("john")).
+			Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.
 			EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
@@ -807,7 +809,8 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 	gomock.InOrder(
 		mock.UserProviderMock.
 			EXPECT().
-			GetDetails(gomock.Eq("john")).Return(&authentication.UserDetails{Username: "john"}, nil),
+			GetDetailsCached(gomock.Eq("john")).
+			Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.
 			EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
@@ -870,7 +873,7 @@ func (s *AuthzSuite) TestShouldRejectBannedUserUsingBasicScheme() {
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
+			GetDetailsCached(gomock.Eq("john")).
 			Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).
@@ -931,7 +934,7 @@ func (s *AuthzSuite) TestShouldRejectBannedIPUsingBasicScheme() {
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
+			GetDetailsCached(gomock.Eq("john")).
 			Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).
@@ -989,7 +992,7 @@ func (s *AuthzSuite) TestShouldRejectBannedCanonicalUserUsingBasicScheme() {
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("JOHN")).
+			GetDetailsCached(gomock.Eq("JOHN")).
 			Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).
@@ -1037,7 +1040,7 @@ func (s *AuthzSuite) TestShouldHandleBanCheckStorageErrorUsingBasicScheme() {
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
+			GetDetailsCached(gomock.Eq("john")).
 			Return(&authentication.UserDetails{Username: "john"}, nil),
 		mock.StorageMock.EXPECT().
 			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).
@@ -1079,7 +1082,7 @@ func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBasicScheme
 
 	mock.UserProviderMock.
 		EXPECT().
-		GetDetails(gomock.Eq("john")).Return(nil, fmt.Errorf("generic failure"))
+		GetDetailsCached(gomock.Eq("john")).Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
 
@@ -1377,7 +1380,7 @@ func (s *AuthzSuite) TestShouldRejectBearerSchemeClientCredentialsWithoutBearerA
 	}
 }
 
-func (s *AuthzSuite) bearerSchemeClientCredentialsResourceScenario(target string, audience, resource []string) (statusCode int) {
+func (s *AuthzSuite) bearerSchemeClientCredentialsResourceScenario(target, strategy string, permitted, resource []string) (statusCode int) {
 	authz := s.BuilderWithBearerScheme().Build()
 
 	s.ApplyTestDelayer(authz)
@@ -1400,7 +1403,8 @@ func (s *AuthzSuite) bearerSchemeClientCredentialsResourceScenario(target string
 				{
 					ID:                  "test-ccs-client",
 					Scopes:              []string{oidc.ScopeAutheliaBearerAuthz},
-					Audience:            audience,
+					Resource:            permitted,
+					ResourceStrategy:    strategy,
 					GrantTypes:          []string{oidc.GrantTypeClientCredentials},
 					AuthorizationPolicy: "one_factor",
 				},
@@ -1480,6 +1484,7 @@ func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndi
 
 	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/api/v1/users",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com"},
 		[]string{"https://one-factor.example.com"},
 	))
@@ -1492,6 +1497,46 @@ func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndi
 
 	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/api/v1/users",
+		oidc.StrategyPrefix,
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndicatorPrefixWithQuery() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/v1/users?page=2&sort=name",
+		oidc.StrategyPrefix,
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndicatorPrefixWithDotSegments() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/v1/../v2/users",
+		oidc.StrategyPrefix,
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorWithDotSegmentsOutsideGrantedPrefix() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/../admin",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com/api"},
 		[]string{"https://one-factor.example.com/api"},
 	))
@@ -1504,6 +1549,7 @@ func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorOutsideGranted
 
 	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/admin",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com"},
 		[]string{"https://one-factor.example.com/api"},
 	))
@@ -1516,20 +1562,48 @@ func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorOnPartialPathS
 
 	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/apiv2",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com"},
 		[]string{"https://one-factor.example.com/api"},
 	))
 }
 
-func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorNotPermittedByClientAudience() {
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorNotPermittedByClientResource() {
 	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
 		s.T().Skip()
 	}
 
 	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
 		"https://one-factor.example.com/admin",
+		oidc.StrategyPrefix,
 		[]string{"https://one-factor.example.com/api"},
 		[]string{"https://one-factor.example.com"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndicatorExactByDefault() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api?page=2",
+		"",
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorSubpathByDefault() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/v1/users",
+		"",
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
 	))
 }
 
@@ -1554,13 +1628,18 @@ func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.DisplayName = "John Smith"
-	userSession.Groups = []string{"abc,123"}
-	userSession.Emails = nil
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{
+			Username:    testUsername,
+			DisplayName: "John Smith",
+			Groups:      []string{"abc", "123"},
+		}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -1598,16 +1677,13 @@ func (s *AuthzSuite) TestShouldSetHeadersFromExtendedUserAttributes() {
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.DisplayName = "John Smith"
-	userSession.Groups = []string{"admins", "dev"}
-	userSession.Emails = []string{"john@example.com"}
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	mock.UserProviderMock.EXPECT().
-		GetDetailsExtended(gomock.Eq(testUsername)).
+		GetDetailsExtendedCached(gomock.Eq(testUsername)).
 		Return(&authentication.UserDetailsExtended{
 			GivenName: "John",
 			UserDetails: &authentication.UserDetails{
@@ -1671,10 +1747,10 @@ func (s *AuthzSuite) TestShouldNotAuthenticateWhenExtendedUserDetailsAreEmpty() 
 			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-			s.Require().NoError(mock.Ctx.SaveSession(userSession))
+			s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 			mock.UserProviderMock.EXPECT().
-				GetDetailsExtended(gomock.Eq(testUsername)).
+				GetDetailsExtendedCached(gomock.Eq(testUsername)).
 				Return(tc.details, nil).Times(1)
 
 			authz.Handler(mock.Ctx)
@@ -1690,7 +1766,7 @@ func (s *AuthzSuite) TestShouldNotAuthenticateWhenExtendedUserDetailsAreEmpty() 
 	}
 }
 
-func (s *AuthzSuite) TestShouldNotRetrieveUserDetailsWhenHeadersOnlyRequireSessionAttributes() {
+func (s *AuthzSuite) TestShouldSetDefaultHeadersFromCachedUserDetails() {
 	if s.setRequest == nil {
 		s.T().Skip()
 	}
@@ -1711,16 +1787,21 @@ func (s *AuthzSuite) TestShouldNotRetrieveUserDetailsWhenHeadersOnlyRequireSessi
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.DisplayName = "John Smith"
-	userSession.Groups = []string{"admins", "dev"}
-	userSession.Emails = []string{"john@example.com"}
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	mock.UserProviderMock.EXPECT().GetDetails(gomock.Any()).Times(0)
 	mock.UserProviderMock.EXPECT().GetDetailsExtended(gomock.Any()).Times(0)
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{
+			Username:    testUsername,
+			DisplayName: "John Smith",
+			Groups:      []string{"admins", "dev"},
+			Emails:      []string{"john@example.com"},
+		}, nil).Times(1)
 
 	authz.Handler(mock.Ctx)
 
@@ -1778,7 +1859,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 		Return(true, nil)
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsCached(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Username: "john",
 			Emails:   []string{"john@example.com"},
@@ -1825,7 +1906,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 	if s.implementation == AuthzImplLegacy {
 		gomock.InOrder(
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsCached(gomock.Eq("john")).
 				Return(&authentication.UserDetails{
 					Username: "john",
 					Emails:   []string{"john@example.com"},
@@ -1844,7 +1925,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 				EXPECT().
 				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsCached(gomock.Eq("john")).
 				Return(&authentication.UserDetails{
 					Username: "john",
 					Emails:   []string{"john@example.com"},
@@ -1866,7 +1947,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 	} else {
 		gomock.InOrder(
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsCached(gomock.Eq("john")).
 				Return(&authentication.UserDetails{
 					Username: "john",
 					Emails:   []string{"john@example.com"},
@@ -1885,7 +1966,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 				EXPECT().
 				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsCached(gomock.Eq("john")).
 				Return(&authentication.UserDetails{
 					Username: "john",
 					Emails:   []string{"john@example.com"},
@@ -1978,7 +2059,7 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 				Return(true, nil)
 
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsCached(gomock.Eq("john")).
 				Return(&authentication.UserDetails{
 					Username: "john",
 					Emails:   []string{"john@example.com"},
@@ -2041,7 +2122,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 		Return(true, nil)
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsCached(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Username: "john",
 			Emails:   []string{"john@example.com"},
@@ -2109,7 +2190,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 		Return(true, nil)
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsCached(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Username: "john",
 			Emails:   []string{"john@example.com"},
@@ -2189,7 +2270,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 		Return(true, nil)
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsCached(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Username: "john",
 			Emails:   []string{"john@example.com"},
@@ -2313,7 +2394,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 	default:
 		mock.UserProviderMock.
 			EXPECT().
-			GetDetails(gomock.Eq("john")).Return(&authentication.UserDetails{Username: "john"}, nil)
+			GetDetailsCached(gomock.Eq("john")).
+			Return(&authentication.UserDetails{Username: "john"}, nil)
 
 		mock.StorageMock.
 			EXPECT().
@@ -2383,6 +2465,72 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() {
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
+func (s *AuthzSuite) TestShouldLogSessionUserDetailsFailureAndKeepSession() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	testCases := []struct {
+		name    string
+		target  string
+		level   logrus.Level
+		message string
+	}{
+		{"ShouldLogErrorForOneFactorRule", "https://one-factor.example.com", logrus.ErrorLevel, "Error occurred while attempting to authenticate a request"},
+		{"ShouldLogErrorForSubjectRule", "https://admin.example.com", logrus.ErrorLevel, "Error occurred while attempting to authenticate a request"},
+		{"ShouldLogDebugForBypassRule", "https://bypass.example.com", logrus.DebugLevel, "The matched rule was a bypass rule however an error occurred processing the authorization request"},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			authz := s.Builder().Build()
+
+			mock := mocks.NewMockAutheliaCtx(s.T())
+
+			defer mock.Close()
+
+			setUpMockClock(mock)
+
+			mock.Hook.Reset()
+
+			mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
+
+			s.setRequest(mock.Ctx, fasthttp.MethodGet, s.RequireParseRequestURI(tc.target), true, false)
+
+			userSession, err := mock.Ctx.GetSession()
+			s.Require().NoError(err)
+
+			userSession.Username = testUsername
+			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+			s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+			mock.UserProviderMock.EXPECT().
+				GetDetailsCached(gomock.Eq(testUsername)).
+				Return(nil, fmt.Errorf("backend unreachable"))
+
+			authz.Handler(mock.Ctx)
+
+			var entries []*logrus.Entry
+
+			for _, entry := range mock.Hook.AllEntries() {
+				if entry.Message == tc.message {
+					entries = append(entries, entry)
+				}
+			}
+
+			s.Require().Len(entries, 1)
+			s.Equal(tc.level, entries[0].Level)
+			s.EqualError(entries[0].Data["error"].(error), "failed to retrieve user details: backend unreachable")
+
+			current, err := mock.Ctx.GetSession()
+			s.Require().NoError(err)
+			s.Equal(testUsername, current.Username)
+		})
+	}
+}
+
 func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	if s.setRequest == nil {
 		s.T().Skip()
@@ -2404,7 +2552,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	past := mock.Clock.Now().Add(-1 * time.Hour)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -2418,7 +2566,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.LastActivity = past.Unix()
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	authz.Handler(mock.Ctx)
 
@@ -2427,7 +2575,8 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 
 	s.Equal("", userSession.Username)
 	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel(false))
-	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal(int64(0), userSession.LastActivity)
+	s.Empty(mock.Ctx.Request.Header.Cookie(mock.Ctx.Configuration.Session.Cookies[0].Name))
 }
 
 func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe() {
@@ -2450,7 +2599,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -2466,7 +2615,11 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 	userSession.KeepMeLoggedIn = true
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -2498,7 +2651,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -2515,7 +2668,11 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 	userSession.LastActivity = last.Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -2547,7 +2704,7 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://deny.example.com")
 
@@ -2564,7 +2721,11 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 	userSession.LastActivity = last.Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -2609,7 +2770,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	mock.Ctx.Providers.Clock = &mock.Clock
 	mock.Ctx.Configuration.AuthenticationBackend.RefreshInterval = schema.NewRefreshIntervalDurationNever()
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -2619,16 +2780,17 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	s.Require().NoError(err)
 
 	userSession.Username = user.Username
-	userSession.Groups = user.Groups
-	userSession.Emails = user.Emails
 	userSession.KeepMeLoggedIn = true
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
-	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(gomock.Eq(testUsername)).
+		Return(user, nil).
+		Times(3)
 
 	authz.Handler(mock.Ctx)
 
@@ -2648,9 +2810,6 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	s.Equal(user.Username, userSession.Username)
 	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel(false))
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
-	s.Require().Len(userSession.Groups, 2)
-	s.Equal("admin", userSession.Groups[0])
-	s.Equal("users", userSession.Groups[1])
 	s.Equal(utils.RFC3339Zero, userSession.RefreshTTL.Unix())
 
 	authz.Handler(mock.Ctx)
@@ -2663,9 +2822,6 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	s.Equal(user.Username, userSession.Username)
 	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel(false))
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
-	s.Require().Len(userSession.Groups, 2)
-	s.Equal("admin", userSession.Groups[0])
-	s.Equal("users", userSession.Groups[1])
 	s.Equal(utils.RFC3339Zero, userSession.RefreshTTL.Unix())
 }
 
@@ -2689,7 +2845,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -2714,15 +2870,19 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
-	userSession.Groups = user.Groups
-	userSession.Emails = user.Emails
 	userSession.KeepMeLoggedIn = true
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(nil, authentication.ErrUserNotFound).Times(1),
+		mock.UserProviderMock.EXPECT().
+			GetDetailsCached(gomock.Eq("john")).
+			Return(user, nil).
+			Times(1),
+		mock.UserProviderMock.EXPECT().
+			GetDetailsCached(gomock.Eq("john")).
+			Return(nil, authentication.ErrUserNotFound).
+			Times(1),
 	)
 
 	authz.Handler(mock.Ctx)
@@ -2736,7 +2896,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	authz.Handler(mock.Ctx)
 
@@ -2775,7 +2935,7 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://admin.example.com")
 
@@ -2800,43 +2960,43 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
-	userSession.Groups = user.Groups
-	userSession.Emails = user.Emails
 	userSession.KeepMeLoggedIn = true
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.UserProviderMock.EXPECT().
+			GetDetailsCached(gomock.Eq("john")).
+			Return(user, nil).
+			Times(1),
+		mock.UserProviderMock.EXPECT().
+			GetDetailsCached(gomock.Eq("john")).
+			Return(&authentication.UserDetails{
+				Username: "john",
+				Groups: []string{
+					"users",
+				},
+				Emails: []string{
+					"john@example.com",
+				},
+			}, nil).
+			Times(1),
 	)
 
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	userSession, err = mock.Ctx.GetSession()
-	s.Require().NoError(err)
-
-	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
-	s.Require().Len(userSession.Groups, 2)
-	s.Require().Equal("admin", userSession.Groups[0])
-	s.Require().Equal("users", userSession.Groups[1])
-
-	user.Groups = []string{"users"}
-
 	mock.Clock.Set(mock.Clock.Now().Add(6 * time.Minute))
 
 	authz.Handler(mock.Ctx)
 
-	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
-
-	userSession, err = mock.Ctx.GetSession()
-	s.Require().NoError(err)
-
-	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
-	s.Require().Len(userSession.Groups, 1)
-	s.Require().Equal("users", userSession.Groups[0])
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	default:
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+	}
 }
 
 func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
@@ -2859,7 +3019,7 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://admin.example.com")
 
@@ -2883,43 +3043,44 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
-	userSession.Groups = user.Groups
-	userSession.Emails = user.Emails
 	userSession.KeepMeLoggedIn = true
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.UserProviderMock.EXPECT().
+			GetDetailsCached(gomock.Eq("john")).
+			Return(user, nil).
+			Times(1),
+		mock.UserProviderMock.EXPECT().
+			GetDetailsCached(gomock.Eq("john")).
+			Return(&authentication.UserDetails{
+				Username: "john",
+				Groups: []string{
+					"admin",
+					"users",
+				},
+				Emails: []string{
+					"john@example.com",
+				},
+			}, nil).
+			Times(1),
 	)
 
 	authz.Handler(mock.Ctx)
 
-	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
-
-	userSession, err = mock.Ctx.GetSession()
-	s.Require().NoError(err)
-
-	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
-	s.Require().Len(userSession.Groups, 1)
-	s.Require().Equal("users", userSession.Groups[0])
-
-	user.Groups = []string{"admin", "users"}
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	default:
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+	}
 
 	mock.Clock.Set(mock.Clock.Now().Add(6 * time.Minute))
 
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-
-	userSession, err = mock.Ctx.GetSession()
-	s.Require().NoError(err)
-
-	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
-	s.Require().Len(userSession.Groups, 2)
-	s.Require().Equal("admin", userSession.Groups[0])
-	s.Require().Equal("users", userSession.Groups[1])
 }
 
 func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
@@ -2942,7 +3103,7 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -2958,7 +3119,11 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -2992,7 +3157,7 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -3008,7 +3173,7 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	authz.Handler(mock.Ctx)
 
@@ -3037,7 +3202,8 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 
 	s.Equal("", userSession.Username)
 	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel(false))
-	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal(int64(0), userSession.LastActivity)
+	s.Empty(mock.Ctx.Request.Header.Cookie(mock.Ctx.Configuration.Session.Cookies[0].Name))
 }
 
 func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong() {
@@ -3062,7 +3228,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 	past := mock.Clock.Now().Add(-24 * time.Hour)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -3076,7 +3242,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = past.Unix()
 
-	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
 
 	authz.Handler(mock.Ctx)
 
@@ -3087,7 +3253,8 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 
 	s.Equal("", userSession.Username)
 	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel(false))
-	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal(int64(0), userSession.LastActivity)
+	s.Empty(mock.Ctx.Request.Header.Cookie(mock.Ctx.Configuration.Session.Cookies[0].Name))
 
 	targetURI = s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -3134,7 +3301,7 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 	defer mock.Close()
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -3161,6 +3328,196 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 	s.Equal("text/plain; charset=utf-8", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentType)))
 }
 
+func (s *AuthzSuite) TestShouldHandleForbiddenCookieSession() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	testCases := []struct {
+		name string
+		xhr  bool
+	}{
+		{"ShouldHandleBrowser", false},
+		{"ShouldHandleXHR", true},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			builder := s.Builder()
+
+			builder = builder.WithStrategies(
+				NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)),
+			)
+
+			authz := builder.Build()
+
+			mock := mocks.NewMockAutheliaCtx(s.T())
+
+			defer mock.Close()
+
+			setUpMockClock(mock)
+
+			mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
+			mock.ResetSessionProvider()
+
+			targetURI := s.RequireParseRequestURI("https://deny.example.com")
+
+			s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, tc.xhr)
+
+			userSession, err := mock.Ctx.GetSession()
+			s.Require().NoError(err)
+
+			userSession.Username = testUsername
+			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+			userSession.LastActivity = mock.Clock.Now().Unix()
+			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+			s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+			mock.UserProviderMock.EXPECT().
+				GetDetailsCached(gomock.Eq(testUsername)).
+				Return(&authentication.UserDetails{Username: testUsername}, nil).
+				Times(1)
+
+			authz.Handler(mock.Ctx)
+
+			location := s.RequireParseRequestURI(mock.Ctx.Configuration.Session.Cookies[0].AutheliaURL.String())
+
+			if location.Path == "" {
+				location.Path = "/"
+			}
+
+			location = location.JoinPath("error")
+
+			query := location.Query()
+			query.Set("ec", "forbidden")
+			query.Set(queryArgRD, targetURI.String())
+			query.Set(queryArgRM, fasthttp.MethodGet)
+
+			location.RawQuery = query.Encode()
+
+			switch {
+			case s.implementation == AuthzImplLegacy:
+				s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+				s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+			case s.implementation == AuthzImplAuthRequest:
+				s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+				s.Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+			case tc.xhr:
+				s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+				s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+			default:
+				s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+				s.Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+			}
+		})
+	}
+}
+
+func (s *AuthzSuite) TestShouldHandleForbiddenCookieSessionWithAccessDeniedRedirectDisabled() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	builder := s.Builder()
+
+	builder = builder.
+		WithEndpointConfig(schema.ServerEndpointsAuthz{Implementation: s.implementation.String(), DisableAccessDeniedRedirect: true}).
+		WithStrategies(NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)))
+
+	authz := builder.Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
+	mock.ResetSessionProvider()
+
+	targetURI := s.RequireParseRequestURI("https://deny.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	userSession.Username = testUsername
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.LastActivity = mock.Clock.Now().Unix()
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	s.Require().NoError(mock.Ctx.SaveSession(&userSession))
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(gomock.Eq(testUsername)).
+		Return(&authentication.UserDetails{Username: testUsername}, nil).
+		Times(1)
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+}
+
+func TestAuthzGetForbiddenRedirectionURL(t *testing.T) {
+	object := authorization.Object{
+		URL:    &url.URL{Scheme: "https", Host: "deny.example.com", Path: "/secret.html"},
+		Method: fasthttp.MethodGet,
+	}
+
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+	}{
+		{"ShouldReturnNilWithoutAutheliaURL", "", ""},
+		{"ShouldJoinRootPath", "https://auth.example.com", "https://auth.example.com/error?ec=forbidden&rd=https%3A%2F%2Fdeny.example.com%2Fsecret.html&rm=GET"},
+		{"ShouldJoinBasePath", "https://example.com/authelia", "https://example.com/authelia/error?ec=forbidden&rd=https%3A%2F%2Fdeny.example.com%2Fsecret.html&rm=GET"},
+		{"ShouldJoinBasePathWithTrailingSlash", "https://example.com/authelia/", "https://example.com/authelia/error?ec=forbidden&rd=https%3A%2F%2Fdeny.example.com%2Fsecret.html&rm=GET"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var autheliaURL *url.URL
+
+			if tc.have != "" {
+				var err error
+
+				autheliaURL, err = url.ParseRequestURI(tc.have)
+				require.NoError(t, err)
+			}
+
+			actual := (&Authz{}).getForbiddenRedirectionURL(&object, autheliaURL)
+
+			if tc.expected == "" {
+				assert.Nil(t, actual)
+			} else {
+				assert.Equal(t, tc.expected, actual.String())
+			}
+		})
+	}
+}
+
+type urlpair struct {
+	TargetURI   *url.URL
+	AutheliaURI *url.URL
+}
+
+func attemptUnknownUser(mock *mocks.MockAutheliaCtx, requestURI string) model.AuthenticationAttempt {
+	return model.AuthenticationAttempt{
+		Time:          mock.Ctx.Providers.Clock.Now(),
+		Successful:    false,
+		Banned:        false,
+		Username:      "",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
+		RequestURI:    requestURI,
+		RequestMethod: fasthttp.MethodGet,
+	}
+}
+
 func setRequestXHRValues(ctx *middlewares.AutheliaCtx, accept, xhr bool) {
 	if accept {
 		ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
@@ -3169,11 +3526,6 @@ func setRequestXHRValues(ctx *middlewares.AutheliaCtx, accept, xhr bool) {
 	if xhr {
 		ctx.Request.Header.Set(fasthttp.HeaderXRequestedWith, "XMLHttpRequest")
 	}
-}
-
-type urlpair struct {
-	TargetURI   *url.URL
-	AutheliaURI *url.URL
 }
 
 func setUpMockClock(mock *mocks.MockAutheliaCtx) {

@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var container string
+var container, intermediateTag string
 
 var (
 	containers       = []string{"dev", "coverage"}
@@ -61,6 +61,7 @@ func newDockerBuildCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
+	cmd.PersistentFlags().StringVar(&intermediateTag, "tag", IntermediateDockerImageName, "local tag the image is built as")
 
 	return cmd
 }
@@ -91,7 +92,7 @@ func cmdDockerBuildRun(_ *cobra.Command, _ []string) {
 
 	docker := &Docker{}
 
-	err = docker.Tag(IntermediateDockerImageName, DockerImageName)
+	err = docker.Tag(intermediateTag, DockerImageName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -163,7 +164,7 @@ func dockerBuildOfficialImage(arch string) error {
 		log.Fatal(err)
 	}
 
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".", buildMetaData)
+	return docker.Build(intermediateTag, dockerfile, ".", buildMetaData)
 }
 
 func login(docker *Docker, registry string) {

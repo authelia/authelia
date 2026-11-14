@@ -8,7 +8,7 @@
 #   docker build --build-arg AUTHELIA_PAM_REF=feat-foo \
 #                --build-arg AUTHELIA_PAM_REPO=https://github.com/authelia/pam.git
 
-FROM golang:1.27.1-alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414 AS builder
+FROM golang:1.27.4-alpine@sha256:0a5f7fe796599ff487605987432e7619ae45beeb2fba4c2ce0b907879932aebf AS builder
 
 RUN <<EOF
 set -eu
@@ -36,7 +36,7 @@ set -eu
 make -C shim
 EOF
 
-FROM alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+FROM alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 
 RUN <<EOF
 set -eu

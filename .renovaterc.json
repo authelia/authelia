@@ -1,0 +1,162 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":prHourlyLimitNone",
+    ":semanticCommitTypeAll(build)",
+    ":separatePatchReleases",
+    "workarounds:doNotUpgradeFromAlpineStableToEdge"
+  ],
+  "rebaseWhen": "conflicted",
+  "ignorePresets": [
+    ":semanticPrefixFixDepsChoreOthers",
+    "workarounds:all"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^docs/netlify\\.toml$/"
+      ],
+      "matchStrings": [
+        "HUGO_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "hugo-extended",
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^docs/netlify\\.toml$/"
+      ],
+      "matchStrings": [
+        "DART_SASS_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "sass-embedded",
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)Dockerfile[^/]*$/"
+      ],
+      "matchStrings": [
+        "https://raw\\.githubusercontent\\.com/pnpm/get\\.pnpm\\.io/(?<currentDigest>[0-9a-f]{40})/install\\.sh"
+      ],
+      "depNameTemplate": "pnpm/get.pnpm.io",
+      "packageNameTemplate": "https://github.com/pnpm/get.pnpm.io",
+      "currentValueTemplate": "main",
+      "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^internal/suites/example/compose/oidc-conformance/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG CONFORMANCE_SUITE_REF=(?<currentValue>\\S+)\\nARG CONFORMANCE_SUITE_COMMIT=(?<currentDigest>[0-9a-f]{40})"
+      ],
+      "depNameTemplate": "openid/conformance-suite",
+      "datasourceTemplate": "gitlab-tags",
+      "registryUrlTemplate": "https://gitlab.com"
+    }
+  ],
+  "enabledManagers": [
+    "custom.regex",
+    "docker-compose",
+    "dockerfile",
+    "github-actions",
+    "gomod",
+    "kubernetes",
+    "npm"
+  ],
+  "kubernetes": {
+    "managerFilePatterns": [
+      "/kube/.+\\.yml$/"
+    ]
+  },
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "traefik"
+      ],
+      "matchFileNames": [
+        "internal/suites/example/compose/traefik/compose.v2.yml"
+      ],
+      "allowedVersions": "<3.0.0"
+    },
+    {
+      "matchPackageNames": [
+        "openid/conformance-suite",
+        "registry.gitlab.com/openid/conformance-suite"
+      ],
+      "versioning": "regex:^release-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      "groupName": "openid conformance suite"
+    },
+    {
+      "matchDatasources": [
+        "gitlab-tags"
+      ],
+      "matchPackageNames": [
+        "openid/conformance-suite"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "enabled": false
+    },
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "addLabels": [
+        "docker"
+      ]
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "addLabels": [
+        "github_actions"
+      ]
+    },
+    {
+      "matchDatasources": [
+        "go"
+      ],
+      "addLabels": [
+        "go"
+      ]
+    },
+    {
+      "matchDatasources": [
+        "kubernetes"
+      ],
+      "addLabels": [
+        "kubernetes"
+      ]
+    },
+    {
+      "matchDatasources": [
+        "npm"
+      ],
+      "addLabels": [
+        "javascript"
+      ],
+      "minimumReleaseAge": "1 day"
+    }
+  ],
+  "postUpdateOptions": [
+    "gomodTidy",
+    "pnpmDedupe"
+  ]
+}

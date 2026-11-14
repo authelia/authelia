@@ -216,26 +216,105 @@ func TestIPRateLimitBucketFetchCtx(t *testing.T) {
 	assert.Same(t, limiter, bucket.Fetch("192.168.1.1"))
 }
 
-func TestIPRateLimitBucketFetchCtxKeysByFullAddress(t *testing.T) {
+func TestIPRateLimitBucketFetchCtxKeys(t *testing.T) {
 	testCases := []struct {
-		name string
-		a    string
-		b    string
+		name     string
+		mask     int
+		a        string
+		b        string
+		expectA  string
+		expectB  string
+		expected bool
 	}{
 		{
 			"ShouldSeparateIPv4Addresses",
+			0,
 			"192.168.1.1",
 			"192.168.1.2",
+			"192.168.1.1",
+			"192.168.1.2",
+			false,
 		},
 		{
-			"ShouldSeparateIPv6AddressesWithinTheSamePrefix",
+			"ShouldSeparateIPv4MappedIPv6Addresses",
+			48,
+			"::ffff:192.168.1.1",
+			"::ffff:192.168.1.2",
+			"192.168.1.1",
+			"192.168.1.2",
+			false,
+		},
+		{
+			"ShouldSeparateIPv4EmbeddedInWellKnownPrefixByDefault",
+			0,
+			"64:ff9b::203.0.113.5",
+			"64:ff9b::198.51.100.9",
+			"203.0.113.5",
+			"198.51.100.9",
+			false,
+		},
+		{
+			"ShouldGroupIPv4EmbeddedInWellKnownPrefixWithIPv4Address",
+			48,
+			"64:ff9b::203.0.113.5",
+			"203.0.113.5",
+			"203.0.113.5",
+			"203.0.113.5",
+			true,
+		},
+		{
+			"ShouldMaskAddressesAdjacentToWellKnownPrefix",
+			0,
+			"64:ff9b:0:0:1::203.0.113.5",
+			"64:ff9b:0:0:2::198.51.100.9",
+			"64:ff9b::",
+			"64:ff9b::",
+			true,
+		},
+		{
+			"ShouldGroupIPv6AddressesWithinTheSamePrefixByDefault",
+			0,
 			"2001:db8::1",
-			"2001:db8::2",
+			"2001:db8::ffff:ffff:ffff:ffff",
+			"2001:db8::",
+			"2001:db8::",
+			true,
 		},
 		{
-			"ShouldSeparateIPv6AddressesInDifferentPrefixes",
+			"ShouldSeparateIPv6AddressesInDifferentPrefixesByDefault",
+			0,
 			"2001:db8:0:1::1",
 			"2001:db8:0:2::1",
+			"2001:db8:0:1::",
+			"2001:db8:0:2::",
+			false,
+		},
+		{
+			"ShouldGroupIPv6AddressesWithinTheSamePrefixWithMask48",
+			48,
+			"2001:db8:0:1::1",
+			"2001:db8:0:ffff::1",
+			"2001:db8::",
+			"2001:db8::",
+			true,
+		},
+		{
+			"ShouldSeparateIPv6AddressesInDifferentPrefixesWithMask48",
+			48,
+			"2001:db8:1::1",
+			"2001:db8:2::1",
+			"2001:db8:1::",
+			"2001:db8:2::",
+			false,
+		},
+		{
+			"ShouldSeparateIPv6AddressesWithMask128",
+			128,
+			"2001:db8::1",
+			"2001:db8::2",
+			"2001:db8::1",
+			"2001:db8::2",
+			false,
 		},
 	}
 
@@ -244,6 +323,7 @@ func TestIPRateLimitBucketFetchCtxKeysByFullAddress(t *testing.T) {
 			bucket := NewIPRateLimitBucket(RateLimitBucketConfig{
 				Period:   time.Second,
 				Requests: 10,
+				IPv6Mask: tc.mask,
 			}).(*IPRateLimitBucket)
 
 			a := bucket.FetchCtx(newTestAutheliaCtx(tc.a))
@@ -252,12 +332,44 @@ func TestIPRateLimitBucketFetchCtxKeysByFullAddress(t *testing.T) {
 			require.NotNil(t, a)
 			require.NotNil(t, b)
 
-			assert.NotSame(t, a, b)
-			assert.Same(t, a, bucket.Fetch(tc.a))
-			assert.Same(t, b, bucket.Fetch(tc.b))
-			assert.Len(t, bucket.bucket, 2)
+			assert.Same(t, a, bucket.Fetch(tc.expectA))
+			assert.Same(t, b, bucket.Fetch(tc.expectB))
+
+			if tc.expected {
+				assert.Same(t, a, b)
+				assert.Len(t, bucket.bucket, 1)
+			} else {
+				assert.NotSame(t, a, b)
+				assert.Len(t, bucket.bucket, 2)
+			}
 		})
 	}
+}
+
+func TestNewRateLimiterIPv6MaskFromConfig(t *testing.T) {
+	middleware := NewRateLimiter(WithRateLimitConfig(schema.ServerEndpointRateLimit{
+		Enable:   true,
+		IPv6Mask: 48,
+		Buckets: []schema.ServerEndpointRateLimitBucket{
+			{Period: time.Minute, Requests: 1},
+		},
+	})).Middleware()
+
+	handler := middleware(func(ctx *AutheliaCtx) {
+		ctx.SetStatusCode(fasthttp.StatusOK)
+	})
+
+	first := newTestAutheliaCtx("2001:db8:0:1::1")
+	handler(first)
+	assert.Equal(t, fasthttp.StatusOK, first.Response.StatusCode())
+
+	second := newTestAutheliaCtx("2001:db8:0:2::1")
+	handler(second)
+	assert.Equal(t, fasthttp.StatusTooManyRequests, second.Response.StatusCode())
+
+	third := newTestAutheliaCtx("2001:db8:1::1")
+	handler(third)
+	assert.Equal(t, fasthttp.StatusOK, third.Response.StatusCode())
 }
 
 func TestIPRateLimitBucketGC(t *testing.T) {
@@ -838,14 +950,46 @@ func TestNewIsRateLimitExempt(t *testing.T) {
 }
 
 func TestHandlerRateLimitAPI(t *testing.T) {
-	ctx := newTestAutheliaCtx("192.168.1.1")
+	testCases := []struct {
+		name       string
+		retryAfter time.Duration
+		expected   string
+	}{
+		{
+			"ShouldRenderWholeSeconds",
+			time.Second * 30,
+			"30",
+		},
+		{
+			"ShouldRoundPartialSecondsUp",
+			time.Millisecond * 1500,
+			"2",
+		},
+		{
+			"ShouldRenderSubSecondAsOne",
+			time.Millisecond,
+			"1",
+		},
+		{
+			"ShouldRenderZero",
+			0,
+			"0",
+		},
+	}
 
-	HandlerRateLimitAPI(ctx, 30*time.Second)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := newTestAutheliaCtx("192.168.1.1")
 
-	body := string(ctx.Response.Body())
-	assert.Contains(t, body, "Too Many Requests")
-	assert.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
-	assert.NotEmpty(t, ctx.Response.Header.Peek(fasthttp.HeaderRetryAfter))
+			HandlerRateLimitAPI(ctx, tc.retryAfter)
+
+			assert.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
+			assert.Equal(t, tc.expected, string(ctx.Response.Header.Peek(fasthttp.HeaderRetryAfter)))
+			assert.Equal(t, HeaderCacheControlNotStore, string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
+			assert.Equal(t, HeaderPragmaNoCache, string(ctx.Response.Header.Peek(fasthttp.HeaderPragma)))
+			assert.JSONEq(t, `{"status":"KO","code":"rate_limited","message":"Too Many Requests"}`, string(ctx.Response.Body()))
+		})
+	}
 }
 
 func TestHandlerRateLimitOpenIDConnect(t *testing.T) {

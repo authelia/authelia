@@ -83,6 +83,7 @@ func (b *AuthzBuilder) WithEndpointHeaders(headers map[string]schema.ServerEndpo
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
 func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
+	b.disableAccessDeniedRedirect = config.DisableAccessDeniedRedirect
 	b.WithEndpointHeaders(config.Headers)
 
 	switch config.Implementation {
@@ -161,19 +162,27 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.handleAuthorized = handleAuthzAuthorizedLegacy
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
+		authz.handleForbidden = handleAuthzForbiddenStandard
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy
 	case AuthzImplForwardAuth:
 		authz.handleGetObject = handleAuthzGetObjectForwardAuth
 		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
+		authz.handleForbidden = handleAuthzForbiddenCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplAuthRequest:
 		authz.handleGetObject = handleAuthzGetObjectAuthRequest
 		authz.handleUnauthorized = handleAuthzUnauthorizedAuthRequest
+		authz.handleForbidden = handleAuthzForbiddenAuthRequest
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplExtAuthz:
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
 		authz.handleUnauthorized = handleAuthzUnauthorizedCommon
+		authz.handleForbidden = handleAuthzForbiddenCommon
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
+	}
+
+	if b.disableAccessDeniedRedirect {
+		authz.handleForbidden = handleAuthzForbiddenStandard
 	}
 
 	return authz

@@ -61,7 +61,7 @@ it("posts first factor reauthenticate without response", async () => {
 });
 
 it("posts second factor with response", async () => {
-    const mockResponse = { token: "abc" };
+    const mockResponse = { redirect: "abc" };
     (PostWithOptionalResponse as any).mockResolvedValue(mockResponse);
     const result = await postSecondFactor("pass", "url", "flow", "flowtype", "sub");
     expect(PostWithOptionalResponse).toHaveBeenCalledWith("/password/signin", {
@@ -77,5 +77,5 @@ it("posts second factor with response", async () => {
 it("posts second factor without response", async () => {
     (PostWithOptionalResponse as any).mockResolvedValue(undefined);
     const result = await postSecondFactor("pass");
-    expect(result).toEqual({});
+    expect(result).toBeUndefined();
 });

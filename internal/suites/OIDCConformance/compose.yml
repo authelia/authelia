@@ -24,10 +24,6 @@ services:
       BASE_URL: 'https://conformance.example.com:8443'
       MONGODB_HOST: '${SUITE_OIDC_CONFORMANCE_MONGODB_HOST:-conformance-mongodb}'
       JAVA_EXTRA_ARGS: '-Dfintechlabs.devmode=true'
-      OIDC_GOOGLE_CLIENTID: 'google-client'
-      OIDC_GOOGLE_SECRET: 'google-secret'
-      OIDC_GITLAB_CLIENTID: 'gitlab-client'
-      OIDC_GITLAB_SECRET: 'gitlab-secret'
     depends_on:
       - 'authelia-backend'
     expose:

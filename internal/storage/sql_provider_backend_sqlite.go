@@ -34,6 +34,10 @@ func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider, 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = querySQLiteSelectExistingTables
 
+	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionSQLite, tableSession)
+	provider.sqlInsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTISQLite, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2RequestReplay = fmt.Sprintf(queryFmtInsertOAuth2RequestReplaySQLite, tableOAuth2RequestReplay)
+
 	return provider, nil
 }
 

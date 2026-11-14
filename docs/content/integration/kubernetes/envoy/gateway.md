@@ -80,6 +80,9 @@ spec:
   extAuth:
     headersToExtAuth:
       - 'accept'
+      - 'sec-fetch-mode'
+      - 'sec-fetch-dest'
+      - 'x-requested-with'
       - 'cookie'
       - 'location'
       - 'authorization'
@@ -118,6 +121,9 @@ spec:
   extAuth:
     headersToExtAuth:
       - 'accept'
+      - 'sec-fetch-mode'
+      - 'sec-fetch-dest'
+      - 'x-requested-with'
       - 'cookie'
       - 'authorization'
       - 'proxy-authorization'

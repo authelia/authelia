@@ -5,6 +5,7 @@
 package authentication
 
 import (
+	"crypto/sha256"
 	_ "embed" // Embed the users_database.template files.
 	"errors"
 	"fmt"
@@ -34,6 +35,7 @@ type FileUserProvider struct {
 	database      FileUserProviderDatabase
 	mutex         sync.Mutex
 	timeoutReload time.Time
+	digest        *[sha256.Size]byte
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
@@ -65,13 +67,21 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 
 	defer p.mutex.Unlock()
 
+	digest, errDigest := fileDigest(p.config.Path)
+
+	if errDigest == nil && p.digest != nil && *p.digest == digest {
+		return false, nil
+	}
+
 	if now.Before(p.timeoutReload) {
 		return false, &errReload{err: ErrWatcherCooldown}
 	}
 
 	switch err = p.database.Load(); {
 	case err == nil:
-		p.setTimeoutReload(now)
+		if errDigest == nil {
+			p.digest = &digest
+		}
 	case errors.Is(err, ErrWatcherNoContent):
 		return false, &errReload{err: err}
 	default:
@@ -118,6 +128,12 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 	return d.ToUserDetails(), nil
 }
 
+// GetDetailsCached is used to get a user's information from the cache if available. The file provider has no cache so
+// this is identical to GetDetails.
+func (p *FileUserProvider) GetDetailsCached(username string) (details *UserDetails, err error) {
+	return p.GetDetails(username)
+}
+
 // GetDetailsExtended implements the UserProvider interface.
 func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
 	var d FileUserDatabaseUserDetails
@@ -131,6 +147,12 @@ func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDet
 	}
 
 	return d.ToExtendedUserDetails(), nil
+}
+
+// GetDetailsExtendedCached is used to get a user's extended information from the cache if available. The file provider
+// has no cache so this is identical to GetDetailsExtended.
+func (p *FileUserProvider) GetDetailsExtendedCached(username string) (details *UserDetailsExtended, err error) {
+	return p.GetDetailsExtended(username)
 }
 
 // UpdatePassword update the password of the given user.
@@ -240,7 +262,21 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		return err
 	}
 
+	if digest, errDigest := fileDigest(p.config.Path); errDigest == nil {
+		p.digest = &digest
+	}
+
 	return nil
+}
+
+func fileDigest(path string) (digest [sha256.Size]byte, err error) {
+	var content []byte
+
+	if content, err = os.ReadFile(path); err != nil {
+		return digest, err
+	}
+
+	return sha256.Sum256(content), nil
 }
 
 func (p *FileUserProvider) setTimeoutReload(now time.Time) {

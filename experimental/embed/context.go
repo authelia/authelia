@@ -71,6 +71,7 @@ type Context interface {
 	GetLogger() *logrus.Entry
 	GetProviders() middlewares.Providers
 	GetConfiguration() *schema.Configuration
+	GetConfigurationPaths() (paths []string)
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)
 	RemoteIP() net.IP
@@ -109,6 +110,10 @@ func (c *ctxEmbed) GetConfigurationPaths() (paths []string) {
 
 func (c *ctxEmbed) GetProviders() middlewares.Providers {
 	return c.Providers.ToInternal()
+}
+
+func (c *ctxEmbed) SetProviders(providers middlewares.Providers) {
+	c.Providers = Providers(providers)
 }
 
 func (c *ctxEmbed) GetLogger() *logrus.Entry {

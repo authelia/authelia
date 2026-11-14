@@ -49,4 +49,5 @@ flags:
 
 ignore:
   - "**/coverage.txt"
+  - "**/*_msgp_gen.go"
 ...

@@ -69,6 +69,9 @@ spec:
           pathPrefix: '/api/authz/ext-authz/'
           includeRequestHeadersInCheck:
             - 'accept'
+            - 'sec-fetch-mode'
+            - 'sec-fetch-dest'
+            - 'x-requested-with'
             - 'cookie'
             - 'location'
             - 'authorization'

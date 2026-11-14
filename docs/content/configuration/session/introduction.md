@@ -37,11 +37,13 @@ Some of the values within this page can automatically be replaced with documenta
 ```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
+  storage: 'internal'
   name: 'authelia_session'
   same_site: 'lax'
   inactivity: '5m'
   expiration: '1h'
   remember_me: '1M'
+  anonymous_expiration: '10m'
   cookies:
     - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
       authelia_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
@@ -51,21 +53,24 @@ session:
       inactivity: '5m'
       expiration: '1h'
       remember_me: '1d'
+      anonymous_expiration: '10m'
 ```
 
 ## Providers
 
-There are currently two providers for session storage (three if you count Redis Sentinel as a separate provider):
+Session data is persisted to one of two backends, selected with the [storage](#storage) option:
 
-- Memory (default, stateful, no additional configuration)
-- [Redis](redis.md) (stateless).
-- [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
+- `internal` (default): the configured [storage](../storage/introduction.md) provider. This is stateless when using the
+  [PostgreSQL](../storage/postgres.md) or [MySQL](../storage/mysql.md) providers, and stateful when using the
+  [SQLite](../storage/sqlite.md) provider.
+- `cache`: the configured [cache](../cache/introduction.md) provider, which is one of [Redis](../cache/redis.md),
+  [Redis Sentinel](../cache/redis-sentinel.md), or [Redis Cluster](../cache/redis-cluster.md) (stateless).
 
 ### Kubernetes or High Availability
 
-It's important to note when picking a provider, the stateful providers are not recommended in High Availability
-scenarios like Kubernetes. Each provider has a note beside it indicating it is _stateful_ or _stateless_ the stateless
-providers are recommended.
+It's important to note when picking a backend, the stateful backends are not recommended in High Availability
+scenarios like Kubernetes. Each backend has a note beside it indicating it is _stateful_ or _stateless_ the stateless
+backends are recommended. See [statelessness](../../overview/authorization/statelessness.md) for more information.
 
 ## Options
 
@@ -73,13 +78,26 @@ This section describes the individual configuration options.
 
 ### secret
 
-{{< confkey type="string" required="yes" secret="yes" >}}
+{{< confkey type="string" required="situational" secret="yes" >}}
 
-The secret key used to encrypt session data in Redis.
+The secret used to derive the key which encrypts session data before it's persisted to the [storage](#storage) backend.
+
+This option is required when [storage](#storage) is `cache`. When [storage](#storage) is `internal` and this option is
+not configured, the storage [encryption_key](../storage/introduction.md#encryption_key) is used to derive the session
+encryption key instead and a warning is logged. It's strongly recommended this option is explicitly configured
+regardless, as changing the storage [encryption_key](../storage/introduction.md#encryption_key) would otherwise
+invalidate every session.
 
 It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
+
+### storage
+
+{{< confkey type="string" default="internal" required="no" >}}
+
+The backend session data is persisted to. Must be one of `internal` or `cache`. See [Providers](#providers) for more
+information about each backend.
 
 ### name
 
@@ -110,6 +128,12 @@ The default `expiration` value for all [cookies](#cookies) configurations.
 {{< confkey type="string,integer" syntax="duration" default="1 month" required="no" >}}
 
 The default `remember_me` value for all [cookies](#cookies) configurations.
+
+### anonymous_expiration
+
+{{< confkey type="string,integer" syntax="duration" default="10 minutes" required="no" >}}
+
+The default `anonymous_expiration` value for all [cookies](#cookies) configurations.
 
 ### cookies
 
@@ -235,6 +259,17 @@ essentially OpenID Connect 1.0 Relying Party logins feel clunky having to click 
 
 As such the ability to control the remembered state in these scenarios will come as a feature which changes how
 remember me operates today, where it will be a question asked of the user just after they complete any initial login.
+
+#### anonymous_expiration
+
+{{< confkey type="string,integer" syntax="duration" required="no" >}}
+
+_**Default Value:** This option takes its default value from the [anonymous_expiration](#anonymous_expiration) setting
+above._
+
+The period of time before a session which does not belong to a user expires and is removed from the [storage](#storage)
+backend. Anonymous sessions are only persisted when they hold state which must survive between requests, such as an
+in-progress passkey login or password reset, and are otherwise never written to the [storage](#storage) backend.
 
 ## Security
 

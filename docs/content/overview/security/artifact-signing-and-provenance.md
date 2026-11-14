@@ -105,35 +105,98 @@ way.
 
 Authelia’s provenance conforms to **[SLSA Build Level 3](https://slsa.dev/spec/v1.1/levels#build-l3)**. Which means that "forging the provenance or evading verification requires exploiting a vulnerability that is beyond the capabilities of most adversaries."
 
-The [SLSA Provenance] covers the release artifacts i.e. those ending with `.tar.gz` and `.deb` and does not include built docker images.
+The [SLSA Provenance] covers the release artifacts i.e. those ending with `.tar.gz` and `.deb`. For releases after
+v4.39.28 it also covers the container images published to [Docker Hub](https://hub.docker.com/r/authelia/authelia) and
+the [GitHub Container Registry](https://github.com/authelia/authelia/pkgs/container/authelia).
 
 ### Verification
 
-You can verify the [SLSA Provenance] using the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier). Below
-is an example verifying all the Authelia release tarballs (add or
-remove artifacts depending on your requirements) for a specific version:
+You can verify the [SLSA Provenance] using the [GitHub CLI](https://cli.github.com/) and its
+[`gh attestation verify`](https://cli.github.com/manual/gh_attestation_verify) command. Below is an example verifying
+all the Authelia release tarballs (add or remove artifacts depending on your requirements) for a specific version:
 
 ```shell
 V=v{{% latest %}}
 for F in authelia-${V}-{linux-{amd64,arm,arm64,amd64-musl,arm-musl,arm64-musl},freebsd-amd64,public_html}.tar.gz authelia.intoto.jsonl; do
   curl -fsSLO https://github.com/authelia/authelia/releases/download/${V}/${F}
 done
-slsa-verifier verify-artifact authelia-${V}-{linux-{amd64,arm,arm64,amd64-musl,arm-musl,arm64-musl},freebsd-amd64,public_html}.tar.gz --provenance-path authelia.intoto.jsonl --source-uri "github.com/authelia/authelia"
+for F in authelia-${V}-{linux-{amd64,arm,arm64,amd64-musl,arm-musl,arm64-musl},freebsd-amd64,public_html}.tar.gz; do
+  gh attestation verify ${F} --bundle authelia.intoto.jsonl --repo authelia/authelia
+done
 ```
 
-Example output:
+The `--bundle` flag verifies against the `authelia.intoto.jsonl` file attached to the release, so this works without
+running `gh auth login`. Without it `gh` fetches the attestation from GitHub instead, which requires you to be signed
+in.
+
+For a stricter check, add `--signer-workflow authelia/authelia/.github/workflows/slsa-provenance.yml` to require that
+the attestation was produced by Authelia's provenance workflow, and `--source-ref refs/tags/${V}` to require that it was
+produced for that release's tag.
+
+When its output is not a terminal, `gh attestation verify` prints nothing on success and exits with status `0`.
+
+#### Container Images
+
+The container images are verified by referencing them with an `oci://` URI. The attestations are attached to the images
+in both registries, so the `--bundle-from-oci` flag fetches them from the registry rather than from GitHub. Below is an
+example verifying the Authelia v{{% latest %}} container image on both registries:
+
+```shell
+V={{% latest %}}
+gh attestation verify oci://docker.io/authelia/authelia:${V} --bundle-from-oci --repo authelia/authelia
+gh attestation verify oci://ghcr.io/authelia/authelia:${V} --bundle-from-oci --repo authelia/authelia
+```
+
+The `gh` CLI must be able to authenticate with the registry it reads from, for example with `docker login`.
+
+The tag refers to the multi-platform image index. The image for each platform is also attested individually, but only
+through GitHub, so verifying it by digest requires running `gh auth login` and omitting the `--bundle-from-oci` flag:
+
+```shell
+gh attestation verify oci://ghcr.io/authelia/authelia@sha256:<digest> --repo authelia/authelia
+```
+
+The `--signer-workflow` and `--source-ref refs/tags/v${V}` flags described above apply to container images as well.
+
+#### Older Releases
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+The process above applies to releases after v4.39.28. Releases v4.39.10 to v4.39.28 were signed by the
+[slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator), with the exception of v4.39.21 which
+has no provenance.
+{{< /callout >}}
+
+Releases signed by the generator can be verified with the same command and two additional flags. The `--signer-repo`
+flag is required because the provenance was signed by the generator's repository, and the `--predicate-type` flag
+because it uses SLSA provenance v0.2:
+
+```shell
+gh attestation verify authelia-${V}-linux-amd64.tar.gz --bundle authelia.intoto.jsonl --repo authelia/authelia \
+  --signer-repo slsa-framework/slsa-github-generator --predicate-type https://slsa.dev/provenance/v0.2
+```
+
+Example output for v4.39.28:
 
 ```text
-Verified build using builder "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.1.0" at commit 5d90442e07cc695c61036ac1a539c0b942ebc71d
-Verifying artifact authelia-v{{% latest %}}-freebsd-amd64.tar.gz: PASSED
+Loaded digest sha256:e8ad9ff965cbf3b93138945e13cb4b7874c999c254772b2bb77952863177699c for file://authelia-v4.39.28-linux-amd64.tar.gz
+Loaded 1 attestations from authelia.intoto.jsonl
 
-Verified build using builder "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.1.0" at commit 5d90442e07cc695c61036ac1a539c0b942ebc71d
-Verifying artifact authelia-v{{% latest %}}-linux-amd64-musl.tar.gz: PASSED
+The following policy criteria will be enforced:
+- Predicate type must match:................ https://slsa.dev/provenance/v0.2
+- Source Repository Owner URI must match:... https://github.com/authelia
+- Source Repository URI must match:......... https://github.com/authelia/authelia
+- Subject Alternative Name must match regex: (?i)^https://github\.com/slsa-framework/slsa-github-generator/
+- OIDC Issuer must match:................... https://token.actions.githubusercontent.com
 
-Verified build using builder "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.1.0" at commit 5d90442e07cc695c61036ac1a539c0b942ebc71d
-Verifying artifact authelia-v{{% latest %}}-linux-amd64.tar.gz: PASSED
+✓ Verification succeeded!
 
-PASSED: SLSA verification passed
+The following 1 attestation matched the policy criteria
+
+- Attestation #1
+  - Build repo:..... authelia/authelia
+  - Build workflow:. .github/workflows/slsa.yml@refs/tags/v4.39.28
+  - Signer repo:.... slsa-framework/slsa-github-generator
+  - Signer workflow: .github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a
 ```
 
 [SLSA Provenance]: https://slsa.dev/

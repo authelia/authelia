@@ -58,6 +58,7 @@ identity_providers:
       - client_id: '1password'
         client_name: '1Password'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

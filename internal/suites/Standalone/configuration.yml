@@ -18,7 +18,7 @@ server:
       verbose: true
       providers:
         - 'storage'
-        - 'session'
+        - 'cache'
         - 'user'
       cache: '0'
     authz:
@@ -30,6 +30,9 @@ server:
         implementation: 'ExtAuthz'
       forward-auth:
         implementation: 'ForwardAuth'
+      forward-auth-no-redirect:
+        implementation: 'ForwardAuth'
+        disable_access_denied_redirect: true
       forward-auth-attributes:
         implementation: 'ForwardAuth'
         headers:

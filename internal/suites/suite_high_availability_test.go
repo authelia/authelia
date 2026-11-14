@@ -344,12 +344,12 @@ var expectedAuthorizations = map[string](map[string]bool){
 func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 	verifyUserIsAuthorized := func(ctx context.Context, t *testing.T, targetURL string, authorized bool) {
 		s.doVisit(t, s.Context(ctx), targetURL)
-		s.verifyURLIs(t, s.Context(ctx), targetURL)
 
 		if authorized {
+			s.verifyURLIs(t, s.Context(ctx), targetURL)
 			s.verifySecretAuthorized(t, s.Context(ctx))
 		} else {
-			s.verifyBodyContains(t, s.Context(ctx), "403 Forbidden")
+			s.verifyIsDeny(t, s.Context(ctx))
 		}
 	}
 
@@ -407,8 +407,8 @@ func DoGetWithAuth(t *testing.T, username, password string) int {
 
 func (s *HighAvailabilitySuite) TestBasicAuth() {
 	s.Assert().Equal(fasthttp.StatusOK, DoGetWithAuth(s.T(), "john", "password"))
-	s.Assert().Equal(fasthttp.StatusFound, DoGetWithAuth(s.T(), "john", "bad-password"))
-	s.Assert().Equal(fasthttp.StatusFound, DoGetWithAuth(s.T(), "dontexist", "password"))
+	s.Assert().Equal(fasthttp.StatusUnauthorized, DoGetWithAuth(s.T(), "john", "bad-password"))
+	s.Assert().Equal(fasthttp.StatusUnauthorized, DoGetWithAuth(s.T(), "dontexist", "password"))
 }
 
 func (s *HighAvailabilitySuite) Test1FAScenario() {

@@ -51,6 +51,7 @@ func (p *Providers) HealthChecks(clk clock.Provider, names []string) (checks []H
 	return checks
 }
 
+//nolint:gocyclo
 func (p *Providers) healthCheckProvider(name string) (provider model.StartupCheck, err error) {
 	switch name {
 	case schema.ProviderNameStorage:
@@ -59,12 +60,12 @@ func (p *Providers) healthCheckProvider(name string) (provider model.StartupChec
 		}
 
 		return p.StorageProvider, nil
-	case schema.ProviderNameSession:
-		if p.SessionProvider == nil {
+	case schema.ProviderNameCache:
+		if p.Cache == nil {
 			return nil, ErrHealthCheckProviderNotConfigured
 		}
 
-		return p.SessionProvider, nil
+		return p.Cache, nil
 	case schema.ProviderNameUser:
 		if p.UserProvider == nil {
 			return nil, ErrHealthCheckProviderNotConfigured
@@ -89,6 +90,12 @@ func (p *Providers) healthCheckProvider(name string) (provider model.StartupChec
 		}
 
 		return p.UserAttributeResolver, nil
+	case schema.ProviderNameDuo:
+		if p.Duo == nil {
+			return nil, ErrHealthCheckProviderNotConfigured
+		}
+
+		return p.Duo, nil
 	case schema.ProviderNameWebAuthnMetaData:
 		if p.MetaDataService == nil {
 			return nil, ErrHealthCheckProviderNotConfigured

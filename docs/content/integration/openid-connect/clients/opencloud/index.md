@@ -62,6 +62,7 @@ identity_providers:
       - client_id: 'opencloud'
         client_name: 'openCloud'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -86,6 +87,7 @@ identity_providers:
       - client_id: 'opencloud-android'
         client_name: 'openCloud'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -108,6 +110,7 @@ identity_providers:
       - client_id: 'opencloud-desktop'
         client_name: 'openCloud'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -131,6 +134,7 @@ identity_providers:
       - client_id: 'opencloud-ios'
         client_name: 'openCloud'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

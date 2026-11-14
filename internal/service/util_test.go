@@ -7,7 +7,10 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -23,6 +26,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/systemd"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -412,4 +416,127 @@ func (s *testServiceProvider) Shutdown() {
 	s.stop.Do(func() {
 		close(s.quit)
 	})
+}
+
+func TestIsConfigFileWatcherEnabled(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    string
+		set      bool
+		expected bool
+	}{
+		{"ShouldNotBeEnabledWhenUnset", "", false, false},
+		{"ShouldNotBeEnabledWhenEmpty", "", true, false},
+		{"ShouldNotBeEnabledWhenInvalid", "abc", true, false},
+		{"ShouldNotBeEnabledWhenFalse", "false", true, false},
+		{"ShouldNotBeEnabledWhenZero", "0", true, false},
+		{"ShouldBeEnabledWhenTrue", "true", true, true},
+		{"ShouldBeEnabledWhenOne", "1", true, true},
+		{"ShouldBeEnabledWhenUpperCase", "TRUE", true, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv(environmentVariableConfigReload, tc.value)
+
+			if !tc.set {
+				require.NoError(t, os.Unsetenv(environmentVariableConfigReload))
+			}
+
+			assert.Equal(t, tc.expected, IsConfigFileWatcherEnabled())
+		})
+	}
+}
+
+func TestNewFileWatcherPaths(t *testing.T) {
+	dir := t.TempDir()
+
+	file := filepath.Join(dir, "configuration.yml")
+
+	require.NoError(t, os.WriteFile(file, []byte("theme: 'dark'"), 0600))
+
+	t.Run("ShouldHandleFile", func(t *testing.T) {
+		paths, err := newFileWatcherPaths([]string{file})
+		require.NoError(t, err)
+		require.Len(t, paths, 1)
+
+		assert.Equal(t, "configuration.yml", paths[0].File)
+		assert.Equal(t, dir, paths[0].Directory)
+		assert.False(t, paths[0].Info.IsDir())
+	})
+
+	t.Run("ShouldHandleDirectory", func(t *testing.T) {
+		paths, err := newFileWatcherPaths([]string{dir})
+		require.NoError(t, err)
+		require.Len(t, paths, 1)
+
+		assert.Equal(t, "", paths[0].File)
+		assert.Equal(t, dir, paths[0].Directory)
+		assert.True(t, paths[0].Info.IsDir())
+	})
+
+	t.Run("ShouldHandleMultiplePaths", func(t *testing.T) {
+		paths, err := newFileWatcherPaths([]string{file, dir})
+		require.NoError(t, err)
+		assert.Len(t, paths, 2)
+	})
+
+	t.Run("ShouldErrorOnEmptyPath", func(t *testing.T) {
+		paths, err := newFileWatcherPaths([]string{""})
+		assert.EqualError(t, err, "path must be specified")
+		assert.Nil(t, paths)
+	})
+
+	t.Run("ShouldErrorOnMissingPath", func(t *testing.T) {
+		paths, err := newFileWatcherPaths([]string{filepath.Join(dir, "missing.yml")})
+		assert.EqualError(t, err, fmt.Sprintf("error stating file '%s': file does not exist", filepath.Join(dir, "missing.yml")))
+		assert.Nil(t, paths)
+	})
+}
+
+func TestRunShouldReturnApplicationReloadWhenAServiceRequestsIt(t *testing.T) {
+	testCases := []struct {
+		name     string
+		err      error
+		expected error
+		states   []string
+	}{
+		{"ShouldReturnApplicationReload", ErrApplicationReload, ErrApplicationReload, []string{systemd.StateReady, systemd.StateReloading}},
+		{"ShouldReturnApplicationReloadWhenWrapped", fmt.Errorf("service failed: %w", ErrApplicationReload), ErrApplicationReload, []string{systemd.StateReady, systemd.StateReloading}},
+		{"ShouldNotReturnOtherErrors", errors.New("a bad thing happened"), nil, []string{systemd.StateReady, systemd.StateStopping}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			path, received := newTestNotifySocket(t)
+
+			t.Setenv(systemd.EnvNotifySocket, path)
+
+			ctx, cancel := newTestServiceCtx()
+
+			defer cancel()
+
+			testWithProviderMocks(t, ctx, nil, nil)
+
+			service := newTestServiceProvider("reload")
+			service.err = tc.err
+
+			err := Run(ctx, testProvisionerOf(service))
+
+			if tc.expected == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, tc.expected)
+			}
+
+			for _, state := range tc.states {
+				select {
+				case actual := <-received:
+					assert.True(t, strings.HasPrefix(actual, state), "expected '%s' to have the prefix '%s'", actual, state)
+				case <-time.After(time.Second * 5):
+					t.Fatalf("timeout waiting for the '%s' notification", state)
+				}
+			}
+		})
+	}
 }

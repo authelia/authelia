@@ -72,6 +72,7 @@ identity_providers:
         client_name: 'Claper'
         client_secret: '$plaintext$insecure_secret'
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pushed_authorization_requests: true
         require_pkce: true

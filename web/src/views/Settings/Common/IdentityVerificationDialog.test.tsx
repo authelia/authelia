@@ -4,6 +4,7 @@
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { RateLimitedError } from "@services/RateLimit";
 import {
     deleteUserSessionElevation,
     generateUserSessionElevation,
@@ -16,7 +17,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-i18next", () => ({
-    useTranslation: () => ({ t: (key: string) => key }),
+    useTranslation: () => ({
+        t: (key: string, options?: { count?: number }) =>
+            options?.count === undefined ? key : `${key}:${options.count}`,
+    }),
 }));
 
 vi.mock("@contexts/NotificationsContext", () => ({
@@ -86,8 +90,8 @@ function clickCancel() {
 beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
-    generateMock.mockResolvedValue({ delete_id: "delete-id" } as any);
-    verifyMock.mockResolvedValue(true as any);
+    generateMock.mockResolvedValue({ delete_id: "delete-id" });
+    verifyMock.mockResolvedValue(true);
     deleteMock.mockResolvedValue(undefined as any);
 });
 
@@ -157,6 +161,19 @@ describe("code generation failures", () => {
         await waitFor(() =>
             expect(mocks.createErrorNotification).toHaveBeenCalledWith(
                 "Failed to generate the One-Time Code. Please try again later.",
+            ),
+        );
+        expect(handleClosed).toHaveBeenCalledWith(false);
+    });
+
+    it("notifies and closes when generation is rate limited", async () => {
+        generateMock.mockRejectedValue(new RateLimitedError(30));
+
+        const { handleClosed } = renderDialog();
+
+        await waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
+                "You have made too many requests, try again in {{count}} seconds:30",
             ),
         );
         expect(handleClosed).toHaveBeenCalledWith(false);
@@ -239,7 +256,7 @@ describe("verification", () => {
     });
 
     it("notifies, clears and refocuses the field on a wrong code", async () => {
-        verifyMock.mockResolvedValue(false as any);
+        verifyMock.mockResolvedValue(false);
 
         renderDialog();
         await screen.findByText("Verify");
@@ -255,6 +272,44 @@ describe("verification", () => {
         await waitFor(() => expect(getCode()).toHaveValue(""));
         expect(getCode()).toHaveAttribute("aria-invalid", "true");
         expect(getCode()).toHaveFocus();
+    });
+
+    it("notifies and disables the controls until the retry period elapses when rate limited", async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+
+        try {
+            verifyMock.mockRejectedValue(new RateLimitedError(30));
+
+            const { handleClosed } = renderDialog();
+            await screen.findByText("Verify");
+
+            fireEvent.change(getCode(), { target: { value: "123456" } });
+            clickVerify();
+
+            await waitFor(() =>
+                expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
+            );
+            expect(getCode()).toHaveValue("");
+            expect(getCode()).toBeDisabled();
+            expect(document.getElementById("dialog-verify")).toBeDisabled();
+            expect(handleClosed).not.toHaveBeenCalled();
+
+            act(() => {
+                document.getElementById("dialog-cancel")!.focus();
+            });
+
+            expect(getCode()).not.toHaveFocus();
+
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(30000);
+            });
+
+            await waitFor(() => expect(getCode()).not.toBeDisabled());
+            expect(getCode()).toHaveFocus();
+            expect(document.getElementById("dialog-verify")).not.toBeDisabled();
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("notifies, clears and re-enables the field when verification fails", async () => {
@@ -277,7 +332,7 @@ describe("verification", () => {
     });
 
     it("clears the error once the user retypes", async () => {
-        verifyMock.mockResolvedValue(false as any);
+        verifyMock.mockResolvedValue(false);
 
         renderDialog();
         await screen.findByText("Verify");

@@ -8,6 +8,7 @@ import (
 	"math"
 	"net"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -594,7 +595,7 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 
 			if tc.config != nil {
 				mock.Ctx.Configuration.Session.Cookies = tc.config.Cookies
-				mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+				mock.ResetSessionProvider()
 			}
 
 			for k, v := range tc.headers {
@@ -776,6 +777,14 @@ func TestAutheliaCtx_SetSpecialRedirect(t *testing.T) {
 			"https://example.com/",
 			`<a href="https://example.com/">401 Unauthorized</a>`,
 			401,
+		},
+		{
+			"ShouldHandleForbidden",
+			"https://example.com",
+			403,
+			"https://example.com/",
+			`<a href="https://example.com/">403 Forbidden</a>`,
+			403,
 		},
 	}
 
@@ -1029,7 +1038,10 @@ func TestAutheliaCtx_GetCookieDomainSessionProvider(t *testing.T) {
 			providers := middlewares.NewProvidersBasic()
 
 			if tc.config != nil {
-				providers.SessionProvider = session.NewProvider(*tc.config, nil)
+				var err error
+
+				providers.Session, err = mocks.NewSessionProvider(&schema.Configuration{Session: *tc.config}, providers.Clock, providers.Random)
+				require.NoError(t, err)
 			}
 
 			middleware := middlewares.NewAutheliaCtx(ctx, config, providers)
@@ -1046,6 +1058,86 @@ func TestAutheliaCtx_GetCookieDomainSessionProvider(t *testing.T) {
 	}
 }
 
+func TestAutheliaCtx_GetSessionProviderByTargetURI(t *testing.T) {
+	testCases := []struct {
+		name   string
+		target string
+		config *schema.Session
+		err    string
+	}{
+		{
+			"ShouldHandleUnmatchedDomain",
+			"https://app.notexample.com",
+			&schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain: "example.com",
+					},
+				},
+			},
+			"unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://app.notexample.com'",
+		},
+		{
+			"ShouldHandleUnconfiguredProvider",
+			"https://app.example.com",
+			nil,
+			"unable to retrieve session cookie domain provider: no session provider is configured",
+		},
+		{
+			"ShouldHandleConfiguredProvider",
+			"https://app.example.com",
+			&schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain: "example.com",
+					},
+				},
+			},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := &fasthttp.RequestCtx{}
+			config := schema.Configuration{}
+			providers := middlewares.NewProvidersBasic()
+
+			if tc.config != nil {
+				var err error
+
+				providers.Session, err = mocks.NewSessionProvider(&schema.Configuration{Session: *tc.config}, providers.Clock, providers.Random)
+				require.NoError(t, err)
+
+				config.Session = *tc.config
+			} else {
+				config.Session = schema.Session{
+					Cookies: []schema.SessionCookie{
+						{
+							Domain: "example.com",
+						},
+					},
+				}
+			}
+
+			middleware := middlewares.NewAutheliaCtx(ctx, config, providers)
+
+			target, err := url.ParseRequestURI(tc.target)
+			require.NoError(t, err)
+
+			actual, err := middleware.GetSessionProviderByTargetURI(target)
+
+			if len(tc.err) == 0 {
+				assert.NoError(t, err)
+				assert.NotNil(t, actual)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, actual)
+			}
+		})
+	}
+}
+
 func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -1055,14 +1147,16 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	providers := middlewares.NewProvidersBasic()
 
 	providers.UserProvider = mocks.NewMockUserProvider(ctrl)
-	providers.SessionProvider = session.NewProvider(configuration.Session, nil)
+	sessionProvider, err := mocks.NewSessionProvider(&configuration, providers.Clock, providers.Random)
+	require.NoError(t, err)
+
+	providers.Session = sessionProvider
 
 	nextCalled := false
 
 	middleware := middlewares.NewBridgeBuilder(configuration, providers).Build()
 
 	middleware(func(actx *middlewares.AutheliaCtx) {
-		// Authelia context wraps the request.
 		assert.Equal(t, ctx, actx.RequestCtx)
 
 		nextCalled = true
@@ -1119,6 +1213,41 @@ func TestShouldDetectNonXHR(t *testing.T) {
 	defer mock.Close()
 
 	assert.False(t, mock.Ctx.IsXHR())
+}
+
+func TestAutheliaCtx_IsNavigation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		headers  map[string]string
+		expected bool
+	}{
+		{"ShouldDetectNavigateDocument", map[string]string{"Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "document"}, true},
+		{"ShouldDetectNavigateWithoutDest", map[string]string{"Sec-Fetch-Mode": "navigate"}, true},
+		{"ShouldDetectNavigateOverXHRAndAccept", map[string]string{"Sec-Fetch-Mode": "navigate", "Accept": "application/json", "X-Requested-With": "XMLHttpRequest"}, true},
+		{"ShouldNotDetectNavigateIFrame", map[string]string{"Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "iframe"}, false},
+		{"ShouldNotDetectNavigateFrame", map[string]string{"Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "frame"}, false},
+		{"ShouldNotDetectCORS", map[string]string{"Sec-Fetch-Mode": "cors", "Accept": "*/*"}, false},
+		{"ShouldNotDetectNoCORS", map[string]string{"Sec-Fetch-Mode": "no-cors", "Accept": "text/html"}, false},
+		{"ShouldNotDetectWebSocket", map[string]string{"Sec-Fetch-Mode": "websocket"}, false},
+		{"ShouldFallbackToAcceptHTML", map[string]string{"Accept": "text/html"}, true},
+		{"ShouldFallbackToAcceptWildcard", map[string]string{"Accept": "*/*"}, true},
+		{"ShouldFallbackToXHR", map[string]string{"Accept": "text/html", "X-Requested-With": "XMLHttpRequest"}, false},
+		{"ShouldFallbackToAcceptJSON", map[string]string{"Accept": "application/json"}, false},
+		{"ShouldFallbackToNoHeaders", nil, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			for k, v := range tc.headers {
+				mock.Ctx.Request.Header.Set(k, v)
+			}
+
+			assert.Equal(t, tc.expected, mock.Ctx.IsNavigation())
+		})
+	}
 }
 
 func TestAutheliaCtxMisc(t *testing.T) {
@@ -1241,6 +1370,72 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 			"example.com",
 			false,
 		},
+		{
+			"ShouldReturnDomainSubdomainDifferentCase",
+			&url.URL{Scheme: "https", Host: "Auth.Example.COM"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"example.com",
+			true,
+		},
+		{
+			"ShouldReturnDomainIPv4",
+			&url.URL{Scheme: "https", Host: "192.168.1.1:9091"},
+			[]schema.SessionCookie{
+				{
+					Domain: "192.168.1.1",
+				},
+			},
+			"192.168.1.1",
+			true,
+		},
+		{
+			"ShouldReturnEmptyInvalidHostnameUnderscore",
+			&url.URL{Scheme: "https", Host: "foo_bar.example.com"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"",
+			false,
+		},
+		{
+			"ShouldReturnEmptyInvalidHostnameEmptyLabel",
+			&url.URL{Scheme: "https", Host: "auth..example.com"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"",
+			false,
+		},
+		{
+			"ShouldReturnEmptyInvalidHostnameLeadingHyphen",
+			&url.URL{Scheme: "https", Host: "-auth.example.com"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"",
+			false,
+		},
+		{
+			"ShouldReturnEmptyInvalidHostnameLabelTooLong",
+			&url.URL{Scheme: "https", Host: strings.Repeat("a", 64) + ".example.com"},
+			[]schema.SessionCookie{
+				{
+					Domain: "example.com",
+				},
+			},
+			"",
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1305,7 +1500,7 @@ func TestAutheliaCtx_Session(t *testing.T) {
 
 	assert.EqualError(t, ctx.RegenerateSession(), "unable to regenerate user session: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
 	assert.EqualError(t, ctx.DestroySession(), "unable to destroy user session: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
-	assert.EqualError(t, ctx.SaveSession(session.UserSession{}), "unable to save user session: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
+	assert.EqualError(t, ctx.SaveSession(&session.UserSession{}), "unable to save user session: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
 
 	s, err := ctx.GetSession()
 	assert.Equal(t, session.UserSession{}, s)

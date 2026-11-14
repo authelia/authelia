@@ -15,6 +15,20 @@ func handleAuthzUnauthorizedCommon(ctx AuthzContext, authn *Authn, redirectionUR
 	doAuthzRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
 }
 
+func handleAuthzForbiddenCommon(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
+	if redirectionURL == nil || authn.Type != AuthnTypeCookie || !ctx.IsNavigation() {
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	doAuthzForbiddenRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
+}
+
+func handleAuthzForbiddenStandard(ctx AuthzContext, _ *Authn, _ *url.URL) {
+	ctx.ReplyForbidden()
+}
+
 func handleAuthzPortalURLLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
 	if portalURL, err = handleAuthzPortalURLFromQueryLegacy(ctx); err != nil || portalURL != nil {
 		return portalURL, err
@@ -45,7 +59,7 @@ func handleAuthzAuthorizedStandard(ctx AuthzContext, headers []AuthzHeader, auth
 	resolver, updated := ctx.GetProviderUserAttributeResolver(), ctx.GetClock().Now()
 
 	for _, header := range headers {
-		object, ok := resolver.Resolve(header.Attribute, authn.Details, updated)
+		object, ok := resolver.Resolve(header.Attribute, &authn.Details, updated)
 		if !ok {
 			ctx.SetResponseHeaderValue(header.Key, "")
 

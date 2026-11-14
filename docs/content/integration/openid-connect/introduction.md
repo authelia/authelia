@@ -111,19 +111,25 @@ Authelia supports three key audience issuance modes.
    (at the token endpoint). This allows for opaque and arbitrary audiences.
 2. Using the `resource` parameter in the authorization request (at the authorization endpoint) or in the access request
    (at the token endpoint). This allows for audiences that are absolute URIs, which allows for special matching
-   behaviors.
-3. Implicitly granting all audiences when neither the `audience` or `resource` parameters are used (by policy only).
+   behaviors. These are compared with the
+   [resource](../../configuration/identity-providers/openid-connect/clients.md#resource) values of the client and not
+   the [audience](../../configuration/identity-providers/openid-connect/clients.md#audience) values.
+3. Implicitly granting all audiences or all resources when neither the `audience` or `resource` parameters are used (by
+   policy only). See the
+   [requested_audience_mode](../../configuration/identity-providers/openid-connect/clients.md#requested_audience_mode)
+   and [requested_resource_mode](../../configuration/identity-providers/openid-connect/clients.md#requested_resource_mode)
+   client options.
 
 Both the `audience` and `resource` parameters can be used together. The matching strategy for the `audience` parameter
 only allows for exact matches.
 
 The matching strategy for the `resource` parameter however allows for exact matches and also
-allows for special matching behaviors, specifically they can request a suffix of an allowed audience if the client is
-allowed to request the `https://example.com/example` they can request the `https://example.com/example` or
-`https://example.com/example/admin` audience using the resource parameter, but cannot request the
-`https://example.com/notexample/admin/users` audience.
+allows for special matching behaviors, specifically they can request a path beneath an allowed resource if the client
+is allowed to request the `https://example.com/example` they can request the `https://example.com/example` or
+`https://example.com/example/admin` resource using the resource parameter, but cannot request the
+`https://example.com/notexample/admin/users` resource.
 
-Please note that this only applies to absolute URLs and both the `audience` allowed to the client and the `resource`
+Please note that this only applies to absolute URLs and both the `resource` allowed to the client and the `resource`
 requested by the client must be absolute URLs, otherwise they are skipped and will eventually result in an error.
 
 ### Access Token Audience vs ID Token Audience
@@ -146,6 +152,9 @@ separate and Authelia treats them in this manner. An [ID Token] will always and 
 identifier of the specific client that requested it and will lack the audiences granted to the [Access Token] as per the
 specification, the [Access Token] will always have the granted audience of the Authorization Flow or last successful
 Refresh Flow, and the [Refresh Token] will always have the granted audience of the Authorization Flow.
+
+An [Access Token] using the [JWT Profile for OAuth 2.0 Access Tokens] must have an audience. When a flow grants no
+audience and no resource, the issuer is used as the audience of this token.
 
 You may adjust the derivation of the [ID Token] audience by configuring a
 [claims policy](../../configuration/identity-providers/openid-connect/provider.md#claims_policies) and changing the
@@ -205,6 +214,12 @@ parameter):
 _In addition to the algorithms listed above, the value `none` is often accepted to indicate no signing and/or encryption
 should take place._
 
+When the `dir` algorithm is used the content encryption key is derived from the `client_secret` using the hash the
+content encryption algorithm requires as per
+[OpenID Connect Core 1.0 Section 10.2](https://openid.net/specs/openid-connect-core-1_0.html#Encryption), i.e.
+SHA-256 for `A128CBC-HS256`, `A128GCM`, `A192GCM`, and `A256GCM`, SHA-384 for `A192CBC-HS384`, and SHA-512 for
+`A256CBC-HS512`.
+
 ### Request Object
 
 Authelia accepts request objects with the following signature and content encryption algorithms (i.e. the `alg`
@@ -247,6 +262,11 @@ parameter):
 | PBES2-HS256+A128KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS384+A192KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS512+A256KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
+
+A request object encrypted with a `PBES2` algorithm is only accepted when that algorithm is the
+[request_object_encryption_alg](../../configuration/identity-providers/openid-connect/clients.md#request_object_encryption_alg)
+registered for the client, and its `p2c` (PBKDF2 iteration count) header must be between 200,000 and 600,000
+inclusive. Requests using another `p2c` value are rejected before any key is derived.
 
 A signed request object must have a `typ` header value of `oauth-authz-req+jwt` or `JWT`. An unsigned request object,
 which is only accepted from a client registered with a [request_object_signing_alg] of `none`, may omit the `typ`
@@ -491,7 +511,28 @@ The following information covers some security topics some users may wish to be 
 offer hardening to the flows in differing ways (i.e. some validate the authorization server and some validate the
 client / Relying Party) which are not essential but recommended.
 
-#### Pushed Authorization Requests Endpoint
+### Explicit JWT Typing
+
+Where relevant Authelia enforces validation of the JWT type header (`typ`) against the appropriate explicit value. This
+is done to prevent JWTs from being used in a way which is not intended. Specifically the following types are accepted by
+default:
+
+|             Use Case              |     JWT Type Header Value      |  Empty Permitted   |                                          Reference                                          |
+| :-------------------------------: | :----------------------------: | :----------------: | :-----------------------------------------------------------------------------------------: |
+|         Client Assertion          |  `client-authentication+jwt`   |         No         | [RFC7523bis](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4) |
+| JWT-Secured Authorization Request | `oauth-authz-req+jwt` or `JWT` | Only when unsigned |              [RFC9101](https://www.rfc-editor.org/rfc/rfc9101.html#section-4)               |
+
+For JWT-Secured Authorization Requests the generic `JWT` type is also accepted, and the header may be absent entirely
+when the client is registered with a [request_object_signing_alg] of `none`, as [OpenID Connect 1.0] does not require
+the header on a Request Object and an unsigned object carries no signature to be confused with another JWT.
+
+For Client Assertions the explicit type is required by default. Clients which cannot send it, most notably those using
+a JWT library which defaults to the generic `JWT` type, can be individually granted an exception via the
+[client_assertion_jwt_validation_header_allow_types] and
+[client_assertion_jwt_validation_header_allow_empty_type] client options. Both are insecure and log a warning at
+startup.
+
+### Pushed Authorization Requests Endpoint
 
 The [Pushed Authorization Requests] endpoint is discussed in depth in [RFC9126] as well as in the
 [OAuth 2.0 Pushed Authorization Requests](https://oauth.net/2/pushed-authorization-requests/) documentation.
@@ -525,7 +566,7 @@ The advantages of this approach are as follows:
    2. Clients using the public [Client Type] and utilizing [Proof Key for Code Exchange](#proof-key-for-code-exchange) never
       transmit the verifier over any front-channel making even the `plain` challenge method relatively secure.
 
-#### OAuth 2.0 Authorization Server Issuer Identification
+### OAuth 2.0 Authorization Server Issuer Identification
 
 The [RFC9207: OAuth 2.0 Authorization Server Issuer Identification] implementation allows Relying Parties to validate
 the Authorization Response was returned by the expected issuer by ensuring the response includes the exact issuer in
@@ -533,7 +574,7 @@ the response. This is an additional check in addition to the `state` parameter.
 
 This validation is not supported by many clients, but it should be utilized if it is supported.
 
-#### JWT Secured Authorization Response Mode (JARM)
+### JWT Secured Authorization Response Mode (JARM)
 
 The [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)] implementation similar to
 [OAuth 2.0 Authorization Server Issuer Identification](#oauth-20-authorization-server-issuer-identification) allows a
@@ -542,7 +583,7 @@ was not tampered with or forged as it is cryptographically signed.
 
 This response mode is not supported by many clients, but we recommend it is used if it's supported.
 
-#### Proof Key for Code Exchange
+### Proof Key for Code Exchange
 
 The [Proof Key for Code Exchange] mechanism is discussed in depth in [RFC7636] as well as in the
 [OAuth 2.0 Proof Key for Code Exchange](https://oauth.net/2/pkce/) documentation.
@@ -628,6 +669,11 @@ either implemented, have our eye on, or are refusing to implement.
 |                                       Authentication Method Reference Values                                       |   Complete    |                                           [RFC8176]                                           |
 | Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants |     None      |                                           [RFC7522]                                           |
 |                                                JSON Web Token (JWT)                                                |   Complete    |                                           [RFC7519]                                           |
+|                                              JSON Web Signature (JWS)                                              |   Complete    |                                           [RFC7515]                                           |
+|                                             JSON Web Encryption (JWE)                                              |   Complete    |                                           [RFC7516]                                           |
+|                                                 JSON Web Key (JWK)                                                 |   Complete    |                                           [RFC7517]                                           |
+|                                       JSON Web Token Best Current Practices                                        |   Complete    |                                           [RFC8725]                                           |
+|                                  JSON Web Token Best Current Practices (Revised)                                   |   Complete    |        [RFC8725bis](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-rfc8725bis)        |
 
 ## Footnotes
 
@@ -740,6 +786,13 @@ either implemented, have our eye on, or are refusing to implement.
 [RFC7591]: https://datatracker.ietf.org/doc/html/rfc7591
 [RFC7592]: https://datatracker.ietf.org/doc/html/rfc7592
 [RFC8705]: https://datatracker.ietf.org/doc/html/rfc8705
+[request_object_signing_alg]: ../../configuration/identity-providers/openid-connect/clients.md#request_object_signing_alg
+[client_assertion_jwt_validation_header_allow_types]: ../../configuration/identity-providers/openid-connect/clients.md#client_assertion_jwt_validation_header_allow_types
+[client_assertion_jwt_validation_header_allow_empty_type]: ../../configuration/identity-providers/openid-connect/clients.md#client_assertion_jwt_validation_header_allow_empty_type
+[RFC7515]: https://datatracker.ietf.org/doc/html/rfc7515
+[RFC7516]: https://datatracker.ietf.org/doc/html/rfc7516
+[RFC7517]: https://datatracker.ietf.org/doc/html/rfc7517
+[RFC8725]: https://datatracker.ietf.org/doc/html/rfc8725
 [RFC6750]: https://datatracker.ietf.org/doc/html/rfc6750
 [RFC7521]: https://datatracker.ietf.org/doc/html/rfc7521
 [RFC9101]: https://datatracker.ietf.org/doc/html/rfc9101
