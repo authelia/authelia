@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"sort"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -124,6 +125,7 @@ func validateAuthenticationBackendExternalIdentityProviderOpenIDConnect(config *
 	}
 
 	validateAuthenticationBackendExternalIdentityProviderPKCE(config, validator)
+	validateAuthenticationBackendExternalIdentityProviderAuthorizationParameters(config, validator)
 	validateAuthenticationBackendExternalIdentityProviderAMR(config, validator)
 	validateAuthenticationBackendExternalIdentityProviderEndpoints(config, validator)
 
@@ -186,6 +188,33 @@ func validateAuthenticationBackendExternalIdentityProviderPKCE(config *schema.Au
 		break
 	default:
 		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderPKCE, config.ID, config.PKCE.ChallengeMethod))
+	}
+}
+
+func validateAuthenticationBackendExternalIdentityProviderAuthorizationParameters(config *schema.AuthenticationBackendExternalIdentityProvider, validator *schema.StructValidator) {
+	names := make([]string, 0, len(config.AuthorizationParameters))
+
+	for name := range config.AuthorizationParameters {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	for _, name := range names {
+		switch {
+		case !reExternalIdentityAuthParamName.MatchString(name):
+			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderParamName, config.ID, name, reExternalIdentityAuthParamName.String()))
+		case utils.IsStringInSlice(name, reservedExternalIdentityAuthParams):
+			validator.Push(fmt.Errorf(errFmtExternalIdentityProviderParamReserved, config.ID, name))
+		}
+	}
+
+	if _, ok := config.AuthorizationParameters["prompt"]; !ok {
+		if config.AuthorizationParameters == nil {
+			config.AuthorizationParameters = map[string]string{}
+		}
+
+		config.AuthorizationParameters["prompt"] = "login"
 	}
 }
 

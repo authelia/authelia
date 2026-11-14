@@ -249,3 +249,46 @@ func TestProviderAuthorizationRequestResponseMode(t *testing.T) {
 		})
 	}
 }
+
+func TestProviderAuthorizationRequestParameters(t *testing.T) {
+	testCases := []struct {
+		Name       string
+		Parameters map[string]string
+		Expected   url.Values
+		Absent     []string
+	}{
+		{Name: "ShouldOmitParametersWhenNoneAreConfigured", Absent: []string{"prompt"}},
+		{Name: "ShouldIncludePromptLogin", Parameters: map[string]string{"prompt": "login"}, Expected: url.Values{"prompt": []string{"login"}}},
+		{Name: "ShouldOmitParametersWithAnEmptyValue", Parameters: map[string]string{"prompt": "", "hd": "example.com"}, Expected: url.Values{"hd": []string{"example.com"}}, Absent: []string{"prompt"}},
+		{Name: "ShouldIncludeEachParameter", Parameters: map[string]string{"prompt": "login select_account", "domain_hint": "example.com", "max_age": "0"}, Expected: url.Values{"prompt": []string{"login select_account"}, "domain_hint": []string{"example.com"}, "max_age": []string{"0"}}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			provider := &OpenIDConnectProvider{
+				id: "example", name: "Example", issuer: "https://op.example.com", clientID: "client",
+				scopes: []string{"openid"}, algIDToken: "RS256", parameters: tc.Parameters,
+				endpointAuthorization: "https://op.example.com/authorize",
+			}
+
+			request, err := provider.AuthorizationRequest(context.Background(), &random.Cryptographical{}, AuthorizationRequestOptions{RedirectURI: "https://auth.example.com/cb"})
+			require.NoError(t, err)
+
+			uri, err := url.Parse(request.URL)
+			require.NoError(t, err)
+
+			query := uri.Query()
+
+			for name, values := range tc.Expected {
+				assert.Equal(t, values, query[name])
+			}
+
+			for _, name := range tc.Absent {
+				assert.False(t, query.Has(name))
+			}
+
+			assert.Equal(t, "code", query.Get("response_type"))
+			assert.Equal(t, "client", query.Get("client_id"))
+		})
+	}
+}

@@ -62,6 +62,8 @@ authentication_backend:
           - 'profile'
           - 'email'
         response_mode: 'query'
+        authorization_parameters:
+          prompt: 'login'
         authorization_response_iss_parameter_supported: false
         require_pushed_authorization_requests: false
         token_endpoint_auth_method: 'client_secret_basic'
@@ -185,6 +187,38 @@ as a same-site `POST` the session cookie is sent with. This page requires JavaSc
 Neither response mode can be completed when the session cookie [same_site](../session/introduction.md#same_site) option
 is `strict`, as the session cookie is then not sent when the external provider returns the browser to Authelia.
 {{< /callout >}}
+
+### authorization_parameters
+
+{{< confkey type="dictionary(string)" default="prompt: login" required="no" >}}
+
+Additional parameters included in every authorization request sent to the external provider, where each key is the
+name of a parameter and each value is its value. This is how provider specific parameters such as `hd` for Google or
+`domain_hint` for Microsoft Entra ID are sent, as well as standard parameters such as `prompt`, `max_age`,
+`acr_values`, and `login_hint`. Parameters are sent with the authorization request itself, or with the
+[Pushed Authorization Request](#require_pushed_authorization_requests) when one is used.
+
+Parameter names must match the regular expression `^[A-Za-z0-9_-]+$`. The parameters Authelia sets itself cannot be
+configured, which are `client_assertion`, `client_assertion_type`, `client_id`, `client_secret`, `code_challenge`,
+`code_challenge_method`, `nonce`, `redirect_uri`, `request`, `request_uri`, `response_mode`, `response_type`, `scope`,
+`state`, and `ui_locales`. A parameter configured with an empty value is not sent.
+
+For `openid_connect` providers the `prompt` parameter is configured with the value `login` unless it is configured
+explicitly, which asks the external provider to authenticate the user again even when they already have a session with
+it. This ensures the person signing in to Authelia is the person who controls the external account at that moment,
+rather than whoever last signed in to the external provider in the same browser. To turn this off configure `prompt`
+with an empty value, and to request other behavior configure it with any value the external provider supports, for
+example `select_account` or `login consent`.
+
+```yaml {title="configuration.yml"}
+authentication_backend:
+  external_identity:
+    providers:
+      - id: 'google'
+        authorization_parameters:
+          prompt: ''
+          hd: '{{< sitevar name="domain" nojs="example.com" >}}'
+```
 
 ### authorization_response_iss_parameter_supported
 
@@ -552,8 +586,10 @@ must follow, Authelia discards it and has the user perform the flow again once t
    page.
 5. They sign in with their Authelia account.
 6. Once the authentication their policy requires is complete, the portal performs the flow again on their behalf. The
+   external provider asks them to authenticate again, as the authorization request includes `prompt=login` by default.
+   When the `prompt` [authorization parameter](#authorization_parameters) is configured with an empty value the
    external provider usually does not prompt a second time, because the session they established there in step 2 still
-   exists, so this is not normally visible to them.
+   exists.
 7. The proposal, now produced by a flow the signed in user performed, is shown on the _Linked Accounts_ page for them
    to accept or decline.
 

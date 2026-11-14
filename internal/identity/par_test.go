@@ -113,7 +113,7 @@ func TestProviderAuthorizationRequestPushed(t *testing.T) {
 				id: "example", name: "Example", issuer: "https://op.example.com", clientID: "client",
 				clientSecret: "secret", tokenEndpointAuthMethod: tc.Method, algIDToken: "RS256",
 				scopes: []string{"openid", "email"}, endpointAuthorization: "https://op.example.com/authorize",
-				parRequired: true, client: client,
+				parRequired: true, client: client, parameters: map[string]string{"prompt": "login", "hd": "example.com"},
 			}
 
 			if tc.Endpoint {
@@ -145,6 +145,8 @@ func TestProviderAuthorizationRequestPushed(t *testing.T) {
 			assert.Equal(t, "S256", form.Get("code_challenge_method"))
 			assert.NotEmpty(t, form.Get("code_challenge"))
 			assert.Equal(t, "fr", form.Get("ui_locales"))
+			assert.Equal(t, "login", form.Get("prompt"))
+			assert.Equal(t, "example.com", form.Get("hd"))
 		})
 	}
 }

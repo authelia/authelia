@@ -31,6 +31,7 @@ type OpenIDConnectProvider struct {
 	clientID     string
 	scopes       []string
 	responseMode string
+	parameters   map[string]string
 	amr          authenticationMethodsReferencePolicy
 
 	clientSecret            string
@@ -66,6 +67,7 @@ func newOpenIDConnectProvider(config *schema.AuthenticationBackendExternalIdenti
 		clientID:                config.ClientID,
 		scopes:                  config.Scopes,
 		responseMode:            config.ResponseMode,
+		parameters:              config.AuthorizationParameters,
 		amr:                     newAuthenticationMethodsReferencePolicy(config.AuthenticationMethodsReference),
 		clientSecret:            config.ClientSecret,
 		tokenEndpointAuthMethod: config.TokenEndpointAuthMethod,
@@ -174,6 +176,12 @@ func (p *OpenIDConnectProvider) AuthorizationRequest(ctx context.Context, rand r
 	}
 
 	var opts []oauth2.AuthCodeOption
+
+	for name, value := range p.parameters {
+		if value != "" {
+			opts = append(opts, oauth2.SetAuthURLParam(name, value))
+		}
+	}
 
 	if p.responseMode == ResponseModeFormPost {
 		opts = append(opts, oauth2.SetAuthURLParam("response_mode", ResponseModeFormPost))
