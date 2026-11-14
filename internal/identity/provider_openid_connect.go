@@ -95,7 +95,7 @@ func newOpenIDConnectProvider(config *schema.AuthenticationBackendExternalIdenti
 	if len(config.JSONWebKeys) != 0 {
 		provider.keys = &staticKeySet{jwks: oidc.NewJSONWebKeySetPublic(config.JSONWebKeys)}
 	} else {
-		provider.keys = oauthelia2.NewDefaultJWKSFetcherStrategy(oauthelia2.JWKSFetcherWithHTTPClient(client))
+		provider.keys = oauthelia2.NewDefaultJWKSFetcherStrategy(oauthelia2.JWKSFetcherWithHTTPClient(client), oauthelia2.JWKSFetcherWithRefreshInterval(0))
 	}
 
 	return provider

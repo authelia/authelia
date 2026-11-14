@@ -623,3 +623,67 @@ func newTestCertPool(server *httptest.Server) *x509.CertPool {
 
 	return pool
 }
+
+func TestProviderShouldResolveEachRotatedKey(t *testing.T) {
+	keys := make([]*rsa.PrivateKey, 3)
+
+	for i := range keys {
+		var err error
+
+		keys[i], err = rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+	}
+
+	var (
+		server  *httptest.Server
+		current int
+	)
+
+	server = httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set(headerContentType, mimeApplicationJSON)
+
+		if r.URL.Path == "/jwks.json" {
+			_ = json.NewEncoder(rw).Encode(&jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{KeyID: "kid" + strconv.Itoa(current), Key: keys[current].Public(), Algorithm: "RS256", Use: "sig"}}})
+
+			return
+		}
+
+		_, _ = rw.Write([]byte(`{"issuer":"` + server.URL + `","authorization_endpoint":"` + server.URL + `/authorize","token_endpoint":"` + server.URL + `/token","jwks_uri":"` + server.URL + `/jwks.json"}`))
+	}))
+
+	defer server.Close()
+
+	provider, ok := getOpenIDConnectProvider(NewProviders(&schema.AuthenticationBackendExternalIdentity{
+		Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+			{
+				ID: "example", Name: "Example", Issuer: server.URL,
+				ClientID: "client", ClientSecret: "secret",
+				IDTokenSignedResponseAlg: "RS256",
+				PKCE:                     schema.AuthenticationBackendExternalIdentityProviderPKCE{ChallengeMethod: "S256"},
+			},
+		},
+	}, newTestCertPool(server)))
+
+	require.True(t, ok)
+
+	now := time.Now()
+
+	for current = range keys {
+		token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+			"iss": server.URL, "sub": "abc123", "aud": []string{"client"},
+			"exp": now.Add(time.Hour).Unix(), "iat": now.Unix(), "nonce": "the-nonce",
+		})
+
+		token.Header["kid"] = "kid" + strconv.Itoa(current)
+
+		raw, err := token.SignedString(keys[current])
+		require.NoError(t, err)
+
+		claims, err := provider.ValidateIDToken(context.Background(), raw, "the-nonce", now)
+
+		require.NoError(t, err)
+		assert.Equal(t, "abc123", claims.Subject)
+
+		provider.keys.(interface{ WaitForCache() }).WaitForCache()
+	}
+}
