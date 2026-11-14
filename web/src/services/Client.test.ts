@@ -4,8 +4,9 @@
 
 import axios from "axios";
 
-import { hasServiceError, toData, toDataRateLimited } from "@services/Api";
+import { hasServiceError, toData } from "@services/Api";
 import * as Client from "@services/Client";
+import { ServiceError } from "@services/ServiceError";
 
 vi.mock("axios");
 vi.mock("@services/Api");
@@ -30,26 +31,6 @@ it("handles successful post with optional response", async () => {
     expect(result).toBe("test");
 });
 
-it("handles successful rate limited post", async () => {
-    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
-    (axios.post as any).mockResolvedValue(mockRes);
-    (hasServiceError as any).mockReturnValue({ errored: false });
-    (toDataRateLimited as any).mockReturnValue({ data: "test", limited: false, retryAfter: 0 });
-
-    const result = await Client.PostWithOptionalResponseRateLimited("/path", {});
-    expect(result).toEqual({ data: "test", limited: false, retryAfter: 0 });
-});
-
-it("handles rate limited post", async () => {
-    const mockRes = { data: { status: "KO" }, headers: { "retry-after": "30" }, status: 429 };
-    (axios.post as any).mockResolvedValue(mockRes);
-    (hasServiceError as any).mockReturnValue({ errored: true });
-    (toDataRateLimited as any).mockReturnValue({ limited: true, retryAfter: 30 });
-
-    const result = await Client.PostWithOptionalResponseRateLimited("/path", {});
-    expect(result).toEqual({ limited: true, retryAfter: 30 });
-});
-
 it("throws on post error", async () => {
     const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios.post as any).mockResolvedValue(mockRes);
@@ -60,14 +41,17 @@ it("throws on post error", async () => {
     );
 });
 
-it("throws on rate limited post error", async () => {
-    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
+it("throws a service error carrying the status and code", async () => {
+    const mockRes = { data: { code: "password_policy", message: "error", status: "KO" }, status: 200 };
     (axios.post as any).mockResolvedValue(mockRes);
-    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
+    (hasServiceError as any).mockReturnValue({ code: "password_policy", errored: true, message: "error" });
 
-    await expect(Client.PostWithOptionalResponseRateLimited("/path", {})).rejects.toThrow(
-        "Failed POST to /path. Code: 400. Message: error",
-    );
+    const err = await Client.PostWithOptionalResponse("/path", {}).catch((e) => e);
+
+    expect(err).toBeInstanceOf(ServiceError);
+    expect(err.message).toBe("Failed POST to /path. Code: 200. Message: error");
+    expect(err.status).toBe(200);
+    expect(err.code).toBe("password_policy");
 });
 
 it("throws on post with no data", async () => {
@@ -193,6 +177,22 @@ it("throws on get with optional data error", async () => {
     await expect(Client.GetWithOptionalData("/path")).rejects.toThrow("Failed GET from /path. Code: 400.");
 });
 
+it.each([
+    ["Get", Client.Get],
+    ["GetWithOptionalData", Client.GetWithOptionalData],
+])("throws a service error carrying the status and code on %s", async (_, fn) => {
+    const mockRes = { data: { code: "totp_configuration_not_found", message: "error", status: "KO" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ code: "totp_configuration_not_found", errored: true, message: "error" });
+
+    const err = await fn("/path").catch((e) => e);
+
+    expect(err).toBeInstanceOf(ServiceError);
+    expect(err.message).toBe("Failed GET from /path. Code: 200.");
+    expect(err.status).toBe(200);
+    expect(err.code).toBe("totp_configuration_not_found");
+});
+
 it("throws on get with optional data returning undefined", async () => {
     const mockRes = { data: { status: "OK" }, status: 200 };
     (axios.get as any).mockResolvedValue(mockRes);
@@ -211,7 +211,6 @@ it("forwards the abort signal to axios on every helper", async () => {
     (axios.delete as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
-    (toDataRateLimited as any).mockReturnValue({ data: "test", limited: false, retryAfter: 0 });
 
     await Client.Get("/path", signal);
     expect(axios.get).toHaveBeenLastCalledWith("/path", { signal });
@@ -224,9 +223,6 @@ it("forwards the abort signal to axios on every helper", async () => {
 
     await Client.PostWithOptionalResponse("/path", { body: 1 }, signal);
     expect(axios.post).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });
-
-    await Client.PostWithOptionalResponseRateLimited("/path", { body: 1 }, signal);
-    expect(axios.post).toHaveBeenLastCalledWith("/path", { body: 1 }, expect.objectContaining({ signal }));
 
     await Client.Put("/path", { body: 1 }, signal);
     expect(axios.put).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });

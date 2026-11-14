@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Get, PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client";
+import { Get, PostWithOptionalResponse } from "@services/Client";
 import {
     completeDuoDeviceSelectionProcess,
     completePushNotificationSignIn,
@@ -17,13 +17,12 @@ vi.mock("@services/Api", () => ({
 vi.mock("@services/Client", () => ({
     Get: vi.fn(),
     PostWithOptionalResponse: vi.fn(),
-    PostWithOptionalResponseRateLimited: vi.fn(),
 }));
 
 it("completes push notification sign in", async () => {
-    (PostWithOptionalResponseRateLimited as any).mockResolvedValue("response");
+    (PostWithOptionalResponse as any).mockResolvedValue("response");
     const result = await completePushNotificationSignIn("url", "flow", "flowtype", "sub", "code");
-    expect(PostWithOptionalResponseRateLimited).toHaveBeenCalledWith(
+    expect(PostWithOptionalResponse).toHaveBeenCalledWith(
         "/duo/signin",
         {
             flow: "flowtype",
@@ -69,12 +68,12 @@ it("gets preferred duo device", async () => {
 it("forwards the abort signal when provided", async () => {
     const { getPreferredDuoDevice } = await import("@services/PushNotification");
     const signal = new AbortController().signal;
-    (PostWithOptionalResponseRateLimited as any).mockResolvedValue("response");
+    (PostWithOptionalResponse as any).mockResolvedValue("response");
     (PostWithOptionalResponse as any).mockResolvedValue("response");
     (Get as any).mockResolvedValue("response");
 
     await completePushNotificationSignIn("url", "flow", "flowtype", "sub", "code", signal);
-    expect(PostWithOptionalResponseRateLimited).toHaveBeenLastCalledWith("/duo/signin", expect.any(Object), signal);
+    expect(PostWithOptionalResponse).toHaveBeenLastCalledWith("/duo/signin", expect.any(Object), signal);
 
     await initiateDuoDeviceSelectionProcess(signal);
     expect(Get).toHaveBeenLastCalledWith("/duo/devices", signal);

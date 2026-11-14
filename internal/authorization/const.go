@@ -22,6 +22,11 @@ const (
 )
 
 const (
+	// MethodMaxLength is the maximum length of a request method.
+	MethodMaxLength = 32
+)
+
+const (
 	prefixUser         = "user:"
 	prefixGroup        = "group:"
 	prefixOAuth2Client = "oauth2:client:"

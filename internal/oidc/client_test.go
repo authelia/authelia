@@ -14,8 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -57,11 +58,13 @@ func TestNewClient(t *testing.T) {
 		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
 		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
 		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
+		ApplicationType:     oidc.ApplicationTypeNative,
 	}
 
 	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 	assert.Equal(t, myclient, client.GetID())
+	assert.True(t, oauthelia2.IsNativeClient(client))
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, oauthelia2.ResponseModeFormPost, client.GetResponseModes()[0])
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
@@ -511,6 +514,62 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				oidc.FormParameterState:        []string{"123"},
 				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
 				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  true,
+			},
+		},
+		{
+			"ShouldHandleNoPreConfigurationForPublicClientWithoutAssuredIdentity",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				Public:        true,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+				oidc.FormParameterRedirectURI:  []string{"http://127.0.0.1:43210/callback"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
+			},
+		},
+		{
+			"ShouldHandlePreConfigurationForPublicClientWithAssuredIdentity",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				Public:        true,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+				oidc.FormParameterRedirectURI:  []string{"https://app.example.com/callback"},
 			},
 			time.Unix(19000000000, 0),
 			false,
@@ -1026,6 +1085,36 @@ func TestNewClientPAR(t *testing.T) {
 			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 			assert.Equal(t, tc.expected, client.GetRequirePushedAuthorizationRequests())
+		})
+	}
+}
+
+func TestNewClientRequireSignedRequestObject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.IdentityProvidersOpenIDConnectClient
+		expected bool
+	}{
+		{
+			"ShouldNotRequireSignedRequestObject",
+			schema.IdentityProvidersOpenIDConnectClient{},
+			false,
+		},
+		{
+			"ShouldRequireSignedRequestObject",
+			schema.IdentityProvidersOpenIDConnectClient{RequireSignedRequestObject: true},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			registered, ok := client.(*oidc.RegisteredClient)
+			require.True(t, ok)
+
+			assert.Equal(t, tc.expected, registered.GetRequireSignedRequestObject())
 		})
 	}
 }
@@ -1882,6 +1971,128 @@ func TestGetPushedAuthorizeContextLifespan(t *testing.T) {
 	}
 }
 
+func TestRegisteredClient_GetRefreshTokenMaximumLifespan(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.RegisteredClient
+		expected time.Duration
+	}{
+		{
+			name:     "ShouldReturnZeroByDefault",
+			have:     &oidc.RegisteredClient{},
+			expected: time.Duration(0),
+		},
+		{
+			name:     "ShouldReturnConfiguredValue",
+			have:     &oidc.RegisteredClient{Lifespans: schema.IdentityProvidersOpenIDConnectLifespan{RefreshTokenMaximum: time.Hour}},
+			expected: time.Hour,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetRefreshTokenMaximumLifespan())
+		})
+	}
+}
+
+func TestRegisteredClient_GetApplicationType(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.RegisteredClient
+		expected string
+		native   bool
+	}{
+		{
+			name:     "ShouldReturnEmptyByDefault",
+			have:     &oidc.RegisteredClient{},
+			expected: "",
+			native:   false,
+		},
+		{
+			name:     "ShouldReturnWeb",
+			have:     &oidc.RegisteredClient{ApplicationType: oidc.ApplicationTypeWeb},
+			expected: oidc.ApplicationTypeWeb,
+			native:   false,
+		},
+		{
+			name:     "ShouldReturnNative",
+			have:     &oidc.RegisteredClient{ApplicationType: oidc.ApplicationTypeNative},
+			expected: oidc.ApplicationTypeNative,
+			native:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetApplicationType())
+			assert.Equal(t, tc.native, oauthelia2.IsNativeClient(tc.have))
+		})
+	}
+}
+
+func TestRegisteredClientRefreshTokenRotation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.RegisteredClient
+		expected bool
+		disabled bool
+	}{
+		{
+			name:     "ShouldRotateByDefault",
+			have:     &oidc.RegisteredClient{ID: "app"},
+			expected: false,
+			disabled: false,
+		},
+		{
+			name:     "ShouldNotRotateConfidentialClient",
+			have:     &oidc.RegisteredClient{ID: "app", DisableRefreshTokenRotation: true},
+			expected: true,
+			disabled: true,
+		},
+		{
+			name:     "ShouldRotatePublicClient",
+			have:     &oidc.RegisteredClient{ID: "app", Public: true, DisableRefreshTokenRotation: true},
+			expected: true,
+			disabled: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetDisableRefreshTokenRotation())
+
+			config := &oidc.Config{}
+
+			request := &oauthelia2.Request{Client: tc.have, Session: oidc.NewSession()}
+
+			assert.Equal(t, tc.disabled, oauthelia2.IsRefreshTokenRotationDisabledForRequest(context.Background(), config, request))
+		})
+	}
+}
+
+func TestNewClientDisableRefreshTokenRotation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     bool
+		expected bool
+	}{
+		{"ShouldMapEnabled", true, true},
+		{"ShouldMapDisabled", false, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{ID: "app", DisableRefreshTokenRotation: tc.have}, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			rotation, ok := client.(oauthelia2.RefreshTokenRotationClient)
+
+			require.True(t, ok)
+			assert.Equal(t, tc.expected, rotation.GetDisableRefreshTokenRotation())
+		})
+	}
+}
+
 func TestGetRevokeRefreshTokensExplicit(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -2021,6 +2232,101 @@ func TestGetAllowMultipleAuthenticationMethods(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c := &oidc.RegisteredClient{AllowMultipleAuthenticationMethods: tc.allow}
 			assert.Equal(t, tc.allow, c.GetAllowMultipleAuthenticationMethods())
+		})
+	}
+}
+
+func TestGetClientAssertionJWTValidationHeaderAllowEmptyType(t *testing.T) {
+	testCases := []struct {
+		name  string
+		allow bool
+	}{
+		{
+			name:  "ShouldReturnTrueWhenAllowed",
+			allow: true,
+		},
+		{
+			name:  "ShouldReturnFalseWhenNotAllowed",
+			allow: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClientAssertionJWTValidationHeaderAllowEmptyType: tc.allow}
+			assert.Equal(t, tc.allow, c.GetClientAssertionJWTValidationHeaderAllowEmptyType())
+		})
+	}
+}
+
+func TestGetClientAssertionJWTValidationHeaderAllowTypes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected []string
+	}{
+		{
+			name:     "ShouldReturnExplicitTypeWhenUnconfigured",
+			have:     nil,
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication},
+		},
+		{
+			name:     "ShouldReturnExplicitTypeWhenEmpty",
+			have:     []string{},
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication},
+		},
+		{
+			name:     "ShouldReturnConfiguredTypes",
+			have:     []string{jwt.JSONWebTokenTypeClientAuthentication, jwt.JSONWebTokenTypeJWT},
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication, jwt.JSONWebTokenTypeJWT},
+		},
+		{
+			name:     "ShouldReturnConfiguredTypesWhenOnlyGeneric",
+			have:     []string{jwt.JSONWebTokenTypeJWT},
+			expected: []string{jwt.JSONWebTokenTypeJWT},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClientAssertionJWTValidationHeaderAllowTypes: tc.have}
+			assert.Equal(t, tc.expected, c.GetClientAssertionJWTValidationHeaderAllowTypes())
+		})
+	}
+}
+
+func TestGetIntrospectionPermitted(t *testing.T) {
+	testCases := []struct {
+		name              string
+		have              []string
+		expectedPermitted bool
+		expectedAudience  []string
+	}{
+		{
+			name:              "ShouldNotPermitWhenUnconfigured",
+			have:              nil,
+			expectedPermitted: false,
+			expectedAudience:  nil,
+		},
+		{
+			name:              "ShouldNotPermitWhenEmpty",
+			have:              []string{},
+			expectedPermitted: false,
+			expectedAudience:  []string{},
+		},
+		{
+			name:              "ShouldPermitWhenConfigured",
+			have:              []string{"https://api.example.com", "api"},
+			expectedPermitted: true,
+			expectedAudience:  []string{"https://api.example.com", "api"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{IntrospectionAudience: tc.have}
+			assert.Equal(t, tc.expectedPermitted, c.GetIntrospectionPermitted())
+			assert.Equal(t, tc.expectedAudience, c.GetIntrospectionAudience())
 		})
 	}
 }

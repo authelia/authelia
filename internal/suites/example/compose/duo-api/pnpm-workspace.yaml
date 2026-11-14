@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2026 Authelia
-#
-# SPDX-License-Identifier: Apache-2.0
-
 overrides:
-  qs: 6.16.0
+  body-parser: 2.4.0
+  proxy-addr: 2.0.8
+  qs: 6.17.1

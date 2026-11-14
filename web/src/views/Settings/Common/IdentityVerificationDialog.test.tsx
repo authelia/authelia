@@ -4,6 +4,7 @@
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { RateLimitedError } from "@services/RateLimit";
 import {
     deleteUserSessionElevation,
     generateUserSessionElevation,
@@ -16,7 +17,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-i18next", () => ({
-    useTranslation: () => ({ t: (key: string) => key }),
+    useTranslation: () => ({
+        t: (key: string, options?: { count?: number }) =>
+            options?.count === undefined ? key : `${key}:${options.count}`,
+    }),
 }));
 
 vi.mock("@contexts/NotificationsContext", () => ({
@@ -86,8 +90,8 @@ function clickCancel() {
 beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
-    generateMock.mockResolvedValue({ delete_id: "delete-id" } as any);
-    verifyMock.mockResolvedValue(true as any);
+    generateMock.mockResolvedValue({ delete_id: "delete-id" });
+    verifyMock.mockResolvedValue(true);
     deleteMock.mockResolvedValue(undefined as any);
 });
 
@@ -157,6 +161,19 @@ describe("code generation failures", () => {
         await waitFor(() =>
             expect(mocks.createErrorNotification).toHaveBeenCalledWith(
                 "Failed to generate the One-Time Code. Please try again later.",
+            ),
+        );
+        expect(handleClosed).toHaveBeenCalledWith(false);
+    });
+
+    it("notifies and closes when generation is rate limited", async () => {
+        generateMock.mockRejectedValue(new RateLimitedError(30));
+
+        const { handleClosed } = renderDialog();
+
+        await waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
+                "You have made too many requests, try again in {{count}} seconds:30",
             ),
         );
         expect(handleClosed).toHaveBeenCalledWith(false);
@@ -239,7 +256,7 @@ describe("verification", () => {
     });
 
     it("notifies, clears and refocuses the field on a wrong code", async () => {
-        verifyMock.mockResolvedValue(false as any);
+        verifyMock.mockResolvedValue(false);
 
         renderDialog();
         await screen.findByText("Verify");
@@ -257,8 +274,65 @@ describe("verification", () => {
         expect(getCode()).toHaveFocus();
     });
 
+    it("notifies and disables the controls until the retry period elapses when rate limited", async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+
+        try {
+            verifyMock.mockRejectedValue(new RateLimitedError(30));
+
+            const { handleClosed } = renderDialog();
+            await screen.findByText("Verify");
+
+            fireEvent.change(getCode(), { target: { value: "123456" } });
+            clickVerify();
+
+            await waitFor(() =>
+                expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
+            );
+            expect(getCode()).toHaveValue("");
+            expect(getCode()).toBeDisabled();
+            expect(document.getElementById("dialog-verify")).toBeDisabled();
+            expect(handleClosed).not.toHaveBeenCalled();
+
+            act(() => {
+                document.getElementById("dialog-cancel")!.focus();
+            });
+
+            expect(getCode()).not.toHaveFocus();
+
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(30000);
+            });
+
+            await waitFor(() => expect(getCode()).not.toBeDisabled());
+            expect(getCode()).toHaveFocus();
+            expect(document.getElementById("dialog-verify")).not.toBeDisabled();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("notifies, clears and re-enables the field when verification fails", async () => {
+        verifyMock.mockRejectedValue(new Error("Network Error"));
+
+        renderDialog();
+        await screen.findByText("Verify");
+
+        fireEvent.change(getCode(), { target: { value: "123456" } });
+        clickVerify();
+
+        await waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
+                "The One-Time Code either doesn't match the one generated or an unknown error occurred",
+            ),
+        );
+        await waitFor(() => expect(getCode()).toHaveValue(""));
+        expect(getCode()).toBeEnabled();
+        expect(document.getElementById("dialog-verify")).toBeEnabled();
+    });
+
     it("clears the error once the user retypes", async () => {
-        verifyMock.mockResolvedValue(false as any);
+        verifyMock.mockResolvedValue(false);
 
         renderDialog();
         await screen.findByText("Verify");
@@ -355,6 +429,51 @@ describe("dismissal", () => {
         fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
 
         await waitFor(() => expect(handleClosed).toHaveBeenCalledWith(false));
+    });
+
+    it("ignores a verification that succeeds after Escape is pressed", async () => {
+        vi.useFakeTimers();
+
+        let resolve: (value: unknown) => void = () => {};
+        verifyMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { handleClosed } = renderDialog();
+        await vi.waitFor(() => expect(screen.getByText("Verify")).toBeInTheDocument());
+
+        fireEvent.change(getCode(), { target: { value: "123456" } });
+        clickVerify();
+        await vi.waitFor(() => expect(verifyMock).toHaveBeenCalledWith("123456"));
+
+        fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+        await vi.waitFor(() => expect(handleClosed).toHaveBeenCalledWith(false));
+
+        await act(async () => {
+            resolve(true);
+            await vi.advanceTimersByTimeAsync(750);
+        });
+
+        expect(handleClosed).toHaveBeenCalledTimes(1);
+    });
+
+    it("ignores a verification that fails after Escape is pressed", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        verifyMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { handleClosed } = renderDialog();
+        await screen.findByText("Verify");
+
+        fireEvent.change(getCode(), { target: { value: "123456" } });
+        clickVerify();
+        await waitFor(() => expect(verifyMock).toHaveBeenCalledWith("123456"));
+
+        fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+        await waitFor(() => expect(handleClosed).toHaveBeenCalledWith(false));
+
+        await act(async () => {
+            resolve(false);
+        });
+
+        expect(mocks.createErrorNotification).not.toHaveBeenCalled();
     });
 
     it("logs when there is no delete code to invalidate", async () => {

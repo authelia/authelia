@@ -355,12 +355,22 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 		{
 			name: "ShouldReturnErrSaveOAuth2BlacklistedJTI",
 			setup: func(db *mocks.MockSQLXDB) {
-				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig", gomock.Any()).Return(nil, errors.New("boom"))
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "client", "sig", gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.SaveOAuth2BlacklistedJTI(context.Background(), model.OAuth2BlacklistedJTI{Signature: "sig", ExpiresAt: time.Now()})
+				return p.SaveOAuth2BlacklistedJTI(context.Background(), model.OAuth2BlacklistedJTI{ClientID: "client", Signature: "sig", ExpiresAt: time.Now()})
 			},
-			expectErr: "error inserting oauth2 blacklisted JTI with signature 'sig': boom",
+			expectErr: "error inserting oauth2 blacklisted JTI with signature 'sig' for client 'client': boom",
+		},
+		{
+			name: "ShouldReturnErrSaveOAuth2RequestReplay",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), model.OAuth2RequestReplayTypePKCEChallenge, "client", "sig", gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.SaveOAuth2RequestReplay(context.Background(), model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client", Signature: "sig", ExpiresAt: time.Now()})
+			},
+			expectErr: "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client': boom",
 		},
 		{
 			name: "ShouldReturnErrAppendAuthenticationLog",
@@ -786,13 +796,13 @@ func TestSQLProviderLoadErrors(t *testing.T) {
 		{
 			name: "ShouldReturnErrLoadOAuth2BlacklistedJTI",
 			setup: func(db *mocks.MockSQLXDB) {
-				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "sig").Return(errors.New("boom"))
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "client", "sig").Return(errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				_, err := p.LoadOAuth2BlacklistedJTI(context.Background(), "sig")
+				_, err := p.LoadOAuth2BlacklistedJTI(context.Background(), "client", "sig")
 				return err
 			},
-			expectErr: "error selecting oauth2 blacklisted JTI with signature 'sig': boom",
+			expectErr: "error selecting oauth2 blacklisted JTI with signature 'sig' for client 'client': boom",
 		},
 		{
 			name: "ShouldReturnErrLoadBannedUser",
@@ -2054,7 +2064,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otc", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM one_time_code;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "one_time_code").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(errors.New("commit failed"))
 			},
 			expectErr: "error committing transaction to rotate hmac key: commit failed",
@@ -2067,7 +2076,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otc", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM one_time_code;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "one_time_code").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(nil)
 			},
 		},
@@ -2129,7 +2137,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otp", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM totp_history;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "totp_history").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(errors.New("commit failed"))
 			},
 			expectErr: "error committing transaction to rotate hmac key: commit failed",
@@ -2142,7 +2149,38 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otp", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM totp_history;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "totp_history").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
+				tx.EXPECT().Commit().Return(nil)
+			},
+		},
+		{
+			name:     "ShouldErrSetCryptographyKeyForSessionAndRollback",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, errors.New("upsert failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error setting the hmac key: upsert failed",
+		},
+		{
+			name:     "ShouldErrTruncateForSessionAndRollback",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM session;").Return(nil, errors.New("delete failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error truncating sessions: error occurred truncating table 'session': error occurred performing the delete: delete failed",
+		},
+		{
+			name:     "ShouldSucceedForSession",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM session;").Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "session").Return(nil, nil)
 				tx.EXPECT().Commit().Return(nil)
 			},
 		},

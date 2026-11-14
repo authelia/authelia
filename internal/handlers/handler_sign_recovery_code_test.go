@@ -29,7 +29,7 @@ func newRecoveryCodeUserCtx(t *testing.T, mock *mocks.MockAutheliaCtx) {
 	us.Username = testUsername
 	us.AuthenticationMethodRefs.UsernameAndPassword = true
 	us.FirstFactorAuthnTimestamp = time.Now().Unix()
-	require.NoError(t, mock.Ctx.SaveSession(us))
+	require.NoError(t, mock.Ctx.SaveSession(&us))
 
 	mock.UserProviderMock.EXPECT().
 		GetDetails(testUsername).

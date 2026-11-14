@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Rocket.Chat"
-description: "Integrating Rocket.Chat with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Rocket.Chat with the Authelia OpenID Connect 1.0 Provider including configuration examples, tested versions, and available option info."
 summary: ""
 date: 2024-09-28T23:18:03+10:00
 draft: false
@@ -63,6 +63,7 @@ identity_providers:
         client_name: 'Rocket.Chat'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "MeshCentral"
-description: "Integrating MeshCentral with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating MeshCentral with the Authelia OpenID Connect 1.0 Provider with example configuration for single sign-on (SSO) and available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [MeshCentral]
   - [v1.1.44](https://github.com/Ylianst/MeshCentral/releases/tag/1.1.44)
 
@@ -63,6 +63,7 @@ identity_providers:
         client_name: 'MeshCentral'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://meshcentral.{{< sitevar name="domain" nojs="example.com" >}}/auth-oidc-callback'

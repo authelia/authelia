@@ -88,6 +88,16 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectCachedData: fmt.Sprintf(queryFmtSelectCachedData, tableCachedData),
 		sqlDeleteCachedData: fmt.Sprintf(queryFmtDeleteCachedData, tableCachedData),
 
+		sqlUpsertSession:                     fmt.Sprintf(queryFmtUpsertSession, tableSession),
+		sqlSelectSession:                     fmt.Sprintf(queryFmtSelectSession, tableSession),
+		sqlSelectSessionByPublicID:           fmt.Sprintf(queryFmtSelectSessionByPublicID, tableSession),
+		sqlSelectSessionSignatureByPublicID:  fmt.Sprintf(queryFmtSelectSessionSignatureByPublicID, tableSession),
+		sqlSelectSessionSignaturesByUsername: fmt.Sprintf(queryFmtSelectSessionSignaturesByUsername, tableSession),
+		sqlUpdateSessionData:                 fmt.Sprintf(queryFmtUpdateSessionData, tableSession),
+		sqlUpdateSessionSignature:            fmt.Sprintf(queryFmtUpdateSessionSignature, tableSession),
+		sqlUpdateSessionDestroyed:            fmt.Sprintf(queryFmtUpdateSessionDestroyed, tableSession),
+		sqlDeleteSessionExpired:              fmt.Sprintf(queryFmtDeleteSessionExpired, tableSession),
+
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
 		sqlRevokeIdentityVerification:  fmt.Sprintf(queryFmtRevokeIdentityVerification, tableIdentityVerification),
@@ -150,8 +160,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserOpaqueIdentifiers:           fmt.Sprintf(queryFmtSelectUserOpaqueIdentifiers, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
 
-		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
-		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
+		sqlInsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
+		sqlInsertOAuth2RequestReplay:  fmt.Sprintf(queryFmtInsertOAuth2RequestReplay, tableOAuth2RequestReplay),
+
+		sqlUpdateOAuth2RefreshTokenSessionRequest: fmt.Sprintf(queryFmtUpdateOAuth2RefreshTokenSessionRequest, tableOAuth2RefreshTokenSession),
+		sqlDecideOAuth2DeviceCodeSession:          fmt.Sprintf(queryFmtDecideOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlSelectOAuth2BlacklistedJTI:             fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
 		sqlUpdateOAuth2PARContext: fmt.Sprintf(queryFmtUpdateOAuth2PARContext, tableOAuth2PARContext),
@@ -204,7 +218,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlInsertOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2RefreshTokenSession, tableOAuth2RefreshTokenSession),
 		sqlSelectOAuth2RefreshTokenSessionAccessSignature: fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSessionAccessSignature, tableOAuth2RefreshTokenSession),
-		sqlSelectOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2RefreshTokenSession),
+		sqlSelectOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2SessionIncludingRevoked, tableOAuth2RefreshTokenSession),
 		sqlRevokeOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2RefreshTokenSession),
 		sqlRevokeOAuth2RefreshTokenSessionByRequestID:     fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2RefreshTokenSession),
 		sqlDeactivateOAuth2RefreshTokenSession:            fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2RefreshTokenSession),
@@ -263,6 +277,17 @@ type SQLProvider struct {
 	sqlUpsertCachedData string
 	sqlSelectCachedData string
 	sqlDeleteCachedData string
+
+	// Table: session.
+	sqlUpsertSession                     string
+	sqlSelectSession                     string
+	sqlSelectSessionByPublicID           string
+	sqlSelectSessionSignatureByPublicID  string
+	sqlSelectSessionSignaturesByUsername string
+	sqlUpdateSessionData                 string
+	sqlUpdateSessionSignature            string
+	sqlUpdateSessionDestroyed            string
+	sqlDeleteSessionExpired              string
 
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
@@ -414,8 +439,12 @@ type SQLProvider struct {
 	sqlDeactivateOAuth2RefreshTokenSession            string
 	sqlDeactivateOAuth2RefreshTokenSessionByRequestID string
 
-	sqlUpsertOAuth2BlacklistedJTI string
-	sqlSelectOAuth2BlacklistedJTI string
+	sqlInsertOAuth2BlacklistedJTI string
+	sqlInsertOAuth2RequestReplay  string
+
+	sqlUpdateOAuth2RefreshTokenSessionRequest string
+	sqlDecideOAuth2DeviceCodeSession          string
+	sqlSelectOAuth2BlacklistedJTI             string
 
 	// Utility.
 	sqlSelectExistingTables string
@@ -1349,6 +1378,31 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 	return nil
 }
 
+// UpdateOAuth2RefreshTokenSessionRequest replaces the request stored for the refresh token session with the given
+// signature, leaving its state and the access token signature it is paired with unchanged. It returns
+// ErrNoRowsAffected when no session exists for the signature.
+func (p *SQLProvider) UpdateOAuth2RefreshTokenSessionRequest(ctx context.Context, session model.OAuth2Session) (err error) {
+	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeRefreshToken.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
+		return fmt.Errorf("error encrypting oauth2 refresh_token session data for subject '%s' and request id '%s': %w", session.Subject.String, session.RequestID, err)
+	}
+
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2RefreshTokenSessionRequest,
+		session.RequestedScopes, session.GrantedScopes,
+		session.RequestedAudience, session.GrantedAudience,
+		session.RequestedResource, session.GrantedResource,
+		session.Form, session.Session, session.Signature); err != nil {
+		return fmt.Errorf("error updating oauth2 refresh_token session with signature '%s': %w", session.Signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error updating oauth2 refresh_token session with signature '%s': %w", session.Signature, err)
+	}
+
+	return nil
+}
+
 // LoadOAuth2RefreshTokenSessionAccessSignature loads the signature of the access token issued alongside the refresh
 // token with the given signature.
 func (p *SQLProvider) LoadOAuth2RefreshTokenSessionAccessSignature(ctx context.Context, signature string) (accessSignature string, err error) {
@@ -1391,7 +1445,9 @@ func (p *SQLProvider) RevokeOAuth2Session(ctx context.Context, sessionType OAuth
 	return nil
 }
 
-// RevokeOAuth2SessionByRequestID marks an OAuth2.0 session as revoked in the storage provider.
+// RevokeOAuth2SessionByRequestID marks every OAuth2.0 session of the given type for the request id as revoked in the
+// storage provider. A grant may have any number of sessions of a type, including none, so the number of affected rows
+// is not checked.
 func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error) {
 	var query string
 
@@ -1410,13 +1466,7 @@ func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 		return fmt.Errorf("error revoking oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType)
 	}
 
-	var result sql.Result
-
-	if result, err = p.conn(ctx).ExecContext(ctx, query, requestID); err != nil {
-		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
-	}
-
-	if err = checkSingleUpdateResult(result); err != nil {
+	if _, err = p.conn(ctx).ExecContext(ctx, query, requestID); err != nil {
 		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
 	}
 
@@ -1574,6 +1624,32 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 	return nil
 }
 
+// DecideOAuth2DeviceCodeSession updates the session data of an OAuth2.0 Device Code session in the storage provider
+// only while the stored session is undecided, i.e. it has the new or claimed status. It returns ErrNoRowsAffected when
+// no undecided session exists for the signature.
+func (p *SQLProvider) DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
+		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
+	}
+
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlDecideOAuth2DeviceCodeSession,
+		session.ChallengeID, session.ClientID, session.Status, session.Subject,
+		session.RequestedScopes, session.RequestedAudience, session.RequestedResource,
+		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
+		session.Form, session.Session, session.Signature,
+		model.OAuth2DeviceCodeStatusNew, model.OAuth2DeviceCodeStatusClaimed); err != nil {
+		return fmt.Errorf("error deciding oauth2 device code session with signature '%s': %w", session.Signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error deciding oauth2 device code session with signature '%s': %w", session.Signature, err)
+	}
+
+	return nil
+}
+
 // DeactivateOAuth2DeviceCodeSession deactivates an OAuth2.0 Device Code session in the storage provider given a signature.
 func (p *SQLProvider) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error) {
 	var result sql.Result
@@ -1689,24 +1765,48 @@ func (p *SQLProvider) UpdateOAuth2PushedAuthorizationSession(ctx context.Context
 	return nil
 }
 
-// SaveOAuth2BlacklistedJTI saves an OAuth2.0 blacklisted JTI to the storage provider.
+// SaveOAuth2BlacklistedJTI atomically saves an OAuth2.0 blacklisted JTI to the storage provider. It returns
+// ErrNoRowsAffected when the JTI is already known for the client and has not expired.
 func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error) {
-	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt); err != nil {
-		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2BlacklistedJTI, blacklistedJTI.ClientID, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt.UTC(), time.Now().UTC()); err != nil {
+		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s' for client '%s': %w", blacklistedJTI.Signature, blacklistedJTI.ClientID, err)
+	}
+
+	if err = checkInsertResult(result); err != nil {
+		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s' for client '%s': %w", blacklistedJTI.Signature, blacklistedJTI.ClientID, err)
 	}
 
 	return nil
 }
 
 // LoadOAuth2BlacklistedJTI loads an OAuth2.0 blacklisted JTI from the storage provider.
-func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error) {
+func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, clientID, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error) {
 	blacklistedJTI = &model.OAuth2BlacklistedJTI{}
 
-	if err = p.conn(ctx).GetContext(ctx, blacklistedJTI, p.sqlSelectOAuth2BlacklistedJTI, signature); err != nil {
-		return nil, fmt.Errorf("error selecting oauth2 blacklisted JTI with signature '%s': %w", signature, err)
+	if err = p.conn(ctx).GetContext(ctx, blacklistedJTI, p.sqlSelectOAuth2BlacklistedJTI, clientID, signature); err != nil {
+		return nil, fmt.Errorf("error selecting oauth2 blacklisted JTI with signature '%s' for client '%s': %w", signature, clientID, err)
 	}
 
 	return blacklistedJTI, nil
+}
+
+// SaveOAuth2RequestReplay atomically records a value of an authorization request which may only be used once by a
+// client, such as a PKCE code challenge or an OpenID Connect nonce. It returns ErrNoRowsAffected when the value is
+// already recorded for the client and has not expired.
+func (p *SQLProvider) SaveOAuth2RequestReplay(ctx context.Context, replay model.OAuth2RequestReplay) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2RequestReplay, replay.Type, replay.ClientID, replay.Signature, replay.ExpiresAt.UTC(), time.Now().UTC()); err != nil {
+		return fmt.Errorf("error inserting oauth2 request replay of type '%s' with signature '%s' for client '%s': %w", replay.Type, replay.Signature, replay.ClientID, err)
+	}
+
+	if err = checkInsertResult(result); err != nil {
+		return fmt.Errorf("error inserting oauth2 request replay of type '%s' with signature '%s' for client '%s': %w", replay.Type, replay.Signature, replay.ClientID, err)
+	}
+
+	return nil
 }
 
 // AppendAuthenticationLog saves an authentication attempt to the storage provider.

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"go.yaml.in/yaml/v4"
@@ -95,22 +96,34 @@ func oidcConformanceGenerate() (err error) {
 	return oidcConformanceWriteJSON(SuiteTmpPath(oidcConformancePlansFile), plans)
 }
 
-func oidcConformanceRevision() (commit, tag string) {
+func oidcConformanceRevision() (commit, branch, pullRequest, header string) {
 	commit, _, _ = utils.RunCommandAndReturnOutput("git rev-parse HEAD")
-	tag, _, _ = utils.RunCommandAndReturnOutput("git describe --tags --exact-match HEAD")
+	header, _, _ = utils.RunCommandAndReturnOutput("git log -1 --format=%s HEAD")
 
-	return commit, tag
+	if branch = os.Getenv("BUILDKITE_BRANCH"); branch == "" {
+		branch, _, _ = utils.RunCommandAndReturnOutput("git rev-parse --abbrev-ref HEAD")
+	}
+
+	return commit, branch, os.Getenv("BUILDKITE_PULL_REQUEST"), header
 }
 
-func oidcConformanceRelease(commit, tag string) string {
+func oidcConformanceRelease(commit, branch, pullRequest, header string) string {
 	switch {
 	case commit == "":
 		return ""
-	case tag == "":
-		return "commit " + commit
-	default:
-		return fmt.Sprintf("%s (commit %s)", tag, commit)
+	case branch == "master" && strings.HasPrefix(header, "release: "):
+		if fields := strings.Fields(strings.TrimPrefix(header, "release: ")); len(fields) != 0 {
+			return fmt.Sprintf("release v%s commit %s", strings.TrimPrefix(fields[0], "v"), commit)
+		}
+	case strings.Contains(branch, ":") && pullRequest != "" && pullRequest != "false":
+		return fmt.Sprintf("PR #%s commit %s", pullRequest, commit)
 	}
+
+	if branch == "" || branch == "HEAD" {
+		return "commit " + commit
+	}
+
+	return fmt.Sprintf("branch %s commit %s", branch, commit)
 }
 
 func oidcConformanceComposeFiles(mongodbHost string) (files []string) {
@@ -213,12 +226,16 @@ func init() {
 			return err
 		}
 
+		if err = waitUntilPortalServesRoot(oidcConformanceAutheliaURL); err != nil {
+			return err
+		}
+
 		client, err := NewConformanceClient(oidcConformanceBaseURL)
 		if err != nil {
 			return err
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
 		defer cancel()
 
 		if err = client.WaitReady(ctx); err != nil {
@@ -238,10 +255,10 @@ func init() {
 
 	GlobalRegistry.Register(oidcConformanceSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    2 * time.Minute,
+		SetUpTimeout:    3 * time.Minute,
 		OnSetupTimeout:  displayLogs,
 		OnError:         displayLogs,
-		TestTimeout:     8 * time.Minute,
+		TestTimeout:     10 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 1 * time.Minute,
 		Description:     "This suite runs the OpenID Foundation conformance suite against Authelia for every profile Authelia is OpenID Certified for.",

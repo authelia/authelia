@@ -45,6 +45,15 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		}
 	}
 
+	if config.Registration.CustomURL.String() != "" {
+		switch config.Registration.CustomURL.Scheme {
+		case schemeHTTP, schemeHTTPS:
+			break
+		default:
+			validator.Push(fmt.Errorf(errFmtAuthBackendRegistrationCustomURLScheme, config.Registration.CustomURL.String(), config.Registration.CustomURL.Scheme))
+		}
+	}
+
 	if config.LDAP != nil && config.File != nil {
 		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}

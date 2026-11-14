@@ -49,10 +49,27 @@ func NewOAuth2ConsentSessionWithForm(expires time.Time, subject uuid.UUID, r oau
 	return consent, nil
 }
 
-// NewOAuth2BlacklistedJTI creates a new OAuth2BlacklistedJTI.
-func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2BlacklistedJTI) {
+// NewOAuth2BlacklistedJTI creates a new OAuth2BlacklistedJTI for a JTI of a JWT issued by the given client.
+func NewOAuth2BlacklistedJTI(clientID, jti string, exp time.Time) (jtiBlacklist OAuth2BlacklistedJTI) {
 	return OAuth2BlacklistedJTI{
-		Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(jti))),
+		ClientID:  clientID,
+		Signature: NewOAuth2BlacklistedJTISignature(jti),
+		ExpiresAt: exp,
+	}
+}
+
+// NewOAuth2BlacklistedJTISignature returns the signature a JTI is stored with.
+func NewOAuth2BlacklistedJTISignature(jti string) (signature string) {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(jti)))
+}
+
+// NewOAuth2RequestReplay creates a new OAuth2RequestReplay which records that a client used a value of the given type
+// until the given expiry. The value is stored as a digest.
+func NewOAuth2RequestReplay(replayType OAuth2RequestReplayType, clientID, value string, exp time.Time) (replay OAuth2RequestReplay) {
+	return OAuth2RequestReplay{
+		Type:      replayType,
+		ClientID:  clientID,
+		Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(value))),
 		ExpiresAt: exp,
 	}
 }
@@ -471,8 +488,38 @@ func (s *OAuth2ConsentSession) MatchesRequester(requester oauthelia2.Requester, 
 // OAuth2BlacklistedJTI represents a blacklisted JTI used with OAuth2.0.
 type OAuth2BlacklistedJTI struct {
 	ID        int       `db:"id"`
+	ClientID  string    `db:"client_id"`
 	Signature string    `db:"signature"`
 	ExpiresAt time.Time `db:"expires_at"`
+}
+
+const (
+	// OAuth2DeviceCodeStatusNew is the stored status of a device code session no end user has acted on.
+	OAuth2DeviceCodeStatusNew = int(oauthelia2.DeviceAuthorizeStatusNew)
+
+	// OAuth2DeviceCodeStatusClaimed is the stored status of a device code session whose user code an end user has
+	// entered but not yet approved or denied.
+	OAuth2DeviceCodeStatusClaimed = int(oauthelia2.DeviceAuthorizeStatusClaimed)
+)
+
+// OAuth2RequestReplayType is the type of value an OAuth2RequestReplay records.
+type OAuth2RequestReplayType string
+
+const (
+	// OAuth2RequestReplayTypePKCEChallenge records a PKCE 'code_challenge'.
+	OAuth2RequestReplayTypePKCEChallenge OAuth2RequestReplayType = "pkce_challenge"
+
+	// OAuth2RequestReplayTypeOpenIDConnectNonce records an OpenID Connect 'nonce'.
+	OAuth2RequestReplayTypeOpenIDConnectNonce OAuth2RequestReplayType = "openid_connect_nonce"
+)
+
+// OAuth2RequestReplay represents a value of an authorization request a client may only use once until it expires.
+type OAuth2RequestReplay struct {
+	ID        int                     `db:"id"`
+	Type      OAuth2RequestReplayType `db:"type"`
+	ClientID  string                  `db:"client_id"`
+	Signature string                  `db:"signature"`
+	ExpiresAt time.Time               `db:"expires_at"`
 }
 
 // OAuth2Session represents a OAuth2.0 session.

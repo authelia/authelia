@@ -2,9 +2,9 @@ import { type ComponentProps } from "react";
 
 import { useRender } from "@base-ui/react/use-render";
 import { type VariantProps, cva } from "class-variance-authority";
+import { cn } from "cn";
 
 import { Separator } from "@components/UI/Separator";
-import { cn } from "@utils/Styles";
 
 function ItemGroup({ className, ...props }: ComponentProps<"div">) {
     return (

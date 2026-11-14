@@ -11,9 +11,12 @@ import (
 	"net/mail"
 	"net/url"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/singleflight"
 	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -29,6 +32,10 @@ type UserDetails struct {
 
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
 func (d *UserDetails) Addresses() (addresses []mail.Address) {
+	if d == nil {
+		return nil
+	}
+
 	if len(d.Emails) == 0 {
 		return nil
 	}
@@ -45,23 +52,51 @@ func (d *UserDetails) Addresses() (addresses []mail.Address) {
 	return addresses
 }
 
+// Address returns the first email as a [mail.Address] formatted with DisplayName as the Name attribute.
+func (d *UserDetails) Address() mail.Address {
+	if len(d.Emails) == 0 {
+		return mail.Address{}
+	}
+
+	return mail.Address{
+		Name:    d.DisplayName,
+		Address: d.Emails[0],
+	}
+}
+
 // GetUsername returns the username.
 func (d *UserDetails) GetUsername() (username string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Username
 }
 
 // GetGroups returns the groups.
 func (d *UserDetails) GetGroups() (groups []string) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Groups
 }
 
 // GetDisplayName returns the display name.
 func (d *UserDetails) GetDisplayName() (name string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.DisplayName
 }
 
 // GetEmails returns the emails.
 func (d *UserDetails) GetEmails() (emails []string) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Emails
 }
 
@@ -87,58 +122,147 @@ type UserDetailsExtended struct {
 	*UserDetails
 }
 
+// Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
+func (d *UserDetailsExtended) Addresses() (addresses []mail.Address) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.Addresses()
+}
+
+// GetUsername returns the username.
+func (d *UserDetailsExtended) GetUsername() (username string) {
+	if d == nil {
+		return ""
+	}
+
+	return d.UserDetails.GetUsername()
+}
+
+// GetGroups returns the groups.
+func (d *UserDetailsExtended) GetGroups() (groups []string) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.GetGroups()
+}
+
+// GetDisplayName returns the display name.
+func (d *UserDetailsExtended) GetDisplayName() (name string) {
+	if d == nil {
+		return ""
+	}
+
+	return d.UserDetails.GetDisplayName()
+}
+
+// GetEmails returns the emails.
+func (d *UserDetailsExtended) GetEmails() (emails []string) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.GetEmails()
+}
+
 // GetGivenName returns the given name.
 func (d *UserDetailsExtended) GetGivenName() (given string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.GivenName
 }
 
 // GetFamilyName returns the family name.
 func (d *UserDetailsExtended) GetFamilyName() (family string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.FamilyName
 }
 
 // GetMiddleName returns the middle name.
 func (d *UserDetailsExtended) GetMiddleName() (middle string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.MiddleName
 }
 
 // GetNickname returns the nickname.
 func (d *UserDetailsExtended) GetNickname() (nickname string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Nickname
 }
 
 // GetProfile returns the profile URL as a string.
 func (d *UserDetailsExtended) GetProfile() (profile string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Profile)
 }
 
 // GetPicture returns the picture URL as a string.
 func (d *UserDetailsExtended) GetPicture() (picture string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Picture)
 }
 
 // GetWebsite returns the website URL as a string.
 func (d *UserDetailsExtended) GetWebsite() (website string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Website)
 }
 
 // GetGender returns the gender.
 func (d *UserDetailsExtended) GetGender() (gender string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Gender
 }
 
 // GetBirthdate returns the birthdate.
 func (d *UserDetailsExtended) GetBirthdate() (birthdate string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Birthdate
 }
 
 // GetZoneInfo returns the zone information.
 func (d *UserDetailsExtended) GetZoneInfo() (info string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.ZoneInfo
 }
 
 // GetLocale returns the locale as a string.
 func (d *UserDetailsExtended) GetLocale() (locale string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Locale == nil {
 		return ""
 	}
@@ -148,16 +272,28 @@ func (d *UserDetailsExtended) GetLocale() (locale string) {
 
 // GetPhoneNumber returns the phone number without the extension.
 func (d *UserDetailsExtended) GetPhoneNumber() (number string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.PhoneNumber
 }
 
 // GetPhoneExtension returns the phone extension.
 func (d *UserDetailsExtended) GetPhoneExtension() (extension string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.PhoneExtension
 }
 
 // GetPhoneNumberRFC3966 returns the phone number and extension formatted as per RFC3966.
 func (d *UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.PhoneNumber == "" {
 		return ""
 	}
@@ -171,6 +307,10 @@ func (d *UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
 
 // GetStreetAddress returns the street address.
 func (d *UserDetailsExtended) GetStreetAddress() (address string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -180,6 +320,10 @@ func (d *UserDetailsExtended) GetStreetAddress() (address string) {
 
 // GetLocality returns the locality.
 func (d *UserDetailsExtended) GetLocality() (locality string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -189,6 +333,10 @@ func (d *UserDetailsExtended) GetLocality() (locality string) {
 
 // GetRegion returns the region.
 func (d *UserDetailsExtended) GetRegion() (region string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -198,6 +346,10 @@ func (d *UserDetailsExtended) GetRegion() (region string) {
 
 // GetPostalCode returns the postal code.
 func (d *UserDetailsExtended) GetPostalCode() (postcode string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -207,6 +359,10 @@ func (d *UserDetailsExtended) GetPostalCode() (postcode string) {
 
 // GetCountry returns the country.
 func (d *UserDetailsExtended) GetCountry() (country string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -216,6 +372,10 @@ func (d *UserDetailsExtended) GetCountry() (country string) {
 
 // GetExtra returns the extra attributes.
 func (d *UserDetailsExtended) GetExtra() (extra map[string]any) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Extra
 }
 
@@ -453,4 +613,30 @@ type LDAPExtendedClient interface {
 	LDAPBaseClient
 
 	Discovery() (features LDAPDiscovery)
+}
+
+// CredentialCacheHMACFlightResult is the result of a credential check shared between duplicate in-flight checks.
+type CredentialCacheHMACFlightResult struct {
+	Valid  bool
+	Cached bool
+}
+
+// CachedCredential is a cached credential which has an expiration and checksum value.
+type CachedCredential struct {
+	expires time.Time
+	value   []byte
+}
+
+// CachedUserValues is the cache of *T values keyed by username.
+type CachedUserValues[T any] struct {
+	singleflight.Group
+	sync.Mutex
+
+	values map[string]CachedUserValue[T]
+}
+
+// CachedUserValue is a cached *T value and the time it expires at.
+type CachedUserValue[T any] struct {
+	value   *T
+	expires time.Time
 }

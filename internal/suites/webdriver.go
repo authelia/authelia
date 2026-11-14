@@ -196,6 +196,11 @@ func newBrowser(opts *RodSessionOpts) (shared *sharedBrowser, err error) {
 	// proxy hostnames the NetworkACL suite dials are resolved the same way.
 	l.Set("host-resolver-rules", HostResolverRules())
 
+	// Chrome asks Google for the time at startup and rebuilds its certificate verifier with the answer, which closes
+	// every open connection and fails the requests in flight with ERR_CERT_VERIFIER_CHANGED. Lazily loaded modules
+	// that fail this way stay failed for the life of the page.
+	l.Append("disable-features", "NetworkTimeServiceQuerying")
+
 	if opts.disableDevtools {
 		l.Set("font-render-hinting", "none")
 		l.Set("disable-lcd-text")

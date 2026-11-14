@@ -46,9 +46,9 @@ func TestConformanceRunner_ReportsTheStepWhichFailed(t *testing.T) {
 			map[string]http.HandlerFunc{
 				"/api/runner":               created,
 				"/api/runner/m1/wait-state": conformanceReply(http.StatusOK, `{"state":"CONFIGURED"}`),
-				"POST /api/runner/m1":       conformanceReply(http.StatusInternalServerError, "broken"),
+				"POST /api/runner/m1":       conformanceReply(http.StatusNotFound, "missing"),
 			},
-			"expected status 200 but got 500",
+			"expected status 200 but got 404",
 			"m1",
 		},
 		{

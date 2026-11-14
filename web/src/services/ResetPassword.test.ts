@@ -4,7 +4,7 @@
 
 import axios from "axios";
 
-import { PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client";
+import { PostWithOptionalResponse } from "@services/Client";
 import {
     completeResetPasswordProcess,
     deleteResetPasswordToken,
@@ -17,24 +17,22 @@ vi.mock("@services/Api", () => ({
     CompleteResetPasswordPath: "/reset-password/finish",
     InitiateResetPasswordPath: "/reset-password/start",
     ResetPasswordPath: "/reset-password",
-    validateStatusTooManyRequests: vi.fn(),
 }));
 vi.mock("@services/Client", () => ({
     PostWithOptionalResponse: vi.fn(),
-    PostWithOptionalResponseRateLimited: vi.fn(),
 }));
 
 it("initiates reset password process", async () => {
-    (PostWithOptionalResponseRateLimited as any).mockResolvedValue("response");
+    (PostWithOptionalResponse as any).mockResolvedValue("response");
     const result = await initiateResetPasswordProcess("user");
-    expect(PostWithOptionalResponseRateLimited).toHaveBeenCalledWith("/reset-password/start", { username: "user" });
+    expect(PostWithOptionalResponse).toHaveBeenCalledWith("/reset-password/start", { username: "user" });
     expect(result).toBe("response");
 });
 
 it("completes reset password process", async () => {
-    (PostWithOptionalResponseRateLimited as any).mockResolvedValue("response");
+    (PostWithOptionalResponse as any).mockResolvedValue("response");
     const result = await completeResetPasswordProcess("token123");
-    expect(PostWithOptionalResponseRateLimited).toHaveBeenCalledWith("/reset-password/finish", { token: "token123" });
+    expect(PostWithOptionalResponse).toHaveBeenCalledWith("/reset-password/finish", { token: "token123" });
     expect(result).toBe("response");
 });
 
@@ -53,7 +51,6 @@ it("deletes reset password token with ok", async () => {
         data: { token: "token123" },
         method: "DELETE",
         url: "/reset-password",
-        validateStatus: expect.any(Function),
     });
     expect(result).toEqual({ ok: true, status: 200 });
 });

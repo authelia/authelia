@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Frequently Asked Questions"
-description: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
+description: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party or client application."
 summary: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -298,7 +298,15 @@ The following specific and intentional limitations exist:
 3. If the client requests the user is prompted to login again, then the mode will either automatically be
    `explicit` or the flow may also result in a failure that returns an error to the client, regardless of the client
    registration configuration.
-4. If the authorization request results in security sensitive tokens such as:
+4. If the client is a [public](../../configuration/identity-providers/openid-connect/clients.md#public) client and the
+   redirect URI of the authorization request does not assure the identity of the client, the mode will automatically
+   be `explicit` regardless of the client registration configuration, and the consent can not be remembered. Only a
+   redirect URI using the `https` scheme with a host which is not a loopback address or `localhost` assures the identity
+   of a public client, as any application on the device can use a private-use URI scheme, a loopback redirect URI, or
+   the client identifier of a public client. This also applies to the Device Authorization Flow. See
+   [RFC8252 Section 8.6](https://datatracker.ietf.org/doc/html/rfc8252#section-8.6) and
+   [RFC10017 Section 6.3.3.2](https://datatracker.ietf.org/doc/html/rfc10017#section-6.3.3.2).
+5. If the authorization request results in security sensitive tokens such as:
    1. Tokens that can be used as Bearer Tokens which impersonate users for the Authelia Authz endpoints.
    2. Tokens that can be used as Bearer Tokens for the Authelia API, especially for endpoints that allow alteration of
       any security related characteristic of users or Authelia settings.
@@ -311,7 +319,7 @@ The following specific and intentional limitations exist:
       4. Minting of Tokens in any context which may be seen as especially security sensitive by the maintainers either
          through community consultation, identified during security audits or reviews, or identified during normal
          development cycles.
-5. If the current flow is otherwise not compatible with implicit consent for any reason; for example:
+6. If the current flow is otherwise not compatible with implicit consent for any reason; for example:
    1. The Device Authorization Flow which requires interactive consent due to the code functionality.
 
 ## Solutions

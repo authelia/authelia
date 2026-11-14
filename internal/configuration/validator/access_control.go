@@ -128,10 +128,10 @@ func validateSubjects(rulePosition int, rule schema.AccessControlRule, config *s
 }
 
 func validateMethods(rulePosition int, rule schema.AccessControlRule, validator *schema.StructValidator) {
-	invalid, duplicates := validateList(rule.Methods, validACLHTTPMethodVerbs, true)
+	invalid, duplicates := validateList(rule.Methods, schema.HTTPMethods, true)
 
 	if len(invalid) != 0 {
-		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", utils.StringJoinOr(validACLHTTPMethodVerbs), utils.StringJoinAnd(invalid)))
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", utils.StringJoinOr(schema.HTTPMethods), utils.StringJoinAnd(invalid)))
 	}
 
 	if len(duplicates) != 0 {

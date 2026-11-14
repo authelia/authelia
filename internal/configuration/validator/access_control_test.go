@@ -165,7 +165,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): option 'methods' must only have the values 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'TRACE', 'CONNECT', 'OPTIONS', 'COPY', 'LOCK', 'MKCOL', 'MOVE', 'PROPFIND', 'PROPPATCH', or 'UNLOCK' but the values 'HOP' are present")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): option 'methods' must only have the values 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'TRACE', 'CONNECT', 'OPTIONS', 'COPY', 'LOCK', 'MKCOL', 'MOVE', 'PROPFIND', 'PROPPATCH', 'UNLOCK', 'ACL', 'BASELINE-CONTROL', 'BIND', 'CHECKIN', 'CHECKOUT', 'LABEL', 'LINK', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKREDIRECTREF', 'MKWORKSPACE', 'ORDERPATCH', 'PRI', 'QUERY', 'REBIND', 'REPORT', 'SEARCH', 'UNBIND', 'UNCHECKOUT', 'UNLINK', 'UPDATE', 'UPDATEREDIRECTREF', or 'VERSION-CONTROL' but the values 'HOP' are present")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorDuplicateMethod() {

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "LinkAce"
-description: "Integrate LinkAce with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating LinkAce with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2026-01-21T20:56:59+02:00
 draft: false
@@ -62,6 +62,7 @@ identity_providers:
         client_name: 'linkace'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         redirect_uris:

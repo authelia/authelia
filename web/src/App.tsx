@@ -11,6 +11,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router";
 import { TooltipProvider } from "@components/UI/Tooltip";
 import {
     ConsentRoute,
+    ErrorRoute,
     IndexRoute,
     LogoutRoute,
     ResetPasswordStep1Route,
@@ -28,6 +29,7 @@ import {
     getCSPNonce,
     getDuoSelfEnrollment,
     getPasskeyLogin,
+    getRegistrationURL,
     getRememberMe,
     getResetPassword,
     getResetPasswordCustomURL,
@@ -36,12 +38,13 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 
 const ConsentPortal = lazy(() => import("@views/ConsentPortal/ConsentPortal"));
-const SignOut = lazy(() => import("@views/LoginPortal/SignOut/SignOut"));
+const ErrorView = lazy(() => import("@views/Error/ErrorView"));
 const ResetPasswordStep1 = lazy(() => import("@views/ResetPassword/ResetPasswordStep1"));
 const ResetPasswordStep2 = lazy(() => import("@views/ResetPassword/ResetPasswordStep2"));
-const SettingsRouter = lazy(() => import("@views/Settings/SettingsRouter"));
 const RevokeOneTimeCodeView = lazy(() => import("@views/Revoke/RevokeOneTimeCodeView"));
 const RevokeResetPasswordTokenView = lazy(() => import("@views/Revoke/RevokeResetPasswordTokenView"));
+const SettingsRouter = lazy(() => import("@views/Settings/SettingsRouter"));
+const SignOut = lazy(() => import("@views/LoginPortal/SignOut/SignOut"));
 
 function App() {
     const { i18n } = useTranslation();
@@ -56,16 +59,8 @@ function App() {
                                 <LocalStorageMethodContextProvider>
                                     <Router basename={getBasePath()}>
                                         <Routes>
-                                            <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
-                                            <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                            <Route path={LogoutRoute} element={<SignOut />} />
-                                            <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
-                                            <Route
-                                                path={RevokeResetPasswordRoute}
-                                                element={<RevokeResetPasswordTokenView />}
-                                            />
-                                            <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
                                             <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
+                                            <Route path={ErrorRoute} element={<ErrorView />} />
                                             <Route
                                                 path={`${IndexRoute}*`}
                                                 element={
@@ -75,9 +70,19 @@ function App() {
                                                         rememberMe={getRememberMe()}
                                                         resetPassword={getResetPassword()}
                                                         resetPasswordCustomURL={getResetPasswordCustomURL()}
+                                                        registrationURL={getRegistrationURL()}
                                                     />
                                                 }
                                             />
+                                            <Route path={LogoutRoute} element={<SignOut />} />
+                                            <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
+                                            <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
+                                            <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
+                                            <Route
+                                                path={RevokeResetPasswordRoute}
+                                                element={<RevokeResetPasswordTokenView />}
+                                            />
+                                            <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
                                         </Routes>
                                     </Router>
                                 </LocalStorageMethodContextProvider>

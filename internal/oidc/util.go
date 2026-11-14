@@ -5,6 +5,7 @@
 package oidc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,9 +18,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
-	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -472,6 +473,8 @@ func RequesterRequiresLogin(requester oauthelia2.Requester, requested, authentic
 
 // RequestFormRequiresLogin returns true if the form requires the user to authenticate again.
 func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Time) (required bool) {
+	requested, authenticated = requested.Truncate(time.Second), authenticated.Truncate(time.Second)
+
 	if form.Has(FormParameterPrompt) {
 		if oauthelia2.Arguments(oauthelia2.RemoveEmpty(strings.Split(form.Get(FormParameterPrompt), " "))).Has(PromptLogin) && authenticated.Before(requested) {
 			return true
@@ -639,6 +642,50 @@ func FormRequiresExplicitConsent(form url.Values) (required bool) {
 	}
 
 	return false
+}
+
+// RequesterIsClientIdentityAssured returns true if the client is not a public client or if the redirect URI of the
+// authorization request assures the identity of the public client as described by RFC 8252 Section 8.6 and RFC 10017
+// Section 6.3.3.2. Any requester which is not an authorization request such as a device authorization request is
+// never considered to assure the identity of a public client.
+func RequesterIsClientIdentityAssured(ctx context.Context, client oauthelia2.Client, requester oauthelia2.Requester) (assured bool) {
+	if client == nil || !client.IsPublic() {
+		return true
+	}
+
+	r, ok := requester.(oauthelia2.AuthorizeRequester)
+	if !ok {
+		return false
+	}
+
+	return oauthelia2.IsPublicClientIdentityAssured(ctx, r)
+}
+
+// FormIsClientIdentityAssured is the [url.Values] form equivalent of RequesterIsClientIdentityAssured. When the form
+// omits the redirect_uri parameter the only registered redirect URI of the client is used.
+func FormIsClientIdentityAssured(client oauthelia2.Client, form url.Values) (assured bool) {
+	if client == nil || !client.IsPublic() {
+		return true
+	}
+
+	raw := form.Get(FormParameterRedirectURI)
+
+	if raw == "" {
+		if uris := client.GetRedirectURIs(); len(uris) == 1 {
+			raw = uris[0]
+		}
+	}
+
+	if raw == "" {
+		return false
+	}
+
+	uri, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+
+	return uri.Scheme == schemeHTTPS && !oauthelia2.IsLocalhost(uri)
 }
 
 // RequesterRequiresExplicitConsent evaluates a oauth2.Requester for evidence that the request requires explicit

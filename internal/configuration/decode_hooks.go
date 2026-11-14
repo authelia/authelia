@@ -917,7 +917,7 @@ func StringToIPNetworksHookFunc(definitions map[string][]*net.IPNet) mapstructur
 	}
 }
 
-// StringToUUIDHookFunc decodes a string into a uuid.UUID.
+// StringToUUIDHookFunc decodes a string into a [uuid.UUID].
 func StringToUUIDHookFunc() mapstructure.DecodeHookFuncType {
 	expectedType := reflect.TypeOf(uuid.UUID{})
 

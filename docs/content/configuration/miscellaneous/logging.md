@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Log"
-description: "Configuring the Log Settings."
+description: "Configuring the Authelia logging settings including log level, output format, file path destination, and the keep stdout option for log file management."
 summary: "Authelia performs logging to various locations. This section describes how to configure and tune this."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -30,6 +30,7 @@ The logging section tunes the logging settings.
 log:
   level: 'info'
   format: 'text'
+  disable_timestamp: false
   file_path: ''
   keep_stdout: false
 ```
@@ -76,6 +77,13 @@ time="2020-01-01T00:00:00+11:00" level=info msg="Logging severity set to info"
 time="2020-01-01T00:00:00+11:00" level=info msg="Authelia is listening for non-TLS connections on 0.0.0.0:{{< sitevar name="port" nojs="9091" >}}"
 ```
 
+### disable_timestamp
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Omits the timestamp from each log entry. This is useful when the destination receiving the logs records a timestamp of
+its own, such as the systemd journal or syslog, where it would otherwise be recorded twice.
+
 ### file_path
 
 {{< confkey type="string" required="no" >}}
@@ -90,9 +98,14 @@ default uses the [RFC3339] layout, but optionally can be suffixed with the
 [Go Layout](https://pkg.go.dev/time#pkg-constants) semantics in the format of `{datetime:<layout>}` where `<layout>` is
 the layout supported by Go.
 
-When using a log file sending the Authelia process a SIGHUP will cause it to close and reopen the current log file and
-truncate it. This is useful for log rotation services which can force a reopen so the file descriptor open does not
+When using a log file sending the Authelia process a `SIGUSR1` will cause it to close and reopen the current log file
+and truncate it. This is useful for log rotation services which can force a reopen so the file descriptor open does not
 continue to append to the old log file.
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Prior to v4.40.0 this behavior was triggered by the `SIGHUP` signal. The `SIGHUP` signal now reloads the entire
+application, so log rotation configurations must be updated to send `SIGUSR1` instead.
+{{< /callout >}}
 
 #### File Path Examples
 

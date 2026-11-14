@@ -210,6 +210,7 @@ func newStorageEncryptRotateHMACCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageEncryptRotateHMACOTPCmd(ctx),
 		newStorageEncryptRotateHMACOTCCmd(ctx),
 		newStorageEncryptRotateHMACRecoveryCodeCmd(ctx),
+		newStorageEncryptRotateHMACSessionCmd(ctx),
 	)
 
 	return cmd
@@ -255,6 +256,23 @@ func newStorageEncryptRotateHMACRecoveryCodeCmd(ctx *CmdCtx) (cmd *cobra.Command
 		Short:   cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeShort,
 		Long:    cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeLong,
 		Example: cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACSessionCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "session",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACSessionShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACSessionLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACSessionExample,
 		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
 		Args:    cobra.NoArgs,
 
@@ -552,7 +570,7 @@ func newStorageUserIdentifiersExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.opaque-identifiers.yml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.opaque-identifiers.yml", "The file name for the export, the extension determines the format")
 
 	return cmd
 }
@@ -659,7 +677,7 @@ func newStorageUserWebAuthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.webauthn.yml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.webauthn.yml", "The file name for the export, the extension determines the format")
 
 	return cmd
 }
@@ -808,7 +826,7 @@ func newStorageUserTOTPExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageUserTOTPExportURICmd(ctx),
 	)
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.totp.yml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.totp.yml", "The file name for the export, the extension determines the format")
 
 	return cmd
 }

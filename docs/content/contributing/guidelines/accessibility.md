@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Accessibility"
-description: "Authelia Development Accessibility Guidelines"
+description: "Authelia development accessibility guidelines covering frontend translation support, responsive design for desktop, tablet, and mobile devices, plus usability."
 summary: "This section covers the accessibility guidelines we aim to respect during development."
 date: 2024-03-14T06:00:14+11:00
 draft: false

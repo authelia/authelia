@@ -99,6 +99,7 @@ const defaultProps = {
     onAuthenticationSuccess: vi.fn(),
     onChannelStateChange: vi.fn(),
     passkeyLogin: false,
+    registrationURL: "",
     rememberMe: false,
     resetPassword: false,
     resetPasswordCustomURL: "",
@@ -578,6 +579,34 @@ describe("reset password", () => {
         expect(mocks.navigate).not.toHaveBeenCalled();
 
         open.mockRestore();
+    });
+});
+
+describe("register", () => {
+    it("does not render the register link when no registration URL is configured", () => {
+        renderForm({ resetPassword: true });
+
+        expect(screen.queryByText("Register")).not.toBeInTheDocument();
+    });
+
+    it("opens the registration URL in a new tab when configured", () => {
+        const open = vi.spyOn(window, "open").mockImplementation(() => null);
+
+        renderForm({ registrationURL: "https://register.example.com" });
+
+        fireEvent.click(screen.getByText("Register"));
+
+        expect(open).toHaveBeenCalledWith("https://register.example.com", "_blank", "noopener");
+        expect(mocks.navigate).not.toHaveBeenCalled();
+
+        open.mockRestore();
+    });
+
+    it("renders alongside the reset password link", () => {
+        renderForm({ registrationURL: "https://register.example.com", resetPassword: true });
+
+        expect(screen.getByText("Register")).toBeInTheDocument();
+        expect(screen.getByText("Reset password?")).toBeInTheDocument();
     });
 });
 

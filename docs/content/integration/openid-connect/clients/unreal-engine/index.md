@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Unreal Engine"
-description: "Integrating Unreal Engine with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Unreal Engine with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2025-06-08T01:14:26+00:00
 draft: false
@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Unreal Engine]
   - [v5.6](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-6-release-notes)
 
@@ -61,6 +61,7 @@ identity_providers:
       - client_id: 'unreal-engine'
         client_name: 'Unreal Engine'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Secrets"
-description: "A guide to using secrets when integrating Authelia with Kubernetes."
+description: "A guide to creating and using Kubernetes secrets for integrating Authelia with Kubernetes including example secret definitions, usage patterns, and mount paths."
 summary: "A guide to using secrets when integrating Authelia with Kubernetes."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -144,6 +144,12 @@ details.
 The example is an excerpt for a manifest which can mount volumes. Examples of these are the [Pod], [Deployment],
 [StatefulSet], and [DaemonSet].
 
+The cache environment variables in this example are for the [Redis Sentinel](../../configuration/cache/redis-sentinel.md)
+provider. Only set the variables for the cache provider you have configured, such as
+`AUTHELIA_CACHE_REDIS_PASSWORD_FILE` for [Redis](../../configuration/cache/redis.md) or
+`AUTHELIA_CACHE_REDIS_CLUSTER_PASSWORD_FILE` for [Redis Cluster](../../configuration/cache/redis-cluster.md), as a
+variable for another provider also configures that provider and only one cache provider can be configured.
+
 ```yaml {title="deployment.yml"}
 ---
 spec:
@@ -160,9 +166,9 @@ spec:
           value: '/app/secrets/OIDC_HMAC_SECRET'
         - name: 'AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE'
           value: '/app/secrets/OIDC_ISSUER_PRIVATE_KEY'
-        - name: 'AUTHELIA_SESSION_REDIS_PASSWORD_FILE'
+        - name: 'AUTHELIA_CACHE_REDIS_SENTINEL_PASSWORD_FILE'
           value: '/app/secrets/REDIS_PASSWORD'
-        - name: 'AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE'
+        - name: 'AUTHELIA_CACHE_REDIS_SENTINEL_SENTINEL_PASSWORD_FILE'
           value: '/app/secrets/REDIS_SENTINEL_PASSWORD'
         - name: 'AUTHELIA_SESSION_SECRET_FILE'
           value: '/app/secrets/SESSION_SECRET'

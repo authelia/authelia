@@ -58,7 +58,8 @@ func TestSuiteBuilder_Build(t *testing.T) {
 					Description: "Authelia 4.40 Config Certification Profile",
 					Publish:     "summary",
 					Server: PlanServer{
-						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+						DiscoveryURL:                  "https://auth.example.com/.well-known/openid-configuration",
+						AllowUnexpectedMetadataFields: []string{"refresh_token_expiration_types_supported"},
 					},
 				},
 			},
@@ -78,7 +79,8 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						ClientRegistration: "static_client",
 					},
 					Server: PlanServer{
-						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+						DiscoveryURL:                  "https://auth.example.com/.well-known/openid-configuration",
+						AllowUnexpectedMetadataFields: []string{"refresh_token_expiration_types_supported"},
 					},
 				},
 			},
@@ -98,7 +100,8 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						ClientRegistration: "static_client",
 					},
 					Server: PlanServer{
-						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+						DiscoveryURL:                  "https://auth.example.com/.well-known/openid-configuration",
+						AllowUnexpectedMetadataFields: []string{"refresh_token_expiration_types_supported"},
 					},
 					Client: &PlanClient{
 						ID:     "conformance-certification-basic-authelia440",
@@ -168,7 +171,8 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						ClientRegistration: "static_client",
 					},
 					Server: PlanServer{
-						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+						DiscoveryURL:                  "https://auth.example.com/.well-known/openid-configuration",
+						AllowUnexpectedMetadataFields: []string{"refresh_token_expiration_types_supported"},
 					},
 					Client: &PlanClient{
 						ID:     "conformance-certification-basic-form-post-authelia440",
@@ -238,7 +242,8 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						ClientRegistration: "static_client",
 					},
 					Server: PlanServer{
-						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+						DiscoveryURL:                  "https://auth.example.com/.well-known/openid-configuration",
+						AllowUnexpectedMetadataFields: []string{"refresh_token_expiration_types_supported"},
 					},
 					Client: &PlanClient{
 						ID:     "conformance-certification-implicit-authelia440",
@@ -261,7 +266,7 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						RedirectURIs: []string{
 							"https://conformance.example.com/test/a/conformance-implicit-authelia440/callback",
 						},
-						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseModes:           []string{"fragment", "fragment.jwt", "query", "query.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
 						GrantTypes:              []string{"authorization_code", "implicit", "refresh_token"},
 						TokenEndpointAuthMethod: "client_secret_basic",
@@ -273,7 +278,7 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						RedirectURIs: []string{
 							"https://conformance.example.com/test/a/conformance-implicit-authelia440/callback",
 						},
-						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseModes:           []string{"fragment", "fragment.jwt", "query", "query.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
 						GrantTypes:              []string{"authorization_code", "implicit", "refresh_token"},
 						TokenEndpointAuthMethod: "client_secret_basic",
@@ -285,7 +290,7 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						RedirectURIs: []string{
 							"https://conformance.example.com/test/a/conformance-implicit-authelia440/callback",
 						},
-						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseModes:           []string{"fragment", "fragment.jwt", "query", "query.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
 						GrantTypes:              []string{"authorization_code", "implicit", "refresh_token"},
 						TokenEndpointAuthMethod: "client_secret_post",
@@ -308,7 +313,8 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						ClientRegistration: "static_client",
 					},
 					Server: PlanServer{
-						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+						DiscoveryURL:                  "https://auth.example.com/.well-known/openid-configuration",
+						AllowUnexpectedMetadataFields: []string{"refresh_token_expiration_types_supported"},
 					},
 					Client: &PlanClient{
 						ID:     "conformance-certification-implicit-form-post-authelia440",
@@ -378,7 +384,8 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						ClientRegistration: "static_client",
 					},
 					Server: PlanServer{
-						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+						DiscoveryURL:                  "https://auth.example.com/.well-known/openid-configuration",
+						AllowUnexpectedMetadataFields: []string{"refresh_token_expiration_types_supported"},
 					},
 					Client: &PlanClient{
 						ID:     "conformance-certification-hybrid-authelia440",
@@ -401,7 +408,7 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						RedirectURIs: []string{
 							"https://conformance.example.com/test/a/conformance-hybrid-authelia440/callback",
 						},
-						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseModes:           []string{"fragment", "fragment.jwt", "query", "query.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},
 						GrantTypes:              []string{"authorization_code", "implicit", "refresh_token"},
 						TokenEndpointAuthMethod: "client_secret_basic",
@@ -413,7 +420,7 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						RedirectURIs: []string{
 							"https://conformance.example.com/test/a/conformance-hybrid-authelia440/callback",
 						},
-						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseModes:           []string{"fragment", "fragment.jwt", "query", "query.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},
 						GrantTypes:              []string{"authorization_code", "implicit", "refresh_token"},
 						TokenEndpointAuthMethod: "client_secret_basic",
@@ -425,7 +432,7 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						RedirectURIs: []string{
 							"https://conformance.example.com/test/a/conformance-hybrid-authelia440/callback",
 						},
-						ResponseModes:           []string{"query", "query.jwt"},
+						ResponseModes:           []string{"fragment", "fragment.jwt", "query", "query.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},
 						GrantTypes:              []string{"authorization_code", "implicit", "refresh_token"},
 						TokenEndpointAuthMethod: "client_secret_post",
@@ -448,7 +455,8 @@ func TestSuiteBuilder_Build(t *testing.T) {
 						ClientRegistration: "static_client",
 					},
 					Server: PlanServer{
-						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
+						DiscoveryURL:                  "https://auth.example.com/.well-known/openid-configuration",
+						AllowUnexpectedMetadataFields: []string{"refresh_token_expiration_types_supported"},
 					},
 					Client: &PlanClient{
 						ID:     "conformance-certification-hybrid-form-post-authelia440",

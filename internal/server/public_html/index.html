@@ -1,12 +1,55 @@
-{
-  "Base":"{{ .Base }}",
-  "DuoSelfEnrollment":"{{ .DuoSelfEnrollment }}",
-  "LogoOverride":"{{ .LogoOverride }}",
-  "PasskeyLogin":"{{ .PasskeyLogin }}",
-  "RememberMe":"{{ .RememberMe }}",
-  "ResetPassword":"{{ .ResetPassword }}",
-  "ResetPasswordCustomURL":"{{ .ResetPasswordCustomURL }}",
-  "PrivacyPolicyURL":"{{ .PrivacyPolicyURL }}",
-  "PrivacyPolicyAccept":"{{ .PrivacyPolicyAccept }}",
-  "Theme":"{{ .Theme }}"
-}
+<!--
+SPDX-FileCopyrightText: 2026 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<!doctype html>
+<html lang="{{ .Language }}">
+    <head>
+        <base href="{{ .BaseURL }}" />
+        <meta property="csp-nonce" content="{{ .CSPNonce }}" />
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <link rel="manifest" href="./manifest.json" />
+        <link rel="icon" href="./favicon.ico" />
+        <title></title>
+      <script type="module" crossorigin src="./static/js/index.8G5feqcJ.js"></script>
+      <link rel="modulepreload" crossorigin href="./static/js/jsx-runtime.Wy9s6hX0.js">
+      <link rel="modulepreload" crossorigin href="./static/js/createLucideIcon.CAF4EdpH.js">
+      <link rel="modulepreload" crossorigin href="./static/js/useId.CKzvpiHL.js">
+      <link rel="modulepreload" crossorigin href="./static/js/visuallyHidden.DzGJE8q_.js">
+      <link rel="modulepreload" crossorigin href="./static/js/inertValue.C-1KIWDR.js">
+      <link rel="modulepreload" crossorigin href="./static/js/components.Don3mhH6.js">
+      <link rel="modulepreload" crossorigin href="./static/js/constants.SearchParams.BuqAxA9o.js">
+      <link rel="modulepreload" crossorigin href="./static/js/DirectionContext.BUjUVUaH.js">
+      <link rel="modulepreload" crossorigin href="./static/js/constants.LocalStorage.Bhh0YN0N.js">
+      <link rel="modulepreload" crossorigin href="./static/js/services.LocalStorage.CnKy1I8z.js">
+      <link rel="modulepreload" crossorigin href="./static/js/axios.RpbCT8n9.js">
+      <link rel="modulepreload" crossorigin href="./static/js/services.Client.DOZZLIQY.js">
+      <link rel="modulepreload" crossorigin href="./static/js/services.UserInfo.BZf2HcrA.js">
+      <link rel="modulepreload" crossorigin href="./static/js/hooks.RemoteCall.BTVzqxHB.js">
+      <link rel="modulepreload" crossorigin href="./static/js/services.State.CSw_MOdI.js">
+      <link rel="stylesheet" crossorigin href="./static/css/index.0JH2z9je.css">
+    </head>
+
+    <body
+        data-basepath="{{ .Base }}"
+        data-duoselfenrollment="{{ .DuoSelfEnrollment }}"
+        data-logooverride="{{ .LogoOverride }}"
+        data-privacypolicyurl="{{ .PrivacyPolicyURL }}"
+        data-privacypolicyaccept="{{ .PrivacyPolicyAccept }}"
+        data-passkeylogin="{{ .PasskeyLogin }}"
+        data-rememberme="{{ .RememberMe }}"
+        data-resetpassword="{{ .ResetPassword }}"
+        data-resetpasswordcustomurl="{{ .ResetPasswordCustomURL }}"
+        data-totpappapplestore="{{ .TOTPAppAppleStore }}"
+        data-totpappgoogleplay="{{ .TOTPAppGooglePlay }}"
+        data-registrationurl="{{ .RegistrationURL }}"
+        data-theme="{{ .Theme }}"
+    >
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root"></div>
+    </body>
+</html>

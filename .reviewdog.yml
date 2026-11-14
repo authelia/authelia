@@ -43,6 +43,13 @@ runner:
       - '%f:%l:%c: %m'
     level: error
 
+  scorecard:
+    cmd: .buildkite/steps/lint.sh scorecard
+    errorformat:
+      - '%E%f:%l:%c: %m'
+      - '%C%.%#'
+    level: error
+
   reuse:
     # reuse reports 'path: message' with no position, so a 1:1 position is added for reviewdog.
     cmd: reuse lint --lines | sed -e 's|^\([^:]*\):|\1:1:1:|'

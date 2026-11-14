@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Get started"
-description: "A getting started guide for Authelia."
+description: "A getting started guide for Authelia covering prerequisites, important deployment requirements, links to essential configuration sections, and initial setup."
 summary: "This document serves as a get started guide for Authelia. It contains links to various sections and has some key notes in questions frequently asked by people looking to perform setup for the first time."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -92,7 +92,7 @@ The important sections to consider in initial configuration are as follows:
       [domain](../../configuration/session/introduction.md#domain) and
       [authelia_url](../../configuration/session/introduction.md#authelia_url).
    2. The [secret](../../configuration/session/introduction.md#secret) is the most important, and
-      [redis](../../configuration/session/redis.md) is recommended for production environments.
+      [redis](../../configuration/cache/redis.md) is recommended for production environments.
 5. [notifier](../../configuration/notifications/introduction.md) which is used to send 2FA registration emails etc,
    there is an option for local file delivery but the [SMTP](../../configuration/notifications/smtp.md) option is
    recommended for production and you must only configure one of these.
