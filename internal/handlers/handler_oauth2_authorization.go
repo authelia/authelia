@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/google/uuid"
+
 	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -25,6 +27,10 @@ import (
 //nolint:gocyclo
 func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	if handleOAuth2AuthorizationBounce(ctx, rw, r) {
+		return
+	}
+
+	if handleOAuth2AuthorizationConsentReference(ctx, rw, r) {
 		return
 	}
 
@@ -221,45 +227,103 @@ func handleOAuth2AuthorizationUserNotFound(ctx *middlewares.AutheliaCtx, provide
 	return false
 }
 
-// OAuth2AuthorizationPOST handles redirecting users to use the GET request to ensure the session cookie is
-// included if available. The redirection uses the 303 status code as it's the only status code which
-// unambiguously instructs the user-agent to rewrite the request method to GET, and per the FAPI 2.0 Security
-// Profile Section 5.3.2.2 the authorization server should use 303 when redirecting the user-agent.
+// OAuth2AuthorizationPOST handles Authorization Requests which use the HTTP POST method per OpenID Connect 1.0 Core
+// Section 3.1.2.1. The session cookie is not sent with a cross-site POST so the request is validated, stored in a consent
+// session bound to the user agent, and the user agent is redirected to the Authorization Endpoint with a reference to
+// it, which the GET handler resolves. This keeps the parameters out of the URL. The redirection uses the 303 status
+// code as it's the only status code which unambiguously instructs the user-agent to rewrite the request method to GET,
+// and per the FAPI 2.0 Security Profile Section 5.3.2.2 the authorization server should use 303 when redirecting the
+// user-agent.
+//
+// https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 //
 // https://openid.net/specs/fapi-security-profile-2_0-final.html
 func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
-	requester := oauthelia2.NewAuthorizeRequest()
-
 	var (
-		redirectURL *url.URL
-		err         error
+		issuer    *url.URL
+		client    oidc.Client
+		consent   *model.OAuth2ConsentSession
+		requester oauthelia2.AuthorizeRequester
+		err       error
 	)
 
-	if redirectURL, err = ctx.IssuerURL(); err != nil {
+	if issuer, err = ctx.IssuerURL(); err != nil {
 		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
 
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' could not be processed: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(rfc))
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, rfc)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, oauthelia2.NewAuthorizeRequest(), rfc)
 
 		return
 	}
 
 	r.Body = http.MaxBytesReader(rw, r.Body, 10<<20)
 
-	if err = r.ParseForm(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' had an error parsing the form.", requester.GetID())
+	if requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r); requester == nil {
+		requester = oauthelia2.NewAuthorizeRequest()
+
+		err = oauthelia2.ErrServerError.WithDebug("The requester was nil.")
+
+		ctx.GetLogger().Errorf("Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}
 
-	query := r.Form
+	if requester.GetResponseMode() == oidc.ResponseModeFormPost {
+		ctx.SetUserValue(middlewares.UserValueKeyOpenIDConnectResponseModeFormPost, true)
+	}
 
-	redirectURL = redirectURL.JoinPath(oidc.EndpointPathAuthorization)
+	if err != nil {
+		ctx.GetLogger().Errorf("Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
-	redirectURL.RawQuery = query.Encode()
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
-	http.Redirect(rw, r, redirectURL.String(), http.StatusSeeOther)
+		return
+	}
+
+	clientID := requester.GetClient().GetID()
+
+	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID); err != nil {
+		ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: failed to find client: %s", requester.GetID(), clientID, oauthelia2.ErrorToDebugRFC6749Error(err))
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	prefixPAR := ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)
+
+	if !oidc.IsPushedAuthorizedRequest(requester, prefixPAR) {
+		if err = client.ValidateResponseModePolicy(requester); err != nil {
+			ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' failed to validate the Response Mode: %s", requester.GetID(), clientID, client.GetAuthorizationPolicy().Name, oauthelia2.ErrorToDebugRFC6749Error(err))
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+			return
+		}
+	}
+
+	if consent, err = handleOAuth2NewConsentSession(ctx, uuid.Nil, requester, prefixPAR); err != nil {
+		ctx.GetLogger().Errorf(logFmtErrConsentGenerateError, requester.GetID(), clientID, client.GetConsentPolicy(), "generating", err)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
+
+		return
+	}
+
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
+		ctx.GetLogger().Errorf(logFmtErrConsentGenerateError, requester.GetID(), clientID, client.GetConsentPolicy(), "saving", err)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
+
+		return
+	}
+
+	handleOAuth2PushedAuthorizeConsent(ctx, requester, requester.GetRequestForm())
+
+	ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' was stored in the consent session with id '%s' and is being redirected to the Authorization Endpoint", requester.GetID(), clientID, consent.ChallengeID)
+
+	http.Redirect(rw, r, handleOAuth2AuthorizationConsentReferenceURL(issuer, consent).String(), http.StatusSeeOther)
 }

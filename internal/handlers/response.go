@@ -198,7 +198,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		return
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, flowID); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
 		ctx.GetLogger().
@@ -290,10 +290,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 
 	switch {
 	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level), level == authorization.Denied:
-		targetURL := issuer.JoinPath(oidc.EndpointPathAuthorization)
-
-		form.Set(queryArgConsentID, flowID.String())
-		targetURL.RawQuery = form.Encode()
+		targetURL := handleOAuth2AuthorizationConsentReferenceURL(issuer, consent)
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
 			ctx.GetLogger().

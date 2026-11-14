@@ -128,6 +128,17 @@ type Strategy interface {
 	// CSRF secret for an established session which has none.
 	SetCSRFCookie(ctx Context) (err error)
 
+	// AuthorizationBinding returns the random opaque value which binds a record such as an OpenID Connect 1.0 consent
+	// session to the user agent of the request, which is the value of the authorization binding cookie. The cookie is
+	// issued with a new random value when the request carries none or carries one which is malformed, and is always
+	// reissued so that it remains available for its full lifetime.
+	AuthorizationBinding(ctx Context) (binding string, err error)
+
+	// VerifyAuthorizationBinding returns true when the binding is the value AuthorizationBinding returns for the
+	// authorization binding cookie of the request, comparing them in constant time. A request which carries no such
+	// cookie, or an empty binding, is never verified.
+	VerifyAuthorizationBinding(ctx Context, binding string) (valid bool)
+
 	// Authz returns the restricted view of this Strategy which the authorization endpoints use. The view resolves the
 	// session from the authz cookie alone and can only update the activity of the session or destroy it.
 	Authz() (strategy AuthzStrategy)

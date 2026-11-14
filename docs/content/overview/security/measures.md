@@ -450,6 +450,13 @@ it. Clients other than the portal which interact with the API on behalf of a use
 module](../../integration/guides/pam-authelia/index.md), must include the token in the same way, which they read from
 the cookie Authelia issues alongside the session cookie.
 
+Every OpenID Connect 1.0 authorization request is stored in a consent session which is bound to the browser which made
+it, using a random value delivered in a cookie named with the `__Host-Http-` prefix and the `_oauth2` suffix such as
+`__Host-Http-authelia_session_oauth2`. A consent session is only accepted from a browser which presents the same value,
+so a consent session identifier which is disclosed or injected can't be used to complete the authorization request in
+another browser. Authorization requests which use the HTTP POST method are stored in a consent session before any
+redirection, so their parameters never appear in a URL.
+
 The validity period of session is highly configurable. For example, in a highly security conscious domain you could
 set the session [remember_me](../../configuration/session/introduction.md#remember_me) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the

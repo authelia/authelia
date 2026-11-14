@@ -292,6 +292,7 @@ type OAuth2ConsentSession struct {
 	ChallengeID uuid.UUID     `db:"challenge_id"`
 	ClientID    string        `db:"client_id"`
 	Subject     uuid.NullUUID `db:"subject"`
+	Binding     string        `db:"binding"`
 
 	Authorized bool `db:"authorized"`
 	Granted    bool `db:"granted"`

@@ -1280,7 +1280,7 @@ func (p *SQLProvider) LoadOAuth2ConsentPreConfigurations(ctx context.Context, cl
 // SaveOAuth2ConsentSession inserts an OAuth2.0 consent session to the storage provider.
 func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
 	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
-		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Granted,
+		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Binding, consent.Authorized, consent.Granted,
 		consent.RequestedAt, consent.ExpiresAt, consent.RespondedAt, consent.Form,
 		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience,
 		consent.RequestedResource, consent.GrantedResource, consent.GrantedClaims, consent.PreConfiguration); err != nil {

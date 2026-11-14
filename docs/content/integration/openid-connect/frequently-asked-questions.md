@@ -333,9 +333,11 @@ When Authelia receives an Authorization Request like that without a session cook
 immediately continues the same request from Authelia itself, after which the browser sends the session cookie and the
 request is processed normally. A user who is signed in is not shown the portal, and `prompt=none` works.
 
-This also applies to an Authorization Request sent as a form POST, which Authelia redirects to the same request using
-GET before the above takes place. A user agent which does not send the `Sec-Fetch-Site` request header is always
-answered with this page when the session cookie is absent, as Authelia can't determine where the request came from.
+This also applies to an Authorization Request sent as a form POST, which Authelia validates and stores in a consent
+session bound to the browser before redirecting it to the Authorization [Endpoint] using GET with a reference to the
+stored request, so the parameters of the request never appear in a URL, after which the above takes place. A user agent
+which does not send the `Sec-Fetch-Site` request header is always answered with this page when the session cookie is
+absent, as Authelia can't determine where the request came from.
 
 This has one limit: it only works when the user's browser is performing an ordinary page navigation to Authelia. A
 relying party which performs silent renewal in a hidden frame (an iframe) from another site still receives the

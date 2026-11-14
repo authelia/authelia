@@ -123,13 +123,13 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithIDShouldRedirect(t *tes
 		{
 			"ShouldRedirectWhenConsentSessionHasNoSubject",
 			func(mock *mocks.MockAutheliaCtx) *model.OAuth2ConsentSession {
-				return &model.OAuth2ConsentSession{ID: 44, ChallengeID: challenge, ClientID: testValue}
+				return &model.OAuth2ConsentSession{Binding: mocks.AuthorizationBinding, ID: 44, ChallengeID: challenge, ClientID: testValue}
 			},
 		},
 		{
 			"ShouldRedirectWhenConsentSessionIsNotAuthorized",
 			func(mock *mocks.MockAutheliaCtx) *model.OAuth2ConsentSession {
-				return &model.OAuth2ConsentSession{ID: 44, ChallengeID: challenge, ClientID: testValue, Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}
+				return &model.OAuth2ConsentSession{Binding: mocks.AuthorizationBinding, ID: 44, ChallengeID: challenge, ClientID: testValue, Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}
 			},
 		},
 	}

@@ -482,7 +482,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed to obtain the user session during the User Authorization Flow", regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed with error to load the consent session during the User Authorization Flow", regexpAnyError)
 	})
 
 	t.Run("ShouldHandleSubjectLookupError", func(t *testing.T) {

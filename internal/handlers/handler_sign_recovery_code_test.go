@@ -233,7 +233,7 @@ func TestRecoveryCodePOST(t *testing.T) {
 				repository := setupTestFailingSessionRepository(t, mock)
 				repository.errGet = errTestSessionBackend
 
-				mock.Ctx.Request.Header.SetCookie("authelia_session", newTestSessionCookie("an-identifier-which-cannot-be-retrieved"))
+				mock.Ctx.Request.Header.SetCookie("__Host-Http-authelia_session", newTestSessionCookie("an-identifier-which-cannot-be-retrieved"))
 			},
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Assert403KO(t, messageMFAValidationFailed)
@@ -377,7 +377,7 @@ func TestRecoveryCodePOST(t *testing.T) {
 
 				newRecoveryCodeUserCtx(t, mock)
 
-				repository.errSave = []error{errTestSessionBackend}
+				repository.errSave = []error{nil, errTestSessionBackend}
 
 				expectSuccessfulConsume(mock)
 			},

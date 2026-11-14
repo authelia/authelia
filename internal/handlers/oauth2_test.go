@@ -90,11 +90,9 @@ var (
 )
 
 var (
-	regexpAuthorizationIssuerError          = regexp.MustCompile(`^Authorization Request could not be processed: `)
-	regexpAuthorizationRequestIDIssuerError = regexp.MustCompile(`^Authorization Request with id '[^']*' could not be processed: `)
-	regexpAuthorizationFailed               = regexp.MustCompile(`^Authorization Request .*(failed|could not be processed)`)
-	regexpAuthorizationPromptNoneAnonymous  = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is not logged in$`)
-	regexpAuthorizationFormError            = regexp.MustCompile(`^Authorization Request with id '[^']*' had an error parsing the form\.$`)
+	regexpAuthorizationIssuerError         = regexp.MustCompile(`^Authorization Request could not be processed: `)
+	regexpAuthorizationFailed              = regexp.MustCompile(`^Authorization Request .*(failed|could not be processed)`)
+	regexpAuthorizationPromptNoneAnonymous = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is not logged in$`)
 )
 
 var regexpConsentMalformedChallengeID = regexp.MustCompile(`error occurred parsing the consent id [(]challenge[)] 'not-a-uuid'`)

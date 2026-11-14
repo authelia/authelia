@@ -121,7 +121,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 	log = log.WithField(logging.FieldFlowID, flowID)
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, flowID); err != nil {
 		log.
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request failed with error to load the consent session during the User Authorization Flow")

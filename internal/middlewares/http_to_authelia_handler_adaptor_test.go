@@ -274,6 +274,7 @@ func TestNewHTTPToAutheliaHandlerAdaptor(t *testing.T) {
 
 		defer mock.Close()
 
+		mock.Ctx.Request.Header.DelAllCookies()
 		mock.Ctx.Request.Header.SetCookie("authelia_session", "aaaaaaaaaaaaaaaaaaaa")
 
 		handler(mock.Ctx)

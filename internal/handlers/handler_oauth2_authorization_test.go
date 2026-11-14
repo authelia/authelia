@@ -10,12 +10,16 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -28,6 +32,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -715,99 +720,218 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 }
 
 func TestOAuth2AuthorizationPOST(t *testing.T) {
-	t.Run("ShouldHandleBadIssuer", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtx(t)
-		defer mock.Close()
+	testCases := []struct {
+		name    string
+		values  url.Values
+		body    string
+		headers map[string]string
+		code    int
+		setup   func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		expect  func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder)
+	}{
+		{
+			name:   "ShouldHandleBadIssuer",
+			values: newTestOIDCAuthorizationValues(),
+			code:   http.StatusOK,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				clearForwardedHeaders(mock)
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
+				assert.Empty(t, rw.Header().Get(fasthttp.HeaderLocation))
 
-		setupTestOIDCProvider(t, mock, nil)
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationIssuerError, "missing required X-Forwarded-Host header")
+			},
+		},
+		{
+			name:   "ShouldStoreRequestInBoundConsentSession",
+			values: newTestOIDCAuthorizationValues(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				setupTestOIDCConsentStore(t, mock)
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
+				consent := assertTestOAuth2AuthorizationConsentReference(t, mock, rw)
 
-		clearForwardedHeaders(mock)
+				assert.Equal(t, mocks.AuthorizationBinding, consent.Binding)
+				assert.Equal(t, mocks.AuthorizationBinding, assertTestOAuth2AuthorizationBindingCookie(t, mock))
+			},
+		},
+		{
+			name:    "ShouldStoreRequestInBoundConsentSessionWhenCrossSite",
+			values:  newTestOIDCAuthorizationValues(),
+			headers: newTestOAuth2AuthorizationBounceHeaders(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				setupTestOIDCConsentStore(t, mock)
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
+				consent := assertTestOAuth2AuthorizationConsentReference(t, mock, rw)
 
-		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
+				assert.Equal(t, mocks.AuthorizationBinding, consent.Binding)
+			},
+		},
+		{
+			name:   "ShouldIssueBindingWhenAbsent",
+			values: newTestOIDCAuthorizationValues(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.DelCookie(session.AuthorizationBindingCookieName("authelia_session"))
 
-		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
+				setupTestOIDCConsentStore(t, mock)
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
+				consent := assertTestOAuth2AuthorizationConsentReference(t, mock, rw)
 
-		assert.Empty(t, rw.Header().Get(fasthttp.HeaderLocation))
+				binding := assertTestOAuth2AuthorizationBindingCookie(t, mock)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationRequestIDIssuerError, "missing required X-Forwarded-Host header")
-	})
+				assert.NotEqual(t, mocks.AuthorizationBinding, binding)
+				assert.Equal(t, binding, consent.Binding)
+			},
+		},
+		{
+			name:   "ShouldHandleUnknownClient",
+			values: url.Values{oidc.FormParameterClientID: []string{"abc"}},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
+				location := mustParseTestURI(t, rw.Header().Get(fasthttp.HeaderLocation))
 
-	t.Run("ShouldRedirectToGET", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtx(t)
-		defer mock.Close()
+				assert.Equal(t, oidc.FrontendEndpointPathConsentCompletion, location.Path)
+				assert.Equal(t, "invalid_client", location.Query().Get("error"))
+				assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
+			},
+		},
+		{
+			name: "ShouldHandleMalformedForm",
+			body: "client_id=%zz",
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
+				location := mustParseTestURI(t, rw.Header().Get(fasthttp.HeaderLocation))
 
-		setupTestOIDCProvider(t, mock, nil)
+				assert.Equal(t, oidc.FrontendEndpointPathConsentCompletion, location.Path)
+				assert.Equal(t, "invalid_request", location.Query().Get("error"))
 
-		values := newTestOIDCAuthorizationValues()
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationFailed, nil)
+			},
+		},
+		{
+			name:   "ShouldHandleSaveError",
+			values: newTestOIDCAuthorizationValues(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().
+					SaveOAuth2ConsentSession(gomock.Any(), gomock.Any()).
+					Return(fmt.Errorf("bad"))
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
+				location := mustParseTestURI(t, rw.Header().Get(fasthttp.HeaderLocation))
 
-		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, values)
+				assert.Equal(t, testOIDCRedirectURI, (&url.URL{Scheme: location.Scheme, Host: location.Host, Path: location.Path}).String())
+				assert.Equal(t, "server_error", location.Query().Get("error"))
 
-		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
+				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`could not be processed: error occurred saving consent: bad$`), nil)
+			},
+		},
+	}
 
-		require.Equal(t, http.StatusSeeOther, rw.Code)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
 
-		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+			config := newTestOIDCConfig(t)
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
-		require.NoError(t, err)
+			setupTestOIDCProvider(t, mock, config)
 
-		assert.Equal(t, "https", location.Scheme)
-		assert.Equal(t, "login.example.com:8080", location.Host)
-		assert.Equal(t, oidc.EndpointPathAuthorization, location.Path)
+			if tc.setup != nil {
+				tc.setup(t, mock)
+			}
 
-		query := location.Query()
+			rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, tc.values)
 
-		assert.Equal(t, testOIDCAuthorizationCodeID, query.Get(oidc.FormParameterClientID))
-		assert.Equal(t, testOIDCRedirectURI, query.Get(oidc.FormParameterRedirectURI))
-		assert.Equal(t, oidc.ScopeOpenID, query.Get(oidc.FormParameterScope))
-	})
+			if tc.body != "" {
+				r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
+				r.Body = io.NopCloser(strings.NewReader(tc.body))
+				r.ContentLength = int64(len(tc.body))
+			}
 
-	t.Run("ShouldIgnoreMultipartForm", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtx(t)
-		defer mock.Close()
+			for name, value := range tc.headers {
+				r.Header.Set(name, value)
+			}
 
-		setupTestOIDCProvider(t, mock, nil)
+			OAuth2AuthorizationPOST(mock.Ctx, rw, r)
 
-		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, nil)
+			if tc.code == 0 {
+				assert.Equal(t, http.StatusSeeOther, rw.Code)
+			} else {
+				assert.Equal(t, tc.code, rw.Code)
+			}
 
-		r.Header.Set(fasthttp.HeaderContentType, "multipart/form-data; boundary=abc")
-		r.Body = io.NopCloser(strings.NewReader("--abc\r\nContent-Disposition: form-data; name=\"client_id\"\r\n\r\nabc\r\n--abc--\r\n"))
+			if tc.expect != nil {
+				tc.expect(t, mock, rw)
+			}
+		})
+	}
+}
 
-		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
+func mustParseTestURI(t *testing.T, in string) *url.URL {
+	t.Helper()
 
-		require.Equal(t, http.StatusSeeOther, rw.Code)
+	uri, err := url.Parse(in)
+	require.NoError(t, err)
 
-		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+	return uri
+}
 
-		require.NoError(t, err)
+func assertTestOAuth2AuthorizationConsentReference(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) (consent *model.OAuth2ConsentSession) {
+	t.Helper()
 
-		assert.Equal(t, oidc.EndpointPathAuthorization, location.Path)
-		assert.Empty(t, location.RawQuery)
-	})
+	location := mustParseTestURI(t, rw.Header().Get(fasthttp.HeaderLocation))
 
-	t.Run("ShouldHandleMalformedForm", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtx(t)
-		defer mock.Close()
+	assert.Equal(t, "https", location.Scheme)
+	assert.Equal(t, "login.example.com:8080", location.Host)
+	assert.Equal(t, oidc.EndpointPathAuthorization, location.Path)
 
-		setupTestOIDCProvider(t, mock, nil)
+	query := location.Query()
 
-		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCAuthorizationEndpoint, nil)
+	require.Len(t, query, 2)
+	assert.Equal(t, testOIDCAuthorizationCodeID, query.Get(oidc.FormParameterClientID))
 
-		r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
-		r.Body = io.NopCloser(strings.NewReader("client_id=%zz"))
+	challengeID, err := uuid.Parse(query.Get(queryArgConsentID))
+	require.NoError(t, err)
 
-		OAuth2AuthorizationPOST(mock.Ctx, rw, r)
+	consent, err = mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, challengeID)
+	require.NoError(t, err)
 
-		require.Equal(t, http.StatusSeeOther, rw.Code)
+	assert.Equal(t, testOIDCAuthorizationCodeID, consent.ClientID)
+	assert.False(t, consent.Subject.Valid)
+	assert.False(t, consent.Responded())
 
-		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+	form, err := consent.GetForm()
+	require.NoError(t, err)
 
-		require.NoError(t, err)
+	assert.Equal(t, newTestOIDCAuthorizationValues(), form)
 
-		assert.Equal(t, oidc.FrontendEndpointPathConsentCompletion, location.Path)
-		assert.NotEmpty(t, location.Query().Get("error"))
+	return consent
+}
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationFormError, regexpAnyError)
-	})
+func assertTestOAuth2AuthorizationBindingCookie(t *testing.T, mock *mocks.MockAutheliaCtx) (value string) {
+	t.Helper()
+
+	name := session.AuthorizationBindingCookieName("authelia_session")
+
+	raw := mock.Ctx.Response.Header.PeekCookie(name)
+	require.NotNil(t, raw)
+
+	cookie := fasthttp.AcquireCookie()
+	defer fasthttp.ReleaseCookie(cookie)
+
+	require.NoError(t, cookie.ParseBytes(raw))
+
+	assert.Equal(t, "__Host-Http-authelia_session_oauth2", string(cookie.Key()))
+	assert.Len(t, cookie.Value(), 43)
+	assert.Equal(t, "/", string(cookie.Path()))
+	assert.Empty(t, cookie.Domain())
+	assert.Equal(t, 3600, cookie.MaxAge())
+	assert.True(t, cookie.Secure())
+	assert.True(t, cookie.HTTPOnly())
+	assert.Equal(t, fasthttp.CookieSameSiteLaxMode, cookie.SameSite())
+
+	return string(cookie.Value())
 }
 
 const testOIDCAuthorizationEndpoint = "https://login.example.com:8080/api/oidc/authorization"

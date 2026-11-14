@@ -1669,7 +1669,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),

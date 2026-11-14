@@ -42,6 +42,7 @@ func NewStrategy(config schema.SessionCookie, clock clock.Provider, codec Codec,
 		issuer:        codec.Sign([]byte(scope)),
 		name:          SessionCookieName(config.Name),
 		authzName:     AuthzCookieName(config.Name),
+		bindingName:   AuthorizationBindingCookieName(config.Name),
 		authzIssuer:   codec.SignAuthz([]byte(issuerPrefixAuthz + scope)),
 		authzDomain:   newDomain(config.Domain, sameSite),
 		authzSameSite: sameSite,
@@ -63,6 +64,8 @@ type DefaultStrategy struct {
 	authzIssuer   string
 	authzDomain   string
 	authzSameSite http.SameSite
+
+	bindingName string
 
 	clock clock.Provider
 
@@ -615,11 +618,59 @@ func (p *DefaultStrategy) csrfTokenMessage(secret []byte) (message []byte) {
 	return append(message, secret...)
 }
 
+// AuthorizationBinding returns the opaque value which binds a record to the user agent of the request, which is the
+// value of the authorization binding cookie. The cookie is issued with a new random value when the request carries
+// none or carries one which is malformed, and is always reissued so its lifetime is renewed.
+func (p *DefaultStrategy) AuthorizationBinding(ctx Context) (binding string, err error) {
+	id := p.getCookieID(ctx, p.bindingName)
+
+	if len(id) == 0 {
+		if id, err = p.codec.GenerateSessionID(); err != nil {
+			return "", fmt.Errorf("error occurred generating authorization binding: %w", err)
+		}
+	}
+
+	cookie := p.newAuthorizationBindingCookie(id)
+
+	ctx.SetCookie(cookie)
+
+	return cookie.Value, nil
+}
+
+// VerifyAuthorizationBinding returns true when the binding is the value of the authorization binding cookie of the
+// request, comparing them in constant time.
+func (p *DefaultStrategy) VerifyAuthorizationBinding(ctx Context, binding string) (valid bool) {
+	if len(binding) == 0 || len(p.getCookieID(ctx, p.bindingName)) == 0 {
+		return false
+	}
+
+	return subtle.ConstantTimeCompare([]byte(ctx.GetCookie(p.bindingName)), []byte(binding)) == 1
+}
+
+func (p *DefaultStrategy) newAuthorizationBindingCookie(id []byte) (cookie *http.Cookie) {
+	return &http.Cookie{
+		Name:     p.bindingName,
+		Value:    encodeCookieID(id),
+		Path:     "/",
+		MaxAge:   cookieMaxAgeAuthorizationBinding,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+}
+
 // SessionCookieName returns the name of the session cookie for the given configured cookie name. The session cookie is
 // only honored on the Authelia URL host and is never read by scripts, so it's host only and HTTP only and carries the
 // prefix which requires it to be both.
 func SessionCookieName(name string) string {
 	return CookieNamePrefixHostHTTP + name
+}
+
+// AuthorizationBindingCookieName returns the name of the authorization binding cookie for the given configured cookie
+// name. The cookie is host only and HTTP only so it carries the same prefix as the session cookie, which prevents a
+// sibling subdomain or a script from setting a cookie which takes its place.
+func AuthorizationBindingCookieName(name string) string {
+	return CookieNamePrefixHostHTTP + name + CookieNameSuffixAuthorizationBinding
 }
 
 // AuthzCookieName returns the name of the authz cookie for the given configured cookie name. The authz cookie is scoped

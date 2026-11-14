@@ -21,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestHandleOAuth2AuthorizationBounceShouldNotBounce(t *testing.T) {
@@ -483,66 +484,6 @@ func TestOAuth2AuthorizationShouldBounceBeforeProcessing(t *testing.T) {
 	}
 }
 
-func TestOAuth2AuthorizationPOSTShouldRedirectWhenCrossSite(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
-
-	setupTestOIDCProvider(t, mock, nil)
-
-	rw, r := newTestOAuth2AuthorizationBounceRequest(fasthttp.MethodPost, "prompt=none", newTestOIDCAuthorizationValues(), newTestOAuth2AuthorizationBounceHeaders(), nil)
-
-	OAuth2AuthorizationPOST(mock.Ctx, rw, r)
-
-	require.Equal(t, http.StatusSeeOther, rw.Code)
-
-	assert.Empty(t, rw.Body.String())
-	assert.Empty(t, rw.Header().Get(fasthttp.HeaderContentType))
-	assert.Empty(t, rw.Header().Get(fasthttp.HeaderSetCookie))
-	assert.Empty(t, rw.Result().Cookies())
-
-	location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
-
-	require.NoError(t, err)
-
-	assert.Equal(t, "https", location.Scheme)
-	assert.Equal(t, "/api/oidc/authorization", location.Path)
-	assert.Equal(t, url.Values{
-		"client_id":     []string{"authorization-code"},
-		"response_type": []string{"code"},
-		"redirect_uri":  []string{"https://app.example.com/oidc/callback"},
-		"scope":         []string{"openid"},
-		"state":         []string{"abcdefghijklmnopqrstuvwxyz"},
-		"prompt":        []string{"none"},
-	}, location.Query())
-}
-
-func TestOAuth2AuthorizationPOSTShouldReportMalformedFormWhenCrossSite(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
-
-	setupTestOIDCProvider(t, mock, nil)
-
-	rw, r := newTestOAuth2AuthorizationBounceRequest(fasthttp.MethodPost, "", nil, newTestOAuth2AuthorizationBounceHeaders(), nil)
-
-	r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
-	r.Body = io.NopCloser(strings.NewReader("client_id=%zz"))
-	r.ContentLength = 13
-
-	OAuth2AuthorizationPOST(mock.Ctx, rw, r)
-
-	require.Equal(t, http.StatusSeeOther, rw.Code)
-
-	location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
-
-	require.NoError(t, err)
-
-	assert.Equal(t, oidc.FrontendEndpointPathConsentCompletion, location.Path)
-	assert.NotEmpty(t, location.Query().Get("error"))
-	assert.Empty(t, rw.Result().Cookies())
-
-	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationFormError, regexpAnyError)
-}
-
 func TestOAuth2AuthorizationBounceShouldSurviveTheServerMiddlewares(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -619,11 +560,8 @@ func TestOAuth2AuthorizationBounceShouldSurviveTheServerMiddlewares(t *testing.T
 			assert.NotContains(t, string(ctx.Response.Body()), "Continue")
 			assert.Equal(t, [][]byte{[]byte("default-src 'none'")}, ctx.Response.Header.PeekAll(fasthttp.HeaderContentSecurityPolicy))
 
-			cookies = ctx.Response.Header.PeekAll(fasthttp.HeaderSetCookie)
-
-			require.Len(t, cookies, 1)
-
-			assert.Equal(t, "authelia_authorization_bounce=1; Path="+path+"; Max-Age=0; HttpOnly; Secure; SameSite=Lax", string(cookies[0]))
+			assert.Equal(t, "authelia_authorization_bounce=1; Path="+path+"; Max-Age=0; HttpOnly; Secure; SameSite=Lax", string(ctx.Response.Header.PeekCookie(cookieNameOAuth2AuthorizationBounce)))
+			assert.NotNil(t, ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
 		})
 	}
 }

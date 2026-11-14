@@ -216,6 +216,7 @@ following cookies are issued:
 - `__Host-Http-authelia_session`: the session cookie.
 - `__Secure-authelia_session_authz`: the authorization cookie.
 - `__Host-authelia_session_csrf`: the CSRF token cookie.
+- `__Host-Http-authelia_session_oauth2`: the OpenID Connect 1.0 authorization binding cookie.
 
 The prefixes are added automatically, so this value must not start with `__Host-`, `__Secure-`, or `__Http-`. See
 [same_site](#same_site-1) for what each cookie is used for.
@@ -262,6 +263,14 @@ of the session to the portal. It isn't used to identify the session and is only 
 value of Strict to the Authelia host alone, is readable by the portal so that it can include the token, and is
 replaced whenever the session cookie is replaced. The `__Host-` prefix instructs the browser to reject the cookie unless
 the Authelia host itself set it, so another host such as a sibling subdomain can't replace it.
+
+A fourth cookie, which uses the configured name with the prefix `__Host-Http-` and the suffix `_oauth2`, for example
+`__Host-Http-authelia_session_oauth2`, binds the OpenID Connect 1.0 authorization requests a browser starts to that
+browser. It holds a random value which every consent session the browser creates is bound to, and a consent session is
+only accepted from a browser which presents the same value, so an authorization request started in one browser can't be
+completed in another. It is issued with a SameSite value of Lax so it's sent when the client returns the browser to
+Authelia, to the Authelia host alone, and expires an hour after the most recent authorization request. It isn't used to
+identify the session or the user.
 
 The authorization cookie is linked to the session. It is replaced whenever the session cookie is replaced and stops
 working as soon as the session is destroyed. When the session cookie is valid but the authorization cookie is missing

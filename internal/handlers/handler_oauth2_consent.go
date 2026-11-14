@@ -330,10 +330,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		return
 	}
 
-	query.Set(queryArgConsentID, consent.ChallengeID.String())
-
-	redirectURI.RawQuery = query.Encode()
-	redirectURI = redirectURI.JoinPath(oidc.EndpointPathAuthorization)
+	redirectURI = handleOAuth2AuthorizationConsentReferenceURL(redirectURI, consent)
 
 	response := oidc.ConsentPostResponseBody{RedirectURI: redirectURI.String()}
 
@@ -584,6 +581,17 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
+	if err = handleOAuth2ConsentSessionBind(ctx, consent); err != nil {
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID}).
+			Error("Error occurred binding the consent session to the user agent during the Consent Flow stage of the Device Authorization Flow")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
 		ctx.GetLogger().
 			WithError(err).
@@ -657,7 +665,7 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 		return userSession, details, nil, nil, true
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, flowID); err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldUsername: userSession.Username}).
