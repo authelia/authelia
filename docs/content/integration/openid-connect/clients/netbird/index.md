@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "NetBird"
-description: "Integrating NetBird with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating NetBird with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-01-25T10:04:53+11:00
 draft: false
@@ -64,7 +64,6 @@ identity_providers:
       allowed_origins_from_client_redirect_uris: true
       endpoints:
         - 'userinfo'
-        - 'authorization'
         - 'token'
         - 'revocation'
         - 'introspection'
@@ -73,6 +72,7 @@ identity_providers:
         client_name: 'NetBird'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

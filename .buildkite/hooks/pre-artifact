@@ -14,6 +14,13 @@ if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
   rm -rf goreleaser
 fi
 
-if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
-  docker save "${DOCKER_IMAGE}" | zstdmt -T0 -12 > "authelia-image-coverage.tar.zst"
+if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]] && [[ "${BUILDKITE_COMMAND_EXIT_STATUS}" == 0 ]]; then
+  set -o pipefail
+  (
+    flock 9
+    docker tag "authelia:dist-${BUILDKITE_JOB_ID}" "${DOCKER_IMAGE}" && docker save "${DOCKER_IMAGE}" | zstdmt -T0 -12 > "authelia-image-coverage.tar.zst"
+    rc=$?
+    docker rmi "${DOCKER_IMAGE}" > /dev/null 2>&1
+    exit "${rc}"
+  ) 9> /buildkite/.cache/authelia-image-load.lock || exit 1
 fi

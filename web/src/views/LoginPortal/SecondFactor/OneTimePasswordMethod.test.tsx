@@ -5,6 +5,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { completeTOTPSignIn } from "@services/OneTimePassword";
+import { RateLimitedError } from "@services/RateLimit";
 import { AuthenticationLevel } from "@services/State";
 import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 
@@ -101,7 +102,7 @@ beforeEach(() => {
     mocks.configError = undefined;
     mocks.queryParams = {};
     mocks.userCode = null;
-    completeSignInMock.mockResolvedValue({ data: { redirect: "https://example.com" } } as any);
+    completeSignInMock.mockResolvedValue({ redirect: "https://example.com" });
 });
 
 afterEach(() => {
@@ -268,28 +269,13 @@ describe("sign in", () => {
     });
 
     it("reports success with no redirect when the response carries no data", async () => {
-        completeSignInMock.mockResolvedValue({} as any);
+        completeSignInMock.mockResolvedValue(undefined);
 
         const { props } = renderMethod();
 
         fireEvent.click(screen.getByTestId("dial-full"));
 
         await waitFor(() => expect(props.onSignInSuccess).toHaveBeenCalledWith(undefined));
-    });
-
-    it("reports a wrong code when the response is empty", async () => {
-        completeSignInMock.mockResolvedValue(null as any);
-
-        const { props } = renderMethod();
-
-        fireEvent.click(screen.getByTestId("dial-full"));
-
-        await waitFor(() =>
-            expect(props.onSignInError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "The One-Time Password might be wrong" }),
-            ),
-        );
-        await waitFor(() => expect(screen.getByTestId("otp-dial")).toHaveAttribute("data-state", "3"));
     });
 
     it("reports a wrong code when the request throws", async () => {
@@ -317,7 +303,7 @@ describe("sign in", () => {
 
     it("reports rate limiting and recovers after the retry window", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 5 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(5));
 
         const { props } = renderMethod();
 
@@ -339,7 +325,7 @@ describe("sign in", () => {
 
     it("clears the rate limit timer on unmount", async () => {
         vi.useFakeTimers();
-        completeSignInMock.mockResolvedValue({ limited: true, retryAfter: 5 } as any);
+        completeSignInMock.mockRejectedValue(new RateLimitedError(5));
 
         const { unmount } = renderMethod();
 

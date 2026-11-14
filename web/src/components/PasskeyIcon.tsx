@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 interface Props {
     className?: string;

@@ -11,6 +11,7 @@ interface ConfigurationPayload {
     available_methods: Method2FA[];
     password_change_disabled: boolean;
     password_reset_disabled: boolean;
+    recovery_codes_disabled: boolean;
 }
 
 export async function getConfiguration(): Promise<Configuration> {

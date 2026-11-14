@@ -22,21 +22,60 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewClaimRequests parses the claims request parameter if set from a [http.Request] form.
+// NewClaimRequests parses the claims request parameter if set from a [http.Request] form using the same rules the
+// Authorization Endpoint applies.
 func NewClaimRequests(form url.Values) (requests *ClaimsRequests, err error) {
-	var raw string
+	var claims *oauthelia2.ClaimsRequest
 
-	if raw = form.Get(FormParameterClaims); len(raw) == 0 {
-		return nil, nil
+	if claims, err = oauthelia2.ParseClaimsRequest(form); err != nil {
+		return nil, err
 	}
 
-	requests = &ClaimsRequests{}
+	return NewClaimRequestsFromClaimsRequest(claims), nil
+}
 
-	if err = json.Unmarshal([]byte(raw), requests); err != nil {
-		return nil, oauthelia2.ErrInvalidRequest.WithHint("The OAuth 2.0 client included a malformed 'claims' parameter in the authorization request.").WithWrap(err).WithDebugf("Error occurred attempting to parse the 'claims' parameter: %+v.", err)
+// NewClaimRequestsFromRequester returns the claims requested by a requester, using the claims request the provider
+// parsed when it is available, and otherwise parsing the claims request parameter of the request form.
+func NewClaimRequestsFromRequester(requester oauthelia2.Requester) (requests *ClaimsRequests, err error) {
+	if r, ok := requester.(oauthelia2.ClaimsRequester); ok {
+		if claims := r.GetClaims(); claims != nil {
+			return NewClaimRequestsFromClaimsRequest(claims), nil
+		}
 	}
 
-	return requests, nil
+	return NewClaimRequests(requester.GetRequestForm())
+}
+
+// NewClaimRequestsFromClaimsRequest converts a *oauthelia2.ClaimsRequest into a *ClaimsRequests.
+func NewClaimRequestsFromClaimsRequest(claims *oauthelia2.ClaimsRequest) (requests *ClaimsRequests) {
+	if claims == nil {
+		return nil
+	}
+
+	return &ClaimsRequests{
+		IDToken:  newClaimRequestsFromClaimRequests(claims.IDToken),
+		UserInfo: newClaimRequestsFromClaimRequests(claims.UserInfo),
+	}
+}
+
+func newClaimRequestsFromClaimRequests(claims map[string]*oauthelia2.ClaimRequest) (requests map[string]*ClaimRequest) {
+	if claims == nil {
+		return nil
+	}
+
+	requests = make(map[string]*ClaimRequest, len(claims))
+
+	for name, claim := range claims {
+		if claim == nil {
+			requests[name] = nil
+
+			continue
+		}
+
+		requests[name] = &ClaimRequest{Essential: claim.Essential, Value: claim.Value, Values: claim.Values}
+	}
+
+	return requests
 }
 
 // OrderedClaimsRequests is a ClaimsRequests which marshals its claims in a deterministic order.
@@ -141,6 +180,38 @@ type OrderedClaimRequest struct {
 type ClaimsRequests struct {
 	IDToken  map[string]*ClaimRequest `json:"id_token,omitempty"`
 	UserInfo map[string]*ClaimRequest `json:"userinfo,omitempty"`
+}
+
+// ToClaimsRequest converts these requests into a *oauthelia2.ClaimsRequest.
+func (r *ClaimsRequests) ToClaimsRequest() (claims *oauthelia2.ClaimsRequest) {
+	if r == nil {
+		return nil
+	}
+
+	return &oauthelia2.ClaimsRequest{
+		IDToken:  toClaimRequests(r.IDToken),
+		UserInfo: toClaimRequests(r.UserInfo),
+	}
+}
+
+func toClaimRequests(requests map[string]*ClaimRequest) (claims map[string]*oauthelia2.ClaimRequest) {
+	if requests == nil {
+		return nil
+	}
+
+	claims = make(map[string]*oauthelia2.ClaimRequest, len(requests))
+
+	for name, request := range requests {
+		if request == nil {
+			claims[name] = nil
+
+			continue
+		}
+
+		claims[name] = &oauthelia2.ClaimRequest{Essential: request.Essential, Value: request.Value, Values: request.Values}
+	}
+
+	return claims
 }
 
 // ToOrdered returns these requests as an *OrderedClaimsRequests.

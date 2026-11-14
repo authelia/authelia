@@ -28,6 +28,7 @@ func TestNewConfiguration(t *testing.T) {
 			paths: []string{"../../internal/configuration/test_resources/config.webauthn.yml"},
 			keys: []string{
 				"regulation.max_retries",
+				"server.endpoints.rate_limits.health.enable",
 				"server.endpoints.rate_limits.openid_connect_introspection.enable",
 				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
 				"server.endpoints.rate_limits.openid_connect_revocation.enable",
@@ -37,6 +38,7 @@ func TestNewConfiguration(t *testing.T) {
 				"server.endpoints.rate_limits.reset_password_start.enable",
 				"server.endpoints.rate_limits.second_factor_duo.enable",
 				"server.endpoints.rate_limits.second_factor_password.enable",
+				"server.endpoints.rate_limits.second_factor_recovery_code.enable",
 				"server.endpoints.rate_limits.second_factor_totp.enable",
 				"server.endpoints.rate_limits.session_elevation_finish.enable",
 				"server.endpoints.rate_limits.session_elevation_start.enable",
@@ -50,6 +52,7 @@ func TestNewConfiguration(t *testing.T) {
 				"identity_validation: reset_password: option 'jwt_secret' is required when the reset password functionality isn't disabled",
 				"authentication_backend: you must ensure either the 'file' or 'ldap' authentication backend is configured",
 				"access_control: 'default_policy' option 'deny' is invalid: when no rules are specified it must be 'two_factor' or 'one_factor'",
+				"session: option 'secret' is required",
 				"session: option 'cookies' is required",
 				"storage: option 'encryption_key' is required",
 				"storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided",
@@ -82,6 +85,8 @@ func TestNewConfiguration(t *testing.T) {
 				"authentication_backend.ldap.user",
 				"authentication_backend.ldap.users_filter",
 				"authentication_backend.refresh_interval",
+				"cache.redis_sentinel.addresses",
+				"cache.redis_sentinel.master_name",
 				"definitions.network.lan",
 				"definitions.user_attributes.example.expression",
 				"duo_api.hostname",
@@ -105,6 +110,7 @@ func TestNewConfiguration(t *testing.T) {
 				"server.endpoints.authz.forward-auth.authn_strategies[].name",
 				"server.endpoints.authz.forward-auth.implementation",
 				"server.endpoints.authz.legacy.implementation",
+				"server.endpoints.rate_limits.health.enable",
 				"server.endpoints.rate_limits.openid_connect_introspection.enable",
 				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
 				"server.endpoints.rate_limits.openid_connect_revocation.enable",
@@ -114,6 +120,7 @@ func TestNewConfiguration(t *testing.T) {
 				"server.endpoints.rate_limits.reset_password_start.enable",
 				"server.endpoints.rate_limits.second_factor_duo.enable",
 				"server.endpoints.rate_limits.second_factor_password.enable",
+				"server.endpoints.rate_limits.second_factor_recovery_code.enable",
 				"server.endpoints.rate_limits.second_factor_totp.enable",
 				"server.endpoints.rate_limits.session_elevation_finish.enable",
 				"server.endpoints.rate_limits.session_elevation_start.enable",
@@ -124,9 +131,6 @@ func TestNewConfiguration(t *testing.T) {
 				"session.expiration",
 				"session.inactivity",
 				"session.name",
-				"session.redis.high_availability.sentinel_name",
-				"session.redis.host",
-				"session.redis.port",
 				"storage.mysql.address",
 				"storage.mysql.database",
 				"storage.mysql.username",
@@ -140,7 +144,7 @@ func TestNewConfiguration(t *testing.T) {
 				"duo_api: option 'secret_key' is required when duo is enabled but it's absent",
 				"identity_validation: reset_password: option 'jwt_secret' is required when the reset password functionality isn't disabled",
 				"authentication_backend: ldap: option 'password' is required",
-				"session: option 'secret' is required when using the 'redis' provider",
+				"session: option 'secret' is required",
 				"storage: option 'encryption_key' is required",
 			},
 		},
@@ -204,11 +208,11 @@ func TestNewConfiguration(t *testing.T) {
 }
 
 func TestNewNamedConfigFileFilters(t *testing.T) {
-	filters, err := NewNamedConfigFileFilters("abc")
+	filters, err := NewNamedConfigFileFilters(nil, "", "", "abc")
 	assert.Nil(t, filters)
 	assert.EqualError(t, err, "error occurred loading filters: invalid filter named 'abc'")
 
-	filters, err = NewNamedConfigFileFilters("template")
+	filters, err = NewNamedConfigFileFilters(nil, "", "", "template")
 	assert.NotNil(t, filters)
 	assert.NoError(t, err)
 }

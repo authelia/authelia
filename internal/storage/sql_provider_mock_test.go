@@ -355,12 +355,22 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 		{
 			name: "ShouldReturnErrSaveOAuth2BlacklistedJTI",
 			setup: func(db *mocks.MockSQLXDB) {
-				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig", gomock.Any()).Return(nil, errors.New("boom"))
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "client", "sig", gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.SaveOAuth2BlacklistedJTI(context.Background(), model.OAuth2BlacklistedJTI{Signature: "sig", ExpiresAt: time.Now()})
+				return p.SaveOAuth2BlacklistedJTI(context.Background(), model.OAuth2BlacklistedJTI{ClientID: "client", Signature: "sig", ExpiresAt: time.Now()})
 			},
-			expectErr: "error inserting oauth2 blacklisted JTI with signature 'sig': boom",
+			expectErr: "error inserting oauth2 blacklisted JTI with signature 'sig' for client 'client': boom",
+		},
+		{
+			name: "ShouldReturnErrSaveOAuth2RequestReplay",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), model.OAuth2RequestReplayTypePKCEChallenge, "client", "sig", gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.SaveOAuth2RequestReplay(context.Background(), model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client", Signature: "sig", ExpiresAt: time.Now()})
+			},
+			expectErr: "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client': boom",
 		},
 		{
 			name: "ShouldReturnErrAppendAuthenticationLog",
@@ -786,13 +796,13 @@ func TestSQLProviderLoadErrors(t *testing.T) {
 		{
 			name: "ShouldReturnErrLoadOAuth2BlacklistedJTI",
 			setup: func(db *mocks.MockSQLXDB) {
-				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "sig").Return(errors.New("boom"))
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "client", "sig").Return(errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				_, err := p.LoadOAuth2BlacklistedJTI(context.Background(), "sig")
+				_, err := p.LoadOAuth2BlacklistedJTI(context.Background(), "client", "sig")
 				return err
 			},
-			expectErr: "error selecting oauth2 blacklisted JTI with signature 'sig': boom",
+			expectErr: "error selecting oauth2 blacklisted JTI with signature 'sig' for client 'client': boom",
 		},
 		{
 			name: "ShouldReturnErrLoadBannedUser",
@@ -2054,7 +2064,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otc", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM one_time_code;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "one_time_code").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(errors.New("commit failed"))
 			},
 			expectErr: "error committing transaction to rotate hmac key: commit failed",
@@ -2067,7 +2076,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otc", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM one_time_code;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "one_time_code").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(nil)
 			},
 		},
@@ -2129,7 +2137,6 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otp", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM totp_history;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "totp_history").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
 				tx.EXPECT().Commit().Return(errors.New("commit failed"))
 			},
 			expectErr: "error committing transaction to rotate hmac key: commit failed",
@@ -2142,7 +2149,70 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_otp", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM totp_history;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "totp_history").Return(nil, nil)
-				tx.EXPECT().ExecContext(gomock.Any(), "VACUUM;").Return(nil, nil)
+				tx.EXPECT().Commit().Return(nil)
+			},
+		},
+		{
+			name:     "ShouldErrSetCryptographyKeyForSessionAndRollback",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, errors.New("upsert failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error setting the hmac key: upsert failed",
+		},
+		{
+			name:     "ShouldErrTruncateForSessionAndRollback",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM session;").Return(nil, errors.New("delete failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error truncating sessions: error occurred truncating table 'session': error occurred performing the delete: delete failed",
+		},
+		{
+			name:     "ShouldSucceedForSession",
+			hmacName: "session",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM session;").Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "session").Return(nil, nil)
+				tx.EXPECT().Commit().Return(nil)
+			},
+		},
+		{
+			name:     "ShouldErrSetCryptographyKeyForRecoveryCodeAndRollback",
+			hmacName: "rc",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_rc", gomock.Any()).Return(nil, errors.New("upsert failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error setting the hmac key: upsert failed",
+		},
+		{
+			name:     "ShouldErrTruncateForRecoveryCodeAndRollback",
+			hmacName: "rc",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_rc", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM recovery_codes;").Return(nil, errors.New("delete failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error truncating recovery codes: error occurred truncating table 'recovery_codes': error occurred performing the delete: delete failed",
+		},
+		{
+			name:     "ShouldSucceedForRecoveryCode",
+			hmacName: "rc",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_rc", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM recovery_codes;").Return(nil, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "recovery_codes").Return(nil, nil)
 				tx.EXPECT().Commit().Return(nil)
 			},
 		},
@@ -2636,6 +2706,306 @@ func TestSQLProviderSchemaMigrateApplySpecialWithoutMySQLUsesConn(t *testing.T) 
 	err := p.SchemaMigrateApply(context.Background(), conn, model.SchemaMigration{Version: 26, Up: true}, 0, 26)
 
 	assert.EqualError(t, err, "select failed")
+}
+
+func TestSQLProviderRecoveryCodeErrors(t *testing.T) {
+	testCases := []struct {
+		name      string
+		setup     func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult)
+		invoke    func(p *storage.SQLProvider) error
+		expectErr string
+	}{
+		{
+			name: "ShouldErrLoadRecoveryCodeHMACKeyWhenBeginFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().BeginTxx(gomock.Any(), gomock.Nil()).Return(nil, errors.New("begin failed"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.LoadRecoveryCodeHMACKey(context.Background())
+			},
+			expectErr: "failed to initialize the hmac recovery code signature key: error beginning transaction to get hmac key: begin failed",
+		},
+		{
+			name: "ShouldErrSaveRecoveryCodeWhenExecFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "john", gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.SaveRecoveryCode(context.Background(), &model.RecoveryCode{Username: "john", Plaintext: "AAAAA-BBBBB"})
+			},
+			expectErr: "error inserting recovery code for user 'john': boom",
+		},
+		{
+			name: "ShouldErrReplaceWhenBeginFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().BeginTxx(gomock.Any(), gomock.Nil()).Return(nil, errors.New("begin failed"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ReplaceRecoveryCodesByUsername(context.Background(), "john", nil, model.NullIP{})
+			},
+			expectErr: "error beginning transaction to replace recovery codes for user 'john': begin failed",
+		},
+		{
+			name: "ShouldErrReplaceWhenLockFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				gomock.InOrder(
+					db.EXPECT().BeginTxx(gomock.Any(), gomock.Nil()).Return(tx, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "john").Return(nil, errors.New("lock failed")),
+					tx.EXPECT().Rollback().Return(nil),
+				)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ReplaceRecoveryCodesByUsername(context.Background(), "john", nil, model.NullIP{})
+			},
+			expectErr: "error locking recovery codes for user 'john': lock failed",
+		},
+		{
+			name: "ShouldErrReplaceWhenLockFailsAndRollbackFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				gomock.InOrder(
+					db.EXPECT().BeginTxx(gomock.Any(), gomock.Nil()).Return(tx, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "john").Return(nil, errors.New("lock failed")),
+					tx.EXPECT().Rollback().Return(errors.New("rollback failed")),
+				)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ReplaceRecoveryCodesByUsername(context.Background(), "john", nil, model.NullIP{})
+			},
+			expectErr: "error rolling back transaction to replace recovery codes for user 'john': rollback failed",
+		},
+		{
+			name: "ShouldErrReplaceWhenRevokeFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				gomock.InOrder(
+					db.EXPECT().BeginTxx(gomock.Any(), gomock.Nil()).Return(tx, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "john").Return(nil, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(nil, errors.New("revoke failed")),
+					tx.EXPECT().Rollback().Return(nil),
+				)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ReplaceRecoveryCodesByUsername(context.Background(), "john", nil, model.NullIP{})
+			},
+			expectErr: "error revoking recovery codes for user 'john': revoke failed",
+		},
+		{
+			name: "ShouldErrReplaceWhenCommitFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				gomock.InOrder(
+					db.EXPECT().BeginTxx(gomock.Any(), gomock.Nil()).Return(tx, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "john").Return(nil, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(nil, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "john", gomock.Any(), gomock.Any()).Return(nil, nil),
+					tx.EXPECT().Commit().Return(errors.New("commit failed")),
+				)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ReplaceRecoveryCodesByUsername(context.Background(), "john", []*model.RecoveryCode{{Username: "john", Plaintext: "AAAAA-BBBBB"}}, model.NullIP{})
+			},
+			expectErr: "error committing transaction to replace recovery codes for user 'john': commit failed",
+		},
+		{
+			name: "ShouldSucceedReplace",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				gomock.InOrder(
+					db.EXPECT().BeginTxx(gomock.Any(), gomock.Nil()).Return(tx, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "john").Return(nil, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(nil, nil),
+					tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "john", gomock.Any(), gomock.Any()).Return(nil, nil).Times(2),
+					tx.EXPECT().Commit().Return(nil),
+				)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ReplaceRecoveryCodesByUsername(context.Background(), "john", []*model.RecoveryCode{
+					{Username: "john", Plaintext: "AAAAA-BBBBB"},
+					{Username: "john", Plaintext: "CCCCC-DDDDD"},
+				}, model.NullIP{})
+			},
+		},
+		{
+			name: "ShouldErrLoadRecoveryCodeWhenGetFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				code, err := p.LoadRecoveryCode(context.Background(), "john", "AAAAA-BBBBB")
+				if code != nil {
+					return errors.New("expected nil code")
+				}
+
+				return err
+			},
+			expectErr: "error selecting recovery code: boom",
+		},
+		{
+			name: "ShouldReturnNilLoadRecoveryCodeWhenNoRows",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(sql.ErrNoRows)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				code, err := p.LoadRecoveryCode(context.Background(), "john", "AAAAA-BBBBB")
+				if code != nil {
+					return errors.New("expected nil code")
+				}
+
+				return err
+			},
+		},
+		{
+			name: "ShouldErrLoadRecoveryCodesByUsernameWhenSelectFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				codes, err := p.LoadRecoveryCodesByUsername(context.Background(), "john")
+				if codes != nil {
+					return errors.New("expected nil codes")
+				}
+
+				return err
+			},
+			expectErr: "error selecting recovery codes for user 'john': boom",
+		},
+		{
+			name: "ShouldReturnNilLoadRecoveryCodesByUsernameWhenNoRows",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(sql.ErrNoRows)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				codes, err := p.LoadRecoveryCodesByUsername(context.Background(), "john")
+				if codes != nil {
+					return errors.New("expected nil codes")
+				}
+
+				return err
+			},
+		},
+		{
+			name: "ShouldErrConsumeRecoveryCodeWhenExecFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), 5).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ConsumeRecoveryCode(context.Background(), 5, model.NullIP{})
+			},
+			expectErr: "error updating recovery code (consume) id '5': boom",
+		},
+		{
+			name: "ShouldErrConsumeRecoveryCodeWhenRowsAffectedFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(0), errors.New("ra-err"))
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), 5).Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ConsumeRecoveryCode(context.Background(), 5, model.NullIP{})
+			},
+			expectErr: "error updating recovery code (consume) id '5': ra-err",
+		},
+		{
+			name: "ShouldErrConsumeRecoveryCodeWhenNotActive",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(0), nil)
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), 5).Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ConsumeRecoveryCode(context.Background(), 5, model.NullIP{})
+			},
+			expectErr: "error updating recovery code (consume) id '5': recovery code is not active",
+		},
+		{
+			name: "ShouldErrRevokeRecoveryCodesWhenExecFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.RevokeRecoveryCodesByUsername(context.Background(), "john", model.NullIP{})
+			},
+			expectErr: "error revoking recovery codes for user 'john': boom",
+		},
+		{
+			name: "ShouldErrCountUnusedRecoveryCodesWhenGetFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "john").Return(errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				count, err := p.CountUnusedRecoveryCodesByUsername(context.Background(), "john")
+				if count != 0 {
+					return errors.New("expected zero count")
+				}
+
+				return err
+			},
+			expectErr: "error counting unused recovery codes for user 'john': boom",
+		},
+		{
+			name: "ShouldErrCountUsersWithRecoveryCodesWhenGetFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				count, err := p.CountUsersWithRecoveryCodes(context.Background())
+				if count != 0 {
+					return errors.New("expected zero count")
+				}
+
+				return err
+			},
+			expectErr: "error counting users with recovery codes: boom",
+		},
+		{
+			name: "ShouldErrCountUsersWithLowRecoveryCodesWhenGetFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				count, err := p.CountUsersWithLowRecoveryCodes(context.Background())
+				if count != 0 {
+					return errors.New("expected zero count")
+				}
+
+				return err
+			},
+			expectErr: "error counting users with low recovery codes: boom",
+		},
+		{
+			name: "ShouldErrCountUsersWithDepletedRecoveryCodesWhenGetFails",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx, result *mocks.MockSQLResult) {
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				count, err := p.CountUsersWithDepletedRecoveryCodes(context.Background())
+				if count != 0 {
+					return errors.New("expected zero count")
+				}
+
+				return err
+			},
+			expectErr: "error counting users with depleted recovery codes: boom",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mocks.NewMockSQLXDB(ctrl)
+			tx := mocks.NewMockSQLXTx(ctrl)
+			result := mocks.NewMockSQLResult(ctrl)
+
+			if tc.setup != nil {
+				tc.setup(db, tx, result)
+			}
+
+			err := tc.invoke(storage.NewSQLProviderForTesting(db))
+
+			if tc.expectErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.expectErr)
+			}
+		})
+	}
 }
 
 func encryptForTesting(clearText, aad []byte) ([]byte, error) {

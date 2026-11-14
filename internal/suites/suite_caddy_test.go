@@ -24,6 +24,10 @@ func (s *CaddySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
+func (s *CaddySuite) TestAccessDeniedScenario() {
+	suite.Run(s.T(), NewAccessDeniedScenario())
+}
+
 func (s *CaddySuite) Test2FATOTPScenario() {
 	suite.Run(s.T(), New2FATOTPScenario())
 }

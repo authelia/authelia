@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [WG-Portal]
   - [v2.3.1](https://github.com/h44z/wg-portal/releases/tag/v2.3.1)
 
@@ -64,6 +64,7 @@ identity_providers:
         client_name: 'WG-Portal'
         client_secret: '$pbkdf2-sha512$310000$hDm3SNqIGebGH33JVGnCZA$5XA6C8mg.j2MejL1uJfHwFPEqXbW2K.xufEuIIpwN.0Jn0dKs/LLvRKbPTo7MTOjTpwoAVyZj6BsUTHeBjd3sQ'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

@@ -14,8 +14,4 @@ steps:
   # Pipeline for all others (tagged commits/local branches/PRs).
   - label: ":pipeline: Setup Pipeline"
     command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
-
-notify:
-  - webhook: "<REDACTED WEBHOOK_URL>"
-    if: build.state == "blocked"
 ...

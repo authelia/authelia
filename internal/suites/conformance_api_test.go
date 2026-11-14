@@ -649,3 +649,80 @@ func TestConformanceClient_WaitStateFromInfoStopsWhenTheContextExpires(t *testin
 
 	assert.ErrorContains(t, err, "module 'm1' did not reach one of [FINISHED]")
 }
+
+func TestConformanceClient_StartTestRetriesOnTransientError(t *testing.T) {
+	var calls int
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/api/runner/abc", r.URL.Path)
+
+		calls++
+
+		if calls == 1 {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"status":500,"exception":"org.springframework.http.converter.HttpMessageNotWritableException"}`))
+
+			return
+		}
+
+		_, _ = w.Write([]byte(`{"id":"abc"}`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	require.NoError(t, client.StartTest(ctx, "abc"))
+	assert.Equal(t, 2, calls)
+}
+
+func TestConformanceClient_StartTestFailsFastOnAClientError(t *testing.T) {
+	var calls int
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+
+		w.WriteHeader(http.StatusNotFound)
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	err = client.StartTest(ctx, "abc")
+	assert.ErrorContains(t, err, "expected status 200 but got 404")
+	assert.Equal(t, 1, calls)
+}
+
+func TestConformanceClient_StartTestReturnsFramedErrorOnPersistentTransientFailure(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"error":"broken"}`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*750)
+	defer cancel()
+
+	start := time.Now()
+
+	err = client.StartTest(ctx, "abc")
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "module 'abc' could not be started")
+	assert.ErrorContains(t, err, "broken")
+	assert.Less(t, time.Since(start), time.Second*5, "StartTest should return promptly once ctx expires rather than hang")
+}

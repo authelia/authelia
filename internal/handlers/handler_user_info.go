@@ -11,6 +11,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -52,6 +53,15 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	var (
 		changed bool
 	)
@@ -77,12 +87,31 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		userInfo.HasDuo = false
 	}
 
-	userInfo.DisplayName = userSession.DisplayName
+	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
+
+	userInfo.DisplayName = details.DisplayName
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred trying to set user info response in body")
 	}
+}
+
+func populateRecoveryCodesUserInfo(ctx *middlewares.AutheliaCtx, username string, info *model.UserInfo) {
+	if ctx.Configuration.RecoveryCodes.Disable {
+		return
+	}
+
+	count, err := ctx.Providers.StorageProvider.CountUnusedRecoveryCodesByUsername(ctx, username)
+	if err != nil {
+		// The flags are purely informational so a count failure leaves them false rather than failing the request.
+		ctx.Logger.WithError(err).Errorf("Error counting unused recovery codes for user '%s'", username)
+
+		return
+	}
+
+	info.HasRecoveryCodes = count > 0
+	info.LowRecoveryCodes = count > 0 && count <= 2
 }
 
 // UserInfoGET get the info related to the user identified by the session.
@@ -108,10 +137,20 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userInfo.DisplayName = userSession.DisplayName
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
 
-	// it should be noted that UserInfo only contains info from the database and NOT any info from the authn_backend (email/groups).
-	for _, email := range userSession.Emails {
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
+
+	userInfo.DisplayName = details.DisplayName
+
+	for _, email := range details.Emails {
 		userInfo.Emails = append(userInfo.Emails, redactEmail(email))
 	}
 

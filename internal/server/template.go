@@ -53,9 +53,9 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		middlewares.SetBaseSecurityHeaders(ctx.RequestCtx)
 
 		switch ext {
-		case extHTML:
+		case utils.ExtHTML:
 			ctx.SetContentTypeTextHTML()
-		case extJSON:
+		case utils.ExtJSON:
 			ctx.SetContentTypeApplicationJSON()
 		default:
 			ctx.SetContentTypeTextPlain()
@@ -76,14 +76,14 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			rememberMe string
 			baseURL    string
 			domain     string
-			provider   *session.Session
+			provider   session.Strategy
 		)
 
 		baseURL = ctx.TemplateRootURL().String()
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
-			domain = provider.Config.Domain
-			rememberMe = strconv.FormatBool(!provider.Config.DisableRememberMe)
+			domain = provider.GetConfig().Domain
+			rememberMe = strconv.FormatBool(!provider.GetConfig().DisableRememberMe)
 		}
 
 		data := &bytes.Buffer{}
@@ -119,12 +119,12 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		var nonce string
 
 		switch ext {
-		case extHTML:
+		case utils.ExtHTML:
 			nonce = ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
 			ctx.Response.Header.Del(fasthttp.HeaderContentSecurityPolicy)
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwagger, nonce))
 			ctx.SetContentTypeTextHTML()
-		case extYML:
+		case utils.ExtYAML, utils.ExtYML:
 			ctx.SetContentTypeApplicationYAML()
 		default:
 			ctx.SetContentTypeTextPlain()
@@ -133,18 +133,21 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		var (
 			baseURL  string
 			domain   string
-			provider *session.Session
+			cookie   string
+			provider session.Strategy
 			err      error
 		)
 
 		baseURL = ctx.TemplateRootURL().String()
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
-			domain = provider.Config.Domain
+			config := provider.GetConfig()
+
+			domain, cookie = config.Domain, config.Name
 		}
 
 		data := &bytes.Buffer{}
-		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, nonce)); err != nil {
+		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, cookie, nonce)); err != nil {
 			ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
@@ -222,6 +225,9 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
+		TOTPAppAppleStore:       totpAppStoreLink(config.TOTP.Apps.AppleStore),
+		TOTPAppGooglePlay:       totpAppStoreLink(config.TOTP.Apps.GooglePlay),
+		RegistrationURL:         config.AuthenticationBackend.Registration.CustomURL.String(),
 		PasswordChange:          strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
 		PrivacyPolicyURL:        "",
 		PrivacyPolicyAccept:     strFalse,
@@ -233,7 +239,9 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		EndpointsPasskeys:       !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
 		EndpointsTOTP:           !config.TOTP.Disable,
 		EndpointsDuo:            !config.DuoAPI.Disable,
+		EndpointsRecoveryCodes:  !config.RecoveryCodes.Disable,
 		EndpointsOpenIDConnect:  config.IdentityProviders.OIDC != nil,
+		EndpointsHealthVerbose:  config.Server.Endpoints.Health.Verbose,
 		EndpointsAuthz:          config.Server.Endpoints.Authz,
 	}
 
@@ -249,6 +257,15 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 	return opts
 }
 
+// totpAppStoreLink returns the store listing link, or an empty value when the store is disabled.
+func totpAppStoreLink(store schema.TOTPAppsStore) string {
+	if store.Disable {
+		return ""
+	}
+
+	return store.URL.String()
+}
+
 // TemplatedFileOptions is a struct which is used for many templated files.
 type TemplatedFileOptions struct {
 	AssetPath              string
@@ -257,6 +274,9 @@ type TemplatedFileOptions struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	TOTPAppAppleStore      string
+	TOTPAppGooglePlay      string
+	RegistrationURL        string
 	PasswordChange         string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
@@ -269,7 +289,9 @@ type TemplatedFileOptions struct {
 	EndpointsPasskeys       bool
 	EndpointsTOTP           bool
 	EndpointsDuo            bool
+	EndpointsRecoveryCodes  bool
 	EndpointsOpenIDConnect  bool
+	EndpointsHealthVerbose  bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
@@ -293,6 +315,9 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		TOTPAppAppleStore:      options.TOTPAppAppleStore,
+		TOTPAppGooglePlay:      options.TOTPAppGooglePlay,
+		RegistrationURL:        options.RegistrationURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
@@ -313,6 +338,9 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		TOTPAppAppleStore:      options.TOTPAppAppleStore,
+		TOTPAppGooglePlay:      options.TOTPAppGooglePlay,
+		RegistrationURL:        options.RegistrationURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
@@ -320,21 +348,28 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 	}
 }
 
-// OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options.
-func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce string) TemplatedFileOpenAPIData {
+// OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options. The cookie is the name of the session cookie
+// for the domain of the request, and the default session cookie name is used when it's empty.
+func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, cookie, nonce string) TemplatedFileOpenAPIData {
+	if cookie == "" {
+		cookie = schema.DefaultSessionConfiguration.Name
+	}
+
 	return TemplatedFileOpenAPIData{
 		Base:           base,
 		BaseURL:        baseURL,
 		Domain:         domain,
 		CSPNonce:       nonce,
-		Session:        options.Session,
+		Session:        cookie,
 		PasswordReset:  options.EndpointsPasswordReset,
 		PasswordChange: options.EndpointsPasswordChange,
 		WebAuthn:       options.EndpointsWebAuthn,
 		Passkeys:       options.EndpointsPasskeys,
 		TOTP:           options.EndpointsTOTP,
 		Duo:            options.EndpointsDuo,
+		RecoveryCodes:  options.EndpointsRecoveryCodes,
 		OpenIDConnect:  options.EndpointsOpenIDConnect,
+		HealthVerbose:  options.EndpointsHealthVerbose,
 		EndpointsAuthz: options.EndpointsAuthz,
 	}
 }
@@ -352,6 +387,9 @@ type TemplatedFileCommonData struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	TOTPAppAppleStore      string
+	TOTPAppGooglePlay      string
+	RegistrationURL        string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
 	Session                string
@@ -371,7 +409,9 @@ type TemplatedFileOpenAPIData struct {
 	Passkeys       bool
 	TOTP           bool
 	Duo            bool
+	RecoveryCodes  bool
 	OpenIDConnect  bool
+	HealthVerbose  bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }

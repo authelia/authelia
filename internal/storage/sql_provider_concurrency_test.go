@@ -86,8 +86,14 @@ func TestSQLProviderConcurrentTransactions(t *testing.T) {
 func rotateTestConcurrentOAuth2Session(provider *SQLiteProvider, worker, iteration int) (err error) {
 	var ctx context.Context
 
-	if ctx, err = provider.BeginTX(context.Background()); err != nil {
-		return err
+	for attempt := 1; ; attempt++ {
+		if ctx, err = provider.BeginTX(context.Background()); err == nil {
+			break
+		}
+
+		if attempt == 5 || !IsSerializationFailure(err) {
+			return err
+		}
 	}
 
 	if _, err = provider.LoadOAuth2Session(ctx, OAuth2SessionTypeRefreshToken, newTestConcurrentOAuth2Signature(worker, iteration)); err != nil {

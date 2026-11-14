@@ -6,7 +6,11 @@ package regulation
 
 import (
 	"database/sql"
+	"slices"
+	"strings"
 	"time"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func returnBanResult(b BanType, v string, t sql.NullTime) (ban BanType, value string, expires *time.Time, err error) {
@@ -33,4 +37,15 @@ func FormatExpiresShort(expires sql.NullTime) string {
 	}
 
 	return expires.Time.Format(time.DateTime)
+}
+
+// FormatRequestMethod returns a canonical method verb.
+func FormatRequestMethod(method string) string {
+	method = strings.ToUpper(method)
+
+	if slices.Contains(schema.HTTPMethods, method) {
+		return method
+	}
+
+	return ""
 }

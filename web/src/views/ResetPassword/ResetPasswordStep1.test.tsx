@@ -4,6 +4,7 @@
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { RateLimitedError } from "@services/RateLimit";
 import ResetPasswordStep1 from "@views/ResetPassword/ResetPasswordStep1";
 
 const mockNavigate = vi.fn();
@@ -71,7 +72,7 @@ it("shows error when username is empty", async () => {
 
 it("navigates to index on successful reset", async () => {
     const { initiateResetPasswordProcess } = await import("@services/ResetPassword");
-    vi.mocked(initiateResetPasswordProcess).mockResolvedValue({ limited: false, retryAfter: 0 });
+    vi.mocked(initiateResetPasswordProcess).mockResolvedValue(undefined);
 
     render(<ResetPasswordStep1 />);
 
@@ -89,7 +90,7 @@ it("navigates to index on successful reset", async () => {
 
 it("shows rate limited error", async () => {
     const { initiateResetPasswordProcess } = await import("@services/ResetPassword");
-    vi.mocked(initiateResetPasswordProcess).mockResolvedValue({ limited: true, retryAfter: 30 });
+    vi.mocked(initiateResetPasswordProcess).mockRejectedValue(new RateLimitedError(30));
 
     render(<ResetPasswordStep1 />);
 
@@ -131,7 +132,7 @@ describe("rate limiting", () => {
     it("re-enables the reset button after the retry window", async () => {
         vi.useFakeTimers();
         const { initiateResetPasswordProcess } = await import("@services/ResetPassword");
-        vi.mocked(initiateResetPasswordProcess).mockResolvedValue({ limited: true, retryAfter: 30 });
+        vi.mocked(initiateResetPasswordProcess).mockRejectedValue(new RateLimitedError(30));
 
         render(<ResetPasswordStep1 />);
 
@@ -154,7 +155,7 @@ describe("rate limiting", () => {
     it("replaces an in flight rate limit timer", async () => {
         vi.useFakeTimers();
         const { initiateResetPasswordProcess } = await import("@services/ResetPassword");
-        vi.mocked(initiateResetPasswordProcess).mockResolvedValue({ limited: true, retryAfter: 30 });
+        vi.mocked(initiateResetPasswordProcess).mockRejectedValue(new RateLimitedError(30));
 
         render(<ResetPasswordStep1 />);
 
@@ -196,7 +197,7 @@ describe("rate limiting", () => {
     it("clears the rate limit timer on unmount", async () => {
         vi.useFakeTimers();
         const { initiateResetPasswordProcess } = await import("@services/ResetPassword");
-        vi.mocked(initiateResetPasswordProcess).mockResolvedValue({ limited: true, retryAfter: 30 });
+        vi.mocked(initiateResetPasswordProcess).mockRejectedValue(new RateLimitedError(30));
 
         const { unmount } = render(<ResetPasswordStep1 />);
 
@@ -219,7 +220,7 @@ describe("rate limiting", () => {
 describe("keyboard handling", () => {
     it("submits on Enter", async () => {
         const { initiateResetPasswordProcess } = await import("@services/ResetPassword");
-        vi.mocked(initiateResetPasswordProcess).mockResolvedValue({ limited: false, retryAfter: 0 });
+        vi.mocked(initiateResetPasswordProcess).mockResolvedValue(undefined);
 
         render(<ResetPasswordStep1 />);
 
@@ -243,20 +244,6 @@ describe("keyboard handling", () => {
 });
 
 describe("responses", () => {
-    it("reports a missing response", async () => {
-        const { initiateResetPasswordProcess } = await import("@services/ResetPassword");
-        vi.mocked(initiateResetPasswordProcess).mockResolvedValue(undefined as any);
-
-        render(<ResetPasswordStep1 />);
-
-        fireEvent.change(screen.getByLabelText("Username"), { target: { value: "john" } });
-        fireEvent.click(screen.getByText("Reset"));
-
-        await waitFor(() =>
-            expect(mockCreateError).toHaveBeenCalledWith("There was an issue initiating the password reset process"),
-        );
-    });
-
     it("disables the form while loading", async () => {
         const { initiateResetPasswordProcess } = await import("@services/ResetPassword");
         let resolve: (value: unknown) => void = () => {};
@@ -270,7 +257,7 @@ describe("responses", () => {
         await waitFor(() => expect(screen.getByLabelText("Username")).toBeDisabled());
         expect(document.getElementById("cancel-button")).toBeDisabled();
 
-        resolve({ limited: false, retryAfter: 0 });
+        resolve(undefined);
         await waitFor(() => expect(screen.getByLabelText("Username")).not.toBeDisabled());
     });
 });

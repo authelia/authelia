@@ -6,6 +6,7 @@ package server
 
 import (
 	"io/fs"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -18,34 +19,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
-
-const (
-	assetsOpenAPIPath = "public_html/api/openapi.yml"
-	localOpenAPIPath  = "../../api/openapi.yml"
-)
-
-type ReadFileOpenAPI struct{}
-
-func (lfs *ReadFileOpenAPI) Open(name string) (fs.File, error) {
-	switch name {
-	case assetsOpenAPIPath:
-		return os.Open(localOpenAPIPath)
-	default:
-		return assets.Open(name)
-	}
-}
-
-func (lfs *ReadFileOpenAPI) ReadFile(name string) ([]byte, error) {
-	switch name {
-	case assetsOpenAPIPath:
-		return os.ReadFile(localOpenAPIPath)
-	default:
-		return assets.ReadFile(name)
-	}
-}
 
 func TestShouldTemplateOpenAPI(t *testing.T) {
 	provider, err := templates.New(templates.Config{})
@@ -66,7 +41,7 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 		},
 	}
 
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	opts := NewTemplatedFileOptions(&mock.Ctx.Configuration)
 
@@ -84,6 +59,8 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 
 	assert.NotEqual(t, "", body)
 	assert.Contains(t, body, "example: 'https://auth.example.com/?rd=https%3A%2F%2Fexample.com%2F&rm=GET'")
+	assert.Contains(t, body, "name: 'authelia_session'")
+	assert.NotContains(t, body, "/api/health/verbose:")
 }
 
 func TestServeTemplatedFile(t *testing.T) {
@@ -161,7 +138,7 @@ func TestServeTemplatedFile(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			mock.ResetSessionProvider()
 
 			opts := NewTemplatedFileOptions(&mock.Ctx.Configuration)
 
@@ -191,35 +168,6 @@ func TestServeTemplatedFile(t *testing.T) {
 	}
 }
 
-const tmplTestPortalIndex = `<!doctype html>
-<html lang="{{ .Language }}">
-    <head>
-        <meta property="csp-nonce" content="{{ .CSPNonce }}" />
-    </head>
-    <body data-theme="{{ .Theme }}" data-rememberme="{{ .RememberMe }}">
-        <div id="root"></div>
-    </body>
-</html>`
-
-var reTestCSPNonce = regexp.MustCompile(`'nonce-([a-zA-Z0-9]{32})'`)
-
-// ReadFilePortalIndex substitutes the portal index template so the per request values can be asserted without having
-// built the frontend.
-type ReadFilePortalIndex struct{}
-
-func (lfs *ReadFilePortalIndex) Open(name string) (fs.File, error) {
-	return assets.Open(name)
-}
-
-func (lfs *ReadFilePortalIndex) ReadFile(name string) ([]byte, error) {
-	switch name {
-	case "public_html/index.html":
-		return []byte(tmplTestPortalIndex), nil
-	default:
-		return assets.ReadFile(name)
-	}
-}
-
 func TestServeTemplatedFileShouldServeIdentityWithPerRequestNonce(t *testing.T) {
 	tmpl, err := templates.New(templates.Config{})
 	require.NoError(t, err)
@@ -245,8 +193,6 @@ func TestServeTemplatedFileShouldServeIdentityWithPerRequestNonce(t *testing.T) 
 
 		require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-		// The index is templated per request so it can't be pre-compressed, and it's small enough that compressing it
-		// on the fly isn't worthwhile.
 		assert.Empty(t, mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentEncoding))
 		assert.Contains(t, string(mock.Ctx.Response.Header.ContentType()), "text/html")
 
@@ -267,9 +213,6 @@ func TestServeTemplatedFileShouldServeIdentityWithPerRequestNonce(t *testing.T) 
 	assert.NotEqual(t, nonces[0], nonces[1])
 }
 
-// The direct handler test above can't show that the route which actually serves the portal is the templated one, so
-// this drives the registered "/" route to prove the index reaching a client is neither compressed nor shared between
-// requests.
 func TestHandlerMainShouldServeTemplatedIndexUncompressed(t *testing.T) {
 	provider, err := templates.New(templates.Config{})
 	require.NoError(t, err)
@@ -388,7 +331,7 @@ func TestETagRootURL(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			mock.ResetSessionProvider()
 
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
@@ -400,7 +343,7 @@ func TestETagRootURL(t *testing.T) {
 
 				firstMock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
 				firstMock.Ctx.Configuration.Session = mock.Ctx.Configuration.Session
-				firstMock.Ctx.Providers.SessionProvider = session.NewProvider(firstMock.Ctx.Configuration.Session, nil)
+				firstMock.ResetSessionProvider()
 				firstMock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 				firstMock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
 				firstMock.Ctx.Request.Header.Set("X-Forwarded-URI", "/api/openapi.yml")
@@ -507,6 +450,55 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 	}
 }
 
+func TestNewTemplatedFileOptionsTOTPApps(t *testing.T) {
+	apple := url.URL{Scheme: "https", Host: "apps.apple.com", Path: "/us/app/example/id1"}
+	google := url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=org.example.otp"}
+
+	testCases := []struct {
+		name               string
+		apps               schema.TOTPApps
+		expectedAppleStore string
+		expectedGooglePlay string
+	}{
+		{
+			"ShouldReturnBothLinks",
+			schema.TOTPApps{
+				AppleStore: schema.TOTPAppsStore{URL: apple},
+				GooglePlay: schema.TOTPAppsStore{URL: google},
+			},
+			"https://apps.apple.com/us/app/example/id1",
+			"https://play.google.com/store/apps/details?id=org.example.otp",
+		},
+		{
+			"ShouldOmitTheDisabledStore",
+			schema.TOTPApps{
+				AppleStore: schema.TOTPAppsStore{Disable: true, URL: apple},
+				GooglePlay: schema.TOTPAppsStore{URL: google},
+			},
+			"",
+			"https://play.google.com/store/apps/details?id=org.example.otp",
+		},
+		{
+			"ShouldOmitBothWhenBothStoresDisabled",
+			schema.TOTPApps{
+				AppleStore: schema.TOTPAppsStore{Disable: true, URL: apple},
+				GooglePlay: schema.TOTPAppsStore{Disable: true, URL: google},
+			},
+			"",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			opts := NewTemplatedFileOptions(&schema.Configuration{TOTP: schema.TOTP{Apps: tc.apps}})
+
+			assert.Equal(t, tc.expectedAppleStore, opts.TOTPAppAppleStore)
+			assert.Equal(t, tc.expectedGooglePlay, opts.TOTPAppGooglePlay)
+		})
+	}
+}
+
 func TestTemplatedFileOptionsCommonData(t *testing.T) {
 	testCases := []struct {
 		name       string
@@ -542,21 +534,78 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 
 func TestTemplatedFileOptionsOpenAPIData(t *testing.T) {
 	testCases := []struct {
-		name string
+		name     string
+		cookie   string
+		expected string
 	}{
-		{"ShouldReturnOpenAPIData"},
+		{"ShouldReturnOpenAPIData", "example_session", "example_session"},
+		{"ShouldReturnOpenAPIDataWithDefaultSessionCookieName", "", "authelia_session"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			opts := NewTemplatedFileOptions(&schema.Configuration{})
 
-			data := opts.OpenAPIData("/", "/api", "example.com", "nonce123")
+			data := opts.OpenAPIData("/", "/api", "example.com", tc.cookie, "nonce123")
 
 			assert.Equal(t, "/", data.Base)
 			assert.Equal(t, "/api", data.BaseURL)
 			assert.Equal(t, "example.com", data.Domain)
+			assert.Equal(t, tc.expected, data.Session)
+			assert.False(t, data.HealthVerbose)
 			assert.Equal(t, "nonce123", data.CSPNonce)
 		})
+	}
+}
+
+const (
+	assetsOpenAPIPath = "public_html/api/openapi.yml"
+	localOpenAPIPath  = "../../api/openapi.yml"
+)
+
+const tmplTestPortalIndex = `<!doctype html>
+<html lang="{{ .Language }}">
+    <head>
+        <meta property="csp-nonce" content="{{ .CSPNonce }}" />
+    </head>
+    <body data-theme="{{ .Theme }}" data-rememberme="{{ .RememberMe }}">
+        <div id="root"></div>
+    </body>
+</html>`
+
+var reTestCSPNonce = regexp.MustCompile(`'nonce-([a-zA-Z0-9]{32})'`)
+
+type ReadFileOpenAPI struct{}
+
+func (lfs *ReadFileOpenAPI) Open(name string) (fs.File, error) {
+	switch name {
+	case assetsOpenAPIPath:
+		return os.Open(localOpenAPIPath)
+	default:
+		return assets.Open(name)
+	}
+}
+
+func (lfs *ReadFileOpenAPI) ReadFile(name string) ([]byte, error) {
+	switch name {
+	case assetsOpenAPIPath:
+		return os.ReadFile(localOpenAPIPath)
+	default:
+		return assets.ReadFile(name)
+	}
+}
+
+type ReadFilePortalIndex struct{}
+
+func (lfs *ReadFilePortalIndex) Open(name string) (fs.File, error) {
+	return assets.Open(name)
+}
+
+func (lfs *ReadFilePortalIndex) ReadFile(name string) ([]byte, error) {
+	switch name {
+	case "public_html/index.html":
+		return []byte(tmplTestPortalIndex), nil
+	default:
+		return assets.ReadFile(name)
 	}
 }

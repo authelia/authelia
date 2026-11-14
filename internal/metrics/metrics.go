@@ -5,6 +5,7 @@
 package metrics
 
 import (
+	"context"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -27,4 +28,13 @@ type Recorder interface {
 	RecordRequestOpenIDConnect(endpoint, statusCode string, elapsed time.Duration)
 	RecordAuthz(statusCode string)
 	RecordAuthenticationDuration(success bool, elapsed time.Duration)
+	RecordRecoveryCodesGenerated(count int)
+}
+
+// RecoveryCodeCounts is the minimal storage-side surface the metrics provider needs to expose scrape-time gauges
+// for fleet-wide recovery code adoption. The storage.Provider type satisfies this interface.
+type RecoveryCodeCounts interface {
+	CountUsersWithRecoveryCodes(ctx context.Context) (int, error)
+	CountUsersWithLowRecoveryCodes(ctx context.Context) (int, error)
+	CountUsersWithDepletedRecoveryCodes(ctx context.Context) (int, error)
 }

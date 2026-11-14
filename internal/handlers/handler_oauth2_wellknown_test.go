@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -14,6 +15,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 func TestWellKnownOAuthAuthorizationServerGET(t *testing.T) {
@@ -48,6 +50,7 @@ func TestWellKnownOAuthAuthorizationServerGET(t *testing.T) {
 
 		config := newTestOIDCConfig(t)
 		config.DiscoverySignedResponseKeyID = testOIDCKeyID
+		config.DiscoverySignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
 
 		setupTestOIDCProvider(t, mock, config)
 
@@ -88,6 +91,80 @@ func TestWellKnownOAuthAuthorizationServerGET(t *testing.T) {
 		assert.Len(t, strings.Split(signed, "."), 3)
 	})
 
+	t.Run("ShouldReturnUnsignedMetadataWithAlgNone", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.DiscoverySignedResponseAlg = oidc.SigningAlgNone
+
+		setupTestOIDCProvider(t, mock, config)
+
+		WellKnownOAuthAuthorizationServerGET(mock.Ctx)
+
+		require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+		metadata := map[string]any{}
+
+		require.NoError(t, json.Unmarshal(mock.Ctx.Response.Body(), &metadata))
+
+		assert.NotContains(t, metadata, "signed_metadata")
+	})
+
+	t.Run("ShouldReturnSignedMetadataUsingTheConfiguredKey", func(t *testing.T) {
+		testCases := []struct {
+			name        string
+			alg         string
+			kid         string
+			expectedAlg string
+			expectedKID string
+		}{
+			{"ShouldSignWithRSA", oidc.SigningAlgRSAUsingSHA256, testOIDCKeyID, oidc.SigningAlgRSAUsingSHA256, testOIDCKeyID},
+			{"ShouldSignWithECDSA", oidc.SigningAlgECDSAUsingP256AndSHA256, "ecdsa-default", oidc.SigningAlgECDSAUsingP256AndSHA256, "ecdsa-default"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				mock := mocks.NewMockAutheliaCtx(t)
+				defer mock.Close()
+
+				config := newTestOIDCConfig(t)
+				config.JSONWebKeys = append(config.JSONWebKeys, newTestOIDCConfigNoRSAKey(t).JSONWebKeys...)
+				config.DiscoverySignedResponseAlg = tc.alg
+				config.DiscoverySignedResponseKeyID = tc.kid
+
+				setupTestOIDCProvider(t, mock, config)
+
+				WellKnownOAuthAuthorizationServerGET(mock.Ctx)
+
+				require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+				metadata := map[string]any{}
+
+				require.NoError(t, json.Unmarshal(mock.Ctx.Response.Body(), &metadata))
+
+				signed, ok := metadata["signed_metadata"].(string)
+
+				require.True(t, ok)
+
+				parts := strings.Split(signed, ".")
+
+				require.Len(t, parts, 3)
+
+				raw, err := base64.RawURLEncoding.DecodeString(parts[0])
+
+				require.NoError(t, err)
+
+				header := map[string]any{}
+
+				require.NoError(t, json.Unmarshal(raw, &header))
+
+				assert.Equal(t, tc.expectedAlg, header["alg"])
+				assert.Equal(t, tc.expectedKID, header["kid"])
+			})
+		}
+	})
+
 	t.Run("ShouldHandleSigningError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
@@ -101,7 +178,7 @@ func TestWellKnownOAuthAuthorizationServerGET(t *testing.T) {
 
 		assert.Equal(t, fasthttp.StatusInternalServerError, mock.Ctx.Response.StatusCode())
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred signing metadata", regexpUnableToFindJSONWebKey)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "OAuth 2.0 Discovery Request could not be processed: error occurred building the metadata", regexpUnableToFindJSONWebKey)
 	})
 
 	t.Run("ShouldHandleBadIssuer", func(t *testing.T) {
@@ -149,6 +226,7 @@ func TestWellKnownOpenIDConfigurationGET(t *testing.T) {
 
 		config := newTestOIDCConfig(t)
 		config.DiscoverySignedResponseKeyID = testOIDCKeyID
+		config.DiscoverySignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
 
 		setupTestOIDCProvider(t, mock, config)
 
@@ -189,6 +267,80 @@ func TestWellKnownOpenIDConfigurationGET(t *testing.T) {
 		assert.Len(t, strings.Split(signed, "."), 3)
 	})
 
+	t.Run("ShouldReturnUnsignedMetadataWithAlgNone", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.DiscoverySignedResponseAlg = oidc.SigningAlgNone
+
+		setupTestOIDCProvider(t, mock, config)
+
+		WellKnownOpenIDConfigurationGET(mock.Ctx)
+
+		require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+		metadata := map[string]any{}
+
+		require.NoError(t, json.Unmarshal(mock.Ctx.Response.Body(), &metadata))
+
+		assert.NotContains(t, metadata, "signed_metadata")
+	})
+
+	t.Run("ShouldReturnSignedMetadataUsingTheConfiguredKey", func(t *testing.T) {
+		testCases := []struct {
+			name        string
+			alg         string
+			kid         string
+			expectedAlg string
+			expectedKID string
+		}{
+			{"ShouldSignWithRSA", oidc.SigningAlgRSAUsingSHA256, testOIDCKeyID, oidc.SigningAlgRSAUsingSHA256, testOIDCKeyID},
+			{"ShouldSignWithECDSA", oidc.SigningAlgECDSAUsingP256AndSHA256, "ecdsa-default", oidc.SigningAlgECDSAUsingP256AndSHA256, "ecdsa-default"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				mock := mocks.NewMockAutheliaCtx(t)
+				defer mock.Close()
+
+				config := newTestOIDCConfig(t)
+				config.JSONWebKeys = append(config.JSONWebKeys, newTestOIDCConfigNoRSAKey(t).JSONWebKeys...)
+				config.DiscoverySignedResponseAlg = tc.alg
+				config.DiscoverySignedResponseKeyID = tc.kid
+
+				setupTestOIDCProvider(t, mock, config)
+
+				WellKnownOpenIDConfigurationGET(mock.Ctx)
+
+				require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+				metadata := map[string]any{}
+
+				require.NoError(t, json.Unmarshal(mock.Ctx.Response.Body(), &metadata))
+
+				signed, ok := metadata["signed_metadata"].(string)
+
+				require.True(t, ok)
+
+				parts := strings.Split(signed, ".")
+
+				require.Len(t, parts, 3)
+
+				raw, err := base64.RawURLEncoding.DecodeString(parts[0])
+
+				require.NoError(t, err)
+
+				header := map[string]any{}
+
+				require.NoError(t, json.Unmarshal(raw, &header))
+
+				assert.Equal(t, tc.expectedAlg, header["alg"])
+				assert.Equal(t, tc.expectedKID, header["kid"])
+			})
+		}
+	})
+
 	t.Run("ShouldHandleSigningError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
@@ -202,7 +354,7 @@ func TestWellKnownOpenIDConfigurationGET(t *testing.T) {
 
 		assert.Equal(t, fasthttp.StatusInternalServerError, mock.Ctx.Response.StatusCode())
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred signing metadata", regexpUnableToFindJSONWebKey)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "OpenID Connect 1.0 Discovery Request could not be processed: error occurred building the metadata", "the openid provider metadata requires 'id_token_signing_alg_values_supported' to include 'RS256' but the id token issuer has no 'RS256' signing key")
 	})
 
 	t.Run("ShouldHandleBadIssuer", func(t *testing.T) {

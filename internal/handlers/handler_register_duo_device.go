@@ -15,64 +15,62 @@ import (
 )
 
 // DuoDevicesGET handler for retrieving available devices and capabilities from Duo API.
-func DuoDevicesGET(duoAPI duo.Provider) middlewares.RequestHandler {
-	return func(ctx *middlewares.AutheliaCtx) {
-		userSession, err := ctx.GetSession()
-		if err != nil {
-			ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
-			ctx.SetJSONError(messageMFAValidationFailed)
+func DuoDevicesGET(ctx *middlewares.AutheliaCtx) {
+	userSession, err := ctx.GetSession()
+	if err != nil {
+		ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
-			return
-		}
+		return
+	}
 
-		ctx.Logger.Debugf("Starting Duo PreAuth for %s", userSession.Username)
+	ctx.GetLogger().Debugf("Starting Duo PreAuth for %s", userSession.Username)
 
-		result, message, devices, enrollURL, err := DuoPreAuth(ctx, &userSession, duoAPI)
-		if err != nil {
-			ctx.GetLogger().WithError(err).Error("Error occurred performing the Duo PreAuth API call")
-			ctx.SetJSONError(messageMFAValidationFailed)
+	result, message, devices, enrollURL, err := DuoPreAuth(ctx, &userSession)
+	if err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred performing the Duo PreAuth API call")
+		ctx.SetJSONError(messageMFAValidationFailed)
 
-			return
-		}
+		return
+	}
 
-		response := DuoDevicesResponse{}
+	response := DuoDevicesResponse{}
 
-		switch result {
-		case auth:
-			if devices == nil {
-				ctx.Logger.Debugf("No applicable device/method available for Duo user %s", userSession.Username)
-
-				response.Result = enroll
-			} else {
-				response.Result = auth
-				response.Devices = devices
-			}
-
-			SendDuoDevicesResponse(ctx, response)
-
-		case allow:
-			ctx.Logger.Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Defaults to Auto Push", userSession.Username)
-
-			response.Result = allow
-			SendDuoDevicesResponse(ctx, response)
-
-		case enroll:
-			ctx.Logger.Debugf("Duo user: %s not enrolled", userSession.Username)
+	switch result {
+	case auth:
+		if devices == nil {
+			ctx.GetLogger().Debugf("No applicable device/method available for Duo user %s", userSession.Username)
 
 			response.Result = enroll
-			response.EnrollURL = enrollURL
-			SendDuoDevicesResponse(ctx, response)
-
-		case deny:
-			ctx.Logger.Debugf("Duo User not allowed to authenticate: %s", userSession.Username)
-
-			response.Result = deny
-			SendDuoDevicesResponse(ctx, response)
-
-		default:
-			ctx.GetLogger().Errorf("Error occurred performing the Duo PreAuth API call for user '%s' which returned the result '%s' with the message '%s'", userSession.Username, result, message)
-			ctx.SetJSONError(messageMFAValidationFailed)
+		} else {
+			response.Result = auth
+			response.Devices = devices
 		}
+
+		SendDuoDevicesResponse(ctx, response)
+
+	case allow:
+		ctx.GetLogger().Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Defaults to Auto Push", userSession.Username)
+
+		response.Result = allow
+		SendDuoDevicesResponse(ctx, response)
+
+	case enroll:
+		ctx.GetLogger().Debugf("Duo user: %s not enrolled", userSession.Username)
+
+		response.Result = enroll
+		response.EnrollURL = enrollURL
+		SendDuoDevicesResponse(ctx, response)
+
+	case deny:
+		ctx.GetLogger().Debugf("Duo User not allowed to authenticate: %s", userSession.Username)
+
+		response.Result = deny
+		SendDuoDevicesResponse(ctx, response)
+
+	default:
+		ctx.GetLogger().Errorf("Error occurred performing the Duo PreAuth API call for user '%s' which returned the result '%s' with the message '%s'", userSession.Username, result, message)
+		ctx.SetJSONError(messageMFAValidationFailed)
 	}
 }
 
@@ -105,7 +103,7 @@ func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Save new preferred Duo device and method of user %s to %s using %s", userSession.Username, bodyJSON.Device, bodyJSON.Method)
+	ctx.GetLogger().Debugf("Save new preferred Duo device and method of user %s to %s using %s", userSession.Username, bodyJSON.Device, bodyJSON.Method)
 
 	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: userSession.Username, Device: bodyJSON.Device, Method: bodyJSON.Method})
 	if err != nil {
@@ -131,7 +129,7 @@ func DuoDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Deleting preferred Duo device and method of user %s", userSession.Username)
+	ctx.GetLogger().Debugf("Deleting preferred Duo device and method of user %s", userSession.Username)
 
 	if err = ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred deleting the preferred Duo device and method")

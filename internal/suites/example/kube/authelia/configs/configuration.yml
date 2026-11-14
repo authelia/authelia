@@ -53,6 +53,7 @@ regulation:
   ban_time: '5 minutes'
 
 session:
+  storage: 'cache'
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
@@ -60,9 +61,10 @@ session:
       expiration: '1 hour'
       inactivity: '5 minutes'
       remember_me: '1 year'
+
+cache:
   redis:
-    host: 'redis-service'
-    port: 6379
+    address: 'tcp://redis-service:6379'
 
 definitions:
   user_attributes:

@@ -11,7 +11,7 @@ pre-commit:
       run: |
         COUNT=0
 
-        for TOOL in golangci-lint pnpm reuse shellcheck trufflehog typos yamllint zizmor; do
+        for TOOL in golangci-lint jq pnpm reuse scorecard shellcheck trufflehog typos yamllint zizmor; do
           if ! command -v ${TOOL} >/dev/null 2>&1; then
             if [ ${COUNT} -eq 0 ]; then
               MISSING=${TOOL}
@@ -58,6 +58,15 @@ pre-commit:
             # change that strips coverage from unstaged files needs a full project lint.
             run: reuse lint --lines && echo "0 issues."
             glob: "{REUSE.toml,LICENSES/*}"
+
+          - name: scorecard
+            run: .buildkite/steps/lint.sh scorecard && echo "0 issues."
+            glob:
+              - "*Dockerfile*"
+              - ".github/workflows/*"
+              - ".buildkite/hooks/*"
+              - ".renovaterc*"
+              - "*.sh"
 
           - name: shellcheck
             run: shellcheck --format=gcc {staged_files} && echo "0 issues."

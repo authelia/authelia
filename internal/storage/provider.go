@@ -14,6 +14,7 @@ import (
 	"authelia.com/provider/oauth2/storage"
 
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // Provider is an interface providing storage capabilities for persisting any kind of data related to Authelia.
@@ -195,6 +196,50 @@ type Provider interface {
 	LoadOneTimeCodeByPublicID(ctx context.Context, id uuid.UUID) (code *model.OneTimeCode, err error)
 
 	/*
+		Implementation for User Recovery Codes.
+	*/
+
+	// LoadRecoveryCodeHMACKey loads the persisted recovery code HMAC key into the storage provider, generating and
+	// persisting it when it does not exist. This is performed by StartupCheck and must be called by consumers which
+	// do not perform the StartupCheck before saving or loading recovery codes.
+	LoadRecoveryCodeHMACKey(ctx context.Context) (err error)
+
+	// SaveRecoveryCode saves a recovery code to the storage provider after computing its HMAC signature from the
+	// transient plaintext on the model. The plaintext is never persisted.
+	SaveRecoveryCode(ctx context.Context, code *model.RecoveryCode) (err error)
+
+	// ReplaceRecoveryCodesByUsername revokes all active recovery codes for a username and saves the provided batch in
+	// a single transaction.
+	ReplaceRecoveryCodesByUsername(ctx context.Context, username string, codes []*model.RecoveryCode, ip model.NullIP) (err error)
+
+	// LoadRecoveryCode loads a recovery code from the storage provider given a username and a user-supplied raw code.
+	// The raw code is normalized and HMAC'd before lookup, so any of the formatting variations the user might enter
+	// match the same row.
+	LoadRecoveryCode(ctx context.Context, username, raw string) (code *model.RecoveryCode, err error)
+
+	// LoadRecoveryCodesByUsername loads all recovery codes for a given username, including consumed and revoked rows.
+	LoadRecoveryCodesByUsername(ctx context.Context, username string) (codes []model.RecoveryCode, err error)
+
+	// ConsumeRecoveryCode marks a recovery code as consumed by stamping the consumption time and remote IP.
+	ConsumeRecoveryCode(ctx context.Context, id int, ip model.NullIP) (err error)
+
+	// RevokeRecoveryCodesByUsername bulk-soft-deletes all unconsumed recovery codes for a username (used on regenerate).
+	RevokeRecoveryCodesByUsername(ctx context.Context, username string, ip model.NullIP) (err error)
+
+	// CountUnusedRecoveryCodesByUsername returns the count of recovery codes for a user that are neither consumed nor revoked.
+	CountUnusedRecoveryCodesByUsername(ctx context.Context, username string) (count int, err error)
+
+	// CountUsersWithRecoveryCodes returns the count of distinct users that have at least one unused recovery code.
+	CountUsersWithRecoveryCodes(ctx context.Context) (count int, err error)
+
+	// CountUsersWithLowRecoveryCodes returns the count of distinct users that have between 1 and 2 unused recovery codes.
+	CountUsersWithLowRecoveryCodes(ctx context.Context) (count int, err error)
+
+	// CountUsersWithDepletedRecoveryCodes returns the count of distinct users that have zero unused recovery codes
+	// but have at least one consumed or revoked code (i.e. they had codes generated and used or replaced them all).
+	CountUsersWithDepletedRecoveryCodes(ctx context.Context) (count int, err error)
+
+	/*
 		Implementation for OAuth2.0 Consent Pre-Configurations.
 	*/
 
@@ -237,6 +282,10 @@ type Provider interface {
 	// access token, and for a session stored before the access token signature was recorded.
 	LoadOAuth2RefreshTokenSessionAccessSignature(ctx context.Context, signature string) (accessSignature string, err error)
 
+	// UpdateOAuth2RefreshTokenSessionRequest replaces the request stored for a refresh token session, leaving its state
+	// and paired access token signature unchanged. It returns ErrNoRowsAffected when no session exists.
+	UpdateOAuth2RefreshTokenSessionRequest(ctx context.Context, session model.OAuth2Session) (err error)
+
 	// RevokeOAuth2SessionByRequestID marks an OAuth2.0 session as revoked in the storage provider.
 	RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 
@@ -246,7 +295,9 @@ type Provider interface {
 	// DeactivateOAuth2SessionByRequestID marks an OAuth2.0 session as inactive in the storage provider.
 	DeactivateOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 
-	// LoadOAuth2Session loads an OAuth2.0 session from the storage provider.
+	// LoadOAuth2Session loads an OAuth2.0 session from the storage provider. A revoked session is not loaded unless it
+	// is a refresh token session, which is loaded with the revoked flag set so the reuse of the refresh token can be
+	// detected.
 	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error)
 
 	/*
@@ -261,6 +312,10 @@ type Provider interface {
 
 	// UpdateOAuth2DeviceCodeSessionData updates an OAuth2.0 device code session data in the storage provider.
 	UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
+	// DecideOAuth2DeviceCodeSession updates an OAuth2.0 device code session data in the storage provider only while it
+	// is undecided. It returns ErrNoRowsAffected when no undecided session exists for the signature.
+	DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
 	// DeactivateOAuth2DeviceCodeSession marks an OAuth2.0 device code session as inactive in the storage provider.
 	DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error)
@@ -293,11 +348,28 @@ type Provider interface {
 		Implementation for OAuth2.0 Blacklisted JTI's.
 	*/
 
-	// SaveOAuth2BlacklistedJTI saves an OAuth2.0 blacklisted JTI to the storage provider.
+	// SaveOAuth2BlacklistedJTI atomically saves an OAuth2.0 blacklisted JTI to the storage provider. It returns
+	// ErrNoRowsAffected when the JTI is already known for the client and has not expired.
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error)
 
-	// LoadOAuth2BlacklistedJTI loads an OAuth2.0 blacklisted JTI from the storage provider.
-	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
+	// LoadOAuth2BlacklistedJTI loads an OAuth2.0 blacklisted JTI for a client from the storage provider.
+	LoadOAuth2BlacklistedJTI(ctx context.Context, clientID, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
+
+	// SaveOAuth2RequestReplay atomically records a value of an authorization request which may only be used once by a
+	// client. It returns ErrNoRowsAffected when the value is already recorded for the client and has not expired.
+	SaveOAuth2RequestReplay(ctx context.Context, replay model.OAuth2RequestReplay) (err error)
+
+	/*
+		Implementation for User Sessions.
+	*/
+
+	session.Backend
+
+	/*
+		Special.
+	*/
+
+	LoadHMACKey(ctx context.Context, name string, size int) (key []byte, err error)
 
 	/*
 		Implementation for Schema controls.

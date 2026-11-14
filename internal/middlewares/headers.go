@@ -110,3 +110,14 @@ func SecurityHeadersNoStore(next fasthttp.RequestHandler) fasthttp.RequestHandle
 		next(ctx)
 	}
 }
+
+// SecurityHeadersNoStoreAfter middleware adds the Cache-Control no-store and Pragma no-cache headers after the next
+// handler has been executed, ensuring the header is present even if the next handler resets the response.
+func SecurityHeadersNoStoreAfter(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		next(ctx)
+
+		ctx.Response.Header.SetBytesKV(headerPragma, headerValueNoCache)
+		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueNoStore)
+	}
+}

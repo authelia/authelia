@@ -1,8 +1,7 @@
 import { type ComponentProps } from "react";
 
+import { cn } from "cn";
 import { Check } from "lucide-react";
-
-import { cn } from "@utils/Styles";
 
 interface StepperProps extends Omit<ComponentProps<"div">, "children"> {
     activeStep: number;

@@ -232,7 +232,7 @@ func TestRequireElevated(t *testing.T) {
 				}
 			}
 
-			require.NoError(t, mock.Ctx.SaveSession(userSession))
+			require.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 			if tc.setup != nil {
 				tc.setup(t, mock)
@@ -274,7 +274,8 @@ func TestRequireElevatedOrPasswordChangeRequired(t *testing.T) {
 		{
 			"ShouldAdmitASessionHeldPendingAPasswordChange",
 			func(s *session.UserSession) {
-				s.SetPasswordChangeRequired(time.Unix(1700000000, 0), "john")
+				s.Username = "john"
+				s.SetPasswordChangeRequired(time.Unix(1700000000, 0))
 			},
 			true,
 		},
@@ -303,7 +304,7 @@ func TestRequireElevatedOrPasswordChangeRequired(t *testing.T) {
 			require.NoError(t, err)
 
 			tc.setup(&userSession)
-			require.NoError(t, mock.Ctx.SaveSession(userSession))
+			require.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 			var reached bool
 

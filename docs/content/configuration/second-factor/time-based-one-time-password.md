@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Time-based One-Time Password"
-description: "Configuring the Time-based One-Time Password Second Factor Method."
+description: "Configuring the Authelia Time-based One-Time Password second factor method including the issuer, algorithm, digit count, period, and allowed skew settings."
 summary: "Authelia supports utilizing Time-based One-Time Passwords as a 2FA method."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -50,6 +50,13 @@ totp:
   allowed_periods:
     - 30
   disable_reuse_security_policy: false
+  apps:
+    apple_store:
+      disable: false
+      url: 'https://apps.apple.com/us/app/google-authenticator/id388497605'
+    google_play:
+      disable: false
+      url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2'
 ```
 
 ## Options
@@ -178,6 +185,48 @@ Disables the policy which prevents reuse of a Time-based One-Time Password codes
 which prevents codes from being replayed. This should only affect codes which are used within the validity period more
 than once.
 
+### apps
+
+The store listings for the authenticator application suggested to users on the registration dialog. Each store is
+optional and defaults to the [Google Authenticator] listing for that store, which is what _Authelia_ has always
+suggested. Configure them to point users at an application of your choosing instead.
+
+Each listing is rendered as a store badge beside the QR code, so the badge shown is always the badge for that store
+regardless of which application the link points at. Disabling a store removes its badge, and disabling every store
+removes the badges and the prompt above them entirely.
+
+#### apple_store
+
+The [Apple App Store] listing for the suggested application.
+
+##### disable
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Disables the [Apple App Store] badge.
+
+##### url
+
+{{< confkey type="string" default="https://apps.apple.com/us/app/google-authenticator/id388497605" required="no" >}}
+
+The [Apple App Store] listing url for the suggested application. Must be an absolute URL with the `https` scheme.
+
+#### google_play
+
+The [Google Play] listing for the suggested application.
+
+##### disable
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Disables the [Google Play] badge.
+
+##### url
+
+{{< confkey type="string" default="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" required="no" >}}
+
+The [Google Play] listing url for the suggested application. Must be an absolute URL with the `https` scheme.
+
 ## Registration
 
 When users register their TOTP device for the first time, the current [issuer](#issuer), [algorithm](#algorithm), and
@@ -222,3 +271,6 @@ exports.
 
 [RFC4226]: https://datatracker.ietf.org/doc/html/rfc4226
 [RFC6238]: https://datatracker.ietf.org/doc/html/rfc6238
+[Google Authenticator]: https://support.google.com/accounts/answer/1066447
+[Apple App Store]: https://www.apple.com/app-store/
+[Google Play]: https://play.google.com

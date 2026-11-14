@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "ownCloud Infinite Scale"
-description: "Integrating ownCloud Infinite Scale with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating ownCloud Infinite Scale with the Authelia OpenID Connect 1.0 Provider for SSO with configuration examples and available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -70,7 +70,6 @@ identity_providers:
           refresh_token: '3 days'
     cors:
       endpoints:
-        - 'authorization'
         - 'token'
         - 'revocation'
         - 'introspection'
@@ -80,6 +79,7 @@ identity_providers:
         client_name: 'ownCloud Infinite Scale'
         lifespan: 'ocis'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -106,6 +106,7 @@ identity_providers:
         client_name: 'ownCloud Infinite Scale (Desktop Client)'
         client_secret: 'UBntmLjC2yYCeHwsyj73Uwo9TAaecAetRwMw0xYcvNL9yRdLSUi0hUAHfvCHFeFh'
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -130,6 +131,7 @@ identity_providers:
         client_name: 'ownCloud Infinite Scale (Android)'
         client_secret: 'dInFYGV33xKzhbRmpqQltYNdfLdJIfJ9L5ISoKhNoT9qZftpdWSP71VrpGR9pmoD'
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -153,6 +155,7 @@ identity_providers:
         client_name: 'ownCloud Infinite Scale (iOS)'
         client_secret: 'KFeFWWEZO9TkisIQzR3fo7hfiMXlOpaqP8CFuTbSHzV1TUuGECglPxpiVKJfOXIx'
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

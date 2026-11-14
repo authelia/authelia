@@ -6,8 +6,11 @@ package middlewares
 
 import (
 	"errors"
+	"net"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 var (
@@ -21,6 +24,9 @@ var (
 	headerXForwardedHost  = []byte(fasthttp.HeaderXForwardedHost)
 	headerXForwardedFor   = []byte(fasthttp.HeaderXForwardedFor)
 	headerXRequestedWith  = []byte(fasthttp.HeaderXRequestedWith)
+
+	headerSecFetchMode = []byte("Sec-Fetch-Mode")
+	headerSecFetchDest = []byte("Sec-Fetch-Dest")
 
 	headerXForwardedURI    = []byte("X-Forwarded-URI")
 	headerXOriginalURL     = []byte("X-Original-URL")
@@ -52,6 +58,15 @@ var (
 	headerCrossOriginEmbedderPolicy = []byte("Cross-Origin-Embedder-Policy")
 	headerCrossOriginResourcePolicy = []byte("Cross-Origin-Resource-Policy")
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
+
+	headerForwarded = []byte(fasthttp.HeaderForwarded)
+	headerVia       = []byte(fasthttp.HeaderVia)
+)
+
+var (
+	headerPrefixXForwarded = []byte("X-Forwarded-")
+	headerPrefixXOriginal  = []byte("X-Original-")
+	headerPrefixXReal      = []byte("X-Real-")
 )
 
 // Header value strings.
@@ -124,13 +139,14 @@ const (
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
 
-	ProviderNameNTP              = "ntp"
-	ProviderNameStorage          = "storage"
-	ProviderNameUser             = "user"
-	ProviderNameSession          = "session"
-	ProviderNameNotification     = "notification"
-	ProviderNameExpressions      = "expressions"
-	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+	ProviderNameNTP              = schema.ProviderNameNTP
+	ProviderNameStorage          = schema.ProviderNameStorage
+	ProviderNameCache            = schema.ProviderNameCache
+	ProviderNameUser             = schema.ProviderNameUser
+	ProviderNameNotification     = schema.ProviderNameNotification
+	ProviderNameExpressions      = schema.ProviderNameExpressions
+	ProviderNameDuo              = schema.ProviderNameDuo
+	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData
 )
 
 // Content Type strings.
@@ -163,18 +179,23 @@ var (
 
 const (
 	headerValueXRequestedWithXHR = "XMLHttpRequest"
+
+	headerValueSecFetchModeNavigate = "navigate"
+	headerValueSecFetchDestDocument = "document"
 )
 
 var okMessageBytes = []byte("{\"status\":\"OK\"}")
 
-const (
-	messageOperationFailed                      = "Operation failed"
-	messageIdentityVerificationTokenAlreadyUsed = "The identity verification token has already been used"
-	messageIdentityVerificationTokenHasExpired  = "The identity verification token has expired"
-	messageIdentityVerificationTokenNotValidYet = "The identity verification token is only valid in the future"
-	messageIdentityVerificationTokenSig         = "The identity verification token has an invalid signature"
+var (
+	messageOperationFailed                      = ErrorMessageOperationFailed
+	messageIdentityVerificationTokenAlreadyUsed = ErrorMessageIdentityTokenUsed
+	messageIdentityVerificationTokenHasExpired  = ErrorMessageIdentityTokenExpired
+	messageIdentityVerificationTokenNotValidYet = ErrorMessageIdentityTokenNotYetValid
+	messageIdentityVerificationTokenSig         = ErrorMessageIdentityTokenInvalidSignature
 )
 
 var protoHostSeparator = []byte("://")
 
 var errPasswordPolicyNoMet = errors.New("the supplied password does not met the security policy")
+
+var ipv6TranslationPrefix = &net.IPNet{IP: net.ParseIP("64:ff9b::"), Mask: net.CIDRMask(96, net.IPv6len*8)}

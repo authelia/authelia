@@ -60,6 +60,8 @@ type PlanServer struct {
 	UserinfoEndpoint      string `json:"userinfo_endpoint,omitempty"`
 	ACRValues             string `json:"acr_values,omitempty"`
 	LoginHint             string `json:"login_hint,omitempty"`
+
+	AllowUnexpectedMetadataFields []string `json:"allow_unexpected_metadata_fields,omitempty"`
 }
 
 // PlanClient represents a client registered with a Plan.

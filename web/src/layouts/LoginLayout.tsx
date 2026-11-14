@@ -4,6 +4,7 @@
 
 import { ReactNode, useCallback, useEffect, useState } from "react";
 
+import { cn } from "cn";
 import { useTranslation } from "react-i18next";
 
 import UserSvg from "@assets/images/user.svg?react";
@@ -17,7 +18,6 @@ import { Language } from "@models/LocaleInformation";
 import { UserInfo } from "@models/UserInfo";
 import { getLocaleInformation } from "@services/LocaleInformation";
 import { getLogoOverride } from "@utils/Configuration";
-import { cn } from "@utils/Styles";
 
 const maxWidthMap: Record<string, string> = {
     lg: "max-w-4xl",

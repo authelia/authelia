@@ -6,6 +6,7 @@ package storage
 
 import (
 	"regexp"
+	"time"
 )
 
 const (
@@ -16,6 +17,9 @@ const (
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
+	tableRecoveryCodes        = "recovery_codes"
+	tableRecoveryCodesLock    = "recovery_codes_lock"
+	tableSession              = "session"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableTOTPHistory          = "totp_history"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
@@ -24,6 +28,7 @@ const (
 	tableWebAuthnUsers        = "webauthn_users"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
+	tableOAuth2RequestReplay           = "oauth2_request_replay"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
 
@@ -41,6 +46,10 @@ const (
 
 const (
 	tableAADPushedAuthorizationRequestSession = "oauth2_pushed_authorization_session"
+)
+
+const (
+	sessionGarbageCollectionFrequency = time.Minute * 5
 )
 
 const (
@@ -94,9 +103,11 @@ const (
 )
 
 const (
+	codeMySQLDuplicateEntry  uint16 = 1062
 	codeMySQLLockWaitTimeout uint16 = 1205
 	codeMySQLLockDeadlock    uint16 = 1213
 
+	codePostgresUniqueViolation      = "23505"
 	codePostgresSerializationFailure = "40001"
 	codePostgresDeadlockDetected     = "40P01"
 )
@@ -116,6 +127,8 @@ const (
 const (
 	hmacNameOneTimeCode     = "otc"
 	hmacNameOneTimePassword = "otp"
+	hmacNameRecoveryCode    = "rc"
+	hmacNameSession         = "session"
 )
 
 const (

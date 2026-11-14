@@ -113,6 +113,7 @@ const mockCreateErrorNotification = vi.fn();
 const defaultProps = {
     duoSelfEnrollment: false,
     passkeyLogin: false,
+    registrationURL: "",
     rememberMe: true,
     resetPassword: true,
     resetPasswordCustomURL: "",
@@ -186,7 +187,12 @@ it("OneFactor with no 2FA methods navigates to /authenticated", async () => {
         undefined,
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
-        { available_methods: new Set(), password_change_disabled: false, password_reset_disabled: false },
+        {
+            available_methods: new Set(),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
         vi.fn(),
         false,
         undefined,
@@ -218,7 +224,12 @@ it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
         undefined,
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
-        { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+        {
+            available_methods: new Set([1]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
         vi.fn(),
         false,
         undefined,
@@ -250,7 +261,12 @@ it("OneFactor with WebAuthn preferred navigates to /2fa/webauthn", async () => {
         undefined,
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
-        { available_methods: new Set([2]), password_change_disabled: false, password_reset_disabled: false },
+        {
+            available_methods: new Set([2]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
         vi.fn(),
         false,
         undefined,
@@ -282,7 +298,12 @@ it("OneFactor with MobilePush preferred navigates to /2fa/push", async () => {
         undefined,
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
-        { available_methods: new Set([3]), password_change_disabled: false, password_reset_disabled: false },
+        {
+            available_methods: new Set([3]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
         vi.fn(),
         false,
         undefined,
@@ -314,7 +335,12 @@ it("OneFactor with factor_knowledge false navigates to /2fa/password", async () 
         undefined,
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
-        { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+        {
+            available_methods: new Set([1]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
         vi.fn(),
         false,
         undefined,
@@ -346,7 +372,12 @@ it("localStorageMethod overrides userInfo.method", async () => {
         undefined,
     ]);
     vi.mocked(useConfiguration).mockReturnValue([
-        { available_methods: new Set([1, 2]), password_change_disabled: false, password_reset_disabled: false },
+        {
+            available_methods: new Set([1, 2]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
         vi.fn(),
         false,
         undefined,
@@ -489,7 +520,12 @@ describe("safe redirection", () => {
         vi.mocked(checkSafeRedirection).mockResolvedValue({ ok: true } as any);
         vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
         vi.mocked(useConfiguration).mockReturnValue([
-            { available_methods: new Set(), password_change_disabled: false, password_reset_disabled: false },
+            {
+                available_methods: new Set(),
+                password_change_disabled: false,
+                password_reset_disabled: false,
+                recovery_codes_disabled: false,
+            },
             vi.fn(),
             false,
             undefined,
@@ -604,7 +640,12 @@ describe("second factor route", () => {
     function renderSecondFactor() {
         vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
         vi.mocked(useConfiguration).mockReturnValue([
-            { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+            {
+                available_methods: new Set([1]),
+                password_change_disabled: false,
+                password_reset_disabled: false,
+                recovery_codes_disabled: false,
+            },
             vi.fn(),
             false,
             undefined,
@@ -655,7 +696,12 @@ describe("second factor route", () => {
     it("renders nothing without the user info", async () => {
         vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
         vi.mocked(useConfiguration).mockReturnValue([
-            { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+            {
+                available_methods: new Set([1]),
+                password_change_disabled: false,
+                password_reset_disabled: false,
+                recovery_codes_disabled: false,
+            },
             vi.fn(),
             false,
             undefined,
@@ -692,7 +738,12 @@ describe("authenticated route", () => {
             undefined,
         ]);
         vi.mocked(useConfiguration).mockReturnValue([
-            { available_methods: new Set(), password_change_disabled: false, password_reset_disabled: false },
+            {
+                available_methods: new Set(),
+                password_change_disabled: false,
+                password_reset_disabled: false,
+                recovery_codes_disabled: false,
+            },
             vi.fn(),
             false,
             undefined,

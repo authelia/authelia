@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "WebAuthn"
-description: "A reference guide on various WebAuthn features and topics"
+description: "A reference guide on the Authelia WebAuthn implementation including recommended configurations for passkeys, metadata status values, and device filtering."
 summary: "This section contains reference documentation for Authelia's WebAuthn implementation and capabilities."
 date: 2025-02-23T16:08:49+11:00
 draft: false

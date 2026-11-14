@@ -5,6 +5,7 @@
 package authentication
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -40,11 +41,36 @@ func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
 }
 
 func TestShouldErrorAndGenerateUserDB(t *testing.T) {
-	dir := t.TempDir()
+	testCases := []struct {
+		name string
+		file string
+	}{
+		{"ShouldGenerateYAML", "users_database.yml"},
+		{"ShouldGenerateYAMLLong", "users_database.yaml"},
+		{"ShouldGenerateTOML", "users_database.toml"},
+		{"ShouldGenerateJSON", "users_database.json"},
+	}
 
-	f := filepath.Join(dir, "users_database.yml")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := filepath.Join(t.TempDir(), tc.file)
 
-	require.EqualError(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and has been generated", f))
+			require.EqualError(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and has been generated", f))
+
+			model := &FileDatabaseModel{}
+
+			require.NoError(t, model.Read(f))
+			require.Contains(t, model.Users, "authelia")
+
+			user := model.Users["authelia"]
+
+			assert.True(t, user.Disabled)
+			assert.Equal(t, "Test User", user.DisplayName)
+			assert.Equal(t, "authelia@authelia.com", user.Email)
+			assert.Equal(t, []string{"admins", "dev"}, user.Groups)
+			assert.Equal(t, "$argon2id$v=19$m=32768,t=1,p=8$eUhVT1dQa082YVk2VUhDMQ$E8QI4jHbUBt3EdsU1NFDu4Bq5jObKNx7nBKSn1EYQxk", user.Password)
+		})
+	}
 }
 
 func TestShouldErrorFailCreateDB(t *testing.T) {
@@ -657,7 +683,7 @@ func TestFileUserProviderClearExtraAttribute(t *testing.T) {
 			"ShouldClearAnAttributeWhichIsSet",
 			"john",
 			"example",
-			map[string]any{},
+			nil,
 			"",
 		},
 		{
@@ -1407,4 +1433,41 @@ func WithDatabase(t *testing.T, content []byte, f func(path string)) {
 	f(db.Name())
 
 	require.NoError(t, db.Close())
+}
+
+func TestShouldNotStartReloadCooldownWhenContentUnchanged(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "users.yml")
+
+	require.NoError(t, os.WriteFile(path, UserDatabaseContent, 0600))
+
+	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: path, Password: schema.DefaultPasswordConfig})
+
+	require.NoError(t, provider.StartupCheck())
+
+	reloaded, err := provider.Reload()
+
+	assert.False(t, reloaded)
+	assert.NoError(t, err)
+	assert.False(t, time.Now().Before(provider.timeoutReload))
+
+	_, err = provider.GetDetails("harry")
+	require.NoError(t, err)
+
+	require.NoError(t, os.WriteFile(path, bytes.Replace(UserDatabaseContent, []byte("harry:"), []byte("harold:"), 1), 0600))
+
+	reloaded, err = provider.Reload()
+
+	assert.True(t, reloaded)
+	assert.NoError(t, err)
+
+	_, err = provider.GetDetails("harold")
+	assert.NoError(t, err)
+
+	require.NoError(t, provider.UpdatePassword("john", "apple123"))
+
+	reloaded, err = provider.Reload()
+
+	assert.False(t, reloaded)
+	assert.EqualError(t, err, "watcher on cooldown")
 }

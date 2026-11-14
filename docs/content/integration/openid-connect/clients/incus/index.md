@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Incus"
-description: "Integrating Incus with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Incus with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-08-13T18:39:00+10:00
 draft: false
@@ -59,6 +59,7 @@ identity_providers:
       - client_id: 'incus'
         client_name: 'Incus'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

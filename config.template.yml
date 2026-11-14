@@ -71,6 +71,17 @@
     ## The CSP Template. Read the docs.
     # csp_template: ''
 
+    ## Trusted proxies configuration. Read the docs.
+    # trusted_proxies:
+      ## Enables removing proxy headers from requests that do not originate from a trusted proxy.
+      # enable: false
+
+      ## The networks trusted as proxies. If enabled and empty no proxy is trusted.
+      # networks: []
+
+      ## Determines the remote IP by walking the X-Forwarded-For header from right to left. Read the docs.
+      # walk_x_forwarded_for: false
+
   ## Server Buffers configuration.
   # buffers:
 
@@ -106,17 +117,44 @@
     ## Enables the expvars endpoint.
     # enable_expvars: false
 
+    ## Health check endpoint configuration.
+    # health:
+      ## Enables the verbose health check endpoint at /api/health/verbose which probes each configured provider.
+      ## The plain /api/health endpoint is unaffected by this option.
+      # verbose: false
+
+      ## Includes the provider error message in the verbose response. This may disclose connection strings and
+      ## host names to unauthenticated clients, so it should only be enabled while diagnosing a problem.
+      # detailed: false
+
+      ## The providers probed by the verbose endpoint. Probing 'notification' opens a connection to the SMTP
+      ## server, and probing 'ntp' or 'duo' contacts an external server, so none of them are included by default.
+      ## Options are 'storage', 'cache', 'user', 'notification', 'ntp', 'expressions', 'duo', and 'webauthn-metadata'.
+      # providers:
+      #   - 'storage'
+      #   - 'cache'
+      #   - 'user'
+
+      ## How long a result is reused before the providers are probed again. Set to '0' to probe on every request.
+      # cache: '10 seconds'
+
     ## Configure the authz endpoints.
     # authz:
       # forward-auth:
         # implementation: 'ForwardAuth'
+        # headers: ~
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # ext-authz:
         # implementation: 'ExtAuthz'
+        # headers: ~
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # auth-request:
         # implementation: 'AuthRequest'
+        # headers: ~
         # authn_strategies: []
+        # disable_access_denied_redirect: false
       # legacy:
         # implementation: 'Legacy'
         # authn_strategies: []
@@ -130,6 +168,9 @@
 
   ## Format the logs are written as: json, text.
   # format: 'json'
+
+  ## Whether to omit the timestamp from each log entry, useful when the log destination records its own.
+  # disable_timestamp: false
 
   ## File path where the logs will be written. If not set logs are written to stdout.
   # file_path: '/config/authelia.log'
@@ -229,6 +270,25 @@
   ## Disable the reuse security policy which prevents replays of one-time password code values.
   # disable_reuse_security_policy: false
 
+  ## The authenticator application suggested to users when they register a one-time password credential. Each link
+  ## must be served over https. Unset links default to the Google Authenticator listing for that store.
+  # apps:
+    ## The Apple App Store listing for the suggested application.
+    # apple_store:
+      ## Disable the Apple App Store badge.
+      # disable: false
+
+      ## The Apple App Store listing url for the suggested application.
+      # url: 'https://apps.apple.com/us/app/google-authenticator/id388497605'
+
+    ## The Google Play listing for the suggested application.
+    # google_play:
+      ## Disable the Google Play badge.
+      # disable: false
+
+      ## The Google Play listing url for the suggested application.
+      # url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2'
+
 ##
 ## WebAuthn Configuration
 ##
@@ -322,6 +382,10 @@
   ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
   # secret_key: '1234567890abcdefghifjkl'
   # enable_self_enrollment: false
+  ## Experimental, insecure, and not recommended. Disables the Duo CA pinning so a third-party implementation of the
+  ## Duo Auth API can be used. Can't be enabled for a Duo hostname. See:
+  ## https://www.authelia.com/configuration/second-factor/duo/#experimental_disable_ca_pinning
+  # experimental_disable_ca_pinning: false
 
 ##
 ## Identity Validation Configuration
@@ -437,6 +501,12 @@ identity_validation:
 
     ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
     ## functionality.
+    # custom_url: ''
+
+  ## Registration Options.
+  # registration:
+    ## External registration url which displays a registration link on the login page that directs users to it.
+    ## Authelia has no internal registration functionality; this option only surfaces a link to an external service.
     # custom_url: ''
 
   ## The amount of time to wait before we refresh data from the authentication backend in the duration common syntax.
@@ -818,11 +888,14 @@ identity_validation:
 ## Session Provider Configuration
 ##
 ## The session cookies identify the user once logged in.
-## The available providers are: `memory`, `redis`. Memory is the provider unless redis is defined.
 session:
-  ## The secret to encrypt the session data. This is only used with Redis / Redis Sentinel.
+  ## The secret to encrypt the session data.
   ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
   secret: 'insecure_session_secret'
+
+  ## The storage backend sessions are persisted to, either 'internal' (the configured storage provider) or 'cache'
+  ## (the configured cache provider).
+  # storage: 'internal'
 
   ## Cookies configures the list of allowed cookie domains for sessions to be created on.
   ## Undefined values will default to the values below.
@@ -879,6 +952,11 @@ session:
       ## me checkbox this overrides the expiration option and disables the inactivity option.
       # remember_me: '1 month'
 
+      ## The time before a session which does not belong to a user expires and is removed from the storage backend.
+      ## Anonymous sessions are only persisted when they hold state such as an in-progress passkey login or password
+      ## reset.
+      # anonymous_expiration: '10 minutes'
+
   ## Cookie Session Domain default 'name' value.
   # name: 'authelia_session'
 
@@ -894,22 +972,25 @@ session:
   ## Cookie Session Domain default 'remember_me' value.
   # remember_me: '1M'
 
-  ##
-  ## Redis Provider
-  ##
-  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
-  ##
+  ## Cookie Session Domain default 'anonymous_expiration' value.
+  # anonymous_expiration: '10m'
+
+##
+## Cache Provider Configuration
+##
+## The cache is used by the session provider when the session storage option is set to 'cache'.
+## Only one provider may be configured at a time.
+##
+## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
+##
+# cache:
+  ## The standalone Redis provider.
   # redis:
-    # host: '127.0.0.1'
-    # port: 6379
-    ## Use a unix socket instead
-    # host: '/var/run/redis/redis.sock'
+    ## The address of the Redis server in the address common syntax.
+    # address: 'tcp://127.0.0.1:6379'
 
-    ## The connection timeout in the duration common syntax.
-    # timeout: '5 seconds'
-
-    ## The maximum number of retries on a failed command. Set it to 0 to disable retries.
-    # max_retries: 3
+    ## Use a unix socket instead.
+    # address: 'unix:///var/run/redis/redis.sock'
 
     ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
     # username: 'authelia'
@@ -918,18 +999,79 @@ session:
     # password: 'authelia'
 
     ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
-    # database_index: 0
+    # database: 0
 
-    ## The maximum number of concurrent active connections to Redis.
-    # maximum_active_connections: 8
+    ## The dial timeout in the duration common syntax.
+    # dial_timeout: '5 seconds'
+
+    ## The read timeout in the duration common syntax.
+    # read_timeout: '3 seconds'
+
+    ## The write timeout in the duration common syntax.
+    # write_timeout: '3 seconds'
+
+    ## The maximum lifetime of a connection before it's closed and replaced. A value of 0 disables this.
+    # connection_lifetime: '0'
+
+    ## The maximum amount of time a connection may be idle in the pool before it's closed.
+    # idle_timeout: '30 minutes'
+
+    ## The maximum amount of time to wait for a free connection. Defaults to the read timeout plus 1 second.
+    # pool_timeout: '4 seconds'
+
+    ## The minimum backoff between retries of a failed command in the duration common syntax.
+    # minimum_retry_backoff: '8 milliseconds'
+
+    ## The maximum backoff between retries of a failed command in the duration common syntax.
+    # maximum_retry_backoff: '512 milliseconds'
+
+    ## The maximum number of retries on a failed command. A value of 0 or less uses the default.
+    # maximum_retries: 3
+
+    ## The base number of connections to Redis. A value of 0 uses the client default based on the number of CPUs.
+    # pool_size: 0
 
     ## The target number of idle connections to have open ready for work. Useful when opening connections is slow.
-    # minimum_idle_connections: 0
+    # pool_minimum_idle_connections: 0
+
+    ## The maximum number of idle connections retained in the pool.
+    # pool_maximum_idle_connections: 10
+
+    ## The maximum number of connections the pool may have open at any one time.
+    # pool_maximum_connections: 0
+
+    ## The maximum number of retry attempts when dialing a connection fails.
+    # dialer_retries: 5
+
+    ## The backoff duration between dial retry attempts in the duration common syntax.
+    # dialer_retry_timeout: '100 milliseconds'
+
+    ## The maximum number of concurrent connection creation goroutines. Defaults to the pool size.
+    # maximum_concurrent_dials: 0
+
+    ## The absolute jitter applied to the connection lifetime so connections don't all expire at once.
+    ## Must not be greater than the connection lifetime.
+    # connection_lifetime_jitter: '0'
+
+    ## Enables the client respecting context timeouts and deadlines.
+    # context_timeout_enabled: false
+
+    ## Uses a FIFO connection pool rather than a LIFO connection pool.
+    # pool_fifo: false
+
+    ## The size of the read buffer in bytes for each connection.
+    # read_buffer_size: 32768
+
+    ## The size of the write buffer in bytes for each connection.
+    # write_buffer_size: 32768
+
+    ## The duration a node is avoided for after being marked as failing.
+    # failing_timeout: '15 seconds'
 
     ## The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
-      ## This option is not required if the certificate has a SAN which matches the host option.
+      ## This option is not required if the certificate has a SAN which matches the address option.
       # server_name: 'myredis.example.com'
 
       ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
@@ -946,49 +1088,247 @@ session:
       ## Maximum TLS version for the connection.
       # maximum_version: 'TLS1.3'
 
-      ## The certificate chain used with the private_key if the server requests TLS Client Authentication
-      ## i.e. Mutual TLS.
-      # certificate_chain: |
-        # -----BEGIN CERTIFICATE-----
-        # ...
-        # -----END CERTIFICATE-----
-        # -----BEGIN CERTIFICATE-----
-        # ...
-        # -----END CERTIFICATE-----
+  ## The Redis Sentinel provider. This provides specific options to Redis Sentinel, master_name must be defined.
+  # redis_sentinel:
+    ## Sentinel Master Name.
+    # master_name: 'mysentinel'
 
-      ## The private key used with the certificate_chain if the server requests TLS Client Authentication
-      ## i.e. Mutual TLS.
-      # private_key: |
-        # -----BEGIN PRIVATE KEY-----
-        # ...
-        # -----END PRIVATE KEY-----
+    ## The addresses of the Redis Sentinel nodes in the address common syntax.
+    # addresses:
+      # - 'tcp://sentinel-node1:26379'
+      # - 'tcp://sentinel-node2:26379'
 
-    ## The Redis HA configuration options.
-    ## This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
-    # high_availability:
-      ## Sentinel Name / Master Name.
-      # sentinel_name: 'mysentinel'
+    ## The sentinel mode, either 'failover' or 'cluster'.
+    # sentinel_mode: 'failover'
 
-      ## Specific username for Redis Sentinel. The node username and password is configured above.
-      # sentinel_username: 'sentinel_specific_user'
+    ## Specific username for Redis Sentinel. The node username and password is configured below.
+    # sentinel_username: 'sentinel_specific_user'
 
-      ## Specific password for Redis Sentinel. The node username and password is configured above.
-      # sentinel_password: 'sentinel_specific_pass'
+    ## Specific password for Redis Sentinel. The node username and password is configured below.
+    # sentinel_password: 'sentinel_specific_pass'
 
-      ## The additional nodes to pre-seed the redis provider with (for sentinel).
-      ## If the host in the above section is defined, it will be combined with this list to connect to sentinel.
-      ## For high availability to be used you must have either defined; the host above or at least one node below.
-      # nodes:
-        # - host: 'sentinel-node1'
-        #   port: 6379
-        # - host: 'sentinel-node2'
-        #   port: 6379
+    ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
+    # username: 'authelia'
 
-      ## Choose the host with the lowest latency.
-      # route_by_latency: false
+    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
+    # password: 'authelia'
 
-      ## Choose the host randomly.
-      # route_randomly: false
+    ## Choose the host with the lowest latency.
+    # route_by_latency: false
+
+    ## Choose the host randomly.
+    # route_randomly: false
+
+    ## Routes all commands to replica nodes.
+    # replica_only: false
+
+    ## Allows routing commands to replicas which sentinel reports as disconnected.
+    # use_disconnected_replicas: false
+
+    ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
+    # database: 0
+
+    ## The dial timeout in the duration common syntax.
+    # dial_timeout: '5 seconds'
+
+    ## The read timeout in the duration common syntax.
+    # read_timeout: '3 seconds'
+
+    ## The write timeout in the duration common syntax.
+    # write_timeout: '3 seconds'
+
+    ## The maximum lifetime of a connection before it's closed and replaced. A value of 0 disables this.
+    # connection_lifetime: '0'
+
+    ## The maximum amount of time a connection may be idle in the pool before it's closed.
+    # idle_timeout: '30 minutes'
+
+    ## The maximum amount of time to wait for a free connection. Defaults to the read timeout plus 1 second.
+    # pool_timeout: '4 seconds'
+
+    ## The minimum backoff between retries of a failed command in the duration common syntax.
+    # minimum_retry_backoff: '8 milliseconds'
+
+    ## The maximum backoff between retries of a failed command in the duration common syntax.
+    # maximum_retry_backoff: '512 milliseconds'
+
+    ## The maximum number of retries on a failed command. A value of 0 or less uses the default.
+    # maximum_retries: 3
+
+    ## The base number of connections to each node. A value of 0 uses the client default based on the number of CPUs.
+    # pool_size: 0
+
+    ## The target number of idle connections to have open ready for work. Useful when opening connections is slow.
+    # pool_minimum_idle_connections: 0
+
+    ## The maximum number of idle connections retained in the pool.
+    # pool_maximum_idle_connections: 10
+
+    ## The maximum number of connections the pool may have open at any one time.
+    # pool_maximum_connections: 0
+
+    ## The maximum number of retry attempts when dialing a connection fails.
+    # dialer_retries: 5
+
+    ## The backoff duration between dial retry attempts in the duration common syntax.
+    # dialer_retry_timeout: '100 milliseconds'
+
+    ## The maximum number of concurrent connection creation goroutines. Defaults to the pool size.
+    # maximum_concurrent_dials: 0
+
+    ## The absolute jitter applied to the connection lifetime so connections don't all expire at once.
+    ## Must not be greater than the connection lifetime.
+    # connection_lifetime_jitter: '0'
+
+    ## Enables the client respecting context timeouts and deadlines.
+    # context_timeout_enabled: false
+
+    ## Uses a FIFO connection pool rather than a LIFO connection pool.
+    # pool_fifo: false
+
+    ## The size of the read buffer in bytes for each connection.
+    # read_buffer_size: 32768
+
+    ## The size of the write buffer in bytes for each connection.
+    # write_buffer_size: 32768
+
+    ## The duration a node is avoided for after being marked as failing.
+    # failing_timeout: '15 seconds'
+
+    ## The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
+    # tls:
+      ## The server subject name to check the servers certificate against during the validation process.
+      ## This option is not required if the certificate has a SAN which matches the addresses option.
+      # server_name: 'myredis.example.com'
+
+      ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
+      ## certificate or the certificate of the authority signing the certificate to the certificates directory which is
+      ## defined by the `certificates_directory` option at the top of the configuration.
+      ## It's important to note the public key should be added to the directory, not the private key.
+      ## This option is strongly discouraged but may be useful in some self-signed situations where validation is not
+      ## important to the administrator.
+      # skip_verify: false
+
+      ## Minimum TLS version for the connection.
+      # minimum_version: 'TLS1.2'
+
+      ## Maximum TLS version for the connection.
+      # maximum_version: 'TLS1.3'
+
+  ## The Redis Cluster provider.
+  # redis_cluster:
+    ## The addresses of the Redis Cluster nodes in the address common syntax.
+    # addresses:
+      # - 'tcp://cluster-node1:6379'
+      # - 'tcp://cluster-node2:6379'
+
+    ## The maximum number of redirects to follow.
+    # maximum_redirects: 3
+
+    ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
+    # username: 'authelia'
+
+    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
+    # password: 'authelia'
+
+    ## Routes read-only commands to replica nodes.
+    # route_by_replica: false
+
+    ## Routes read-only commands to the node with the lowest latency. Enabling this implicitly enables route_by_replica.
+    # route_by_latency: false
+
+    ## Routes read-only commands to a random node. Enabling this implicitly enables route_by_replica.
+    # route_randomly: false
+
+    ## The interval the cluster state is reloaded at.
+    # cluster_state_reload_interval: '10 seconds'
+
+    ## The dial timeout in the duration common syntax.
+    # dial_timeout: '5 seconds'
+
+    ## The read timeout in the duration common syntax.
+    # read_timeout: '3 seconds'
+
+    ## The write timeout in the duration common syntax.
+    # write_timeout: '3 seconds'
+
+    ## The maximum lifetime of a connection before it's closed and replaced. A value of 0 disables this.
+    # connection_lifetime: '0'
+
+    ## The maximum amount of time a connection may be idle in the pool before it's closed.
+    # idle_timeout: '30 minutes'
+
+    ## The maximum amount of time to wait for a free connection. Defaults to the read timeout plus 1 second.
+    # pool_timeout: '4 seconds'
+
+    ## The minimum backoff between retries of a failed command in the duration common syntax.
+    # minimum_retry_backoff: '8 milliseconds'
+
+    ## The maximum backoff between retries of a failed command in the duration common syntax.
+    # maximum_retry_backoff: '512 milliseconds'
+
+    ## The maximum number of retries on a failed command. A value of 0 or less uses the default.
+    # maximum_retries: 3
+
+    ## The base number of connections to each node. A value of 0 uses the client default based on the number of CPUs.
+    # pool_size: 0
+
+    ## The target number of idle connections to have open ready for work. Useful when opening connections is slow.
+    # pool_minimum_idle_connections: 0
+
+    ## The maximum number of idle connections retained in the pool.
+    # pool_maximum_idle_connections: 10
+
+    ## The maximum number of connections the pool may have open at any one time.
+    # pool_maximum_connections: 0
+
+    ## The maximum number of retry attempts when dialing a connection fails.
+    # dialer_retries: 5
+
+    ## The backoff duration between dial retry attempts in the duration common syntax.
+    # dialer_retry_timeout: '100 milliseconds'
+
+    ## The maximum number of concurrent connection creation goroutines. Defaults to the pool size.
+    # maximum_concurrent_dials: 0
+
+    ## The absolute jitter applied to the connection lifetime so connections don't all expire at once.
+    ## Must not be greater than the connection lifetime.
+    # connection_lifetime_jitter: '0'
+
+    ## Enables the client respecting context timeouts and deadlines.
+    # context_timeout_enabled: false
+
+    ## Uses a FIFO connection pool rather than a LIFO connection pool.
+    # pool_fifo: false
+
+    ## The size of the read buffer in bytes for each connection.
+    # read_buffer_size: 32768
+
+    ## The size of the write buffer in bytes for each connection.
+    # write_buffer_size: 32768
+
+    ## The duration a node is avoided for after being marked as failing.
+    # failing_timeout: '15 seconds'
+
+    ## The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
+    # tls:
+      ## The server subject name to check the servers certificate against during the validation process.
+      ## This option is not required if the certificate has a SAN which matches the addresses option.
+      # server_name: 'myredis.example.com'
+
+      ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
+      ## certificate or the certificate of the authority signing the certificate to the certificates directory which is
+      ## defined by the `certificates_directory` option at the top of the configuration.
+      ## It's important to note the public key should be added to the directory, not the private key.
+      ## This option is strongly discouraged but may be useful in some self-signed situations where validation is not
+      ## important to the administrator.
+      # skip_verify: false
+
+      ## Minimum TLS version for the connection.
+      # minimum_version: 'TLS1.2'
+
+      ## Maximum TLS version for the connection.
+      # maximum_version: 'TLS1.3'
 
 ##
 ## Regulation Configuration
@@ -1345,6 +1685,22 @@ session:
     ## must be available when configured. Most clients completely ignore this and it has a performance cost.
     # discovery_signed_response_key_id: ''
 
+    ## Requires the use of Pushed Authorization Requests for all clients when set to true.
+    # require_pushed_authorization_requests: false
+
+    ## Requires all authorization requests for all clients be provided as a signed Request Object when set to true.
+    # require_signed_request_object: false
+
+    ## The strategy used to match requested audience values; exact or wildcard.
+    # audience_strategy: 'exact'
+
+    ## The strategy used to match requested resource indicators; exact, prefix, or wildcard.
+    # resource_strategy: 'exact'
+
+    ## SECURITY NOTICE: It's not recommended changing this option. Permits client assertions which do not have the
+    ## issuer identifier as the sole audience value.
+    # enable_client_assertion_legacy_audience: false
+
     ## Authorization Policies which can be utilized by clients. The 'policy_name' is an arbitrary value that you pick
     ## which is utilized as the value for the 'authorization_policy' on the client.
     # authorization_policies:
@@ -1366,11 +1722,15 @@ session:
       # id_token: '1 hour'
       # refresh_token: '90 minutes'
 
+      ## Configures the maximum lifespan of the refresh tokens of a single authorization grant measured from when the
+      ## first refresh token of the grant is issued. The value 0 applies no maximum.
+      # refresh_token_maximum: 0
+
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
       ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
       # endpoints:
-        #  - 'authorization'
+        #  - 'device-authorization'
         #  - 'pushed-authorization-request'
         #  - 'token'
         #  - 'revocation'
@@ -1410,6 +1770,11 @@ session:
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
         # public: false
 
+        ## The application type of the client which is either 'web' or 'native'. Only native applications such as
+        ## desktop applications may use a registered loopback redirect URI on any port. When not configured it's
+        ## 'native' for public clients with a loopback or private-use URI scheme redirect URI, otherwise 'web'.
+        # application_type: 'web'
+
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         # redirect_uris:
           # - 'https://oidc.example.com:8080/oauth2/callback'
@@ -1421,6 +1786,19 @@ session:
 
         ## Audience this client is allowed to request.
         # audience: []
+
+        ## Resource indicators this client is allowed to request. These must be absolute URIs without a fragment.
+        # resource: []
+
+        ## Audience and resource values this client serves as a resource server at the introspection endpoint. When
+        ## empty the client may only introspect the tokens issued to it.
+        # introspection_audience: []
+
+        ## The strategy used to match requested audience values for this client. Defaults to the provider strategy.
+        # audience_strategy: ''
+
+        ## The strategy used to match requested resource indicators for this client. Defaults to the provider strategy.
+        # resource_strategy: ''
 
         ## Scopes this client is allowed to request.
         # scopes:
@@ -1462,12 +1840,19 @@ session:
         ## Requires the use of Pushed Authorization Requests for this client when set to true.
         # require_pushed_authorization_requests: false
 
+        ## Requires all authorization requests for this client be provided as a signed Request Object when set to true.
+        # require_signed_request_object: false
+
         ## Enforces the use of PKCE for this client when set to true.
         # require_pkce: false
 
         ## Enforces the use of PKCE for this client when configured, and enforces the specified challenge method.
         ## Options are 'plain' and 'S256'.
         # pkce_challenge_method: 'S256'
+
+        ## Keeps the presented refresh token during the refresh token grant rather than issuing a new one. This makes
+        ## refresh token reuse undetectable and has no effect for public clients.
+        # disable_refresh_token_rotation: false
 
         ## The signing algorithm used for signing the authorization responses.
         ## Please read the documentation before adjusting this option.

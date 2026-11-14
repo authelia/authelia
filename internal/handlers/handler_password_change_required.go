@@ -34,22 +34,24 @@ func isPasswordChangeRequired(ctx *middlewares.AutheliaCtx, username string) (re
 		return required, nil
 	}
 
-	ctx.Logger.WithFields(map[string]any{"username": username, "attribute": name}).
+	ctx.GetLogger().WithFields(map[string]any{"username": username, "attribute": name}).
 		Errorf("The '%s' user attribute did not resolve to a boolean so it can't determine if a password change is required", name)
 
 	return false, nil
 }
 
-func completePasswordChangeRequired(ctx *middlewares.AutheliaCtx, provider *session.Session, username string) (err error) {
+func completePasswordChangeRequired(ctx *middlewares.AutheliaCtx, provider session.Strategy, username string) (err error) {
 	if err = clearPasswordChangeRequired(ctx, username); err != nil {
 		return err
 	}
 
-	if err = provider.DestroySession(ctx.RequestCtx); err != nil {
-		ctx.Logger.WithError(err).WithFields(map[string]any{"username": username}).
+	if err = provider.Destroy(ctx); err != nil {
+		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username}).
 			Warn("Error occurred destroying the session which was held pending a required password change, resetting it instead")
 
-		if err = provider.SaveSession(ctx.RequestCtx, provider.NewDefaultUserSession()); err != nil {
+		userSession := provider.NewDefault()
+
+		if err = provider.Save(ctx, &userSession); err != nil {
 			return fmt.Errorf("error occurred resetting the session which was held pending a required password change: %w", err)
 		}
 	}

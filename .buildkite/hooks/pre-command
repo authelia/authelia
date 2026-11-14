@@ -48,7 +48,7 @@ if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
   fi
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ :chrome: ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
 
@@ -98,6 +98,11 @@ if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
       BUILD_FLAG="${BUILD_SAMBA}"
       CONTAINER="integration-samba"
       FILE="internal/suites/example/compose/samba/compose.yml"
+      ;;
+    OIDCConformance)
+      BUILD_FLAG="${BUILD_OIDCCONFORMANCE}"
+      CONTAINER="integration-oidcconformance"
+      FILE="internal/suites/OIDCConformance/compose.yml"
       ;;
   esac
   [[ "${BUILD_FLAG}" == "true" ]] && INTEGRATION

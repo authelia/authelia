@@ -45,6 +45,7 @@ vi.mock("@views/LoginPortal/LoginPortal", () => ({
             data-remember-me={String(props.rememberMe)}
             data-reset-password={String(props.resetPassword)}
             data-reset-password-custom-url={props.resetPasswordCustomURL}
+            data-registration-url={props.registrationURL}
         />
     ),
 }));

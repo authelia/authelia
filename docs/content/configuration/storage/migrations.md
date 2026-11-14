@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Migrations"
-description: "Storage Migrations"
+description: "Reference documentation for Authelia storage schema migrations including the schema version history, automatic upgrades, and manual downgrade procedures."
 summary: "A migration ."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -64,5 +64,8 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       27       |     4.39.21      |                    Included Access Token Session Signature in Refresh Token Session Table                    |
 |       28       |     4.39.22      |           Fix the Access Token Session Signature column length in the Refresh Token Session Table            |
 |       29       |     4.39.23      |                       OAuth 2.0 Resource Indicators recorded separately from Audience                        |
+|       30       |      4.40.0      |                    Fix the Request Method column length in the Authentication Logs Table                     |
+|       32       |      4.40.0      |         OAuth 2.0 replay protection for client assertions, PKCE challenges, nonces, and device codes         |
+|       33       |      4.40.0      |                                          Two-Factor Recovery Codes                                           |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068

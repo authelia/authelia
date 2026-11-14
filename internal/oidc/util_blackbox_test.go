@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/language"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
-	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -282,6 +282,172 @@ func TestRequesterRequiresLogin(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, oidc.RequesterRequiresLogin(tc.have, time.Unix(tc.requested, 0), time.Unix(tc.authenticated, 0)))
+		})
+	}
+}
+
+func TestRequestFormRequiresLoginPrecision(t *testing.T) {
+	testCases := []struct {
+		name                     string
+		form                     url.Values
+		requested, authenticated time.Time
+		expected                 bool
+	}{
+		{
+			name:          "ShouldNotRequireWithPromptLoginSameSecond",
+			form:          url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}},
+			requested:     time.Unix(100, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, 0),
+			expected:      false,
+		},
+		{
+			name:          "ShouldRequireWithPromptLoginPreviousSecond",
+			form:          url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}},
+			requested:     time.Unix(101, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, 0),
+			expected:      true,
+		},
+		{
+			name:          "ShouldNotRequireWithMaxAgeSameSecond",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"10"}},
+			requested:     time.Unix(110, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, 0),
+			expected:      false,
+		},
+		{
+			name:          "ShouldRequireWithMaxAgeNextSecond",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"10"}},
+			requested:     time.Unix(111, int64(time.Millisecond*200)),
+			authenticated: time.Unix(100, 0),
+			expected:      true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RequestFormRequiresLogin(tc.form, tc.requested, tc.authenticated))
+		})
+	}
+}
+
+func TestRequesterIsClientIdentityAssured(t *testing.T) {
+	testCases := []struct {
+		name      string
+		client    oauthelia2.Client
+		requester oauthelia2.Requester
+		expected  bool
+	}{
+		{
+			name:      "ShouldAssureNilClient",
+			client:    nil,
+			requester: &oauthelia2.AuthorizeRequest{},
+			expected:  true,
+		},
+		{
+			name:      "ShouldAssureConfidentialClient",
+			client:    &oidc.RegisteredClient{},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("http://127.0.0.1/callback")},
+			expected:  true,
+		},
+		{
+			name:      "ShouldAssurePublicClientWithHTTPSRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("https://app.example.com/callback")},
+			expected:  true,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientWithLoopbackRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("http://127.0.0.1:8080/callback")},
+			expected:  false,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientWithHTTPSLocalhostRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("https://localhost/callback")},
+			expected:  false,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientWithPrivateUseSchemeRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("com.example.app:/callback")},
+			expected:  false,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientWithoutRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{},
+			expected:  false,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientDeviceAuthorization",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.DeviceAuthorizeRequest{},
+			expected:  false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RequesterIsClientIdentityAssured(context.Background(), tc.client, tc.requester))
+		})
+	}
+}
+
+func TestFormIsClientIdentityAssured(t *testing.T) {
+	testCases := []struct {
+		name     string
+		client   oauthelia2.Client
+		form     url.Values
+		expected bool
+	}{
+		{
+			name:     "ShouldAssureNilClient",
+			client:   nil,
+			form:     url.Values{},
+			expected: true,
+		},
+		{
+			name:     "ShouldAssureConfidentialClient",
+			client:   &oidc.RegisteredClient{},
+			form:     url.Values{oidc.FormParameterRedirectURI: []string{"http://127.0.0.1/callback"}},
+			expected: true,
+		},
+		{
+			name:     "ShouldAssurePublicClientWithHTTPSRedirectURI",
+			client:   &oidc.RegisteredClient{Public: true},
+			form:     url.Values{oidc.FormParameterRedirectURI: []string{"https://app.example.com/callback"}},
+			expected: true,
+		},
+		{
+			name:     "ShouldAssurePublicClientWithOnlyRegisteredHTTPSRedirectURI",
+			client:   &oidc.RegisteredClient{Public: true, RedirectURIs: []string{"https://app.example.com/callback"}},
+			form:     url.Values{},
+			expected: true,
+		},
+		{
+			name:     "ShouldNotAssurePublicClientWithMultipleRegisteredRedirectURIs",
+			client:   &oidc.RegisteredClient{Public: true, RedirectURIs: []string{"https://app.example.com/callback", "https://app.example.com/other"}},
+			form:     url.Values{},
+			expected: false,
+		},
+		{
+			name:     "ShouldNotAssurePublicClientWithLoopbackRedirectURI",
+			client:   &oidc.RegisteredClient{Public: true},
+			form:     url.Values{oidc.FormParameterRedirectURI: []string{"http://localhost:8080/callback"}},
+			expected: false,
+		},
+		{
+			name:     "ShouldNotAssurePublicClientWithBadRedirectURI",
+			client:   &oidc.RegisteredClient{Public: true},
+			form:     url.Values{oidc.FormParameterRedirectURI: []string{"https://app.example.com/%zz"}},
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.FormIsClientIdentityAssured(tc.client, tc.form))
 		})
 	}
 }
@@ -949,6 +1115,20 @@ func (t TestGetLangRequester) GetGrantedResource() (grantedResource oauthelia2.A
 }
 
 func (t TestGetLangRequester) GrantResource(resource string) {}
+
+func (t TestGetLangRequester) GetRequestedAuthorizationDetails() (details oauthelia2.AuthorizationDetails) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetRequestedAuthorizationDetails(details oauthelia2.AuthorizationDetails) {
+}
+
+func (t TestGetLangRequester) GetGrantedAuthorizationDetails() (details oauthelia2.AuthorizationDetails) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetGrantedAuthorizationDetails(details oauthelia2.AuthorizationDetails) {
+}
 
 func (t TestGetLangRequester) GetSession() (session oauthelia2.Session) {
 	return nil

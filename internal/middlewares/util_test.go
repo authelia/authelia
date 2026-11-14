@@ -14,6 +14,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/metrics"
 )
 
 func TestSetContentType(t *testing.T) {
@@ -110,7 +111,7 @@ func TestNewProvidersBasic(t *testing.T) {
 	assert.Nil(t, providers.StorageProvider)
 	assert.Nil(t, providers.Authorizer)
 	assert.Nil(t, providers.UserProvider)
-	assert.Nil(t, providers.SessionProvider)
+	assert.Nil(t, providers.Session)
 	assert.Nil(t, providers.Notifier)
 	assert.Nil(t, providers.OpenIDConnect)
 	assert.Nil(t, providers.Metrics)
@@ -232,6 +233,95 @@ func TestNewProviders(t *testing.T) {
 			} else {
 				assert.Nil(t, providers.Metrics)
 			}
+		})
+	}
+}
+
+func TestNewProvidersRecoveryCodeGauges(t *testing.T) {
+	testCases := []struct {
+		name       string
+		disable    bool
+		registered bool
+	}{
+		{"ShouldRegisterGaugesWhenRecoveryCodesEnabled", false, true},
+		{"ShouldNotRegisterGaugesWhenRecoveryCodesDisabled", true, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{
+				Storage: schema.Storage{
+					EncryptionKey: "a_not_so_secure_encryption_key_for_testing",
+					Local: &schema.StorageLocal{
+						Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+					},
+				},
+				Telemetry: schema.Telemetry{
+					Metrics: schema.TelemetryMetrics{
+						Enabled: true,
+					},
+				},
+				RecoveryCodes: schema.RecoveryCodes{
+					Disable: tc.disable,
+				},
+			}
+
+			providers, _, errs := NewProviders(config, nil)
+
+			require.Len(t, errs, 0)
+			require.NotNil(t, providers.StorageProvider)
+			require.NotNil(t, providers.Metrics)
+
+			t.Cleanup(func() {
+				assert.NoError(t, providers.StorageProvider.Close())
+			})
+
+			require.NoError(t, providers.StorageProvider.StartupCheck())
+
+			prom, ok := providers.Metrics.(*metrics.Prometheus)
+			require.True(t, ok)
+
+			families, err := prom.GetGatherer().Gather()
+			require.NoError(t, err)
+
+			names := make([]string, 0, len(families))
+
+			for _, family := range families {
+				names = append(names, family.GetName())
+			}
+
+			for _, name := range []string{"authelia_recovery_codes_users_with_codes", "authelia_recovery_codes_users_low", "authelia_recovery_codes_users_depleted"} {
+				if tc.registered {
+					assert.Contains(t, names, name)
+				} else {
+					assert.NotContains(t, names, name)
+				}
+			}
+		})
+	}
+}
+
+func TestFormatRequestMethod(t *testing.T) {
+	testCases := []struct {
+		name     string
+		method   string
+		expected string
+	}{
+		{"ShouldReturnRFC7231Method", fasthttp.MethodGet, fasthttp.MethodGet},
+		{"ShouldReturnRFC7231MethodPatch", fasthttp.MethodPatch, fasthttp.MethodPatch},
+		{"ShouldReturnRFC4918Method", schema.MethodPropFind, schema.MethodPropFind},
+		{"ShouldReturnIANAMethod", schema.MethodQuery, schema.MethodQuery},
+		{"ShouldReturnIANAMethodWithHyphen", schema.MethodVersionControl, schema.MethodVersionControl},
+		{"ShouldUppercaseLowercaseMethod", "get", fasthttp.MethodGet},
+		{"ShouldUppercaseMixedCaseMethod", "PropFind", schema.MethodPropFind},
+		{"ShouldReturnEmptyForUnknownMethod", "FOO", ""},
+		{"ShouldReturnEmptyForEmptyMethod", "", ""},
+		{"ShouldReturnEmptyForMethodWithWhitespace", " GET", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, formatRequestMethod(tc.method))
 		})
 	}
 }

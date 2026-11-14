@@ -4,6 +4,7 @@
 
 import { AxiosResponse } from "axios";
 
+import { ErrorCode } from "@services/ErrorCode";
 import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
@@ -25,6 +26,10 @@ export const WebAuthnCredentialPath = basePath + "/api/secondfactor/webauthn/cre
 
 export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
 export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";
+
+export const RecoveryCodesStatusPath = basePath + "/api/secondfactor/recovery-codes";
+export const RecoveryCodesGeneratePath = basePath + "/api/secondfactor/recovery-codes/generate";
+export const CompleteRecoveryCodeSignInPath = basePath + "/api/secondfactor/recovery-code";
 
 export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo";
 export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
@@ -56,12 +61,8 @@ export interface AuthenticationErrorResponse extends ErrorResponse {
 
 export interface ErrorResponse {
     status: "KO";
+    code?: ErrorCode;
     message: string;
-}
-
-export interface ErrorRateLimitResponse extends ErrorResponse {
-    limited: boolean;
-    retryAfter: number;
 }
 
 export interface Response<T> extends OKResponse {
@@ -97,57 +98,9 @@ export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefine
     return undefined;
 }
 
-export type RateLimitedData<T> = {
-    data?: T;
-    limited: boolean;
-    retryAfter: number;
-};
-
-function getRetryAfter(resp: AxiosResponse): number {
-    if (resp.status !== 429) {
-        return 0;
-    }
-
-    const valueRetryAfter = resp.headers["retry-after"];
-    if (valueRetryAfter) {
-        if (/^\d+$/.test(valueRetryAfter)) {
-            const retryAfter = Number.parseFloat(valueRetryAfter);
-
-            if (Number.isNaN(retryAfter)) {
-                throw new TypeError("Header Retry-After has an invalid number value");
-            }
-
-            return retryAfter;
-        } else {
-            const date = new Date(valueRetryAfter);
-            if (Number.isNaN(date.getTime())) {
-                throw new TypeError("Header Retry-After has an invalid date value");
-            }
-
-            return Math.max(0, (date.getTime() - Date.now()) / 1000);
-        }
-    }
-
-    throw new Error("Header Retry-After is missing");
-}
-
-export function toDataRateLimited<T>(resp: AxiosResponse<ServiceResponse<T>>): RateLimitedData<T> | undefined {
-    if (resp.data && "status" in resp.data) {
-        if (resp.data["status"] === "OK") {
-            return { data: resp.data.data, limited: false, retryAfter: 0 };
-        } else if (resp.data["status"] === "KO") {
-            return { limited: resp.status === 429, retryAfter: getRetryAfter(resp) };
-        } else if (resp.status === 429) {
-            return { limited: true, retryAfter: getRetryAfter(resp) };
-        }
-    }
-
-    return undefined;
-}
-
 function hasError(err: ErrorResponse | undefined) {
     if (err?.status === "KO") {
-        return { errored: true, message: err.message };
+        return { code: err.code, errored: true, message: err.message };
     }
 
     return { errored: false, message: null };
@@ -157,10 +110,6 @@ export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
     const errResp = toErrorResponse(resp);
 
     return hasError(errResp);
-}
-
-export function validateStatusTooManyRequests(status: number) {
-    return (status >= 200 && status < 300) || status === 429;
 }
 
 export function validateStatusAuthentication(status: number) {
