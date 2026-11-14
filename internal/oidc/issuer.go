@@ -7,9 +7,10 @@ package oidc
 import (
 	"context"
 	"crypto"
+	"slices"
 	"sort"
 
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/jose"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -116,6 +117,34 @@ func (i *Issuer) GetIssuerJWK(ctx context.Context, kid, alg, use string) (jwk *j
 // GetIssuerStrictJWK returns the JSON Web Key which strictly matches the given kid, alg, and use.
 func (i *Issuer) GetIssuerStrictJWK(ctx context.Context, kid, alg, use string) (jwk *jose.JSONWebKey, err error) {
 	return i.searchJWKS(kid, alg, use, true)
+}
+
+// GetIssuerSigningAlgValues returns the sorted unique algorithms of the keys with a use of sig, excluding none.
+func (i *Issuer) GetIssuerSigningAlgValues(ctx context.Context) (algs []string) {
+	return i.keyAlgValues(KeyUseSignature)
+}
+
+// GetIssuerDecryptionAlgValues returns the sorted unique algorithms of the keys with a use of enc.
+func (i *Issuer) GetIssuerDecryptionAlgValues(ctx context.Context) (algs []string) {
+	return i.keyAlgValues(KeyUseEncryption)
+}
+
+func (i *Issuer) keyAlgValues(use string) (algs []string) {
+	if i == nil || i.jwks == nil {
+		return nil
+	}
+
+	for _, key := range i.jwks.Keys {
+		if key.Use != use || key.Algorithm == "" || key.Algorithm == SigningAlgNone {
+			continue
+		}
+
+		algs = append(algs, key.Algorithm)
+	}
+
+	slices.Sort(algs)
+
+	return slices.Compact(algs)
 }
 
 func (i *Issuer) searchJWKS(kid, alg, use string, strict bool) (jwk *jose.JSONWebKey, err error) {

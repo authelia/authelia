@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Integration Suites"
-description: "Integration Suites."
+description: "A guide to Authelia's integration suites which provide Docker-based virtual environments for manual testing and automated integration tests with go-rod and Chrome CDP."
 summary: "This section covers the build process and how to perform tests in development."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -167,7 +167,7 @@ authelia-scripts suites test
 
 ### Run tests in headless mode
 
-As you might have noticed, the tests are run using chromedriver and selenium. It means that the tests open an instance
+As you might have noticed, the tests are run using go-rod driving Chrome. It means that the tests open an instance
 of Chrome that might interfere with your other activities. In order to run the tests in headless mode to avoid the
 interference, use the following command:
 

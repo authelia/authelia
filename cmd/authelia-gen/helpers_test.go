@@ -31,7 +31,7 @@ func TestGetPFlagPath(t *testing.T) {
 			},
 			[]string{"abc", "123"},
 			"",
-			"failed to lookup flag 'abc': flag accessed but not defined: abc",
+			"failed to lookup flag 'abc': flag \"abc\" does not exist",
 		},
 		{
 			"ShouldFailEmptyFlagNames",

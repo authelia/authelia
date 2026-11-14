@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "ROM Manager (RomM)"
-description: "Integrating ROM Manager (RomM) with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating ROM Manager with the Authelia OpenID Connect 1.0 Provider including configuration examples, tested versions, and available option info."
 summary: ""
 date: 2025-06-01T12:55:40+00:00
 draft: false
@@ -63,6 +63,7 @@ identity_providers:
         client_name: 'ROM Manager'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

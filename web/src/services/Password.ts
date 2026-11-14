@@ -101,6 +101,5 @@ export async function postSecondFactor(
         targetURL,
     };
 
-    const res = await PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);
-    return res ?? ({} as SignInResponse);
+    return PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);
 }

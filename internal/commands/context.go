@@ -52,6 +52,7 @@ type CmdCtx struct {
 	trusted   *x509.CertPool
 
 	cconfig *CmdCtxConfig
+	cpaths  []string
 
 	factoryX509SystemCertPool utils.X509SystemCertPoolFactory
 }
@@ -100,6 +101,12 @@ func (ctx *CmdCtx) GetRandom() (random random.Provider) {
 // GetConfiguration returns *schema.Configuration satisfying part of the ServiceCtx.
 func (ctx *CmdCtx) GetConfiguration() *schema.Configuration {
 	return ctx.config
+}
+
+// GetConfigurationPaths returns the configuration file and directory paths which were loaded, satisfying part of the
+// ServiceCtx. The paths are retained separately to the CmdCtxConfig as it's discarded prior to the services running.
+func (ctx *CmdCtx) GetConfigurationPaths() (paths []string) {
+	return ctx.cpaths
 }
 
 // CheckSchemaVersion returns an error if the storage schema is not at the latest version.
@@ -288,7 +295,7 @@ func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	ctx.log.WithFields(map[string]any{"filters": ctx.cconfig.filters, "files": ctx.cconfig.files}).Debug("Loaded Configuration Sources")
-	ctx.log.WithFields(map[string]any{"level": ctx.config.Log.Level, "format": ctx.config.Log.Format, "file": ctx.config.Log.FilePath, "keep_stdout": ctx.config.Log.KeepStdout}).Debug("Logging Initialized")
+	ctx.log.WithFields(map[string]any{"level": ctx.config.Log.Level, "format": ctx.config.Log.Format, "disable_timestamp": ctx.config.Log.DisableTimestamp, "file": ctx.config.Log.FilePath, "keep_stdout": ctx.config.Log.KeepStdout}).Debug("Logging Initialized")
 
 	return nil
 }
@@ -430,17 +437,15 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 		ctx.cconfig = NewCmdCtxConfig()
 	}
 
-	if ctx.cconfig.files, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
+	if ctx.cconfig.files, filters, err = loadXEnvCLIConfigValues(cmd, ctx.cconfig.validator); err != nil {
 		return err
 	}
+
+	ctx.cpaths = ctx.cconfig.files
 
 	ctx.cconfig.filters = make([]string, len(filters))
 
 	for i, filter := range filters {
-		if filter.Name() == "expand-env" {
-			ctx.log.Warn("Experimental file filter 'expand-env' is deprecated in favor of the 'template' filter and will be removed in v4.40.0")
-		}
-
 		ctx.cconfig.filters[i] = filter.Name()
 	}
 

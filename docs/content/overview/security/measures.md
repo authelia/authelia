@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Measures"
-description: "An overview of the security measures Authelia implements."
+description: "An overview of the security measures Authelia implements including protections against brute-force attacks, cookie theft, open redirects, and exfiltration."
 summary: "An overview of the security measures Authelia implements."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -162,7 +162,8 @@ general.
 Authelia implements a tokenized bucket rate limiter on specific endpoints which greatly reduces the chances these
 endpoints can be brute-forced for various outcomes including guessing secret values, or inundating an inbox with emails.
 
-These rate limiters are applied on a per-IP basis and can be
+These rate limiters are applied per IPv4 address and per IPv6 prefix, which is a `/64` by default as a single IPv6
+subscriber can typically rotate between all of the addresses in their allocation. They can be
 [configured](../../configuration/miscellaneous/server-endpoint-rate-limits.md) depending on a particular use case.
 
 ## Protections against password brute-force attacks
@@ -420,7 +421,7 @@ for more information.
 ### Session security
 
 We have a few options to configure the security of a session. The main and most important one is the session secret.
-This is used to encrypt the session data when it is stored in the [Redis](../../configuration/session/redis.md) key value
+This is used to encrypt the session data when it is stored in the [Redis](../../configuration/cache/redis.md) key value
 database. The value of this option should be long and as random as possible. See more in the
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 

@@ -72,6 +72,7 @@ identity_providers:
         client_name: 'Technitium DNS Server'
         client_secret: '$pbkdf2-sha512$310000$...'  # authelia crypto hash generate pbkdf2 --variant sha512
         public: false
+        application_type: 'web'
         authorization_policy: 'technitium'
         claims_policy: 'technitium'
         require_pkce: false
@@ -107,16 +108,17 @@ To configure Technitium DNS Server to use Authelia as an OpenID Connect 1.0 Prov
    - **Client ID:** `technitium`
    - **Client Secret:** the secret you generated
    - **Scopes:** `openid`, `profile`, `email`, `groups`, `technitium_roles`
-4. **Group Map:** add a mapping — Remote Group `dns-admins` → Local Group `Administrators`.
+4. **Group Map:** add a mapping:
+   - Remote Group `dns-admins` → Local Group `Administrators`.
 5. Enable **Allow New User Sign Up** and **Allow Sign Up Only For Mapped Users** (so only members of a mapped group are auto-provisioned).
 6. **Save Config** (Technitium restarts its web service automatically).
 
-The redirect URI Technitium uses is `https://<your-console-host>/sso/callback` — it is shown on the SSO settings page; ensure it matches the `redirect_uris` in the Authelia client.
+The redirect URI Technitium uses is `https://<your-console-host>/sso/callback`; it is shown on the SSO settings page; ensure it matches the `redirect_uris` in the Authelia client.
 
 {{< callout context="danger" title="Back-channel name resolution (common pitfall)" icon="outline/alert-triangle" >}}
 Technitium DNS Server resolves **its own outbound requests** (the OIDC discovery, token, and JWKS back-channel) using **its own DNS engine**, _not_ the operating system's `/etc/hosts` or stub resolver. If your Authelia URL (`auth.example.com`) is **internal-only** (split-horizon / no public record), Technitium will report **"Failed to reach SSO provider"** even though `curl` from the same host succeeds.
 
-**Fix:** make the Authelia hostname resolvable **by Technitium itself** — e.g. add an internal authoritative record for `auth.example.com` on the Technitium server (or via its configured forwarder/conditional path), and confirm with `dig +short @127.0.0.1 auth.example.com` on the Technitium host returning the correct internal IP. Also ensure Technitium can reach the Authelia endpoint on TCP 443.
+**Fix:** make the Authelia hostname resolvable **by Technitium itself**; e.g. add an internal authoritative record for `auth.example.com` on the Technitium server (or via its configured forwarder/conditional path), and confirm with `dig +short @127.0.0.1 auth.example.com` on the Technitium host returning the correct internal IP. Also ensure Technitium can reach the Authelia endpoint on TCP 443.
 {{< /callout >}}
 
 ## See Also

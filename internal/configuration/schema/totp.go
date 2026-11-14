@@ -4,6 +4,10 @@
 
 package schema
 
+import (
+	"net/url"
+)
+
 // TOTP represents the configuration related to TOTP options.
 type TOTP struct {
 	Disable          bool   `koanf:"disable" yaml:"disable" toml:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the TOTP 2FA functionality."`
@@ -19,9 +23,29 @@ type TOTP struct {
 	AllowedPeriods    []int    `koanf:"allowed_periods" yaml:"allowed_periods,omitempty" toml:"allowed_periods,omitempty" json:"allowed_periods,omitempty" jsonschema:"title=Allowed Periods,default=30" jsonschema_description:"List of periods the user is allowed to select in addition to the default."`
 
 	DisableReuseSecurityPolicy bool `koanf:"disable_reuse_security_policy" yaml:"disable_reuse_security_policy" toml:"disable_reuse_security_policy" json:"disable_reuse_security_policy" jsonschema:"title=Disable Reuse Security Policy,default=false" jsonschema_description:"Disables the security policy that prevents reuse of a TOTP code."`
+
+	Apps TOTPApps `koanf:"apps" yaml:"apps,omitempty" toml:"apps,omitempty" json:"apps,omitempty" jsonschema:"title=Apps" jsonschema_description:"The authenticator applications suggested to users when they register a TOTP credential."`
+}
+
+// TOTPApps represents the store links suggested to users registering a TOTP credential.
+type TOTPApps struct {
+	AppleStore TOTPAppsStore `koanf:"apple_store" yaml:"apple_store,omitempty" toml:"apple_store,omitempty" json:"apple_store,omitempty" jsonschema:"title=Apple App Store" jsonschema_description:"The Apple App Store listing for the authenticator application suggested to users."`
+	GooglePlay TOTPAppsStore `koanf:"google_play" yaml:"google_play,omitempty" toml:"google_play,omitempty" json:"google_play,omitempty" jsonschema:"title=Google Play" jsonschema_description:"The Google Play listing for the authenticator application suggested to users."`
+}
+
+// TOTPAppsStore represents an individual store listing suggested to users registering a TOTP credential.
+type TOTPAppsStore struct {
+	Disable bool    `koanf:"disable" yaml:"disable" toml:"disable" json:"disable" jsonschema:"title=Disable,default=false" jsonschema_description:"Disables the badge for this store."`
+	URL     url.URL `koanf:"url" yaml:"url,omitempty" toml:"url,omitempty" json:"url,omitempty" jsonschema:"title=URL" jsonschema_description:"The listing for the authenticator application suggested to users."`
 }
 
 var defaultTOTPSkew = 1
+
+// DefaultTOTPApps represents the authenticator application suggested to users when none is configured.
+var DefaultTOTPApps = TOTPApps{
+	AppleStore: TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "apps.apple.com", Path: "/us/app/google-authenticator/id388497605"}},
+	GooglePlay: TOTPAppsStore{URL: url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=com.google.android.apps.authenticator2"}},
+}
 
 // DefaultTOTPConfiguration represents default configuration parameters for TOTP generation.
 var DefaultTOTPConfiguration = TOTP{
@@ -34,4 +58,5 @@ var DefaultTOTPConfiguration = TOTP{
 	AllowedAlgorithms: []string{TOTPAlgorithmSHA1},
 	AllowedDigits:     []int{6},
 	AllowedPeriods:    []int{30},
+	Apps:              DefaultTOTPApps,
 }

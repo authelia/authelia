@@ -2,7 +2,7 @@
 title: "authelia storage user webauthn import"
 description: "Reference for the authelia storage user webauthn import command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2026-09-27T14:52:21+10:00
 draft: false
 images: []
 weight: 905
@@ -22,7 +22,8 @@ Perform imports of the WebAuthn credentials
 
 Perform imports of the WebAuthn credentials.
 
-This subcommand allows importing WebAuthn credentials from the YAML format.
+This subcommand allows importing WebAuthn credentials. The format is determined by the extension of the file; '.toml'
+is read as TOML, '.json' as JSON, and anything else as YAML.
 
 ```
 authelia storage user webauthn import <filename> [flags]
@@ -46,19 +47,22 @@ authelia storage user webauthn import --file authelia.export.webauthn.yml --encr
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
-      --encryption-key string                 the storage encryption key to use
-      --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
-      --mysql.database string                 the MySQL database name (default "authelia")
-      --mysql.password string                 the MySQL password
-      --mysql.username string                 the MySQL username (default "authelia")
-      --postgres.address string               the PostgreSQL server address (default "tcp://127.0.0.1:5432")
-      --postgres.database string              the PostgreSQL database name (default "authelia")
-      --postgres.password string              the PostgreSQL password
-      --postgres.schema string                the PostgreSQL schema name (default "public")
-      --postgres.username string              the PostgreSQL username (default "authelia")
-      --sqlite.path string                    the SQLite database path
+  -c, --config strings                                   configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.filters strings                           list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.template.delimiter.left string    sets the left delimiter for the 'template' filter
+      --config.filters.template.delimiter.right string   sets the right delimiter for the 'template' filter
+      --config.filters.values strings                    file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
+      --encryption-key string                            the storage encryption key to use
+      --mysql.address string                             the MySQL server address (default "tcp://127.0.0.1:3306")
+      --mysql.database string                            the MySQL database name (default "authelia")
+      --mysql.password string                            the MySQL password
+      --mysql.username string                            the MySQL username (default "authelia")
+      --postgres.address string                          the PostgreSQL server address (default "tcp://127.0.0.1:5432")
+      --postgres.database string                         the PostgreSQL database name (default "authelia")
+      --postgres.password string                         the PostgreSQL password
+      --postgres.schema string                           the PostgreSQL schema name (default "public")
+      --postgres.username string                         the PostgreSQL username (default "authelia")
+      --sqlite.path string                               the SQLite database path
 ```
 
 ### SEE ALSO

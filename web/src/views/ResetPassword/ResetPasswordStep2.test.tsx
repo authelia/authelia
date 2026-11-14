@@ -6,8 +6,11 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { MemoryRouter } from "react-router";
 
 import { PasswordPolicyMode } from "@models/PasswordPolicy";
+import { ErrorCode } from "@services/ErrorCode";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
+import { RateLimitedError } from "@services/RateLimit";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+import { ServiceError } from "@services/ServiceError";
 import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
 
 const mocks = vi.hoisted(() => ({
@@ -102,7 +105,7 @@ beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
     queryParam.token = "test-token";
-    completeProcessMock.mockResolvedValue({} as any);
+    completeProcessMock.mockResolvedValue(undefined);
     getPolicyMock.mockResolvedValue(standardPolicy);
     resetPasswordMock.mockResolvedValue(undefined as any);
 });
@@ -192,7 +195,7 @@ describe("process initiation", () => {
     });
 
     it("notifies and keeps the form disabled when rate limited", async () => {
-        completeProcessMock.mockResolvedValue({ limited: true, retryAfter: 30 } as any);
+        completeProcessMock.mockRejectedValue(new RateLimitedError(30));
 
         renderStep();
 
@@ -201,6 +204,33 @@ describe("process initiation", () => {
         );
         expect(getReset()).toBeDisabled();
         expect(getPolicyMock).not.toHaveBeenCalled();
+    });
+
+    it("shows a countdown and retries the process once the retry period elapses when rate limited", async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+
+        try {
+            completeProcessMock.mockRejectedValueOnce(new RateLimitedError(30));
+
+            renderStep();
+
+            await waitFor(() =>
+                expect(mocks.createErrorNotification).toHaveBeenCalledWith("You have made too many requests"),
+            );
+            expect(document.getElementById("rate-limit-countdown")).toBeInTheDocument();
+            expect(completeProcessMock).toHaveBeenCalledTimes(1);
+
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(30000);
+            });
+
+            await waitFor(() => expect(completeProcessMock).toHaveBeenCalledTimes(2));
+            expect(completeProcessMock).toHaveBeenLastCalledWith("test-token");
+            await waitFor(() => expect(getReset()).not.toBeDisabled());
+            expect(document.getElementById("rate-limit-countdown")).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("notifies and keeps the form disabled when the token expired", async () => {
@@ -334,8 +364,27 @@ describe("resetting", () => {
         expect(mocks.createErrorNotification).toHaveBeenCalledWith("There was an issue resetting the password");
     });
 
-    it("reports a policy violation reported as 0000052D.", async () => {
-        resetPasswordMock.mockRejectedValue(new Error("LDAP error 0000052D. rejected"));
+    it.each<ErrorCode>(["password_policy", "password_backend_complexity"])(
+        "reports a policy violation for the %s code",
+        async (code) => {
+            resetPasswordMock.mockRejectedValue(new ServiceError("Failed POST", 200, code));
+
+            await renderReady();
+
+            fireEvent.change(getPassword1(), { target: { value: "password123" } });
+            fireEvent.change(getPassword2(), { target: { value: "password123" } });
+            fireEvent.click(getReset());
+
+            await waitFor(() =>
+                expect(mocks.createErrorNotification).toHaveBeenCalledWith(
+                    "Your supplied password does not meet the password policy requirements",
+                ),
+            );
+        },
+    );
+
+    it("does not infer a policy violation from the error message", async () => {
+        resetPasswordMock.mockRejectedValue(new Error("password does not meet policy 0000052D."));
 
         await renderReady();
 
@@ -344,25 +393,7 @@ describe("resetting", () => {
         fireEvent.click(getReset());
 
         await waitFor(() =>
-            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
-                "Your supplied password does not meet the password policy requirements",
-            ),
-        );
-    });
-
-    it("reports a policy violation reported as policy", async () => {
-        resetPasswordMock.mockRejectedValue(new Error("password does not meet policy"));
-
-        await renderReady();
-
-        fireEvent.change(getPassword1(), { target: { value: "password123" } });
-        fireEvent.change(getPassword2(), { target: { value: "password123" } });
-        fireEvent.click(getReset());
-
-        await waitFor(() =>
-            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
-                "Your supplied password does not meet the password policy requirements",
-            ),
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith("There was an issue resetting the password"),
         );
     });
 

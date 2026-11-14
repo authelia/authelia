@@ -373,6 +373,70 @@ const (
 )
 
 const (
+	queryFmtUpsertSession = `
+		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		VALUES (?, ?, ?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+			public_id = IF(signature = VALUES(signature) AND LENGTH(data) > 0, VALUES(public_id), public_id),
+			username = IF(signature = VALUES(signature) AND LENGTH(data) > 0, VALUES(username), username),
+			expiration = IF(signature = VALUES(signature) AND LENGTH(data) > 0, VALUES(expiration), expiration),
+			data = IF(signature = VALUES(signature) AND LENGTH(data) > 0, VALUES(data), data);`
+
+	queryFmtUpsertSessionSQLite = `
+		INSERT INTO %[1]s (issuer, signature, public_id, username, expiration, data)
+		VALUES (?, ?, ?, ?, ?, ?)
+			ON CONFLICT (issuer, signature)
+			DO UPDATE SET public_id = excluded.public_id, username = excluded.username, expiration = excluded.expiration, data = excluded.data
+			WHERE LENGTH(%[1]s.data) > 0;`
+
+	queryFmtUpsertSessionPostgreSQL = `
+		INSERT INTO %[1]s (issuer, signature, public_id, username, expiration, data)
+		VALUES ($1, $2, $3, $4, $5, $6)
+			ON CONFLICT (issuer, signature)
+			DO UPDATE SET public_id = $3, username = $4, expiration = $5, data = $6
+			WHERE LENGTH(%[1]s.data) > 0;`
+
+	queryFmtSelectSession = `
+		SELECT signature, data
+		FROM %s
+		WHERE issuer = ? AND signature = ? AND expiration > ? AND LENGTH(data) > 0;`
+
+	queryFmtSelectSessionByPublicID = `
+		SELECT signature, data
+		FROM %s
+		WHERE issuer = ? AND public_id = ? AND expiration > ? AND LENGTH(data) > 0;`
+
+	queryFmtSelectSessionSignatureByPublicID = `
+		SELECT signature
+		FROM %s
+		WHERE issuer = ? AND public_id = ?;`
+
+	queryFmtSelectSessionSignaturesByUsername = `
+		SELECT signature
+		FROM %s
+		WHERE issuer = ? AND username = ? AND expiration > ? AND LENGTH(data) > 0;`
+
+	queryFmtUpdateSessionData = `
+		UPDATE %s
+		SET expiration = ?, data = ?
+		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
+
+	queryFmtUpdateSessionSignature = `
+		UPDATE %s
+		SET signature = ?, expiration = ?, data = ?
+		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
+
+	queryFmtUpdateSessionDestroyed = `
+		UPDATE %s
+		SET username = '', data = ?
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtDeleteSessionExpired = `
+		DELETE FROM %s
+		WHERE expiration <= ?;`
+)
+
+const (
 	queryFmtUpsertCachedData = `
 		REPLACE INTO %s (name, updated_at, encrypted, value)
 		VALUES (?, ?, ?, ?);`
@@ -499,6 +563,14 @@ const (
 		FROM %s
 		WHERE signature = ? AND revoked = FALSE;`
 
+	queryFmtSelectOAuth2SessionIncludingRevoked = `
+		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
+		requested_resource, granted_resource,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE signature = ?;`
+
 	queryFmtInsertOAuth2Session = `
 		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at,
 		requested_scopes, granted_scopes, requested_audience, granted_audience,
@@ -601,6 +673,23 @@ const (
 			session_data = ?
 		WHERE signature = ?;`
 
+	queryFmtDecideOAuth2DeviceCodeSession = `
+		UPDATE %s
+		SET
+			challenge_id = ?,
+			client_id = ?,
+			status = ?,
+			subject = ?,
+			requested_scopes = ?,
+			requested_audience = ?,
+			requested_resource = ?,
+			granted_scopes = ?,
+			granted_audience = ?,
+			granted_resource = ?,
+			form_data = ?,
+			session_data = ?
+		WHERE signature = ? AND status IN (?, ?);`
+
 	queryFmtSelectOAuth2PARContext = `
 		SELECT id, signature, request_id, client_id, requested_at, scopes, audience, resource,
 		handled_response_types, response_mode, response_mode_default, revoked,
@@ -622,19 +711,63 @@ const (
 	WHERE id = ?;`
 
 	queryFmtSelectOAuth2BlacklistedJTI = `
-		SELECT id, signature, expires_at
+		SELECT id, client_id, signature, expires_at
 		FROM %s
+		WHERE client_id = ? AND signature = ?;`
+
+	queryFmtInsertOAuth2BlacklistedJTI = `
+		INSERT INTO %s (client_id, signature, expires_at)
+		VALUES (?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+			expires_at = IF(expires_at <= ?, VALUES(expires_at), expires_at);`
+
+	queryFmtInsertOAuth2BlacklistedJTISQLite = `
+		INSERT INTO %[1]s (client_id, signature, expires_at)
+		VALUES (?, ?, ?)
+			ON CONFLICT (client_id, signature)
+			DO UPDATE SET expires_at = excluded.expires_at
+			WHERE julianday(%[1]s.expires_at) <= julianday(?);`
+
+	queryFmtInsertOAuth2BlacklistedJTIPostgreSQL = `
+		INSERT INTO %[1]s (client_id, signature, expires_at)
+		VALUES ($1, $2, $3)
+			ON CONFLICT (client_id, signature)
+			DO UPDATE SET expires_at = $3
+			WHERE %[1]s.expires_at <= $4;`
+
+	queryFmtInsertOAuth2RequestReplay = `
+		INSERT INTO %s (type, client_id, signature, expires_at)
+		VALUES (?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+			expires_at = IF(expires_at <= ?, VALUES(expires_at), expires_at);`
+
+	queryFmtInsertOAuth2RequestReplaySQLite = `
+		INSERT INTO %[1]s (type, client_id, signature, expires_at)
+		VALUES (?, ?, ?, ?)
+			ON CONFLICT (type, client_id, signature)
+			DO UPDATE SET expires_at = excluded.expires_at
+			WHERE julianday(%[1]s.expires_at) <= julianday(?);`
+
+	queryFmtInsertOAuth2RequestReplayPostgreSQL = `
+		INSERT INTO %[1]s (type, client_id, signature, expires_at)
+		VALUES ($1, $2, $3, $4)
+			ON CONFLICT (type, client_id, signature)
+			DO UPDATE SET expires_at = $4
+			WHERE %[1]s.expires_at <= $5;`
+
+	//nolint:gosec // Not a Credential.
+	queryFmtUpdateOAuth2RefreshTokenSessionRequest = `
+		UPDATE %s
+		SET
+			requested_scopes = ?,
+			granted_scopes = ?,
+			requested_audience = ?,
+			granted_audience = ?,
+			requested_resource = ?,
+			granted_resource = ?,
+			form_data = ?,
+			session_data = ?
 		WHERE signature = ?;`
-
-	queryFmtUpsertOAuth2BlacklistedJTI = `
-		REPLACE INTO %s (signature, expires_at)
-		VALUES(?, ?);`
-
-	queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL = `
-		INSERT INTO %s (signature, expires_at)
-		VALUES ($1, $2)
-			ON CONFLICT (signature)
-			DO UPDATE SET expires_at = $2;`
 
 	queryFmtSelectOAuth2SessionEncryptedData = `
 		SELECT id, signature, session_data

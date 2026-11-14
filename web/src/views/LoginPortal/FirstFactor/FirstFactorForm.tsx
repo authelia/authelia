@@ -33,6 +33,7 @@ export interface Props {
     rememberMe: boolean;
     resetPassword: boolean;
     resetPasswordCustomURL: string;
+    registrationURL: string;
 
     onAuthenticationStart: () => void;
     onAuthenticationStop: () => void;
@@ -172,6 +173,12 @@ const FirstFactorForm = function (props: Props) {
             } else {
                 navigate(ResetPasswordStep1Route);
             }
+        }
+    };
+
+    const handleRegisterClick = () => {
+        if (props.registrationURL) {
+            window.open(props.registrationURL, "_blank", "noopener");
         }
     };
 
@@ -348,16 +355,28 @@ const FirstFactorForm = function (props: Props) {
                             }}
                         />
                     ) : null}
-                    {props.resetPassword ? (
+                    {props.resetPassword || props.registrationURL ? (
                         <div className="-my-2 flex w-full flex-row justify-end">
-                            <button
-                                id="reset-password-button"
-                                type="button"
-                                className="cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
-                                onClick={handleResetPasswordClick}
-                            >
-                                {translate("Reset password?")}
-                            </button>
+                            {props.registrationURL ? (
+                                <button
+                                    id="register-button"
+                                    type="button"
+                                    className="mr-auto cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
+                                    onClick={handleRegisterClick}
+                                >
+                                    {translate("Register")}
+                                </button>
+                            ) : null}
+                            {props.resetPassword ? (
+                                <button
+                                    id="reset-password-button"
+                                    type="button"
+                                    className="cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
+                                    onClick={handleResetPasswordClick}
+                                >
+                                    {translate("Reset password?")}
+                                </button>
+                            ) : null}
                         </div>
                     ) : null}
                 </div>

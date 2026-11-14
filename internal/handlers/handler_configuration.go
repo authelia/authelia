@@ -16,7 +16,7 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 		PasswordResetDisabled:  false,
 	}
 
-	if ctx.Providers.Authorizer.IsSecondFactorEnabled() {
+	if secondFactorUsable(ctx) {
 		body.AvailableMethods = ctx.AvailableSecondFactorMethods()
 	}
 
@@ -33,4 +33,14 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	if err := ctx.SetJSONBody(body); err != nil {
 		ctx.Logger.Errorf("Unable to set configuration response in body: %s", err)
 	}
+}
+
+func secondFactorUsable(ctx *middlewares.AutheliaCtx) bool {
+	if ctx.Providers.Authorizer.IsSecondFactorEnabled() {
+		return true
+	}
+
+	elevation := ctx.Configuration.IdentityValidation.ElevatedSession
+
+	return elevation.RequireSecondFactor || elevation.SkipSecondFactor
 }

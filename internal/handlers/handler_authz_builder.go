@@ -73,9 +73,18 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 	return b
 }
 
+// WithEndpointHeaders configures the AuthzBuilder with the response headers for this endpoint.
+func (b *AuthzBuilder) WithEndpointHeaders(headers map[string]schema.ServerEndpointsAuthzHeader) *AuthzBuilder {
+	b.headers = headers
+
+	return b
+}
+
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
 func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
+	b.WithEndpointHeaders(config.Headers)
+
 	switch config.Implementation {
 	case AuthzImplForwardAuth.String():
 		b.WithImplementationForwardAuth()
@@ -129,9 +138,27 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		}
 	}
 
+	for header, config := range b.headers {
+		authz.headers = append(authz.headers, AuthzHeader{Key: []byte(header), Attribute: config.UserAttribute})
+	}
+
+	extended := authzHeadersRequireExtendedUserDetails(authz.headers)
+
+	for _, v := range authz.strategies {
+		switch strategy := v.(type) {
+		case *CookieSessionAuthnStrategy:
+			strategy.extended = extended
+		case *HeaderAuthnStrategy:
+			strategy.extended = extended
+		case *HeaderLegacyAuthnStrategy:
+			strategy.extended = extended
+		}
+	}
+
 	switch b.implementation {
 	case AuthzImplLegacy:
 		authz.config.StatusCodeBadRequest = fasthttp.StatusUnauthorized
+		authz.handleAuthorized = handleAuthzAuthorizedLegacy
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy

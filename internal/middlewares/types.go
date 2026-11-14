@@ -13,8 +13,10 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
@@ -37,13 +39,17 @@ type AutheliaCtx struct {
 	Providers     Providers
 	Configuration schema.Configuration
 
-	session *session.Session
+	session session.Strategy
+
+	sessions map[string]*session.UserSession
 }
 
 // Providers contain all provider provided to Authelia.
 type Providers struct {
 	Authorizer            *authorization.Authorizer
-	SessionProvider       *session.Provider
+	Cache                 cache.Provider
+	Session               session.Provider
+	SessionRepository     session.Repository
 	Regulator             *regulation.Regulator
 	OpenIDConnect         *oidc.OpenIDConnectProvider
 	Metrics               metrics.Provider
@@ -56,6 +62,7 @@ type Providers struct {
 	PasswordPolicy        PasswordPolicyProvider
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
+	Duo                   duo.Provider
 
 	GarbageCollector *GarbageCollector
 
@@ -158,12 +165,14 @@ type OKResponse struct {
 // ErrorResponse model of an error response.
 type ErrorResponse struct {
 	Status  string `json:"status"`
+	Code    string `json:"code,omitempty"`
 	Message string `json:"message"`
 }
 
 // AuthenticationErrorResponse model of an error response.
 type AuthenticationErrorResponse struct {
 	Status         string `json:"status"`
+	Code           string `json:"code,omitempty"`
 	Message        string `json:"message"`
 	Authentication bool   `json:"authentication"`
 	Elevation      bool   `json:"elevation"`

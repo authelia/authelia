@@ -186,3 +186,28 @@ func waitUntilProxyRoutesPortal(baseDomain string) error {
 
 	return nil
 }
+
+func waitUntilPortalServesRoot(baseURL string) error {
+	log.Info("Waiting for the portal to serve its root page...")
+
+	client, target := NewHTTPClient(), baseURL+"/"
+
+	if err := utils.CheckUntil(time.Second, 60*time.Second, func() (bool, error) {
+		response, err := client.Get(target)
+		if err != nil {
+			return false, nil
+		}
+
+		defer response.Body.Close()
+
+		_, _ = io.Copy(io.Discard, response.Body)
+
+		return response.StatusCode == http.StatusOK, nil
+	}); err != nil {
+		return fmt.Errorf("the portal did not serve '%s': %w", target, err)
+	}
+
+	log.Info("The portal serves its root page!")
+
+	return nil
+}

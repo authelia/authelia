@@ -263,15 +263,16 @@ func TestSQLProviderTransactions(t *testing.T) {
 		require.NoError(t, err)
 
 		require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{
+			ClientID:  "client",
 			Signature: "tx-rollback-jti",
 			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
 		}))
 
 		require.NoError(t, provider.Rollback(ctx))
 
-		_, err = provider.LoadOAuth2BlacklistedJTI(context.Background(), "tx-rollback-jti")
+		_, err = provider.LoadOAuth2BlacklistedJTI(context.Background(), "client", "tx-rollback-jti")
 
-		assert.EqualError(t, err, "error selecting oauth2 blacklisted JTI with signature 'tx-rollback-jti': sql: no rows in result set")
+		assert.EqualError(t, err, "error selecting oauth2 blacklisted JTI with signature 'tx-rollback-jti' for client 'client': sql: no rows in result set")
 	})
 
 	t.Run("ShouldCommitPersistWrites", func(t *testing.T) {
@@ -279,13 +280,14 @@ func TestSQLProviderTransactions(t *testing.T) {
 		require.NoError(t, err)
 
 		require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{
+			ClientID:  "client",
 			Signature: "tx-commit-jti",
 			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
 		}))
 
 		require.NoError(t, provider.Commit(ctx))
 
-		jti, err := provider.LoadOAuth2BlacklistedJTI(context.Background(), "tx-commit-jti")
+		jti, err := provider.LoadOAuth2BlacklistedJTI(context.Background(), "client", "tx-commit-jti")
 
 		require.NoError(t, err)
 		assert.Equal(t, "tx-commit-jti", jti.Signature)
@@ -980,31 +982,176 @@ func TestSQLProviderOAuth2PARContext(t *testing.T) {
 }
 
 func TestSQLProviderOAuth2BlacklistedJTI(t *testing.T) {
-	provider := newTestSQLiteProviderWithEncryption(t)
-	require.NoError(t, provider.StartupCheck())
+	testCases := []struct {
+		Name     string
+		Existing []model.OAuth2BlacklistedJTI
+		Save     model.OAuth2BlacklistedJTI
+		Err      string
+	}{
+		{
+			Name: "ShouldSave",
+			Save: model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)},
+		},
+		{
+			Name:     "ShouldRefuseKnown",
+			Existing: []model.OAuth2BlacklistedJTI{{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)}},
+			Save:     model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(2 * time.Hour).Truncate(time.Second)},
+			Err:      "error inserting oauth2 blacklisted JTI with signature 'jti-sig' for client 'client-a': no rows affected",
+		},
+		{
+			Name:     "ShouldReplaceExpired",
+			Existing: []model.OAuth2BlacklistedJTI{{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(-time.Hour).Truncate(time.Second)}},
+			Save:     model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)},
+		},
+		{
+			Name:     "ShouldRefuseKnownInAnotherTimeZone",
+			Existing: []model.OAuth2BlacklistedJTI{{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second).In(time.FixedZone("UTC-12", -12*60*60))}},
+			Save:     model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(2 * time.Hour).Truncate(time.Second)},
+			Err:      "error inserting oauth2 blacklisted JTI with signature 'jti-sig' for client 'client-a': no rows affected",
+		},
+		{
+			Name:     "ShouldScopeToClient",
+			Existing: []model.OAuth2BlacklistedJTI{{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)}},
+			Save:     model.OAuth2BlacklistedJTI{ClientID: "client-b", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)},
+		},
+	}
 
-	ctx := context.Background()
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
 
-	t.Run("ShouldSaveAndLoad", func(t *testing.T) {
-		jti := model.OAuth2BlacklistedJTI{
-			Signature: "jti-sig-123",
-			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
-		}
+			ctx := context.Background()
 
-		require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, jti))
+			for _, existing := range tc.Existing {
+				require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, existing))
+			}
 
-		loaded, err := provider.LoadOAuth2BlacklistedJTI(ctx, "jti-sig-123")
+			err := provider.SaveOAuth2BlacklistedJTI(ctx, tc.Save)
 
-		require.NoError(t, err)
-		require.NotNil(t, loaded)
-		assert.Equal(t, "jti-sig-123", loaded.Signature)
-	})
+			if tc.Err != "" {
+				assert.EqualError(t, err, tc.Err)
+
+				return
+			}
+
+			require.NoError(t, err)
+
+			loaded, err := provider.LoadOAuth2BlacklistedJTI(ctx, tc.Save.ClientID, tc.Save.Signature)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Save.ClientID, loaded.ClientID)
+			assert.Equal(t, tc.Save.Signature, loaded.Signature)
+			assert.True(t, tc.Save.ExpiresAt.Equal(loaded.ExpiresAt))
+		})
+	}
 
 	t.Run("ShouldReturnErrForUnknown", func(t *testing.T) {
-		_, err := provider.LoadOAuth2BlacklistedJTI(ctx, "unknown")
+		provider := newTestSQLiteProviderWithEncryption(t)
+		require.NoError(t, provider.StartupCheck())
 
-		assert.Error(t, err)
+		_, err := provider.LoadOAuth2BlacklistedJTI(context.Background(), "client", "unknown")
+
+		assert.EqualError(t, err, "error selecting oauth2 blacklisted JTI with signature 'unknown' for client 'client': sql: no rows in result set")
 	})
+}
+
+func TestSQLProviderOAuth2RequestReplay(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Existing []model.OAuth2RequestReplay
+		Save     model.OAuth2RequestReplay
+		Err      string
+	}{
+		{
+			Name: "ShouldSave",
+			Save: model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+		},
+		{
+			Name:     "ShouldRefuseKnown",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+			Err:      "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client-a': no rows affected",
+		},
+		{
+			Name:     "ShouldReplaceExpired",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(-time.Hour)}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+		},
+		{
+			Name:     "ShouldScopeToClient",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-b", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+		},
+		{
+			Name:     "ShouldRefuseKnownInAnotherTimeZone",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour).In(time.FixedZone("UTC-12", -12*60*60))}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour).UTC()},
+			Err:      "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client-a': no rows affected",
+		},
+		{
+			Name:     "ShouldScopeToType",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypeOpenIDConnectNonce, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			for _, existing := range tc.Existing {
+				require.NoError(t, provider.SaveOAuth2RequestReplay(ctx, existing))
+			}
+
+			err := provider.SaveOAuth2RequestReplay(ctx, tc.Save)
+
+			if tc.Err != "" {
+				assert.EqualError(t, err, tc.Err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestSQLProviderOAuth2RequestReplayLegacyTimeZone(t *testing.T) {
+	testCases := []struct {
+		name     string
+		offset   int
+		expires  time.Duration
+		expected string
+	}{
+		{"ShouldRefuseUnexpiredWithNegativeOffset", -12 * 60 * 60, time.Hour, "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client-a': no rows affected"},
+		{"ShouldRefuseUnexpiredWithPositiveOffset", 14 * 60 * 60, time.Hour, "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client-a': no rows affected"},
+		{"ShouldReplaceExpiredWithNegativeOffset", -12 * 60 * 60, -time.Hour, ""},
+		{"ShouldReplaceExpiredWithPositiveOffset", 14 * 60 * 60, -time.Hour, ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			legacy := time.Now().Add(tc.expires).In(time.FixedZone("legacy", tc.offset)).Format("2006-01-02 15:04:05.999999999-07:00")
+
+			_, err := provider.db.ExecContext(ctx, "INSERT INTO oauth2_request_replay (type, client_id, signature, expires_at) VALUES (?, ?, ?, ?)", model.OAuth2RequestReplayTypePKCEChallenge, "client-a", "sig", legacy)
+			require.NoError(t, err)
+
+			err = provider.SaveOAuth2RequestReplay(ctx, model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)})
+
+			if tc.expected == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.expected)
+			}
+		})
+	}
 }
 
 func TestSQLProviderBannedUser(t *testing.T) {
@@ -1371,14 +1518,15 @@ func TestSQLProviderUpdateOAuth2DeviceCodeSession(t *testing.T) {
 
 func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 	testCases := []struct {
-		name        string
-		sessionType OAuth2SessionType
+		name         string
+		sessionType  OAuth2SessionType
+		loadsRevoked bool
 	}{
-		{"ShouldHandleAccessToken", OAuth2SessionTypeAccessToken},
-		{"ShouldHandleRefreshToken", OAuth2SessionTypeRefreshToken},
-		{"ShouldHandleAuthorizeCode", OAuth2SessionTypeAuthorizeCode},
-		{"ShouldHandleOpenIDConnect", OAuth2SessionTypeOpenIDConnect},
-		{"ShouldHandlePKCEChallenge", OAuth2SessionTypePKCEChallenge},
+		{"ShouldHandleAccessToken", OAuth2SessionTypeAccessToken, false},
+		{"ShouldHandleRefreshToken", OAuth2SessionTypeRefreshToken, true},
+		{"ShouldHandleAuthorizeCode", OAuth2SessionTypeAuthorizeCode, false},
+		{"ShouldHandleOpenIDConnect", OAuth2SessionTypeOpenIDConnect, false},
+		{"ShouldHandlePKCEChallenge", OAuth2SessionTypePKCEChallenge, false},
 	}
 
 	for _, tc := range testCases {
@@ -1415,6 +1563,18 @@ func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 			loaded, err = provider.LoadOAuth2Session(ctx, tc.sessionType, sig.String())
 			require.NoError(t, err)
 			assert.False(t, loaded.Active)
+
+			require.NoError(t, provider.RevokeOAuth2Session(ctx, tc.sessionType, sig.String()))
+			assert.ErrorIs(t, provider.RevokeOAuth2Session(ctx, tc.sessionType, sig.String()), ErrNoRowsAffected)
+
+			loaded, err = provider.LoadOAuth2Session(ctx, tc.sessionType, sig.String())
+
+			if tc.loadsRevoked {
+				require.NoError(t, err)
+				assert.True(t, loaded.Revoked)
+			} else {
+				assert.ErrorIs(t, err, sql.ErrNoRows)
+			}
 		})
 	}
 }
