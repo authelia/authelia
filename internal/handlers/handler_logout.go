@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"net/url"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
@@ -22,6 +23,15 @@ type logoutResponseBody struct {
 func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 	body := logoutBody{}
 	responseBody := logoutResponseBody{SafeTargetURL: false}
+
+	// The session cookie is never sent on a cross-site request, but the authz cookie may be depending on its configured
+	// SameSite value, and it alone is enough to end the session, so a cross-site logout is refused to prevent CSRF.
+	if strings.EqualFold(string(ctx.Request.Header.Peek(headerSecFetchSite)), valueSecFetchSiteCrossSite) {
+		ctx.GetLogger().Error("Error occurred during logout: the request was cross-site")
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
 
 	err := ctx.ParseBody(&body)
 	if err != nil {

@@ -191,19 +191,28 @@ func (r *Redis) StartupCheck() (err error) {
 	return r.client.Ping(context.Background()).Err()
 }
 
-// SessionGet implements the Provider interface.
+// SessionGet implements the Provider interface. The data and remaining TTL are read by a script so they describe the
+// same instant.
 func (r *Redis) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
-	var data []byte
+	var result []any
 
-	if data, err = r.client.HGet(ctx, getSessionKey(issuer, id), redisSessionFieldData).Bytes(); err != nil && !errors.Is(err, redis.Nil) {
+	if result, err = redisSessionGet.Run(ctx, r.client, []string{getSessionKey(issuer, id)}).Slice(); err != nil && !errors.Is(err, redis.Nil) {
 		return nil, err
 	}
+
+	data := getRedisValue[string](result, 0)
 
 	if len(data) == 0 {
 		return nil, nil
 	}
 
-	return session.NewRecord(id, data), nil
+	var ttl time.Duration
+
+	if milliseconds := getRedisValue[int64](result, 1); milliseconds > 0 {
+		ttl = time.Duration(milliseconds) * time.Millisecond
+	}
+
+	return session.NewRecordWithTTL(id, []byte(data), ttl), nil
 }
 
 // SessionGetByPublicID implements the Provider interface. The public id index is maintained separately from the session
@@ -260,9 +269,20 @@ func (r *Redis) SessionGetIDsByUsername(ctx context.Context, issuer, username st
 // atomically when the session was moved to a new id after the caller retrieved it, as saving it would restore the
 // session under the id it was moved from. The indexes which refer to the session are updated once it's saved.
 func (r *Redis) SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	return r.sessionSaveAndIndex(ctx, issuer, id, pid, username, expiration, nil, data)
+}
+
+// SessionSaveData updates the session data. Every key which refers to the session has its expiry refreshed alongside it,
+// as each is a distinct key with an independent TTL which would otherwise lapse while the session is still alive. When
+// previous isn't nil the session is only updated if its data is still exactly previous.
+func (r *Redis) SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error) {
+	return r.sessionSaveAndIndex(ctx, issuer, id, pid, username, expiration, previous, data)
+}
+
+func (r *Redis) sessionSaveAndIndex(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error) {
 	var previousPID, previousUsername string
 
-	if previousPID, previousUsername, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, data); err != nil {
+	if previousPID, previousUsername, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, previous, data); err != nil {
 		return err
 	}
 
@@ -285,10 +305,27 @@ func (r *Redis) SessionSave(ctx context.Context, issuer, id, pid, username strin
 	return nil
 }
 
-// SessionSaveData updates the session data. Every key which refers to the session has its expiry refreshed alongside it,
-// as each is a distinct key with an independent TTL which would otherwise lapse while the session is still alive.
-func (r *Redis) SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	return r.SessionSave(ctx, issuer, id, pid, username, expiration, data)
+// SessionTouch implements the Provider interface. The session is extended by a script so that a session which was
+// destroyed or moved isn't extended, and the indexes which refer to it are only extended once it has been. The indexes
+// are only ever extended, so concurrent touches which complete out of order leave them at the later expiration.
+func (r *Redis) SessionTouch(ctx context.Context, issuer, id, pid, username string, expiration time.Duration) (err error) {
+	milliseconds := getSessionExpirationMilliseconds(expiration)
+
+	if milliseconds == 0 {
+		return nil
+	}
+
+	var touched int64
+
+	if touched, err = redisSessionTouch.Run(ctx, r.client, []string{getSessionKey(issuer, id)}, milliseconds).Int64(); err != nil {
+		return err
+	}
+
+	if touched == 0 {
+		return nil
+	}
+
+	return r.sessionTouchIndex(ctx, issuer, id, pid, username, expiration)
 }
 
 // SessionDelete implements the Provider interface. The indexes named by the caller are retired, falling back to those the
@@ -348,7 +385,7 @@ func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, use
 
 	previousPID, previousUsername = getRedisValue[string](result, 1), getRedisValue[string](result, 2)
 
-	if _, _, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, data); err != nil {
+	if _, _, err = r.sessionSave(ctx, issuer, id, pid, username, expiration, nil, data); err != nil {
 		return err
 	}
 
@@ -371,10 +408,17 @@ func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, use
 	return nil
 }
 
-func (r *Redis) sessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (previousPID, previousUsername string, err error) {
-	var result []any
+func (r *Redis) sessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (previousPID, previousUsername string, err error) {
+	var (
+		result  []any
+		compare = "0"
+	)
 
-	if result, err = redisSessionSave.Run(ctx, r.client, []string{getSessionKey(issuer, id)}, data, getSessionExpirationMilliseconds(expiration), pid, username).Slice(); err != nil {
+	if previous != nil {
+		compare = "1"
+	}
+
+	if result, err = redisSessionSave.Run(ctx, r.client, []string{getSessionKey(issuer, id)}, data, getSessionExpirationMilliseconds(expiration), pid, username, compare, previous).Slice(); err != nil {
 		return "", "", err
 	}
 
@@ -402,6 +446,22 @@ func (r *Redis) sessionIndex(ctx context.Context, issuer, id, pid, username stri
 		return nil
 	}); err != nil {
 		return fmt.Errorf("error updating the session indexes: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Redis) sessionTouchIndex(ctx context.Context, issuer, id, pid, username string, expiration time.Duration) (err error) {
+	if pid != "" {
+		if err = redisSessionTouchPublicID.Run(ctx, r.client, []string{getSessionPublicKey(issuer, pid)}, id, getSessionIndexExpiration(expiration).Milliseconds()).Err(); err != nil {
+			return fmt.Errorf("error extending the session public id index: %w", err)
+		}
+	}
+
+	if username != "" {
+		if err = redisSessionTouchUsername.Run(ctx, r.client, []string{getSessionUserKey(issuer, username)}, id, strconv.FormatFloat(getSessionScore(expiration), 'f', -1, 64)).Err(); err != nil {
+			return fmt.Errorf("error extending the session username index: %w", err)
+		}
 	}
 
 	return nil

@@ -267,6 +267,11 @@ func (s OAuth2SessionType) Table() string {
 }
 
 type sessionRow struct {
-	Signature string `db:"signature"`
-	Data      []byte `db:"data"`
+	Signature  string    `db:"signature"`
+	Expiration time.Time `db:"expiration"`
+	Data       []byte    `db:"data"`
+}
+
+func (r sessionRow) ttl(now time.Time) time.Duration {
+	return r.Expiration.Sub(now)
 }

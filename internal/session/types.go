@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 )
@@ -37,6 +39,10 @@ type Context interface {
 	// same name, domain, and path as the cookie being cleared, as user agents key cookies on all three and would
 	// otherwise retain the original.
 	ClearCookie(cookie *http.Cookie)
+
+	// IsAuthzEndpointRequest returns true when the request is being handled by an authorization endpoint, which are
+	// the only endpoints the authorization cookie is honored on and the only endpoints the session cookie is not.
+	IsAuthzEndpointRequest() bool
 }
 
 // CachingContext is an optional interface a Context may implement to retain the session it loaded for the duration of
@@ -52,6 +58,15 @@ type CachingContext interface {
 
 	// CacheSession retains the session for the given cookie domain. A nil session discards what is retained.
 	CacheSession(domain string, session *UserSession)
+}
+
+// LoggingContext is an optional interface a Context may implement to receive the failures a Strategy recovers from
+// rather than returning. A Context which doesn't implement it has them logged by the global logger.
+type LoggingContext interface {
+	Context
+
+	// GetLogger returns the logger for the request.
+	GetLogger() (logger *logrus.Entry)
 }
 
 // Provider resolves the Strategy responsible for a given session cookie domain.
@@ -77,7 +92,9 @@ type Strategy interface {
 
 	// Get returns the session of the request, which is an anonymous session when the request carries no session cookie
 	// or the cookie doesn't resolve to a session which is still held by the Repository. An error is returned when the
-	// Repository fails, or when the session can't be opened or is bound to another cookie domain.
+	// Repository fails, or when the session can't be opened or is bound to another cookie domain. An authenticated
+	// session which the authz cookie of the request isn't linked to is issued a new authz cookie. The request is recorded
+	// as activity on the session, which retains it for the inactivity timeout from now when one applies.
 	Get(ctx Context) (session *UserSession, err error)
 
 	// Save persists the session and delivers the session cookie to the user agent, generating the identifiers the
@@ -89,8 +106,73 @@ type Strategy interface {
 	// preserving the session data. It mitigates session fixation and is expected at every authentication level change.
 	Regenerate(ctx Context) (err error)
 
-	// Destroy removes the persisted session of the request and instructs the user agent to discard the session cookie.
+	// Destroy removes the persisted session of the request and instructs the user agent to discard the session cookie,
+	// the authz cookie, and the CSRF cookie. A request which carries no session cookie has the session its authz cookie
+	// is linked to removed instead.
 	Destroy(ctx Context) (err error)
+
+	// CSRFToken returns the CSRF token of the established session of the request. It returns ErrCSRFTokenNoSession when
+	// the request has no established session, and ErrCSRFTokenInvalid when the session has no CSRF secret.
+	CSRFToken(ctx Context) (token string, err error)
+
+	// VerifyCSRFToken returns nil if the token is the CSRF token of the established session of the request. It returns
+	// ErrCSRFTokenNoSession when the request has no established session, and ErrCSRFTokenInvalid when the token doesn't
+	// match.
+	VerifyCSRFToken(ctx Context, token string) (err error)
+
+	// RegenerateCSRFToken replaces the CSRF secret of the established session of the request without changing the
+	// session identifier, and delivers the new token to the user agent.
+	RegenerateCSRFToken(ctx Context) (err error)
+
+	// SetCSRFCookie delivers the CSRF token of the established session of the request to the user agent, generating a
+	// CSRF secret for an established session which has none.
+	SetCSRFCookie(ctx Context) (err error)
+
+	// Authz returns the restricted view of this Strategy which the authorization endpoints use. The view resolves the
+	// session from the authz cookie alone and can only update the activity of the session or destroy it.
+	Authz() (strategy AuthzStrategy)
+}
+
+// The AuthzStrategy is the restricted view of a Strategy for the authorization endpoints. It resolves the session from
+// the authz cookie, never from the session cookie, and has no means to create a session, to change who a session
+// belongs to, or to change how it was authenticated.
+type AuthzStrategy interface {
+	// GetConfig returns the session cookie configuration of the Strategy this view belongs to.
+	GetConfig() (config schema.SessionCookie)
+
+	// NewDefault returns an anonymous session bound to the cookie domain of this view, which can't be persisted.
+	NewDefault() (userSession UserSession)
+
+	// Get returns the session the authz cookie of the request is linked to, which is an anonymous session when the
+	// request carries no authz cookie or it doesn't resolve to a session which records it, and records the request as
+	// activity on the session. An error is returned only when the Repository fails.
+	Get(ctx Context) (session *UserSession, err error)
+
+	// SaveActivity persists the refresh time of the given session onto the stored session, discarding every other
+	// difference. It does nothing when the request has no stored session.
+	SaveActivity(ctx Context, userSession *UserSession) (err error)
+
+	// Destroy removes the persisted session of the request and instructs the user agent to discard both cookies.
+	Destroy(ctx Context) (err error)
+}
+
+// AuthzManager is the interface that wraps the methods of an AuthzStrategy bound to a specific request.
+type AuthzManager interface {
+	// NewDefaultUserSession returns an anonymous session bound to the cookie domain of the underlying AuthzStrategy.
+	NewDefaultUserSession() (userSession UserSession)
+
+	// GetSession returns the session the authz cookie of the bound request is linked to.
+	GetSession() (userSession UserSession, err error)
+
+	// SaveSessionActivity persists the refresh time of the session of the bound request.
+	SaveSessionActivity(userSession *UserSession) (err error)
+
+	// DestroySession removes the persisted session of the bound request and instructs the user agent to discard both
+	// cookies.
+	DestroySession() (err error)
+
+	// GetSessionConfig returns the session cookie configuration of the underlying AuthzStrategy.
+	GetSessionConfig() (config schema.SessionCookie)
 }
 
 // The Record is a session as a Repository holds it. It carries the signature the session is stored against alongside
@@ -103,11 +185,21 @@ type Record interface {
 
 	// GetSessionData returns the sealed session.
 	GetSessionData() (data []byte)
+
+	// GetSessionTTL returns how long the record had left until it expired when it was retrieved. A zero value indicates
+	// the record doesn't expire or the Repository doesn't report it.
+	GetSessionTTL() (ttl time.Duration)
 }
 
-// NewRecord returns a Record for the given signature and sealed session data.
+// NewRecord returns a Record for the given signature and sealed session data which doesn't report when it expires.
 func NewRecord(signature string, data []byte) (record Record) {
 	return &defaultRecord{signature: signature, data: data}
+}
+
+// NewRecordWithTTL returns a Record for the given signature and sealed session data which had the given time left until
+// it expired when it was retrieved.
+func NewRecordWithTTL(signature string, data []byte, ttl time.Duration) (record Record) {
+	return &defaultRecord{signature: signature, data: data, ttl: ttl}
 }
 
 // The Repository is the backend storage implementation which holds the sessions for the Strategy.
@@ -131,8 +223,16 @@ type Repository interface {
 	Save(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 
 	// SaveData updates only the sealed session data and expiration of the existing session record for the identifier,
-	// and isn't guaranteed to create the record or update the public identifier or username associated with it.
-	SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
+	// and isn't guaranteed to create the record or update the public identifier or username associated with it. When
+	// previous isn't nil the record is only updated if its sealed data is still exactly previous, and otherwise nothing
+	// is written and ErrSessionSuperseded is returned, which includes when the record was destroyed or moved. This allows
+	// a caller which read the record to write it back without discarding a write made to it in the meantime.
+	SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, previous, data []byte) (err error)
+
+	// Touch extends the expiration of the existing session record for the identifier, and every lookup which refers to
+	// it, to the given expiration from now. It never shortens the expiration, never changes the sealed data, and does
+	// nothing when there is no such record or it was destroyed or moved.
+	Touch(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration) (err error)
 
 	// Delete destroys the session record for the identifier and removes the public identifier and username lookups which
 	// refer to it. The destroyed session is retained until it would have expired so that a later Save of it is refused.
@@ -174,8 +274,14 @@ type Backend interface {
 	SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
 
 	// SessionSaveData updates the session data in the cache, refreshing the expiry of the session and every lookup
-	// which refers to it.
-	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
+	// which refers to it. When previous isn't nil the session is only updated if its data is still exactly previous, and
+	// otherwise ErrSessionSuperseded is returned.
+	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error)
+
+	// SessionTouch should extend the expiry of an existing session and every lookup which refers to it without changing
+	// its data. It should never shorten the expiry, and should do nothing when the session doesn't exist or was destroyed
+	// or moved.
+	SessionTouch(ctx context.Context, issuer, id, pid, username string, expiration time.Duration) (err error)
 
 	// SessionDelete should delete a session from the cache, as well as the related lookup information.
 	SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error)
@@ -228,8 +334,13 @@ func (r BackendRepository) Save(ctx context.Context, issuer, id, pid, username s
 }
 
 // SaveData implements the Repository interface.
-func (r BackendRepository) SaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	return r.Backend.SessionSaveData(ctx, issuer, id, pid, username, expiration, data)
+func (r BackendRepository) SaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error) {
+	return r.Backend.SessionSaveData(ctx, issuer, id, pid, username, expiration, previous, data)
+}
+
+// Touch implements the Repository interface.
+func (r BackendRepository) Touch(ctx context.Context, issuer, id, pid, username string, expiration time.Duration) (err error) {
+	return r.Backend.SessionTouch(ctx, issuer, id, pid, username, expiration)
 }
 
 // Delete implements the Repository interface.
@@ -267,13 +378,30 @@ type Codec interface {
 	// and is never stored by the Repository itself.
 	GenerateSessionID() (id []byte, err error)
 
+	// GenerateCSRFSecret returns a new random CSRF secret, which is stored in the session and signed to derive the CSRF
+	// token delivered to the user agent.
+	GenerateCSRFSecret() (secret []byte, err error)
+
 	// Verify returns true when the signature is the signature of the given data, comparing them in constant time. A
 	// signature which isn't valid hexadecimal is never verified.
 	Verify(data []byte, signature string) bool
 
-	// Sign returns the hexadecimal encoded HMAC signature of the given data. The session cookie value is signed this way
-	// to derive the identifier a session is stored against, so the Repository never holds the cookie value itself.
+	// Sign returns the hexadecimal encoded HMAC signature of the given data using the session key. The session cookie
+	// value is signed this way to derive the identifier a session is stored against, so the Repository never holds the
+	// cookie value itself.
 	Sign(data []byte) string
+
+	// SignAuthz returns the hexadecimal encoded HMAC signature of the given data using the session authz key, which the
+	// authz cookie value is derived from and signed with to derive the identifier its index is stored against.
+	SignAuthz(data []byte) string
+
+	// VerifyCSRF returns true when the signature is the CSRF signature of the given data, comparing them in constant
+	// time. It uses the session CSRF key, so a signature produced for any other purpose is never verified.
+	VerifyCSRF(data []byte, signature string) bool
+
+	// SignCSRF returns the hexadecimal encoded HMAC signature of the given data using the session CSRF key, which is
+	// how the CSRF token is derived from the CSRF secret of a session.
+	SignCSRF(data []byte) string
 
 	// Seal marshals and encrypts the session, binding the result to the cookie domain and the identifier it's stored
 	// against so that it can't be opened after being moved to another domain or another record.
@@ -288,6 +416,7 @@ type Codec interface {
 type defaultRecord struct {
 	signature string
 	data      []byte
+	ttl       time.Duration
 }
 
 func (r *defaultRecord) GetSessionSignature() (signature string) {
@@ -296,4 +425,8 @@ func (r *defaultRecord) GetSessionSignature() (signature string) {
 
 func (r *defaultRecord) GetSessionData() (data []byte) {
 	return r.data
+}
+
+func (r *defaultRecord) GetSessionTTL() (ttl time.Duration) {
+	return r.ttl
 }

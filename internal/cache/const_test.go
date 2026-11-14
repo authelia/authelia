@@ -8,4 +8,4 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var mockRedisScripts = []*redis.Script{redisSessionSave, redisSessionMove, redisSessionDelete, redisDeleteIfEqual}
+var mockRedisScripts = []*redis.Script{redisSessionSave, redisSessionMove, redisSessionDelete, redisSessionGet, redisSessionTouch, redisDeleteIfEqual, redisSessionTouchPublicID, redisSessionTouchUsername}

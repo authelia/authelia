@@ -33,7 +33,7 @@ import (
 )
 
 func newMockSessionProvider(config *schema.Configuration, clock clock.Provider, random random.Provider) (provider session.Provider, err error) {
-	return session.NewProvider(config, testSessionHMACKey, clock, random, cache.NewSessionRepository(cache.NewMemory()))
+	return session.NewProvider(config, testSessionHMACKeys, clock, random, cache.NewSessionRepository(cache.NewMemory()))
 }
 
 // NewSessionProvider returns a session.Provider backed by an in-memory repository for use in tests.

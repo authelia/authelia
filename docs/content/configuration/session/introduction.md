@@ -109,7 +109,8 @@ The default `name` value for all [cookies](#cookies) configurations.
 
 {{< confkey type="string" default="lax" required="no" >}}
 
-The default `same_site` value for all `cookies` configurations.
+The default `same_site` value for all `cookies` configurations. See the cookie [same_site](#same_site-1) option for
+what this value applies to.
 
 ### inactivity
 
@@ -208,7 +209,25 @@ If this option is absent you must use the appropriate query parameter or header 
 
 _**Default Value:** This option takes its default value from the [name](#name) setting above._
 
-The name of the session cookie. By default this is set to the `name` value in the main session configuration section.
+The name the session cookies are derived from. By default this is set to the `name` value in the main session
+configuration section. Authelia adds a prefix to every cookie name, so with the default value of `authelia_session` the
+following cookies are issued:
+
+- `__Host-Http-authelia_session`: the session cookie.
+- `__Secure-authelia_session_authz`: the authorization cookie.
+- `__Host-authelia_session_csrf`: the CSRF token cookie.
+
+The prefixes are added automatically, so this value must not start with `__Host-`, `__Secure-`, or `__Http-`. See
+[same_site](#same_site-1) for what each cookie is used for.
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Prior to these prefixes being added the session cookie was named after this value without a prefix and was scoped to the
+[domain](#domain-1). As the cookies were renamed every user is signed out when upgrading. The session cookie is now only
+sent to the host which serves the portal, so users must sign in on the [authelia_url](#authelia_url) host, and anything
+which reads the session cookie by name, such as a proxy configuration, must be updated to use the new name. The [PAM
+module](../../integration/guides/pam-authelia/index.md#cookie-name) must be updated to a version which supports the new
+names and the CSRF token.
+{{< /callout >}}
 
 #### same_site
 
@@ -216,15 +235,64 @@ The name of the session cookie. By default this is set to the `name` value in th
 
 _**Default Value:** This option takes its default value from the [same_site](#same_site) setting above._
 
-Sets the cookies SameSite value. Prior to offering the configuration choice this defaulted to None. The new default is
-Lax. This option is defined in lower-case. So for example if you want to set it to `Strict`, the value in configuration
-needs to be `strict`.
+Sets the SameSite value of the authorization cookie. This option is defined in lower-case. So for example if you want
+to set it to `Strict`, the value in configuration needs to be `strict`.
+
+Two cookies are issued for every session once the user has signed in:
+
+- The session cookie, which uses the configured [name](#name-1) with the prefix `__Host-Http-`, for example
+  `__Host-Http-authelia_session`. It is always issued with a SameSite value of Strict regardless of this option, and it
+  is the only cookie the portal and the API accept. It is accepted on every endpoint except the [authorization
+  endpoints] (`/api/authz/*` and the legacy `/api/verify`). It is host only, which means it is only sent to the
+  [authelia_url](#authelia_url) host which serves the portal and is never sent to the protected applications. The
+  `__Host-Http-` prefix instructs the browser to reject the cookie unless it is host only, HTTP only, and set by the
+  server, so neither another host such as a sibling subdomain nor a script can replace it.
+- The authorization cookie, which uses the configured name with the prefix `__Secure-` and the suffix `_authz`, for
+  example `__Secure-authelia_session_authz`. It is scoped to the [domain](#domain-1) so it is the only session cookie
+  sent to the protected applications. It is issued with the SameSite value configured here, and it is only accepted by
+  the [authorization endpoints] used by your proxy
+  (`/api/authz/*` and the legacy `/api/verify`) and by no other endpoint. It can't be
+  used to sign in, to change credentials, or to perform any other action against the API. The only exception is that
+  signing in or signing out without a session cookie ends the session the authorization cookie belongs to.
+
+A third cookie, which uses the configured name with the prefix `__Host-` and the suffix `_csrf`, for example
+`__Host-authelia_session_csrf`, delivers the CSRF token
+of the session to the portal. It isn't used to identify the session and is only accepted alongside the session cookie, as the value of the
+`X-CSRF-Token` header which the portal includes with requests that change state. It is always issued with a SameSite
+value of Strict to the Authelia host alone, is readable by the portal so that it can include the token, and is
+replaced whenever the session cookie is replaced. The `__Host-` prefix instructs the browser to reject the cookie unless
+the Authelia host itself set it, so another host such as a sibling subdomain can't replace it.
+
+The authorization cookie is linked to the session. It is replaced whenever the session cookie is replaced and stops
+working as soon as the session is destroyed. When the session cookie is valid but the authorization cookie is missing
+or no longer matches the session, Authelia issues the authorization cookie again the next time the user visits the
+portal. The authorization cookie is never issued to a session the user hasn't signed in to, and when the session cookie
+belongs to such a session, or to a session which no longer exists, Authelia instructs the browser to discard the
+authorization cookie.
+
+Requests to the authorization endpoints count as activity for the [inactivity](#inactivity-1) timeout in the same way as
+requests to the portal, so the session is kept alive by whichever of the two cookies is in use. They never extend the
+[expiration](#expiration-1) of the session and don't reissue either cookie. Both cookies are issued with a
+lifetime of at least 30 days, or the [remember_me](#remember_me-1) or [expiration](#expiration-1) value when either is
+longer. The cookies only identify the session: whether the session is still valid, including whether it has expired,
+is decided by Authelia alone, so a cookie which outlives its session is simply rejected.
 
 You can read about the SameSite cookie in detail on the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite). In short setting SameSite to Lax
 is generally the most desirable option for Authelia. None is not recommended unless you absolutely know what you're
-doing and trust all the protected apps. Strict is not going to work in many use cases and we have not tested it in this
-state but it's available as an option anyway.
+doing and trust all the protected apps. Strict prevents a user who follows a link from another site to a protected
+application from being recognized until they navigate within the application.
+
+Because the session cookie is always Strict, it is not sent when a user arrives at Authelia from another site, such
+as an OpenID Connect 1.0 relying party hosted on a different site. Authelia handles this for authorization requests
+by continuing the request from a page it serves itself, after which the session cookie is sent. This only applies
+when the user's browser performs an ordinary page navigation to Authelia; a relying party which performs silent
+renewal in a hidden frame from another site, or which makes the request by script from another site, still receives
+the `login_required` error. See the
+[OpenID Connect 1.0 frequently asked questions](../../integration/openid-connect/frequently-asked-questions.md#why-does-an-authorization-request-with-promptnone-return-login_required-when-the-user-is-signed-in)
+for the details and the limits of this.
+
+[authorization endpoints]: ../miscellaneous/server-endpoints-authz.md
 
 #### inactivity
 
@@ -233,7 +301,19 @@ state but it's available as an option anyway.
 _**Default Value:** This option takes its default value from the [inactivity](#inactivity) setting above._
 
 The period of time the user can be inactive for until the session is destroyed. Useful if you want long session timers
-but don't want unused devices to be vulnerable.
+but don't want unused devices to be vulnerable. It doesn't apply to sessions where the remember me box was checked.
+
+Any request which uses the session counts as activity, whether it uses the session cookie on the portal or the
+authorization cookie on the [authorization endpoints], so both cookies stay usable for as long as either one is in use.
+Activity never keeps the session beyond its [expiration](#expiration-1).
+
+The session is retained by the [storage](#storage) for the inactivity period, and each time the session is used the
+period starts again. To avoid writing to the [storage](#storage) on every request this only happens once the period has
+moved on by a tenth of the inactivity value or of the [expiration](#expiration-1) value, whichever is lower, and no less
+than one second, but never more than half of that value. As a result a session may end up to that much earlier than the
+full inactivity period after its last use. A session which ends for inactivity is no longer returned by the
+[storage](#storage), although its record may remain until expired sessions are removed, so it can't be distinguished
+from a session which has expired or been destroyed. This is logged at the debug level when the session is next used.
 
 #### expiration
 
@@ -241,8 +321,11 @@ but don't want unused devices to be vulnerable.
 
 _**Default Value:** This option takes its default value from the [expiration](#expiration) setting above._
 
-The period of time before the cookie expires and the session is destroyed. This is overridden by
-[remember_me](#remember_me) when the remember me box is checked.
+The period of time before the session is destroyed. It is extended whenever the portal saves the session, such as
+when the user signs in, but never by activity alone, including requests to the authorization endpoints, so a user who
+only uses protected applications is asked to sign in again once it elapses. Use [inactivity](#inactivity-1) to end sessions which are no
+longer being used. The cookies themselves are issued with a longer lifetime, see [same_site](#same_site-1) for more
+information. This is overridden by [remember_me](#remember_me) when the remember me box is checked.
 
 #### remember_me
 
@@ -250,7 +333,7 @@ The period of time before the cookie expires and the session is destroyed. This 
 
 _**Default Value:** This option takes its default value from the [remember_me](#remember_me) setting above._
 
-The period of time before the cookie expires and the session is destroyed when the remember me box is checked. Setting
+The period of time before the session is destroyed when the remember me box is checked. Setting
 this to `-1` disables this feature entirely for this session cookie domain.
 
 It should be noted that the Passkey Login Flow currently requires remembering sessions if enabled. This is because the

@@ -129,7 +129,7 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 
 		validateSessionUniqueCookieDomain(i, config, domains, validator)
 
-		validateSessionCookieName(i, config)
+		validateSessionCookieName(i, config, validator)
 
 		validateSessionCookiesURLs(i, config, validator)
 
@@ -178,9 +178,17 @@ func validateSessionDomainName(i int, config *schema.Session, validator *schema.
 	}
 }
 
-func validateSessionCookieName(i int, config *schema.Session) {
+func validateSessionCookieName(i int, config *schema.Session, validator *schema.StructValidator) {
 	if config.Cookies[i].Name == "" {
 		config.Cookies[i].Name = config.Name
+	}
+
+	name := strings.ToLower(config.Cookies[i].Name)
+
+	for _, prefix := range []string{cookieNamePrefixHost, cookieNamePrefixSecure, cookieNamePrefixHTTP} {
+		if strings.HasPrefix(name, strings.ToLower(prefix)) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainNamePrefix, sessionDomainDescriptor(i, config.Cookies[i]), prefix, config.Cookies[i].Name))
+		}
 	}
 }
 

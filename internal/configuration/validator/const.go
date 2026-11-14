@@ -475,6 +475,7 @@ const (
 	errFmtSessionDomainMustBeRoot                        = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '%s'"
 	errFmtSessionDomainSameSite                          = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
 	errFmtSessionDomainOptionRequired                    = "session: domain config %s: option '%s' is required"
+	errFmtSessionDomainNamePrefix                        = "session: domain config %s: option 'name' must not start with '%s' as the cookie name prefixes are added automatically but it's configured as '%s'"
 	errFmtSessionDomainHasPeriodPrefix                   = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behavior: you can use this at your own risk but we recommend removing it"
 	errFmtSessionDomainHasPort                           = "session: domain config %s: option 'domain' with value '%s' should probably have value '%s' as it appears to include a port which is not supported and will likely fail to start and is otherwise unsupported"
 	errFmtSessionDomainDuplicate                         = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
@@ -685,6 +686,12 @@ const (
 	attrSessionAutheliaURL                = "authelia_url"
 	attrSessionDomain                     = "domain"
 	attrDefaultRedirectionURL             = "default_redirection_url"
+)
+
+const (
+	cookieNamePrefixHost   = "__Host-"
+	cookieNamePrefixSecure = "__Secure-"
+	cookieNamePrefixHTTP   = "__Http-"
 )
 
 var (

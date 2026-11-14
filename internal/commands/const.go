@@ -225,6 +225,28 @@ Every user is signed out by this rotation as the session cookies they hold no lo
 	cmdAutheliaStorageEncryptionRotateHMACSessionExample = `authelia storage encryption rotate hmac session --config config.yml
 authelia storage encryption rotate hmac session --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageEncryptionRotateHMACSessionAuthzShort = "Rotate the session authz HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionAuthzLong = `Rotate the session authz HMAC key.
+
+This subcommand allows rotation of the HMAC key used to derive the authz cookie of a session, which is the cookie the authorization endpoints accept. No table is truncated by this subcommand.
+
+The key is only loaded when Authelia starts, so every running instance must be restarted for the rotation to take effect. Users are not signed out by this rotation as their sessions are unaffected, however after the restart every authz cookie issued before it is no longer accepted by the authorization endpoints, so the user is redirected to the portal which issues a new one.`
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionAuthzExample = `authelia storage encryption rotate hmac session-authz --config config.yml
+authelia storage encryption rotate hmac session-authz --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionCSRFShort = "Rotate the session CSRF HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionCSRFLong = `Rotate the session CSRF HMAC key.
+
+This subcommand allows rotation of the HMAC key used to derive the CSRF token of a session from the CSRF secret held within it. No table is truncated by this subcommand.
+
+The key is only loaded when Authelia starts, so every running instance must be restarted for the rotation to take effect. Users are not signed out by this rotation as their sessions are unaffected, however after the restart every CSRF token issued before it is rejected until the user agent obtains a new one, which occurs the next time it loads the portal.`
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionCSRFExample = `authelia storage encryption rotate hmac session-csrf --config config.yml
+authelia storage encryption rotate hmac session-csrf --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 
 	cmdAutheliaStorageBansLong = `Manages user and ip bans.
