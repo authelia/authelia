@@ -158,6 +158,16 @@ server:
             requests: 50
           - period: '1 hour'
             requests: 100
+      openid_connect_user_code:
+        enable: true
+        ipv6_mask: 64
+        buckets:
+          - period: '1 minute'
+            requests: 5
+          - period: '10 minutes'
+            requests: 10
+          - period: '1 hour'
+            requests: 20
 ```
 
 ## Common Options
@@ -287,5 +297,14 @@ See [Common Options](#common-options) for the individual options for this sectio
 
 Configures the rate limiter which applies to the
 [OpenID Connect 1.0 Revocation Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### openid_connect_user_code
+
+Configures the rate limiter which applies to the endpoint which exchanges the user code a user enters during the
+[OAuth 2.0 Device Authorization Grant](../../integration/openid-connect/introduction.md#discoverable-endpoints) for a
+consent session. Only requests which fail to exchange a user code count towards the limit, so it limits attempts to guess
+a user code without affecting users who enter a valid one.
 
 See [Common Options](#common-options) for the individual options for this section.

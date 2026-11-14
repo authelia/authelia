@@ -188,8 +188,9 @@ func TestOAuth2ConsentGET(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
 		consent.Form = "1238y12978y189gb128g1287g12807g128702g38172%1"
 
 		mock.StorageMock.EXPECT().
@@ -215,8 +216,9 @@ func TestOAuth2ConsentGET(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -232,6 +234,70 @@ func TestOAuth2ConsentGET(t *testing.T) {
 
 		assert.Equal(t, testOIDCAuthorizationCodeID, body["client_id"])
 		assert.Contains(t, body, "scopes")
+	})
+
+	t.Run("ShouldRejectConsentSessionWithSubjectOfAnotherUser", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
+
+		registered, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, testOIDCAuthorizationCodeID)
+
+		require.NoError(t, err)
+
+		subject, err := mock.Ctx.Providers.OpenIDConnect.GetSubject(mock.Ctx, registered.GetSectorIdentifierURI(), "another-user")
+
+		require.NoError(t, err)
+
+		consent := newTestOIDCConsentSession(t, mock, subject)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.Ctx.Request.SetRequestURI(fmt.Sprintf("/api/oidc/consent?flow_id=%s", consent.ChallengeID))
+
+		OAuth2ConsentGET(mock.Ctx)
+
+		mock.Assert200KO(t, messageOperationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the subject of the consent session does not match the subject of the user", nil)
+	})
+
+	t.Run("ShouldHandleSubjectLookupError", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadUserOpaqueIdentifierBySignature(gomock.Any(), gomock.Any(), gomock.Any(), testUsername).
+			Return(nil, fmt.Errorf("error in db"))
+
+		mock.Ctx.Request.SetRequestURI(fmt.Sprintf("/api/oidc/consent?flow_id=%s", consent.ChallengeID))
+
+		OAuth2ConsentGET(mock.Ctx)
+
+		mock.Assert200KO(t, messageOperationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as an error occurred determining the subject of the user", regexpAnyError)
 	})
 }
 
@@ -291,8 +357,9 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -317,12 +384,17 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(nil, sql.ErrNoRows)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), true).
@@ -355,12 +427,17 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(nil, sql.ErrNoRows)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), false).
@@ -387,12 +464,17 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(nil, sql.ErrNoRows)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), true).
@@ -425,12 +507,17 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(nil, sql.ErrNoRows)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentPreConfiguration(gomock.Any(), gomock.Any()).
@@ -466,12 +553,17 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
 
 		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(nil, sql.ErrNoRows)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentPreConfiguration(gomock.Any(), gomock.Any()).
@@ -487,6 +579,132 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 
 		AssertLogEntryMessageAndError(t, MustGetLogLastSeq(t, mock.Hook, 0), "Error occurred saving consent pre-configuration to the database", "failed to save")
 	})
+
+	t.Run("ShouldRejectConsentSessionWithSubjectOfAnotherUser", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
+
+		registered, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, testOIDCAuthorizationCodeID)
+
+		require.NoError(t, err)
+
+		subject, err := mock.Ctx.Providers.OpenIDConnect.GetSubject(mock.Ctx, registered.GetSectorIdentifierURI(), "another-user")
+
+		require.NoError(t, err)
+
+		consent := newTestOIDCConsentSession(t, mock, subject)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flow_id":"%s","client_id":"%s","consent":true}`, consent.ChallengeID, testOIDCAuthorizationCodeID))
+
+		OAuth2ConsentPOST(mock.Ctx)
+
+		mock.Assert200KO(t, messageOperationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the subject of the consent session does not match the subject of the user", nil)
+	})
+
+	t.Run("ShouldHandleSubjectLookupError", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadUserOpaqueIdentifierBySignature(gomock.Any(), gomock.Any(), gomock.Any(), testUsername).
+			Return(nil, fmt.Errorf("error in db"))
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flow_id":"%s","client_id":"%s","consent":true}`, consent.ChallengeID, testOIDCAuthorizationCodeID))
+
+		OAuth2ConsentPOST(mock.Ctx)
+
+		mock.Assert200KO(t, messageOperationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as an error occurred determining the subject of the user", regexpAnyError)
+	})
+
+	t.Run("ShouldRejectConsentSessionReferencedByDeviceCodeSession", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
+
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(&model.OAuth2DeviceCodeSession{ChallengeID: uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}}, nil)
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flow_id":"%s","client_id":"%s","consent":true}`, consent.ChallengeID, testOIDCAuthorizationCodeID))
+
+		OAuth2ConsentPOST(mock.Ctx)
+
+		mock.Assert200KO(t, messageOperationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session belongs to the Device Authorization Flow", nil)
+	})
+
+	t.Run("ShouldHandleDeviceCodeSessionLookupError", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCSubjectStore(t, mock)
+
+		consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID))
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(nil, fmt.Errorf("error in db"))
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flow_id":"%s","client_id":"%s","consent":true}`, consent.ChallengeID, testOIDCAuthorizationCodeID))
+
+		OAuth2ConsentPOST(mock.Ctx)
+
+		mock.Assert200KO(t, messageOperationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as an error occurred determining if the consent session belongs to the Device Authorization Flow", "error in db")
+	})
 }
 
 func newTestOIDCConsentSession(t *testing.T, mock *mocks.MockAutheliaCtx, subject uuid.UUID) *model.OAuth2ConsentSession {
@@ -501,6 +719,7 @@ func newTestOIDCConsentSession(t *testing.T, mock *mocks.MockAutheliaCtx, subjec
 	}
 
 	return &model.OAuth2ConsentSession{
+		Binding:         mocks.AuthorizationBinding,
 		ID:              1,
 		ChallengeID:     uuid.Must(uuid.NewRandom()),
 		ClientID:        testOIDCAuthorizationCodeID,

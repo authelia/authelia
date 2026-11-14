@@ -10,6 +10,8 @@ services:
     build:
       context: '../..'
       dockerfile: 'internal/suites/example/compose/pam/Dockerfile'
+      args:
+        AUTHELIA_PAM_REF: 'feat-prefixed-session-cookie'
     volumes:
       - './common/pki/ca/ca.public.crt:/etc/ssl/certs/authelia-ca.crt'
     environment:

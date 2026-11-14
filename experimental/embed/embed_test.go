@@ -5,6 +5,7 @@
 package embed
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"testing"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestShouldPanicNilCtx(t *testing.T) {
@@ -35,7 +37,9 @@ func TestShouldPanicNilCtx(t *testing.T) {
 func TestProvidersStartupCheckShouldRetainFinalizedProviders(t *testing.T) {
 	ctx, storage := newStartupCheckContext(t)
 
-	storage.EXPECT().LoadHMACKey(gomock.Any(), "session", sha256.BlockSize).Return(make([]byte, sha256.BlockSize), nil)
+	for i, name := range []string{session.HMACKeyNameSession, session.HMACKeyNameSessionAuthz, session.HMACKeyNameSessionCSRF} {
+		storage.EXPECT().LoadHMACKey(gomock.Any(), name, sha256.BlockSize).Return(bytes.Repeat([]byte{byte(i + 1)}, sha256.BlockSize), nil)
+	}
 
 	require.Nil(t, ctx.GetProviders().Session)
 

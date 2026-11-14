@@ -25,7 +25,7 @@ func TestStrategyShouldCacheTheSessionForTheRequest(t *testing.T) {
 	require.NoError(t, strategy.Save(previous, &userSession))
 
 	ctx := newTestCachingContext()
-	ctx.cookies[testName] = previous.cookies[testName]
+	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
 
 	repository.reads = 0
 
@@ -68,7 +68,7 @@ func TestStrategyShouldNotCacheForAContextWhichDoesNotSupportIt(t *testing.T) {
 	require.NoError(t, strategy.Save(previous, &userSession))
 
 	ctx := newTestContext()
-	ctx.cookies[testName] = previous.cookies[testName]
+	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
 
 	repository.reads = 0
 

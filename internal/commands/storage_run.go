@@ -399,6 +399,10 @@ func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []
 		table, name, truncate = "recovery_codes", "rc", true
 	case "session":
 		table, name, truncate = "session", "session", true
+	case "session-authz":
+		name = "session_authz"
+	case "session-csrf":
+		name = "session_csrf"
 	case cmdUseStorageEncryptionRotateHMACExternalIdentityLink:
 		table, name, truncate = "user_external_identity_links", "external_identity_link", false
 	}
@@ -417,11 +421,17 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 	}
 
 	if !force {
-		var confirmed bool
+		var (
+			confirmed bool
+			prompt    string
+		)
 
-		prompt := fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table)
-
-		if !truncate {
+		switch {
+		case table == "":
+			prompt = fmt.Sprintf("This will rotate the '%s' HMAC key, this is not reversible, type 'ROTATE' and press return to continue: ", name)
+		case truncate:
+			prompt = fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table)
+		default:
 			prompt = fmt.Sprintf("This will rotate the HMAC key, sign the '%s' table again, and delete any row whose signature is not valid, this is not reversible, type 'ROTATE' and press return to continue: ", table)
 		}
 
@@ -438,9 +448,12 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 		return err
 	}
 
-	if truncate {
+	switch {
+	case table == "":
+		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully.\n", name)
+	case truncate:
 		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and cleanly truncated the '%s' table.\n", name, table)
-	} else {
+	default:
 		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and signed the '%s' table again.\n", name, table)
 	}
 

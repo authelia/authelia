@@ -5,8 +5,8 @@
 package cache
 
 import (
+	"bytes"
 	"context"
-	"fmt"
 	"slices"
 	"sync"
 	"time"
@@ -44,12 +44,14 @@ func (m *Memory) SessionGet(ctx context.Context, issuer, id string) (record sess
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
+	now := time.Now()
+
 	item, ok := m.session[m.key(issuer, id)]
-	if !ok || item.destroyed || item.expired(time.Now()) {
+	if !ok || item.destroyed || item.expired(now) {
 		return nil, nil
 	}
 
-	return session.NewRecord(item.id, item.data), nil
+	return session.NewRecordWithTTL(item.id, item.data, item.ttl(now)), nil
 }
 
 // SessionGetByPublicID implements the Provider interface.
@@ -132,24 +134,42 @@ func (m *Memory) SessionSave(ctx context.Context, issuer, id, pid, username stri
 }
 
 // SessionSaveData implements the Provider interface. The public id and username are unused as the stored session
-// already records them and its lookups are derived from it rather than expiring independently.
-func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
+// already records them and its lookups are derived from it rather than expiring independently. When previous isn't nil
+// the session is only updated if its data is still exactly previous. A session which was destroyed, moved, or no longer
+// exists is never written and session.ErrSessionSuperseded is returned instead.
+func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, previous, data []byte) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	key := m.key(issuer, id)
 
 	item, ok := m.session[key]
-	if !ok {
-		return fmt.Errorf("session not found: %s:%s", issuer, id)
-	}
-
-	if item.destroyed {
+	if !ok || item.destroyed || (previous != nil && !bytes.Equal(item.data, previous)) {
 		return session.ErrSessionSuperseded
 	}
 
 	item.data = data
 	item.expires = sessionExpires(expiration)
+
+	return nil
+}
+
+// SessionTouch implements the Provider interface. The lookups have no expiry of their own as they are derived from the
+// session, so only the session itself is extended.
+func (m *Memory) SessionTouch(ctx context.Context, issuer, id, _, _ string, expiration time.Duration) (err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	now := time.Now()
+
+	item, ok := m.session[m.key(issuer, id)]
+	if !ok || item.destroyed || item.expires.IsZero() || item.expired(now) {
+		return nil
+	}
+
+	if expires := sessionExpires(expiration); !expires.IsZero() && expires.After(item.expires) {
+		item.expires = expires
+	}
 
 	return nil
 }
@@ -163,7 +183,7 @@ func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, us
 
 	item, ok := m.session[key]
 	if !ok || item.destroyed {
-		return nil
+		return session.ErrSessionSuperseded
 	}
 
 	delete(m.session, key)
@@ -306,6 +326,14 @@ type itemSession struct {
 
 func (i *itemSession) expired(now time.Time) bool {
 	return !i.expires.IsZero() && !i.expires.After(now)
+}
+
+func (i *itemSession) ttl(now time.Time) time.Duration {
+	if i.expires.IsZero() {
+		return 0
+	}
+
+	return i.expires.Sub(now)
 }
 
 func sessionExpires(expiration time.Duration) (expires time.Time) {

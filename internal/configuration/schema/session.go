@@ -25,11 +25,11 @@ type Session struct {
 
 // SessionCookieCommon represents the session cookie configuration options shared by every session cookie domain.
 type SessionCookieCommon struct {
-	Name       string        `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"default=authelia_session,title=Name" jsonschema_description:"The session cookie name."`
-	SameSite   string        `koanf:"same_site" yaml:"same_site,omitempty" toml:"same_site,omitempty" json:"same_site,omitempty" jsonschema:"default=lax,enum=lax,enum=strict,enum=none,title=Same Site" jsonschema_description:"The session cookie same site value."`
-	Expiration time.Duration `koanf:"expiration" yaml:"expiration,omitempty" toml:"expiration,omitempty" json:"expiration,omitempty" jsonschema:"default=1 hour,title=Expiration" jsonschema_description:"The session cookie expiration when remember me is not checked."`
+	Name       string        `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"default=authelia_session,title=Name" jsonschema_description:"The name the session cookies are derived from. Authelia adds a prefix, and a suffix for every cookie except the session cookie, so it must not start with a cookie name prefix."`
+	SameSite   string        `koanf:"same_site" yaml:"same_site,omitempty" toml:"same_site,omitempty" json:"same_site,omitempty" jsonschema:"default=lax,enum=lax,enum=strict,enum=none,title=Same Site" jsonschema_description:"The same site value of the authorization cookie. The session cookie and CSRF token cookie always use strict."`
+	Expiration time.Duration `koanf:"expiration" yaml:"expiration,omitempty" toml:"expiration,omitempty" json:"expiration,omitempty" jsonschema:"default=1 hour,title=Expiration" jsonschema_description:"The session expiration when remember me is not checked."`
 	Inactivity time.Duration `koanf:"inactivity" yaml:"inactivity,omitempty" toml:"inactivity,omitempty" json:"inactivity,omitempty" jsonschema:"default=5 minutes,title=Inactivity" jsonschema_description:"The session inactivity timeout."`
-	RememberMe time.Duration `koanf:"remember_me" yaml:"remember_me,omitempty" toml:"remember_me,omitempty" json:"remember_me,omitempty" jsonschema:"default=30 days,title=Remember Me" jsonschema_description:"The session cookie expiration when remember me is checked."`
+	RememberMe time.Duration `koanf:"remember_me" yaml:"remember_me,omitempty" toml:"remember_me,omitempty" json:"remember_me,omitempty" jsonschema:"default=30 days,title=Remember Me" jsonschema_description:"The session expiration when remember me is checked."`
 
 	AnonymousExpiration time.Duration `koanf:"anonymous_expiration" yaml:"anonymous_expiration,omitempty" toml:"anonymous_expiration,omitempty" json:"anonymous_expiration,omitempty" jsonschema:"default=10 minutes,title=Anonymous Expiration" jsonschema_description:"The expiration of sessions which do not belong to a user."`
 

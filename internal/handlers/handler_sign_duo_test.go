@@ -820,15 +820,15 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	r := regexp.MustCompile("^authelia_session=(.*); path=")
-	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+	r := regexp.MustCompile("^__Host-Http-authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), -1)
 
 	DuoPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 
 	s.NotEqual(
 		res[0][1],
-		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+		string(s.mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session")))
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldFailWhenUserDetailsFailOnAllow() {

@@ -5,276 +5,766 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func TestOAuth2ConsentDeviceAuthorizationGET(t *testing.T) {
-	t.Run("ShouldHandleUnknownUserCode", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
+func TestOAuth2ConsentUserCodePOST(t *testing.T) {
+	testCases := []struct {
+		name  string
+		level int
+		body  func(userCode string) string
+		setup func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string)
+		msg   string
+		err   any
+	}{
+		{
+			name: "ShouldHandleMalformedBody",
+			body: func(_ string) string { return "not json" },
+			msg:  "Error occurred unmarshaling the user code request body during the Consent Flow stage of the Device Authorization Flow",
+			err:  regexpAnyError,
+		},
+		{
+			name: "ShouldHandleEmptyUserCode",
+			body: func(_ string) string { return `{"user_code":""}` },
+			msg:  "Error occurred exchanging the user code during the Consent Flow stage of the Device Authorization Flow as it is empty or too long",
+		},
+		{
+			name: "ShouldHandleLongUserCode",
+			body: func(_ string) string { return `{"user_code":"ABCDEFGHABCDEFGHABCDEFGHABCDEFGHA"}` },
+			msg:  "Error occurred exchanging the user code during the Consent Flow stage of the Device Authorization Flow as it is empty or too long",
+		},
+		{
+			name:  "ShouldHandleAnonymousUser",
+			level: -1,
+			msg:   "Error occurred fetching user session during the Consent Flow stage of the Device Authorization Flow as the user is anonymous",
+		},
+		{
+			name: "ShouldHandleUnknownUserCode",
+			body: func(_ string) string { return `{"user_code":"ABCDEFGH"}` },
+			msg:  "Error occurred using the signature of the user code to retrieve the device code session during the Consent Flow stage of the Device Authorization Flow",
+			err:  "sql: no rows in result set",
+		},
+		{
+			name: "ShouldHandleRevokedDeviceCodeSession",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string) {
+				mutateTestOIDCDeviceCodeSession(t, mock, userCode, func(device *model.OAuth2DeviceCodeSession) {
+					device.Revoked = true
+				})
+			},
+			msg: "Error occurred exchanging the user code for a consent session during the Consent Flow stage of the Device Authorization Flow",
+			err: "the device code session is inactive or revoked",
+		},
+		{
+			name: "ShouldHandleCorruptDeviceCodeSession",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string) {
+				mutateTestOIDCDeviceCodeSession(t, mock, userCode, func(device *model.OAuth2DeviceCodeSession) {
+					device.Session = []byte("not json")
+				})
+			},
+			msg: "Error occurred exchanging the user code for a consent session during the Consent Flow stage of the Device Authorization Flow",
+			err: "error occurred restoring the device code session data: invalid character 'o' in literal null (expecting 'u')",
+		},
+		{
+			name: "ShouldHandleSubjectMismatch",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string) {
+				mutateTestOIDCDeviceCodeSession(t, mock, userCode, func(device *model.OAuth2DeviceCodeSession) {
+					device.Subject.String, device.Subject.Valid = uuid.Must(uuid.NewRandom()).String(), true
+				})
+			},
+			msg: "Error occurred authorizing the user to enter the user code during the Consent Flow stage of the Device Authorization Flow",
+			err: "the subject of the device code session does not match the subject of the user",
+		},
+		{
+			name: "ShouldHandleUserCodeEnteredByAnotherUserAgent",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string) {
+				mustClaimTestOIDCDeviceCodeSession(t, mock, userCode, newTestOIDCConsentSession(t, mock, uuid.Nil))
+			},
+			msg: "Error occurred exchanging the user code for a consent session during the Consent Flow stage of the Device Authorization Flow",
+			err: "the user code has already been entered by another user agent: sql: no rows in result set",
+		},
+	}
 
-		setupTestOIDCUserDetails(t, mock)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			level := tc.level
+			if level == 0 {
+				level = 1
+			}
 
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+			mock := newTestOIDCDeviceCodeConsentMock(t, level, nil)
+			defer mock.Close()
 
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
+			userCode := mustGetTestOIDCUserCode(t, mock)
 
-		mock.Ctx.Request.SetRequestURI("/api/oidc/consent?user_code=ABCDEFGH")
+			if tc.setup != nil {
+				tc.setup(t, mock, userCode)
+			}
 
-		OAuth2ConsentGET(mock.Ctx)
+			body := fmt.Sprintf(`{"user_code":"%s"}`, userCode)
 
-		mock.Assert200KO(t, messageOperationFailed)
+			if tc.body != nil {
+				body = tc.body(userCode)
+			}
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading device code session using user code signature during the Consent Flow stage of the Device Authorization Flow", "sql: no rows in result set")
-	})
+			mock.Ctx.Response.Reset()
+			mock.Ctx.Request.SetBodyString(body)
 
-	t.Run("ShouldHandleInactiveDeviceCodeSession", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
+			OAuth2ConsentUserCodePOST(mock.Ctx)
 
-		setupTestOIDCUserDetails(t, mock)
+			mock.Assert200KO(t, messageOperationFailed)
 
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.msg, tc.err)
 
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
-
-		userCode := mustGetTestOIDCUserCode(t, mock)
-
-		signature, err := mock.Ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(mock.Ctx, userCode)
-
-		require.NoError(t, err)
-
-		device, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(mock.Ctx, signature)
-
-		require.NoError(t, err)
-
-		device.Revoked = true
-
-		require.NoError(t, mock.Ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSession(mock.Ctx, device))
-
-		mock.Ctx.Response.Reset()
-		mock.Ctx.Request.SetRequestURI("/api/oidc/consent?user_code=" + userCode)
-
-		OAuth2ConsentGET(mock.Ctx)
-
-		mock.Assert200KO(t, messageOperationFailed)
-
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Flow failed to retrieve Consent Flow data as device code session is not active or has been revoked", nil)
-	})
-
-	t.Run("ShouldHandleInsufficientAuthenticationLevel", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
-
-		setupTestOIDCUserDetails(t, mock)
-
-		client := newTestOIDCDeviceCodeClient(t)
-		client.AuthorizationPolicy = "two_factor"
-
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
-
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
-
-		userCode := mustGetTestOIDCUserCode(t, mock)
-
-		mock.Ctx.Response.Reset()
-		mock.Ctx.Request.SetRequestURI("/api/oidc/consent?user_code=" + userCode)
-
-		OAuth2ConsentGET(mock.Ctx)
-
-		mock.Assert200KO(t, messageOperationFailed)
-
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Flow failed to retrieve Consent Flow data as the user is not sufficiently authenticated", nil)
-	})
-
-	t.Run("ShouldReturnConsentInformation", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
-
-		setupTestOIDCUserDetails(t, mock)
-
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
-
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
-
-		userCode := mustGetTestOIDCUserCode(t, mock)
-
-		mock.Ctx.Response.Reset()
-		mock.Ctx.Request.SetRequestURI("/api/oidc/consent?user_code=" + userCode)
-
-		OAuth2ConsentGET(mock.Ctx)
-
-		body := map[string]any{}
-
-		mock.GetResponseData(t, &body)
-
-		assert.Equal(t, testOIDCDeviceCodeID, body["client_id"])
-		assert.Contains(t, body, "scopes")
-	})
+			assert.Nil(t, mock.Ctx.UserValue(middlewares.UserValueRateLimitExempt))
+		})
+	}
 }
 
-func TestOAuth2ConsentDeviceAuthorizationPOST(t *testing.T) {
-	t.Run("ShouldHandleMissingUserCode", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
+func TestOAuth2ConsentUserCodePOSTShouldHandleInsufficientAuthenticationLevel(t *testing.T) {
+	client := newTestOIDCDeviceCodeClient(t)
+	client.AuthorizationPolicy = "two_factor"
 
-		setupTestOIDCUserDetails(t, mock)
+	mock := newTestOIDCDeviceCodeConsentMock(t, 1, &client)
+	defer mock.Close()
 
-		setupTestOIDCProvider(t, mock, nil)
+	userCode := mustGetTestOIDCUserCode(t, mock)
 
-		mock.Ctx.Request.SetBodyString(`{"subflow":"device_authorization","client_id":"device-code","consent":true}`)
+	mock.Ctx.Response.Reset()
+	mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"user_code":"%s"}`, userCode))
 
-		OAuth2ConsentPOST(mock.Ctx)
+	OAuth2ConsentUserCodePOST(mock.Ctx)
 
-		mock.Assert200KO(t, messageOperationFailed)
+	mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Request is missing the required field 'user_code' from the JSON body", nil)
-	})
+	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred authorizing the user to enter the user code during the Consent Flow stage of the Device Authorization Flow", "the user is not sufficiently authenticated given the client authorization policy 'two_factor' with the authentication level 'one_factor'")
+}
 
-	t.Run("ShouldHandleAnonymousUser", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtx(t)
-		defer mock.Close()
+func TestOAuth2ConsentUserCodePOSTShouldExchangeUserCode(t *testing.T) {
+	mock := newTestOIDCDeviceCodeConsentMock(t, 1, nil)
+	defer mock.Close()
 
-		setupTestOIDCProvider(t, mock, nil)
+	userCode := mustGetTestOIDCUserCode(t, mock)
 
-		mock.Ctx.Request.SetBodyString(`{"subflow":"device_authorization","client_id":"device-code","consent":true,"user_code":"ABCDEFGH"}`)
+	flowID := mustExchangeTestOIDCUserCode(t, mock, userCode)
 
-		OAuth2ConsentPOST(mock.Ctx)
+	assert.Equal(t, true, mock.Ctx.UserValue(middlewares.UserValueRateLimitExempt))
 
-		mock.Assert200KO(t, messageOperationFailed)
+	consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
+	require.NoError(t, err)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred fetching user session during the Consent Flow stage of the Device Authorization Flow as the user is anonymous", nil)
-	})
+	assert.Equal(t, testOIDCDeviceCodeID, consent.ClientID)
+	assert.True(t, consent.Subject.Valid)
+	assert.False(t, consent.Responded())
+	assert.Equal(t, mocks.AuthorizationBinding, consent.Binding)
 
-	t.Run("ShouldHandleUnknownUserCode", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
+	device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
 
-		setupTestOIDCUserDetails(t, mock)
+	assert.Equal(t, model.OAuth2DeviceCodeStatusClaimed, device.Status)
+	assert.Equal(t, uuid.NullUUID{UUID: flowID, Valid: true}, device.ChallengeID)
+	assert.True(t, device.Active)
+}
 
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+func TestOAuth2ConsentUserCodePOSTShouldResumeExchangeForTheSameUserAgent(t *testing.T) {
+	testCases := []struct {
+		name    string
+		binding bool
+		setup   func(t *testing.T, mock *mocks.MockAutheliaCtx, flowID uuid.UUID)
+		err     string
+	}{
+		{
+			name:    "ShouldResume",
+			binding: true,
+		},
+		{
+			name: "ShouldNotResumeForAnotherUserAgent",
+			err:  "the user code has already been entered by another user agent: the consent session is not bound to the user agent",
+		},
+		{
+			name:    "ShouldNotResumeRespondedConsentSession",
+			binding: true,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, flowID uuid.UUID) {
+				consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
+				require.NoError(t, err)
 
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
+				consent.SetRespondedAt(mock.Ctx.GetClock().Now(), 0)
 
-		mock.Ctx.Request.SetBodyString(`{"subflow":"device_authorization","client_id":"device-code","consent":true,"user_code":"ABCDEFGH"}`)
+				require.NoError(t, mock.Ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(mock.Ctx, consent, false))
+			},
+			err: "the consent session has already been responded to",
+		},
+	}
 
-		OAuth2ConsentPOST(mock.Ctx)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := newTestOIDCDeviceCodeConsentMock(t, 1, nil)
+			defer mock.Close()
 
-		mock.Assert200KO(t, messageOperationFailed)
+			userCode := mustGetTestOIDCUserCode(t, mock)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred using the signature of the user code session to retrieve the device code session during the Consent Flow stage of the Device Authorization Flow", "sql: no rows in result set")
-	})
+			flowID := mustExchangeTestOIDCUserCode(t, mock, userCode)
 
-	t.Run("ShouldHandleClientIDMismatch", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
+			if !tc.binding {
+				mock.Ctx.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), testOAuth2AuthorizationBindingAnotherUserAgent)
+			}
 
-		setupTestOIDCUserDetails(t, mock)
+			if tc.setup != nil {
+				tc.setup(t, mock, flowID)
+			}
 
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+			mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"user_code":"%s"}`, userCode))
 
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
+			OAuth2ConsentUserCodePOST(mock.Ctx)
 
-		userCode := mustGetTestOIDCUserCode(t, mock)
+			if tc.err != "" {
+				mock.Assert200KO(t, messageOperationFailed)
+
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred exchanging the user code for a consent session during the Consent Flow stage of the Device Authorization Flow", tc.err)
+
+				return
+			}
+
+			body := oidc.ConsentPostResponseBody{}
+
+			require.Contains(t, string(mock.Ctx.Response.Body()), `"status":"OK"`)
+			mock.GetResponseData(t, &body)
+
+			assert.Equal(t, flowID.String(), body.FlowID)
+			assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
+		})
+	}
+}
+
+func TestOAuth2ConsentUserCodePOSTShouldRollBackWhenTheClaimFails(t *testing.T) {
+	testCases := []struct {
+		name  string
+		setup func(mock *mocks.MockAutheliaCtx, tx context.Context)
+		err   string
+	}{
+		{
+			name: "ShouldHandleSaveConsentSessionError",
+			setup: func(mock *mocks.MockAutheliaCtx, tx context.Context) {
+				mock.StorageMock.EXPECT().
+					SaveOAuth2ConsentSession(gomock.Eq(tx), gomock.Any()).
+					Return(fmt.Errorf("error in db"))
+			},
+			err: "error occurred saving the consent session: error in db",
+		},
+		{
+			name: "ShouldHandleClaimError",
+			setup: func(mock *mocks.MockAutheliaCtx, tx context.Context) {
+				mock.StorageMock.EXPECT().
+					SaveOAuth2ConsentSession(gomock.Eq(tx), gomock.Any()).
+					Return(nil)
+
+				mock.StorageMock.EXPECT().
+					ClaimOAuth2DeviceCodeSession(gomock.Eq(tx), gomock.Any()).
+					Return(storage.ErrNoRowsAffected)
+			},
+			err: "error occurred claiming the device code session as the user code has already been entered or can no longer be used: no rows affected",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+			defer mock.Close()
+
+			tx := expectTestOIDCDeviceCodeConsentTX(mock, false)
+
+			tc.setup(mock, tx)
+
+			setupTestOIDCUserDetails(t, mock)
+
+			config := newTestOIDCConfig(t)
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCDeviceCodeStore(t, mock)
+			setupTestOIDCSubjectStore(t, mock)
+
+			userCode := mustGetTestOIDCUserCode(t, mock)
+
+			mock.Ctx.Response.Reset()
+			mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"user_code":"%s"}`, userCode))
+
+			OAuth2ConsentUserCodePOST(mock.Ctx)
+
+			mock.Assert200KO(t, messageOperationFailed)
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred exchanging the user code for a consent session during the Consent Flow stage of the Device Authorization Flow", tc.err)
+			assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
+
+			device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
+
+			assert.False(t, device.ChallengeID.Valid)
+			assert.Equal(t, model.OAuth2DeviceCodeStatusNew, device.Status)
+		})
+	}
+}
+
+func TestOAuth2ConsentUserCodePOSTShouldCompleteEveryFlowOfTheUserAgent(t *testing.T) {
+	mock := newTestOIDCDeviceCodeConsentMock(t, 1, nil)
+	defer mock.Close()
+
+	first := mustGetTestOIDCUserCode(t, mock)
+	firstFlowID := mustExchangeTestOIDCUserCode(t, mock, first)
+
+	second := mustGetTestOIDCUserCode(t, mock)
+	secondFlowID := mustExchangeTestOIDCUserCode(t, mock, second)
+
+	require.NotEqual(t, firstFlowID, secondFlowID)
+
+	for _, flowID := range []uuid.UUID{firstFlowID, secondFlowID} {
+		expectTestOIDCDeviceCodeConsentTX(mock, true)
 
 		mock.Ctx.Response.Reset()
-		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"subflow":"device_authorization","client_id":"a-different-client","consent":true,"user_code":"%s"}`, userCode))
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"subflow":"device_authorization","flow_id":"%s","client_id":"%s","consent":true}`, flowID, testOIDCDeviceCodeID))
 
 		OAuth2ConsentPOST(mock.Ctx)
 
-		mock.Assert200KO(t, messageOperationFailed)
+		require.Contains(t, string(mock.Ctx.Response.Body()), `"status":"OK"`)
+	}
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred matching the user code to the device code session during the Consent Flow stage of the Device Authorization Flow as the client id of the form and the client id of the consent session do not match", nil)
-	})
+	for _, userCode := range []string{first, second} {
+		device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
 
-	t.Run("ShouldGrantConsent", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
+		assert.Equal(t, model.OAuth2DeviceCodeStatusClaimed, device.Status)
+		assert.True(t, device.Active)
+	}
 
-		setupTestOIDCUserDetails(t, mock)
+	for _, flowID := range []uuid.UUID{firstFlowID, secondFlowID} {
+		consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
+		require.NoError(t, err)
 
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+		assert.Equal(t, mocks.AuthorizationBinding, consent.Binding)
+		assert.True(t, consent.Responded())
+		assert.True(t, consent.Authorized)
+	}
+}
 
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
-		setupTestOIDCConsentStore(t, mock)
-		setupTestOIDCSubjectStore(t, mock)
+func TestOAuth2ConsentGETDeviceAuthorization(t *testing.T) {
+	testCases := []struct {
+		name        string
+		subflow     string
+		exchanged   bool
+		preConfig   bool
+		expectError string
+	}{
+		{
+			name:      "ShouldDisablePreConfigurationForTheDeviceAuthorizationSubFlow",
+			subflow:   flowOpenIDConnectSubFlowNameDeviceAuthorization,
+			exchanged: true,
+		},
+		{
+			name:      "ShouldNotCheckTheDeviceWithoutTheSubFlow",
+			exchanged: true,
+			preConfig: true,
+		},
+		{
+			name:        "ShouldRejectConsentSessionWithoutDeviceCodeSession",
+			subflow:     flowOpenIDConnectSubFlowNameDeviceAuthorization,
+			expectError: "error occurred loading the device code session: sql: no rows in result set",
+		},
+	}
 
-		userCode := mustGetTestOIDCUserCode(t, mock)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := newTestOIDCDeviceCodeClient(t)
+			duration := time.Hour
 
-		mock.Ctx.Response.Reset()
-		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"subflow":"device_authorization","client_id":"%s","consent":true,"user_code":"%s"}`, testOIDCDeviceCodeID, userCode))
+			client.ConsentMode = oidc.ClientConsentModePreConfigured.String()
+			client.ConsentPreConfiguredDuration = &duration
 
-		OAuth2ConsentPOST(mock.Ctx)
+			mock := newTestOIDCDeviceCodeConsentMock(t, 1, &client)
+			defer mock.Close()
 
-		body := oidc.ConsentPostResponseBody{}
+			var flowID uuid.UUID
 
-		mock.GetResponseData(t, &body)
+			if tc.exchanged {
+				flowID = mustExchangeTestOIDCUserCode(t, mock, mustGetTestOIDCUserCode(t, mock))
+			} else {
+				consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCDeviceCodeID))
+				consent.ClientID = testOIDCDeviceCodeID
 
-		assert.NotEmpty(t, body.FlowID)
-	})
+				require.NoError(t, mock.Ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(mock.Ctx, consent))
 
-	t.Run("ShouldRejectConsent", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
+				flowID = consent.ChallengeID
+			}
 
-		setupTestOIDCUserDetails(t, mock)
+			uri := fmt.Sprintf("/api/oidc/consent?flow_id=%s", flowID)
 
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+			if tc.subflow != "" {
+				uri += "&subflow=" + tc.subflow
+			}
 
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCDeviceCodeStore(t, mock)
-		setupTestOIDCSubjectStore(t, mock)
+			mock.Ctx.Request.SetRequestURI(uri)
 
-		var saved bool
+			OAuth2ConsentGET(mock.Ctx)
 
+			if tc.expectError != "" {
+				mock.Assert200KO(t, messageOperationFailed)
+
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed providing consent flow information as the consent session has not claimed a device code session which is pending a decision", tc.expectError)
+
+				return
+			}
+
+			body := oidc.ConsentGetResponseBody{}
+
+			require.Contains(t, string(mock.Ctx.Response.Body()), `"status":"OK"`)
+			mock.GetResponseData(t, &body)
+
+			assert.Equal(t, testOIDCDeviceCodeID, body.ClientID)
+			assert.Equal(t, tc.preConfig, body.PreConfiguration)
+		})
+	}
+}
+
+func TestOAuth2ConsentPOSTDeviceAuthorization(t *testing.T) {
+	testCases := []struct {
+		name  string
+		body  func(flowID uuid.UUID) string
+		setup func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, flowID uuid.UUID)
+		msg   string
+		err   any
+	}{
+		{
+			name: "ShouldHandleMissingFlowID",
+			body: func(_ uuid.UUID) string {
+				return fmt.Sprintf(`{"subflow":"device_authorization","client_id":"%s","consent":true}`, testOIDCDeviceCodeID)
+			},
+			msg: "Request is missing the required field 'flow_id' from the JSON body during the Consent Flow stage of the Device Authorization Flow",
+		},
+		{
+			name: "ShouldHandleMalformedFlowID",
+			body: func(_ uuid.UUID) string {
+				return fmt.Sprintf(`{"subflow":"device_authorization","flow_id":"abc","client_id":"%s","consent":true}`, testOIDCDeviceCodeID)
+			},
+			msg: "Error occurred parsing flow ID as a UUID during the Consent Flow stage of the Device Authorization Flow",
+			err: "invalid UUID length: 3",
+		},
+		{
+			name: "ShouldHandleClientIDMismatch",
+			body: func(flowID uuid.UUID) string {
+				return fmt.Sprintf(`{"subflow":"device_authorization","flow_id":"%s","client_id":"a-different-client","consent":true}`, flowID)
+			},
+			msg: "Error occurred during the Consent Flow stage of the Device Authorization Flow as the client id of the form and the client id of the consent session do not match",
+		},
+		{
+			name: "ShouldHandleDeviceCodeSessionNoLongerPendingADecision",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, flowID uuid.UUID) {
+				device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
+
+				require.NoError(t, mock.Ctx.Providers.StorageProvider.DenyOAuth2DeviceCodeSession(mock.Ctx, device.Signature, flowID))
+			},
+			msg: "Error occurred during the Consent Flow stage of the Device Authorization Flow as the consent session has not claimed a device code session which is pending a decision",
+			err: "the device code session is inactive or revoked",
+		},
+		{
+			name: "ShouldHandleConsentSessionBoundToAnotherUserAgent",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, _ string, _ uuid.UUID) {
+				mock.Ctx.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), testOAuth2AuthorizationBindingAnotherUserAgent)
+			},
+			msg: "Error occurred fetching consent session during the Consent Flow stage of the Authorization Flow",
+			err: "the consent session is not bound to the user agent",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := newTestOIDCDeviceCodeConsentMock(t, 1, nil)
+			defer mock.Close()
+
+			userCode := mustGetTestOIDCUserCode(t, mock)
+
+			flowID := mustExchangeTestOIDCUserCode(t, mock, userCode)
+
+			if tc.setup != nil {
+				tc.setup(t, mock, userCode, flowID)
+			}
+
+			body := fmt.Sprintf(`{"subflow":"device_authorization","flow_id":"%s","client_id":"%s","consent":true}`, flowID, testOIDCDeviceCodeID)
+
+			if tc.body != nil {
+				body = tc.body(flowID)
+			}
+
+			mock.Ctx.Request.SetBodyString(body)
+
+			OAuth2ConsentPOST(mock.Ctx)
+
+			mock.Assert200KO(t, messageOperationFailed)
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.msg, tc.err)
+		})
+	}
+}
+
+func TestOAuth2ConsentPOSTShouldRejectDeviceAuthorizationConsentSessionWithoutSubflow(t *testing.T) {
+	testCases := []struct {
+		name    string
+		subflow string
+	}{
+		{"ShouldRejectWithoutSubflow", ""},
+		{"ShouldRejectWithUnknownSubflow", `"subflow":"not-a-subflow",`},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := newTestOIDCDeviceCodeConsentMock(t, 1, nil)
+			defer mock.Close()
+
+			userCode := mustGetTestOIDCUserCode(t, mock)
+
+			flowID := mustExchangeTestOIDCUserCode(t, mock, userCode)
+
+			mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{%s"flow_id":"%s","client_id":"%s","consent":true}`, tc.subflow, flowID, testOIDCDeviceCodeID))
+
+			OAuth2ConsentPOST(mock.Ctx)
+
+			mock.Assert200KO(t, messageOperationFailed)
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session belongs to the Device Authorization Flow", nil)
+
+			consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
+			require.NoError(t, err)
+
+			assert.False(t, consent.Responded())
+			assert.False(t, consent.Authorized)
+
+			device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
+
+			assert.Equal(t, model.OAuth2DeviceCodeStatusClaimed, device.Status)
+			assert.True(t, device.Active)
+		})
+	}
+}
+
+func TestOAuth2ConsentPOSTDeviceAuthorizationDecision(t *testing.T) {
+	testCases := []struct {
+		name    string
+		consent bool
+		status  int
+		active  bool
+	}{
+		{"ShouldGrantConsent", true, model.OAuth2DeviceCodeStatusClaimed, true},
+		{"ShouldRejectConsent", false, model.OAuth2DeviceCodeStatusDenied, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := newTestOIDCDeviceCodeConsentMock(t, 1, nil)
+			defer mock.Close()
+
+			userCode := mustGetTestOIDCUserCode(t, mock)
+
+			flowID := mustExchangeTestOIDCUserCode(t, mock, userCode)
+
+			expectTestOIDCDeviceCodeConsentTX(mock, true)
+
+			mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"subflow":"device_authorization","flow_id":"%s","client_id":"%s","consent":%t}`, flowID, testOIDCDeviceCodeID, tc.consent))
+
+			OAuth2ConsentPOST(mock.Ctx)
+
+			body := oidc.ConsentPostResponseBody{}
+
+			require.Contains(t, string(mock.Ctx.Response.Body()), `"status":"OK"`)
+			mock.GetResponseData(t, &body)
+
+			assert.Equal(t, flowID.String(), body.FlowID)
+			assert.Empty(t, body.RedirectURI)
+
+			consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
+			require.NoError(t, err)
+
+			assert.True(t, consent.Responded())
+			assert.Equal(t, tc.consent, consent.Authorized)
+
+			device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
+
+			assert.Equal(t, tc.status, device.Status)
+			assert.Equal(t, tc.active, device.Active)
+			assert.Equal(t, uuid.NullUUID{UUID: flowID, Valid: true}, device.ChallengeID)
+		})
+	}
+}
+
+func TestOAuth2ConsentPOSTDeviceAuthorizationShouldRollBack(t *testing.T) {
+	testCases := []struct {
+		name    string
+		consent bool
+		setup   func(mock *mocks.MockAutheliaCtx)
+		msg     string
+	}{
+		{
+			name:    "ShouldHandleSaveConsentSessionResponseError",
+			consent: true,
+			setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().
+					SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), true).
+					Return(fmt.Errorf("error in db"))
+			},
+			msg: "Error occurred saving the consent session response to the database during the Consent Flow stage of the Device Authorization Flow",
+		},
+		{
+			name: "ShouldHandleDenyError",
+			setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().
+					DenyOAuth2DeviceCodeSession(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(fmt.Errorf("error in db"))
+			},
+			msg: "Error occurred denying the device code session during the Consent Flow stage of the Device Authorization Flow as it is no longer pending a decision",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+			defer mock.Close()
+
+			expectTestOIDCDeviceCodeConsentTX(mock, true)
+			expectTestOIDCDeviceCodeConsentTX(mock, false)
+
+			tc.setup(mock)
+
+			setupTestOIDCUserDetails(t, mock)
+
+			config := newTestOIDCConfig(t)
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCDeviceCodeStore(t, mock)
+			setupTestOIDCConsentStore(t, mock)
+			setupTestOIDCSubjectStore(t, mock)
+
+			userCode := mustGetTestOIDCUserCode(t, mock)
+
+			flowID := mustExchangeTestOIDCUserCodeWithoutTX(t, mock, userCode)
+
+			mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"subflow":"device_authorization","flow_id":"%s","client_id":"%s","consent":%t}`, flowID, testOIDCDeviceCodeID, tc.consent))
+
+			OAuth2ConsentPOST(mock.Ctx)
+
+			mock.Assert200KO(t, messageOperationFailed)
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.msg, "error in db")
+		})
+	}
+}
+
+func newTestOIDCDeviceCodeConsentMock(t *testing.T, level int, client *schema.IdentityProvidersOpenIDConnectClient) (mock *mocks.MockAutheliaCtx) {
+	t.Helper()
+
+	if level < 0 {
+		mock = mocks.NewMockAutheliaCtx(t)
+	} else {
+		mock = mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(level))
+	}
+
+	setupTestOIDCUserDetails(t, mock)
+
+	if client == nil {
+		value := newTestOIDCDeviceCodeClient(t)
+
+		client = &value
+	}
+
+	config := newTestOIDCConfig(t)
+	config.Clients = []schema.IdentityProvidersOpenIDConnectClient{*client}
+
+	setupTestOIDCProvider(t, mock, config)
+	setupTestOIDCDeviceCodeStore(t, mock)
+	setupTestOIDCConsentStore(t, mock)
+	setupTestOIDCSubjectStore(t, mock)
+
+	return mock
+}
+
+func mustExchangeTestOIDCUserCode(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string) (flowID uuid.UUID) {
+	t.Helper()
+
+	expectTestOIDCDeviceCodeConsentTX(mock, true)
+
+	return mustExchangeTestOIDCUserCodeWithoutTX(t, mock, userCode)
+}
+
+func mustExchangeTestOIDCUserCodeWithoutTX(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string) (flowID uuid.UUID) {
+	t.Helper()
+
+	mock.Ctx.Response.Reset()
+	mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"user_code":"%s"}`, userCode))
+
+	OAuth2ConsentUserCodePOST(mock.Ctx)
+
+	body := oidc.ConsentPostResponseBody{}
+
+	require.Contains(t, string(mock.Ctx.Response.Body()), `"status":"OK"`)
+	mock.GetResponseData(t, &body)
+
+	flowID = uuid.MustParse(body.FlowID)
+
+	mock.Ctx.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), assertTestOAuth2AuthorizationBindingCookie(t, mock))
+	mock.Ctx.Response.Reset()
+
+	return flowID
+}
+
+func mustLoadTestOIDCDeviceCodeSession(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string) (device *model.OAuth2DeviceCodeSession) {
+	t.Helper()
+
+	signature, err := mock.Ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(mock.Ctx, userCode)
+	require.NoError(t, err)
+
+	device, err = mock.Ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(mock.Ctx, signature)
+	require.NoError(t, err)
+
+	return device
+}
+
+func mutateTestOIDCDeviceCodeSession(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, mutate func(device *model.OAuth2DeviceCodeSession)) {
+	t.Helper()
+
+	device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
+
+	mutate(device)
+
+	require.NoError(t, mock.Ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSession(mock.Ctx, device))
+}
+
+type testOIDCDeviceCodeConsentTXKey struct{}
+
+func expectTestOIDCDeviceCodeConsentTX(mock *mocks.MockAutheliaCtx, committed bool) (tx context.Context) {
+	tx = context.WithValue(mock.Ctx, testOIDCDeviceCodeConsentTXKey{}, true)
+
+	mock.StorageMock.EXPECT().
+		BeginTX(gomock.Any()).
+		Return(tx, nil)
+
+	if committed {
 		mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSession(gomock.Any(), gomock.Any()).
+			Commit(gomock.Eq(tx)).
 			Return(nil)
-
+	} else {
 		mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), false).
-			DoAndReturn(func(_ any, _ any, _ bool) error {
-				saved = true
+			Rollback(gomock.Eq(tx)).
+			Return(nil)
+	}
 
-				return nil
-			})
-
-		userCode := mustGetTestOIDCUserCode(t, mock)
-
-		mock.Ctx.Response.Reset()
-		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"subflow":"device_authorization","client_id":"%s","consent":false,"user_code":"%s"}`, testOIDCDeviceCodeID, userCode))
-
-		OAuth2ConsentPOST(mock.Ctx)
-
-		body := oidc.ConsentPostResponseBody{}
-
-		mock.GetResponseData(t, &body)
-
-		require.True(t, saved)
-		assert.NotEmpty(t, body.FlowID)
-	})
+	return tx
 }

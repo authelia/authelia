@@ -90,11 +90,9 @@ var (
 )
 
 var (
-	regexpAuthorizationIssuerError          = regexp.MustCompile(`^Authorization Request could not be processed: `)
-	regexpAuthorizationRequestIDIssuerError = regexp.MustCompile(`^Authorization Request with id '[^']*' could not be processed: `)
-	regexpAuthorizationFailed               = regexp.MustCompile(`^Authorization Request .*(failed|could not be processed)`)
-	regexpAuthorizationPromptNoneAnonymous  = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is not logged in$`)
-	regexpAuthorizationFormError            = regexp.MustCompile(`^Authorization Request with id '[^']*' had an error parsing the form\.$`)
+	regexpAuthorizationIssuerError         = regexp.MustCompile(`^Authorization Request could not be processed: `)
+	regexpAuthorizationFailed              = regexp.MustCompile(`^Authorization Request .*(failed|could not be processed)`)
+	regexpAuthorizationPromptNoneAnonymous = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is not logged in$`)
 )
 
 var regexpConsentMalformedChallengeID = regexp.MustCompile(`error occurred parsing the consent id [(]challenge[)] 'not-a-uuid'`)
@@ -203,6 +201,8 @@ func newTestOAuth2Request(t *testing.T, method, uri string, values url.Values) (
 			r.URL.RawQuery = values.Encode()
 		}
 	}
+
+	r.Header.Set(headerSecFetchSite, "same-origin")
 
 	return httptest.NewRecorder(), r
 }
@@ -410,9 +410,9 @@ func setupTestOIDCConsentStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 	mock.StorageMock.EXPECT().
 		SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().
-		DoAndReturn(func(_ context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error) {
+		DoAndReturn(func(_ context.Context, consent *model.OAuth2ConsentSession, authorized bool) (err error) {
 			stored := *consent
-			stored.Authorized = !rejection
+			stored.Authorized = authorized
 
 			consents[consent.ChallengeID] = &stored
 
@@ -511,6 +511,8 @@ func newTestOIDCUserDetails() *authentication.UserDetails {
 		Groups:      []string{"dev"},
 	}
 }
+
+const testOAuth2AuthorizationBindingAnotherUserAgent = "YXV0aGVsaWEtb2F1dGgyLWJpbmRpbmctYW5vdGhlciE"
 
 func setupTestOIDCUserDetails(t *testing.T, mock *mocks.MockAutheliaCtx) {
 	t.Helper()
@@ -613,11 +615,26 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
 			stored := bySignature(session.Signature)
 
-			if stored == nil || (stored.Status != model.OAuth2DeviceCodeStatusNew && stored.Status != model.OAuth2DeviceCodeStatusClaimed) {
+			if stored == nil || stored.Status != model.OAuth2DeviceCodeStatusClaimed || stored.ChallengeID != session.ChallengeID {
 				return storage.ErrNoRowsAffected
 			}
 
 			store(session)
+
+			return nil
+		})
+
+	mock.StorageMock.EXPECT().
+		ClaimOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+			stored := bySignature(session.Signature)
+
+			if stored == nil || stored.Status != model.OAuth2DeviceCodeStatusNew || stored.ChallengeID.Valid || !stored.Active || stored.Revoked {
+				return storage.ErrNoRowsAffected
+			}
+
+			stored.ChallengeID, stored.Status, stored.Active = session.ChallengeID, session.Status, session.Active
 
 			return nil
 		})
@@ -633,6 +650,40 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 			}
 
 			return nil, sql.ErrNoRows
+		})
+
+	setupTestOIDCDeviceCodeStoreDecision(mock, sessions, bySignature)
+}
+
+func setupTestOIDCDeviceCodeStoreDecision(mock *mocks.MockAutheliaCtx, sessions map[string]*model.OAuth2DeviceCodeSession, bySignature func(signature string) *model.OAuth2DeviceCodeSession) {
+	mock.StorageMock.EXPECT().
+		LoadOAuth2DeviceCodeSessionByChallengeID(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, challengeID uuid.UUID) (session *model.OAuth2DeviceCodeSession, err error) {
+			for _, stored := range sessions {
+				if stored.ChallengeID.Valid && stored.ChallengeID.UUID == challengeID && !stored.Revoked {
+					value := *stored
+
+					return &value, nil
+				}
+			}
+
+			return nil, sql.ErrNoRows
+		})
+
+	mock.StorageMock.EXPECT().
+		DenyOAuth2DeviceCodeSession(gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, signature string, challengeID uuid.UUID) (err error) {
+			stored := bySignature(signature)
+
+			if stored == nil || stored.Status != model.OAuth2DeviceCodeStatusClaimed || !stored.ChallengeID.Valid || stored.ChallengeID.UUID != challengeID || !stored.Active || stored.Revoked {
+				return storage.ErrNoRowsAffected
+			}
+
+			stored.Status, stored.Active = model.OAuth2DeviceCodeStatusDenied, false
+
+			return nil
 		})
 }
 
@@ -657,6 +708,24 @@ func mustGetTestOIDCUserCode(t *testing.T, mock *mocks.MockAutheliaCtx) (userCod
 	require.NotEmpty(t, userCode)
 
 	return userCode
+}
+
+func mustClaimTestOIDCDeviceCodeSession(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, consent *model.OAuth2ConsentSession) {
+	t.Helper()
+
+	signature, err := mock.Ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(mock.Ctx, userCode)
+	require.NoError(t, err)
+
+	device, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(mock.Ctx, signature)
+	require.NoError(t, err)
+
+	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
+	device.Status = model.OAuth2DeviceCodeStatusClaimed
+
+	require.NoError(t, mock.Ctx.Providers.StorageProvider.ClaimOAuth2DeviceCodeSession(mock.Ctx, device))
+
+	consent.Authorized = true
+	consent.SetRespondedAt(mock.Ctx.GetClock().Now(), 0)
 }
 
 func mustGetTestOIDCAuthorizationCode(t *testing.T, mock *mocks.MockAutheliaCtx, values url.Values) (code string) {

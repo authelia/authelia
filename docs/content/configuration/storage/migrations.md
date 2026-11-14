@@ -65,7 +65,10 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       28       |     4.39.22      |           Fix the Access Token Session Signature column length in the Refresh Token Session Table            |
 |       29       |     4.39.23      |                       OAuth 2.0 Resource Indicators recorded separately from Audience                        |
 |       30       |      4.40.0      |                    Fix the Request Method column length in the Authentication Logs Table                     |
+|       31       |      4.40.0      |                                  Sessions stored in the SQL storage backend                                  |
 |       32       |      4.40.0      |         OAuth 2.0 replay protection for client assertions, PKCE challenges, nonces, and device codes         |
 |       33       |      4.40.0      |                                          Two-Factor Recovery Codes                                           |
+|       34       |      4.40.0      |                                         External Identity Providers                                          |
+|       35       |      4.40.0      |                    OAuth 2.0 Consent Sessions bound to the User Agent which created them                     |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
