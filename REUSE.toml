@@ -14,7 +14,7 @@ path = [
 	".buildkite/annotations/bypass",
 	".buildkite/annotations/draft",
 	".buildkite/annotations/merge-queue",
-	".renovaterc",
+	".renovaterc.json",
 	"CITATION.cff",
 	"cmd/authelia-gen/templates/dot_commitlintrc.cjs.tmpl",
 	"cmd/dev/**",
@@ -26,6 +26,7 @@ path = [
 	"docs/static/images/contributors/**",
 	"docs/static/keys/**",
 	"docs/static/schemas/webhooks/**",
+	"internal/authentication/users_database.template.json",
 	"internal/configuration/test_resources/**",
 	"internal/storage/migrations/**",
 	"internal/suites/common/pki/**",
@@ -40,12 +41,6 @@ path = "web/src/components/UI/**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2016 shadcn"
 SPDX-License-Identifier = "MIT"
-
-[[annotations]]
-path = "internal/session/memory/stdlib.go"
-precedence = "override"
-SPDX-FileCopyrightText = "2016 The Go Authors"
-SPDX-License-Identifier = "BSD-3-Clause"
 
 [[annotations]]
 path = [

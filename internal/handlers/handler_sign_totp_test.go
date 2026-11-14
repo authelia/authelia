@@ -18,6 +18,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -25,6 +26,52 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
+
+func TestRunHandlerSignTOTPSuite(t *testing.T) {
+	suite.Run(t, new(HandlerSignTOTPSuite))
+}
+
+func TestSignTOTPHandleGetSessionError(t *testing.T) {
+	testCases := []struct {
+		name     string
+		handler  middlewares.RequestHandler
+		message  middlewares.ErrorMessage
+		expected string
+	}{
+		{
+			"ShouldHandleGET",
+			TimeBasedOneTimePasswordGET,
+			messageMFAValidationFailed,
+			"Error occurred retrieving TOTP configuration: error occurred retrieving the user session data",
+		},
+		{
+			"ShouldHandlePOST",
+			TimeBasedOneTimePasswordPOST,
+			messageMFAValidationFailed,
+			"Error occurred validating a TOTP authentication: error occurred retrieving the user session data",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Clock.Set(time.Unix(1701295903, 0))
+			mock.Ctx.Providers.Clock = &mock.Clock
+			mock.Ctx.Configuration.TOTP = schema.DefaultTOTPConfiguration
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
+
+			tc.handler(mock.Ctx)
+
+			assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, fmt.Sprintf(`{"status":"KO","code":"%s","message":"%s"}`, tc.message.Code, tc.message.Message), string(mock.Ctx.Response.Body()))
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.expected, "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
+		})
+	}
+}
 
 type HandlerSignTOTPSuite struct {
 	suite.Suite
@@ -39,7 +86,7 @@ func (s *HandlerSignTOTPSuite) SetupTest() {
 
 	userSession.Username = testUsername
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 
 	s.mock.Clock.Set(time.Unix(1701295903, 0))
 	s.mock.Ctx.Providers.Clock = &s.mock.Clock
@@ -70,6 +117,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -121,6 +172,10 @@ func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -150,7 +205,7 @@ func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
@@ -169,6 +224,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -224,6 +283,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -285,6 +348,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURLDisableReuse
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -333,6 +400,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -382,6 +453,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -436,6 +511,10 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleErrorSaveHistory() {
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -449,9 +528,43 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleErrorSaveHistory() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.AssertLastLogMessage("Error occurred validating a TOTP authentication for user 'john': error occurred saving the TOTP history to the storage backend", "bad stuff")
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldNotSaveHistoryWhenUserDetailsFail() {
+	config := model.TOTPConfiguration{ID: 1, Username: testUsername, Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+
+	gomock.InOrder(
+		s.mock.StorageMock.
+			EXPECT().
+			LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+			Return(&config, nil),
+		s.mock.TOTPMock.
+			EXPECT().
+			Validate(s.mock.Ctx, gomock.Eq("123456"), gomock.Eq(&config)).
+			Return(true, getStepTOTP(s.mock.Ctx, -1), nil),
+		s.mock.StorageMock.
+			EXPECT().
+			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
+			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(nil, errors.New("bad stuff")),
+	)
+
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
+		Token: "123456",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
+
+	s.AssertLastLogMessage("Error occurred validating a TOTP authentication for user 'john': error occurred fetching user details for user", "bad stuff")
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldHandleErrorExistsHistory() {
@@ -479,7 +592,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleErrorExistsHistory() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.AssertLastLogMessage("Error occurred validating a TOTP authentication for user 'john': error occurred checking the TOTP history", "oh my")
 }
@@ -509,7 +622,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleExistsHistory() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.AssertLastLogMessage("Error occurred validating a TOTP authentication for user 'john': error occurred satisfying security policies", "the user has already used this code recently and will not be permitted to reuse it")
 }
@@ -521,7 +634,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleAnonymous() {
 
 	us.Username = ""
 
-	s.Require().NoError(s.mock.Ctx.SaveSession(us))
+	s.Require().NoError(s.mock.Ctx.SaveSession(&us))
 
 	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token: "abc",
@@ -530,7 +643,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleAnonymous() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.AssertLastLogMessage("Error occurred validating a TOTP authentication", "user is anonymous")
 }
@@ -542,10 +655,10 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETAnonymous() {
 
 	us.Username = ""
 
-	s.Require().NoError(s.mock.Ctx.SaveSession(us))
+	s.Require().NoError(s.mock.Ctx.SaveSession(&us))
 
 	TimeBasedOneTimePasswordGET(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.AssertLastLogMessage("Error occurred retrieving TOTP configuration", "user is anonymous")
 }
@@ -559,7 +672,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETErrorLoadConfiguration() {
 	)
 
 	TimeBasedOneTimePasswordGET(s.mock.Ctx)
-	s.mock.Assert500KO(s.T(), "Could not find TOTP Configuration for user.")
+	s.mock.Assert500KO(s.T(), messageOperationFailed)
 
 	s.AssertLastLogMessage("Error occurred retrieving TOTP configuration for user 'john': error occurred retrieving the configuration from the storage backend", "nah")
 }
@@ -576,7 +689,7 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETErrorLoadConfigurationNotFound
 	)
 
 	TimeBasedOneTimePasswordGET(s.mock.Ctx)
-	s.mock.Assert404KO(s.T(), "Could not find TOTP Configuration for user.")
+	s.mock.Assert404KO(s.T(), messageTOTPConfigurationNotFound)
 
 	s.AssertLastLogMessage("Error occurred retrieving TOTP configuration for user 'john'", "no TOTP configuration for user")
 	s.mock.SetLogLevel(level)
@@ -604,7 +717,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidValue() {
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
@@ -648,7 +761,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBoolean() {
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
@@ -689,7 +802,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErr() {
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
@@ -705,7 +818,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidJSON() {
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
@@ -728,6 +841,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnErrorOnInvalidBooleanMarkErrSu
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -787,7 +904,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidConfig() {
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert403KO(s.T(), messageMFAValidationFailed)
 
 	s.NotEqual(
 		res[0][1],
@@ -807,7 +924,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidTokenLength() {
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.AssertKO(s.T(), "Authentication failed, please retry later.", fasthttp.StatusBadRequest)
+	s.mock.AssertKO(s.T(), messageMFAValidationFailed, fasthttp.StatusBadRequest)
 
 	s.NotEqual(
 		res[0][1],
@@ -834,6 +951,10 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleExistsHistoryWithDisableReusePoli
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -878,6 +999,10 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleFlow() {
 			EXPECT().
 			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
 			Return(false, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
@@ -908,50 +1033,4 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleFlow() {
 	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
 
 	s.AssertLastLogMessage("Failed to find flow handler for the given flow parameters", "")
-}
-
-func TestRunHandlerSignTOTPSuite(t *testing.T) {
-	suite.Run(t, new(HandlerSignTOTPSuite))
-}
-
-func TestSignTOTPHandleGetSessionError(t *testing.T) {
-	testCases := []struct {
-		name     string
-		handler  middlewares.RequestHandler
-		message  string
-		expected string
-	}{
-		{
-			"ShouldHandleGET",
-			TimeBasedOneTimePasswordGET,
-			"Authentication failed, please retry later.",
-			"Error occurred retrieving TOTP configuration: error occurred retrieving the user session data",
-		},
-		{
-			"ShouldHandlePOST",
-			TimeBasedOneTimePasswordPOST,
-			"Authentication failed, please retry later.",
-			"Error occurred validating a TOTP authentication: error occurred retrieving the user session data",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			mock := mocks.NewMockAutheliaCtx(t)
-			defer mock.Close()
-
-			mock.Clock.Set(time.Unix(1701295903, 0))
-			mock.Ctx.Providers.Clock = &mock.Clock
-			mock.Ctx.Configuration.TOTP = schema.DefaultTOTPConfiguration
-
-			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
-
-			tc.handler(mock.Ctx)
-
-			assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
-			assert.Equal(t, fmt.Sprintf(`{"status":"KO","message":"%s"}`, tc.message), string(mock.Ctx.Response.Body()))
-
-			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.expected, "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
-		})
-	}
 }

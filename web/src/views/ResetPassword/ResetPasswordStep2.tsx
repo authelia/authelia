@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import PasswordMeter from "@components/PasswordMeter";
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import { Button } from "@components/UI/Button";
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
@@ -17,10 +18,13 @@ import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
+import { useRateLimit } from "@hooks/RateLimit";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
+import { RateLimitedError } from "@services/RateLimit";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+import { ServiceError } from "@services/ServiceError";
 
 const uninitiated = Symbol("uninitiated");
 
@@ -52,20 +56,27 @@ const ResetPasswordStep2 = function () {
     const processToken = useQueryParam(IdentityToken);
 
     const resetInitiatedRef = useRef<null | string | typeof uninitiated | undefined>(uninitiated);
+    const [attempt, setAttempt] = useState(0);
+    const attemptInitiatedRef = useRef(attempt);
+
+    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() => setAttempt((value) => value + 1));
 
     const handleRateLimited = useCallback(
-        (_retryAfter: number) => {
-            createErrorNotification(translate("You have made too many requests")); // TODO: Do we want to add the amount of seconds a user should retry in the message?
+        (retryAfter: number) => {
+            triggerRateLimit(retryAfter);
+
+            createErrorNotification(translate("You have made too many requests"));
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, triggerRateLimit],
     );
 
     useEffect(() => {
-        if (resetInitiatedRef.current === processToken) {
+        if (resetInitiatedRef.current === processToken && attemptInitiatedRef.current === attempt) {
             return;
         }
 
         resetInitiatedRef.current = processToken;
+        attemptInitiatedRef.current = attempt;
 
         const submitReset = async () => {
             if (!processToken) {
@@ -75,17 +86,17 @@ const ResetPasswordStep2 = function () {
             }
 
             try {
-                const response = await completeResetPasswordProcess(processToken);
-
-                if (response?.limited) {
-                    handleRateLimited(response.retryAfter);
-                    return;
-                }
+                await completeResetPasswordProcess(processToken);
 
                 const policy = await getPasswordPolicyConfiguration();
                 setPPolicy(policy);
                 setFormDisabled(false);
             } catch (err) {
+                if (err instanceof RateLimitedError) {
+                    handleRateLimited(err.retryAfter);
+                    return;
+                }
+
                 console.error(err);
                 createErrorNotification(
                     translate("There was an issue completing the process the verification token might have expired"),
@@ -95,7 +106,7 @@ const ResetPasswordStep2 = function () {
         };
 
         submitReset().catch(console.error);
-    }, [processToken, createErrorNotification, translate, handleRateLimited]);
+    }, [attempt, processToken, createErrorNotification, translate, handleRateLimited]);
 
     const doResetPassword = async () => {
         setPassword1("");
@@ -129,7 +140,10 @@ const ResetPasswordStep2 = function () {
             setTimeout(() => navigate(IndexRoute), 1500);
         } catch (err) {
             console.error(err);
-            if ((err as Error).message.includes("0000052D.") || (err as Error).message.includes("policy")) {
+            if (
+                err instanceof ServiceError &&
+                (err.code === "password_policy" || err.code === "password_backend_complexity")
+            ) {
                 createErrorNotification(
                     translate("Your supplied password does not meet the password policy requirements"),
                 );
@@ -217,6 +231,7 @@ const ResetPasswordStep2 = function () {
                             </Button>
                         </div>
                     </div>
+                    <RateLimitCountdown secondsRemaining={secondsRemaining} />
                 </div>
             </div>
         </MinimalLayout>

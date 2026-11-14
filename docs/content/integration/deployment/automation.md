@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Automation"
-description: "Automated Deployment of Authelia."
+description: "A guide on automating the deployment of Authelia covering static YAML configuration, environment variables, secrets, and integration with tools like Ansible."
 summary: "Authelia has several features which make automation easy."
 date: 2024-03-14T06:00:14+11:00
 draft: false

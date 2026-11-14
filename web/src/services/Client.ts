@@ -4,14 +4,8 @@
 
 import axios from "axios";
 
-import {
-    RateLimitedData,
-    ServiceResponse,
-    hasServiceError,
-    toData,
-    toDataRateLimited,
-    validateStatusTooManyRequests,
-} from "@services/Api";
+import { ServiceResponse, hasServiceError, toData } from "@services/Api";
+import { ServiceError } from "@services/ServiceError";
 
 export async function PutWithOptionalResponse<T = undefined>(
     path: string,
@@ -21,7 +15,9 @@ export async function PutWithOptionalResponse<T = undefined>(
     const res = await axios.put<ServiceResponse<T>>(path, body, { signal });
 
     if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(`Failed PUT to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
+        const { code, message } = hasServiceError(res);
+
+        throw new ServiceError(`Failed PUT to ${path}. Code: ${res.status}. Message: ${message}`, res.status, code);
     }
 
     return toData<T>(res);
@@ -35,31 +31,12 @@ export async function PostWithOptionalResponse<T = undefined>(
     const res = await axios.post<ServiceResponse<T>>(path, body, { signal });
 
     if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
+        const { code, message } = hasServiceError(res);
+
+        throw new ServiceError(`Failed POST to ${path}. Code: ${res.status}. Message: ${message}`, res.status, code);
     }
 
     return toData<T>(res);
-}
-
-export async function PostWithOptionalResponseRateLimited<T = undefined>(
-    path: string,
-    body?: any,
-    signal?: AbortSignal,
-): Promise<RateLimitedData<T> | undefined> {
-    const res = await axios.post<ServiceResponse<T>>(path, body, {
-        signal,
-        validateStatus: validateStatusTooManyRequests,
-    });
-
-    if (res.status !== 200 || hasServiceError(res).errored) {
-        if (res.status === 429) {
-            return toDataRateLimited<T>(res);
-        }
-
-        throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
-    }
-
-    return toDataRateLimited<T>(res);
 }
 
 export async function DeleteWithOptionalResponse<T = undefined>(
@@ -70,7 +47,9 @@ export async function DeleteWithOptionalResponse<T = undefined>(
     const res = await axios.delete<ServiceResponse<T>>(path, { data: body, signal });
 
     if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(`Failed DELETE to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
+        const { code, message } = hasServiceError(res);
+
+        throw new ServiceError(`Failed DELETE to ${path}. Code: ${res.status}. Message: ${message}`, res.status, code);
     }
 
     return toData<T>(res);
@@ -99,8 +78,10 @@ export async function Put<T>(path: string, body?: any, signal?: AbortSignal) {
 export async function Get<T = undefined>(path: string, signal?: AbortSignal): Promise<T> {
     const res = await axios.get<ServiceResponse<T>>(path, { signal });
 
-    if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(`Failed GET from ${path}. Code: ${res.status}.`);
+    const { code, errored } = hasServiceError(res);
+
+    if (res.status !== 200 || errored) {
+        throw new ServiceError(`Failed GET from ${path}. Code: ${res.status}.`, res.status, code);
     }
 
     const d = toData<T>(res);
@@ -115,8 +96,10 @@ export async function Get<T = undefined>(path: string, signal?: AbortSignal): Pr
 export async function GetWithOptionalData<T = undefined>(path: string, signal?: AbortSignal): Promise<null | T> {
     const res = await axios.get<ServiceResponse<T>>(path, { signal });
 
-    if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(`Failed GET from ${path}. Code: ${res.status}.`);
+    const { code, errored } = hasServiceError(res);
+
+    if (res.status !== 200 || errored) {
+        throw new ServiceError(`Failed GET from ${path}. Code: ${res.status}.`, res.status, code);
     }
 
     const d = toData<T>(res);

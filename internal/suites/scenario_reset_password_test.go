@@ -64,6 +64,10 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "abc", false, BaseDomain, "")
 
+	// The sign in response, and the session cookie it sets, is held back by the timing attack delay. Logging out before
+	// it arrives destroys the session the browser had before signing in, and the cookie then signs it back in.
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+
 	s.doLogout(s.T(), s.Context(ctx))
 
 	s.doResetPassword(s.T(), s.Context(ctx), "john", "password", "password", false)

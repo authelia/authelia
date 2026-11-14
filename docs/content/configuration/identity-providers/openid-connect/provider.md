@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "OpenID Connect 1.0 Provider"
-description: "OpenID Connect 1.0 Provider Configuration"
+description: "Configuring the Authelia OpenID Connect 1.0 Provider including issuer settings, signing keys, CORS policy, and all available provider configuration opts."
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure this."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -83,6 +83,10 @@ identity_providers:
     discovery_signed_response_alg: 'none'
     discovery_signed_response_key_id: ''
     require_pushed_authorization_requests: false
+    require_signed_request_object: false
+    audience_strategy: 'exact'
+    resource_strategy: 'exact'
+    enable_client_assertion_legacy_audience: false
     authorization_policies:
       policy_name:
         default_policy: 'two_factor'
@@ -97,6 +101,7 @@ identity_providers:
       authorize_code: '1m'
       id_token: '1h'
       refresh_token: '90m'
+      refresh_token_maximum: 0
     claims_policies:
       policy_name:
         id_token: []
@@ -111,7 +116,6 @@ identity_providers:
         claims: []
     cors:
       endpoints:
-        - 'authorization'
         - 'token'
         - 'revocation'
         - 'introspection'
@@ -230,6 +234,7 @@ The key _**MUST**_:
   - An RSA private key:
     - Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
     - Have a key size of at least 2048 bits.
+    - Have a public exponent which is odd and at least 3.
   - An ECDSA private key:
     - Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
     - Use one of the following elliptical curves:
@@ -237,6 +242,9 @@ The key _**MUST**_:
       - P-384.
       - P-512.
 - Include matching public key data if the [certificate_chain](#certificate_chain) is provided for the first certificate in the chain.
+- Be consistent, i.e. the public key data must be derived from the private key data.
+- Be usable with the configured [algorithm](#algorithm), for example the `ES384` algorithm requires an ECDSA key using
+  the P-384 curve.
 
 [PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
@@ -290,13 +298,19 @@ Allows additional debug messages to be sent to the clients.
 
 {{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
 Changing this value is generally discouraged, reducing it from the default can theoretically
-make certain scenarios less secure. It is highly encouraged that if your OpenID Connect 1.0 Relying Party does not send
-these parameters or sends parameters with a lower length than the default that they implement a change rather than
-changing this value.
+make certain scenarios less secure. It is highly encouraged that if your OpenID Connect 1.0 Relying Party sends these
+parameters with a lower length than the default that they implement a change rather than changing this value.
 {{< /callout >}}
 
-This controls the minimum length of the `nonce` and `state` parameters. Setting this value to `-1` completely disables
-this validation.
+This controls the minimum length of the `nonce` and `state` parameters when they are present in an authorization
+request. Setting this value to `-1` completely disables this validation.
+
+The `state` parameter is optional, as described in
+[RFC6749 Section 4.1.1](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1), and an authorization request
+which omits it is not rejected. Relying Parties which do not use [PKCE](#enforce_pkce) or the OpenID Connect 1.0
+`nonce` parameter should send a `state` parameter which is bound to the user-agent to protect against Cross-Site Request
+Forgery as described in [RFC9700 Section 4.7.1](https://datatracker.ietf.org/doc/html/rfc9700#section-4.7.1). The
+`nonce` parameter remains required where OpenID Connect 1.0 requires it, such as for the implicit and hybrid flows.
 
 ### enforce_pkce
 
@@ -311,8 +325,10 @@ interception attacks.
 [Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) enforcement policy: if specified, must be
 either `never`, `public_clients_only` or `always`.
 
-If set to `public_clients_only` (default), [PKCE] will be required for public clients using the
-[Authorization Code Flow].
+If set to `public_clients_only` (default), [PKCE] will be required for public clients and for clients with the `native`
+[application_type](clients.md#application_type) using the [Authorization Code Flow], as described by
+[RFC9700 Section 2.1.1](https://datatracker.ietf.org/doc/html/rfc9700#section-2.1.1) and
+[RFC8252 Section 8.1](https://datatracker.ietf.org/doc/html/rfc8252#section-8.1).
 
 When set to `always`, [PKCE] will be required for all clients using the Authorization Code flow.
 
@@ -389,6 +405,70 @@ Web Token is stored in the `signed_metadata` value using the compact encoding.
 {{< confkey type="boolean" default="false" required="no" >}}
 
 When enabled all authorization requests must use the [Pushed Authorization Requests] flow.
+
+### require_signed_request_object
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+A majority of clients will not support this option as it requires every client to sign its authorization requests.
+{{< /callout >}}
+
+When enabled all authorization requests for all clients must be provided as a signed
+[Request Object](../../../integration/openid-connect/introduction.md#request-object) via either the `request` or
+`request_uri` parameter as described in [JWT-Secured Authorization Request]. Unsigned Request Objects (i.e. those using
+the `none` algorithm) do not satisfy this requirement, and as such no client may be configured with a
+[request_object_signing_alg](clients.md#request_object_signing_alg) of `none` when this option is enabled.
+
+This applies to requests made to the [Pushed Authorization Requests] endpoint in addition to the Authorization Endpoint.
+To enforce it for individual clients see the client [require_signed_request_object](clients.md#require_signed_request_object)
+configuration option.
+
+### audience_strategy
+
+{{< confkey type="string" default="exact" required="no" >}}
+
+The strategy used to match the values a client requests via the `audience` parameter against the client
+[audience](clients.md#audience). This can be overridden for individual clients via the client
+[audience_strategy](clients.md#audience_strategy) option.
+
+|  Value   | Description                                                                                                                                                     |
+| :------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  exact   | Each requested value must exactly match a permitted value. Values may be any opaque string.                                                                     |
+| wildcard | As per `exact`, with the addition that a permitted absolute URI ending in `/*` also permits any requested URI which has the portion before the `*` as a prefix. |
+
+### resource_strategy
+
+{{< confkey type="string" default="exact" required="no" >}}
+
+The strategy used to match the [RFC8707] resource indicators a client requests via the `resource` parameter, as well as
+the URL of a request using [Bearer Authorization](../../../integration/openid-connect/oauth-2.0-bearer-token-usage.md),
+against the client [resource](clients.md#resource). This can be overridden for individual clients via the client
+[resource_strategy](clients.md#resource_strategy) option.
+
+|  Value   | Description                                                                                                                                                                                                                   |
+| :------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  exact   | Each requested resource must exactly match a permitted resource.                                                                                                                                                              |
+|  prefix  | Each requested resource must be a permitted resource or a path beneath one on a path segment boundary, i.e. `https://app.example.com/api` permits `https://app.example.com/api/users` but not `https://app.example.com/api2`. |
+| wildcard | As per `exact`, with the addition that a permitted resource ending in `/*` also permits any requested resource which has the portion before the `*` as a prefix.                                                              |
+
+Neither the `prefix` nor the `wildcard` strategy matches a requested resource which contains a dot segment, an encoded
+slash, or a fragment. The `prefix` strategy additionally requires the scheme, host, and query to be identical and never
+matches a requested resource which contains userinfo.
+
+### enable_client_assertion_legacy_audience
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option is generally discouraged. Clients should be configured to use the issuer identifier as the sole
+audience of their client assertions instead.
+{{< /callout >}}
+
+By default, and as required by [RFC10070], the `aud` claim of a client assertion used by the `client_secret_jwt` and
+`private_key_jwt` [token_endpoint_auth_method](clients.md#token_endpoint_auth_method) values must contain the issuer
+identifier as its sole value. Enabling this option permits the legacy behavior where the `aud` claim may instead
+contain the URL of the endpoint the client is authenticating to, and may contain more than one value.
 
 ### authorization_policies
 
@@ -509,6 +589,20 @@ A good starting point is 50% more or 30 minutes more (which ever is less) time t
 [access token](#access_token) lifespan and the [id token](#id_token) lifespan. For instance the default for all of these
 is 60 minutes, so the default refresh token lifespan is 90 minutes.
 
+#### refresh_token_maximum
+
+{{< confkey type="string,integer" syntax="duration" default="0 seconds" required="no" >}}
+
+The default maximum lifetime of the refresh tokens of a single authorization grant, measured from when the first refresh
+token of the grant is issued. When a refresh token is used to obtain a new refresh token, the new refresh token has the
+[refresh_token](#refresh_token) lifespan but never expires after this maximum, so a client which continually refreshes
+its tokens must eventually send the user through a new authorization. The value `0` applies no maximum.
+
+Setting a maximum is required for browser-based applications by
+[RFC10017 Section 6.3.2.3](https://datatracker.ietf.org/doc/html/rfc10017#section-6.3.2.3) and is recommended for all
+clients. A value lower than the [refresh_token](#refresh_token) lifespan shortens the lifespan of every refresh token
+of the grant.
+
 #### id_token
 
 {{< confkey type="string,integer" syntax="duration" default="1 hour" required="no" >}}
@@ -543,6 +637,10 @@ If a value is omitted it automatically uses the next value in the precedence tre
 The key for the custom lifespan itself is the name of the lifespan, which is used when configuring the client
 [lifespan](clients.md#lifespan) option. In the example we name the lifespan `lifespan_name`.
 
+The `refresh_token_maximum` option applies to the whole authorization grant rather than an individual token, so it is
+only available directly in the custom lifespan and not per grant type. When it is omitted or `0` the global
+[refresh_token_maximum](#refresh_token_maximum) value is used.
+
 ##### Example
 
 The following is an exhaustive example of all of the options available. Each of these options must follow all of the
@@ -555,6 +653,7 @@ identity_providers:
     lifespans:
       access_token: '1h'
       refresh_token: '90m'
+      refresh_token_maximum: '30d'
       id_token: '1h'
       authorize_code: '1m'
       device_code: '10m'
@@ -562,6 +661,7 @@ identity_providers:
         lifespan_name:
           access_token: '1h'
           refresh_token: '90m'
+          refresh_token_maximum: '7d'
           id_token: '1h'
           authorize_code: '1m'
           device_code: '10m'
@@ -700,12 +800,17 @@ you to configure the optional parts. We reply with CORS headers when the request
 A list of endpoints to configure with cross-origin resource sharing headers. It is recommended that the `userinfo`
 option is at least in this list. The potential endpoints which this can be enabled on are as follows:
 
-- authorization
+- device-authorization
 - pushed-authorization-request
 - token
 - revocation
 - introspection
 - userinfo
+
+The `authorization` endpoint is not permitted as Cross-Origin Resource Sharing must not be supported by the
+Authorization Endpoint as the client does not access this endpoint directly, instead the client redirects the user-agent
+to it, as described by [RFC9700 Section 2.6](https://datatracker.ietf.org/doc/html/rfc9700#section-2.6). If it is
+configured it is ignored and a warning is logged.
 
 #### allowed_origins
 
@@ -774,5 +879,8 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[RFC8707]: https://datatracker.ietf.org/doc/html/rfc8707
+[RFC10070]: https://datatracker.ietf.org/doc/html/rfc10070
+[JWT-Secured Authorization Request]: https://datatracker.ietf.org/doc/html/rfc9101
 [OpenID Certified™]: https://openid.net/certification/
 [OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

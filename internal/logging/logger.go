@@ -53,12 +53,20 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 	switch config.Format {
 	case FormatJSON:
-		logrus.SetFormatter(&logrus.JSONFormatter{})
+		logrus.SetFormatter(&logrus.JSONFormatter{DisableTimestamp: config.DisableTimestamp})
 	default:
-		logrus.SetFormatter(&logrus.TextFormatter{})
+		logrus.SetFormatter(&logrus.TextFormatter{DisableTimestamp: config.DisableTimestamp})
 	}
 
 	var writers []io.Writer
+
+	if logFile != nil {
+		if err = logFile.Close(); err != nil {
+			return err
+		}
+
+		logFile = nil
+	}
 
 	switch {
 	case config.FilePath != "":
@@ -68,16 +76,19 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 			writers = append(writers, os.Stdout)
 		}
 
-		logFile = NewFile(config.FilePath)
+		file := NewFile(config.FilePath)
 
-		if err = logFile.Open(); err != nil {
+		if err = file.Open(); err != nil {
 			return err
 		}
 
+		logFile = file
+
 		if config.Format != FormatJSON {
 			logrus.SetFormatter(&logrus.TextFormatter{
-				DisableColors: true,
-				FullTimestamp: true,
+				DisableColors:    true,
+				FullTimestamp:    true,
+				DisableTimestamp: config.DisableTimestamp,
 			})
 		}
 

@@ -35,6 +35,14 @@ type Authz struct {
 	handleForbidden    HandlerAuthzForbidden
 
 	implementation AuthzImplementation
+
+	headers []AuthzHeader
+}
+
+// AuthzHeader represents a response header which is set from a resolved user attribute.
+type AuthzHeader struct {
+	Key       []byte
+	Attribute string
 }
 
 // HandlerAuthzUnauthorized is a Authz handler func that handles unauthorized responses.
@@ -45,7 +53,7 @@ type HandlerAuthzUnauthorized func(ctx AuthzContext, authn *Authn, redirectionUR
 type HandlerAuthzForbidden func(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
 
 // HandlerAuthzAuthorized is a Authz handler func that handles authorized responses.
-type HandlerAuthzAuthorized func(ctx AuthzContext, authn *Authn)
+type HandlerAuthzAuthorized func(ctx AuthzContext, headers []AuthzHeader, authn *Authn)
 
 // HandlerAuthzGetAutheliaURL is a Authz handler func that handles retrieval of the Portal URL.
 type HandlerAuthzGetAutheliaURL func(ctx AuthzContext) (portalURL *url.URL, err error)
@@ -82,7 +90,7 @@ type Authn struct {
 	Method   string
 	ClientID string
 
-	Details authentication.UserDetails
+	Details authentication.UserDetailsExtended
 	Level   authentication.Level
 	Object  authorization.Object
 	Type    AuthnType
@@ -112,6 +120,7 @@ type AuthzBuilder struct {
 	config         AuthzConfig
 	implementation AuthzImplementation
 	strategies     []AuthnStrategy
+	headers        map[string]schema.ServerEndpointsAuthzHeader
 
 	disableAccessDeniedRedirect bool
 }

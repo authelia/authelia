@@ -214,6 +214,17 @@ This subcommand allows rotation of the HMAC key used for one-time codes. In addi
 	cmdAutheliaStorageEncryptionRotateHMACOTCExample = `authelia storage encryption rotate hmac otc --config config.yml
 authelia storage encryption rotate hmac otc --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageEncryptionRotateHMACSessionShort = "Rotate the session HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionLong = `Rotate the session HMAC key.
+
+This subcommand allows rotation of the HMAC key used to sign session identifiers. In addition it truncates the 'session' table.
+
+Every user is signed out by this rotation as the session cookies they hold no longer resolve to a session. Sessions held by a cache provider are not truncated by this subcommand, however they are equally unreadable after it and are discarded when they expire.`
+
+	cmdAutheliaStorageEncryptionRotateHMACSessionExample = `authelia storage encryption rotate hmac session --config config.yml
+authelia storage encryption rotate hmac session --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 
 	cmdAutheliaStorageBansLong = `Manages user and ip bans.
@@ -278,24 +289,26 @@ This subcommand allows performing various tasks related to the opaque identifier
 
 	cmdAutheliaStorageUserIdentifiersExample = `authelia storage user identifiers --help`
 
-	cmdAutheliaStorageUserIdentifiersExportShort = "Export the identifiers to a YAML file"
+	cmdAutheliaStorageUserIdentifiersExportShort = "Export the identifiers to a file"
 
-	cmdAutheliaStorageUserIdentifiersExportLong = `Export the identifiers to a YAML file.
+	cmdAutheliaStorageUserIdentifiersExportLong = `Export the identifiers to a file.
 
-This subcommand allows exporting the opaque identifiers for users in order to back them up.`
+This subcommand allows exporting the opaque identifiers for users in order to back them up. The format is determined by
+the extension of the file; '.toml' is written as TOML, '.json' as JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserIdentifiersExportExample = `authelia storage user identifiers export
 authelia storage user identifiers export --file export.yml
 authelia storage user identifiers export --file export.yml --config config.yml
 authelia storage user identifiers export --file export.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserIdentifiersImportShort = "Import the identifiers from a YAML file"
+	cmdAutheliaStorageUserIdentifiersImportShort = "Import the identifiers from a file"
 
-	cmdAutheliaStorageUserIdentifiersImportLong = `Import the identifiers from a YAML file.
+	cmdAutheliaStorageUserIdentifiersImportLong = `Import the identifiers from a file.
 
-This subcommand allows you to import the opaque identifiers for users from a YAML file.
+This subcommand allows you to import the opaque identifiers for users from a file. The format is determined by the
+extension of the file; '.toml' is read as TOML, '.json' as JSON, and anything else as YAML.
 
-The YAML file can either be automatically generated using the authelia storage user identifiers export command, or
+The file can either be automatically generated using the authelia storage user identifiers export command, or
 manually provided the file is in the same format.`
 
 	cmdAutheliaStorageUserIdentifiersImportExample = `authelia storage user identifiers import
@@ -337,7 +350,8 @@ This subcommand allows interacting with WebAuthn credentials.`
 
 	cmdAutheliaStorageUserWebAuthnImportLong = `Perform imports of the WebAuthn credentials.
 
-This subcommand allows importing WebAuthn credentials from the YAML format.`
+This subcommand allows importing WebAuthn credentials. The format is determined by the extension of the file; '.toml'
+is read as TOML, '.json' as JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserWebAuthnImportExample = `authelia storage user webauthn export
 authelia storage user webauthn import --file authelia.export.webauthn.yml
@@ -348,7 +362,8 @@ authelia storage user webauthn import --file authelia.export.webauthn.yml --encr
 
 	cmdAutheliaStorageUserWebAuthnExportLong = `Perform exports of the WebAuthn credentials.
 
-This subcommand allows exporting WebAuthn credentials to various formats.`
+This subcommand allows exporting WebAuthn credentials to various formats. The format is determined by the extension of
+the file; '.toml' is written as TOML, '.json' as JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserWebAuthnExportExample = `authelia storage user webauthn export
 authelia storage user webauthn export --file authelia.export.webauthn.yml
@@ -428,7 +443,8 @@ authelia storage user totp delete john --encryption-key b3453fde-ecc2-4a1f-9422-
 
 	cmdAutheliaStorageUserTOTPImportLong = `Perform imports of the TOTP configurations.
 
-This subcommand allows importing TOTP configurations from the YAML format.`
+This subcommand allows importing TOTP configurations. The format is determined by the extension of the file; '.toml'
+is read as TOML, '.json' as JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserTOTPImportExample = `authelia storage user totp import authelia.export.totp.yml
 authelia storage user totp import --config config.yml authelia.export.totp.yml
@@ -438,7 +454,9 @@ authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707d
 
 	cmdAutheliaStorageUserTOTPExportLong = `Perform exports of the TOTP configurations.
 
-This subcommand allows exporting TOTP configurations to importable YAML files, or use the subcommands to export them to other non-importable formats.`
+This subcommand allows exporting TOTP configurations to importable files, or use the subcommands to export them to other
+non-importable formats. The format is determined by the extension of the file; '.toml' is written as TOML, '.json' as
+JSON, and anything else as YAML.`
 
 	cmdAutheliaStorageUserTOTPExportExample = `authelia storage user totp export --file example.yml
 authelia storage user totp export --config config.yml
@@ -564,7 +582,7 @@ This subcommand allows debugging the filtered YAML files with any of the availab
 command needs to be executed with the same environment variables and working path as when normally running Authelia to
 be useful.`
 
-	cmdAutheliaConfigTemplateExample = `authelia config template --config.experimental.filters=template --config=config.yml`
+	cmdAutheliaConfigTemplateExample = `authelia config template --config.filters=template --config=config.yml`
 
 	cmdAutheliaConfigValidateShort = "Check a configuration against the internal configuration validation mechanisms"
 
@@ -830,8 +848,17 @@ const (
 	cmdFlagNameConfig    = "config"
 	cmdFlagEnvNameConfig = "X_AUTHELIA_CONFIG"
 
-	cmdFlagNameConfigExpFilters = "config.experimental.filters"
-	cmdFlagEnvNameConfigFilters = "X_AUTHELIA_CONFIG_FILTERS"
+	cmdFlagNameConfigFilters          = "config.filters"
+	cmdFlagNameConfigExpFilters       = "config.experimental.filters"
+	cmdFlagNameConfigFiltersValues    = "config.filters.values"
+	cmdFlagEnvNameConfigFilters       = "X_AUTHELIA_CONFIG_FILTERS"
+	cmdFlagEnvNameConfigFiltersValues = "X_AUTHELIA_CONFIG_FILTERS_VALUES"
+
+	cmdFlagNameConfigFiltersTemplateDelimiterLeft    = "config.filters.template.delimiter.left"
+	cmdFlagEnvNameConfigFiltersTemplateLeftDelimiter = "X_AUTHELIA_CONFIG_FILTERS_TEMPLATE_DELIMITER_LEFT"
+
+	cmdFlagNameConfigFiltersTemplateDelimiterRight    = "config.filters.template.delimiter.right"
+	cmdFlagEnvNameConfigFiltersTemplateRightDelimiter = "X_AUTHELIA_CONFIG_FILTERS_TEMPLATE_DELIMITER_RIGHT"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
@@ -913,6 +940,13 @@ const (
 	prefixFilePassword = "authentication_backend.file.password"
 )
 
+// JSON Schema names for the export files, which must match the files published by authelia-gen.
+const (
+	jsonSchemaNameExportsTOTP        = "exports.totp"
+	jsonSchemaNameExportsWebAuthn    = "exports.webauthn"
+	jsonSchemaNameExportsIdentifiers = "exports.identifiers"
+)
+
 var (
 	errStorageSchemaOutdated     = errors.New("storage schema outdated")
 	errStorageSchemaIncompatible = errors.New("storage schema incompatible")
@@ -931,27 +965,29 @@ var (
 const (
 	helpTopicConfigFilters = `Configuration Filters are a system for templating configuration files.
 
-Using the --config.experimental.filters flag users can define multiple filters to apply to all configuration files that
-are loaded by Authelia. These filters are applied after loading the file data from the filesystem, but before they are
-parsed by the relevant file format parser.
+To configure a list of filters use the --config.filters flag or the X_AUTHELIA_CONFIG_FILTERS environment variable.
+Multiple filters can be specified which apply to all configuration files that are loaded by Authelia. These filters are
+applied after loading the file data from the filesystem, but before they are parsed by the relevant file format parser.
 
 The filters are processed in the order specified, and the content of each configuration file is logged as a base64 raw
 string when the log level is set to trace.
+
+To make values available to the filters you can use the --config.filters.values flag or the
+X_AUTHELIA_CONFIG_FILTERS_VALUES environment variable to specify the paths of one or more values files which will be
+parsed for this purpose. The supported file extensions are '.yml', '.yaml', '.json', and '.toml'. Multiple files are
+loaded in the order specified, and the values from later files are deep-merged over the values from earlier files. The
+values files are only loaded when one of the configured filters utilizes them, otherwise they're ignored and a warning
+is logged.
 
 The following filters are available:
 
 	template:
 
 		This filter uses the go template system to filter the file. In addition to the standard functions, several
-		custom functions exist to facilitate this process.
+		custom functions exist to facilitate this process. This filter has access to the data from the values files via
+		the '.Values' field, and the Authelia version and build metadata via the '.Authelia' field.
 
-		For a full list of functions see: https://www.authelia.com/reference/guides/templating/#functions
-
-	expand-env:
-
-		DEPRECATED: This filter expands environment variables in place where specified in the configuration. For example
-        the string ${DOMAIN_NAME} will be replaced with the value from the DOMAIN_NAME environment variable or an empty
-		string.`
+		For a full list of functions see: https://www.authelia.com/reference/guides/templating/#functions`
 
 	helpTopicConfig = `Configuration can be specified in multiple layers where each layer is a different source from
 the last. The layers are loaded in the order below where each layer potentially overrides the individual settings from

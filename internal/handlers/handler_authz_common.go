@@ -16,7 +16,7 @@ func handleAuthzUnauthorizedCommon(ctx AuthzContext, authn *Authn, redirectionUR
 }
 
 func handleAuthzForbiddenCommon(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
-	if redirectionURL == nil || authn.Type != AuthnTypeCookie || ctx.IsXHR() || !ctx.AcceptsMIME("text/html") {
+	if redirectionURL == nil || authn.Type != AuthnTypeCookie || !ctx.IsNavigation() {
 		ctx.ReplyForbidden()
 
 		return
@@ -49,19 +49,40 @@ func handleAuthzPortalURLFromQueryLegacy(ctx AuthzContext) (portalURL *url.URL, 
 	return parseAuthzPortalURL(ctx.GetRequestQueryArgValue(qryArgRD))
 }
 
-func handleAuthzAuthorizedStandard(ctx AuthzContext, authn *Authn) {
+func handleAuthzAuthorizedStandard(ctx AuthzContext, headers []AuthzHeader, authn *Authn) {
 	ctx.ReplyStatusCode(fasthttp.StatusOK)
 
-	if authn.Details.Username != "" {
-		ctx.SetResponseHeaderValue(headerRemoteUser, authn.Details.Username)
-		ctx.SetResponseHeaderValue(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
-		ctx.SetResponseHeaderValue(headerRemoteName, authn.Details.DisplayName)
+	if authn.Details.GetUsername() == "" {
+		return
+	}
 
-		switch len(authn.Details.Emails) {
+	resolver, updated := ctx.GetProviderUserAttributeResolver(), ctx.GetClock().Now()
+
+	for _, header := range headers {
+		object, ok := resolver.Resolve(header.Attribute, &authn.Details, updated)
+		if !ok {
+			ctx.SetResponseHeaderValue(header.Key, "")
+
+			continue
+		}
+
+		ctx.SetResponseHeaderValue(header.Key, authzHeaderValue(object))
+	}
+}
+
+func handleAuthzAuthorizedLegacy(ctx AuthzContext, _ []AuthzHeader, authn *Authn) {
+	ctx.ReplyStatusCode(fasthttp.StatusOK)
+
+	if authn.Details.GetUsername() != "" {
+		ctx.SetResponseHeaderValue(headerRemoteUser, authn.Details.GetUsername())
+		ctx.SetResponseHeaderValue(headerRemoteGroups, strings.Join(authn.Details.GetGroups(), ","))
+		ctx.SetResponseHeaderValue(headerRemoteName, authn.Details.GetDisplayName())
+
+		switch emails := authn.Details.GetEmails(); len(emails) {
 		case 0:
 			ctx.SetResponseHeaderValue(headerRemoteEmail, "")
 		default:
-			ctx.SetResponseHeaderValue(headerRemoteEmail, authn.Details.Emails[0])
+			ctx.SetResponseHeaderValue(headerRemoteEmail, emails[0])
 		}
 	}
 }

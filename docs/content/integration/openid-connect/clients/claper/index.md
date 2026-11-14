@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Claper"
-description: "Integrating Claper with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Claper with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-01-13T08:35:59+11:00
 draft: false
@@ -72,6 +72,7 @@ identity_providers:
         client_name: 'Claper'
         client_secret: '$plaintext$insecure_secret'
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pushed_authorization_requests: true
         require_pkce: true

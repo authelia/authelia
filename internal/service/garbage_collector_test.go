@@ -293,7 +293,7 @@ func TestGarbageCollectorServiceCancelsProviderContext(t *testing.T) {
 
 	service.Shutdown()
 
-	<-done
+	require.NoError(t, <-done)
 
 	assert.Error(t, provider.Context().Err())
 }

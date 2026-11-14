@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Wapy.dev"
-description: "Integrating Wapy.dev with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Wapy.dev with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-12-09T19:19:00+01:00
 draft: false
@@ -63,6 +63,7 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier_uri: ''
         public: false
+        application_type: 'web'
         redirect_uris:
           - 'https://wapy.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/oauth2/callback/authelia'
         audience: []

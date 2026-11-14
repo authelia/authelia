@@ -1,8 +1,7 @@
 import { type ComponentProps } from "react";
 
 import { Separator as SeparatorPrimitive } from "@base-ui/react/separator";
-
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 function Separator({ className, orientation = "horizontal", ...props }: ComponentProps<typeof SeparatorPrimitive>) {
     return (

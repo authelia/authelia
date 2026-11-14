@@ -110,7 +110,7 @@ func TestNewProvidersBasic(t *testing.T) {
 	assert.Nil(t, providers.StorageProvider)
 	assert.Nil(t, providers.Authorizer)
 	assert.Nil(t, providers.UserProvider)
-	assert.Nil(t, providers.SessionProvider)
+	assert.Nil(t, providers.Session)
 	assert.Nil(t, providers.Notifier)
 	assert.Nil(t, providers.OpenIDConnect)
 	assert.Nil(t, providers.Metrics)
@@ -232,6 +232,31 @@ func TestNewProviders(t *testing.T) {
 			} else {
 				assert.Nil(t, providers.Metrics)
 			}
+		})
+	}
+}
+
+func TestFormatRequestMethod(t *testing.T) {
+	testCases := []struct {
+		name     string
+		method   string
+		expected string
+	}{
+		{"ShouldReturnRFC7231Method", fasthttp.MethodGet, fasthttp.MethodGet},
+		{"ShouldReturnRFC7231MethodPatch", fasthttp.MethodPatch, fasthttp.MethodPatch},
+		{"ShouldReturnRFC4918Method", schema.MethodPropFind, schema.MethodPropFind},
+		{"ShouldReturnIANAMethod", schema.MethodQuery, schema.MethodQuery},
+		{"ShouldReturnIANAMethodWithHyphen", schema.MethodVersionControl, schema.MethodVersionControl},
+		{"ShouldUppercaseLowercaseMethod", "get", fasthttp.MethodGet},
+		{"ShouldUppercaseMixedCaseMethod", "PropFind", schema.MethodPropFind},
+		{"ShouldReturnEmptyForUnknownMethod", "FOO", ""},
+		{"ShouldReturnEmptyForEmptyMethod", "", ""},
+		{"ShouldReturnEmptyForMethodWithWhitespace", " GET", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, formatRequestMethod(tc.method))
 		})
 	}
 }

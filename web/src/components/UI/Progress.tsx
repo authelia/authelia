@@ -1,8 +1,7 @@
 import { type ComponentProps } from "react";
 
 import { Progress as ProgressPrimitive } from "@base-ui/react/progress";
-
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 function Progress({
     className,

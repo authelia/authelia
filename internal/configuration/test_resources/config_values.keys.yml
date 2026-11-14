@@ -1,0 +1,10 @@
+# yamllint disable-file
+---
+Example:
+  1: 'one'
+  Nested:
+    2: 'two'
+    Keep: 'keep'
+List:
+  - 3: 'three'
+...

@@ -2,13 +2,16 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Fragment, useCallback, useEffect, useReducer, useRef } from "react";
+import { Fragment, useCallback, useEffect, useReducer } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import { useNotifications } from "@contexts/NotificationsContext";
+import { useRateLimit } from "@hooks/RateLimit";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
+import { RateLimitedError } from "@services/RateLimit";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
@@ -49,16 +52,9 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
     const [config, fetchConfig, , fetchConfigError] = useUserInfoTOTPConfiguration();
 
-    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
-
-    useEffect(() => {
-        return () => {
-            if (timeoutRateLimitRef.current !== null) {
-                clearTimeout(timeoutRateLimitRef.current);
-                timeoutRateLimitRef.current = null;
-            }
-        };
-    }, []);
+    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() =>
+        dispatch({ status: State.Idle, type: "setStatus" }),
+    );
 
     useEffect(() => {
         if (fetchConfigError) {
@@ -73,20 +69,13 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimitRef.current) {
-                clearTimeout(timeoutRateLimitRef.current);
-            }
-
             dispatch({ status: State.RateLimited, type: "setStatus" });
 
             createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
 
-            timeoutRateLimitRef.current = setTimeout(() => {
-                dispatch({ status: State.Idle, type: "setStatus" });
-                timeoutRateLimitRef.current = null;
-            }, retryAfter * 1000);
+            triggerRateLimit(retryAfter);
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, triggerRateLimit],
     );
 
     const handleSignIn = useCallback(
@@ -102,27 +91,22 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
             try {
                 dispatch({ status: State.InProgress, type: "setStatus" });
 
-                const res = await completeTOTPSignIn(passcodeStr);
+                await completeTOTPSignIn(passcodeStr);
 
-                if (res) {
-                    if (res.limited) {
-                        handleRateLimited(res.retryAfter);
-                    } else {
-                        dispatch({ status: State.Success, type: "setStatus" });
-                        onSecondFactorSuccess();
-                    }
+                dispatch({ status: State.Success, type: "setStatus" });
+                onSecondFactorSuccess();
+            } catch (err) {
+                if (err instanceof RateLimitedError) {
+                    handleRateLimited(err.retryAfter);
                 } else {
-                    createErrorNotification(translate("The One-Time Password might be wrong", { ns: "portal" }));
+                    console.error(err);
                     dispatch({ status: State.Failure, type: "setStatus" });
                 }
-            } catch (err) {
-                console.error(err);
-                dispatch({ status: State.Failure, type: "setStatus" });
             }
 
             dispatch({ passcode: "", type: "setPasscode" });
         },
-        [config, handleRateLimited, createErrorNotification, translate, onSecondFactorSuccess],
+        [config, handleRateLimited, onSecondFactorSuccess],
     );
 
     const handlePasscodeChange = useCallback(
@@ -153,6 +137,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
             ) : (
                 <LoadingPage />
             )}
+            <RateLimitCountdown secondsRemaining={secondsRemaining} />
         </Fragment>
     );
 };

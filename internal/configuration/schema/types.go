@@ -22,7 +22,6 @@ import (
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
-	"github.com/valyala/fasthttp"
 	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/jsonschema"
@@ -661,24 +660,17 @@ var jsonschemaACLSubject = jsonschema.Schema{
 
 var jsonschemaACLMethod = jsonschema.Schema{
 	Type: jsonschema.TypeString,
-	Enum: []any{
-		fasthttp.MethodGet,
-		fasthttp.MethodHead,
-		fasthttp.MethodPost,
-		fasthttp.MethodPut,
-		fasthttp.MethodPatch,
-		fasthttp.MethodDelete,
-		fasthttp.MethodTrace,
-		fasthttp.MethodConnect,
-		fasthttp.MethodOptions,
-		"COPY",
-		"LOCK",
-		"MKCOL",
-		"MOVE",
-		"PROPFIND",
-		"PROPPATCH",
-		"UNLOCK",
-	},
+	Enum: toAnySlice(HTTPMethods),
+}
+
+func toAnySlice[T any](values []T) (result []any) {
+	result = make([]any, len(values))
+
+	for i, value := range values {
+		result[i] = value
+	}
+
+	return result
 }
 
 // RegexpCI is a [regexp.Regexp] which is compiled with the case-insensitive flag applied to the entire pattern.

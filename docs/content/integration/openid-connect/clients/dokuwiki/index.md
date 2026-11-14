@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "DokuWiki"
-description: "Integrating DokuWiki with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating DokuWiki with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-01-25T10:04:53+11:00
 draft: false
@@ -65,6 +65,7 @@ identity_providers:
         client_name: 'DokuWiki'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://dokuwiki.{{< sitevar name="domain" nojs="example.com" >}}/doku.php'

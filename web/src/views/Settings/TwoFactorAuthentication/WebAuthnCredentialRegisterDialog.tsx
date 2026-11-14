@@ -23,6 +23,7 @@ import { Stepper } from "@components/UI/Stepper";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
+import { translateErrorCode } from "@services/ErrorCode";
 import {
     finishWebAuthnRegistration,
     getWebAuthnRegistrationOptions,
@@ -82,7 +83,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
             if (result.result === AttestationResult.Success) {
                 if (result.response == null) {
                     createErrorNotification(
-                        "Credential Creation Request succeeded but Registration Response is empty.",
+                        translate("Credential Creation Request succeeded but Registration Response is empty"),
                     );
                     return;
                 }
@@ -99,7 +100,15 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                         );
                         break;
                     case AttestationResult.Failure:
-                        createErrorNotification(response.message);
+                        createErrorNotification(
+                            translateErrorCode(
+                                translate,
+                                response.code,
+                                translate(
+                                    "Failed to register your credential, the identity verification process might have timed out",
+                                ),
+                            ),
+                        );
                         break;
                 }
 

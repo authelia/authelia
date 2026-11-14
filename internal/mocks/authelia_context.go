@@ -21,14 +21,36 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
+
+func newMockSessionProvider(config *schema.Configuration, clock clock.Provider, random random.Provider) (provider session.Provider, err error) {
+	return session.NewProvider(config, testSessionHMACKey, clock, random, cache.NewSessionRepository(cache.NewMemory()))
+}
+
+// NewSessionProvider returns a session.Provider backed by an in-memory repository for use in tests.
+func NewSessionProvider(config *schema.Configuration, clock clock.Provider, random random.Provider) (provider session.Provider, err error) {
+	return newMockSessionProvider(config, clock, random)
+}
+
+// ResetSessionProvider rebuilds the session provider from the current configuration. Tests which mutate the session
+// configuration after the mock is created must call this for the change to take effect.
+func (m *MockAutheliaCtx) ResetSessionProvider() {
+	provider, err := newMockSessionProvider(&m.Ctx.Configuration, m.Ctx.Providers.Clock, m.Ctx.Providers.Random)
+	if err != nil {
+		panic(err)
+	}
+
+	m.Ctx.Providers.Session = provider
+}
 
 // MockAutheliaCtx a mock of AutheliaCtx.
 type MockAutheliaCtx struct {
@@ -43,6 +65,7 @@ type MockAutheliaCtx struct {
 	NotifierMock     *MockNotifier
 	TOTPMock         *MockTOTP
 	RandomMock       *MockRandom
+	DuoMock          *MockDuoProvider
 
 	Clock clock.Fixed
 }
@@ -213,9 +236,12 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Authorizer = authorization.NewAuthorizer(
 		&config)
 
-	providers.SessionProvider = session.NewProvider(config.Session, nil)
+	providers.UserAttributeResolver = expression.NewUserAttributes(&config)
 
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
+
+	mockAuthelia.DuoMock = NewMockDuoProvider(mockAuthelia.Ctrl)
+	providers.Duo = mockAuthelia.DuoMock
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
@@ -228,6 +254,10 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	var err error
 	if providers.Templates, err = templates.New(templates.Config{}); err != nil {
+		panic(err)
+	}
+
+	if providers.Session, err = newMockSessionProvider(&config, providers.Clock, providers.Random); err != nil {
 		panic(err)
 	}
 
@@ -252,7 +282,7 @@ func NewMockAutheliaCtxWithUserSession(t *testing.T, userSession session.UserSes
 	t.Helper()
 
 	mock := NewMockAutheliaCtx(t)
-	err := mock.Ctx.SaveSession(userSession)
+	err := mock.Ctx.SaveSession(&userSession)
 	require.NoError(t, err)
 
 	return mock
@@ -291,33 +321,33 @@ func (m *MockAutheliaCtx) LogEntryN(n int) *logrus.Entry {
 }
 
 // AssertKO assert an error response from the service.
-func (m *MockAutheliaCtx) AssertKO(t *testing.T, message string, code int) {
+func (m *MockAutheliaCtx) AssertKO(t *testing.T, message middlewares.ErrorMessage, code int) {
 	assert.Equal(t, code, m.Ctx.Response.StatusCode())
-	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
+	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"code\":\"%s\",\"message\":\"%s\"}", message.Code, message.Message), string(m.Ctx.Response.Body()))
 }
 
 // Assert401KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert401KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert401KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusUnauthorized)
 }
 
 // Assert403KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert403KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert403KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusForbidden)
 }
 
 // Assert404KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert404KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert404KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusNotFound)
 }
 
 // Assert500KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert500KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert500KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusInternalServerError)
 }
 
 // Assert200KO assert an error response from the service.
-func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message string) {
+func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message middlewares.ErrorMessage) {
 	m.AssertKO(t, message, fasthttp.StatusOK)
 }
 

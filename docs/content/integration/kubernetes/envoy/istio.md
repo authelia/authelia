@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Istio"
-description: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
+description: "A guide to integrating Authelia with the Istio Kubernetes Ingress which uses Envoy and the external authorization filter for authentication and authorization."
 summary: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
 date: 2025-06-13T14:12:09+00:00
 draft: false
@@ -69,6 +69,9 @@ spec:
           pathPrefix: '/api/authz/ext-authz/'
           includeRequestHeadersInCheck:
             - 'accept'
+            - 'sec-fetch-mode'
+            - 'sec-fetch-dest'
+            - 'x-requested-with'
             - 'cookie'
             - 'location'
             - 'authorization'

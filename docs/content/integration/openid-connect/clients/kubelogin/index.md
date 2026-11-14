@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "Kube Login"
-description: "Integrating Kube Login with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Kube Login with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-07-11T12:25:57+00:00
 draft: false
@@ -62,6 +62,7 @@ identity_providers:
         client_name: 'Kubernetes Cluster Access'
         client_secret: 'insecure_secret'
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'http://localhost:8000'

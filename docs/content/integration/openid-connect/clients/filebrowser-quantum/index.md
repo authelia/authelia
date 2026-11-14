@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "FileBrowser Quantum"
-description: "Integrating FileBrowser Quantum with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating FileBrowser Quantum with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and options."
 summary: ""
 date: 2025-07-14T23:37:32+10:00
 draft: false
@@ -59,6 +59,7 @@ identity_providers:
         client_name: 'FileBrowser Quantum'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

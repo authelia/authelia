@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 title: "BookLore"
-description: "Integrating BookLore with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating BookLore with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -60,6 +60,7 @@ identity_providers:
       - client_id: 'booklore'
         client_name: 'BookLore'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

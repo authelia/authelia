@@ -14,11 +14,11 @@ import (
 )
 
 // DuoPreAuth helper function for retrieving supported devices and capabilities from Duo API.
-func DuoPreAuth(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider) (result, message string, devices []DuoDevice, enrollURL string, err error) {
+func DuoPreAuth(ctx *middlewares.AutheliaCtx, userSession *session.UserSession) (result, message string, devices []DuoDevice, enrollURL string, err error) {
 	values := url.Values{}
 	values.Set("username", userSession.Username)
 
-	preAuthResponse, err := duoAPI.PreAuthCall(ctx, userSession, values)
+	preAuthResponse, err := ctx.Providers.Duo.PreAuthCall(ctx, userSession, values)
 	if err != nil {
 		return "", "", nil, "", err
 	}

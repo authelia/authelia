@@ -5,8 +5,8 @@
 package middlewares
 
 import (
+	"bytes"
 	"net"
-	"strings"
 
 	"github.com/valyala/fasthttp"
 )
@@ -33,16 +33,21 @@ func MultiWrap(next fasthttp.RequestHandler, middlewares ...Basic) (handler fast
 	return next
 }
 
-// RequestCtxRemoteIP returns the remote IP of the given request context.
+// RequestCtxRemoteIP returns the remote IP of the given request context. This is the left most value of the first
+// X-Forwarded-For header that is not empty if it is a valid IP, otherwise it is the TCP remote IP.
 func RequestCtxRemoteIP(ctx *fasthttp.RequestCtx) net.IP {
-	if header := ctx.Request.Header.PeekBytes(headerXForwardedFor); len(header) != 0 {
-		ips := strings.SplitN(string(header), ",", 2)
-
-		if len(ips) != 0 {
-			if ip := net.ParseIP(strings.Trim(ips[0], " ")); ip != nil {
-				return ip
-			}
+	for _, header := range ctx.Request.Header.PeekAll(fasthttp.HeaderXForwardedFor) {
+		if len(bytes.TrimSpace(header)) == 0 {
+			continue
 		}
+
+		value, _, _ := bytes.Cut(header, []byte(","))
+
+		if ip := net.ParseIP(string(bytes.TrimSpace(value))); ip != nil {
+			return ip
+		}
+
+		break
 	}
 
 	return ctx.RemoteIP()
