@@ -48,7 +48,7 @@ fallback link, and the related API endpoints all become unavailable.
   for incident review. Regenerating revokes the prior batch the same way.
 - Successful recovery-code authentication bumps the session to the _TwoFactor_ level but does NOT mint an elevated
   session. Re-enrolling a primary 2FA device still requires the existing email-based identity verification flow.
-- Failed recovery-code attempts are logged through the regulation system under a separate `RecoveryCode` auth type,
+- Failed recovery-code attempts are logged through the regulation system under a separate `Recovery` auth type,
   so they do not consume the password or TOTP rate-limit budgets and a recovery-code spray cannot lock the user out
   of normal password sign-in.
 - Generation triggers a notification email to the user; a regenerated set logs the new batch event. If the SMTP delivery
@@ -103,4 +103,4 @@ Prometheus series:
   code (i.e. they had codes generated and used or replaced them all).
 
 Recovery code sign-in attempts are also recorded under the existing `authelia_authn_second_factor` counter with the
-`type="RecoveryCode"` label.
+`type="recovery"` label.

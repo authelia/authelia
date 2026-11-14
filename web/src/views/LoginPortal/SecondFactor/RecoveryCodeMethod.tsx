@@ -38,7 +38,7 @@ const RecoveryCodeMethod = function (props: Props) {
 
         setSubmitting(true);
         try {
-            await signInWithRecoveryCode({
+            const res = await signInWithRecoveryCode({
                 code,
                 flow,
                 flowID,
@@ -47,7 +47,7 @@ const RecoveryCodeMethod = function (props: Props) {
                 userCode,
             });
 
-            props.onSignInSuccess(redirectionURL ?? undefined);
+            props.onSignInSuccess(res?.redirect);
         } catch (err) {
             console.error(err);
             props.onSignInError(new Error(translate("The recovery code might be wrong")));

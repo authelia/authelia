@@ -10,5 +10,5 @@ export function useRecoveryCodesStatus() {
 }
 
 export function useGenerateRecoveryCodes() {
-    return useRemoteCall(generateRecoveryCodes);
+    return useRemoteCall(generateRecoveryCodes, { resetDataOnCall: true });
 }

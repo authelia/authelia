@@ -137,8 +137,6 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
-
 	var details *authentication.UserDetails
 	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
@@ -147,6 +145,8 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+
+	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
 
 	userInfo.DisplayName = details.DisplayName
 

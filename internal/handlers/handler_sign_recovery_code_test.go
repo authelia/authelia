@@ -35,6 +35,11 @@ func newRecoveryCodeUserCtx(t *testing.T, mock *mocks.MockAutheliaCtx) {
 		GetDetails(testUsername).
 		AnyTimes().
 		Return(&authentication.UserDetails{Username: testUsername, DisplayName: "John", Emails: []string{"john@example.com"}}, nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsCached(testUsername).
+		AnyTimes().
+		Return(&authentication.UserDetails{Username: testUsername, DisplayName: "John", Emails: []string{"john@example.com"}}, nil)
 }
 
 func TestRecoveryCodePOST_SuccessBumpsTwoFactor_NotElevation(t *testing.T) {

@@ -111,7 +111,7 @@ const RecoveryCodesGenerateDialog = function (props: Props) {
         <Dialog
             open={props.open}
             onOpenChange={(open) => {
-                if (!open && (error || confirmMatches)) handleClose();
+                if (!open && !loading && (error || confirmMatches)) handleClose();
             }}
         >
             <DialogContent
@@ -192,7 +192,7 @@ const RecoveryCodesGenerateDialog = function (props: Props) {
                         variant={"ghost"}
                         color={"primary"}
                         onClick={handleClose}
-                        disabled={!error && (!codes || !confirmMatches)}
+                        disabled={loading || (!error && (!codes || !confirmMatches))}
                     >
                         {translate("Done")}
                     </Button>

@@ -5,6 +5,7 @@
 import { GenerateRecoveryCodesResponse, RecoveryCodesStatus, RecoveryCodesStatusPayload } from "@models/RecoveryCodes";
 import { CompleteRecoveryCodeSignInPath, RecoveryCodesGeneratePath, RecoveryCodesStatusPath } from "@services/Api";
 import { Get, Post, PostWithOptionalResponse } from "@services/Client";
+import { SignInResponse } from "@services/SignIn";
 
 function toRecoveryCodesStatus(payload: RecoveryCodesStatusPayload): RecoveryCodesStatus {
     return {
@@ -34,8 +35,8 @@ export interface SignInRecoveryCodeParams {
     userCode?: string;
 }
 
-export async function signInWithRecoveryCode(params: SignInRecoveryCodeParams): Promise<void> {
-    await PostWithOptionalResponse(CompleteRecoveryCodeSignInPath, {
+export async function signInWithRecoveryCode(params: SignInRecoveryCodeParams) {
+    return PostWithOptionalResponse<SignInResponse>(CompleteRecoveryCodeSignInPath, {
         code: params.code,
         flow: params.flow,
         flowID: params.flowID,
