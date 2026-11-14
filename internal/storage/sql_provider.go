@@ -116,6 +116,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectRecoveryCodesByUsername:            fmt.Sprintf(queryFmtSelectRecoveryCodesByUsername, tableRecoveryCodes),
 		sqlConsumeRecoveryCode:                      fmt.Sprintf(queryFmtConsumeRecoveryCode, tableRecoveryCodes),
 		sqlRevokeRecoveryCodesByUsername:            fmt.Sprintf(queryFmtRevokeRecoveryCodesByUsername, tableRecoveryCodes),
+		sqlLockRecoveryCodesByUsername:              fmt.Sprintf(queryFmtLockRecoveryCodesByUsername, tableRecoveryCodesLock),
 		sqlCountUnusedRecoveryCodesByUsername:       fmt.Sprintf(queryFmtCountUnusedRecoveryCodesByUsername, tableRecoveryCodes),
 		sqlCountUsersWithRecoveryCodes:              fmt.Sprintf(queryFmtCountUsersWithRecoveryCodes, tableRecoveryCodes),
 		sqlCountUsersWithLowRecoveryCodes:           fmt.Sprintf(queryFmtCountUsersWithLowRecoveryCodes, tableRecoveryCodes),
@@ -310,6 +311,7 @@ type SQLProvider struct {
 	sqlSelectRecoveryCodesByUsername            string
 	sqlConsumeRecoveryCode                      string
 	sqlRevokeRecoveryCodesByUsername            string
+	sqlLockRecoveryCodesByUsername              string
 	sqlCountUnusedRecoveryCodesByUsername       string
 	sqlCountUsersWithRecoveryCodes              string
 	sqlCountUsersWithLowRecoveryCodes           string

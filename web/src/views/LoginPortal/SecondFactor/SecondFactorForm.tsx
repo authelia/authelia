@@ -187,7 +187,7 @@ const SecondFactorForm = function (props: Props) {
                             />
                         </Routes>
                     )}
-                    {!recoveryCodeMode && props.userInfo.has_recovery_codes ? (
+                    {!recoveryCodeMode && props.factorKnowledge && props.userInfo.has_recovery_codes ? (
                         <div className="mt-4 text-center">
                             <Button
                                 id={"recovery-code-link"}

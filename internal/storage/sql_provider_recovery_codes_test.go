@@ -6,6 +6,8 @@ package storage
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -69,4 +71,45 @@ func TestSQLProviderConsumeRecoveryCodeShouldOnlyConsumeActiveCodes(t *testing.T
 
 	require.NoError(t, provider.RevokeRecoveryCodesByUsername(ctx, "john", model.NullIP{}))
 	assert.ErrorIs(t, provider.ConsumeRecoveryCode(ctx, revoked.ID, model.NullIP{}), ErrRecoveryCodeNotActive)
+}
+
+func TestSQLProviderReplaceRecoveryCodesByUsernameShouldSerializeConcurrentReplacements(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	const workers, size = 8, 3
+
+	var wg sync.WaitGroup
+
+	errs := make(chan error, workers)
+
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+
+		go func(i int) {
+			defer wg.Done()
+
+			batch := make([]*model.RecoveryCode, 0, size)
+
+			for j := 0; j < size; j++ {
+				batch = append(batch, &model.RecoveryCode{Username: "john", Plaintext: fmt.Sprintf("CODE-%d-%d", i, j), CreatedAt: time.Now()})
+			}
+
+			errs <- provider.ReplaceRecoveryCodesByUsername(ctx, "john", batch, model.NullIP{})
+		}(i)
+	}
+
+	wg.Wait()
+	close(errs)
+
+	for err := range errs {
+		require.NoError(t, err)
+	}
+
+	count, err := provider.CountUnusedRecoveryCodesByUsername(ctx, "john")
+	require.NoError(t, err)
+	assert.Equal(t, size, count)
 }

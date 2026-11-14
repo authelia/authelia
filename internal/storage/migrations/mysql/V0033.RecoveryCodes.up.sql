@@ -12,3 +12,7 @@ CREATE TABLE IF NOT EXISTS recovery_codes (
 CREATE UNIQUE INDEX recovery_codes_signature_idx ON recovery_codes (signature);
 CREATE INDEX recovery_codes_username_idx ON recovery_codes (username);
 CREATE INDEX recovery_codes_lookup_idx ON recovery_codes (username, consumed_at, revoked_at);
+
+CREATE TABLE IF NOT EXISTS recovery_codes_lock (
+    username VARCHAR(100) NOT NULL PRIMARY KEY
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;

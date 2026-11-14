@@ -18,6 +18,7 @@ const (
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
 	tableRecoveryCodes        = "recovery_codes"
+	tableRecoveryCodesLock    = "recovery_codes_lock"
 	tableSession              = "session"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableTOTPHistory          = "totp_history"

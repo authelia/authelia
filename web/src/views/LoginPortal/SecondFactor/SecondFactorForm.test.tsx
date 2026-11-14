@@ -202,6 +202,21 @@ describe("rendering", () => {
         expect(screen.queryByText("Methods")).not.toBeInTheDocument();
     });
 
+    it("renders the recovery code link when the user has recovery codes", async () => {
+        renderForm({ userInfo: { ...defaultProps.userInfo, has_recovery_codes: true } }, "/password");
+        expect(await screen.findByTestId("password-method")).toBeInTheDocument();
+        expect(screen.getByText("Use a recovery code instead")).toBeInTheDocument();
+    });
+
+    it("does not render the recovery code link without the knowledge factor", async () => {
+        renderForm(
+            { factorKnowledge: false, userInfo: { ...defaultProps.userInfo, has_recovery_codes: true } },
+            "/password",
+        );
+        expect(await screen.findByTestId("password-method")).toBeInTheDocument();
+        expect(screen.queryByText("Use a recovery code instead")).not.toBeInTheDocument();
+    });
+
     it("renders the switch user button when a flow is present", () => {
         mocks.flowPresent = true;
 

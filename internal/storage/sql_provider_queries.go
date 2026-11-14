@@ -151,6 +151,23 @@ const (
 		SET revoked_at = ?, revoked_ip = ?
 		WHERE username = ? AND consumed_at IS NULL AND revoked_at IS NULL;`
 
+	queryFmtLockRecoveryCodesByUsername = `
+		INSERT INTO %s (username)
+		VALUES (?)
+			ON DUPLICATE KEY UPDATE username = VALUES(username);`
+
+	queryFmtLockRecoveryCodesByUsernameSQLite = `
+		INSERT INTO %s (username)
+		VALUES (?)
+			ON CONFLICT (username)
+			DO UPDATE SET username = excluded.username;`
+
+	queryFmtLockRecoveryCodesByUsernamePostgreSQL = `
+		INSERT INTO %s (username)
+		VALUES ($1)
+			ON CONFLICT (username)
+			DO UPDATE SET username = EXCLUDED.username;`
+
 	queryFmtCountUnusedRecoveryCodesByUsername = `
 		SELECT COUNT(*)
 		FROM %s

@@ -48,6 +48,15 @@ func RecoveryCodePOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if !userSession.AuthenticationMethodRefs.FactorKnowledge() {
+		ctx.GetLogger().Errorf("Error occurred validating a recovery code authentication for user '%s': the user has not authenticated with a knowledge based factor", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Error occurred validating a recovery code authentication for user '%s': %s", userSession.Username, errStrReqBodyParse)
 

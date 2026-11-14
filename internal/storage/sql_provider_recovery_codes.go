@@ -57,13 +57,16 @@ func (p *SQLProvider) SaveRecoveryCode(ctx context.Context, code *model.Recovery
 }
 
 // ReplaceRecoveryCodesByUsername revokes all active recovery codes for a username and saves the provided batch in a
-// single transaction, so a failure part way through leaves the prior batch intact.
+// single transaction, so a failure part way through leaves the prior batch intact. The transaction first acquires a
+// per-user row lock so concurrent replacements for the same username are serialized and only one batch remains active.
 func (p *SQLProvider) ReplaceRecoveryCodesByUsername(ctx context.Context, username string, codes []*model.RecoveryCode, ip model.NullIP) (err error) {
 	if ctx, err = p.BeginTX(ctx); err != nil {
 		return fmt.Errorf("error beginning transaction to replace recovery codes for user '%s': %w", username, err)
 	}
 
-	if err = p.RevokeRecoveryCodesByUsername(ctx, username, ip); err == nil {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlLockRecoveryCodesByUsername, username); err != nil {
+		err = fmt.Errorf("error locking recovery codes for user '%s': %w", username, err)
+	} else if err = p.RevokeRecoveryCodesByUsername(ctx, username, ip); err == nil {
 		for _, code := range codes {
 			if err = p.SaveRecoveryCode(ctx, code); err != nil {
 				break

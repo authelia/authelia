@@ -133,6 +133,32 @@ func TestRecoveryCodePOST_RejectsAnonymous(t *testing.T) {
 	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 }
 
+func TestRecoveryCodePOST_RejectsWithoutKnowledgeFactor(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	us, err := mock.Ctx.GetSession()
+	require.NoError(t, err)
+
+	us.Username = testUsername
+	us.AuthenticationMethodRefs.WebAuthn = true
+	us.AuthenticationMethodRefs.WebAuthnHardware = true
+	us.FirstFactorAuthnTimestamp = time.Now().Unix()
+	require.NoError(t, mock.Ctx.SaveSession(&us))
+
+	mock.Ctx.Request.SetBody([]byte(`{"code":"XYZ-1234"}`))
+
+	RecoveryCodePOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+
+	us, err = mock.Ctx.GetSession()
+	require.NoError(t, err)
+
+	assert.False(t, us.AuthenticationMethodRefs.RecoveryCode)
+	assert.Equal(t, int64(0), us.SecondFactorAuthnTimestamp)
+}
+
 func TestRecoveryCodePOST_RejectsWhenConsumeFails(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
