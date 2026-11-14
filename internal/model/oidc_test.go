@@ -864,6 +864,29 @@ func TestOAuth2ConsentPreConfig(t *testing.T) {
 	assert.False(t, config.HasClaimsSignature("abc"))
 }
 
+func TestOAuth2ConsentPreConfigHasKeyBinding(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     sql.NullString
+		jkt      string
+		expected bool
+	}{
+		{"ShouldCoverRequestWithoutKey", sql.NullString{}, "", true},
+		{"ShouldCoverRequestWithoutKeyWhenKeyStored", sql.NullString{String: "abc", Valid: true}, "", true},
+		{"ShouldCoverSameKey", sql.NullString{String: "abc", Valid: true}, "abc", true},
+		{"ShouldNotCoverDifferentKey", sql.NullString{String: "abc", Valid: true}, "xyz", false},
+		{"ShouldNotCoverKeyWhenNoneStored", sql.NullString{}, "abc", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &model.OAuth2ConsentPreConfig{DPoPJWKThumbprint: tc.have}
+
+			assert.Equal(t, tc.expected, config.HasKeyBinding(tc.jkt))
+		})
+	}
+}
+
 func TestOAuth2ConsentPreConfigHasExactGrants(t *testing.T) {
 	testCases := []struct {
 		Name     string
@@ -1783,4 +1806,37 @@ func MustParseRequestURI(t *testing.T, uri string) (parsed *url.URL) {
 	require.NoError(t, err)
 
 	return parsed
+}
+
+func TestNewOAuth2DPoPProofSignature(t *testing.T) {
+	signature := model.NewOAuth2DPoPProofSignature("jti", "jkt", "POST", "https://auth.example.com/api/oidc/token")
+
+	assert.Len(t, signature, 64)
+	assert.Equal(t, signature, model.NewOAuth2DPoPProofSignature("jti", "jkt", "POST", "https://auth.example.com/api/oidc/token"))
+
+	testCases := []struct {
+		name               string
+		jti, jkt, htm, htu string
+	}{
+		{"ShouldDifferByJTI", "other", "jkt", "POST", "https://auth.example.com/api/oidc/token"},
+		{"ShouldDifferByJKT", "jti", "other", "POST", "https://auth.example.com/api/oidc/token"},
+		{"ShouldDifferByHTM", "jti", "jkt", "GET", "https://auth.example.com/api/oidc/token"},
+		{"ShouldDifferByHTU", "jti", "jkt", "POST", "https://auth.example.com/api/oidc/userinfo"},
+		{"ShouldDifferByBoundary", "jtij", "kt", "POST", "https://auth.example.com/api/oidc/token"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.NotEqual(t, signature, model.NewOAuth2DPoPProofSignature(tc.jti, tc.jkt, tc.htm, tc.htu))
+		})
+	}
+}
+
+func TestNewOAuth2DPoPProof(t *testing.T) {
+	exp := time.Unix(1700000000, 0).UTC()
+
+	proof := model.NewOAuth2DPoPProof("jti", "jkt", "POST", "https://auth.example.com/api/oidc/token", exp)
+
+	assert.Equal(t, model.NewOAuth2DPoPProofSignature("jti", "jkt", "POST", "https://auth.example.com/api/oidc/token"), proof.Signature)
+	assert.Equal(t, exp, proof.ExpiresAt)
 }

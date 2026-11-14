@@ -120,6 +120,8 @@ identity_providers:
         introspection_endpoint_auth_signing_alg: 'RS256'
         pushed_authorization_request_endpoint_auth_method: 'client_secret_basic'
         pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
+        dpop_bound_access_tokens: false
+        dpop_strict_refresh_token_binding: false
         jwks_uri: ''
         jwks:
           - key_id: 'example'
@@ -1474,6 +1476,21 @@ identity_providers:
 Note that configuring this option replaces the default rather than adding to it, so the explicit
 `client-authentication+jwt` type must be listed if it should remain permitted. An empty list is treated as unconfigured
 and uses the default.
+
+### dpop_bound_access_tokens
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces DPoP bound Access Tokens for this client.
+
+### dpop_strict_refresh_token_binding
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Requires the DPoP bound Refresh Tokens of this client to only be redeemed with a proof for the key they are bound to,
+rather than re-binding them to the key of the presented proof. This only has an effect on confidential clients, as the
+Refresh Tokens of public clients are always strictly bound. See the provider
+[strict_refresh_token_binding](provider.md#strict_refresh_token_binding) option for more information.
 
 ### jwks_uri
 

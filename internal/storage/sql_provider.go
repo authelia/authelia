@@ -157,6 +157,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDecideOAuth2DeviceCodeSession:          fmt.Sprintf(queryFmtDecideOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2BlacklistedJTI:             fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
+		sqlUpsertOAuth2DPoPProof:         fmt.Sprintf(queryFmtUpsertOAuth2DPoPProof, tableOAuth2DPoPProof),
+		sqlDeleteExpiredOAuth2DPoPProofs: fmt.Sprintf(queryFmtDeleteExpiredOAuth2DPoPProofs, tableOAuth2DPoPProof),
+
+		sqlInsertOAuth2DPoPNonce:         fmt.Sprintf(queryFmtInsertOAuth2DPoPNonce, tableOAuth2DPoPNonce),
+		sqlSelectOAuth2DPoPNonce:         fmt.Sprintf(queryFmtSelectOAuth2DPoPNonce, tableOAuth2DPoPNonce),
+		sqlDeleteExpiredOAuth2DPoPNonces: fmt.Sprintf(queryFmtDeleteExpiredOAuth2DPoPNonces, tableOAuth2DPoPNonce),
+
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
 		sqlUpdateOAuth2PARContext: fmt.Sprintf(queryFmtUpdateOAuth2PARContext, tableOAuth2PARContext),
 		sqlSelectOAuth2PARContext: fmt.Sprintf(queryFmtSelectOAuth2PARContext, tableOAuth2PARContext),
@@ -424,6 +431,15 @@ type SQLProvider struct {
 	sqlUpdateOAuth2RefreshTokenSessionRequest string
 	sqlDecideOAuth2DeviceCodeSession          string
 	sqlSelectOAuth2BlacklistedJTI             string
+
+	// Table: oauth2_dpop_proof.
+	sqlUpsertOAuth2DPoPProof         string
+	sqlDeleteExpiredOAuth2DPoPProofs string
+
+	// Table: oauth2_dpop_nonce.
+	sqlInsertOAuth2DPoPNonce         string
+	sqlSelectOAuth2DPoPNonce         string
+	sqlDeleteExpiredOAuth2DPoPNonces string
 
 	// Utility.
 	sqlSelectExistingTables string
@@ -1209,14 +1225,14 @@ func (p *SQLProvider) SaveOAuth2ConsentPreConfiguration(ctx context.Context, con
 		err = p.conn(ctx).GetContext(ctx, &insertedID, p.sqlInsertOAuth2ConsentPreConfiguration,
 			config.ClientID, config.Subject, config.CreatedAt, config.ExpiresAt,
 			config.Revoked, config.Scopes, config.Audience, config.Resource,
-			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims)
+			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims, config.DPoPJWKThumbprint)
 	default:
 		var result sql.Result
 
 		if result, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2ConsentPreConfiguration,
 			config.ClientID, config.Subject, config.CreatedAt, config.ExpiresAt,
 			config.Revoked, config.Scopes, config.Audience, config.Resource,
-			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims); err == nil {
+			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims, config.DPoPJWKThumbprint); err == nil {
 			insertedID, err = result.LastInsertId()
 		}
 	}
@@ -1778,6 +1794,67 @@ func (p *SQLProvider) SaveOAuth2RequestReplay(ctx context.Context, replay model.
 
 	if err = checkInsertResult(result); err != nil {
 		return fmt.Errorf("error inserting oauth2 request replay of type '%s' with signature '%s' for client '%s': %w", replay.Type, replay.Signature, replay.ClientID, err)
+	}
+
+	return nil
+}
+
+// CheckAndSetOAuth2DPoPProofUsed atomically determines if an OAuth2.0 DPoP proof replay record with the signature of
+// the given proof is currently recorded as used and, when it isn't, records it as used until the proof expires. The
+// check and the store occur within a single statement so that concurrent requests presenting the same proof cannot both
+// observe it as unused.
+func (p *SQLProvider) CheckAndSetOAuth2DPoPProofUsed(ctx context.Context, proof model.OAuth2DPoPProof, now time.Time) (used bool, err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpsertOAuth2DPoPProof, proof.Signature, proof.ExpiresAt, now); err != nil {
+		return false, fmt.Errorf("error inserting oauth2 dpop proof with signature '%s': %w", proof.Signature, err)
+	}
+
+	var rowsAffected int64
+
+	if rowsAffected, err = result.RowsAffected(); err != nil {
+		return false, fmt.Errorf("error inserting oauth2 dpop proof with signature '%s': error occurred determining the number of affected rows: %w", proof.Signature, err)
+	}
+
+	return rowsAffected == 0, nil
+}
+
+// DeleteExpiredOAuth2DPoPProofs removes every OAuth2.0 DPoP proof replay record which expired at or before now. The
+// records only exist to reject a proof presented a second time within its own acceptance window, so once that window
+// has passed the record has no remaining purpose and would otherwise accumulate for the lifetime of the deployment.
+func (p *SQLProvider) DeleteExpiredOAuth2DPoPProofs(ctx context.Context, now time.Time) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteExpiredOAuth2DPoPProofs, now); err != nil {
+		return fmt.Errorf("error deleting expired oauth2 dpop proofs: %w", err)
+	}
+
+	return nil
+}
+
+// SaveOAuth2DPoPNonce saves an OAuth2.0 DPoP nonce to the storage provider.
+func (p *SQLProvider) SaveOAuth2DPoPNonce(ctx context.Context, nonce model.OAuth2DPoPNonce) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2DPoPNonce, nonce.Signature, nonce.ExpiresAt); err != nil {
+		return fmt.Errorf("error inserting oauth2 dpop nonce with signature '%s': %w", nonce.Signature, err)
+	}
+
+	return nil
+}
+
+// LoadOAuth2DPoPNonce loads an OAuth2.0 DPoP nonce from the storage provider.
+func (p *SQLProvider) LoadOAuth2DPoPNonce(ctx context.Context, signature string) (nonce *model.OAuth2DPoPNonce, err error) {
+	nonce = &model.OAuth2DPoPNonce{}
+
+	if err = p.conn(ctx).GetContext(ctx, nonce, p.sqlSelectOAuth2DPoPNonce, signature); err != nil {
+		return nil, fmt.Errorf("error selecting oauth2 dpop nonce with signature '%s': %w", signature, err)
+	}
+
+	return nonce, nil
+}
+
+// DeleteExpiredOAuth2DPoPNonces removes every OAuth2.0 DPoP nonce which expired at or before now. An expired nonce can
+// no longer satisfy a nonce challenge so the row has no remaining purpose.
+func (p *SQLProvider) DeleteExpiredOAuth2DPoPNonces(ctx context.Context, now time.Time) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteExpiredOAuth2DPoPNonces, now); err != nil {
+		return fmt.Errorf("error deleting expired oauth2 dpop nonces: %w", err)
 	}
 
 	return nil

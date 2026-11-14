@@ -41,6 +41,7 @@ func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *sch
 	validateOIDCIssuer(config.IdentityProviders.OIDC, validator)
 	validateOIDCAuthorizationPolicies(config, validator)
 	validateOIDCLifespans(config, validator)
+	validateOIDCDPoP(config, validator)
 	validateOIDCClaims(config, validator)
 	validateOIDCScopes(config, validator)
 
@@ -162,6 +163,77 @@ func validateOIDCLifespans(config *schema.Configuration, validator *schema.Struc
 
 		if lifespan.RefreshTokenMaximum < 0 {
 			validator.Push(fmt.Errorf(errFmtOIDCProviderLifespansCustomRefreshTokenMaximumNegative, name, lifespan.RefreshTokenMaximum))
+		}
+	}
+}
+
+func validateOIDCDPoP(config *schema.Configuration, validator *schema.StructValidator) {
+	dpop := config.IdentityProviders.OIDC.DPoP
+
+	if dpop.NonceLifespan < durationZero {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPDurationNotPositive, "nonce_lifespan", dpop.NonceLifespan))
+	}
+
+	if dpop.ProofLifespan < durationZero {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPDurationNotPositive, "proof_lifespan", dpop.ProofLifespan))
+	}
+
+	if dpop.ClockSkew < durationZero {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPDurationNotPositive, "clock_skew", dpop.ClockSkew))
+	}
+
+	validateOIDCDPoPDurationsExcessive(dpop, validator)
+	validateOIDCDPoPAllowedAlgorithms(config, validator)
+
+	if dpop.Enabled {
+		return
+	}
+
+	if dpop.Enforced {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPOptionRequiresEnabled, "enforced"))
+	}
+
+	if dpop.NonceEnforced {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPOptionRequiresEnabled, "nonce_enforced"))
+	}
+
+	if dpop.NonceStateless {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPOptionRequiresEnabled, "nonce_stateless"))
+	}
+
+	if dpop.KeyBinding {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPOptionRequiresEnabled, "key_binding"))
+	}
+
+	if dpop.StrictRefreshTokenBinding {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPOptionRequiresEnabled, "strict_refresh_token_binding"))
+	}
+}
+
+func validateOIDCDPoPDurationsExcessive(dpop schema.IdentityProvidersOpenIDConnectDPoP, validator *schema.StructValidator) {
+	if dpop.ProofLifespan > maximumOIDCDPoPProofLifespan {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderDPoPDurationExcessive, "proof_lifespan", dpop.ProofLifespan, maximumOIDCDPoPProofLifespan))
+	}
+
+	if dpop.ClockSkew > maximumOIDCDPoPClockSkew {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderDPoPDurationExcessive, "clock_skew", dpop.ClockSkew, maximumOIDCDPoPClockSkew))
+	}
+
+	if dpop.NonceLifespan > maximumOIDCDPoPNonceLifespan {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderDPoPDurationExcessive, "nonce_lifespan", dpop.NonceLifespan, maximumOIDCDPoPNonceLifespan))
+	}
+}
+
+func validateOIDCDPoPAllowedAlgorithms(config *schema.Configuration, validator *schema.StructValidator) {
+	if len(config.IdentityProviders.OIDC.DPoP.AllowedAlgorithms) == 0 {
+		config.IdentityProviders.OIDC.DPoP.AllowedAlgorithms = oidc.DPoPSigningAlgValuesSupported()
+
+		return
+	}
+
+	for _, alg := range config.IdentityProviders.OIDC.DPoP.AllowedAlgorithms {
+		if !utils.IsStringInSlice(alg, validOIDCIssuerJWKSigningAlgs) {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPAllowedAlgorithmsInvalid, utils.StringJoinOr(validOIDCIssuerJWKSigningAlgs), alg))
 		}
 	}
 }
@@ -606,6 +678,18 @@ func setOIDCDefaults(config *schema.Configuration) {
 	if config.IdentityProviders.OIDC.ResourceStrategy == "" {
 		config.IdentityProviders.OIDC.ResourceStrategy = schema.DefaultOpenIDConnectConfiguration.ResourceStrategy
 	}
+
+	if config.IdentityProviders.OIDC.DPoP.NonceLifespan == durationZero {
+		config.IdentityProviders.OIDC.DPoP.NonceLifespan = schema.DefaultOpenIDConnectConfiguration.DPoP.NonceLifespan
+	}
+
+	if config.IdentityProviders.OIDC.DPoP.ProofLifespan == durationZero {
+		config.IdentityProviders.OIDC.DPoP.ProofLifespan = schema.DefaultOpenIDConnectConfiguration.DPoP.ProofLifespan
+	}
+
+	if config.IdentityProviders.OIDC.DPoP.ClockSkew == durationZero {
+		config.IdentityProviders.OIDC.DPoP.ClockSkew = schema.DefaultOpenIDConnectConfiguration.DPoP.ClockSkew
+	}
 }
 
 func validateOIDCOptionsCORS(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
@@ -800,12 +884,16 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCResourceStrategy, utils.StringJoinOr(oidc.ResourceStrategyNames), config.Clients[c].ResourceStrategy))
 	}
 
+	validateOIDCClientDPoP(c, config, validator)
+	validateOIDCClientKeyBinding(c, config, validator)
+
 	setDefaults := validateOIDCClientScopesSpecialBearerAuthz(c, config, ccg, validator)
 
 	validateOIDCClientConsentMode(c, config, validator, setDefaults)
 
 	validateOIDCClientScopes(c, config, validator, ccg, errDeprecatedFunc)
 	validateOIDCClientResponseTypes(c, config, validator, setDefaults, errDeprecatedFunc)
+	validateOIDCClientDPoPResponseTypes(c, config, validator)
 	validateOIDCClientResponseModes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
@@ -910,6 +998,54 @@ func validateOIDCClientAssertionJWTValidationHeader(c int, config *schema.Identi
 	if len(inexplicit) != 0 {
 		validator.PushWarning(fmt.Errorf(errFmtOIDCClientClientAssertionInsecureTypes, config.Clients[c].ID, attrOIDCClientAssertionAllowTypes, utils.StringJoinAnd(inexplicit), jwt.JSONWebTokenTypeClientAuthentication))
 	}
+}
+
+func validateOIDCClientDPoP(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.DPoP.Enabled {
+		return
+	}
+
+	if config.Clients[c].DPoPBoundAccessTokens {
+		validator.Push(fmt.Errorf(errFmtOIDCClientDPoPOptionRequiresEnabled, config.Clients[c].ID, "dpop_bound_access_tokens"))
+	}
+
+	if config.Clients[c].DPoPStrictRefreshTokenBinding {
+		validator.Push(fmt.Errorf(errFmtOIDCClientDPoPOptionRequiresEnabled, config.Clients[c].ID, "dpop_strict_refresh_token_binding"))
+	}
+}
+
+func validateOIDCClientDPoPResponseTypes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if !config.DPoP.Enabled || (!config.DPoP.Enforced && !config.Clients[c].DPoPBoundAccessTokens) {
+		return
+	}
+
+	var invalid []string
+
+	for _, responseType := range config.Clients[c].ResponseTypes {
+		for _, value := range strings.Fields(responseType) {
+			if value == oidc.ResponseTypeImplicitFlowToken {
+				invalid = append(invalid, responseType)
+
+				break
+			}
+		}
+	}
+
+	if len(invalid) != 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCClientDPoPResponseTypesToken, config.Clients[c].ID, utils.StringJoinAnd(invalid)))
+	}
+}
+
+func validateOIDCClientKeyBinding(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.DPoP.Enabled && config.DPoP.KeyBinding {
+		return
+	}
+
+	if !utils.IsStringInSlice(oidc.ScopeBoundKey, config.Clients[c].Scopes) {
+		return
+	}
+
+	validator.PushWarning(fmt.Errorf(errFmtOIDCClientScopeKeyBindingDisabled, config.Clients[c].ID))
 }
 
 func validateOIDCClientPublicKeys(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {

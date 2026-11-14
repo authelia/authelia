@@ -1438,6 +1438,34 @@ func TestSQLProviderOAuth2ConsentPreConfiguration(t *testing.T) {
 		rows.Close()
 	})
 
+	t.Run("ShouldSaveAndLoadPreConfigurationKeyBinding", func(t *testing.T) {
+		keySubject, _ := uuid.NewRandom()
+
+		config := model.OAuth2ConsentPreConfig{
+			ClientID:          "key-client",
+			Subject:           keySubject,
+			CreatedAt:         time.Now().Truncate(time.Second),
+			Scopes:            model.StringSlicePipeDelimited{"openid", "bound_key"},
+			DPoPJWKThumbprint: sql.NullString{String: "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I", Valid: true},
+		}
+
+		_, err := provider.SaveOAuth2ConsentPreConfiguration(ctx, config)
+		require.NoError(t, err)
+
+		rows, err := provider.LoadOAuth2ConsentPreConfigurations(ctx, "key-client", keySubject, time.Now())
+		require.NoError(t, err)
+
+		defer rows.Close()
+
+		require.True(t, rows.Next())
+
+		loaded, err := rows.Get()
+		require.NoError(t, err)
+
+		assert.Equal(t, config.DPoPJWKThumbprint, loaded.DPoPJWKThumbprint)
+		assert.True(t, loaded.HasKeyBinding("0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I"))
+	})
+
 	t.Run("ShouldReturnEmptyForUnknownClient", func(t *testing.T) {
 		unknownSubject, _ := uuid.NewRandom()
 

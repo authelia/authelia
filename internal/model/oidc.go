@@ -8,6 +8,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -70,6 +72,47 @@ func NewOAuth2RequestReplay(replayType OAuth2RequestReplayType, clientID, value 
 		Type:      replayType,
 		ClientID:  clientID,
 		Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(value))),
+		ExpiresAt: exp,
+	}
+}
+
+// NewOAuth2DPoPProofSignature creates the storage signature for an OAuth2.0 DPoP proof replay record. The record is keyed
+// on the 'jti' claim within the context RFC 9449 Section 4.2 requires it to be unique in, being the JWK Thumbprint of the
+// proof key, the HTTP method, and the normalized target URI. Each value is length prefixed before it's hashed so that no
+// two distinct sets of values produce the same input, and the fixed length digest bounds the stored value regardless of
+// the length of the target URI.
+func NewOAuth2DPoPProofSignature(jti, jkt, htm, htu string) (signature string) {
+	hash := sha256.New()
+
+	var size [4]byte
+
+	for _, value := range []string{jti, jkt, htm, htu} {
+		binary.BigEndian.PutUint32(size[:], uint32(len(value))) //nolint:gosec // Values are bounded well below the maximum.
+
+		hash.Write(size[:])
+		hash.Write([]byte(value))
+	}
+
+	return hex.EncodeToString(hash.Sum(nil))
+}
+
+// NewOAuth2DPoPProof creates a new OAuth2DPoPProof.
+func NewOAuth2DPoPProof(jti, jkt, htm, htu string, exp time.Time) (proof OAuth2DPoPProof) {
+	return OAuth2DPoPProof{
+		Signature: NewOAuth2DPoPProofSignature(jti, jkt, htm, htu),
+		ExpiresAt: exp,
+	}
+}
+
+// NewOAuth2DPoPNonceSignature creates the storage signature for an OAuth2.0 DPoP nonce.
+func NewOAuth2DPoPNonceSignature(nonce string) (signature string) {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(nonce)))
+}
+
+// NewOAuth2DPoPNonce creates a new OAuth2DPoPNonce.
+func NewOAuth2DPoPNonce(nonce string, exp time.Time) (n OAuth2DPoPNonce) {
+	return OAuth2DPoPNonce{
+		Signature: NewOAuth2DPoPNonceSignature(nonce),
 		ExpiresAt: exp,
 	}
 }
@@ -247,6 +290,16 @@ type OAuth2ConsentPreConfig struct {
 	RequestedClaims sql.NullString           `db:"requested_claims"`
 	SignatureClaims sql.NullString           `db:"signature_claims"`
 	GrantedClaims   StringSlicePipeDelimited `db:"granted_claims"`
+
+	DPoPJWKThumbprint sql.NullString `db:"dpop_jkt"`
+}
+
+// HasKeyBinding returns true if this consent pre-configuration covers binding the grant to the proof-of-possession key
+// with the given JWK Thumbprint. An empty thumbprint means the request binds no key, which every pre-configuration
+// covers. Otherwise the pre-configuration must have been granted for that same key, as OpenID Connect Key Binding 1.0
+// Section 2.2 has the End-User consent to a key which was not previously bound to the client.
+func (s *OAuth2ConsentPreConfig) HasKeyBinding(jkt string) (has bool) {
+	return jkt == "" || (s.DPoPJWKThumbprint.Valid && s.DPoPJWKThumbprint.String == jkt)
 }
 
 // HasExactGrants returns true if the granted audience, resource and scopes of this consent
@@ -520,6 +573,20 @@ type OAuth2RequestReplay struct {
 	ClientID  string                  `db:"client_id"`
 	Signature string                  `db:"signature"`
 	ExpiresAt time.Time               `db:"expires_at"`
+}
+
+// OAuth2DPoPProof represents an OAuth2.0 DPoP proof replay record.
+type OAuth2DPoPProof struct {
+	ID        int       `db:"id"`
+	Signature string    `db:"signature"`
+	ExpiresAt time.Time `db:"expires_at"`
+}
+
+// OAuth2DPoPNonce represents a server provided OAuth2.0 DPoP nonce.
+type OAuth2DPoPNonce struct {
+	ID        int       `db:"id"`
+	Signature string    `db:"signature"`
+	ExpiresAt time.Time `db:"expires_at"`
 }
 
 // OAuth2Session represents a OAuth2.0 session.

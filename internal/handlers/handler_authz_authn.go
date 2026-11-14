@@ -18,6 +18,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -284,7 +285,7 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 	switch scheme {
 	case model.AuthorizationSchemeBasic:
 		details, level, err = handleGetBasic(ctx, s.delay, authn, object, s.headerAuthorize, s.basic, s.extended)
-	case model.AuthorizationSchemeBearer:
+	case model.AuthorizationSchemeBearer, model.AuthorizationSchemeDPoP:
 		details, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object, s.extended)
 	default:
 		ctx.GetLogger().
@@ -339,11 +340,32 @@ func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *Authn,
 
 	ctx.ReplyStatusCode(s.statusAuthenticate)
 
-	if authn.Header.Authorization != nil && authn.Header.Authorization.Scheme() == model.AuthorizationSchemeBearer && authn.Header.Error != nil {
-		ctx.SetResponseHeaderValue(s.headerAuthenticate, fmt.Sprintf(`Bearer %s`, oidc.RFC6750Header(authn.Header.Realm, authn.Header.Scope, authn.Header.Error)))
-	} else if s.headerAuthenticate != nil {
-		ctx.SetResponseHeaderValueBytes(s.headerAuthenticate, headerValueAuthenticateBasic)
+	if s.headerAuthenticate == nil {
+		return
 	}
+
+	if authn.Header.Error != nil && authn.Header.Authorization != nil {
+		switch authn.Header.Authorization.Scheme() {
+		case model.AuthorizationSchemeBearer, model.AuthorizationSchemeDPoP:
+			if authn.Header.Nonce != "" {
+				ctx.SetResponseHeaderValue(headerDPoPNonce, authn.Header.Nonce)
+			}
+
+			ctx.SetResponseHeaderValue(s.headerAuthenticate, handleUnauthorizedBearerChallenge(ctx, authn))
+
+			return
+		}
+	}
+
+	ctx.SetResponseHeaderValueBytes(s.headerAuthenticate, headerValueAuthenticateBasic)
+}
+
+func handleUnauthorizedBearerChallenge(ctx AuthzContext, authn *Authn) (value string) {
+	if provider := ctx.GetProviders().OpenIDConnect; provider != nil {
+		return oauthelia2.BearerAuthorizationChallenge(ctx, provider, authn.Header.Realm, authn.Header.Error, authn.Header.Authorization.SchemeRaw())
+	}
+
+	return fmt.Sprintf(`Bearer %s`, oidc.RFC6750Header(authn.Header.Realm, authn.Header.Scope, authn.Header.Error))
 }
 
 // HeaderLegacyAuthnStrategy is a legacy header AuthnStrategy which can be switched based on the query parameters.
@@ -594,7 +616,9 @@ func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *
 
 	var username string
 
-	if username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.GetProviders().OpenIDConnect, authn, object); err != nil {
+	proofs := ctx.GetRequestHeaderValues(headerDPoP)
+
+	if username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.GetProviders().OpenIDConnect, authn, object, proofs); err != nil {
 		return nil, "", false, authentication.NotAuthenticated, err
 	}
 
@@ -643,7 +667,57 @@ func handleVerifyGETAuthorizationBearerResolveUser(ctx AuthzContext, username, c
 	return details, clientID, ccs, level, nil
 }
 
-func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
+func handleVerifyGETAuthorizationBearerDPoP(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object, osession *oidc.Session, proofs [][]byte) (err error) {
+	var (
+		jkt   = osession.GetDPoPJWKThumbprint()
+		dpop  = authn.Header.Authorization.Scheme() == model.AuthorizationSchemeDPoP
+		nonce string
+	)
+
+	switch {
+	case jkt == "" && !dpop:
+		if !provider.GetDPoPEnforce(ctx) {
+			return nil
+		}
+
+		err = errorsx.WithStack(oauthelia2.ErrInvalidToken.
+			WithHint("The credential used to authenticate the request is not bound to a DPoP key.").
+			WithDebug("DPoP is enforced, so every credential presented to authenticate a request must be bound to a DPoP key, but this credential records no binding."))
+	case !dpop:
+		err = errorsx.WithStack(oauthelia2.ErrInvalidToken.
+			WithHint("The DPoP-bound access token was not presented using the DPoP authentication scheme.").
+			WithDebugf("The access token is bound to a DPoP proof-of-possession key but was presented using the '%s' scheme.", authn.Header.Authorization.SchemeRaw()))
+	case len(proofs) > 1:
+		err = errorsx.WithStack(oauthelia2.ErrInvalidDPoPProof.WithHint("The request contains more than one DPoP proof but only one is allowed."))
+	default:
+		var proof string
+
+		if len(proofs) == 1 {
+			proof = string(proofs[0])
+		}
+
+		token := authn.Header.Authorization.Value()
+
+		err = oidc.ValidateDPoPResourceAccess(ctx, provider.GetDPoPStrategy(ctx), oidc.NewDPoPResourceRequest(object.Method, object.URL, token, proof), token, jkt, provider.GetDPoPNonceRequired(ctx))
+	}
+
+	if err == nil {
+		return nil
+	}
+
+	var nerr error
+
+	if nonce, nerr = oidc.NewDPoPNonceChallenge(ctx, provider.GetDPoPStrategy(ctx), err); nerr != nil {
+		err = nerr
+	}
+
+	authn.Header.Error = oauthelia2.ErrorToRFC6749Error(err)
+	authn.Header.Nonce = nonce
+
+	return fmt.Errorf("error validating the dpop proof: %w", oauthelia2.ErrorToDebugRFC6749Error(err))
+}
+
+func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object, proofs [][]byte) (username, clientID string, ccs bool, level authentication.Level, err error) {
 	var (
 		use       oauthelia2.TokenUse
 		requester oauthelia2.AccessRequester
@@ -675,6 +749,10 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 
 	if osession, ok = fsession.(*oidc.Session); !ok {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("introspection returned an invalid session type")
+	}
+
+	if err = handleVerifyGETAuthorizationBearerDPoP(ctx, provider, authn, object, osession, proofs); err != nil {
+		return "", "", false, authentication.NotAuthenticated, err
 	}
 
 	if client, err = provider.GetRegisteredClient(ctx, osession.ClientID); err != nil || client == nil {

@@ -970,6 +970,11 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC"
   },
   {
+    "path": "identity_providers.oidc.audience_strategy",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_AUDIENCE_STRATEGY"
+  },
+  {
     "path": "identity_providers.oidc.cors.allowed_origins_from_client_redirect_uris",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_CORS_ALLOWED_ORIGINS_FROM_CLIENT_REDIRECT_URIS"
@@ -988,6 +993,61 @@
     "path": "identity_providers.oidc.discovery_signed_response_key_id",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_KEY_ID"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.allowed_algorithms",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_ALLOWED_ALGORITHMS"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.clock_skew",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_CLOCK_SKEW"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.enabled",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_ENABLED"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.enforced",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_ENFORCED"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.key_binding",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_KEY_BINDING"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.nonce_enforced",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_NONCE_ENFORCED"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.nonce_lifespan",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_NONCE_LIFESPAN"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.nonce_stateless",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_NONCE_STATELESS"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.proof_lifespan",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_PROOF_LIFESPAN"
+  },
+  {
+    "path": "identity_providers.oidc.dpop.strict_refresh_token_binding",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_STRICT_REFRESH_TOKEN_BINDING"
+  },
+  {
+    "path": "identity_providers.oidc.enable_client_assertion_legacy_audience",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_CLIENT_ASSERTION_LEGACY_AUDIENCE"
   },
   {
     "path": "identity_providers.oidc.enable_client_debug_messages",
@@ -1045,6 +1105,11 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN"
   },
   {
+    "path": "identity_providers.oidc.lifespans.refresh_token_maximum",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN_MAXIMUM"
+  },
+  {
     "path": "identity_providers.oidc.minimum_parameter_entropy",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_MINIMUM_PARAMETER_ENTROPY"
@@ -1058,6 +1123,11 @@
     "path": "identity_providers.oidc.require_signed_request_object",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_REQUIRE_SIGNED_REQUEST_OBJECT"
+  },
+  {
+    "path": "identity_providers.oidc.resource_strategy",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_RESOURCE_STRATEGY"
   },
   {
     "path": "identity_validation.elevated_session.characters",

@@ -142,6 +142,40 @@ func TestOpenIDConnectProviderMetadataOptions(t *testing.T) {
 				assert.Equal(t, []any{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain}, raw["code_challenge_methods_supported"])
 			},
 		},
+		{
+			Name:  "ShouldNotIncludeDPoPWhenDisabled",
+			Setup: nil,
+			Assert: func(t *testing.T, raw map[string]any) {
+				assert.NotContains(t, raw, "dpop_signing_alg_values_supported")
+				assert.NotContains(t, raw["scopes_supported"], oidc.ScopeBoundKey)
+			},
+		},
+		{
+			Name: "ShouldIncludeDPoPWhenEnabled",
+			Setup: func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.DPoP.Enabled = true
+			},
+			Assert: func(t *testing.T, raw map[string]any) {
+				expected := make([]any, 0, len(oidc.DPoPSigningAlgValuesSupported()))
+
+				for _, alg := range oidc.DPoPSigningAlgValuesSupported() {
+					expected = append(expected, alg)
+				}
+
+				assert.Equal(t, expected, raw["dpop_signing_alg_values_supported"])
+				assert.NotContains(t, raw["scopes_supported"], oidc.ScopeBoundKey)
+			},
+		},
+		{
+			Name: "ShouldIncludeBoundKeyScopeWhenKeyBindingEnabled",
+			Setup: func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.DPoP.Enabled = true
+				config.DPoP.KeyBinding = true
+			},
+			Assert: func(t *testing.T, raw map[string]any) {
+				assert.Contains(t, raw["scopes_supported"], oidc.ScopeBoundKey)
+			},
+		},
 	}
 
 	for _, tc := range testCases {

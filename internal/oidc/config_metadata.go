@@ -14,6 +14,7 @@ import (
 
 	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/rfc9449"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -242,10 +243,11 @@ func (c *Config) GetClientAuthenticationRealm(ctx context.Context) (realm string
 	return clientAuthenticationRealm
 }
 
-// GetDPoPStrictRefreshTokenBinding returns false so a confidential client's DPoP bound refresh token is re-bound to
-// the key of the presented proof as RFC 9449 Section 5 permits.
+// GetDPoPStrictRefreshTokenBinding returns true if a confidential client's DPoP bound refresh token may only be
+// redeemed with a proof for the key it is bound to. When false it's re-bound to the key of the presented proof as RFC
+// 9449 Section 5 permits, unless the client opts into strict binding itself.
 func (c *Config) GetDPoPStrictRefreshTokenBinding(ctx context.Context) (strict bool) {
-	return false
+	return c.DPoP.StrictRefreshTokenBinding
 }
 
 // GetMTLSStrictRefreshTokenBinding returns false so a confidential client's certificate bound refresh token is
@@ -369,6 +371,15 @@ func (c *Config) GetJWTProfileAccessTokenDefaultAudience(ctx context.Context) (a
 var (
 	_ oauthelia2.JWTProfileAccessTokenDefaultAudienceProvider = (*Config)(nil)
 	_ oauthelia2.ClaimsParameterEnforcementProvider           = (*Config)(nil)
+	_ oauthelia2.DPoPConfigProvider                           = (*Config)(nil)
+	_ oauthelia2.DPoPStrictRefreshTokenBindingProvider        = (*Config)(nil)
+	_ oauthelia2.EndpointURLsProvider                         = (*Config)(nil)
+	_ oauthelia2.ConfirmationConfigProvider                   = (*Config)(nil)
+	_ oauthelia2.IDTokenConfirmationConfigProvider            = (*Config)(nil)
+	_ oauthelia2.OIDCKeyBindingConfigProvider                 = (*Config)(nil)
+	_ oauthelia2.BearerAuthorizationChallengeConfigProvider   = (*Config)(nil)
+	_ oauthelia2.BearerAuthorizationConfig                    = (*Config)(nil)
+	_ rfc9449.StrategyConfig                                  = (*Config)(nil)
 )
 
 // NewDiscoverySigningClient returns a jwt.Client which selects the issuer key used to sign the discovery metadata by
