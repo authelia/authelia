@@ -38,12 +38,11 @@ seo:
 This example makes the following assumptions:
 
 - **Application Root URL:** `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
+    `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid_connect/callback`.
+    This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `zammad`
-- **Authentication Name (Zammad):** `authelia`:
-  - This option determines the redirect URI in the format of
-    `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
-    This means if you change this value you need to update the redirect URI.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -108,7 +107,7 @@ To configure [Zammad] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 ## See Also
 
 - [Zammad]:
-  - [Security > Thirt Party Applications > OpenID Connect](https://admin-docs.zammad.org/en/pre-release/settings/security/third-party/openid-connect.html
+  - [Security > Third Party Applications > OpenID Connect](https://admin-docs.zammad.org/en/pre-release/settings/security/third-party/openid-connect.html)
 
 [Authelia]: https://www.authelia.com
 [Zammad]: https://zammad.com/en

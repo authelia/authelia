@@ -115,7 +115,7 @@ FLOWER_OAUTH2_AUTHELIA_BASE_URL=https://{{< sitevar name="subdomain-authelia" no
 
 ```yaml {title="compose.yml"}
 services:
-  expressjs-example:
+  flower:
     environment:
       FLOWER_OAUTH2_AUTHELIA_BASE_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
 ```

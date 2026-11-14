@@ -44,7 +44,7 @@ This example makes the following assumptions:
 - **Client Secret:** `insecure_secret`
 
 _**Note:** The application session secret should be randomly generated in a similar fashion to the client secret, but should
-not be the same value as the session secret. Users should refer to LibreChat support for more information._
+not be the same value as the client secret. Users should refer to LibreChat support for more information._
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -77,6 +77,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'offline_access'
         response_types:
           - 'code'
         grant_types:
@@ -105,7 +106,7 @@ OPENID_CLIENT_ID=librechat
 OPENID_CLIENT_SECRET=insecure_secret
 OPENID_SESSION_SECRET=insecure_session_secret
 OPENID_CALLBACK_URL=/oauth/openid/callback
-OPENID_SCOPE=openid profile email
+OPENID_SCOPE=openid profile email offline_access
 OPENID_IMAGE_URL=https://www.authelia.com/images/branding/logo-cropped.png
 ```
 
@@ -122,8 +123,11 @@ services:
       OPENID_CLIENT_SECRET: 'insecure_secret'
       OPENID_SESSION_SECRET: 'insecure_session_secret'
       OPENID_CALLBACK_URL: '/oauth/openid/callback'
-      OPENID_SCOPE: 'openid profile email'
+      OPENID_SCOPE: 'openid profile email offline_access'
       OPENID_IMAGE_URL: 'https://www.authelia.com/images/branding/logo-cropped.png'
 ```
 
+[Authelia]: https://www.authelia.com
 [LibreChat]: https://www.librechat.ai/
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

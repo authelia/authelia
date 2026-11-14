@@ -46,6 +46,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
+## Configuration
+
 ### Authelia
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Windmill]
@@ -81,7 +83,7 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-## Application
+### Application
 
 To configure [Windmill] there is one method, using the [Web GUI](#web-gui).
 

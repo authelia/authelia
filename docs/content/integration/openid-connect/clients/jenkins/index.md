@@ -86,7 +86,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://jenkins.{{< sitevar name="domain" nojs="example.com" >}}/accounts/authelia/login/callback'
+          - 'https://jenkins.{{< sitevar name="domain" nojs="example.com" >}}/securityRealm/finishLogin'
         scopes:
           - 'openid'
           - 'profile'
@@ -133,7 +133,7 @@ jenkins:
       serverConfiguration:
         wellKnown:
           scopesOverride: "openid profile email groups"
-          wellKnownOpenIDConfigurationUrl: "https://{{< sitevar name=\"subdomain-authelia\" nojs=\"auth\" >}}.{{< sitevar name=\"domain\" nojs=\"example.com\" >}}/.well-known/openid-configuration"
+          wellKnownOpenIDConfigurationUrl: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
       userIdStrategy: "caseSensitive"
       userNameField: "preferred_username"
 ```
@@ -154,10 +154,10 @@ To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
        - Override scopes: `openid profile email groups`
    - Under `Advanced configuration`:
      - Under `User fields`
-     - User name field name: `preferred_username`
-     - Full name field name: `name`
-     - Email field name: `email`
-     - Groups field name: `groups`
+       - User name field name: `preferred_username`
+       - Full name field name: `name`
+       - Email field name: `email`
+       - Groups field name: `groups`
    - Add the following properties:
      - Enable Proof Key for Code Exchange: Enabled
      - Configure 'Escape Hatch' for when the OpenID Provider is unavailable: Consider using this setting

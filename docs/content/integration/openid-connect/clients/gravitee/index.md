@@ -85,7 +85,8 @@ identity_providers:
 
 ### Application
 
-To configure [Gravitee] there is one method, using the [Web GUI](#web-gui).
+To configure [Gravitee] there are two methods, using the [Configuration File](#configuration-file), or using the
+[Web GUI](#web-gui).
 
 #### Configuration File
 
@@ -116,7 +117,7 @@ security:
         email: 'email'
         lastname: 'family_name'
         firstname: 'given_name'
-        picture: 'photo'
+        picture: 'picture'
       roleMapping:
         - condition: "{(#jsonPath(#profile, '$.groups') matches 'gravitee-admin' )}"
           roles:

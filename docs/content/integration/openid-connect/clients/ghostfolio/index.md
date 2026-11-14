@@ -95,6 +95,7 @@ variables:
 ##### Standard
 
 ```shell {title=".env"}
+ROOT_URL=https://ghostfolio.{{< sitevar name="domain" nojs="example.com" >}}
 ENABLE_FEATURE_AUTH_OIDC=true
 OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 OIDC_CLIENT_ID=ghostfolio
@@ -107,6 +108,7 @@ OIDC_CLIENT_SECRET=insecure_secret
 services:
   ghostfolio:
     environment:
+      ROOT_URL: 'https://ghostfolio.{{< sitevar name="domain" nojs="example.com" >}}'
       ENABLE_FEATURE_AUTH_OIDC: 'true'
       OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       OIDC_CLIENT_ID: 'ghostfolio'

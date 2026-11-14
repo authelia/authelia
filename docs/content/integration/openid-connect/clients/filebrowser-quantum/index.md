@@ -29,6 +29,8 @@ seo:
 - [FileBrowser Quantum]
   - [v0.7.18-beta](https://github.com/gtsteffaniak/filebrowser/releases/tag/v0.7.18-beta)
 
+{{% oidc-common %}}
+
 ### Assumptions
 
 This example makes the following assumptions:

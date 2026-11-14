@@ -91,7 +91,7 @@ identity_providers:
 
 ### Application
 
-To configure [Dolibarr] there is one method, using the [Web GUI](#web-gui) and the [Configuration File](#configuration-file).
+To configure [Dolibarr] both the [Web GUI](#web-gui) and the [Configuration File](#configuration-file) steps are required.
 
 #### Web GUI
 

@@ -51,9 +51,9 @@ Some of the values presented in this guide can automatically be replaced with do
 ### Authelia
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-This configuration assumes you've configured the `client_auth_method` in [GitLab](https://about.gitlab.com/) as per below. If you
-have not done this, the default in [GitLab](https://about.gitlab.com/) will require the `token_endpoint_auth_method` changes to
-`client_secret_post`.
+This configuration assumes the `client_auth_method` in [GitLab](https://about.gitlab.com/) is `basic` as per below, which
+is also the default. If you change it to another value such as `query`, the `token_endpoint_auth_method` must be
+changed to match, for example `client_secret_post`.
 {{< /callout >}}
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [GitLab] which will

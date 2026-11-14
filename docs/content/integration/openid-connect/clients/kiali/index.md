@@ -85,10 +85,13 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_post'
 ```
 
+#### Configuration Escape Hatch
+
+{{% oidc-escape-hatch-claims-hydration client_id="kiali" claims="email" %}}
+
 ### Application
 
-To configure [Kiali] there are two methods, using the [Configuration File](#configuration-file), or using
-[Environment Variables](#environment-variables).
+To configure [Kiali] there is one method, using the [Configuration File](#configuration-file).
 
 #### Configuration File
 

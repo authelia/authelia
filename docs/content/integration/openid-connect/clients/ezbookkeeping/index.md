@@ -131,16 +131,16 @@ EBK_AUTH_OIDC_CUSTOM_DISPLAY_NAME=Authelia
 services:
   ezbookkeeping:
     environment:
-      EBK_SERVER_DOMAIN=ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}
-      EBK_SERVER_ROOT_URL=https://ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}/
-      EBK_AUTH_ENABLE_OAUTH2_AUTH=true
-      EBK_AUTH_OAUTH2_PROVIDER=oidc
-      EBK_AUTH_OAUTH2_CLIENT_ID=ezbookkeeping
-      EBK_AUTH_OAUTH2_CLIENT_SECRET=insecure_secret
-      EBK_AUTH_OAUTH2_USE_PKCE=true
-      EBK_AUTH_OIDC_PROVIDER_BASE_URL='https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
-      EBK_AUTH_ENABLE_OIDC_DISPLAY_NAME=true
-      EBK_AUTH_OIDC_CUSTOM_DISPLAY_NAME=Authelia
+      EBK_SERVER_DOMAIN: 'ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}'
+      EBK_SERVER_ROOT_URL: 'https://ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}/'
+      EBK_AUTH_ENABLE_OAUTH2_AUTH: 'true'
+      EBK_AUTH_OAUTH2_PROVIDER: 'oidc'
+      EBK_AUTH_OAUTH2_CLIENT_ID: 'ezbookkeeping'
+      EBK_AUTH_OAUTH2_CLIENT_SECRET: 'insecure_secret'
+      EBK_AUTH_OAUTH2_USE_PKCE: 'true'
+      EBK_AUTH_OIDC_PROVIDER_BASE_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      EBK_AUTH_ENABLE_OIDC_DISPLAY_NAME: 'true'
+      EBK_AUTH_OIDC_CUSTOM_DISPLAY_NAME: 'Authelia'
 ```
 
 ## See Also

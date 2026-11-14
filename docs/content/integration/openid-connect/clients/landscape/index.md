@@ -91,7 +91,7 @@ To configure [Landscape] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 ```ini {title="service.conf"}
 [landscape]
-oidc-issuer = <https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}>
+oidc-issuer = https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 oidc-client-id = landscape
 oidc-client-secret = insecure_secret
 ```

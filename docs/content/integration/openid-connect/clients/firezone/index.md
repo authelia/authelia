@@ -41,7 +41,7 @@ This example makes the following assumptions:
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `firezone`
 - **Client Secret:** `insecure_secret`
-- **Config ID (Firezone):** `authelia`:
+- **Config ID (Firezone):** `authelia`
   - This option determines the redirect URI in the format of
     `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/<Config ID>/callback`.
     This means if you change this value you need to update the redirect URI.

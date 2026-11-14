@@ -71,7 +71,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://glitchtip.{{< sitevar name="domain" nojs="example.com" >}}/accounts/authelia/login/callback/'
+          - 'https://glitchtip.{{< sitevar name="domain" nojs="example.com" >}}/accounts/oidc/authelia/login/callback/'
         scopes:
           - 'openid'
           - 'email'

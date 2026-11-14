@@ -39,7 +39,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://ryot.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://ryot.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/callback`.
+    `https://ryot.{{< sitevar name="domain" nojs="example.com" >}}/api/auth`.
     This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `ryot`
@@ -97,12 +97,12 @@ To configure [Ryot] there are two methods, using the [Configuration File](#confi
 
 To configure [Ryot] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
-```toml {title="config.yaml"}
+```yaml {title="config.yaml"}
 frontend:
   url: 'https://ryot.{{< sitevar name="domain" nojs="example.com" >}}'
   oidc_button_label: 'Use Authelia'
 server:
-  odic:
+  oidc:
     client_id: 'ryot'
     client_secret: 'insecure_secret'
     issuer_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'

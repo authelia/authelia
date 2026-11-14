@@ -122,6 +122,9 @@ hostssl  all       all   all      oauth   issuer="https://{{< sitevar name="subd
 authelia   /^(.*)@example\.com$     \1
 ```
 
+The `SYSTEM-USERNAME` is a regular expression, so `example\.com` must be replaced with your email domain with each `.`
+escaped as `\.`.
+
 4. Create the mapped roles with the `LOGIN` attribute, for example `CREATE ROLE john LOGIN;`, and grant the required
    privileges.
 5. Reload [PostgreSQL], for example by running `SELECT pg_reload_conf();` as an administrator.

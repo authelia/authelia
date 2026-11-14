@@ -66,7 +66,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://docmost.{{< sitevar name="domain" nojs="example.com" >}}'
+          - 'https://docmost.{{< sitevar name="domain" nojs="example.com" >}}'  # Placeholder. See step 6 below.
         scopes:
           - 'openid'
           - 'profile'
@@ -84,6 +84,11 @@ identity_providers:
 
 To configure [Docmost] there is one method, using the [Web GUI](#web-gui).
 
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+Single Sign-On is not available in the [Docmost] Community edition and requires a paid edition license. See the
+[Docmost Pricing](https://docmost.com/pricing) for details.
+{{< /callout >}}
+
 #### Web GUI
 
 To configure [Docmost] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
@@ -93,16 +98,14 @@ To configure [Docmost] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 3. Navigate to Security & SSO.
 4. Select `Create SSO`.
 5. Select `OpenID (OIDC)` from the dropdown menu.
-6. Copy the `Callback URL` and replace the configured `redirect_uri` value in the Authelia configuration.
+6. Copy the `Callback URL` and replace the configured `redirect_uris` value in the Authelia configuration.
 7. Configure the following options:
-
-- Display name: `Authelia`
-- Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-- Client ID: `docmost`
-- Client Secret: `insecure_secret`
-- Allow signup: Disabled
-- Enabled: Enabled
-
+   - Display name: `Authelia`
+   - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Client ID: `docmost`
+   - Client Secret: `insecure_secret`
+   - Allow signup: Disabled
+   - Enabled: Enabled
 8. Press `Save` at the bottom.
 
 ## See Also

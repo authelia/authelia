@@ -100,7 +100,7 @@ instructions:
 3. Visit `Auth`
 4. Visit `SSO`
 5. Configure the following values:
-   1. Login URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+   1. Login URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    2. OpenID configuration URI: `/.well-known/openid-configuration`
    3. Scope: `openid email profile`
    4. Client Login: `passbolt`

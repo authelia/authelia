@@ -39,7 +39,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://writefreely.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://writefreely.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    `https://writefreely.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/generic`.
     This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `writefreely`

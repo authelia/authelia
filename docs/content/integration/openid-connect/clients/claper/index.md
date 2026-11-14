@@ -126,7 +126,7 @@ services:
       OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       OIDC_CLIENT_ID: 'claper'
       OIDC_CLIENT_SECRET: 'insecure_secret'
-      OIDC_SCOPES: 'openid email profile'
+      OIDC_SCOPES: 'openid email'
       OIDC_LOGO_URL: 'https://www.authelia.com/images/branding/logo-cropped.png'
       OIDC_AUTO_REDIRECT_LOGIN: 'false'
 ```

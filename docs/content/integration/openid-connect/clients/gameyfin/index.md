@@ -112,10 +112,11 @@ To configure [Gameyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider,
    - Authorize URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
    - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
    - Userinfo URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   - Logout URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout`
    - JWKS URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
-6. Click `Save`.
-7. Restart [Gameyfin] for the changes to take effect.
+6. Manually configure the following option as it is not populated by `Auto-populate`:
+   - Logout URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout`
+7. Click `Save`.
+8. Restart [Gameyfin] for the changes to take effect.
 
 ## See Also
 

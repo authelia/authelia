@@ -60,7 +60,8 @@ identity_providers:
     clients:
       - client_id: 'unreal-engine'
         client_name: 'Unreal Engine'
-        public: true
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
         application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
@@ -69,6 +70,7 @@ identity_providers:
           - 'https://unreal-engine.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid_connect'
         scopes:
           - 'openid'
+          - 'profile'
           - 'groups'
         response_types:
           - 'code'
@@ -76,7 +78,7 @@ identity_providers:
           - 'authorization_code'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 ### Application
@@ -95,10 +97,10 @@ To configure [Unreal Engine] to utilize Authelia as an [OpenID Connect 1.0] Prov
   "OidcAuthority": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}",
   "OidcAudience": "unreal-engine",
   "OidcClientId": "unreal-engine",
-  "OidcClientSecret": "insecure-secret",
+  "OidcClientSecret": "insecure_secret",
   "OidcSigninRedirect": "https://unreal-engine.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid_connect",
-  "OidcRequestedScopes": "openid groups",
-  "OidcClaimHordeUserMapping": ["groups"],
+  "OidcRequestedScopes": ["openid", "profile", "groups"],
+  "OidcClaimHordeUserMapping": ["preferred_username"],
   "AdminClaimType": "http://epicgames.com/ue/horde/role",
   "AdminClaimValue": "unreal-engine-admin"
 }

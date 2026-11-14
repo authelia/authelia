@@ -105,7 +105,6 @@ upstream_oauth2:
       client_secret: 'insecure_secret'
       token_endpoint_auth_method: 'client_secret_basic'
       scope: 'openid profile email'
-      discovery_mode: 'insecure'
       fetch_userinfo: true
       claims_imports:
         localpart:

@@ -95,7 +95,7 @@ opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth
 
 You will now see your unique user identifier `sub` in the CLI, copy it to set up the access control on the server.
 
-##### Configuration File
+##### Client Configuration File
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 Generally the configuration file is named `~/.opk/config.yml` on Linux and `C:\Users\{USER}\.opk\config.yml` on Windows.
@@ -109,7 +109,7 @@ opkssh login --create-config
 
 Then add Authelia to the existing providers:
 
-```yaml{title="~/.opk/config.yml"}
+```yaml {title="~/.opk/config.yml"}
 providers:
   - alias: authelia
     issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
@@ -127,9 +127,9 @@ You can now run `opkssh login` to login.
 
 #### Server
 
-To configure [opkssh] there is one method, using the [Configuration File](#configuration-file).
+To configure [opkssh] there is one method, using the [Configuration File](#server-configuration-file).
 
-##### Configuration File
+##### Server Configuration File
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 Generally the configuration file is named `/etc/opk/providers`.

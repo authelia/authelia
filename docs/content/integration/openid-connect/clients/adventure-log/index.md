@@ -98,7 +98,7 @@ To configure [AdventureLog] to utilize Authelia as an [OpenID Connect 1.0] Provi
 
 1. Login to [AdventureLog].
 2. Navigate to the Admin Panel:
-   1. Clicking your profile picture.
+   1. Click your profile picture.
    2. Select Settings.
    3. Click Launch Admin Panel.
 3. Scroll down to Social Accounts.

@@ -30,7 +30,7 @@ seo:
   - [v4.38.14](https://github.com/authelia/authelia/releases/tag/v4.38.14)
 - [Matomo]
   - [v5.1.2](https://github.com/matomo-org/matomo/releases/tag/5.1.2)
-- [Login OIDC Plugin]:
+- [Login OIDC Plugin]
   - [v5.0.0](https://github.com/dominik-th/matomo-plugin-LoginOIDC/releases/tag/5.0.0)
 
 {{% oidc-common %}}

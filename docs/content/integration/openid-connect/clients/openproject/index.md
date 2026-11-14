@@ -29,7 +29,7 @@ seo:
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [OpenProject]
-  - [v15.4.2](https://www.openproject.org/docs/release-notes/#1550)
+  - [v15.4.2](https://www.openproject.org/docs/release-notes/15/15-4-2/)
 
 {{% oidc-common %}}
 

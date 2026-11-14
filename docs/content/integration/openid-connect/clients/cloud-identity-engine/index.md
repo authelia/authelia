@@ -105,7 +105,7 @@ To configure [Cloud Identity Engine] to utilize Authelia as an [OpenID Connect 1
 
 ## See Also
 
-- [Cloud Identity Engine Configure Unlock Cloud Identity Engine with SSO using OpenID Connect Documentation](https://docs.paloaltonetworks.com/cloud-identity/cloud-identity-engine-getting-started/authenticate-users-with-the-cloud-identity-engine/set-up-oidc-authentication)
+- [Cloud Identity Engine Set Up OIDC Authentication Documentation](https://docs.paloaltonetworks.com/cloud-identity/cloud-identity-engine-getting-started/authenticate-users-with-the-cloud-identity-engine/set-up-oidc-authentication)
 
 [Authelia]: https://www.authelia.com
 [Cloud Identity Engine]: https://docs.paloaltonetworks.com/pan-os/10-1/pan-os-new-features/identity-features/cloud-identity-engine

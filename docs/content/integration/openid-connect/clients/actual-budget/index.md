@@ -39,7 +39,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/openid/callback`.
     This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `actual-budget`
@@ -128,7 +128,7 @@ ACTUAL_OPENID_AUTH_METHOD=oauth2
 services:
   actual-budget:
     environment:
-      ACTUAL_OPENID_DISCOVERY_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      ACTUAL_OPENID_DISCOVERY_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       ACTUAL_OPENID_CLIENT_ID: 'actual-budget'
       ACTUAL_OPENID_CLIENT_SECRET: 'insecure_secret'
       ACTUAL_OPENID_SERVER_HOSTNAME: 'https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}'

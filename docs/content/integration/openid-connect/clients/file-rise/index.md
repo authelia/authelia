@@ -60,7 +60,8 @@ identity_providers:
     clients:
       - client_id: 'filerise'
         client_name: 'FileRise'
-        public: true
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
         application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
@@ -73,13 +74,14 @@ identity_providers:
           - 'profile'
         response_modes:
           - 'form_post'
+          - 'query'
         response_types:
           - 'code'
         grant_types:
           - 'authorization_code'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
@@ -94,12 +96,10 @@ To configure [FileRise] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 2. Select `Admin Panel` from the context menu revealed by clicking your profile icon.
 3. Select `OIDC Configuration & TOTP`.
 4. Enter the following values:
-
-- OIDC Provider URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-- OIDC Client ID: `filerise`
-- OIDC Client Secret: `insecure_secret`
-- OIDC Redirect URI: `https://filerise.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/auth.php?oidc=callback`
-
+   - OIDC Provider URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - OIDC Client ID: `filerise`
+   - OIDC Client Secret: `insecure_secret`
+   - OIDC Redirect URI: `https://filerise.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/auth.php?oidc=callback`
 5. Click `Save Settings`.
 
 [Authelia]: https://www.authelia.com

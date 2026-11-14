@@ -29,7 +29,7 @@ seo:
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [YouTrack]
-  - 2025.1
+  - [2025.1](https://www.jetbrains.com/youtrack/whatsnew/2025-1/)
 
 {{% oidc-common %}}
 
@@ -98,7 +98,7 @@ To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 5. Configure the following options:
    1. General Settings:
       - Name: `Authelia`
-      - Button image: feel free to upload one from the [branding](../../../reference/guides/branding.md) page
+      - Button image: feel free to upload one from the [branding](../../../../reference/guides/branding.md) page
       - Client ID: `youtrack`
       - Client Secret: `insecure_secret`
       - Scope: `openid profile email`

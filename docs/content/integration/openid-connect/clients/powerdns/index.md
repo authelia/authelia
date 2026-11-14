@@ -114,9 +114,9 @@ To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Pro
 
 ## See Also
 
-- [Portainer OAuth Documentation](https://docs.portainer.io/admin/settings/authentication/oauth)
+- [PowerDNS Admin OAuth Documentation](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/docs/oauth.md)
 
 [Authelia]: https://www.authelia.com
-[PowerDNS Admin]: https://github.com/PowerDNS/
+[PowerDNS Admin]: https://github.com/PowerDNS-Admin/PowerDNS-Admin
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

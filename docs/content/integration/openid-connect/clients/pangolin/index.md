@@ -99,7 +99,7 @@ Unless you have a Pangolin license, you will need to manually create the user in
 To configure [Pangolin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 instructions:
 
-1. Visit your [Pangolin Web GUI]
+1. Visit your [Pangolin] Web GUI
 2. Visit `Server Admin`
 3. Visit `Identity Providers`
 4. Select `Add Identity Provider`

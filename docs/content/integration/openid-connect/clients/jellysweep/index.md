@@ -111,8 +111,8 @@ services:
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 This configuration assumes [Jellysweep](https://github.com/jon4hz/jellysweep) administrators are part of the `jellyfin-admins` group.
 Depending on your specific group configuration, you will have to adapt the `JELLYSWEEP_AUTH_OIDC_ADMIN_GROUP` variable.
-Alternatively you may elect to create a new authorization policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies)
-then utilize that policy as the [client authorization policy](../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+Alternatively you may elect to create a new authorization policy in [provider authorization policies](../../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies)
+then utilize that policy as the [client authorization policy](../../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
 ## See Also
@@ -122,4 +122,4 @@ then utilize that policy as the [client authorization policy](../../../configura
 [Authelia]: https://www.authelia.com
 [Jellysweep]: https://github.com/jon4hz/jellysweep
 [OpenID Connect 1.0]: ../../introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -102,13 +102,13 @@ GRAMPSWEB_OIDC_SCOPES="openid email profile"
 services:
   grampsweb:
     environment:
-      GRAMPSWEB_BASE_URL: https://gramps.{{< sitevar name="domain" nojs="example.com" >}}
-      GRAMPSWEB_OIDC_ENABLED: True
-      GRAMPSWEB_OIDC_ISSUER: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
-      GRAMPSWEB_OIDC_NAME: Authelia
-      GRAMPSWEB_OIDC_CLIENT_ID: gramps
-      GRAMPSWEB_OIDC_CLIENT_SECRET: insecure_secret
-      GRAMPSWEB_OIDC_SCOPES: openid email profile
+      GRAMPSWEB_BASE_URL: 'https://gramps.{{< sitevar name="domain" nojs="example.com" >}}'
+      GRAMPSWEB_OIDC_ENABLED: 'True'
+      GRAMPSWEB_OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/'
+      GRAMPSWEB_OIDC_NAME: 'Authelia'
+      GRAMPSWEB_OIDC_CLIENT_ID: 'gramps'
+      GRAMPSWEB_OIDC_CLIENT_SECRET: 'insecure_secret'
+      GRAMPSWEB_OIDC_SCOPES: 'openid email profile'
 ```
 
 ## See Also

@@ -182,9 +182,9 @@ you do not wish to automatically do this you can just omit the `role_attribute_p
 
 The ways you can configure this rule value is vast, here is a simple example:
 
-- User's with the authelia group `admin` should be a member of the Grafana group `Admin`
-- User's with the authelia group `editor` should be a member of the Grafana group `Editor`
-- Everyone else should be a member of the Grafana group 'Viewer'
+- Users in the Authelia group `admin` should be assigned the Grafana role `Admin`
+- Users in the Authelia group `editor` should be assigned the Grafana role `Editor`
+- Everyone else should be assigned the Grafana role `Viewer`
 
 To achieve the above structure you would use the following `role_attribute_path`:
 `contains(groups[], 'admin') && 'Admin' || contains(groups[], 'editor') && 'Editor' || 'Viewer'`
@@ -198,6 +198,6 @@ See [Grafana Generic OAuth2 Documentation: Configure role mapping] for more info
 
 [Authelia]: https://www.authelia.com
 [Grafana]: https://grafana.com/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [Grafana Generic OAuth2 Documentation: Configure role mapping]: https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/#configure-role-mapping
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
