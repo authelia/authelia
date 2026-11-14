@@ -59,6 +59,28 @@ func RequireElevated(next RequestHandler) RequestHandler {
 	}
 }
 
+// RequireElevatedOrPasswordChangeRequired is RequireElevated which additionally admits a session held at sign in
+// pending a required password change.
+//
+// Such a session deliberately holds no authentication level, so RequireElevated alone would refuse it and the user
+// would have no way to perform the change they are being held for. It is applied to the password change endpoint
+// only: it must never guard the credential registration endpoints, where a held session would let somebody with an
+// administrator issued password enroll or remove a second factor without ever completing authentication.
+func RequireElevatedOrPasswordChangeRequired(next RequestHandler) RequestHandler {
+	elevated := RequireElevated(next)
+
+	return func(ctx *AutheliaCtx) {
+		userSession, err := ctx.GetSession()
+		if err == nil && userSession.IsPasswordChangeRequired() {
+			next(ctx)
+
+			return
+		}
+
+		elevated(ctx)
+	}
+}
+
 func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.UserSession) (doNext bool) {
 	var err error
 

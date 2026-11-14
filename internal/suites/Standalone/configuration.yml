@@ -118,11 +118,17 @@ session:
       remember_me: '1 year'
 
 authentication_backend:
+  password_change:
+    required_attribute: 'pwd_reset'
+    clear_attribute: 'pwd_reset'
   file:
     path: '/config/users.yml'
+    watch: true
     extra_attributes:
       employee_id:
         value_type: 'integer'
+      pwd_reset:
+        value_type: 'boolean'
 
 definitions:
   user_attributes:

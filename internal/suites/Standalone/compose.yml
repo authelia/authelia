@@ -9,11 +9,9 @@ services:
       AUTHELIA_JWT_SECRET_FILE: '/tmp/authelia/StandaloneSuite/jwt'
       AUTHELIA_SESSION_SECRET_FILE: '/tmp/authelia/StandaloneSuite/session'
     volumes:
-      - './Standalone/configuration.yml:/config/configuration.yml'
-      - './Standalone/users.yml:/config/users.yml'
+      - './Standalone:/config'
       - './common/pki:/pki'
       - './common/pki/public.crt:/certs/public.crt'
       - '${SUITE_TMP:-/tmp}:/tmp'
-      - './Standalone/locales:/config/locales'
     user: '${USER_ID}:${GROUP_ID}'
 ...

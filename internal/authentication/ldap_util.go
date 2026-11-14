@@ -162,6 +162,28 @@ func getLDAPResultCode(err error) int {
 	return -1
 }
 
+func ldapIsActiveDirectoryPasswordChangeRequired(err error) bool {
+	var e *ldap.Error
+
+	if !errors.As(err, &e) || e.ResultCode != ldap.LDAPResultInvalidCredentials {
+		return false
+	}
+
+	_, data, found := strings.Cut(e.Error(), ldapActiveDirectoryErrDataPrefix)
+	if !found {
+		return false
+	}
+
+	code, _, _ := strings.Cut(data, ",")
+
+	switch strings.TrimSpace(code) {
+	case ldapActiveDirectoryErrDataPasswordExpired, ldapActiveDirectoryErrDataPasswordMustChange:
+		return true
+	default:
+		return false
+	}
+}
+
 func getValueFromEntry(entry *ldap.Entry, attribute string) string {
 	if attribute == "" {
 		return ""

@@ -73,6 +73,20 @@ func (mr *MockUserProviderMockRecorder) CheckUserPassword(username, password any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUserPassword", reflect.TypeOf((*MockUserProvider)(nil).CheckUserPassword), username, password)
 }
 
+// ClearExtraAttribute mocks base method.
+func (m *MockUserProvider) ClearExtraAttribute(username, attribute string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ClearExtraAttribute", username, attribute)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ClearExtraAttribute indicates an expected call of ClearExtraAttribute.
+func (mr *MockUserProviderMockRecorder) ClearExtraAttribute(username, attribute any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearExtraAttribute", reflect.TypeOf((*MockUserProvider)(nil).ClearExtraAttribute), username, attribute)
+}
+
 // Close mocks base method.
 func (m *MockUserProvider) Close() error {
 	m.ctrl.T.Helper()

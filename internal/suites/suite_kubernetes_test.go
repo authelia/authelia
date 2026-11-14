@@ -28,6 +28,10 @@ func (s *KubernetesSuite) Test2FATOTPScenario() {
 	suite.Run(s.T(), New2FATOTPScenario())
 }
 
+func (s *KubernetesSuite) TestChangePasswordScenario() {
+	suite.Run(s.T(), NewChangePasswordScenario(NewPasswordChangeRequiredKubernetesLDAPBackend()))
+}
+
 func (s *KubernetesSuite) TestRedirectionURLScenario() {
 	suite.Run(s.T(), NewRedirectionURLScenario())
 }

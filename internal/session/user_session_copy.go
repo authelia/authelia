@@ -20,6 +20,10 @@ func (s UserSession) deepCopy() (session UserSession) {
 		session.PasswordResetUsername = new(*s.PasswordResetUsername)
 	}
 
+	if s.PasswordChangeRequiredUsername != nil {
+		session.PasswordChangeRequiredUsername = new(*s.PasswordChangeRequiredUsername)
+	}
+
 	if s.TOTP != nil {
 		session.TOTP = new(*s.TOTP)
 	}
