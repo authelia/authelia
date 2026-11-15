@@ -12,6 +12,7 @@ import (
 	"sort"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -127,6 +128,7 @@ func validateAuthenticationBackendExternalIdentityProviderOpenIDConnect(config *
 	validateAuthenticationBackendExternalIdentityProviderPKCE(config, validator)
 	validateAuthenticationBackendExternalIdentityProviderAuthorizationParameters(config, validator)
 	validateAuthenticationBackendExternalIdentityProviderAMR(config, validator)
+	validateAuthenticationBackendExternalIdentityProviderClaimsMapping(config, validator)
 	validateAuthenticationBackendExternalIdentityProviderEndpoints(config, validator)
 
 	if config.Discovery.Disable {
@@ -299,6 +301,12 @@ func validateAuthenticationBackendExternalIdentityProviderLogoURI(config *schema
 	}
 
 	validator.Push(fmt.Errorf(errFmtExternalIdentityProviderLogoURI, config.ID, config.LogoURI))
+}
+
+func validateAuthenticationBackendExternalIdentityProviderClaimsMapping(config *schema.AuthenticationBackendExternalIdentityProvider, validator *schema.StructValidator) {
+	if _, err := expression.NewClaimsMapping(config.ClaimsMapping); err != nil {
+		validator.Push(fmt.Errorf(errFmtExternalIdentityProviderClaimsMapping, config.ID, err))
+	}
 }
 
 func validateAuthenticationBackendExternalIdentityProviderAMR(config *schema.AuthenticationBackendExternalIdentityProvider, validator *schema.StructValidator) {

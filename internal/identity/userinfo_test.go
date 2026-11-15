@@ -182,6 +182,8 @@ func TestProviderUserInfoSigned(t *testing.T) {
 				require.NoError(t, err)
 			}
 
+			claims.RawIDToken, claims.RawUserInfo = nil, nil
+
 			assert.Equal(t, tc.Expected, claims)
 		})
 	}
@@ -375,6 +377,8 @@ func TestProviderUserInfo(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+
+			claims.RawIDToken, claims.RawUserInfo = nil, nil
 
 			assert.Equal(t, tc.Expected, claims)
 		})

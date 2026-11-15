@@ -102,6 +102,8 @@ func (p *OpenIDConnectProvider) UserInfo(ctx context.Context, accessToken string
 	adoptStringClaim(&claims.Name, mapped, claimName)
 	adoptStringClaim(&claims.Email, mapped, claimEmail)
 
+	claims.RawUserInfo = mapped
+
 	return nil
 }
 
