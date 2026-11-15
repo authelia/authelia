@@ -7,10 +7,11 @@ package middlewares
 import (
 	"bytes"
 	"fmt"
+	"net"
+	"net/url"
+	"strings"
 
 	"github.com/valyala/fasthttp"
-
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // The CrossSiteRequestForgery middleware rejects requests using an unsafe method which the browser indicates did not
@@ -49,29 +50,38 @@ func isSameOriginRequest(ctx *fasthttp.RequestCtx) bool {
 		return true
 	}
 
-	proto := firstForwardedValue(ctx.Request.Header.PeekBytes(headerXForwardedProto))
-
-	if len(proto) == 0 {
-		if ctx.IsTLS() {
-			proto = protoHTTPS
-		} else {
-			proto = protoHTTP
-		}
-	}
-
-	host := firstForwardedValue(ctx.Request.Header.PeekBytes(headerXForwardedHost))
-
-	if len(host) == 0 {
-		host = ctx.Host()
-	}
-
-	return bytes.EqualFold(origin, utils.BytesJoin(proto, protoHostSeparator, host))
+	return isOriginEqual(origin, getXForwardedProto(ctx), getXForwardedHost(ctx))
 }
 
-func firstForwardedValue(value []byte) []byte {
-	if i := bytes.IndexByte(value, ','); i != -1 {
-		value = value[:i]
+func isOriginEqual(origin, proto, host []byte) bool {
+	u, err := url.Parse(string(origin))
+	if err != nil || u.Host == "" || u.Path != "" || u.RawQuery != "" || u.User != nil {
+		return false
 	}
 
-	return bytes.TrimSpace(value)
+	scheme := strings.ToLower(string(proto))
+
+	if !strings.EqualFold(u.Scheme, scheme) {
+		return false
+	}
+
+	return strings.EqualFold(normalizeOriginHost(scheme, u.Host), normalizeOriginHost(scheme, string(host)))
+}
+
+func normalizeOriginHost(scheme, host string) string {
+	hostname, port, err := net.SplitHostPort(host)
+	if err != nil {
+		return host
+	}
+
+	switch {
+	case scheme == "https" && port == "443", scheme == "http" && port == "80":
+		if strings.Contains(hostname, ":") {
+			return "[" + hostname + "]"
+		}
+
+		return hostname
+	default:
+		return host
+	}
 }
