@@ -17,28 +17,30 @@ import (
 
 var errOAuth2ConsentSessionNotBound = errors.New("the consent session is not bound to the user agent")
 
-func handleOAuth2ConsentSessionBind(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (err error) {
+func handleOAuth2ConsentSessionBind(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (binding string, err error) {
 	var provider session.Strategy
 
 	if provider, err = ctx.GetSessionProvider(); err != nil {
-		return fmt.Errorf("error occurred obtaining the session provider to bind the consent session: %w", err)
+		return "", fmt.Errorf("error occurred obtaining the session provider to bind the consent session: %w", err)
 	}
 
-	if consent.Binding, err = provider.AuthorizationBinding(ctx); err != nil {
-		return fmt.Errorf("error occurred binding the consent session: %w", err)
+	if binding, err = provider.AuthorizationBinding(ctx); err != nil {
+		return "", fmt.Errorf("error occurred binding the consent session: %w", err)
 	}
 
-	return nil
+	consent.Binding = session.AuthorizationBindingDigest(binding)
+
+	return binding, nil
 }
 
-func handleOAuth2ConsentSessionIssueBinding(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (err error) {
+func handleOAuth2ConsentSessionIssueBinding(ctx *middlewares.AutheliaCtx, binding string) (err error) {
 	var provider session.Strategy
 
 	if provider, err = ctx.GetSessionProvider(); err != nil {
 		return fmt.Errorf("error occurred obtaining the session provider to issue the consent session binding: %w", err)
 	}
 
-	provider.IssueAuthorizationBinding(ctx, consent.Binding)
+	provider.IssueAuthorizationBinding(ctx, binding)
 
 	return nil
 }
