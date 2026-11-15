@@ -7,6 +7,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -149,6 +150,22 @@ func TestFirstFactorExternalIdentityPOST(t *testing.T) {
 			Name:     "ShouldRejectAnOverlongUserCode",
 			Provider: "example",
 			Body:     `{"keepMeLoggedIn":false,"flow":"openid_connect","subflow":"device_authorization","userCode":"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJ"}`,
+			Assert: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				assert.Equal(t, `{"status":"KO","code":"external_identity_login_failed","message":"Could not start the external login."}`, string(mock.Ctx.Response.Body()))
+			},
+		},
+		{
+			Name:     "ShouldRejectAnOverlongTargetURL",
+			Provider: "example",
+			Body:     `{"keepMeLoggedIn":false,"targetURL":"https://app.example.com/` + strings.Repeat("a", 4096) + `","requestMethod":"GET"}`,
+			Assert: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				assert.Equal(t, `{"status":"KO","code":"external_identity_login_failed","message":"Could not start the external login."}`, string(mock.Ctx.Response.Body()))
+			},
+		},
+		{
+			Name:     "ShouldRejectAnOverlongRequestMethod",
+			Provider: "example",
+			Body:     `{"keepMeLoggedIn":false,"targetURL":"https://app.example.com","requestMethod":"` + strings.Repeat("A", 33) + `"}`,
 			Assert: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				assert.Equal(t, `{"status":"KO","code":"external_identity_login_failed","message":"Could not start the external login."}`, string(mock.Ctx.Response.Body()))
 			},

@@ -153,6 +153,10 @@ func validateExternalIdentityStartFlow(body *bodyPOSTExternalIdentityStart) (err
 		return fmt.Errorf("error validating the flow: the flow id is too long")
 	case len(body.UserCode) > 32:
 		return fmt.Errorf("error validating the flow: the user code is too long")
+	case len(body.TargetURL) > 4096:
+		return fmt.Errorf("error validating the flow: the target url is too long")
+	case len(body.RequestMethod) > 32:
+		return fmt.Errorf("error validating the flow: the request method is too long")
 	}
 
 	return nil
