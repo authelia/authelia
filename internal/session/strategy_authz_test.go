@@ -339,12 +339,12 @@ func TestDefaultAuthzStrategy_DestroyShouldReturnRepositoryErrorWhenTheSessionRe
 	err := strategy.Authz().Destroy(ctx)
 
 	assert.ErrorIs(t, err, ErrRepositoryGet)
-	require.Len(t, ctx.cleared, 2)
+	require.Len(t, ctx.cleared, 3)
 	assert.Contains(t, repository.data, testPrimaryKey(t, strategy, saved))
 	assert.Contains(t, repository.data, testPointerKey(t, strategy, saved))
 }
 
-func TestDefaultAuthzStrategy_DestroyShouldClearBothCookiesWhenTheSessionDeleteFails(t *testing.T) {
+func TestDefaultAuthzStrategy_DestroyShouldClearTheCookiesWhenTheSessionDeleteFails(t *testing.T) {
 	repository := &failingPointerDeleteRepository{testRepository: newTestRepository()}
 	strategy := newTestStrategyWithRepository(t, repository, nil)
 	saved := newTestSavedContext(t, strategy, testUsername)
@@ -377,15 +377,16 @@ func TestDefaultAuthzStrategy_DestroyShouldClearBothCookiesWhenTheSessionDeleteF
 	assert.ErrorContains(t, err, "error occurred deleting session from backend")
 	assert.Equal(t, 1, repository.failed)
 
-	require.Len(t, ctx.cleared, 2)
+	require.Len(t, ctx.cleared, 3)
 
-	assert.Equal(t, testNameAuthz, ctx.cleared[0].Name)
-	assert.Equal(t, testNameSession, ctx.cleared[1].Name)
+	assert.Equal(t, testNameSession, ctx.cleared[0].Name)
+	assert.Equal(t, testNameAuthz, ctx.cleared[1].Name)
+	assert.Equal(t, testNameCSRF, ctx.cleared[2].Name)
 	assert.Empty(t, ctx.cookies)
 	assert.Empty(t, ctx.sessions)
 }
 
-func TestDefaultAuthzStrategy_DestroyShouldRemoveTheSessionAndClearBothCookies(t *testing.T) {
+func TestDefaultAuthzStrategy_DestroyShouldRemoveTheSessionAndClearTheCookies(t *testing.T) {
 	repository := newTestRepository()
 	strategy := newTestStrategyWithRepository(t, repository, nil)
 	saved := newTestSavedContext(t, strategy, testUsername)
@@ -393,10 +394,11 @@ func TestDefaultAuthzStrategy_DestroyShouldRemoveTheSessionAndClearBothCookies(t
 
 	require.NoError(t, strategy.Authz().Destroy(ctx))
 
-	require.Len(t, ctx.cleared, 2)
+	require.Len(t, ctx.cleared, 3)
 
-	assert.Equal(t, testNameAuthz, ctx.cleared[0].Name)
-	assert.Equal(t, testNameSession, ctx.cleared[1].Name)
+	assert.Equal(t, testNameSession, ctx.cleared[0].Name)
+	assert.Equal(t, testNameAuthz, ctx.cleared[1].Name)
+	assert.Equal(t, testNameCSRF, ctx.cleared[2].Name)
 	assert.Empty(t, repository.data)
 
 	actual, err := strategy.Get(saved)

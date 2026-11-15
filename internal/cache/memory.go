@@ -182,7 +182,7 @@ func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, us
 	key := m.key(issuer, oldID)
 
 	item, ok := m.session[key]
-	if !ok || item.destroyed {
+	if !ok || item.destroyed || item.expired(time.Now()) {
 		return session.ErrSessionSuperseded
 	}
 

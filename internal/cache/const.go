@@ -56,6 +56,10 @@ if ARGV[5] == '1' and redis.call('hget', KEYS[1], 'data') ~= ARGV[6] then
 	return {0}
 end
 
+if ARGV[7] == '1' and redis.call('exists', KEYS[1]) == 0 then
+	return {0}
+end
+
 local ttl = tonumber(ARGV[2])
 local previous = redis.call('hmget', KEYS[1], 'pid', 'username')
 

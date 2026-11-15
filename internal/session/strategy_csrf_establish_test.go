@@ -202,6 +202,36 @@ func TestDefaultStrategy_SetCSRFCookieShouldNotExtendTheSession(t *testing.T) {
 	assert.NoError(t, strategy.VerifyCSRFToken(verify, ctx.cookies[testNameCSRF]))
 }
 
+func TestDefaultStrategy_SetCSRFCookieShouldNotEstablishTheCSRFSecretOfASessionForAnotherDomain(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	concrete := strategy.(*DefaultStrategy)
+	saved := newTestLegacySessionContext(t, strategy, repository)
+
+	ctx := newTestCachingContext()
+	ctx.cookies[testNameSession] = saved.cookies[testNameSession]
+
+	userSession, err := strategy.Get(ctx)
+	require.NoError(t, err)
+	require.Empty(t, userSession.CSRF)
+
+	sid := getTestSessionSignature(t, strategy, saved)
+	key := repository.key(sid, concrete.issuer)
+
+	other := *userSession
+	other.CookieDomain = "other.example.com"
+
+	data, err := concrete.codec.Seal(testDomain, sid, other)
+	require.NoError(t, err)
+
+	repository.data[key] = data
+
+	require.NoError(t, strategy.SetCSRFCookie(ctx))
+
+	assert.NotContains(t, ctx.cookies, testNameCSRF)
+	assert.Equal(t, data, repository.data[key])
+}
+
 func newTestLegacySessionContext(t *testing.T, strategy Strategy, repository *testRepository) (ctx *testContext) {
 	t.Helper()
 
