@@ -594,16 +594,19 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 func TestTemplatedFileOptionsOpenAPIData(t *testing.T) {
 	testCases := []struct {
 		name     string
+		config   string
 		cookie   string
 		expected string
 	}{
-		{"ShouldReturnOpenAPIData", "example_session", "example_session"},
-		{"ShouldReturnOpenAPIDataWithDefaultSessionCookieName", "", "authelia_session"},
+		{"ShouldReturnOpenAPIData", "", "example_session", "example_session"},
+		{"ShouldReturnOpenAPIDataWithDefaultSessionCookieName", "", "", "authelia_session"},
+		{"ShouldReturnOpenAPIDataWithConfiguredSessionCookieName", "configured_session", "", "configured_session"},
+		{"ShouldReturnOpenAPIDataWithDomainSessionCookieName", "configured_session", "example_session", "example_session"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			opts := NewTemplatedFileOptions(&schema.Configuration{})
+			opts := NewTemplatedFileOptions(&schema.Configuration{Session: schema.Session{SessionCookieCommon: schema.SessionCookieCommon{Name: tc.config}}})
 
 			data := opts.OpenAPIData("/", "/api", "example.com", tc.cookie, "nonce123")
 

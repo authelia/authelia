@@ -223,6 +223,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 	opts = &TemplatedFileOptions{
 		AssetPath:               config.Server.AssetPath,
 		CSRFCookieName:          session.CSRFCookieName(config.Session.Name),
+		SessionName:             config.Session.Name,
 		DuoSelfEnrollment:       strFalse,
 		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
 		ExternalIdentityLogin:   strconv.FormatBool(config.AuthenticationBackend.ExternalIdentity != nil && len(config.AuthenticationBackend.ExternalIdentity.Providers) != 0),
@@ -287,6 +288,7 @@ type TemplatedFileOptions struct {
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
 	Session                string
+	SessionName            string
 	Theme                  string
 
 	EndpointsPasswordReset  bool
@@ -338,8 +340,13 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 }
 
 // OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options. The cookie is the name of the session cookie
-// for the domain of the request, and the default session cookie name is used when it's empty.
+// for the domain of the request, and the configured session cookie name is used when it's empty, falling back to the
+// default session cookie name.
 func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, cookie, nonce string) TemplatedFileOpenAPIData {
+	if cookie == "" {
+		cookie = options.SessionName
+	}
+
 	if cookie == "" {
 		cookie = schema.DefaultSessionConfiguration.Name
 	}
