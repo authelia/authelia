@@ -637,8 +637,10 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 			AnyTimes().
 			Return(consent, nil)
 
+		tx := expectTestOIDCDeviceCodeConsentTX(mock, false)
+
 		mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSessionGranted(gomock.Any(), consent.ID).
+			SaveOAuth2ConsentSessionGranted(gomock.Eq(tx), consent.ID).
 			Return(nil)
 
 		mock.StorageMock.EXPECT().
