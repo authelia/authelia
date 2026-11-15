@@ -99,6 +99,22 @@ func GetRelatedOriginConfigByRPID(config schema.WebAuthn, rpid string) (ro *sche
 	return nil
 }
 
+// IsOriginAvailable returns true if WebAuthn ceremonies can be performed from the origin, which is when WebAuthn is not
+// disabled and either no relying parties are configured or the origin belongs to one of them.
+func IsOriginAvailable(config schema.WebAuthn, origin *url.URL) (available bool) {
+	if config.Disable || origin == nil {
+		return false
+	}
+
+	if len(config.RelyingParties) == 0 {
+		return true
+	}
+
+	_, relyingParty := GetRelatedOriginConfigByOrigin(config, origin)
+
+	return relyingParty != nil
+}
+
 // GetRelatedOriginConfigByOrigin returns a *schema.WebAuthnRelyingParty provided it can match it to an origin string.
 func GetRelatedOriginConfigByOrigin(config schema.WebAuthn, origin *url.URL) (relyingPartyID string, ro *schema.WebAuthnRelyingParty) {
 	if origin == nil || origin.Path != "" {

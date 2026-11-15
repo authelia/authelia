@@ -29,6 +29,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -970,4 +971,98 @@ func TestWebAuthnRelyingPartyFirstFactorPasskeyPOST(t *testing.T) {
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, `{"status":"OK"}`, string(mock.Ctx.Response.Body()))
+}
+
+func TestWebAuthnRelyingPartyUserInfoPOSTShouldNotChangePreferenceOnUnlistedOrigin(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Configuration.WebAuthn = *tWebAuthnRelyingPartyConfig(nil, tRelyingPartyHost)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tRelatedOriginHost)
+
+	tSetupWebAuthnRelyingPartyUser(t, mock, nil)
+
+	mock.StorageMock.
+		EXPECT().
+		CountUnusedRecoveryCodesByUsername(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		Return(0, nil)
+
+	gomock.InOrder(
+		mock.StorageMock.
+			EXPECT().
+			LoadPreferred2FAMethod(mock.Ctx, testUsername).
+			Return(model.SecondFactorMethodWebAuthn, nil),
+		mock.StorageMock.
+			EXPECT().
+			LoadUserInfo(mock.Ctx, testUsername).
+			Return(model.UserInfo{Method: model.SecondFactorMethodWebAuthn, HasTOTP: true, HasWebAuthn: true}, nil),
+		mock.UserProviderMock.
+			EXPECT().
+			GetDetailsCached(testUsername).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName}, nil),
+	)
+
+	UserInfoPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+	actual := model.UserInfo{}
+
+	mock.GetResponseData(t, &actual)
+
+	assert.Equal(t, model.SecondFactorMethodWebAuthn, actual.Method)
+}
+
+func TestWebAuthnRelyingPartyMethodPreferencePOSTShouldAcceptWebAuthnOnUnlistedOrigin(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Configuration.WebAuthn = *tWebAuthnRelyingPartyConfig(nil, tRelyingPartyHost)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tRelatedOriginHost)
+	mock.Ctx.Request.SetBodyString(`{"method":"webauthn"}`)
+
+	tSetupWebAuthnRelyingPartyUser(t, mock, nil)
+
+	mock.StorageMock.
+		EXPECT().
+		SavePreferred2FAMethod(mock.Ctx, testUsername, model.SecondFactorMethodWebAuthn).
+		Return(nil)
+
+	MethodPreferencePOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, `{"status":"OK"}`, string(mock.Ctx.Response.Body()))
+}
+
+func TestWebAuthnRelyingPartyConfigurationGET(t *testing.T) {
+	testCases := []struct {
+		name     string
+		host     string
+		expected []string
+	}{
+		{"ShouldIncludeWebAuthnOnRelyingPartyOrigin", tRelyingPartyHost, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}},
+		{"ShouldExcludeWebAuthnOnUnlistedOrigin", tRelatedOriginHost, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodDuo}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Configuration.WebAuthn = *tWebAuthnRelyingPartyConfig(nil, tRelyingPartyHost)
+			mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
+
+			ConfigurationGET(mock.Ctx)
+
+			mock.Assert200OK(t, configurationBody{AvailableMethods: tc.expected})
+		})
+	}
 }

@@ -58,15 +58,29 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	return ctx
 }
 
-// AvailableSecondFactorMethods returns the available 2FA methods.
+// ConfiguredSecondFactorMethods returns the 2FA methods which are enabled by the configuration regardless of the origin
+// of the request. A user's preferred method applies to every origin, so it's chosen and validated against these.
+func (ctx *AutheliaCtx) ConfiguredSecondFactorMethods() (methods []string) {
+	return ctx.secondFactorMethods(!ctx.Configuration.WebAuthn.Disable)
+}
+
+// AvailableSecondFactorMethods returns the 2FA methods which are usable from the origin of the request. These only
+// differ from the ConfiguredSecondFactorMethods when WebAuthn relying parties are configured and the origin of the
+// request doesn't belong to any of them.
 func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
+	origin, err := ctx.GetOrigin()
+
+	return ctx.secondFactorMethods(err == nil && webauthn.IsOriginAvailable(ctx.Configuration.WebAuthn, origin))
+}
+
+func (ctx *AutheliaCtx) secondFactorMethods(webauthnAvailable bool) (methods []string) {
 	methods = make([]string, 0, 3)
 
 	if !ctx.Configuration.TOTP.Disable {
 		methods = append(methods, model.SecondFactorMethodTOTP)
 	}
 
-	if _, err := ctx.GetWebAuthnProvider(); err == nil {
+	if webauthnAvailable {
 		methods = append(methods, model.SecondFactorMethodWebAuthn)
 	}
 

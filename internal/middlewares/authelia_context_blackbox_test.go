@@ -1283,6 +1283,50 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 	assert.Equal(t, []string{}, mock.Ctx.AvailableSecondFactorMethods())
 }
 
+func TestAutheliaCtx_SecondFactorMethodsWithRelyingParties(t *testing.T) {
+	all := []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}
+	withoutWebAuthn := []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodDuo}
+
+	testCases := []struct {
+		name       string
+		host       string
+		disable    bool
+		configured []string
+		available  []string
+	}{
+		{"ShouldIncludeWebAuthnOnRelyingPartyOrigin", "login.example.com:8080", false, all, all},
+		{"ShouldIncludeWebAuthnOnlyInConfiguredOnUnlistedOrigin", "auth.example2.com", false, all, withoutWebAuthn},
+		{"ShouldExcludeWebAuthnWhenDisabled", "login.example.com:8080", true, withoutWebAuthn, withoutWebAuthn},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.WebAuthn.Disable = tc.disable
+			mock.Ctx.Configuration.WebAuthn.RelyingParties = map[string]schema.WebAuthnRelyingParty{
+				"login.example.com": {Origins: []*url.URL{{Scheme: "https", Host: "login.example.com:8080"}}},
+			}
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
+
+			assert.Equal(t, tc.configured, mock.Ctx.ConfiguredSecondFactorMethods())
+			assert.Equal(t, tc.available, mock.Ctx.AvailableSecondFactorMethods())
+		})
+	}
+}
+
+func TestAutheliaCtx_AvailableSecondFactorMethodsShouldExcludeWebAuthnWhenOriginInvalid(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!@NJK#N!@#IKJ!@NJK")
+
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}, mock.Ctx.ConfiguredSecondFactorMethods())
+}
+
 func TestAutheliaCtx_QueryFuncs(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()

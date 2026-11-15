@@ -451,3 +451,32 @@ func TestFormatError(t *testing.T) {
 		})
 	}
 }
+
+func TestIsOriginAvailable(t *testing.T) {
+	parties := map[string]schema.WebAuthnRelyingParty{
+		"login.example.com": {
+			Origins: []*url.URL{{Scheme: "https", Host: "login.example.com"}, {Scheme: "https", Host: "auth.example.org"}},
+		},
+	}
+
+	testCases := []struct {
+		name     string
+		config   schema.WebAuthn
+		origin   *url.URL
+		expected bool
+	}{
+		{"ShouldBeAvailableWithoutRelyingParties", schema.WebAuthn{}, &url.URL{Scheme: "https", Host: "any.example.com"}, true},
+		{"ShouldNotBeAvailableWhenDisabled", schema.WebAuthn{Disable: true}, &url.URL{Scheme: "https", Host: "any.example.com"}, false},
+		{"ShouldNotBeAvailableWhenDisabledWithRelyingParties", schema.WebAuthn{Disable: true, RelyingParties: parties}, &url.URL{Scheme: "https", Host: "login.example.com"}, false},
+		{"ShouldNotBeAvailableWithNilOrigin", schema.WebAuthn{}, nil, false},
+		{"ShouldBeAvailableForRelyingPartyOrigin", schema.WebAuthn{RelyingParties: parties}, &url.URL{Scheme: "https", Host: "login.example.com"}, true},
+		{"ShouldBeAvailableForRelatedOrigin", schema.WebAuthn{RelyingParties: parties}, &url.URL{Scheme: "https", Host: "AUTH.example.org:443"}, true},
+		{"ShouldNotBeAvailableForUnlistedOrigin", schema.WebAuthn{RelyingParties: parties}, &url.URL{Scheme: "https", Host: "auth.example.net"}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, webauthn.IsOriginAvailable(tc.config, tc.origin))
+		})
+	}
+}
