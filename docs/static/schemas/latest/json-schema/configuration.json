@@ -4656,6 +4656,16 @@
           "title": "Selection Criteria",
           "description": "WebAuthn Authenticator selection criteria settings."
         },
+        "extensions_unsolicited_output_policy": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "ignore"
+          ],
+          "title": "Extensions Unsolicited Output Policy",
+          "description": "The policy for handling client extension outputs which were not requested by the WebAuthn relying party.",
+          "default": "reject"
+        },
         "disable": {
           "type": "boolean",
           "title": "Disable",
@@ -4869,6 +4879,16 @@
           "title": "Selection Criteria",
           "description": "WebAuthn Authenticator selection criteria settings."
         },
+        "extensions_unsolicited_output_policy": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "ignore"
+          ],
+          "title": "Extensions Unsolicited Output Policy",
+          "description": "The policy for handling client extension outputs which were not requested by the WebAuthn relying party.",
+          "default": "reject"
+        },
         "origins": {
           "items": {
             "type": "string",
@@ -4888,7 +4908,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "WebAuthnRelyingParty represents the configuration of a single WebAuthn relying party, which is a relying party id and the origins which are permitted to perform ceremonies against it."
     },
     "WebAuthnSelectionCriteria": {
       "properties": {

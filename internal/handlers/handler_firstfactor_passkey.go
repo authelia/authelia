@@ -244,7 +244,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 	for _, credential := range user.Credentials {
 		if bytes.Equal(credential.KID.Bytes(), c.ID) {
-			credential.UpdateSignInInfo(provider.Config, ctx.GetClock().Now().UTC(), c)
+			credential.UpdateSignInInfo(provider.Config.RPID, provider.Origin.String(), ctx.GetClock().Now().UTC(), c)
 
 			if !credential.Discoverable {
 				credential.Discoverable = true

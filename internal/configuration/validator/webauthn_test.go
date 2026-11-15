@@ -851,6 +851,242 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldPassRegistrableParentRelyingPartyID",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://auth.example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+					},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldPassRegistrableParentRelyingPartyIDMultipleSubdomains",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://auth.example.com"), mustParseURL("https://sso.login.example.com:8443")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+						{AutheliaURL: mustParseURL("https://sso.login.example.com:8443")},
+					},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldPassRegistrableParentRelyingPartyIDMultiLabelPublicSuffix",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.co.uk": {
+							Origins: []*url.URL{mustParseURL("https://auth.example.co.uk")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.co.uk")},
+					},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldErrorOnParentRelyingPartyIDWithCrossSiteOrigin",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://auth.example.com"), mustParseURL("https://auth.example.org")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+						{AutheliaURL: mustParseURL("https://auth.example.org")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' must have an origin with the relying party id as its hostname when any origin is not the relying party id or a subdomain of it",
+			},
+		},
+		{
+			"ShouldErrorOnSuffixWhichIsNotASubdomain",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://notexample.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://notexample.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' must have an origin with the relying party id as its hostname when any origin is not the relying party id or a subdomain of it",
+			},
+		},
+		{
+			"ShouldErrorOnPublicSuffixRelyingPartyID",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"co.uk": {
+							Origins: []*url.URL{mustParseURL("https://auth.example.co.uk")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.co.uk")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: co.uk: the dictionary key is a public suffix but it must be a registrable domain when no origin has the relying party id as its hostname",
+			},
+		},
+		{
+			"ShouldErrorOnPrivatePublicSuffixRelyingPartyID",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"github.io": {
+							Origins: []*url.URL{mustParseURL("https://example.github.io")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.github.io")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: github.io: the dictionary key is a public suffix but it must be a registrable domain when no origin has the relying party id as its hostname",
+			},
+		},
+		{
+			"ShouldErrorOnOriginWithQuery",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com?x=1")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' item #1 with value 'https://example.com?x=1' is invalid as it must only have a scheme, host, and optional port",
+			},
+		},
+		{
+			"ShouldErrorOnOriginWithEmptyQuery",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com?")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' item #1 with value 'https://example.com?' is invalid as it must only have a scheme, host, and optional port",
+			},
+		},
+		{
+			"ShouldErrorOnOriginWithFragment",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com#frag")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' item #1 with value 'https://example.com#frag' is invalid as it must only have a scheme, host, and optional port",
+			},
+		},
+		{
+			"ShouldErrorOnOriginWithUserInfo",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://user@example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' item #1 with value 'https://user@example.com' is invalid as it must only have a scheme, host, and optional port",
+			},
+		},
+		{
+			"ShouldErrorOnOriginWithUserInfoPassword",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://user:pass@example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: relying_parties: example.com: option 'origins' item #1 with value 'https://user:xxxxx@example.com' is invalid as it must only have a scheme, host, and optional port",
+			},
+		},
+		{
 			"ShouldErrorOnEmptyRelyingPartyID",
 			&schema.Configuration{
 				WebAuthn: schema.WebAuthn{
@@ -918,7 +1154,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 			},
 			[]string{
 				"webauthn: relying_parties: example.com: option 'origins' item #1 is empty",
-				"webauthn: relying_parties: example.com: option 'origins' must have an origin with the relying party id as its hostname",
+				"webauthn: relying_parties: example.com: option 'origins' must have an origin with the relying party id as its hostname when any origin is not the relying party id or a subdomain of it",
 			},
 		},
 		{
@@ -938,7 +1174,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: relying_parties: example.com: option 'origins' item #1 with value 'https://example.com/path' is invalid as it doesn't have an empty path",
+				"webauthn: relying_parties: example.com: option 'origins' item #1 with value 'https://example.com/path' is invalid as it must only have a scheme, host, and optional port",
 			},
 		},
 		{
@@ -1018,7 +1254,7 @@ func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
 				},
 			},
 			[]string{
-				"webauthn: relying_parties: example.com: option 'origins' must have an origin with the relying party id as its hostname",
+				"webauthn: relying_parties: example.com: option 'origins' must have an origin with the relying party id as its hostname when any origin is not the relying party id or a subdomain of it",
 			},
 		},
 		{

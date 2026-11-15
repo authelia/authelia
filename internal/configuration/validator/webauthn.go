@@ -181,8 +181,8 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 	}
 
 	var (
-		found     bool
-		relatable []string
+		found, crossSite bool
+		relatable        []string
 	)
 
 	seen := map[string]bool{}
@@ -212,8 +212,8 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 
 		found = found || strings.EqualFold(origin.Hostname(), relyingPartyID)
 
-		if origin.Path != "" {
-			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotValidPath, prefix, i+1, value))
+		if !isWebAuthnOriginOnlyHost(origin) {
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotValidOrigin, prefix, i+1, origin.Redacted()))
 
 			continue
 		}
@@ -226,13 +226,27 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 
 		relatable = append(relatable, value)
 
+		crossSite = crossSite || !isWebAuthnOriginSameSite(origin, relyingPartyID)
+
 		if !originMatchesCookieAutheliaURL(config, origin) {
 			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotSessionCookie, prefix, i+1, value))
 		}
 	}
 
-	if !found {
+	validateWebAuthnRelatedOriginsRelyingPartyOrigins(relyingPartyID, relyingParty, prefix, found, crossSite, relatable, validator)
+}
+
+func validateWebAuthnRelatedOriginsRelyingPartyOrigins(relyingPartyID string, relyingParty *schema.WebAuthnRelyingParty, prefix string, found, crossSite bool, relatable []string, validator *schema.StructValidator) {
+	// An origin whose hostname is the relying party id or a subdomain of it can perform ceremonies against the relying
+	// party id without the well known document, so an origin hosted at the relying party id is only required when the
+	// well known document has to be served for an origin which is not.
+	switch {
+	case found:
+		break
+	case crossSite || len(relatable) == 0:
 		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNoOrigin, prefix))
+	case isCookieDomainAPublicSuffix(relyingPartyID):
+		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyPublicSuffix, prefix))
 	}
 
 	// The document served at the well known endpoint is built from these origins, so the limits a client applies when
@@ -258,6 +272,16 @@ func validateWebAuthnRelatedOriginsRelyingPartyID(relyingPartyID, prefix string,
 	if err := protocol.ValidateRPID(relyingPartyID); err != nil {
 		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNotValid, prefix, err))
 	}
+}
+
+func isWebAuthnOriginOnlyHost(origin *url.URL) (only bool) {
+	return origin.Path == "" && origin.RawQuery == "" && !origin.ForceQuery && origin.Fragment == "" && origin.User == nil
+}
+
+func isWebAuthnOriginSameSite(origin *url.URL, relyingPartyID string) (sameSite bool) {
+	hostname := strings.ToLower(origin.Hostname())
+
+	return hostname == relyingPartyID || strings.HasSuffix(hostname, "."+relyingPartyID)
 }
 
 func originMatchesCookieAutheliaURL(config *schema.Configuration, origin *url.URL) (match bool) {

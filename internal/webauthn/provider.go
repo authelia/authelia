@@ -101,14 +101,18 @@ func NewProvider(ctx Context) (provider *Provider, err error) {
 
 	return &Provider{
 		WebAuthn: webauthn,
+		Origin:   origin,
 		Options:  NewProviderConfig(ctx.GetConfiguration().WebAuthn, base),
 	}, nil
 }
 
-// Provider is a *gowebauthn.WebAuthn along with the Authelia configuration which applies to the relying party it was
-// built for.
+// Provider is a *gowebauthn.WebAuthn along with the origin of the request and the Authelia configuration which applies
+// to the relying party it was built for.
 type Provider struct {
 	*gowebauthn.WebAuthn
+
+	// Origin is the origin of the request the provider was built for, which is one of the origins in Config.RPOrigins.
+	Origin *url.URL
 
 	Options ProviderConfig
 }

@@ -86,8 +86,8 @@ func (f WebAuthnFiltering) IsProhibitBackupEligibility() bool {
 	return f.ProhibitBackupEligibility != nil && *f.ProhibitBackupEligibility
 }
 
-// WebAuthnRelyingParty represents the configuration of a single WebAuthn relying party, i.e. a relying party id and
-// the origins which are permitted to perform ceremonies against it.
+// WebAuthnRelyingParty represents the configuration of a single WebAuthn relying party, which is a relying party id
+// and the origins which are permitted to perform ceremonies against it.
 type WebAuthnRelyingParty struct {
 	WebAuthnBase `koanf:",squash"`
 

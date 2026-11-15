@@ -80,7 +80,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var extensions []gowebauthn.ExtensionOption
 
 	if user.HasFIDOU2F() {
-		extensions = append(extensions, gowebauthn.WithExtensionAppID(provider.Config.RPOrigins[0]))
+		extensions = append(extensions, gowebauthn.WithExtensionAppID(provider.Origin.String()))
 	}
 
 	var opts = []gowebauthn.LoginOption{
@@ -238,7 +238,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	for _, credential := range user.Credentials {
 		if bytes.Equal(credential.KID.Bytes(), c.ID) {
-			credential.UpdateSignInInfo(provider.Config, ctx.GetClock().Now().UTC(), c)
+			credential.UpdateSignInInfo(provider.Config.RPID, provider.Origin.String(), ctx.GetClock().Now().UTC(), c)
 
 			found = true
 

@@ -175,9 +175,15 @@ The relying parties config allows configuration of cross-domain WebAuthn Credent
 Authelia database. The key of the dictionary is the relying party identifier. This allows credentials to be shared
 between domains, and allows each relying party to be customized in a few ways.
 
-It's a list of objects which primarily contains a list of `origins`. The relying party identifier (dictionary key) must
-be the hostname portion of one of the origins, and all relying party identifiers's must be lowercase strings. This
-groups all of these origins into a single logical relying party.
+Each value is an object which primarily contains a list of `origins`, and all relying party identifiers (dictionary
+keys) must be lowercase strings. This groups all of these origins into a single logical relying party.
+
+The relying party identifier must either be the hostname portion of one of the origins, or a registrable domain which
+every origin is a subdomain of. For example `example.com` is a valid relying party identifier for the origins
+`https://auth.example.com` and `https://login.example.com`, but not for `https://auth.example.org`. When any origin is
+neither the relying party identifier nor a subdomain of it, clients have to fetch the
+[well known document](#well-known-document) from the relying party identifier, so one of the origins must have the
+relying party identifier as its hostname.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 Credentials are bound to the relying party identifier they were registered under. Changing the relying party identifier
@@ -206,7 +212,8 @@ more information.
 
 A list of trusted origins for this relying party. Each of these values must be the origin portion of one of the
 `authelia_url` values in the session cookies section of the config, and must not be duplicated across any of the other
-relying parties. Every value must be an absolute URL with the `http` or `https` scheme, a host, and no path.
+relying parties. Every value must be an absolute URL with the `http` or `https` scheme, a host, and an optional port,
+and must not have a path, query, fragment, or user information.
 
 Clients must support at least five distinct registrable domain labels in the
 [well known document](#well-known-document) and may apply a different maximum as a matter of their own policy, ignoring
@@ -269,8 +276,10 @@ The document is served when the request hostname is the id of a configured relyi
 [origins](#origins) of that relying party. Any other hostname responds with a 404, including a hostname which is only
 one of the other origins of a relying party. [opaque_origins](#opaque_origins) never appear in the document.
 
-This means the relying party id must itself be reachable over HTTPS and proxied to Authelia, as that is where the
-client fetches the document from.
+This means the relying party id must itself be reachable over HTTPS and proxied to Authelia when any origin is not the
+relying party id or a subdomain of it, as that is where the client fetches the document from. A relying party whose
+origins are all the relying party id or its subdomains does not need the document, as clients permit those origins to
+perform ceremonies against the relying party id directly.
 
 ### filtering
 
