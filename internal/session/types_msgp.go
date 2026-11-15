@@ -52,6 +52,10 @@ type UserSession struct {
 	// PasswordResetUsername is given a value when a session exists where the password is being reset.
 	PasswordResetUsername *string `msg:"pru,omitempty"`
 
+	// PasswordResetExpires is the time after which the password reset represented by PasswordResetUsername is no longer
+	// valid.
+	PasswordResetExpires time.Time `msg:"prx,omitempty"`
+
 	RefreshTTL time.Time `msg:"ttl"`
 
 	Elevations Elevations `msg:"e"`

@@ -337,6 +337,57 @@ func TestResetPasswordPOST(t *testing.T) {
 			},
 		},
 		{
+			"ShouldHandleExpiredPasswordReset",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.SetPasswordReset(testUsername, mock.Ctx.GetClock().Now().Add(-time.Second))
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.Ctx.Request.SetBodyString(`{"password":"password123"}`)
+			},
+			`{"status":"KO","code":"password_reset_failed","message":"Unable to reset your password."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred resetting the password as the identity verification process has expired", nil)
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+				assert.Nil(t, us.PasswordResetUsername)
+				assert.True(t, us.PasswordResetExpires.IsZero())
+			},
+		},
+		{
+			"ShouldHandlePasswordResetWithoutExpiration",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				username := testUsername
+
+				us.PasswordResetUsername = &username
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.Ctx.Request.SetBodyString(`{"password":"password123"}`)
+			},
+			`{"status":"KO","code":"password_reset_failed","message":"Unable to reset your password."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred resetting the password as the identity verification process has expired", nil)
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+				assert.Nil(t, us.PasswordResetUsername)
+			},
+		},
+		{
 			"ShouldHandleBodyParseError",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				setTestPasswordResetUsername(t, mock)
@@ -737,7 +788,13 @@ func TestResetPasswordIdentityVerificationFinish(t *testing.T) {
 
 	defer mock.Close()
 
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTExpiration = time.Minute * 5
+
+	before := mock.Ctx.GetClock().Now()
+
 	resetPasswordIdentityVerificationFinish(mock.Ctx, testUsername)
+
+	after := mock.Ctx.GetClock().Now()
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, `{"status":"OK"}`, string(mock.Ctx.Response.Body()))
@@ -747,6 +804,7 @@ func TestResetPasswordIdentityVerificationFinish(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, us.PasswordResetUsername)
 	assert.Equal(t, testUsername, *us.PasswordResetUsername)
+	assert.WithinRange(t, us.PasswordResetExpires, before.Add(time.Minute*5).Truncate(time.Second), after.Add(time.Minute*5).Add(time.Second))
 }
 
 func TestResetPasswordIdentityVerificationFinishShouldHandleGetSessionError(t *testing.T) {
@@ -798,9 +856,7 @@ func setTestPasswordResetUsername(t *testing.T, mock *mocks.MockAutheliaCtx) {
 
 	require.NoError(t, err)
 
-	username := testUsername
-
-	us.PasswordResetUsername = &username
+	us.SetPasswordReset(testUsername, mock.Ctx.GetClock().Now().Add(time.Minute))
 
 	require.NoError(t, mock.Ctx.SaveSession(&us))
 }

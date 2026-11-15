@@ -162,9 +162,8 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// Those checks unsure that the identity verification process has been initiated and completed successfully
-	// otherwise PasswordReset would not be set to true. We can improve the security of this check by making the
-	// request expire at some point because here it only expires when the cookie expires.
+	// These checks ensure that the identity verification process has been initiated and completed successfully and that
+	// it has not expired, otherwise the password reset state would not be present in the session.
 	if userSession.PasswordResetUsername == nil {
 		ctx.GetLogger().Error("Error occurred resetting the password as no identity verification process has been initiated")
 		ctx.SetJSONError(messageUnableToResetPassword)
@@ -172,7 +171,19 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	username := *userSession.PasswordResetUsername
+	username, ok := userSession.GetPasswordReset(ctx.GetClock().Now())
+	if !ok {
+		ctx.GetLogger().Error("Error occurred resetting the password as the identity verification process has expired")
+		ctx.SetJSONError(messageUnableToResetPassword)
+
+		userSession.ClearPasswordReset()
+
+		if err = ctx.SaveSession(&userSession); err != nil {
+			ctx.GetLogger().WithError(err).Error("Error occurred saving the session while clearing the expired password reset state")
+		}
+
+		return
+	}
 
 	var requestBody resetPasswordStep2RequestBody
 
@@ -217,7 +228,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	ctx.GetLogger().Debugf("Password of user %s has been reset", username)
 
-	userSession.PasswordResetUsername = nil
+	userSession.ClearPasswordReset()
 
 	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred saving the session while updating the password reset state")
@@ -316,7 +327,7 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 		return
 	}
 
-	userSession.PasswordResetUsername = &username
+	userSession.SetPasswordReset(username, ctx.GetClock().Now().Add(ctx.Configuration.IdentityValidation.ResetPassword.JWTExpiration))
 
 	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Unable to enable password reset in session for user '%s'", userSession.Username)

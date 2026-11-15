@@ -52,6 +52,7 @@ func (s *UserSession) RequiresPersistence() bool {
 		s.WebAuthnConditional != nil,
 		s.TOTP != nil,
 		s.PasswordResetUsername != nil,
+		!s.PasswordResetExpires.IsZero(),
 		s.Elevations.User != nil,
 		s.ExternalIdentity != nil,
 		s.ExternalIdentityPending != nil:
@@ -120,6 +121,8 @@ func (s *UserSession) setOneFactor(now time.Time, keepMeLoggedIn bool) {
 func (s *UserSession) SetOneFactorReauthenticate(now time.Time) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
+
+	s.ClearPasswordReset()
 }
 
 // SetTwoFactorTOTP sets the relevant TOTP AMR's and sets the factor to 2FA.
@@ -158,6 +161,30 @@ func (s *UserSession) SetTwoFactorPassword(now time.Time) {
 func (s *UserSession) setTwoFactor(now time.Time) {
 	s.SecondFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
+
+	s.ClearPasswordReset()
+}
+
+// SetPasswordReset marks the session as permitted to reset the password of the given username until the expires time.
+func (s *UserSession) SetPasswordReset(username string, expires time.Time) {
+	s.PasswordResetUsername = &username
+	s.PasswordResetExpires = expires
+}
+
+// GetPasswordReset returns the username the session is permitted to reset the password of, and true if the session is
+// permitted to reset the password at the given time.
+func (s *UserSession) GetPasswordReset(now time.Time) (username string, ok bool) {
+	if s.PasswordResetUsername == nil || s.PasswordResetExpires.IsZero() || !now.Before(s.PasswordResetExpires) {
+		return "", false
+	}
+
+	return *s.PasswordResetUsername, true
+}
+
+// ClearPasswordReset removes the password reset state from the session.
+func (s *UserSession) ClearPasswordReset() {
+	s.PasswordResetUsername = nil
+	s.PasswordResetExpires = time.Time{}
 }
 
 func (s *UserSession) setWebAuthn(hardware, userPresence, userVerified bool) {

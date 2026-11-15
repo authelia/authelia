@@ -215,6 +215,36 @@ func TestUserSession_SetOneFactorExternalIdentityAuthenticationLevel(t *testing.
 	}
 }
 
+func TestUserSession_ShouldClearPasswordResetOnAuthentication(t *testing.T) {
+	testCases := []struct {
+		name  string
+		setup func(session *UserSession)
+	}{
+		{"ShouldClearOnOneFactorPassword", func(session *UserSession) { session.SetOneFactorPassword(time.Unix(20000, 0), false) }},
+		{"ShouldClearOnOneFactorPasskey", func(session *UserSession) { session.SetOneFactorPasskey(time.Unix(20000, 0), false, true, true, true) }},
+		{"ShouldClearOnOneFactorExternalIdentity", func(session *UserSession) { session.SetOneFactorExternalIdentity(time.Unix(20000, 0), false) }},
+		{"ShouldClearOnOneFactorReauthenticate", func(session *UserSession) { session.SetOneFactorReauthenticate(time.Unix(20000, 0)) }},
+		{"ShouldClearOnTwoFactorTOTP", func(session *UserSession) { session.SetTwoFactorTOTP(time.Unix(20000, 0)) }},
+		{"ShouldClearOnTwoFactorDuo", func(session *UserSession) { session.SetTwoFactorDuo(time.Unix(20000, 0)) }},
+		{"ShouldClearOnTwoFactorWebAuthn", func(session *UserSession) { session.SetTwoFactorWebAuthn(time.Unix(20000, 0), true, true, true) }},
+		{"ShouldClearOnTwoFactorRecoveryCode", func(session *UserSession) { session.SetTwoFactorRecoveryCode(time.Unix(20000, 0)) }},
+		{"ShouldClearOnTwoFactorPassword", func(session *UserSession) { session.SetTwoFactorPassword(time.Unix(20000, 0)) }},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			session := NewUserSession("john")
+
+			session.SetPasswordReset("john", time.Unix(30000, 0))
+
+			tc.setup(&session)
+
+			assert.Nil(t, session.PasswordResetUsername)
+			assert.True(t, session.PasswordResetExpires.IsZero())
+		})
+	}
+}
+
 func TestUserSession_FederatedIdentitySecondFactor(t *testing.T) {
 	testCases := []struct {
 		Name     string
@@ -285,6 +315,45 @@ func TestUserSession_FederatedIdentitySecondFactor(t *testing.T) {
 
 			assert.Equal(t, tc.Expected, s.AuthenticationLevel(false))
 			assert.Equal(t, tc.RFC8176, s.AuthenticationMethodRefs.MarshalRFC8176())
+		})
+	}
+}
+
+func TestUserSession_GetPasswordReset(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(session *UserSession)
+		now      time.Time
+		expected string
+		ok       bool
+	}{
+		{"ShouldReturnUsernameBeforeExpiration", func(session *UserSession) { session.SetPasswordReset("john", time.Unix(30000, 0)) }, time.Unix(29999, 0), "john", true},
+		{"ShouldNotReturnUsernameAtExpiration", func(session *UserSession) { session.SetPasswordReset("john", time.Unix(30000, 0)) }, time.Unix(30000, 0), "", false},
+		{"ShouldNotReturnUsernameAfterExpiration", func(session *UserSession) { session.SetPasswordReset("john", time.Unix(30000, 0)) }, time.Unix(30001, 0), "", false},
+		{"ShouldNotReturnUsernameWithoutExpiration", func(session *UserSession) {
+			username := "john"
+			session.PasswordResetUsername = &username
+		}, time.Unix(10000, 0), "", false},
+		{"ShouldNotReturnUsernameWithoutUsername", func(session *UserSession) { session.PasswordResetExpires = time.Unix(30000, 0) }, time.Unix(10000, 0), "", false},
+		{"ShouldNotReturnUsernameAfterClear", func(session *UserSession) {
+			session.SetPasswordReset("john", time.Unix(30000, 0))
+			session.ClearPasswordReset()
+		}, time.Unix(10000, 0), "", false},
+		{"ShouldNotReturnUsernameWhenUnset", nil, time.Unix(10000, 0), "", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			session := NewDefaultUserSession()
+
+			if tc.setup != nil {
+				tc.setup(&session)
+			}
+
+			username, ok := session.GetPasswordReset(tc.now)
+
+			assert.Equal(t, tc.expected, username)
+			assert.Equal(t, tc.ok, ok)
 		})
 	}
 }
