@@ -247,8 +247,9 @@ func (s *OpenIDConnectRelyingPartyScenario) doAuthenticateAtProvider(t *testing.
 	s.verifyIsFirstFactorPage(t, page)
 	s.doFillLoginPageAndClick(t, page, username, testPassword, false)
 
-	// Where the browser lands depends on the callback: the portal for a link that does not exist, the target for one
-	// that does. All that is known here is that it leaves the provider.
+	s.verifyIsOpenIDConsentDecisionStage(t, page)
+	s.ClickElementLocatedByID(t, page, "openid-consent-accept")
+
 	s.waitURLLacksPrefix(t, page, UpstreamBaseURL)
 }
 
