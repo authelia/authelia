@@ -512,7 +512,7 @@ func newTestOIDCUserDetails() *authentication.UserDetails {
 	}
 }
 
-const testOAuth2AuthorizationBindingAnotherUserAgent = "YXV0aGVsaWEtb2F1dGgyLWJpbmRpbmctYW5vdGhlciE"
+const testOAuth2UserAgentBindingAnotherUserAgent = "YXV0aGVsaWEtb2F1dGgyLWJpbmRpbmctYW5vdGhlciE"
 
 func setupTestOIDCUserDetails(t *testing.T, mock *mocks.MockAutheliaCtx) {
 	t.Helper()

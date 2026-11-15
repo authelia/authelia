@@ -40,7 +40,7 @@ func TestHandleOAuth2ConsentSessionBind(t *testing.T) {
 		{
 			name: "ShouldBindToANewBindingWhenTheUserAgentHasNone",
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.DelCookie(session.AuthorizationBindingCookieName("authelia_session"))
+				mock.Ctx.Request.Header.DelCookie(session.UserAgentBindingCookieName("authelia_session"))
 			},
 		},
 		{
@@ -65,7 +65,7 @@ func TestHandleOAuth2ConsentSessionBind(t *testing.T) {
 
 			binding, err := handleOAuth2ConsentSessionBind(mock.Ctx, consent)
 
-			assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
+			assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
 
 			switch {
 			case tc.err != "":
@@ -74,13 +74,13 @@ func TestHandleOAuth2ConsentSessionBind(t *testing.T) {
 				assert.Empty(t, consent.Binding)
 			case tc.existing:
 				assert.NoError(t, err)
-				assert.Equal(t, mocks.AuthorizationBinding, binding)
-				assert.Equal(t, mocks.AuthorizationBindingDigest, consent.Binding)
+				assert.Equal(t, mocks.UserAgentBinding, binding)
+				assert.Equal(t, mocks.UserAgentBindingDigest, consent.Binding)
 			default:
 				assert.NoError(t, err)
 				assert.Len(t, binding, 43)
-				assert.NotEqual(t, mocks.AuthorizationBinding, binding)
-				assert.Equal(t, session.AuthorizationBindingDigest(binding), consent.Binding)
+				assert.NotEqual(t, mocks.UserAgentBinding, binding)
+				assert.Equal(t, session.UserAgentBindingDigest(binding), consent.Binding)
 			}
 		})
 	}
@@ -91,9 +91,9 @@ func TestHandleOAuth2ConsentSessionIssueBinding(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
-		require.NoError(t, handleOAuth2ConsentSessionIssueBinding(mock.Ctx, mocks.AuthorizationBinding))
+		require.NoError(t, handleOAuth2ConsentSessionIssueBinding(mock.Ctx, mocks.UserAgentBinding))
 
-		assert.Equal(t, mocks.AuthorizationBinding, assertTestOAuth2AuthorizationBindingCookie(t, mock))
+		assert.Equal(t, mocks.UserAgentBinding, assertTestOAuth2UserAgentBindingCookie(t, mock))
 	})
 
 	t.Run("ShouldHandleSessionProviderError", func(t *testing.T) {
@@ -102,8 +102,8 @@ func TestHandleOAuth2ConsentSessionIssueBinding(t *testing.T) {
 
 		clearForwardedHeaders(mock)
 
-		assert.EqualError(t, handleOAuth2ConsentSessionIssueBinding(mock.Ctx, mocks.AuthorizationBinding), "error occurred obtaining the session provider to issue the consent session binding: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
-		assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
+		assert.EqualError(t, handleOAuth2ConsentSessionIssueBinding(mock.Ctx, mocks.UserAgentBinding), "error occurred obtaining the session provider to issue the consent session binding: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
+		assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
 	})
 }
 
@@ -120,7 +120,7 @@ func TestHandleOAuth2ConsentSessionLoadBound(t *testing.T) {
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.StorageMock.EXPECT().
 					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-					Return(&model.OAuth2ConsentSession{ChallengeID: challenge, Binding: mocks.AuthorizationBindingDigest}, nil)
+					Return(&model.OAuth2ConsentSession{ChallengeID: challenge, Binding: mocks.UserAgentBindingDigest}, nil)
 			},
 		},
 		{
@@ -190,7 +190,7 @@ func TestHandleOAuth2AuthorizationConsentPending(t *testing.T) {
 		return &model.OAuth2ConsentSession{
 			ChallengeID:     challenge,
 			ClientID:        "test",
-			Binding:         mocks.AuthorizationBindingDigest,
+			Binding:         mocks.UserAgentBindingDigest,
 			ExpiresAt:       mock.Ctx.GetClock().Now().Add(time.Minute),
 			RequestedScopes: []string{oidc.ScopeOpenID},
 			Form:            url.Values{oidc.FormParameterState: []string{"abc"}}.Encode(),
@@ -323,7 +323,7 @@ func TestHandleOAuth2AuthorizationConsentPending(t *testing.T) {
 			consentID: challenge.String(),
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				consent := newPending(mock)
-				consent.Binding = testOAuth2AuthorizationBindingAnotherUserAgent
+				consent.Binding = testOAuth2UserAgentBindingAnotherUserAgent
 
 				mock.StorageMock.EXPECT().
 					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).

@@ -171,7 +171,7 @@ func TestOAuth2ConsentUserCodePOSTShouldExchangeUserCode(t *testing.T) {
 	assert.Equal(t, testOIDCDeviceCodeID, consent.ClientID)
 	assert.True(t, consent.Subject.Valid)
 	assert.False(t, consent.Responded())
-	assert.Equal(t, mocks.AuthorizationBindingDigest, consent.Binding)
+	assert.Equal(t, mocks.UserAgentBindingDigest, consent.Binding)
 
 	device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
 
@@ -224,7 +224,7 @@ func TestOAuth2ConsentUserCodePOSTShouldResumeExchangeForTheSameUserAgent(t *tes
 			flowID := mustExchangeTestOIDCUserCode(t, mock, userCode)
 
 			if !tc.binding {
-				mock.Ctx.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), testOAuth2AuthorizationBindingAnotherUserAgent)
+				mock.Ctx.Request.Header.SetCookie(session.UserAgentBindingCookieName("authelia_session"), testOAuth2UserAgentBindingAnotherUserAgent)
 			}
 
 			if tc.setup != nil {
@@ -249,7 +249,7 @@ func TestOAuth2ConsentUserCodePOSTShouldResumeExchangeForTheSameUserAgent(t *tes
 			mock.GetResponseData(t, &body)
 
 			assert.Equal(t, flowID.String(), body.FlowID)
-			assert.Equal(t, mocks.AuthorizationBinding, assertTestOAuth2AuthorizationBindingCookie(t, mock))
+			assert.Equal(t, mocks.UserAgentBinding, assertTestOAuth2UserAgentBindingCookie(t, mock))
 		})
 	}
 }
@@ -312,7 +312,7 @@ func TestOAuth2ConsentUserCodePOSTShouldRollBackWhenTheClaimFails(t *testing.T) 
 			mock.Assert200KO(t, messageOperationFailed)
 
 			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred exchanging the user code for a consent session during the Consent Flow stage of the Device Authorization Flow", tc.err)
-			assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
+			assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
 
 			device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
 
@@ -356,7 +356,7 @@ func TestOAuth2ConsentUserCodePOSTShouldCompleteEveryFlowOfTheUserAgent(t *testi
 		consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
 		require.NoError(t, err)
 
-		assert.Equal(t, mocks.AuthorizationBindingDigest, consent.Binding)
+		assert.Equal(t, mocks.UserAgentBindingDigest, consent.Binding)
 		assert.True(t, consent.Responded())
 		assert.True(t, consent.Authorized)
 	}
@@ -483,7 +483,7 @@ func TestOAuth2ConsentPOSTDeviceAuthorization(t *testing.T) {
 		{
 			name: "ShouldHandleConsentSessionBoundToAnotherUserAgent",
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, _ string, _ uuid.UUID) {
-				mock.Ctx.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), testOAuth2AuthorizationBindingAnotherUserAgent)
+				mock.Ctx.Request.Header.SetCookie(session.UserAgentBindingCookieName("authelia_session"), testOAuth2UserAgentBindingAnotherUserAgent)
 			},
 			msg: "Error occurred fetching consent session during the Consent Flow stage of the Authorization Flow",
 			err: "the consent session is not bound to the user agent",
@@ -723,7 +723,7 @@ func mustExchangeTestOIDCUserCodeWithoutTX(t *testing.T, mock *mocks.MockAutheli
 
 	flowID = uuid.MustParse(body.FlowID)
 
-	mock.Ctx.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), assertTestOAuth2AuthorizationBindingCookie(t, mock))
+	mock.Ctx.Request.Header.SetCookie(session.UserAgentBindingCookieName("authelia_session"), assertTestOAuth2UserAgentBindingCookie(t, mock))
 	mock.Ctx.Response.Reset()
 
 	return flowID

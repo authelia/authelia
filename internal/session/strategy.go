@@ -43,7 +43,7 @@ func NewStrategy(config schema.SessionCookie, clock clock.Provider, codec Codec,
 		issuer:        codec.Sign([]byte(scope)),
 		name:          SessionCookieName(config.Name),
 		authzName:     AuthzCookieName(config.Name),
-		bindingName:   AuthorizationBindingCookieName(config.Name),
+		bindingName:   UserAgentBindingCookieName(config.Name),
 		authzIssuer:   codec.SignAuthz([]byte(issuerPrefixAuthz + scope)),
 		authzDomain:   newDomain(config.Domain, sameSite),
 		authzSameSite: sameSite,
@@ -594,51 +594,51 @@ func (p *DefaultStrategy) csrfTokenMessage(secret []byte) (message []byte) {
 	return append(message, secret...)
 }
 
-// AuthorizationBinding returns the opaque value which binds a record to the user agent of the request, which is the
-// value of the authorization binding cookie of the request when it carries a well formed one, and otherwise a new random
-// value. The binding is not issued to the user agent until IssueAuthorizationBinding is called with it.
-func (p *DefaultStrategy) AuthorizationBinding(ctx Context) (binding string, err error) {
+// UserAgentBinding returns the opaque value which binds a record to the user agent of the request, which is the
+// value of the user agent binding cookie of the request when it carries a well formed one, and otherwise a new random
+// value. The binding is not issued to the user agent until IssueUserAgentBinding is called with it.
+func (p *DefaultStrategy) UserAgentBinding(ctx Context) (binding string, err error) {
 	id := p.getCookieID(ctx, p.bindingName)
 
 	if len(id) == 0 {
 		if id, err = p.codec.GenerateSessionID(); err != nil {
-			return "", fmt.Errorf("error occurred generating authorization binding: %w", err)
+			return "", fmt.Errorf("error occurred generating user agent binding: %w", err)
 		}
 	}
 
 	return encodeCookieID(id), nil
 }
 
-// IssueAuthorizationBinding issues the binding to the user agent as the value of the authorization binding cookie, which
+// IssueUserAgentBinding issues the binding to the user agent as the value of the user agent binding cookie, which
 // also extends the lifetime of a binding the user agent already holds.
-func (p *DefaultStrategy) IssueAuthorizationBinding(ctx Context, binding string) {
-	ctx.SetCookie(p.newAuthorizationBindingCookie(binding))
+func (p *DefaultStrategy) IssueUserAgentBinding(ctx Context, binding string) {
+	ctx.SetCookie(p.newUserAgentBindingCookie(binding))
 }
 
-// VerifyAuthorizationBinding returns true when the digest is the AuthorizationBindingDigest of the value of the
-// authorization binding cookie of the request, comparing them in constant time.
-func (p *DefaultStrategy) VerifyAuthorizationBinding(ctx Context, digest string) (valid bool) {
+// VerifyUserAgentBinding returns true when the digest is the UserAgentBindingDigest of the value of the
+// user agent binding cookie of the request, comparing them in constant time.
+func (p *DefaultStrategy) VerifyUserAgentBinding(ctx Context, digest string) (valid bool) {
 	if len(digest) == 0 || len(p.getCookieID(ctx, p.bindingName)) == 0 {
 		return false
 	}
 
-	return subtle.ConstantTimeCompare([]byte(AuthorizationBindingDigest(ctx.GetCookie(p.bindingName))), []byte(digest)) == 1
+	return subtle.ConstantTimeCompare([]byte(UserAgentBindingDigest(ctx.GetCookie(p.bindingName))), []byte(digest)) == 1
 }
 
-// AuthorizationBindingDigest returns the digest of a binding which is stored with the record it binds, so the stored
-// value can't be used as the authorization binding cookie of a user agent.
-func AuthorizationBindingDigest(binding string) (digest string) {
+// UserAgentBindingDigest returns the digest of a binding which is stored with the record it binds, so the stored
+// value can't be used as a user agent binding cookie.
+func UserAgentBindingDigest(binding string) (digest string) {
 	sum := sha256.Sum256([]byte(binding))
 
 	return hex.EncodeToString(sum[:])
 }
 
-func (p *DefaultStrategy) newAuthorizationBindingCookie(binding string) (cookie *http.Cookie) {
+func (p *DefaultStrategy) newUserAgentBindingCookie(binding string) (cookie *http.Cookie) {
 	return &http.Cookie{
 		Name:     p.bindingName,
 		Value:    binding,
 		Path:     "/",
-		MaxAge:   cookieMaxAgeAuthorizationBinding,
+		MaxAge:   cookieMaxAgeUserAgentBinding,
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
@@ -652,11 +652,11 @@ func SessionCookieName(name string) string {
 	return CookieNamePrefixHostHTTP + name
 }
 
-// AuthorizationBindingCookieName returns the name of the authorization binding cookie for the given configured cookie
+// UserAgentBindingCookieName returns the name of the user agent binding cookie for the given configured cookie
 // name. The cookie is host only and HTTP only so it carries the same prefix as the session cookie, which prevents a
 // sibling subdomain or a script from setting a cookie which takes its place.
-func AuthorizationBindingCookieName(name string) string {
-	return CookieNamePrefixHostHTTP + name + CookieNameSuffixAuthorizationBinding
+func UserAgentBindingCookieName(name string) string {
+	return CookieNamePrefixHostHTTP + name + CookieNameSuffixUserAgentBinding
 }
 
 // AuthzCookieName returns the name of the authz cookie for the given configured cookie name. The authz cookie is scoped

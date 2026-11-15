@@ -719,7 +719,7 @@ func newTestOIDCConsentSession(t *testing.T, mock *mocks.MockAutheliaCtx, subjec
 	}
 
 	return &model.OAuth2ConsentSession{
-		Binding:         mocks.AuthorizationBindingDigest,
+		Binding:         mocks.UserAgentBindingDigest,
 		ID:              1,
 		ChallengeID:     uuid.Must(uuid.NewRandom()),
 		ClientID:        testOIDCAuthorizationCodeID,

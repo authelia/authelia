@@ -563,7 +563,7 @@ func TestOAuth2AuthorizationBounceShouldSurviveTheServerMiddlewares(t *testing.T
 			assert.Equal(t, [][]byte{[]byte("default-src 'none'")}, ctx.Response.Header.PeekAll(fasthttp.HeaderContentSecurityPolicy))
 
 			assert.Equal(t, "authelia_authorization_bounce=1; Path="+path+"; Max-Age=0; HttpOnly; Secure; SameSite=Lax", string(ctx.Response.Header.PeekCookie(cookieNameOAuth2AuthorizationBounce)))
-			assert.NotNil(t, ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
+			assert.NotNil(t, ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
 		})
 	}
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDefaultStrategyAuthorizationBinding(t *testing.T) {
+func TestDefaultStrategyUserAgentBinding(t *testing.T) {
 	existing := newTestCookie("binding")
 
 	testCases := []struct {
@@ -35,10 +35,10 @@ func TestDefaultStrategyAuthorizationBinding(t *testing.T) {
 			ctx := newTestContext()
 
 			if tc.cookie != "" {
-				ctx.cookies[testNameAuthorizationBinding] = tc.cookie
+				ctx.cookies[testNameUserAgentBinding] = tc.cookie
 			}
 
-			binding, err := strategy.AuthorizationBinding(ctx)
+			binding, err := strategy.UserAgentBinding(ctx)
 			require.NoError(t, err)
 
 			assert.Equal(t, 0, ctx.set)
@@ -56,40 +56,40 @@ func TestDefaultStrategyAuthorizationBinding(t *testing.T) {
 	}
 }
 
-func TestDefaultStrategyAuthorizationBindingShouldBeStableForTheUserAgent(t *testing.T) {
+func TestDefaultStrategyUserAgentBindingShouldBeStableForTheUserAgent(t *testing.T) {
 	strategy := newTestStrategy(t, nil)
 
 	ctx := newTestContext()
 
-	first, err := strategy.AuthorizationBinding(ctx)
+	first, err := strategy.UserAgentBinding(ctx)
 	require.NoError(t, err)
 
-	strategy.IssueAuthorizationBinding(ctx, first)
+	strategy.IssueUserAgentBinding(ctx, first)
 
 	next := newTestContext()
-	next.cookies[testNameAuthorizationBinding] = ctx.jar[testNameAuthorizationBinding].Value
+	next.cookies[testNameUserAgentBinding] = ctx.jar[testNameUserAgentBinding].Value
 
-	second, err := strategy.AuthorizationBinding(next)
+	second, err := strategy.UserAgentBinding(next)
 	require.NoError(t, err)
 
 	assert.Equal(t, first, second)
-	assert.True(t, strategy.VerifyAuthorizationBinding(next, AuthorizationBindingDigest(first)))
+	assert.True(t, strategy.VerifyUserAgentBinding(next, UserAgentBindingDigest(first)))
 }
 
-func TestDefaultStrategyIssueAuthorizationBinding(t *testing.T) {
+func TestDefaultStrategyIssueUserAgentBinding(t *testing.T) {
 	strategy := newTestStrategy(t, nil)
 
 	ctx := newTestContext()
 
-	binding, err := strategy.AuthorizationBinding(ctx)
+	binding, err := strategy.UserAgentBinding(ctx)
 	require.NoError(t, err)
 
-	strategy.IssueAuthorizationBinding(ctx, binding)
+	strategy.IssueUserAgentBinding(ctx, binding)
 
-	cookie, ok := ctx.jar[testNameAuthorizationBinding]
+	cookie, ok := ctx.jar[testNameUserAgentBinding]
 	require.True(t, ok)
 
-	assert.Equal(t, testNameAuthorizationBinding, cookie.Name)
+	assert.Equal(t, testNameUserAgentBinding, cookie.Name)
 	assert.Equal(t, binding, cookie.Value)
 	assert.Equal(t, "/", cookie.Path)
 	assert.Empty(t, cookie.Domain)
@@ -98,34 +98,34 @@ func TestDefaultStrategyIssueAuthorizationBinding(t *testing.T) {
 	assert.True(t, cookie.Secure)
 	assert.True(t, cookie.HttpOnly)
 	assert.Equal(t, http.SameSiteLaxMode, cookie.SameSite)
-	assert.True(t, strategy.VerifyAuthorizationBinding(ctx, AuthorizationBindingDigest(binding)))
+	assert.True(t, strategy.VerifyUserAgentBinding(ctx, UserAgentBindingDigest(binding)))
 }
 
-func TestDefaultStrategyAuthorizationBindingShouldBeUnique(t *testing.T) {
+func TestDefaultStrategyUserAgentBindingShouldBeUnique(t *testing.T) {
 	strategy := newTestStrategy(t, nil)
 
-	first, err := strategy.AuthorizationBinding(newTestContext())
+	first, err := strategy.UserAgentBinding(newTestContext())
 	require.NoError(t, err)
 
-	second, err := strategy.AuthorizationBinding(newTestContext())
+	second, err := strategy.UserAgentBinding(newTestContext())
 	require.NoError(t, err)
 
 	assert.NotEqual(t, first, second)
 }
 
-func TestDefaultStrategyAuthorizationBindingShouldHandleGenerateError(t *testing.T) {
+func TestDefaultStrategyUserAgentBindingShouldHandleGenerateError(t *testing.T) {
 	strategy := newTestStrategyWithCodec(t, &failingCodec{Codec: newTestCodec(t), errSessionID: errors.New("bad random")}, newTestRepository())
 
 	ctx := newTestContext()
 
-	binding, err := strategy.AuthorizationBinding(ctx)
+	binding, err := strategy.UserAgentBinding(ctx)
 
-	assert.EqualError(t, err, "error occurred generating authorization binding: bad random")
+	assert.EqualError(t, err, "error occurred generating user agent binding: bad random")
 	assert.Empty(t, binding)
 	assert.Equal(t, 0, ctx.set)
 }
 
-func TestDefaultStrategyVerifyAuthorizationBinding(t *testing.T) {
+func TestDefaultStrategyVerifyUserAgentBinding(t *testing.T) {
 	binding := newTestCookie("binding")
 
 	testCases := []struct {
@@ -134,12 +134,12 @@ func TestDefaultStrategyVerifyAuthorizationBinding(t *testing.T) {
 		binding  string
 		expected bool
 	}{
-		{"ShouldVerifyMatchingBinding", binding, AuthorizationBindingDigest(binding), true},
+		{"ShouldVerifyMatchingBinding", binding, UserAgentBindingDigest(binding), true},
 		{"ShouldNotVerifyBindingAgainstItself", binding, binding, false},
-		{"ShouldNotVerifyDifferentBinding", binding, AuthorizationBindingDigest(newTestCookie("other")), false},
-		{"ShouldNotVerifyWithoutCookie", "", AuthorizationBindingDigest(binding), false},
+		{"ShouldNotVerifyDifferentBinding", binding, UserAgentBindingDigest(newTestCookie("other")), false},
+		{"ShouldNotVerifyWithoutCookie", "", UserAgentBindingDigest(binding), false},
 		{"ShouldNotVerifyEmptyBinding", binding, "", false},
-		{"ShouldNotVerifyMalformedCookie", "not-a-cookie-value", AuthorizationBindingDigest("not-a-cookie-value"), false},
+		{"ShouldNotVerifyMalformedCookie", "not-a-cookie-value", UserAgentBindingDigest("not-a-cookie-value"), false},
 	}
 
 	for _, tc := range testCases {
@@ -149,21 +149,21 @@ func TestDefaultStrategyVerifyAuthorizationBinding(t *testing.T) {
 			ctx := newTestContext()
 
 			if tc.cookie != "" {
-				ctx.cookies[testNameAuthorizationBinding] = tc.cookie
+				ctx.cookies[testNameUserAgentBinding] = tc.cookie
 			}
 
-			assert.Equal(t, tc.expected, strategy.VerifyAuthorizationBinding(ctx, tc.binding))
+			assert.Equal(t, tc.expected, strategy.VerifyUserAgentBinding(ctx, tc.binding))
 		})
 	}
 }
 
-func TestAuthorizationBindingCookieName(t *testing.T) {
-	assert.Equal(t, "__Host-Http-authelia_session_ua", AuthorizationBindingCookieName("authelia_session"))
+func TestUserAgentBindingCookieName(t *testing.T) {
+	assert.Equal(t, "__Host-Http-authelia_session_ua", UserAgentBindingCookieName("authelia_session"))
 }
 
-func TestAuthorizationBindingDigest(t *testing.T) {
-	digest := AuthorizationBindingDigest("binding")
+func TestUserAgentBindingDigest(t *testing.T) {
+	digest := UserAgentBindingDigest("binding")
 
 	assert.Equal(t, "80f70afeef3caa57646fd20afb95be9c3f2c03d38e091906de31838813dcc22e", digest)
-	assert.NotEqual(t, AuthorizationBindingDigest("other"), digest)
+	assert.NotEqual(t, UserAgentBindingDigest("other"), digest)
 }

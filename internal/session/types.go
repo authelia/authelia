@@ -121,21 +121,21 @@ type Strategy interface {
 	// CSRF secret for an established session which has none.
 	SetCSRFCookie(ctx Context) (err error)
 
-	// AuthorizationBinding returns the opaque value which binds a record such as an OpenID Connect 1.0 consent session
-	// to the user agent of the request. A user agent which already holds a well formed authorization binding cookie
+	// UserAgentBinding returns the opaque value which binds a record such as an OpenID Connect 1.0 consent session
+	// to the user agent of the request. A user agent which already holds a well formed user agent binding cookie
 	// keeps its binding so every record it creates is bound to the same value, otherwise a new random value is returned.
-	// The binding is not issued to the user agent until IssueAuthorizationBinding is called with it.
-	AuthorizationBinding(ctx Context) (binding string, err error)
+	// The binding is not issued to the user agent until IssueUserAgentBinding is called with it.
+	UserAgentBinding(ctx Context) (binding string, err error)
 
-	// IssueAuthorizationBinding issues the binding to the user agent as the value of the authorization binding cookie,
+	// IssueUserAgentBinding issues the binding to the user agent as the value of the user agent binding cookie,
 	// which also extends the lifetime of a binding the user agent already holds. A caller which may fail to store the
 	// record bound to it, such as one which loses a race to claim a record, should only issue it once it's stored.
-	IssueAuthorizationBinding(ctx Context, binding string)
+	IssueUserAgentBinding(ctx Context, binding string)
 
-	// VerifyAuthorizationBinding returns true when the digest is the AuthorizationBindingDigest of the value
-	// AuthorizationBinding returns for the authorization binding cookie of the request, comparing them in constant time.
+	// VerifyUserAgentBinding returns true when the digest is the UserAgentBindingDigest of the value
+	// UserAgentBinding returns for the user agent binding cookie of the request, comparing them in constant time.
 	// A request which carries no such cookie, or an empty digest, is never verified.
-	VerifyAuthorizationBinding(ctx Context, digest string) (valid bool)
+	VerifyUserAgentBinding(ctx Context, digest string) (valid bool)
 
 	// Authz returns the restricted view of this Strategy which the authorization endpoints use. The view resolves the
 	// session from the authz cookie alone and can only update the activity of the session or destroy it.
