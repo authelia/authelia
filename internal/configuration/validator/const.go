@@ -780,7 +780,7 @@ var (
 	reRFC3986Unreserved       = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
 
 	reExternalIdentityProviderID       = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,31}$`)
-	reExternalIdentityLogoURIDataImage = regexp.MustCompile(`^data:image/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*[;,]`)
+	reExternalIdentityLogoURIDataImage = regexp.MustCompile(`(?i)^data:image/[a-z0-9][a-z0-9!#$&^_.+-]*(;[^,]*)?,`)
 	reExternalIdentityAuthParamName    = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 )
 

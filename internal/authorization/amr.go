@@ -83,6 +83,8 @@ type AuthenticationMethodsReferences struct {
 
 // Merge returns the union of this AuthenticationMethodsReferences and another. Every boolean value is the logical OR
 // of the two values, and the Extra values of both are appended in order provided they are not already present.
+//
+//nolint:gocyclo // Each boolean is merged with a single logical OR so the function is simple to understand.
 func (r AuthenticationMethodsReferences) Merge(other AuthenticationMethodsReferences) (merged AuthenticationMethodsReferences) {
 	merged = AuthenticationMethodsReferences{
 		KnowledgeBasedAuthentication: r.KnowledgeBasedAuthentication || other.KnowledgeBasedAuthentication,

@@ -164,6 +164,38 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 			},
 		},
 		{
+			Name: "ShouldAcceptAnImageDataLogoURIWithoutBase64",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret", LogoURI: "data:image/svg+xml,%3Csvg%2F%3E"},
+				},
+			},
+		},
+		{
+			Name: "ShouldAcceptAnImageDataLogoURIWithParameters",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret", LogoURI: "data:image/svg+xml;charset=utf-8,%3Csvg%2F%3E"},
+				},
+			},
+		},
+		{
+			Name: "ShouldAcceptAnImageDataLogoURIWithVendorSubtype",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret", LogoURI: "data:image/vnd.microsoft.icon;base64,AAAB"},
+				},
+			},
+		},
+		{
+			Name: "ShouldAcceptAnImageDataLogoURIRegardlessOfCase",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret", LogoURI: "DATA:Image/PNG;base64,iVBORw0KGgo="},
+				},
+			},
+		},
+		{
 			Name: "ShouldRaiseErrorOnInsecureLogoURI",
 			Have: &schema.AuthenticationBackendExternalIdentity{
 				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
@@ -189,6 +221,33 @@ func TestValidateAuthenticationBackendExternalIdentity(t *testing.T) {
 				},
 			},
 			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'logo_uri' must have the 'https' scheme or be a 'data' URI with an image media type but it's configured as 'data:text/html;base64,PGgxLz4='"},
+		},
+		{
+			Name: "ShouldRaiseErrorOnImageDataLogoURIWithoutData",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret", LogoURI: "data:image/png"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'logo_uri' must have the 'https' scheme or be a 'data' URI with an image media type but it's configured as 'data:image/png'"},
+		},
+		{
+			Name: "ShouldRaiseErrorOnImageDataLogoURIWithoutComma",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret", LogoURI: "data:image/png;base64"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'logo_uri' must have the 'https' scheme or be a 'data' URI with an image media type but it's configured as 'data:image/png;base64'"},
+		},
+		{
+			Name: "ShouldRaiseErrorOnImageDataLogoURIWithoutSubtype",
+			Have: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "google", Name: "Google", Issuer: "https://accounts.google.com", ClientID: "abc", ClientSecret: "secret", LogoURI: "data:image/;base64,AAAB"},
+				},
+			},
+			Errors: []string{"authentication_backend: external_identity: providers: provider 'google': option 'logo_uri' must have the 'https' scheme or be a 'data' URI with an image media type but it's configured as 'data:image/;base64,AAAB'"},
 		},
 		{
 			Name: "ShouldRaiseErrorOnUnparsableLogoURI",
