@@ -342,7 +342,7 @@ func TestStorageSessionStrategyShouldNotRestoreASessionDestroyedByAnotherRequest
 
 	loaded.LastActivity++
 
-	require.NoError(t, strategy.Save(stale, loaded))
+	require.ErrorIs(t, strategy.Save(stale, loaded), session.ErrSessionSuperseded)
 
 	assert.Equal(t, 0, stale.set)
 

@@ -266,7 +266,7 @@ func TestDefaultStrategy_SaveShouldNotSetCookieOrCacheWhenTheSessionIsSuperseded
 
 	loaded.LastActivity = 1234
 
-	require.NoError(t, strategy.Save(ctx, loaded))
+	assert.ErrorIs(t, strategy.Save(ctx, loaded), ErrSessionSuperseded)
 
 	assert.Equal(t, 0, ctx.set)
 	assert.Equal(t, previous.cookies[testNameSession], ctx.cookies[testNameSession])
@@ -395,7 +395,7 @@ func TestDefaultStrategy_SaveShouldDiscardStaleAnonymousSessionLoadedFromRecord(
 
 	repository.errSave = ErrSessionSuperseded
 
-	require.NoError(t, strategy.Save(ctx, loaded))
+	assert.ErrorIs(t, strategy.Save(ctx, loaded), ErrSessionSuperseded)
 
 	assert.Equal(t, 0, ctx.set)
 	assert.Equal(t, previous.cookies[testNameSession], ctx.cookies[testNameSession])

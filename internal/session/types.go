@@ -99,7 +99,8 @@ type Strategy interface {
 
 	// Save persists the session and delivers the session cookie to the user agent, generating the identifiers the
 	// session needs when it has none. The session is a pointer as the generated public identifier is written back to it,
-	// which the caller must retain to avoid orphaning it on a later save.
+	// which the caller must retain to avoid orphaning it on a later save. A save which lost a race with a request which
+	// destroyed or regenerated the session is dropped and returns an error which wraps ErrSessionSuperseded.
 	Save(ctx Context, userSession *UserSession) (err error)
 
 	// Regenerate issues a new session identifier for the session of the request, moving the persisted session to it and
