@@ -120,7 +120,7 @@ func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaC
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var err error
 
-	if consent, handled = handleOAuth2AuthorizationConsentPending(ctx, client, rw, requester); handled {
+	if consent, handled = handleOAuth2AuthorizationConsentPending(ctx, client, rw, requester, true); handled {
 		return nil, true
 	}
 
@@ -160,7 +160,7 @@ func handleOAuth2AuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issu
 
 	ctx.GetLogger().Debugf(logFmtDbgConsentGenerate, requester.GetID(), client.GetID(), client.GetConsentPolicy())
 
-	if consent, handled = handleOAuth2AuthorizationConsentPending(ctx, client, rw, requester); handled {
+	if consent, handled = handleOAuth2AuthorizationConsentPending(ctx, client, rw, requester, false); handled {
 		return nil, true
 	}
 
@@ -195,7 +195,7 @@ func handleOAuth2AuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issu
 	return consent, true
 }
 
-func handleOAuth2AuthorizationConsentPending(ctx *middlewares.AutheliaCtx, client oidc.Client, rw http.ResponseWriter, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
+func handleOAuth2AuthorizationConsentPending(ctx *middlewares.AutheliaCtx, client oidc.Client, rw http.ResponseWriter, requester oauthelia2.Requester, restart bool) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		consentID uuid.UUID
 		err       error
@@ -224,6 +224,12 @@ func handleOAuth2AuthorizationConsentPending(ctx *middlewares.AutheliaCtx, clien
 	}
 
 	if consent.Responded() || consent.Subject.Valid || !consent.CanGrant(ctx.GetClock().Now()) {
+		if restart {
+			ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' is being restarted as the referenced consent session with id '%s' is no longer pending a response", requester.GetID(), client.GetID(), consentID)
+
+			return nil, false
+		}
+
 		ctx.GetLogger().Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", errors.New("the consent session is not pending a response"))
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
