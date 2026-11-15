@@ -123,7 +123,7 @@ func TestDefaultStrategy_RegenerateShouldIssueTheSessionCookieWhenTheAuthzIndexC
 	original, authz := ctx.cookies[testNameSession], ctx.cookies[testNameAuthz]
 
 	repository.errSave = errTestFailure
-	repository.errSaveAt = repository.saves + 3
+	repository.errSaveAt = repository.saves + 2
 
 	require.NoError(t, strategy.Regenerate(ctx))
 

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AssertionResult } from "@models/WebAuthn";
 import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
@@ -98,6 +98,41 @@ describe("rendering", () => {
 });
 
 describe("sign in", () => {
+    it("does not abort the passkey sign-in on unmount", async () => {
+        postResponseMock.mockReturnValue(new Promise(() => {}) as any);
+
+        const { unmount } = renderForm();
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalledTimes(1));
+
+        const signal = postResponseMock.mock.calls[0][7];
+
+        unmount();
+
+        expect(signal?.aborted).not.toBe(true);
+    });
+
+    it("ignores the passkey sign-in response after unmount", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        postResponseMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { props, unmount } = renderForm();
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalledTimes(1));
+
+        unmount();
+
+        await act(async () => {
+            resolve({ data: { status: "OK" }, status: 200 });
+        });
+
+        expect(props.onAuthenticationSuccess).not.toHaveBeenCalled();
+    });
+
     it("completes the passkey assertion and reports success", async () => {
         const { props } = renderForm();
 
@@ -125,7 +160,6 @@ describe("sign in", () => {
                 "flow-id",
                 "flow",
                 "subflow",
-                expect.anything(),
             ),
         );
     });

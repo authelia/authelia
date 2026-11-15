@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -1330,16 +1329,13 @@ func TestDefaultStrategy_GetCookieExpires(t *testing.T) {
 	}
 }
 
-func liveTestRecords[V any](t *testing.T, strategy Strategy, repository *testRepository, records map[string]V) map[string]V {
+func liveTestRecords[V any](t *testing.T, _ Strategy, repository *testRepository, records map[string]V) map[string]V {
 	t.Helper()
-
-	p, ok := strategy.(*DefaultStrategy)
-	require.True(t, ok)
 
 	live := make(map[string]V, len(records))
 
 	for key, value := range records {
-		if strings.HasPrefix(key, p.forwardIssuer+":") || string(repository.data[key]) == authzIndexMoved {
+		if string(repository.data[key]) == authzIndexMoved {
 			continue
 		}
 

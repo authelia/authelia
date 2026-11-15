@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AssertionResult, WebAuthnTouchState } from "@models/WebAuthn";
 import { getWebAuthnOptions, getWebAuthnResult, postWebAuthnResponse } from "@services/WebAuthn";
@@ -70,20 +70,43 @@ describe("rendering", () => {
 });
 
 describe("assertion", () => {
+    it("does not abort the security key assertion on unmount", async () => {
+        postResponseMock.mockReturnValue(new Promise(() => {}) as any);
+
+        const { unmount } = renderMethod();
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalledTimes(1));
+
+        const signal = postResponseMock.mock.calls[0][6];
+
+        unmount();
+
+        expect(signal?.aborted).not.toBe(true);
+    });
+
+    it("ignores the security key assertion response after unmount", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        postResponseMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { onSecondFactorSuccess, unmount } = renderMethod();
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalledTimes(1));
+
+        unmount();
+
+        await act(async () => {
+            resolve({ data: { status: "OK" }, status: 200 });
+        });
+
+        expect(onSecondFactorSuccess).not.toHaveBeenCalled();
+    });
+
     it("completes the assertion and reports success", async () => {
         const { onSecondFactorSuccess } = renderMethod();
 
         await waitFor(() => expect(onSecondFactorSuccess).toHaveBeenCalled());
         expect(getResultMock).toHaveBeenCalledWith(options);
-        expect(postResponseMock).toHaveBeenCalledWith(
-            assertionResponse,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            expect.anything(),
-        );
+        expect(postResponseMock).toHaveBeenCalledWith(assertionResponse);
     });
 
     it("reports in progress while posting the response", async () => {

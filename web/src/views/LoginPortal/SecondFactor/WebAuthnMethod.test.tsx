@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AssertionResult, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
@@ -143,6 +143,37 @@ describe("initiation guards", () => {
 });
 
 describe("assertion", () => {
+    it("does not abort the security key sign-in on unmount", async () => {
+        postResponseMock.mockReturnValue(new Promise(() => {}) as any);
+
+        const { unmount } = renderMethod();
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalledTimes(1));
+
+        const signal = postResponseMock.mock.calls[0][6];
+
+        unmount();
+
+        expect(signal?.aborted).not.toBe(true);
+    });
+
+    it("ignores the security key sign-in response after unmount", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        postResponseMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { props, unmount } = renderMethod();
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalledTimes(1));
+
+        unmount();
+
+        await act(async () => {
+            resolve({ data: { status: "OK" }, status: 200 });
+        });
+
+        expect(props.onSignInSuccess).not.toHaveBeenCalled();
+    });
+
     it("completes the assertion and reports success", async () => {
         const { props } = renderMethod();
 
@@ -164,7 +195,6 @@ describe("assertion", () => {
                 "flow",
                 "subflow",
                 "ABCD-EFGH",
-                expect.anything(),
             ),
         );
     });

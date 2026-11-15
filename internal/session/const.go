@@ -44,18 +44,12 @@ const (
 	sessionCookieLifetimeMinimum = time.Hour * 24 * 30
 
 	issuerPrefixAuthz   = "authz:"
-	issuerPrefixForward = "forward:"
 	cacheKeyPrefixAuthz = "authz:"
 
 	authzIndexPublicIDLength = 36
 
 	authzIndexMoved           = "moved"
 	authzIndexMovedExpiration = time.Minute
-
-	sessionForwardExpiration    = time.Minute
-	sessionForwardHops          = 3
-	sessionForwardAdoptAttempts = 3
-	sessionForwardAdoptDelay    = time.Millisecond * 25
 
 	sessionTouchDivisor = 10
 

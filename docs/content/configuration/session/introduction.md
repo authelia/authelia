@@ -267,9 +267,9 @@ most recent record was bound to it. It isn't used to identify the session or the
 user signs out.
 
 The session cookie is replaced whenever the authentication level of the session changes, such as after each
-authentication step. For one minute afterwards a request which presents the previous session cookie is given the
-cookies which replaced it, so a browser which never received the response that replaced them, for example because the
-page was reloaded while signing in, isn't signed out. This never applies to a session which was destroyed.
+authentication step. The previous session cookie stops working as soon as it's replaced, so a browser which never
+received the response that replaced it, for example because the page was reloaded while signing in, has to sign in
+again.
 
 The authorization cookie is linked to the session. It is replaced whenever the session cookie is replaced and stops
 working as soon as the session is destroyed. When the session cookie is valid but the authorization cookie is missing

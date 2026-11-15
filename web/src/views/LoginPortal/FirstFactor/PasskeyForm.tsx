@@ -98,10 +98,11 @@ const PasskeyForm = function (props: Props) {
                 flowID,
                 flow,
                 subflow,
-                signal,
             );
 
             handleAuthenticationStop();
+
+            if (signal.aborted) return;
 
             if (response.data.status === "OK" && response.status === 200) {
                 props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
@@ -112,7 +113,7 @@ const PasskeyForm = function (props: Props) {
         } catch (err) {
             handleAuthenticationStop();
 
-            if (axios.isCancel(err)) return;
+            if (signal.aborted || axios.isCancel(err)) return;
             console.error(err);
             onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
         }
