@@ -202,6 +202,7 @@ func TestHandleOAuth2AuthorizationConsentPending(t *testing.T) {
 		name      string
 		consentID string
 		setup     func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		restart   bool
 		pending   bool
 		handled   bool
 		log       *regexp.Regexp
@@ -280,6 +281,59 @@ func TestHandleOAuth2AuthorizationConsentPending(t *testing.T) {
 			log:     regexp.MustCompile(`error occurred generating consent: the consent session is not pending a response$`),
 		},
 		{
+			name:      "ShouldRestartForRespondedConsentSession",
+			consentID: challenge.String(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				consent := newPending(mock)
+				consent.SetRespondedAt(mock.Ctx.GetClock().Now(), 0)
+
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(consent, nil)
+			},
+			restart: true,
+		},
+		{
+			name:      "ShouldRestartForConsentSessionWithSubject",
+			consentID: challenge.String(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				consent := newPending(mock)
+				consent.SetSubject(challenge)
+
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(consent, nil)
+			},
+			restart: true,
+		},
+		{
+			name:      "ShouldRestartForExpiredConsentSession",
+			consentID: challenge.String(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				consent := newPending(mock)
+				consent.ExpiresAt = mock.Ctx.GetClock().Now().Add(-time.Minute)
+
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(consent, nil)
+			},
+			restart: true,
+		},
+		{
+			name:      "ShouldNotRestartForUnboundConsentSession",
+			consentID: challenge.String(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				consent := newPending(mock)
+				consent.Binding = testOAuth2AuthorizationBindingAnotherUserAgent
+
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(consent, nil)
+			},
+			restart: true,
+			handled: true,
+		},
+		{
 			name:      "ShouldRejectConsentSessionWhichDoesNotMatchTheRequest",
 			consentID: challenge.String(),
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -319,13 +373,15 @@ func TestHandleOAuth2AuthorizationConsentPending(t *testing.T) {
 				},
 			}
 
-			consent, handled := handleOAuth2AuthorizationConsentPending(mock.Ctx, client, httptest.NewRecorder(), requester)
+			consent, handled := handleOAuth2AuthorizationConsentPending(mock.Ctx, client, httptest.NewRecorder(), requester, tc.restart)
 
 			assert.Equal(t, tc.handled, handled)
 
 			if tc.pending {
 				require.NotNil(t, consent)
 				assert.Equal(t, challenge, consent.ChallengeID)
+			} else {
+				assert.Nil(t, consent)
 			}
 
 			if tc.log != nil {
