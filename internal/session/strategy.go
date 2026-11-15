@@ -127,11 +127,11 @@ func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 // An anonymous session which holds no state isn't persisted, and the records and cookies of any previously persisted
 // session for the request are discarded instead, as the absence of a session is equivalent to it. An anonymous session
 // is never issued the authz cookie, and the user agent is instructed to discard any authz cookie it holds for the
-// session. A save which was superseded is dropped so a stale request can't restore a session, except for a new
-// anonymous session whose cookie refers to a destroyed session, which is given a new identifier so its state isn't
-// lost. The session is persisted with the CSRF secret this request last established for it rather than the one it
-// holds, as a session retrieved before it was regenerated holds the secret the regeneration replaced. It returns
-// ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
+// session. A save which was superseded is dropped so a stale request can't restore a session and an error which wraps
+// ErrSessionSuperseded is returned, except for a new anonymous session whose cookie refers to a destroyed session, which
+// is given a new identifier so its state isn't lost. The session is persisted with the CSRF secret this request last
+// established for it rather than the one it holds, as a session retrieved before it was regenerated holds the secret the
+// regeneration replaced. It returns ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
 func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	if session == nil {
 		return errors.New("error occurred saving session: it is nil")
@@ -178,12 +178,8 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		return err
 	}
 
-	if err = p.persist(ctx, id, existing, session); !errors.Is(err, ErrSessionSuperseded) {
+	if err = p.persist(ctx, id, existing, session); !errors.Is(err, ErrSessionSuperseded) || !abandoned {
 		return err
-	}
-
-	if !abandoned {
-		return nil
 	}
 
 	if id, err = p.codec.GenerateSessionID(); err != nil {
