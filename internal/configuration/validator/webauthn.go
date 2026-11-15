@@ -196,8 +196,6 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 
 		value := origin.String()
 
-		// Origins are keyed by the same values webauthn.IsOriginEqual compares so equivalent origins which differ only
-		// in case or an explicit default port are detected as duplicates.
 		key := webauthn.OriginKey(origin)
 
 		if seen[key] {
@@ -237,9 +235,6 @@ func validateWebAuthnRelatedOriginsRelyingParty(config *schema.Configuration, re
 }
 
 func validateWebAuthnRelatedOriginsRelyingPartyOrigins(relyingPartyID string, relyingParty *schema.WebAuthnRelyingParty, prefix string, found, crossSite bool, relatable []string, validator *schema.StructValidator) {
-	// An origin whose hostname is the relying party id or a subdomain of it can perform ceremonies against the relying
-	// party id without the well known document, so an origin hosted at the relying party id is only required when the
-	// well known document has to be served for an origin which is not.
 	switch {
 	case found:
 		break
@@ -249,14 +244,10 @@ func validateWebAuthnRelatedOriginsRelyingPartyOrigins(relyingPartyID string, re
 		validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyPublicSuffix, prefix))
 	}
 
-	// The document served at the well known endpoint is built from these origins, so the limits a client applies when
-	// it reads that document have to hold here or the endpoint fails at request time instead.
 	if len(relatable) != 0 {
 		if _, err := protocol.NewRelatedOriginsWithLabeler(webauthn.RelatedOriginLabeler, relatable...); err != nil {
 			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsLabels, prefix, err))
 		} else if len(relyingParty.OpaqueOrigins) != 0 {
-			// The provider validates the origins with the default labeler when opaque origins are configured, which
-			// counts origins under a multi-label public suffix by the second last label, so that count has to hold too.
 			if _, err = protocol.NewRelatedOrigins(relatable...); err != nil {
 				validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsLabelsOpaque, prefix, err))
 			}
