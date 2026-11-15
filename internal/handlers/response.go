@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -13,8 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
-
-	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -428,26 +427,22 @@ func resolveFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.Authelia
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature}).
-			Error("Error occurred using the signature of the user code session to retrieve the device code session preventing a successful flow response")
+			Error("Error occurred using the signature of the user code session to retrieve the device code session, deferring the user code to the consent stage")
 
-		return newFlowResponseFailure(messageOperationFailed)
+		return newFlowResponseOpenIDConnectDeviceAuthSubflowUserCode(issuer, userCode)
 	}
 
-	if device.Subject.Valid || device.ChallengeID.Valid || device.Status != int(oauthelia2.DeviceAuthorizeStatusNew) {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldSubject: device.Subject, logging.FieldFlowID: device.ChallengeID, logging.FieldStatus: device.Status}).
-			Error("Failed to handle flow response as the device code session is in an invalid state")
-
-		return newFlowResponseFailure(messageOperationFailed)
+	if err = validateOAuth2DeviceCodeSessionEnterable(ctx, device); errors.Is(err, errOAuth2DeviceCodeSessionEntered) {
+		err = validateOAuth2DeviceCodeSessionClaimed(ctx, device)
 	}
 
-	if err = validateOAuth2DeviceCodeSessionEnterable(ctx, device); err != nil {
+	if err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Failed to handle flow response as the user code can't be entered")
+			Error("Failed to handle flow response as the user code can't be entered, deferring the user code to the consent stage")
 
-		return newFlowResponseFailure(messageOperationFailed)
+		return newFlowResponseOpenIDConnectDeviceAuthSubflowUserCode(issuer, userCode)
 	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, device.ClientID); err != nil {
@@ -467,17 +462,7 @@ func resolveFlowResponseOpenIDConnectDeviceAuthSubflowUserCode(ctx *middlewares.
 
 	switch {
 	case authorization.IsAuthLevelSufficient(level, required), required == authorization.Denied:
-		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDeviceAuthorization)
-
-		query := targetURL.Query()
-
-		query.Set(queryArgFlow, flowNameOpenIDConnect)
-		query.Set(queryArgSubflow, flowOpenIDConnectSubFlowNameDeviceAuthorization)
-		query.Set(queryArgUserCode, userCode)
-
-		targetURL.RawQuery = query.Encode()
-
-		return newFlowResponseRedirect(targetURL.String())
+		return newFlowResponseOpenIDConnectDeviceAuthSubflowUserCode(issuer, userCode)
 	default:
 		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
@@ -485,6 +470,20 @@ func resolveFlowResponseOpenIDConnectDeviceAuthSubflowUserCode(ctx *middlewares.
 
 		return newFlowResponseSecondFactor()
 	}
+}
+
+func newFlowResponseOpenIDConnectDeviceAuthSubflowUserCode(issuer *url.URL, userCode string) flowResponse {
+	targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDeviceAuthorization)
+
+	query := targetURL.Query()
+
+	query.Set(queryArgFlow, flowNameOpenIDConnect)
+	query.Set(queryArgSubflow, flowOpenIDConnectSubFlowNameDeviceAuthorization)
+	query.Set(queryArgUserCode, userCode)
+
+	targetURL.RawQuery = query.Encode()
+
+	return newFlowResponseRedirect(targetURL.String())
 }
 
 func resolveFlowResponseOpenIDConnectDeviceAuthSubflowNoUserCode(ctx *middlewares.AutheliaCtx, id string, level authentication.Level, issuer *url.URL) flowResponse {
