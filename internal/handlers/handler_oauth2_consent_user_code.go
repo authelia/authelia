@@ -157,13 +157,20 @@ func handleOAuth2ConsentUserCodeExchange(ctx *middlewares.AutheliaCtx, client oi
 		return nil, err
 	}
 
-	var requester oauth2.DeviceAuthorizeRequester
+	var (
+		requester oauth2.DeviceAuthorizeRequester
+		expires   time.Time
+	)
 
 	if requester, err = device.ToRequest(ctx, oidc.NewSession(), ctx.Providers.OpenIDConnect.Store); err != nil {
 		return nil, fmt.Errorf("error occurred restoring the requester: %w", err)
 	}
 
-	if consent, err = model.NewOAuth2ConsentSession(ctx.GetClock().Now().UTC().Add(time.Minute*10), subject, requester); err != nil {
+	if expires, err = getOAuth2DeviceCodeSessionUserCodeExpiresAt(device); err != nil {
+		return nil, err
+	}
+
+	if consent, err = model.NewOAuth2ConsentSession(expires.UTC(), subject, requester); err != nil {
 		return nil, fmt.Errorf("error occurred creating the consent session for client '%s': %w", client.GetID(), err)
 	}
 
@@ -227,6 +234,10 @@ func handleOAuth2ConsentUserCodeResume(ctx *middlewares.AutheliaCtx, device *mod
 		return nil, errors.New("the consent session has already been granted or is expired")
 	case !consent.Subject.Valid || consent.Subject.UUID != subject:
 		return nil, errors.New("the subject of the consent session does not match the subject of the user")
+	}
+
+	if err = handleOAuth2ConsentSessionIssueBinding(ctx, consent); err != nil {
+		return nil, err
 	}
 
 	return consent, nil
