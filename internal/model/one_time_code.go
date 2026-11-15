@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package model
 
 import (
@@ -62,7 +66,7 @@ type OneTimeCode struct {
 }
 
 // Consume sets the values required to consume the one-time code.
-func (otp *OneTimeCode) Consume(ctx Context) {
-	otp.ConsumedAt = sql.NullTime{Valid: true, Time: ctx.GetClock().Now()}
-	otp.ConsumedIP = NewNullIP(ctx.RemoteIP())
+func (otc *OneTimeCode) Consume(ctx Context) {
+	otc.ConsumedAt = sql.NullTime{Valid: true, Time: ctx.GetClock().Now()}
+	otc.ConsumedIP = NewNullIP(ctx.RemoteIP())
 }

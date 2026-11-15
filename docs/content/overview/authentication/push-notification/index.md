@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Duo / Mobile Push"
-description: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
+description: "An overview of Authelia's Duo mobile push notification second factor authentication method allowing users to approve or deny login requests on their phone."
 summary: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 250
@@ -21,35 +25,35 @@ a notification directly to an application on your mobile phone where you can ins
 
 Authelia leverages [Duo] third party to provide this feature.
 
-{{< figure src="duo-push-1.jpg" caption="The Duo Mobile Push authorization notification" alt="The Duo Mobile Push authorization notification" process="resize 400x" >}}
+{{< figure src="duo-push-1.jpg" caption="The Duo Mobile Push authorization notification" alt="The Duo Mobile Push authorization notification" sizes="50dvh" >}}
 
-{{< figure src="duo-push-2.png" caption="The Duo Mobile Push authorization consent view" alt="The Duo Mobile Push authorization consent view" process="resize 400x" >}}
+{{< figure src="duo-push-2.png" caption="The Duo Mobile Push authorization consent view" alt="The Duo Mobile Push authorization consent view" sizes="50dvh" >}}
 
 First, sign up on their website, log in, create a user account and attach it a mobile device. Beware that the name of
 the user must match the name of the user in Authelia, or must have an alias that matches the user in Authelia.
 
-Then, in Duo interface, click on *Applications* and *Protect an Application*. Select the option *Partner Auth API*. This
-will generate an integration key, a secret key and a hostname. You can set the name of the application to __Authelia__
+Then, in Duo interface, click on _Applications_ and _Protect an Application_. Select the option _Partner Auth API_. This
+will generate an integration key, a secret key and a hostname. You can set the name of the application to **Authelia**
 and then you must add the generated information to Authelia [configuration](../../../configuration/second-factor/duo.md).
 
 See the [configuration documentation](../../../configuration/second-factor/duo.md) for more details.
 
 Now that Authelia is configured, pass the first factor and select the Push notification option.
 
-{{< figure src="2FA-PUSH.png" caption="The Mobile Push 2FA view" alt="The Mobile Push 2FA view" process="resize 400x" >}}
+{{< figure src="2FA-PUSH.png" caption="The Mobile Push 2FA view" alt="The Mobile Push 2FA view" sizes="50dvh" >}}
 
 You should now receive a notification on your mobile phone with all the details about the authentication request. In
 case you have multiple devices available, you will be asked to select your preferred device.
 
 ## Frequently Asked Questions
 
-### Why don't I have access to the *Push Notification* option?
+### Why don't I have access to the _Push Notification_ option?
 
-It's likely that you have not configured __Authelia__ correctly. Please read this documentation again and be sure you
+It's likely that you have not configured **Authelia** correctly. Please read this documentation again and be sure you
 had a look at {{< github-link path="config.template.yml" >}} and
 [configuration documentation](../../../configuration/second-factor/duo.md).
 
-### I have access to the *Push Notification* option, but there is an error message: *"no compatible device found".*
+### I have access to the _Push Notification_ option, but there is an error message: _"no compatible device found"._
 
 There is a problem with your **Users** configuration in Duo. There are no users configured in Duo that match your Authelia user. Note that the admin user you create when you sign up is not automatically added as a **User** in Duo.
 

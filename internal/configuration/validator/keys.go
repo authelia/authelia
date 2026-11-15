@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -100,7 +104,6 @@ func NewKeyMapPattern(key string) (pattern *regexp.Regexp, err error) {
 		}
 
 		for j, r := range part {
-			// Skip prefixed period.
 			if j == 0 && r == '.' {
 				continue
 			}
@@ -115,7 +118,7 @@ func NewKeyMapPattern(key string) (pattern *regexp.Regexp, err error) {
 		}
 
 		if i < n {
-			buf.WriteString("\\.[a-zA-Z0-9](([a-zA-Z0-9/_-]+)?[a-zA-Z0-9])?")
+			buf.WriteString("\\.[a-zA-Z0-9](([a-zA-Z0-9/_.:~-]+)?[a-zA-Z0-9])?")
 		}
 	}
 

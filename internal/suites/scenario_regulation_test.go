@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -37,8 +41,7 @@ func (s *RegulationScenario) TearDownSuite() {
 }
 
 func (s *RegulationScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *RegulationScenario) TearDownTest() {
@@ -61,15 +64,13 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	for i := 0; i < 3; i++ {
 		err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("bad-password")
 		require.NoError(s.T(), err)
-		err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left", 1)
-		require.NoError(s.T(), err)
+		s.ClickElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button")
 	}
 
 	// Enter the correct password and test the regulation lock out.
 	err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left", 1)
-	require.NoError(s.T(), err)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password")
 
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
@@ -78,8 +79,7 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	// Enter the correct password and test a successful login.
 	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left", 1)
-	require.NoError(s.T(), err)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 

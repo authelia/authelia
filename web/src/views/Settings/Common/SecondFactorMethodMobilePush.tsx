@@ -1,170 +1,194 @@
-import React, { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Button, Link, Theme } from "@mui/material";
+import { Fragment, ReactNode, useCallback, useEffect, useReducer } from "react";
+
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
-import { useIsMountedRef } from "@hooks/Mounted";
-import { useNotifications } from "@hooks/NotificationsContext";
+import RateLimitCountdown from "@components/RateLimitCountdown";
+import { Button } from "@components/UI/Button";
+import { useNotifications } from "@contexts/NotificationsContext";
+import { useRateLimit } from "@hooks/RateLimit";
 import {
     DuoDevicePostRequest,
+    DuoSignInResponse,
     completeDuoDeviceSelectionProcess,
     completePushNotificationSignIn,
     initiateDuoDeviceSelectionProcess,
 } from "@services/PushNotification";
+import { RateLimitedError } from "@services/RateLimit";
 import DeviceSelectionContainer, {
     SelectableDevice,
     SelectedDevice,
 } from "@views/LoginPortal/SecondFactor/DeviceSelectionContainer";
 
-export enum State {
-    SignInInProgress = 1,
-    Success = 2,
-    Failure = 3,
-    Selection = 4,
-    RateLimited = 5,
+type ComponentState = {
+    status: "failure" | "pushing" | "rate_limited" | "selecting" | "success";
+    devices: SelectableDevice[];
+};
+
+type Action =
+    | { type: "pushFailure" }
+    | { type: "pushSuccess" }
+    | { type: "rateLimited" }
+    | { type: "rateLimitExpired" }
+    | { type: "selectDevices"; devices: SelectableDevice[] }
+    | { type: "setDevices"; devices: SelectableDevice[] }
+    | { type: "setStatus"; status: ComponentState["status"] }
+    | { type: "startPush" };
+
+const initialState: ComponentState = {
+    devices: [],
+    status: "pushing",
+};
+
+function reducer(state: ComponentState, action: Action): ComponentState {
+    switch (action.type) {
+        case "setStatus":
+            return { ...state, status: action.status };
+        case "setDevices":
+            return { ...state, devices: action.devices };
+        case "startPush":
+            return { ...state, status: "pushing" };
+        case "pushSuccess":
+            return { ...state, status: "success" };
+        case "pushFailure":
+            return { ...state, status: "failure" };
+        case "selectDevices":
+            return { ...state, devices: action.devices, status: "selecting" };
+        case "rateLimited":
+            return { ...state, status: "rate_limited" };
+        case "rateLimitExpired":
+            return state.status === "rate_limited" ? { ...state, status: "failure" } : state;
+        default:
+            return state;
+    }
 }
 
 export interface Props {
-    closing: boolean;
     onSecondFactorSuccess: () => void;
 }
 
 const SecondFactorMethodMobilePush = function (props: Props) {
     const { t: translate } = useTranslation("portal");
-    const { classes } = useStyles();
 
-    const [state, setState] = useState(State.SignInInProgress);
-    const mounted = useIsMountedRef();
-    const [devices, setDevices] = useState([] as SelectableDevice[]);
+    const [state, dispatch] = useReducer(reducer, initialState);
 
     const { createErrorNotification } = useNotifications();
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
-    }, []);
+    const {
+        clear: clearRateLimit,
+        secondsRemaining,
+        trigger: triggerRateLimit,
+    } = useRateLimit(() => dispatch({ type: "rateLimitExpired" }));
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
-            }
-
-            setState(State.RateLimited);
+            dispatch({ type: "rateLimited" });
 
             createErrorNotification(translate("You have made too many requests"));
 
-            timeoutRateLimit.current = setTimeout(() => {
-                setState(State.Failure);
-                timeoutRateLimit.current = null;
-            }, retryAfter * 1000);
+            triggerRateLimit(retryAfter);
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, triggerRateLimit],
+    );
+
+    const handlePushResponse = useCallback(
+        (res: DuoSignInResponse | undefined) => {
+            if (res !== undefined && typeof res.result !== "string") {
+                createErrorNotification(translate("There was an issue completing sign in process"));
+                dispatch({ type: "pushFailure" });
+                return;
+            }
+
+            switch (res?.result) {
+                case "auth": {
+                    const selectableDevices = [] as SelectableDevice[];
+                    for (const d of res.devices) {
+                        selectableDevices.push({ id: d.device, methods: d.capabilities, name: d.display_name });
+                    }
+                    dispatch({ devices: selectableDevices, type: "selectDevices" });
+                    break;
+                }
+                case "enroll":
+                    createErrorNotification(translate("No compatible device found"));
+                    dispatch({ type: "pushFailure" });
+                    break;
+                case "deny":
+                    createErrorNotification(translate("Device selection was denied by Duo policy"));
+                    dispatch({ type: "pushFailure" });
+                    break;
+                default:
+                    dispatch({ type: "pushSuccess" });
+                    props.onSecondFactorSuccess();
+                    break;
+            }
+        },
+        [createErrorNotification, props, translate],
     );
 
     const handleSelectDevice = useCallback(async () => {
         try {
             const res = await initiateDuoDeviceSelectionProcess();
-            if (!mounted.current) return;
             switch (res.result) {
-                case "auth":
-                    let selectableDevices = [] as SelectableDevice[];
-                    res.devices.forEach((d: { device: any; display_name: any; capabilities: any }) =>
-                        selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
-                    );
-                    setDevices(selectableDevices);
-                    setState(State.Selection);
+                case "auth": {
+                    const selectableDevices = [] as SelectableDevice[];
+                    for (const d of res.devices) {
+                        selectableDevices.push({ id: d.device, methods: d.capabilities, name: d.display_name });
+                    }
+                    dispatch({ devices: selectableDevices, type: "selectDevices" });
                     break;
+                }
                 case "allow":
                     createErrorNotification(translate("Device selection was bypassed by Duo policy"));
-                    setState(State.Success);
+                    dispatch({ type: "pushSuccess" });
                     break;
                 case "deny":
                     createErrorNotification(translate("Device selection was denied by Duo policy"));
-                    setState(State.Failure);
+                    dispatch({ type: "pushFailure" });
                     break;
                 case "enroll":
                     createErrorNotification(translate("No compatible device found"));
-                    setState(State.Failure);
+                    dispatch({ type: "pushFailure" });
                     break;
             }
         } catch (err) {
-            if (!mounted.current) return;
             console.error(err);
             createErrorNotification(translate("There was an issue fetching Duo device(s)"));
         }
-    }, [createErrorNotification, mounted, translate]);
+    }, [createErrorNotification, translate]);
 
     const handleDuoPush = useCallback(async () => {
         try {
-            setState(State.SignInInProgress);
             const res = await completePushNotificationSignIn();
-            // If the request was initiated and the user changed 2FA method in the meantime,
-            // the process is interrupted to avoid updating state of unmounted component.
-            if (!mounted.current) return;
-
-            if (res) {
-                if (res.data && !res.limited) {
-                    switch (res.data.result) {
-                        case "auth":
-                            let selectableDevices = [] as SelectableDevice[];
-                            res.data.devices.forEach((d) =>
-                                selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
-                            );
-                            setDevices(selectableDevices);
-                            setState(State.Selection);
-                            break;
-                        case "enroll":
-                            createErrorNotification(translate("No compatible device found"));
-                            setState(State.Failure);
-                            break;
-                        case "deny":
-                            createErrorNotification(translate("Device selection was denied by Duo policy"));
-                            setState(State.Failure);
-                            break;
-                        default:
-                            setState(State.Success);
-                            props.onSecondFactorSuccess();
-                            break;
-                    }
-                } else if (res.limited) {
-                    handleRateLimited(res.retryAfter);
-                } else {
-                    createErrorNotification(translate("There was an issue completing sign in process"));
-                    setState(State.Failure);
-                }
-            } else {
-                createErrorNotification(translate("There was an issue completing sign in process"));
-                setState(State.Failure);
-            }
+            handlePushResponse(res);
         } catch (err) {
-            // If the request was initiated and the user changed 2FA method in the meantime,
-            // the process is interrupted to avoid updating state of unmounted component.
-            if (!mounted.current || state !== State.SignInInProgress) return;
+            if (err instanceof RateLimitedError) {
+                handleRateLimited(err.retryAfter);
+                return;
+            }
 
             console.error(err);
             createErrorNotification(translate("There was an issue completing sign in process"));
-            setState(State.Failure);
+            dispatch({ type: "pushFailure" });
         }
-    }, [createErrorNotification, handleRateLimited, mounted, props, state, translate]);
+    }, [handlePushResponse, handleRateLimited, createErrorNotification, translate]);
 
     const updateDuoDevice = useCallback(
         async function (device: DuoDevicePostRequest) {
             try {
                 await completeDuoDeviceSelectionProcess(device);
-                setState(State.SignInInProgress);
+                clearRateLimit();
+                dispatch({ type: "startPush" });
             } catch (err) {
                 console.error(err);
                 console.error(new Error(translate("There was an issue updating preferred Duo device")));
             }
         },
-        [translate],
+        [clearRateLimit, translate],
     );
 
     const handleDuoDeviceSelected = useCallback(
@@ -175,58 +199,54 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     );
 
     useEffect(() => {
-        if (state === State.SignInInProgress) handleDuoPush();
-    }, [handleDuoPush, state]);
+        if (state.status === "pushing") {
+            handleDuoPush();
+        }
+    }, [state.status, handleDuoPush]);
 
-    if (state === State.Selection)
+    if (state.status === "selecting")
         return (
             <DeviceSelectionContainer
-                devices={devices}
-                onBack={() => setState(State.SignInInProgress)}
+                devices={state.devices}
+                onBack={() => dispatch({ type: "startPush" })}
                 onSelect={handleDuoDeviceSelected}
             />
         );
 
     let icon: ReactNode;
-    switch (state) {
-        case State.SignInInProgress:
-        case State.Success:
+    switch (state.status) {
+        case "pushing":
+        case "success":
             icon = <PushNotificationIcon width={64} height={64} animated />;
             break;
-        case State.Failure:
+        case "failure":
             icon = <FailureIcon />;
     }
 
     return (
         <Fragment>
-            <Box className={classes.container}>
-                <Box className={classes.icon}>{icon}</Box>
-                <Box className={state !== State.Failure ? "hidden" : ""}>
-                    <Button color="secondary" onClick={handleDuoPush}>
-                        Retry
+            <div className="h-[120px]">
+                <div className="inline-block size-17.5">{icon}</div>
+                <RateLimitCountdown secondsRemaining={secondsRemaining} />
+                <div className={state.status === "failure" ? "" : "hidden"}>
+                    <Button variant={"ghost"} color={"secondary"} onClick={() => dispatch({ type: "startPush" })}>
+                        {translate("Retry")}
                     </Button>
-                </Box>
-            </Box>
-            {state !== State.Success ? (
-                <Box>
-                    <Link component="button" id="selection-link" onClick={handleSelectDevice} underline="hover">
+                </div>
+            </div>
+            {state.status === "success" ? null : (
+                <div>
+                    <button
+                        className="text-primary underline-offset-4 hover:underline bg-transparent border-none cursor-pointer text-sm"
+                        id="selection-link"
+                        onClick={handleSelectDevice}
+                    >
                         {translate("Select a Device")}
-                    </Link>
-                </Box>
-            ) : null}
+                    </button>
+                </div>
+            )}
         </Fragment>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    container: {
-        height: "120px",
-    },
-    icon: {
-        width: "64px",
-        height: "64px",
-        display: "inline-block",
-    },
-}));
 
 export default SecondFactorMethodMobilePush;

@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "Accedi al tuo indirizzo",
 		"authelia.bearer.authz": "Accedi alle risorse protette registrate come te",
+		"authelia.pam": "Autenticazione a un sistema Linux come te",
 		"email": "Accedi ai tuoi indirizzi email",
 		"groups": "Accedi alle tue adesioni di gruppo",
 		"offline_access": "Aggiorna automaticamente queste autorizzazioni senza interazione utente",

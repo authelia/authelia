@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Guides"
-description: "Reference Prologue"
+description: "This section contains a collection of reference guides for Authelia covering topics such as passwords, branding, templating, metrics, attributes, and more."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 200

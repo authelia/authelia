@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -168,7 +172,115 @@ func newStorageEncryptionCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageEncryptionChangeKeyCmd(ctx),
 		newStorageEncryptionCheckCmd(ctx),
+		newStorageEncryptionRotateCmd(ctx),
 	)
+
+	return cmd
+}
+
+func newStorageEncryptionRotateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "rotate",
+		Short:   cmdAutheliaStorageEncryptionRotateShort,
+		Long:    cmdAutheliaStorageEncryptionRotateLong,
+		Example: cmdAutheliaStorageEncryptionRotateExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageEncryptRotateHMACCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "hmac",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageEncryptRotateHMACOTPCmd(ctx),
+		newStorageEncryptRotateHMACOTCCmd(ctx),
+		newStorageEncryptRotateHMACRecoveryCodeCmd(ctx),
+		newStorageEncryptRotateHMACSessionCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACOTCCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "otc",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACOTCShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACOTCLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACOTCExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACOTPCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "otp",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACOTPShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACOTPLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACOTPExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACRecoveryCodeCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "rc",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACSessionCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "session",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACSessionShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACSessionLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACSessionExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
 
 	return cmd
 }
@@ -307,7 +419,7 @@ func newStorageBansAddCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Flags().Changed("permanent") && cmd.Flags().Changed(cmdFlagNameDuration) {
-				return fmt.Errorf("invalid flag combination specified: both duration and permanent flags can't be uesd at the same time")
+				return fmt.Errorf("invalid flag combination specified: both duration and permanent flags can't be used at the same time")
 			}
 
 			return nil
@@ -339,7 +451,89 @@ func newStorageUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageUserIdentifiersCmd(ctx),
 		newStorageUserTOTPCmd(ctx),
 		newStorageUserWebAuthnCmd(ctx),
+		newStorageUserRecoveryCodesCmd(ctx),
 	)
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "recovery-codes",
+		Short: "Manage user second-factor recovery codes",
+		Long:  "Manage user second-factor recovery codes such as listing, generating a new batch, deleting all codes for a user, or showing per-user status.",
+
+		Args: cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageUserRecoveryCodesStatusCmd(ctx),
+		newStorageUserRecoveryCodesListCmd(ctx),
+		newStorageUserRecoveryCodesGenerateCmd(ctx),
+		newStorageUserRecoveryCodesDeleteCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesStatusCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "status [username]",
+		Short: "Show the recovery codes status for a user",
+		Long:  "Show how many recovery codes a user has unused, consumed, and revoked, along with the most recent generation and consumption timestamps.",
+
+		RunE: ctx.StorageUserRecoveryCodesStatusRunE,
+		Args: cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "list [username]",
+		Short: "List the recovery code rows for a user",
+		Long:  "List the recovery code rows for a user, including row id, created timestamp, and consumed or revoked status. Plaintext codes are never disclosed by this command.",
+
+		RunE: ctx.StorageUserRecoveryCodesListRunE,
+		Args: cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "generate [username]",
+		Short: "Generate a new batch of recovery codes for a user",
+		Long:  "Generate a new batch of recovery codes for a user. Any existing codes are revoked. The plaintext codes are printed once to stdout for the operator to deliver to the user.",
+
+		RunE: ctx.StorageUserRecoveryCodesGenerateRunE,
+		Args: cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "delete [username]",
+		Short: "Soft-delete (revoke) all of a user's recovery codes",
+		Long:  "Soft-delete (revoke) all of a user's recovery codes. The user will need to generate a new batch from the Two-Factor Authentication settings page or via the generate subcommand to use recovery codes again.",
+
+		RunE: ctx.StorageUserRecoveryCodesDeleteRunE,
+		Args: cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
 
 	return cmd
 }
@@ -377,7 +571,7 @@ func newStorageUserIdentifiersExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.opaque-identifiers.yml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.opaque-identifiers.yml", "The file name for the export, the extension determines the format")
 
 	return cmd
 }
@@ -484,7 +678,7 @@ func newStorageUserWebAuthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.webauthn.yml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.webauthn.yml", "The file name for the export, the extension determines the format")
 
 	return cmd
 }
@@ -515,6 +709,8 @@ func newStorageUserWebAuthnVerifyCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 		DisableAutoGenTag: true,
 	}
+
+	cmd.Flags().Bool(cmdFlagNameVerbose, false, "enables verbose output")
 
 	return cmd
 }
@@ -631,7 +827,7 @@ func newStorageUserTOTPExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageUserTOTPExportURICmd(ctx),
 	)
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.totp.yml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.totp.yml", "The file name for the export, the extension determines the format")
 
 	return cmd
 }
@@ -700,7 +896,6 @@ func newStorageSchemaInfoCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
-// newStorageMigrateCmd returns a new Migration Cmd.
 func newStorageMigrateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "migrate",

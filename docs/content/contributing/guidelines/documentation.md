@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Documentation"
-description: "Authelia Development Documentation Guidelines"
+description: "Authelia development documentation guidelines covering the use of example domains, TLS certificate handling, private key formatting, and content conventions."
 summary: "This section covers the guidelines we use when writing documentation."
-date: 2022-10-02T14:32:16+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 320

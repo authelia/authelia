@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -257,6 +261,32 @@ func TestValidateWebAuthn(t *testing.T) {
 			[]string{
 				"webauthn: selection_criteria: option 'discoverability' should generally be configured as 'preferred' or 'required' when passkey logins are enabled",
 			},
+			nil,
+		},
+		{
+			"ShouldAcceptStrictCachePolicy",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					Metadata: schema.WebAuthnMetadata{
+						Enabled:     true,
+						CachePolicy: "strict",
+					},
+				},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldAcceptRelaxedCachePolicy",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					Metadata: schema.WebAuthnMetadata{
+						Enabled:     true,
+						CachePolicy: "relaxed",
+					},
+				},
+			},
+			nil,
 			nil,
 		},
 		{

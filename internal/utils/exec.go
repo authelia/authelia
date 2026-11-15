@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -24,9 +28,35 @@ func Command(name string, args ...string) *exec.Cmd {
 	}
 
 	// By default set the working directory to the project root directory.
-	wd, _ := os.Getwd()
-	for !strings.HasSuffix(wd, "authelia") {
-		wd = filepath.Dir(wd)
+	// Walk up the directory tree until we find go.mod with the correct module.
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to find Authelia project root: %v", err)
+	}
+
+	wd := cwd
+
+	found := false
+
+	for {
+		goModPath := filepath.Join(wd, "go.mod")
+		if data, err := os.ReadFile(goModPath); err == nil {
+			if strings.Contains(string(data), "module github.com/authelia/authelia/v4") {
+				found = true
+				break
+			}
+		}
+
+		parent := filepath.Dir(wd)
+		if parent == wd {
+			break
+		}
+
+		wd = parent
+	}
+
+	if !found {
+		log.Fatalf("Failed to find Authelia project root (go.mod with module github.com/authelia/authelia/v4) from directory: %s", cwd)
 	}
 
 	cmd.Dir = wd
@@ -96,53 +126,21 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 	cond.Wait()
 }
 
-// RunFuncUntilCtrlC run a function until ctrl-c is hit.
-func RunFuncUntilCtrlC(fn func() error) error {
-	mutex := sync.Mutex{}
-	cond := sync.NewCond(&mutex)
-	errorChannel := make(chan error)
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-
-	mutex.Lock()
-
-	go func() {
-		mutex.Lock()
-
-		f := bufio.NewWriter(os.Stdout)
-		defer f.Flush()
-
-		fmt.Println("Hit Ctrl+C to shutdown...") //nolint:forbidigo
-
-		err := fn()
-		if err != nil {
-			errorChannel <- err
-
-			fmt.Println(err) //nolint:forbidigo
-			cond.Broadcast()
-			mutex.Unlock()
-
-			return
-		}
-
-		errorChannel <- nil
-
-		<-signalChannel
-		cond.Broadcast()
-		mutex.Unlock()
-	}()
-
-	cond.Wait()
-
-	return <-errorChannel
-}
-
 // RunCommandWithTimeout run a command with timeout.
 func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
-	// Start a process.
+	// Killing only the command leaves whatever it started running past the timeout, such as the binary a `go run`
+	// builds, so the command gets a process group of its own and the whole group is killed.
+	setProcessGroup(cmd)
+
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}
+
+	// A process group of its own no longer receives the terminal's interrupt, so it is forwarded.
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+
+	defer signal.Stop(signals)
 
 	// Wait for the process to finish or kill it after a timeout (whichever happens first).
 	done := make(chan error, 1)
@@ -151,17 +149,23 @@ func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 		done <- cmd.Wait()
 	}()
 
-	select {
-	case <-time.After(timeout):
-		fmt.Printf("Timeout of %ds reached... Killing process...\n", int64(timeout/time.Second)) //nolint:forbidigo
+	expired := time.After(timeout)
 
-		if err := cmd.Process.Kill(); err != nil {
+	for {
+		select {
+		case sig := <-signals:
+			_ = signalProcessGroup(cmd, sig.(syscall.Signal))
+		case <-expired:
+			fmt.Printf("Timeout of %ds reached... Killing process...\n", int64(timeout/time.Second)) //nolint:forbidigo
+
+			if err := signalProcessGroup(cmd, syscall.SIGKILL); err != nil {
+				return err
+			}
+
+			return ErrTimeoutReached
+		case err := <-done:
 			return err
 		}
-
-		return ErrTimeoutReached
-	case err := <-done:
-		return err
 	}
 }
 

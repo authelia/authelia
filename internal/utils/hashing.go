@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -18,8 +22,9 @@ func HashSHA256FromString(input string) (output string) {
 
 // HashSHA256FromPath takes a path string and calculates the SHA256 checksum of the file at the path returning it as a base16 hash string.
 func HashSHA256FromPath(path string) (output string, err error) {
-	file, err := os.Open(path)
-	if err != nil {
+	var file *os.File
+
+	if file, err = os.Open(path); err != nil {
 		return "", err
 	}
 
@@ -27,7 +32,7 @@ func HashSHA256FromPath(path string) (output string, err error) {
 
 	hash := sha256.New()
 
-	if _, err := io.Copy(hash, file); err != nil {
+	if _, err = io.Copy(hash, file); err != nil {
 		return "", err
 	}
 

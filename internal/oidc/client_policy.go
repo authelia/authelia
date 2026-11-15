@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -7,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// NewClientAuthorizationPolicy returns a ClientAuthorizationPolicy given a name and its configuration.
 func NewClientAuthorizationPolicy(name string, config schema.IdentityProvidersOpenIDConnectPolicy) (policy ClientAuthorizationPolicy) {
 	policy = ClientAuthorizationPolicy{
 		Name:          name,
@@ -50,6 +55,16 @@ func NewClientRequestedAudienceMode(mode string) ClientRequestedAudienceMode {
 	}
 }
 
+// NewClientRequestedResourceMode converts the config option into an oidc.ClientRequestedResourceMode.
+func NewClientRequestedResourceMode(mode string) ClientRequestedResourceMode {
+	switch mode {
+	case ClientRequestedResourceModeImplicit.String():
+		return ClientRequestedResourceModeImplicit
+	default:
+		return ClientRequestedResourceModeExplicit
+	}
+}
+
 // ClientAuthorizationPolicy controls and represents a client policy.
 type ClientAuthorizationPolicy struct {
 	Name          string
@@ -81,7 +96,6 @@ func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Su
 		return false
 	}
 
-	// Iterate over the subjects until we find a match (set matchesSubject and break) or until we exit the loop.
 	matchesSubject := false
 
 	for _, rule := range p.Subjects {
@@ -91,7 +105,6 @@ func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Su
 		}
 	}
 
-	// Return false if there is at least one subject defined and none of the subjects match.
 	if len(p.Subjects) != 0 && !matchesSubject {
 		return false
 	}
@@ -165,6 +178,31 @@ func (ram ClientRequestedAudienceMode) String() string {
 	case ClientRequestedAudienceModeExplicit:
 		return valueExplicit
 	case ClientRequestedAudienceModeImplicit:
+		return valueImplicit
+	default:
+		return ""
+	}
+}
+
+// ClientRequestedResourceMode represents the requested resource mode for a client.
+type ClientRequestedResourceMode int
+
+const (
+	// ClientRequestedResourceModeExplicit means the client requires that the resource is explicitly requested
+	// for it to be considered requested and therefore granted.
+	ClientRequestedResourceModeExplicit ClientRequestedResourceMode = iota
+
+	// ClientRequestedResourceModeImplicit means the client implicitly assumes that the requested resource is all of the
+	// permitted resources when the audience and resource request parameters are absent.
+	ClientRequestedResourceModeImplicit
+)
+
+// String returns the string representation of the ClientRequestedResourceMode.
+func (rrm ClientRequestedResourceMode) String() string {
+	switch rrm {
+	case ClientRequestedResourceModeExplicit:
+		return valueExplicit
+	case ClientRequestedResourceModeImplicit:
 		return valueImplicit
 	default:
 		return ""

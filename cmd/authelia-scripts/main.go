@@ -1,6 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 //usr/bin/env go run "$0" "$@"; exit
 //nolint:gocritic
 
+// Command authelia-scripts performs various development tasks such as building Authelia and managing the integration
+// suites.
 package main
 
 import (

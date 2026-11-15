@@ -1,20 +1,24 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { ReactNode, createContext, use, useCallback, useEffect, useMemo, useState } from "react";
 
 import { i18n } from "i18next";
 
 import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
 import { setLocalStorage } from "@services/LocalStorage";
 
-export const LanguageContext = createContext<ValueProps | null>(null);
+export const LanguageContext = createContext<null | ValueProps>(null);
 
 export interface Props {
-    i18n: i18n;
-    children: React.ReactNode;
+    readonly i18n: i18n;
+    readonly children: ReactNode;
 }
 
 export interface ValueProps {
-    locale: string;
-    setLocale: (locale: string) => void;
+    readonly locale: string;
+    readonly setLocale: (_locale: string) => void;
 }
 
 export default function LanguageContextProvider(props: Props) {
@@ -50,27 +54,30 @@ export default function LanguageContextProvider(props: Props) {
     );
 
     useEffect(() => {
-        window.addEventListener("storage", listener);
+        globalThis.addEventListener("storage", listener);
 
         return () => {
-            window.removeEventListener("storage", listener);
+            globalThis.removeEventListener("storage", listener);
         };
     }, [listener]);
 
     return (
-        <LanguageContext.Provider
-            value={{
-                locale,
-                setLocale: callback,
-            }}
+        <LanguageContext
+            value={useMemo(
+                () => ({
+                    locale,
+                    setLocale: callback,
+                }),
+                [locale, callback],
+            )}
         >
             {props.children}
-        </LanguageContext.Provider>
+        </LanguageContext>
     );
 }
 
 export function useLanguageContext() {
-    const context = useContext(LanguageContext);
+    const context = use(LanguageContext);
     if (!context) {
         throw new Error("useLanguageContext must be used within a LanguageContextProvider");
     }

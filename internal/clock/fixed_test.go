@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package clock
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -8,9 +13,7 @@ import (
 )
 
 func TestTestingClock(t *testing.T) {
-	c := &Fixed{
-		now: time.Unix(0, 0),
-	}
+	c := NewFixed(time.Unix(0, 0))
 
 	assert.Equal(t, int64(0), c.Now().Unix())
 	c.now = time.Unix(20, 0)
@@ -27,4 +30,28 @@ func TestTestingClock(t *testing.T) {
 	<-c.After(time.Millisecond * 100)
 
 	assert.Equal(t, before, c.Now())
+
+	done := make(chan struct{})
+
+	var value atomic.Bool
+
+	c.AfterFunc(time.Millisecond*20, func() {
+		value.Store(true)
+
+		close(done)
+	})
+
+	select {
+	case <-done:
+		t.Fatal("AfterFunc executed synchronously")
+	default:
+		assert.False(t, value.Load())
+	}
+
+	select {
+	case <-done:
+		assert.True(t, value.Load())
+	case <-time.After(200 * time.Millisecond):
+		t.Fatal("AfterFunc didn't execute within expected time")
+	}
 }

@@ -1,29 +1,29 @@
-import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Step,
-    StepLabel,
-    Stepper,
-    TextField,
-    Theme,
-    Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import InformationIcon from "@components/InformationIcon";
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { Stepper } from "@components/UI/Stepper";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
+import { translateErrorCode } from "@services/ErrorCode";
 import {
     finishWebAuthnRegistration,
     getWebAuthnRegistrationOptions,
@@ -39,14 +39,12 @@ interface Props {
 
 const WebAuthnCredentialRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { classes } = useStyles();
-
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const [activeStep, setActiveStep] = useState(0);
-    const [options, setOptions] = useState<PublicKeyCredentialCreationOptionsJSON | null>(null);
-    const [timeout, setTimeout] = useState<number | null>(null);
+    const [options, setOptions] = useState<null | PublicKeyCredentialCreationOptionsJSON>(null);
+    const [timeout, setTimeout] = useState<null | number>(null);
     const [description, setDescription] = useState("");
     const [errorDescription, setErrorDescription] = useState(false);
 
@@ -84,7 +82,10 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
 
             if (result.result === AttestationResult.Success) {
                 if (result.response == null) {
-                    throw new Error("Credential Creation Request succeeded but Registration Response is empty.");
+                    createErrorNotification(
+                        translate("Credential Creation Request succeeded but Registration Response is empty"),
+                    );
+                    return;
                 }
 
                 const response = await finishWebAuthnRegistration(result.response);
@@ -99,7 +100,15 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                         );
                         break;
                     case AttestationResult.Failure:
-                        createErrorNotification(response.message);
+                        createErrorNotification(
+                            translateErrorCode(
+                                translate,
+                                response.code,
+                                translate(
+                                    "Failed to register your credential, the identity verification process might have timed out",
+                                ),
+                            ),
+                        );
                         break;
                 }
 
@@ -119,14 +128,6 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     }, [props.open, options, createSuccessNotification, translate, createErrorNotification, handleClose]);
 
     useEffect(() => {
-        if (!props.open || state !== WebAuthnTouchState.Failure || activeStep !== 0) {
-            return;
-        }
-
-        handleClose();
-    }, [props, state, activeStep, handleClose]);
-
-    useEffect(() => {
         (async function () {
             if (!props.open || activeStep !== 0 || options === null) {
                 return;
@@ -142,7 +143,9 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         }
 
         (async function () {
-            if (description.length === 0 || description.length > 64) {
+            const trimmed = description.trim();
+
+            if (trimmed.length === 0 || trimmed.length > 64) {
                 setErrorDescription(true);
                 createErrorNotification(
                     translate("The Description must be more than 1 character and less than 64 characters"),
@@ -151,7 +154,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 return;
             }
 
-            const res = await getWebAuthnRegistrationOptions(description);
+            const res = await getWebAuthnRegistrationOptions(trimmed);
 
             switch (res.status) {
                 case 200:
@@ -196,49 +199,38 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         switch (step) {
             case 0:
                 return (
-                    <Box>
-                        <Box className={classes.icon}>
+                    <div>
+                        <div className="py-8">
                             <InformationIcon />
-                        </Box>
-                        <Typography className={classes.instruction}>
-                            {translate("Enter a description for this WebAuthn Credential")}
-                        </Typography>
-                        <Grid container spacing={1}>
-                            <Grid size={{ xs: 12 }}>
-                                <TextField
-                                    inputRef={nameRef}
+                        </div>
+                        <p className="pb-8">{translate("Enter a description for this WebAuthn Credential")}</p>
+                        <div className="grid grid-cols-12 gap-2">
+                            <div className="col-span-12">
+                                <Label htmlFor="webauthn-credential-description">{translate("Description")}</Label>
+                                <Input
+                                    ref={nameRef}
                                     id="webauthn-credential-description"
-                                    label={translate("Description")}
-                                    variant="outlined"
                                     required
                                     value={description}
                                     error={errorDescription}
-                                    disabled={false}
                                     onChange={(v) => handleCredentialDescription(v.target.value)}
                                     autoCapitalize="none"
                                     onKeyDown={(ev) => {
                                         if (ev.key === "Enter") {
-                                            (async () => {
-                                                handleNext();
-                                            })();
-
+                                            handleNext();
                                             ev.preventDefault();
                                         }
                                     }}
                                 />
-                            </Grid>
-                        </Grid>
-                    </Box>
+                            </div>
+                        </div>
+                    </div>
                 );
             case 1:
                 return (
                     <Fragment>
-                        <Box className={classes.icon}>
-                            {timeout !== null ? <WebAuthnRegisterIcon timeout={timeout} /> : null}
-                        </Box>
-                        <Typography className={classes.instruction}>
-                            {translate("Touch the token on your security key")}
-                        </Typography>
+                        <div className="py-8">{timeout ? <WebAuthnRegisterIcon timeout={timeout} /> : null}</div>
+                        <p className="pb-8">{translate("Touch the token on your security key")}</p>
                     </Fragment>
                 );
         }
@@ -253,67 +245,56 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     };
 
     return (
-        <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
-            <DialogTitle>{translate("Register {{item}}", { item: translate("WebAuthn Credential") })}</DialogTitle>
-            <DialogContent>
-                <DialogContentText sx={{ mb: 3 }}>
-                    {translate("This dialog handles registration of a {{item}}", {
-                        item: translate("WebAuthn Credential"),
-                    })}
-                </DialogContentText>
-                <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                    <Grid size={{ xs: 12 }}>
-                        <Stepper activeStep={activeStep}>
-                            {steps.map((label, index) => {
-                                const stepProps: { completed?: boolean } = {};
-                                const labelProps: {
-                                    optional?: React.ReactNode;
-                                } = {};
-                                return (
-                                    <Step key={label} {...stepProps}>
-                                        <StepLabel {...labelProps}>{translate(label)}</StepLabel>
-                                    </Step>
-                                );
-                            })}
-                        </Stepper>
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>{renderStep(activeStep)}</Grid>
-                </Grid>
-            </DialogContent>
-            <DialogActions>
-                <Button
-                    id={"dialog-cancel"}
-                    color={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "primary" : "error"}
-                    disabled={activeStep === 1 && state !== WebAuthnTouchState.Failure}
-                    onClick={handleClose}
-                >
-                    {translate("Cancel")}
-                </Button>
-                {activeStep === 0 ? (
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open) handleOnClose();
+            }}
+        >
+            <DialogContent showCloseButton={false} className="sm:max-w-xs w-full">
+                <DialogHeader>
+                    <DialogTitle>
+                        {translate("Register {{item}}", { item: translate("WebAuthn Credential") })}
+                    </DialogTitle>
+                    <DialogDescription className="mb-6">
+                        {translate("This dialog handles registration of a {{item}}", {
+                            item: translate("WebAuthn Credential"),
+                        })}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-full">
+                        <Stepper activeStep={activeStep} steps={steps.map((label) => translate(label))} />
+                    </div>
+                    <div className="w-full">{renderStep(activeStep)}</div>
+                </div>
+                <DialogFooter>
                     <Button
-                        id={"dialog-next"}
-                        color={description.length !== 0 ? "success" : "primary"}
-                        disabled={activeStep !== 0}
-                        onClick={async () => {
-                            handleNext();
-                        }}
+                        id={"dialog-cancel"}
+                        variant={"ghost"}
+                        color={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "primary" : "destructive"}
+                        disabled={activeStep === 1 && state !== WebAuthnTouchState.Failure}
+                        onClick={handleClose}
                     >
-                        {translate("Next")}
+                        {translate("Cancel")}
                     </Button>
-                ) : null}
-            </DialogActions>
+                    {activeStep === 0 ? (
+                        <Button
+                            id={"dialog-next"}
+                            variant={"ghost"}
+                            color={description.length > 0 ? "success" : "primary"}
+                            disabled={activeStep !== 0}
+                            onClick={async () => {
+                                handleNext();
+                            }}
+                        >
+                            {translate("Next")}
+                        </Button>
+                    ) : null}
+                </DialogFooter>
+            </DialogContent>
         </Dialog>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    icon: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    instruction: {
-        paddingBottom: theme.spacing(4),
-    },
-}));
 
 export default WebAuthnCredentialRegisterDialog;

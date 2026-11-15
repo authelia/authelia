@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -28,6 +32,16 @@ func TestResolveCmdName(t *testing.T) {
 			"ShouldResolveDocsSubCmd",
 			newRootCmd().Commands()[0].Commands()[0],
 			"code.keys",
+		},
+		{
+			"ShouldResolveMiscLocaleMoveCmdWithoutArgumentHint",
+			newMiscCmd().Commands()[1],
+			"misc.locale-move",
+		},
+		{
+			"ShouldResolveMiscReleaseCmdWithoutArgumentSpec",
+			newMiscCmd().Commands()[3],
+			"misc.release",
 		},
 	}
 
@@ -67,6 +81,20 @@ func TestRootCmdGetArgs(t *testing.T) {
 			nil,
 			[]string{"authelia-gen", "code"},
 		},
+		{
+			"ShouldReturnRootCmdArgsWithoutArgumentSpec",
+			func() *cobra.Command {
+				for _, subCmd := range newRootCmd().Commands() {
+					if subCmd.Name() == cmdUseMisc {
+						return subCmd.Commands()[3]
+					}
+				}
+
+				return nil
+			},
+			nil,
+			[]string{"authelia-gen", "misc", "release"},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -90,7 +118,12 @@ func TestSortCmds(t *testing.T) {
 		{
 			"ShouldSortDocsCmd",
 			newDocsCmd(),
-			[]string{"cli", "data", pathJSONSchema, cmdUseManage, "date"},
+			[]string{"cli", "data", pathJSONSchema, cmdUseManage, "seo", "date"},
+		},
+		{
+			"ShouldSortDocsSEOCmd",
+			newDocsSEOCmd(),
+			[]string{"openid-connect"},
 		},
 		{
 			"ShouldSortGitHubCmd",
@@ -110,7 +143,7 @@ func TestSortCmds(t *testing.T) {
 		{
 			"ShouldSortMiscCmd",
 			newMiscCmd(),
-			[]string{"locale-move [key]", "oidc"},
+			[]string{"contributors", "locale-move", "oidc", "release"},
 		},
 		{
 			"ShouldSortMiscOIDCCmd",
@@ -128,7 +161,7 @@ func TestSortCmds(t *testing.T) {
 			require.Len(t, actual, n)
 
 			for i := 0; i < n; i++ {
-				assert.Equal(t, tc.expected[i], actual[i].Use)
+				assert.Equal(t, tc.expected[i], actual[i].Name())
 			}
 		})
 	}

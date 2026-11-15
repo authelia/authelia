@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Proxies"
-description: "An integration guide for Authelia and several supported reverse proxies"
+description: "An integration guide for Authelia and several supported reverse proxies covering required headers, configuration approaches, and deployment consideration tips."
 summary: "An introduction into integrating Authelia with a reverse proxy."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 310
@@ -16,15 +20,19 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ works in collaboration with several reverse proxies. In this section you will find the documentation of the
+**Authelia** works in collaboration with several reverse proxies. In this section you will find the documentation of the
 various tested proxies with examples of how you may configure them. We are eager for users to help us provide better
 examples of already documented proxies, as well as provide us examples of undocumented proxies.
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
+
+It's also important that users check the
+[Validating Forwarded Authentication](../../reference/guides/validating-forwarded-authentication.md) reference guide
+when using these integrations.
 
 ## Support
 
@@ -37,30 +45,30 @@ configuration and they are assumed to be present for future development.
 
 You may not be able to do several things that rely on these headers such as but not limited to:
 
-  - Properly identify the request information for Access Control, such as client IP, hostname, request URL or Scheme,
-    etc.
-  - Properly identify the correct domain for session cookies.
-  - Properly identify the public facing URL for redirection or email links making redirection or email based
-    verifications inoperable.
-  - Properly identify the OpenID Connect 1.0 Issuer or Endpoint URL's making OpenID Connect 1.0 inoperable.
-  - Properly identify the WebAuthn Relying Party Identifier making WebAuthn inoperable.
+- Properly identify the request information for Access Control, such as client IP, hostname, request URL or Scheme,
+  etc.
+- Properly identify the correct domain for session cookies.
+- Properly identify the public facing URL for redirection or email links making redirection or email based
+  verifications inoperable.
+- Properly identify the OpenID Connect 1.0 Issuer or Endpoint URL's making OpenID Connect 1.0 inoperable.
+- Properly identify the WebAuthn Relying Party Identifier making WebAuthn inoperable.
 
 In addition to the [Proxy Authorization Endpoint](../../reference/guides/proxy-authorization.md) implementations and the
-headers required by those, __Authelia__ itself requires the following headers are set when secured behind a reverse
-proxy i.e. the headers a reverse proxy must include for the __Authelia__ portal app itself:
+headers required by those, **Authelia** itself requires the following headers are set when secured behind a reverse
+proxy i.e. the headers a reverse proxy must include for the **Authelia** portal app itself:
 
-* Scheme Detection:
-  * Default: [X-Forwarded-Proto] (header)
-  * Fallback: TLS (listening socket state)
-* Host Detection:
-  * Default: [X-Forwarded-Host] (header)
-  * Fallback: [Host] (header)
-* Path Detection:
-  * Default: X-Forwarded-URI (header)
-  * Fallback: [Start Line] Request Target (start line)
-* Remote IP:
-  * Default: [X-Forwarded-For]
-  * Fallback: TCP source IP
+- Scheme Detection:
+  - Default: [X-Forwarded-Proto] (header)
+  - Fallback: TLS (listening socket state)
+- Host Detection:
+  - Default: [X-Forwarded-Host] (header)
+  - Fallback: [Host] (header)
+- Path Detection:
+  - Default: X-Forwarded-URI (header)
+  - Fallback: [Start Line] Request Target (start line)
+- Remote IP:
+  - Default: [X-Forwarded-For]
+  - Fallback: TCP source IP
 
 [Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
 [Start Line]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#start_line
@@ -91,12 +99,12 @@ the policy engines determination about what must be done.
 Broadly speaking, the method to identify the destination of a request relies on metadata headers which need to be set by
 your reverse proxy. The headers we rely on at the authz endpoints are as follows:
 
-* [X-Forwarded-Proto](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto)
-* [X-Forwarded-Host](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host)
-* X-Forwarded-URI
-* [X-Forwarded-For](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For)
-* X-Forwarded-Method / X-Original-Method
-* X-Original-URL
+- [X-Forwarded-Proto](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto)
+- [X-Forwarded-Host](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host)
+- X-Forwarded-URI
+- [X-Forwarded-For](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For)
+- X-Forwarded-Method / X-Original-Method
+- X-Original-URL
 
 The specifics however are dictated by the specific
 [Authorization Implementation](../../reference/guides/proxy-authorization.md) used. Please refer to the specific
@@ -106,9 +114,9 @@ implementation you're using.
 
 A logged in user must be identified via standard means. Users are identified by one of two methods:
 
-* A session cookie with the HTTP only option set, and the secure option set meaning the cookie must only be sent over the
+- A session cookie with the HTTP only option set, and the secure option set meaning the cookie must only be sent over the
   [HTTPS scheme](https://developer.mozilla.org/en-US/docs/Glossary/https).
-* The [Proxy-Authorization](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization) header
+- The [Proxy-Authorization](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization) header
   utilizing the
   [basic authentication scheme](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#basic_authentication_scheme).
 
@@ -121,24 +129,79 @@ When the user is authenticated and authorized to access a resource we respond wi
 to authenticate with 1FA, or if they are already authenticated with only 1FA and they need to perform 2FA, the user is
 redirected to the portal with:
 
-* A HTTP [401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) status if the original request
-  was an [XMLHTTPRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) provided Authelia is able to
-  detect it.
-* A HTTP [302 Found](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302) status if the original request had
-  the [GET](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET) or
+- A HTTP [401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) status if the original request
+  was not a top-level browser navigation as described in [Navigation Detection](#navigation-detection).
+- A HTTP [302 Found](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302) status if the original request had
+  the [GET](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET),
+  [HEAD](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD), or
   [OPTIONS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS) method verb.
-* A HTTP [303 See Other](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303) status if neither of the above
+- A HTTP [303 See Other](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303) status if neither of the above
   conditions is met.
 
 When the user is denied either by a default policy, or by an explicit policy we respond with a HTTP
-[403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
+[403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status. When the user was identified by
+their session cookie the portal can instead show them an access denied page:
+
+- The `ForwardAuth` and `ExtAuthz` implementations redirect the user to the portal with the same
+  [302 Found](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302) or
+  [303 See Other](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303) status as above, provided the original
+  request was not an [XMLHTTPRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) and accepts a
+  `text/html` response.
+- The `AuthRequest` implementation keeps the
+  [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status, because the proxies which use it
+  do not accept any other, and includes the location of the access denied page for the proxy to redirect to if it is
+  configured to.
+- The `Legacy` implementation always responds with a plain
+  [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
+
+The access denied page can be turned off per endpoint with the
+[disable_access_denied_redirect](../../configuration/miscellaneous/server-endpoints-authz.md#disable_access_denied_redirect)
+option, which restores the plain [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status.
+
+#### Navigation Detection
+
+Redirecting a request which is not a top-level browser navigation, such as a request made by a web application using
+[fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) or
+[XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), results in the browser silently
+following the redirect and the web application receiving the authentication portal instead of the expected response.
+For this reason these requests receive a [401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401)
+status which still includes the [Location](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location) header,
+allowing the web application to detect the status and redirect the user itself. This detection does not apply to the
+[AuthRequest](../../reference/guides/proxy-authorization.md#authrequest) implementation which always responds with a
+[401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) status.
+
+A request is considered a top-level browser navigation when:
+
+- The [Sec-Fetch-Mode](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Mode) header has the value
+  `navigate` and the [Sec-Fetch-Dest](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Dest) header
+  is either absent or has the value `document`. This means navigations within an `iframe` or similar element are not
+  considered top-level navigations, as the authentication portal can not be framed.
+- If the [Sec-Fetch-Mode](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Mode) header is absent,
+  the `X-Requested-With` header does not have the
+  value `XMLHttpRequest` and the [Accept](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept) header
+  accepts `text/html`.
+
+The proxy must forward the `Sec-Fetch-Mode`, `Sec-Fetch-Dest`, `X-Requested-With`, and `Accept` headers from the
+original request to Authelia for this detection to work as intended. Most proxies forward all headers by default, but
+some proxies such as [Envoy](envoy.md) require these headers are explicitly allowed, and some proxies such as
+[Traefik](traefik.md) can be configured to only forward specific headers (i.e. the `authRequestHeaders` option).
+
+Web applications which use a
+[Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) to handle navigations should
+forward the original navigation request (i.e. `event.request`) rather than constructing a new request, as a newly
+constructed request is not a navigation and will receive a
+[401 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) status.
 
 ### Response Headers
 
-With the exception of the [403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) and
-[200 OK](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200) status responses above,
-Authelia responds with a [Location](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location) header to
-redirect the user to the authentication portal.
+With the exception of the [200 OK](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200) status response and a
+[403 Forbidden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403) status response not described above as
+including one, Authelia responds with a [Location](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location)
+header to redirect the user to the authentication portal.
+
+All responses include the [Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
+header with the value `no-store` and the [Pragma](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma)
+header with the value `no-cache` as the response varies depending on the session and the request headers.
 
 In the instance of a [200 OK](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200) status response Authelia
 also responds with various headers which can be forwarded by your reverse proxy to the backend application which are

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -56,7 +60,7 @@ var commitScopesExtra = []NameDescriptionTmpl{
 
 var commitTypes = []NameDescriptionTmpl{
 	{"build", "Changes that affect the build system or external dependencies", []string{"bundler", "deps", "docker", "go", "npm"}},
-	{"ci", "Changes to our CI configuration files and scripts", []string{"autheliabot", "buildkite", "codecov", "husky", "golangci-lint", "renovate", "reviewdog"}},
+	{"ci", "Changes to our CI configuration files and scripts", []string{"autheliabot", "buildkite", "codecov", "lefthook", "golangci-lint", "renovate", "reviewdog"}},
 	{"docs", "Documentation only changes", nil},
 	{"feat", "A new feature", nil},
 	{"fix", "A bug fix", nil},

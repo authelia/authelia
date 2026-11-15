@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Measures"
-description: "An overview of the security measures Authelia implements."
+description: "An overview of the security measures Authelia implements including protections against brute-force attacks, cookie theft, open redirects, and exfiltration."
 summary: "An overview of the security measures Authelia implements."
-date: 2018-08-26T23:46:15+02:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 420
@@ -16,7 +20,93 @@ seo:
   noindex: false # false (default) or true
 ---
 
+The following document describes many of the protections that exist within Authelia as well as protections that can be
+introduced to improve security.
+
+Some of the items in this guide contain a list of Measure Types. This legend describes what each of these types mean.
+A mix of types such as `In-built` and `Manual` means there is an in-built protection, and an additional manual
+protection the Administrator can employ.
+
+| Measure Type |                                   Description                                   |
+| :----------: | :-----------------------------------------------------------------------------: |
+|   In-built   |                  The measure is part of Authelia and automatic                  |
+| Customizable |    The measure can be configured by the Administrator to reduce the security    |
+| Configurable |   The measure can be configured by the Administrator to enhance the security    |
+|    Manual    | The measure contains a description of how an Administrator may improve security |
+|    Design    |        The measure is part of how Authelia is designed in a broad sense         |
+
+## Protection against return-oriented programming attacks and general hardening
+
+**Measure Types:** In-built
+
+Authelia is built with several non-default hardening options:
+
+- Built as a position independent executable which makes Return Oriented Programming (ROP) attacks
+  significantly more difficult to execute reliably.
+- Built with use of the procedure linkage table for external function calls which makes Return Oriented Programming
+  (ROP) attacks slightly more difficult to execute reliably.
+- Built as a dynamically linked binary with full relocation read-only support, making this and several
+  other traditional binary weaknesses significantly more difficult to exploit.
+- Built with forced early symbol binding which significantly mitigates overwrite attacks to the global offset table.
+- Built with a reduced memory layout predictability.
+- Built with library function argument object size estimations enabled to ensure unsafe actions are aborted.
+- Built excluding unused libraries.
+
+## Protection against unnecessary attack surface
+
+**Measure Types:** In-built, Design
+
+Authelia takes a proactive approach to security and as such has spent countless hours reducing the attack surface by
+removing unnecessary components from our architecture.
+
+Specifically we've developed our own docker base container. This base container is specifically designed to have a low
+attack surface only having the minimum binaries required to support the container. You can verify the benefits of this
+proactive measure by using tools like [trivy](https://trivy.dev/latest/) on various containers. An example running it
+on Authelia is shown below:
+
+```shell
+docker pull docker.io/authelia/authelia:latest && \
+trivy image docker.io/authelia/authelia:latest && \
+docker run docker.io/authelia/authelia:latest authelia build-info
+```
+
+Example output:
+
+```text
+Report Summary
+
+┌───────────────────────────────────────────────────┬──────────┬─────────────────┬─────────┐
+│                      Target                       │   Type   │ Vulnerabilities │ Secrets │
+├───────────────────────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ docker.io/authelia/authelia:latest (ubuntu 24.04) │  ubuntu  │        0        │    -    │
+├───────────────────────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ app/authelia                                      │ gobinary │        0        │    -    │
+└───────────────────────────────────────────────────┴──────────┴─────────────────┴─────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+Last Tag: v4.39.8
+State: tagged clean
+Branch: v4.39.8
+Commit: 5d90442e07cc695c61036ac1a539c0b942ebc71d
+Build Number: 48388
+Build OS: linux
+Build Arch: amd64
+Build Compiler: gc
+Build Date: Tue, 02 Sep 2025 10:42:14 +1000
+Development: false
+Extra:
+
+Go:
+    Version: go1.25.0 X:nosynchashtriemap
+    Module Path: github.com/authelia/authelia/v4
+    Executable Path: github.com/authelia/authelia/v4/cmd/authelia
+```
+
 ## Protection against cookie theft
+
+**Measure Types:** In-built, Customizable
 
 Authelia sets several
 [cookie attributes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes) to help prevent
@@ -25,12 +115,14 @@ cookie theft:
 1. `HttpOnly` is set, forbidding client-side code like javascript from access to the cookie.
 2. `Secure` is set, forbidding the browser from sending the cookie to sites which do not use the [HTTPS] scheme.
 3. `SameSite` is set to `Lax`, which prevents it being sent over cross-origin requests. An option to adjust this value
-    exists but is not recommended.
+   exists but is not recommended.
 
 Read about these attributes in detail on the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie).
 
 ## Protection against multi-domain cookie attacks
+
+**Measure Types:** In-built, Manual
 
 Since Authelia uses multi-domain cookies to perform single sign-on, an attacker who poisoned a user's DNS cache can
 easily retrieve the user's cookies by making the user send a request to one of the attacker's IPs.
@@ -45,6 +137,8 @@ Note that using [HSTS] has consequences, and you should do adequate research int
 it. For example the [nginx blog] has a good article helping users understand it.
 
 ## Protection against username enumeration and password brute-force attacks
+
+**Measure Types:** In-built, Customizable
 
 Authelia adaptively delays authentication attempts based on the mean (average) of the previous 10 successful attempts
 in addition to a small random interval of time. The result of this delay is that it makes it incredibly difficult to
@@ -61,7 +155,20 @@ the added effect of creating an additional delay for all authentication attempts
 attack will take, this combined with regulation greatly delays brute-force attacks and the effectiveness of them in
 general.
 
+## Protection against general brute-force attacks
+
+**Measure Types:** In-built, Customizable
+
+Authelia implements a tokenized bucket rate limiter on specific endpoints which greatly reduces the chances these
+endpoints can be brute-forced for various outcomes including guessing secret values, or inundating an inbox with emails.
+
+These rate limiters are applied per IPv4 address and per IPv6 prefix, which is a `/64` by default as a single IPv6
+subscriber can typically rotate between all of the addresses in their allocation. They can be
+[configured](../../configuration/miscellaneous/server-endpoint-rate-limits.md) depending on a particular use case.
+
 ## Protections against password brute-force attacks
+
+**Measure Types:** In-built, Customizable
 
 Authelia implements a variety of measures to prevent an attacker brute-forcing passwords if they somehow obtain the file
 used by the file authentication provider.
@@ -77,29 +184,15 @@ support SHA512, which previously was the default.
 
 Secondly Authelia uses salting with all hashing algorithms. These salts are generated with a random string generator,
 which is seeded every time it's used by a cryptographically secure 1024bit prime number. This ensures that even if an
-attacker obtains the file, each password has to be brute forced individually.
+attacker obtains the file, each password has to be brute-forced individually.
 
 Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt used, iterations
 (time), parallelism, and memory usage. To read more about this, please read how to
 [configure](../../configuration/first-factor/file.md) file authentication.
 
-## Protection against request brute-force attacks
+## Protection against stale identity information
 
-Authelia implements a tokenized bucket rate limiter on specific endpoints which greatly reduces the chances these
-endpoints can be brute-forced for various outcomes including guessing secret values, or inundating an inbox with emails.
-
-These rate limiters are applied on a per-IP basis and can be
-[configured](../../configuration/miscellaneous/server-endpoint-rate-limits.md) depending on a particular use case.
-
-## Protections against return oriented programming attacks and general hardening
-
-Authelia is built as a position independent executable which makes Return Oriented Programming (ROP) attacks
-significantly more difficult to execute reliably.
-
-In addition, it is built as a dynamically linked binary with full relocation read-only support, making this and several
-other traditional binary weaknesses significantly more difficult to exploit.
-
-## User profile and group membership always kept up-to-date (LDAP authentication provider)
+**Measure Types:** In-built, Customizable
 
 This measure is unrelated to the File authentication provider.
 
@@ -117,23 +210,75 @@ this.
 These protections can be [tuned](../../configuration/first-factor/ldap.md#refresh-interval) according to your security
 policy by changing refresh_interval, however we believe that 5 minutes is a fairly safe interval.
 
-## Storage security measures
+## Protection against storage exfiltration and manipulation
 
-We force users to encrypt vulnerable data stored in the database. It is strongly advised you do not give this encryption
-key to anyone. In the instance of a database installation that multiple users have access to, you should aim to ensure
-that users who have access to the database do not also have access to this key.
+**Measure Types:** In-built
 
-The encrypted data in the database is as follows:
+We use encryption and HMAC signatures to protect sensitive data stored in the database as a hardening measure. It is
+strongly advised you do not give the storage encryption key to anyone. In the instance of a database installation that
+multiple users have access to, you should aim to ensure that users who have access to the database do not also have
+access to the encryption key.
 
-|               Table               |    Column    |                                                Rational                                                |
-|:---------------------------------:|:------------:|:------------------------------------------------------------------------------------------------------:|
-|        totp_configurations        |    secret    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|         webauthn_devices          |  public_key  |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
-| oauth2_authorization_code_session | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
-|    oauth2_access_token_session    | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
-|   oauth2_refresh_token_session    | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
-|    oauth2_pkce_request_session    | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
-|   oauth2_openid_connect_session   | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+All of the data is encrypted using the user provided encryption key after passing it through the HMAC-based Extract and
+Expand Key Derivation Function (HKDF) as defined by [RFC5869](https://datatracker.ietf.org/doc/html/rfc5869), with the
+context and application specific information value of `authelia:kdf:storage:encryption_key:v1`. This is done to
+ensure the key is exactly the right length without losing any entropy from the input.
+
+We use row specific additional authenticated data to harden against moving encrypted data from one table, column, or row
+into another. A value encrypted for one row cannot be decrypted when it is presented as another row's value, even within
+the same table and column. For example a Time-based One-Time Password secret belonging to one user cannot be moved onto
+another user's account, and the two signing keys stored in the `encryption` table cannot be swapped with one another.
+
+The encrypted data in the database with the various AAD's used is as follows:
+
+|               Table               |    Column    |                       Additional Authenticated Data (AAD)                       |                                               Rationale                                                |
+| :-------------------------------: | :----------: | :-----------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
+|            encryption             |    value     |                   `authelia:storage:encryption:value:<name>`                    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|            cached_data            |    value     |                   `authelia:storage:cached_data:value:<name>`                   | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|           one_time_code           |     code     |                `authelia:storage:one_time_code:code:<signature>`                | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|        totp_configurations        |    secret    |            `authelia:storage:totp_configurations:secret:<username>`             | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|       webauthn_credentials        |  public_key  |         `authelia:storage:webauthn_credentials:public_key:<kid>:<rpid>`         |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|       webauthn_credentials        | attestation  |        `authelia:storage:webauthn_credentials:attestation:<kid>:<rpid>`         |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+| oauth2_authorization_code_session | session_data |  `authelia:storage:oauth2_authorization_code_session:session_data:<signature>`  | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_device_code_session     | session_data |     `authelia:storage:oauth2_device_code_session:session_data:<signature>`      | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_access_token_session    | session_data |     `authelia:storage:oauth2_access_token_session:session_data:<signature>`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|   oauth2_refresh_token_session    | session_data |    `authelia:storage:oauth2_refresh_token_session:session_data:<signature>`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_pkce_request_session    | session_data |     `authelia:storage:oauth2_pkce_request_session:session_data:<signature>`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|   oauth2_openid_connect_session   | session_data |    `authelia:storage:oauth2_openid_connect_session:session_data:<signature>`    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|        oauth2_par_context         | session_data | `authelia:storage:oauth2_pushed_authorization_session:session_data:<signature>` | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+
+You will note that the pattern for the additional authenticated data is the same for all tables and columns with a few
+exceptions. The format is `authelia:storage:<table>:<column>:<row>` for basically every table, column, and row
+combination, where the `<row>` placeholder is a value which uniquely identifies the individual row within that table.
+
+The value used for the `<row>` placeholder differs per table, and is always a value which never changes for the life of
+the row:
+
+|        Table         | Row Identifier |
+| :------------------: | :------------: |
+|      encryption      |     `name`     |
+|     cached_data      |     `name`     |
+|    one_time_code     |  `signature`   |
+| totp_configurations  |   `username`   |
+| webauthn_credentials |     `kid`      |
+|      `oauth2_*`      |  `signature`   |
+
+The first exception is the `webauthn_credentials` table where the additional authenticated data is additionally different
+for each domain, specifically the `rpid` column is appended after the row identifier. If the `kid` value is `SFVCQQ` and
+the `rpid` value is `example.com` then the additional authenticated data becomes
+`authelia:storage:webauthn_credentials:public_key:SFVCQQ:example.com` for example.
+
+The second exception is the `oauth2_par_context` table where the table name is replaced with
+`oauth2_pushed_authorization_session` which is the name the table will be renamed to in the future.
+
+The HMAC signatures stored in the database use the encrypted key stored in the `encryption` table where the `name`
+column matches the table below. We both ensure the keys are encrypted and use unique keys for each purpose to ensure
+any potential for brute-forcing the key is low.
+
+|     Table     |  Column   |   Key Name   |                         Notes                         |
+| :-----------: | :-------: | :----------: | :---------------------------------------------------: |
+| one_time_code | signature | hmac_key_otc |    Used to perform a fast lookup of One-Time Codes    |
+| totp_history  |   step    | hmac_key_otp | Used to save the step of every One-Time Password used |
 
 ### Leaked Database
 
@@ -142,7 +287,7 @@ for this purpose prevent this attack vector.
 
 ### Bad Actors
 
-A bad actor who has the SQL password and access to the database can theoretically change another users credential, this
+A bad actor who has access to the database can theoretically change values in the database, this
 theoretically bypasses authentication. Columns encrypted for this purpose prevent this attack vector.
 
 A bad actor may also be able to use data in the database to bypass 2FA silently depending on the credentials. In the
@@ -162,11 +307,11 @@ If you wish to change your encryption key for any reason you can do so using the
    it.
 2. Run the `./authelia storage encryption change-key --help` command.
 3. Stop Authelia.
-   * You can skip this step, however note that any data changed between the time you make the change and the time when
-   you stop Authelia i.e. via user registering a device; will be encrypted with the incorrect key.
+   - You can skip this step, however note that any data changed between the time you make the change and the time when
+     you stop Authelia i.e. via user registering a device; will be encrypted with the incorrect key.
 4. Run the `./authelia storage encryption change-key` command with the appropriate parameters.
-   * The help from step 1 will be useful here. The easiest method to accomplish this is with the `--config`,
-   `--encryption-key`, and `--new-encryption-key` parameters.
+   - The help from step 1 will be useful here. The easiest method to accomplish this is with the `--config`,
+     `--encryption-key`, and `--new-encryption-key` parameters.
 5. Update the encryption key Authelia uses on startup.
 6. Start Authelia.
 
@@ -178,10 +323,10 @@ values.
 As such all SMTP connections require the following:
 
 1. A TLS Connection (StartTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated
- connections require it as well_)
+   connections require it as well_)
 2. Valid X509 Certificate presented to the client during the TLS handshake
 
-There is an option to disable both of these security measures however they are __not recommended__.
+There is an option to disable both of these security measures however they are **not recommended**.
 
 The following configuration options exist to configure the security level in order of most preferable to least
 preferable:
@@ -276,7 +421,7 @@ for more information.
 ### Session security
 
 We have a few options to configure the security of a session. The main and most important one is the session secret.
-This is used to encrypt the session data when it is stored in the [Redis](../../configuration/session/redis.md) key value
+This is used to encrypt the session data when it is stored in the [Redis](../../configuration/cache/redis.md) key value
 database. The value of this option should be long and as random as possible. See more in the
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 
@@ -306,9 +451,9 @@ consider this cheat sheet mandatory reading before they do so.
 
 #### X-XSS-Protection
 
-__Value:__ N/A
-__Endpoints:__ All
-__Status:__ Unsupported Non-standard
+**Value:** N/A
+**Endpoints:** All
+**Status:** Unsupported Non-standard
 
 We do not include this header as this feature is not present in any modern browser and could introduce vulnerabilities
 if enabled at all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser-centric site security.
@@ -316,18 +461,18 @@ See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Pr
 
 #### X-Content-Type-Options
 
-__Value:__ `nosniff`
-__Endpoints:__ All
-__Status:__ Supported Standard
+**Value:** `nosniff`
+**Endpoints:** All
+**Status:** Supported Standard
 
 Prevents MIME type sniffing. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options) for more information.
 
 #### Referrer-Policy
 
-__Value:__ `strict-origin-when-cross-origin`
-__Endpoints:__ All
-__Status:__ Supported Standard
+**Value:** `strict-origin-when-cross-origin`
+**Endpoints:** All
+**Status:** Supported Standard
 
 Sends only the origin as the referrer in cross-origin requests, but sends the origin, path, and query string in
 same-origin requests. See the
@@ -335,18 +480,18 @@ same-origin requests. See the
 
 #### X-Frame-Options
 
-__Value:__ `DENY`
-__Endpoints:__ All
-__Status:__ Supported Standard
+**Value:** `DENY`
+**Endpoints:** All
+**Status:** Supported Standard
 
 Prevents Authelia rendering in a `frame`, `iframe`, `embed`, or `object` element. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options) for more information.
 
 #### Permissions-Policy
 
-__Value:__ `accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()`
-__Endpoints:__ All
-__Status:__ Supported Standard
+**Value:** `accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()`
+**Endpoints:** All
+**Status:** Supported Standard
 
 Disables browser features not required by Authelia including the
 [Federated Learning of Cohorts](https://en.wikipedia.org/wiki/Federated_Learning_of_Cohorts). It should be noted while
@@ -357,27 +502,27 @@ more information.
 
 #### X-DNS-Prefetch-Control
 
-__Value:__ `off`
-__Endpoints:__ All
-__Status:__ Non-standard
+**Value:** `off`
+**Endpoints:** All
+**Status:** Non-standard
 
 Prevents browsers from performing a DNS prefetch for links displayed on Authelia pages. Not all browsers support this.
 See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control) for more information.
 
 #### Pragma
 
-__Value:__ `no-cache`
-__Endpoints:__ API
-__Status:__ Supported Standard
+**Value:** `no-cache`
+**Endpoints:** API
+**Status:** Supported Standard
 
 Disables caching of API requests on HTTP/1.0 browsers. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma) for more information.
 
 #### Cache-Control
 
-__Value:__ `no-store`
-__Endpoints:__ API
-__Status:__ Supported Standard
+**Value:** `no-store`
+**Endpoints:** API
+**Status:** Supported Standard
 
 Disables caching responses entirely on HTTP/1.1 browsers. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) for more information.

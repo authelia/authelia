@@ -1,0 +1,26 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { render, screen } from "@testing-library/react";
+
+import Authenticated from "@views/LoginPortal/Authenticated";
+
+vi.mock("react-i18next", () => ({
+    useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+vi.mock("@components/SuccessIcon", () => ({
+    default: () => <div data-testid="success-icon" />,
+}));
+
+it("renders the authenticated stage with success icon", () => {
+    render(<Authenticated />);
+    expect(screen.getByText("Authenticated")).toBeInTheDocument();
+    expect(screen.getByTestId("success-icon")).toBeInTheDocument();
+});
+
+it("carries the identifier the suites wait for", () => {
+    const { container } = render(<Authenticated />);
+    expect(container.querySelector("#authenticated-stage")).toBeInTheDocument();
+});

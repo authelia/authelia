@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Server"
-description: "Configuring the Server Settings."
+description: "Configuring the Authelia internal web server including the listen address, TLS certificates, security headers, buffer sizes, timeouts, and endpoint settings."
 summary: "Authelia runs an internal web server. This section describes how to configure and tune this."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 199200
@@ -31,6 +35,10 @@ server:
     client_certificates: []
   headers:
     csp_template: ''
+    trusted_proxies:
+      enable: false
+      networks: []
+      walk_x_forwarded_for: false
   buffers:
     read: 4096
     write: 4096
@@ -41,6 +49,14 @@ server:
   endpoints:
     enable_pprof: false
     enable_expvars: false
+    health:
+      verbose: false
+      detailed: false
+      providers:
+        - 'storage'
+        - 'cache'
+        - 'user'
+      cache: '10 seconds'
     authz: {} ## See the dedicated "Server Authz Endpoints" configuration guide.
     rate_limits: {} ## See the dedicated "Server Endpoint Rate Limits" configuration guide.
 ```
@@ -84,9 +100,9 @@ server:
 ```
 
 ```yaml
-# When running "systemd-socket-activate -l 9091 go run ./cmd/authelia", the connections to port 9091 will be forwaded to file descriptor 3.
+# When running "systemd-socket-activate -l 9091 go run ./cmd/authelia", the connections to port 9091 will be forwarded to file descriptor 3.
 server:
-  address: fd://:3
+  address: fd://3
 ```
 
 ### asset_path
@@ -150,15 +166,123 @@ or intermediate certificates. If no item is provided mutual TLS is disabled.
 
 ### headers
 
+The headers section allows you to configure some of the header behavior of Authelia.
+
 #### csp_template
 
 {{< confkey type="string" required="no" >}}
 
+{{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
+This header is a security critical header which protects you from malicious parties and should almost never be
+configured. This is an advanced option to customize, and at minimum you should do sufficient research about how browsers
+utilize and understand this header before attempting to customize it; though it's strongly recommended you seek advice
+from a security professional before adjusting this.
+{{< /callout >}}
+
 This customizes the value of the Content-Security-Policy header. It will replace all instances of the below placeholder
-with the nonce value of the Authelia react bundle. This is an advanced option to customize, and you should do
-sufficient research about how browsers utilize and understand this header before attempting to customize it.
+with the nonce value of the Authelia react bundle.
 
 {{< csp >}}
+
+#### trusted_proxies
+
+{{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
+This option is generally not recommended unless you very carefully consider your architecture. You should only configure
+this if you are certain you understand the implications of this option. In particular if you enable this option with
+an empty list of [networks](#networks) then Authelia will not trust any proxy and all requests will most likely be
+treated as if they were coming from the IP of the proxy and it may entirely break forwarded authentication.
+
+You must manually ensure that this configuration is correctly configured if you choose to
+configure it and ensure all logged IP's report the correct IP address, this check must be done every time this option is
+changed and you must verify every expected proxy to either proxy to Authelia or to utilize the
+[Proxy Integration](../../integration/proxies/introduction.md).
+
+Failure to action this notice, similar to not ensuring that your architecture itself is secure, will most likely result
+in a security issue.
+
+It is strongly recommended regardless of this option being configured that edge proxies overwrite and replace the
+`X-Forwarded-For` and all headers listed in this guide, and all additional service mesh proxies in the chain discard
+headers from unknown proxies.
+
+Simply enabling these options without ensuring they are correct for your architecture is not supported or advised.
+{{< /callout >}}
+
+This section allows configuring a list of trusted proxies. If this option is enabled then if the TCP remote IP of HTTP
+request is not in the list then the request will be treated as if it was not coming from a proxy.
+
+By default this option is entirely disabled as it requires conscious decision to be taken. It is a much safer option
+to not configure this option at all in most instances and instead ensure that the proxy architecture itself is secure.
+The rationale for this is that regardless of if you configure the trusted proxies option or not, the proxy architecture
+itself must still be secure; and in addition ensuring the proxy architecture is secure solves all of the same issues
+entirely at the correct point. It is the responsibility of proxies to communicate these headers correctly.
+
+By default we do not walk any particular header i.e. `X-Forwarded-For`, and the remote IP is the left most value of this
+header. This is safe if every proxy overwrites the header. If a proxy instead appends to the header then the left most
+value can be spoofed by the client, in which case you should enable [walk_x_forwarded_for](#walk_x_forwarded_for).
+
+A peer connected via a `unix` socket does not have an IP address and is always trusted as a proxy. A peer connected via
+any other transport which is not TCP is never trusted. This means access to the socket must be restricted to your proxy, for example by using the
+`umask` of the [address](#address) and appropriate file system permissions, as anything which can connect to it can set
+these headers. The proxy must also set the `X-Forwarded-For` header as otherwise the remote IP will be `0.0.0.0`, which
+affects both rate limiting and network based access control rules. All other values in the `X-Forwarded-For` header are
+still checked against the list when using [walk_x_forwarded_for](#walk_x_forwarded_for).
+
+If the TCP remote IP is not in the list then all headers which are a case-insensitive match for the rules below will be
+stripped from the request effectively ignoring them.
+
+Headers:
+
+- `Via`
+- `Forwarded`
+- `X-Authelia-URL`
+
+Header Prefixes:
+
+- `X-Forwarded-`
+- `X-Real-`
+- `X-Original-`
+
+The query arguments used to determine the portal URL are also removed from these requests, but only on the
+[authz endpoints](#authz) which use them:
+
+- `authelia_url` for the `ForwardAuth` and `AuthRequest` implementations
+- `rd` for the `Legacy` implementation
+
+##### enable
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables the removal of proxy headers from requests that do not originate from a trusted proxy. The
+[networks](#networks) option must not be configured unless this is enabled.
+
+##### networks
+
+{{< confkey type="list(string)" syntax="network" required="no" >}}
+
+The list of networks trusted as proxies. If [enable](#enable) is `true` and this list is empty then no proxy is trusted.
+
+##### walk_x_forwarded_for
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
+Every proxy between the client and Authelia must be included in [networks](#networks). Any proxy which is not included
+will be considered the client, which will likely result in many users sharing one remote IP and will affect both rate
+limiting and network based access control rules.
+{{< /callout >}}
+
+Determines the remote IP by walking the `X-Forwarded-For` header. This option requires [enable](#enable) to be `true`.
+
+All `X-Forwarded-For` headers are combined in order and walked from right to left starting from the TCP remote IP, as
+the right most values were added by the proxies closest to Authelia and the left most values may be set by the client.
+The remote IP is the first of these values which is not in [networks](#networks).
+
+If a value is not a valid IP address, which includes any value with a port, then the walk stops and the remote IP is the
+value to the right of it or the TCP remote IP if there isn't one. If all of the values are in [networks](#networks) then the
+remote IP is the left most value.
+
+The `X-Forwarded-For` header is replaced with the determined remote IP. The TCP remote IP not being in
+[networks](#networks) always results in the header being removed.
 
 ### buffers
 
@@ -179,8 +303,8 @@ Configures the server timeouts.
 {{< confkey type="boolean" default="false" required="no" >}}
 
 {{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
-This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
-__DO NOT__ enable this in production.
+This is a developer endpoint. **DO NOT** enable it unless you know why you're enabling it.
+**DO NOT** enable this in production.
 {{< /callout >}}
 
 Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
@@ -190,21 +314,88 @@ Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
 {{< confkey type="boolean" default="false" required="no" >}}
 
 {{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
-This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
-__DO NOT__ enable this in production.
+This is a developer endpoint. **DO NOT** enable it unless you know why you're enabling it.
+**DO NOT** enable this in production.
 {{< /callout >}}
 
 Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 
+#### health
+
+Configures the health check endpoints.
+
+The plain `/api/health` endpoint is not affected by any option in this section. It answers `200` whenever the
+server is accepting requests, which is what a liveness probe wants, and it is deliberately left exactly as it is
+so that existing container health checks keep working.
+
+##### verbose
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables `/api/health/verbose`, which probes each of the configured [providers](#providers) and answers `200` when
+they all pass or `503` when any of them fails. This makes it suitable for a readiness probe, or for a load
+balancer which should stop routing to an instance whose database or authentication backend has gone away.
+
+The response names each provider and how long its probe took. The overall `status` is `ok` when every provider
+passes, `degraded` when some of them fail, and `error` when all of them fail:
+
+```json
+{
+  "status": "degraded",
+  "checked_at": "2026-09-10T22:31:04Z",
+  "cached": false,
+  "providers": {
+    "storage": {"status": "ok", "took": "1.802ms"},
+    "cache": {"status": "ok", "took": "412µs"},
+    "user": {"status": "error", "took": "5.002s"}
+  }
+}
+```
+
+##### detailed
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Security Note" icon="outline/alert-triangle" >}}
+A provider error message can contain connection strings, host names, and directory base DNs. The verbose endpoint
+does not require authentication, so enabling this publishes that information to anyone who can reach it. Enable it
+while diagnosing a problem and turn it off afterwards.
+{{< /callout >}}
+
+Includes the provider's error message in the response as an `error` member. Without it a failing provider is
+reported only as `"status": "error"`, and the message is written to the log instead.
+
+##### providers
+
+{{< confkey type="list(string)" default="storage, cache, user" required="no" >}}
+
+The providers probed by the verbose endpoint, in the order given. The default is the three providers on the
+authentication request path: if any of them is unavailable the instance genuinely cannot serve a login.
+
+Possible values are `storage`, `cache`, `user`, `notification`, `ntp`, `expressions`, `duo`, and `webauthn-metadata`.
+
+Probing `notification` opens a connection to the SMTP server, probing `ntp` contacts an external NTP server, and
+probing `duo` contacts the Duo API, so none of them are included by default. Consider the [cache](#cache) before
+adding them.
+
+##### cache
+
+{{< confkey type="string,integer" syntax="duration" default="10 seconds" required="no" >}}
+
+How long a result is reused before the providers are probed again. A readiness probe polling every second would
+otherwise open a connection to every provider every second.
+
+Set to `0` to probe on every request.
+
 #### authz
 
-This is an *__advanced__* option allowing configuration of the authorization endpoints and has its own section.
+This is an _**advanced**_ option allowing configuration of the authorization endpoints and has its own section.
 Generally this does not need to be configured for most use cases. See the
 [Server Authz Endpoints](./server-endpoints-authz.md) configuration guide for more information.
 
 #### rate_limits
 
-This is an *__advanced__* option allowing configuration of the endpoint rate limits and has its own section.
+This is an _**advanced**_ option allowing configuration of the endpoint rate limits and has its own section.
 Generally this does not need to be configured for most use cases. See the
 [Server Endpoint Rate Limits](./server-endpoint-rate-limits.md) configuration guide for more information.
 

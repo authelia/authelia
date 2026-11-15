@@ -1,6 +1,10 @@
-import React, { Fragment, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { QrCode2 } from "@mui/icons-material";
+import { Fragment, MouseEvent, useState } from "react";
+
+import { QrCode } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
@@ -9,8 +13,8 @@ import OneTimePasswordInformationDialog from "@views/Settings/TwoFactorAuthentic
 
 interface Props {
     config: UserInfoTOTPConfiguration;
-    handleInformation: (event: React.MouseEvent<HTMLElement>) => void;
-    handleDelete: (event: React.MouseEvent<HTMLElement>) => void;
+    handleInformation: (_event: MouseEvent<HTMLElement>) => void;
+    handleDelete: (_event: MouseEvent<HTMLElement>) => void;
 }
 
 const OneTimePasswordCredentialItem = function (props: Props) {
@@ -29,7 +33,7 @@ const OneTimePasswordCredentialItem = function (props: Props) {
             />
             <CredentialItem
                 id={"one-time-password"}
-                icon={<QrCode2 fontSize="large" />}
+                icon={<QrCode className="size-7" />}
                 description={props.config.issuer}
                 qualifier={``}
                 created_at={props.config.created_at}

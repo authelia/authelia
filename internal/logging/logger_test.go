@@ -1,9 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package logging
 
 import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -13,6 +18,46 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
+
+func TestInitializeStackTracer(t *testing.T) {
+	testCases := []struct {
+		name  string
+		level string
+	}{
+		{
+			"Info",
+			"info",
+		},
+		{
+			"Debug",
+			"debug",
+		},
+		{
+			"Trace",
+			"trace",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			initializeStackTracer(schema.Log{Level: tc.level})
+		})
+	}
+}
+
+func TestConfigureLogger(t *testing.T) {
+	assert.NoError(t, ConfigureLogger(schema.Log{}, false))
+}
+
+func TestReopen(t *testing.T) {
+	assert.EqualError(t, Reopen(), "error reopening log file: file is not configured or open")
+
+	dir := t.TempDir()
+
+	assert.NoError(t, ConfigureLogger(schema.Log{FilePath: filepath.Join(dir, "authelia.log")}, true))
+
+	assert.NoError(t, Reopen())
+}
 
 func TestShouldWriteLogsToFile(t *testing.T) {
 	dir := t.TempDir()
@@ -66,6 +111,47 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Contains(t, string(b), "{\"level\":\"info\",\"msg\":\"This is a test\",")
+}
+
+func TestShouldNotFormatLogsWithTimestamp(t *testing.T) {
+	dir := t.TempDir()
+
+	path := fmt.Sprintf("%s/authelia.log", dir)
+	err := InitializeLogger(schema.Log{Format: "text", FilePath: path, DisableTimestamp: true}, false)
+	require.NoError(t, err)
+
+	Logger().Info("This is a test")
+
+	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	require.NoError(t, err)
+
+	defer f.Close()
+
+	b, err := io.ReadAll(f)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(b), "level=info msg=\"This is a test\"\n")
+	assert.NotContains(t, string(b), "time=")
+}
+
+func TestShouldNotFormatLogsAsJSONWithTimestamp(t *testing.T) {
+	dir := t.TempDir()
+
+	path := fmt.Sprintf("%s/authelia.log", dir)
+	err := InitializeLogger(schema.Log{Format: "json", FilePath: path, DisableTimestamp: true}, false)
+	require.NoError(t, err)
+
+	Logger().Info("This is a test")
+
+	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	require.NoError(t, err)
+
+	defer f.Close()
+
+	b, err := io.ReadAll(f)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(b), "{\"level\":\"info\",\"msg\":\"This is a test\"}\n")
 }
 
 func TestShouldRaiseErrorOnInvalidFile(t *testing.T) {

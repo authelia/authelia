@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,56 +15,86 @@ import (
 	"strings"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
-	fjwt "authelia.com/provider/oauth2/token/jwt"
-	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
+
+	"authelia.com/provider/jose"
+	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/openid"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
-func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) bool {
+func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) (is bool) {
+	if r == nil {
+		return false
+	}
+
 	return IsPushedAuthorizedRequestForm(r.GetRequestForm(), prefix)
 }
 
-func IsPushedAuthorizedRequestForm(form url.Values, prefix string) bool {
+// IsPushedAuthorizedRequestForm returns true if the provided form is a Pushed Authorization Request Form.
+func IsPushedAuthorizedRequestForm(form url.Values, prefix string) (is bool) {
 	return strings.HasPrefix(form.Get(FormParameterRequestURI), prefix)
 }
 
-// SortedSigningAlgs is a sorting type which allows the use of sort.Sort to order a list of OAuth 2.0 Signing Algs.
-// Sorting occurs in the order of from within the RFC's.
+// SigningAlgEdwardsPair returns the paired Edwards-curve JWS algorithm identifier for the given algorithm and true
+// when one exists. RFC 8037 Section 3.1 registers the polymorphic SigningAlgEdDSA and RFC 9864 Section 2.2 registers
+// the fully-specified SigningAlgEd25519 for the same parameter set, so a key configured with either identifier is
+// able to satisfy a request for the other.
+func SigningAlgEdwardsPair(alg string) (paired string, ok bool) {
+	switch alg {
+	case SigningAlgEd25519:
+		return SigningAlgEdDSA, true
+	case SigningAlgEdDSA:
+		return SigningAlgEd25519, true
+	default:
+		return "", false
+	}
+}
+
+// SortedSigningAlgs is a sorting type which allows the use of [sort.Sort] to order a list of OAuth 2.0 Signing Algs.
+// Algorithms are ordered by family with HMAC first, then RSA, ECDSA, Edwards-curve, ML-DSA, and RSA-PSS, with the
+// none algorithm last and algorithms within a family ordered lexically.
 type SortedSigningAlgs []string
 
-func (algs SortedSigningAlgs) Len() int {
-	return len(algs)
+// Len implements the [sort.Interface].
+func (s SortedSigningAlgs) Len() int {
+	return len(s)
 }
 
-func (algs SortedSigningAlgs) Less(i, j int) bool {
-	return isSigningAlgLess(algs[i], algs[j])
+// Less implements the [sort.Interface].
+func (s SortedSigningAlgs) Less(i, j int) bool {
+	return isSigningAlgLess(s[i], s[j])
 }
 
-func (algs SortedSigningAlgs) Swap(i, j int) {
-	algs[i], algs[j] = algs[j], algs[i]
+// Swap implements the [sort.Interface].
+func (s SortedSigningAlgs) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
+// SortedJSONWebKey is a sortable group of jose.JSONWebKey.
 type SortedJSONWebKey []jose.JSONWebKey
 
-func (jwks SortedJSONWebKey) Len() int {
-	return len(jwks)
+// Len implements the [sort.Interface].
+func (s SortedJSONWebKey) Len() int {
+	return len(s)
 }
 
-func (jwks SortedJSONWebKey) Less(i, j int) bool {
-	if jwks[i].Algorithm == jwks[j].Algorithm {
-		return jwks[i].KeyID < jwks[j].KeyID
+// Less implements the [sort.Interface].
+func (s SortedJSONWebKey) Less(i, j int) bool {
+	if s[i].Algorithm == s[j].Algorithm {
+		return s[i].KeyID < s[j].KeyID
 	}
 
-	return isSigningAlgLess(jwks[i].Algorithm, jwks[j].Algorithm)
+	return isSigningAlgLess(s[i].Algorithm, s[j].Algorithm)
 }
 
-func (jwks SortedJSONWebKey) Swap(i, j int) {
-	jwks[i], jwks[j] = jwks[j], jwks[i]
+// Swap implements the [sort.Interface].
+func (s SortedJSONWebKey) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 //nolint:gocyclo // Low importance func.
@@ -105,6 +140,14 @@ func isSigningAlgLess(i, j string) bool {
 		case ip == SigningAlgPrefixECDSA:
 			return true
 		case jp == SigningAlgPrefixECDSA:
+			return false
+		case ip == SigningAlgPrefixEdDSA:
+			return true
+		case jp == SigningAlgPrefixEdDSA:
+			return false
+		case ip == SigningAlgPrefixMLDSA:
+			return true
+		case jp == SigningAlgPrefixMLDSA:
 			return false
 		default:
 			return false
@@ -249,12 +292,16 @@ func RFC6750Header(realm, scope string, err *oauthelia2.RFC6749Error) string {
 }
 
 // AccessResponderToClearMap returns a clear friendly map copy of the responder map values.
-func AccessResponderToClearMap(responder oauthelia2.AccessResponder) map[string]any {
-	m := responder.ToMap()
+func AccessResponderToClearMap(r oauthelia2.AccessResponder) map[string]any {
+	if r == nil {
+		return nil
+	}
+
+	m := r.ToMap()
 
 	data := make(map[string]any, len(m))
 
-	for key, value := range responder.ToMap() {
+	for key, value := range r.ToMap() {
 		switch key {
 		case "access_token":
 			data[key] = "authelia_at_**************"
@@ -270,8 +317,8 @@ func AccessResponderToClearMap(responder oauthelia2.AccessResponder) map[string]
 	return data
 }
 
-// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
-func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client oauthelia2.Client, session *Session) (err error) {
+// HydrateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
+func HydrateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client oauthelia2.Client, session *Session) (err error) {
 	var (
 		issuer *url.URL
 	)
@@ -284,15 +331,50 @@ func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client o
 		return oauthelia2.ErrServerError.WithDebug("Failed to get the client for the request.")
 	}
 
+	InitializeSessionDefaults(session)
+
 	session.Subject = ""
-	session.Claims.Subject = client.GetID()
 	session.ClientID = client.GetID()
+	session.Claims.Subject = client.GetID()
 	session.Claims.Issuer = issuer.String()
 	session.Claims.IssuedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
 	session.SetRequestedAt(ctx.GetClock().Now().UTC())
 	session.ClientCredentials = true
 
 	return nil
+}
+
+// InitializeSessionDefaults ensures a *Session has safe initialized defaults for most purposes.
+func InitializeSessionDefaults(session *Session) {
+	if session == nil {
+		return
+	}
+
+	switch {
+	case session.DefaultSession == nil:
+		session.DefaultSession = &openid.DefaultSession{
+			Headers: &fjwt.Headers{
+				Extra: make(map[string]any),
+			},
+			Claims: &fjwt.IDTokenClaims{
+				Extra: make(map[string]any),
+			},
+		}
+	case session.Claims == nil:
+		session.Claims = &fjwt.IDTokenClaims{
+			Extra: make(map[string]any),
+		}
+	case session.Claims.Extra == nil:
+		session.Claims.Extra = make(map[string]any)
+	}
+
+	if session.Headers == nil {
+		session.Headers = &fjwt.Headers{
+			Extra: make(map[string]any),
+		}
+	} else if session.Headers.Extra == nil {
+		session.Headers.Extra = make(map[string]any)
+	}
 }
 
 // PopulateClientCredentialsFlowRequester is used to grant the authorized scopes and audiences when performing a client
@@ -324,15 +406,20 @@ func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Confi
 	return nil
 }
 
+// IsAccessToken returns true if the provided token is possibly an Authelia OAuth 2.0 Access Token.
 func IsAccessToken(ctx Context, value string) (is bool, err error) {
+	if ctx == nil {
+		return false, fmt.Errorf("error occurred getting configuration: context wasn't provided")
+	}
+
 	config := ctx.GetConfiguration()
 
 	if config.IdentityProviders.OIDC == nil || !config.IdentityProviders.OIDC.Discovery.BearerAuthorization {
 		return false, nil
 	}
 
-	// Opaue Authelia Access Tokens have the 'authelia_at_' prefix and contain a HMAC signature.
-	if strings.HasPrefix(value, "authelia_at_") && strings.Count(value, ".") == 1 {
+	// Opaque Authelia Access Tokens have the 'authelia_at_' prefix and contain a HMAC signature.
+	if strings.HasPrefix(value, fmt.Sprintf(fmtAutheliaOpaqueOAuth2Token, fmtValueOAuth2AccessToken)) && strings.Count(value, ".") == 1 {
 		return true, nil
 	}
 
@@ -360,7 +447,7 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 	var iss string
 
 	if iss, err = token.Claims.GetIssuer(); err != nil {
-		return false, fmt.Errorf("error occurred chekcing the token: error getting the token issuer claim: %w", err)
+		return false, fmt.Errorf("error occurred checking the token: error getting the token issuer claim: %w", err)
 	}
 
 	if strings.EqualFold(iss, issuer.String()) {
@@ -370,6 +457,7 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 	return false, fmt.Errorf("error occurred checking the token: the token issuer '%s' does not match the expected '%s'", iss, issuer)
 }
 
+// IsMaybeSignedJWT returns true if the provided string has the necessary characteristics to be a Compact Signed JWT.
 func IsMaybeSignedJWT(value string) (is bool) {
 	return strings.Count(value, ".") == 2
 }
@@ -385,6 +473,8 @@ func RequesterRequiresLogin(requester oauthelia2.Requester, requested, authentic
 
 // RequestFormRequiresLogin returns true if the form requires the user to authenticate again.
 func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Time) (required bool) {
+	requested, authenticated = requested.Truncate(time.Second), authenticated.Truncate(time.Second)
+
 	if form.Has(FormParameterPrompt) {
 		if oauthelia2.Arguments(oauthelia2.RemoveEmpty(strings.Split(form.Get(FormParameterPrompt), " "))).Has(PromptLogin) && authenticated.Before(requested) {
 			return true
@@ -408,6 +498,7 @@ func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Tim
 	return false
 }
 
+// ValidateSectorIdentifierURI validates that every redirect URI of a client is included in the document at the sector identifier URI.
 func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, sectorURI *url.URL, redirectURIs []string) (err error) {
 	var (
 		sectorRedirectURIs []string
@@ -417,10 +508,10 @@ func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, s
 		return err
 	}
 
-	var invalidRedirectURIs []string //nolint:prealloc
+	var invalidRedirectURIs []string
 
 	for _, rawRedirectURI := range redirectURIs {
-		if _, match := oauthelia2.IsMatchingRedirectURI(rawRedirectURI, sectorRedirectURIs); match {
+		if _, match := oauthelia2.IsMatchingRedirectURI(rawRedirectURI, sectorRedirectURIs, &oauthelia2.BestPracticeURIComparisonStrategy{}); match {
 			continue
 		}
 
@@ -514,4 +605,151 @@ func float64As(value any) (float64, bool) {
 	default:
 		return 0, false
 	}
+}
+
+// ParseSpaceDelimitedFromParameter obtains the value of a specific key in a [url.Values] form returning it as an
+// oauth2.Arguments slice using spaces as a delimiter (without empty values).
+func ParseSpaceDelimitedFromParameter(form url.Values, key string) oauthelia2.Arguments {
+	var value string
+
+	if form.Has(key) {
+		value = strings.Join(form[key], " ")
+	} else {
+		return oauthelia2.Arguments{}
+	}
+
+	return oauthelia2.RemoveEmpty(strings.Split(value, " "))
+}
+
+// FormRequiresExplicitConsent evaluates form values in the [url.Values] format for evidence that the form requires
+// explicit consent, for example if the client requested explicit consent, or the flow would result in a Refresh Token.
+func FormRequiresExplicitConsent(form url.Values) (required bool) {
+	prompt := ParseSpaceDelimitedFromParameter(form, FormParameterPrompt)
+
+	if prompt.Has(PromptConsent) {
+		return true
+	}
+
+	// This is required currently as the user will be presented the consent prompt to enter their password.
+	if prompt.Has(PromptLogin) {
+		return true
+	}
+
+	if FormIsAuthorizeCodeFlow(form) {
+		if ParseSpaceDelimitedFromParameter(form, FormParameterScope).HasOneOf(ScopeOffline, ScopeOfflineAccess, ScopeAutheliaBearerAuthz) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// RequesterIsClientIdentityAssured returns true if the client is not a public client or if the redirect URI of the
+// authorization request assures the identity of the public client as described by RFC 8252 Section 8.6 and RFC 10017
+// Section 6.3.3.2. Any requester which is not an authorization request such as a device authorization request is
+// never considered to assure the identity of a public client.
+func RequesterIsClientIdentityAssured(ctx context.Context, client oauthelia2.Client, requester oauthelia2.Requester) (assured bool) {
+	if client == nil || !client.IsPublic() {
+		return true
+	}
+
+	r, ok := requester.(oauthelia2.AuthorizeRequester)
+	if !ok {
+		return false
+	}
+
+	return oauthelia2.IsPublicClientIdentityAssured(ctx, r)
+}
+
+// FormIsClientIdentityAssured is the [url.Values] form equivalent of RequesterIsClientIdentityAssured. When the form
+// omits the redirect_uri parameter the only registered redirect URI of the client is used.
+func FormIsClientIdentityAssured(client oauthelia2.Client, form url.Values) (assured bool) {
+	if client == nil || !client.IsPublic() {
+		return true
+	}
+
+	raw := form.Get(FormParameterRedirectURI)
+
+	if raw == "" {
+		if uris := client.GetRedirectURIs(); len(uris) == 1 {
+			raw = uris[0]
+		}
+	}
+
+	if raw == "" {
+		return false
+	}
+
+	uri, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+
+	return uri.Scheme == schemeHTTPS && !oauthelia2.IsLocalhost(uri)
+}
+
+// RequesterRequiresExplicitConsent evaluates a oauth2.Requester for evidence that the request requires explicit
+// consent, for example if the client requested explicit consent, or the flow would result in a Refresh Token.
+func RequesterRequiresExplicitConsent(requester oauthelia2.Requester) (required bool) {
+	if requester == nil {
+		return false
+	}
+
+	prompt := ParseSpaceDelimitedFromParameter(requester.GetRequestForm(), FormParameterPrompt)
+
+	if prompt.Has(PromptConsent) {
+		return true
+	}
+
+	// This is required currently as the user will be presented the consent prompt to enter their password.
+	if prompt.Has(PromptLogin) {
+		return true
+	}
+
+	if RequesterIsAuthorizeCodeFlow(requester) {
+		if requester.GetRequestedScopes().HasOneOf(ScopeOffline, ScopeOfflineAccess, ScopeAutheliaBearerAuthz) {
+			return true
+		}
+
+		if requester.GetGrantedScopes().HasOneOf(ScopeOffline, ScopeOfflineAccess, ScopeAutheliaBearerAuthz) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// FormIsAuthorizeCodeFlow evaluates form values in the [url.Values] format to see if the flow would result in an
+// Authorization Code.
+func FormIsAuthorizeCodeFlow(form url.Values) (is bool) {
+	return ParseSpaceDelimitedFromParameter(form, FormParameterResponseType).Has(ResponseTypeAuthorizationCodeFlow)
+}
+
+// RequesterIsAuthorizeCodeFlow evaluates an oauth2.Requester to see if the flow would result in an Authorization Code.
+func RequesterIsAuthorizeCodeFlow(requester oauthelia2.Requester) (is bool) {
+	if ar, ok := requester.(oauthelia2.AuthorizeRequester); ok && ar.GetResponseTypes().Has(ResponseTypeAuthorizationCodeFlow) {
+		return true
+	}
+
+	return false
+}
+
+// AudienceMatchesRequester is used to dynamically match a requested resource to a access requester.
+func AudienceMatchesRequester(strategyAudience oauthelia2.AudienceStrategy, strategyResource oauthelia2.ResourceStrategy, requester oauthelia2.AccessRequester, audience []string) bool {
+	return AudienceMatchesGrantedAudienceOrResource(strategyAudience, requester.GetGrantedAudience(), strategyResource, requester.GetGrantedResource(), audience)
+}
+
+// AudienceMatchesGrantedAudienceOrResource is used to dynamically match a requested resource to raw grants.
+func AudienceMatchesGrantedAudienceOrResource(strategyAudience oauthelia2.AudienceStrategy, grantedAudience oauthelia2.Arguments, strategyResource oauthelia2.ResourceStrategy, grantedResource oauthelia2.Arguments, audience []string) bool {
+	var err error
+
+	if err = strategyAudience(grantedAudience, audience); err == nil {
+		return true
+	}
+
+	if err = strategyResource(grantedResource, audience); err == nil {
+		return true
+	}
+
+	return false
 }

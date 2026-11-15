@@ -1,4 +1,6 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
 import { render } from "@testing-library/react";
 
@@ -8,10 +10,10 @@ it("renders without crashing", () => {
     render(<FingerTouchIcon size={32} />);
 });
 
-it("renders animated without crashing", () => {
+it("renders with animation", () => {
     render(<FingerTouchIcon size={32} animated />);
 });
 
-it("renders animated and strong without crashing", () => {
+it("renders with strong animation", () => {
     render(<FingerTouchIcon size={32} animated strong />);
 });

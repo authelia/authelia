@@ -2,7 +2,7 @@
 title: "authelia-gen docs json-schema user-database"
 description: "Reference for the authelia-gen docs json-schema user-database command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2026-04-02T15:48:22+11:00
 draft: false
 images: []
 weight: 915
@@ -46,7 +46,7 @@ authelia-gen docs json-schema user-database [flags]
       --dir.web string                                             The repository web directory in relation to the root directory (default "web")
   -X, --exclude strings                                            Sets the names of excluded generators
       --file.bug-report string                                     Sets the path of the bug report issue template file (default ".github/ISSUE_TEMPLATE/bug-report.yml")
-      --file.commit-lint-config string                             The commit lint javascript configuration file in relation to the root (default ".commitlintrc.cjs")
+      --file.commit-lint-config string                             The commit lint javascript configuration file in relation to the root (default "commitlint.config.mjs")
       --file.configuration-keys string                             Sets the path of the keys file (default "internal/configuration/schema/keys.go")
       --file.docs-commit-msg-guidelines string                     The commit message guidelines documentation file in relation to the root (default "docs/content/contributing/guidelines/commit-message.md")
       --file.docs.data.keys string                                 Sets the path of the docs keys file (default "configkeys.json")
@@ -62,12 +62,10 @@ authelia-gen docs json-schema user-database [flags]
       --file.server.generated string                               Sets the path of the server generated file (default "internal/server/gen.go")
       --file.web.i18n string                                       The i18n typescript configuration file in relation to the web directory (default "src/i18n/index.ts")
       --file.web.package string                                    The node package configuration file in relation to the web directory (default "package.json")
-      --latest                                                     Enables latest functionality with several generators like the JSON Schema generator
-      --next                                                       Enables next functionality with several generators like the JSON Schema generator
       --package.configuration.keys string                          Sets the package name of the keys file (default "schema")
       --package.scripts.gen string                                 Sets the package name of the authelia-scripts gen file (default "cmd")
       --version-count int                                          the maximum number of minor versions to list in output templates (default 5)
-      --versions strings                                           The versions to run the generator for, the special versions current and next are mutually exclusive
+      --versions strings                                           The versions to run the generator for, the special versions major, minor, and current are mutually exclusive
 ```
 
 ### SEE ALSO

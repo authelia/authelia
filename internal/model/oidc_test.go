@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package model_test
 
 import (
@@ -9,12 +13,14 @@ import (
 	"testing"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/handler/openid"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+
+	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/openid"
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -30,9 +36,20 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 		},
 	}
 
-	sessionBytes, _ := json.Marshal(session)
+	sessionClientCredentials := &oidc.Session{
+		ClientID:          "client_id",
+		ClientCredentials: true,
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Subject: "client_id",
+			},
+		},
+	}
 
-	testCaases := []struct {
+	sessionBytes, _ := json.Marshal(session)
+	sessionClientCredentialsBytes, _ := json.Marshal(sessionClientCredentials)
+
+	testCases := []struct {
 		name      string
 		signature string
 		have      oauthelia2.Requester
@@ -90,6 +107,30 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 			"",
 		},
 		{
+			"ShouldNewUpClientCredentialsWithNullSubject",
+			"abc",
+			&oauthelia2.Request{
+				ID: "example",
+				Client: &oauthelia2.DefaultClient{
+					ID: "client_id",
+				},
+				Session:        sessionClientCredentials,
+				RequestedScope: oauthelia2.Arguments{"authelia.bearer.authz"},
+				GrantedScope:   oauthelia2.Arguments{"authelia.bearer.authz"},
+			},
+			&model.OAuth2Session{
+				RequestID:       "example",
+				ClientID:        "client_id",
+				Signature:       "abc",
+				Subject:         sql.NullString{},
+				RequestedScopes: model.StringSlicePipeDelimited{"authelia.bearer.authz"},
+				GrantedScopes:   model.StringSlicePipeDelimited{"authelia.bearer.authz"},
+				Active:          true,
+				Session:         sessionClientCredentialsBytes,
+			},
+			"",
+		},
+		{
 			"ShouldRaiseErrorOnInvalidSessionType",
 			"abc",
 			&oauthelia2.Request{
@@ -113,7 +154,7 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCaases {
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual, err := model.NewOAuth2SessionFromRequest(tc.signature, tc.have)
 
@@ -170,14 +211,14 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 	testCases := []struct {
 		name     string
 		setup    func(mock *mocks.MockOAuth2Storage)
-		have     *model.OAuth2PARContext
+		have     *model.OAuth2PushedAuthorizationSession
 		expected *oauthelia2.AuthorizeRequest
 		err      string
 	}{
 		{
 			"ShouldErrorInvalidJSONData",
 			nil,
-			&model.OAuth2PARContext{},
+			&model.OAuth2PushedAuthorizationSession{},
 			&oauthelia2.AuthorizeRequest{},
 			"error occurred while mapping PAR context back to an Authorize Request while trying to unmarshal the JSON session data: unexpected end of JSON input",
 		},
@@ -186,7 +227,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(nil, oauthelia2.ErrNotFound)
 			},
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				ClientID: parclientid,
 				Session:  []byte("{}"),
 			},
@@ -198,7 +239,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				ID:        1,
 				Signature: fmt.Sprintf("%sexample", oidc.RedirectURIPrefixPushedAuthorizationRequestURN),
 				RequestID: requestid,
@@ -214,7 +255,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				ID:        1,
 				Signature: fmt.Sprintf("%sexample", oidc.RedirectURIPrefixPushedAuthorizationRequestURN),
 				RequestID: requestid,
@@ -230,7 +271,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				ID:          1,
 				Signature:   fmt.Sprintf("%sexample", oidc.RedirectURIPrefixPushedAuthorizationRequestURN),
 				RequestID:   requestid,
@@ -249,7 +290,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 				HandledResponseTypes: model.StringSlicePipeDelimited{oidc.ResponseTypeAuthorizationCodeFlow},
 			},
 			&oauthelia2.AuthorizeRequest{
-				RedirectURI:          MustParseRequestURI("https://example.com"),
+				RedirectURI:          MustParseRequestURI(t, "https://example.com"),
 				State:                "abc123",
 				ResponseMode:         oauthelia2.ResponseModeQuery,
 				DefaultResponseMode:  oauthelia2.ResponseModeQuery,
@@ -303,7 +344,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 		name     string
 		have     oauthelia2.AuthorizeRequester
 		id       string
-		expected *model.OAuth2PARContext
+		expected *model.OAuth2PushedAuthorizationSession
 		err      string
 	}{
 		{
@@ -323,7 +364,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 				},
 			},
 			"123",
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				Signature:            "123",
 				RequestID:            "a-id",
 				ClientID:             "a-client",
@@ -334,7 +375,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 				ResponseMode:         oidc.ResponseModeQuery,
 				DefaultResponseMode:  oidc.ResponseModeFragment,
 				Form:                 "redirect_uri=https%3A%2F%2Fexample.com",
-				Session:              []byte(`{"id_token":null,"challenge_id":null,"kid":"","client_id":"","client_credentials":false,"exclude_nbf_claim":false,"allowed_top_level_claims":null,"extra":null}`),
+				Session:              []byte(`{"id_token":null,"challenge_id":null,"client_id":"","client_credentials":false,"exclude_nbf_claim":false,"allowed_top_level_claims":null,"extra":null}`),
 			},
 			"",
 		},
@@ -362,7 +403,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, err := model.NewOAuth2PARContext(tc.id, tc.have)
+			actual, err := model.NewOAuth2PushedAuthorizationSession(tc.id, tc.have)
 
 			if tc.err == "" {
 				assert.NoError(t, err)
@@ -388,6 +429,13 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 		expected *oauthelia2.Request
 		err      string
 	}{
+		{
+			"ShouldErrorOnNilReceiver",
+			nil,
+			nil,
+			nil,
+			"error occurred while mapping OAuth 2.0 Session back to a Request: the OAuth 2.0 Session is nil",
+		},
 		{
 			"ShouldErrorInvalidJSONData",
 			nil,
@@ -485,6 +533,308 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 	}
 }
 
+func TestNewOAuth2DeviceCodeSessionFromRequest(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     oauthelia2.DeviceAuthorizeRequester
+		expected *model.OAuth2DeviceCodeSession
+		err      string
+	}{
+		{
+			"ShouldErrorNil",
+			nil,
+			nil,
+			"failed to create new *model.OAuth2DeviceCodeSession: the oauthelia2.DeviceAuthorizeRequester was nil",
+		},
+		{
+			"ShouldHandleValueTypes",
+			&oauthelia2.DeviceAuthorizeRequest{
+				Request: oauthelia2.Request{
+					ID:          "1",
+					RequestedAt: time.Time{},
+					Client: &oauthelia2.DefaultClient{
+						ID: "example",
+					},
+					RequestedScope: []string{"openid", "offline"},
+					Form: url.Values{
+						"scope": []string{"openid", "offline"},
+					},
+					Session: &oidc.Session{
+						DefaultSession: &openid.DefaultSession{
+							Username: "john",
+							Subject:  "john",
+						},
+						ClientID:              "example",
+						ClientCredentials:     false,
+						ExcludeNotBeforeClaim: false,
+					},
+				},
+				DeviceCodeSignature: "abc",
+				UserCodeSignature:   "123",
+				Status:              oauthelia2.DeviceAuthorizeStatusNew,
+				LastChecked:         time.Unix(100000000, 0),
+			},
+			&model.OAuth2DeviceCodeSession{ID: 0, ChallengeID: uuid.NullUUID{UUID: uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Valid: false}, RequestID: "1", ClientID: "example", Signature: "abc", UserCodeSignature: "123", Status: 0, Subject: sql.NullString{String: "john", Valid: true}, RequestedAt: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), CheckedAt: time.Date(1973, time.March, 3, 20, 46, 40, 0, time.Local), RequestedScopes: model.StringSlicePipeDelimited{"openid", "offline"}, GrantedScopes: model.StringSlicePipeDelimited{}, RequestedAudience: model.StringSlicePipeDelimited(nil), GrantedAudience: model.StringSlicePipeDelimited(nil), Active: true, Revoked: false, Form: "scope=openid&scope=offline", Session: []byte{0x7b, 0x22, 0x69, 0x64, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x3a, 0x7b, 0x22, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x22, 0x3a, 0x22, 0x30, 0x30, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x54, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x5a, 0x22, 0x7d, 0x2c, 0x22, 0x63, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x22, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x22, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x6e, 0x62, 0x66, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x74, 0x6f, 0x70, 0x5f, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x65, 0x78, 0x74, 0x72, 0x61, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x7d}},
+			"",
+		},
+		{
+			"ShouldHandleInvalidSessionType",
+			&oauthelia2.DeviceAuthorizeRequest{
+				Request: oauthelia2.Request{
+					ID:          "1",
+					RequestedAt: time.Time{},
+					Client: &oauthelia2.DefaultClient{
+						ID: "example",
+					},
+					RequestedScope: []string{"openid", "offline"},
+					Form: url.Values{
+						"scope": []string{"openid", "offline"},
+					},
+					Session: &oauthelia2.DefaultSession{},
+				},
+				DeviceCodeSignature: "abc",
+				UserCodeSignature:   "123",
+				Status:              oauthelia2.DeviceAuthorizeStatusNew,
+				LastChecked:         time.Unix(100000000, 0),
+			},
+			nil,
+			"failed to create new *model.OAuth2DeviceCodeSession: the session type OpenIDSession was expected but the type '*oauth2.DefaultSession' was used",
+		},
+		{
+			"ShouldHandleValueTypesEmptyRequestedScopes",
+			&oauthelia2.DeviceAuthorizeRequest{
+				Request: oauthelia2.Request{
+					ID:          "1",
+					RequestedAt: time.Time{},
+					Client: &oauthelia2.DefaultClient{
+						ID: "example",
+					},
+					RequestedScope: nil,
+					Form: url.Values{
+						"scope": []string{"openid", "offline"},
+					},
+					Session: &oidc.Session{
+						DefaultSession: &openid.DefaultSession{
+							Username: "john",
+							Subject:  "john",
+						},
+						ClientID:              "example",
+						ClientCredentials:     false,
+						ExcludeNotBeforeClaim: false,
+					},
+				},
+				DeviceCodeSignature: "abc",
+				UserCodeSignature:   "123",
+				Status:              oauthelia2.DeviceAuthorizeStatusNew,
+				LastChecked:         time.Unix(100000000, 0),
+			},
+			&model.OAuth2DeviceCodeSession{ID: 0, ChallengeID: uuid.NullUUID{UUID: uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Valid: false}, RequestID: "1", ClientID: "example", Signature: "abc", UserCodeSignature: "123", Status: 0, Subject: sql.NullString{String: "john", Valid: true}, RequestedAt: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), CheckedAt: time.Date(1973, time.March, 3, 20, 46, 40, 0, time.Local), RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}, RequestedAudience: model.StringSlicePipeDelimited(nil), GrantedAudience: model.StringSlicePipeDelimited(nil), Active: true, Revoked: false, Form: "scope=openid&scope=offline", Session: []byte{0x7b, 0x22, 0x69, 0x64, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x3a, 0x7b, 0x22, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x22, 0x3a, 0x22, 0x30, 0x30, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x54, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x5a, 0x22, 0x7d, 0x2c, 0x22, 0x63, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x22, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x22, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x6e, 0x62, 0x66, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x74, 0x6f, 0x70, 0x5f, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x65, 0x78, 0x74, 0x72, 0x61, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x7d}},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := model.NewOAuth2DeviceCodeSessionFromRequest(tc.have)
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+
+				assert.Equal(t, tc.expected.RequestedAt, actual.GetRequestedAt())
+				assert.Equal(t, tc.expected.GrantedScopes, model.StringSlicePipeDelimited(actual.GetGrantedScopes()))
+				assert.Equal(t, tc.expected.RequestedScopes, model.StringSlicePipeDelimited(actual.GetRequestedScopes()))
+				assert.Equal(t, tc.expected.GrantedAudience, model.StringSlicePipeDelimited(actual.GetGrantedAudience()))
+				assert.Equal(t, tc.expected.RequestedAudience, model.StringSlicePipeDelimited(actual.GetRequestedAudience()))
+				assert.Equal(t, tc.expected.GrantedResource, model.StringSlicePipeDelimited(actual.GetGrantedResource()))
+				assert.Equal(t, tc.expected.RequestedResource, model.StringSlicePipeDelimited(actual.GetRequestedResource()))
+
+				form, err := actual.GetForm()
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected.Form, form.Encode())
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, actual)
+			}
+		})
+	}
+}
+
+func TestDeviceCodeSessionFromRequest(t *testing.T) {
+	client := &oauthelia2.DefaultClient{ID: "example"}
+
+	testCases := []struct {
+		name     string
+		have     *model.OAuth2DeviceCodeSession
+		session  oauthelia2.Session
+		setup    func(t *testing.T, ctx context.Context, store *mocks.MockOAuth2Storage)
+		expected *oauthelia2.DeviceAuthorizeRequest
+		err      string
+	}{
+		{
+			"ShouldHandleDefault",
+			&model.OAuth2DeviceCodeSession{
+				ID:                0,
+				ChallengeID:       uuid.NullUUID{UUID: uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Valid: false},
+				RequestID:         "1",
+				ClientID:          "example",
+				Signature:         "abc",
+				UserCodeSignature: "123",
+				Status:            0,
+				Subject:           sql.NullString{String: "john", Valid: true},
+				RequestedAt:       time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				CheckedAt:         time.Date(1973, time.March, 3, 20, 46, 40, 0, time.Local),
+				RequestedScopes:   model.StringSlicePipeDelimited{"openid", "offline"},
+				GrantedScopes:     model.StringSlicePipeDelimited{},
+				RequestedAudience: model.StringSlicePipeDelimited(nil),
+				GrantedAudience:   model.StringSlicePipeDelimited(nil),
+				Active:            true,
+				Revoked:           false,
+				Form:              "scope=openid&scope=offline",
+				Session:           []uint8{0x7b, 0x22, 0x69, 0x64, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x3a, 0x7b, 0x22, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x22, 0x3a, 0x22, 0x30, 0x30, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x54, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x5a, 0x22, 0x7d, 0x2c, 0x22, 0x63, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x6b, 0x69, 0x64, 0x22, 0x3a, 0x22, 0x61, 0x62, 0x63, 0x22, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x22, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x22, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x6e, 0x62, 0x66, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x74, 0x6f, 0x70, 0x5f, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x65, 0x78, 0x74, 0x72, 0x61, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x7d}},
+			&oidc.Session{},
+			func(t *testing.T, ctx context.Context, store *mocks.MockOAuth2Storage) {
+				store.EXPECT().
+					GetClient(gomock.Eq(ctx), gomock.Eq("example")).
+					Return(client, nil)
+			},
+			&oauthelia2.DeviceAuthorizeRequest{
+				Request: oauthelia2.Request{
+					ID:             "1",
+					RequestedAt:    time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					Client:         client,
+					RequestedScope: oauthelia2.Arguments{"openid", "offline"},
+					GrantedScope:   oauthelia2.Arguments{},
+					Form:           url.Values{"scope": []string{"openid", "offline"}},
+					Session: &oidc.Session{
+						DefaultSession: &openid.DefaultSession{
+							Username: "john",
+							Subject:  "john",
+						},
+						ClientID:              "example",
+						ClientCredentials:     false,
+						ExcludeNotBeforeClaim: false,
+					},
+					RequestedAudience: oauthelia2.Arguments(nil),
+					GrantedAudience:   oauthelia2.Arguments(nil),
+				},
+				DeviceCodeSignature: "abc",
+				UserCodeSignature:   "123",
+				Status:              0,
+				LastChecked:         time.Date(1973, time.March, 3, 20, 46, 40, 0, time.Local)},
+			"",
+		},
+		{
+			"ShouldHandleJSONError",
+			&model.OAuth2DeviceCodeSession{
+				ID:                0,
+				ChallengeID:       uuid.NullUUID{UUID: uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Valid: false},
+				RequestID:         "1",
+				ClientID:          "example",
+				Signature:         "abc",
+				UserCodeSignature: "123",
+				Status:            0,
+				Subject:           sql.NullString{String: "john", Valid: true},
+				RequestedAt:       time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				CheckedAt:         time.Date(1973, time.March, 3, 20, 46, 40, 0, time.Local),
+				RequestedScopes:   model.StringSlicePipeDelimited{"openid", "offline"},
+				GrantedScopes:     model.StringSlicePipeDelimited{},
+				RequestedAudience: model.StringSlicePipeDelimited(nil),
+				GrantedAudience:   model.StringSlicePipeDelimited(nil),
+				Active:            true,
+				Revoked:           false,
+				Form:              "scope=openid&scope=offline",
+				Session:           []uint8{0x7b}},
+			&oidc.Session{},
+			nil,
+			nil,
+			"error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to unmarshal the JSON session data: unexpected end of JSON input",
+		},
+		{
+			"ShouldHandleClientError",
+			&model.OAuth2DeviceCodeSession{
+				ID:                0,
+				ChallengeID:       uuid.NullUUID{UUID: uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Valid: false},
+				RequestID:         "1",
+				ClientID:          "example",
+				Signature:         "abc",
+				UserCodeSignature: "123",
+				Status:            0,
+				Subject:           sql.NullString{String: "john", Valid: true},
+				RequestedAt:       time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				CheckedAt:         time.Date(1973, time.March, 3, 20, 46, 40, 0, time.Local),
+				RequestedScopes:   model.StringSlicePipeDelimited{"openid", "offline"},
+				GrantedScopes:     model.StringSlicePipeDelimited{},
+				RequestedAudience: model.StringSlicePipeDelimited(nil),
+				GrantedAudience:   model.StringSlicePipeDelimited(nil),
+				Active:            true,
+				Revoked:           false,
+				Form:              "scope=openid&scope=offline",
+				Session:           []uint8{0x7b, 0x22, 0x69, 0x64, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x3a, 0x7b, 0x22, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x22, 0x3a, 0x22, 0x30, 0x30, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x54, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x5a, 0x22, 0x7d, 0x2c, 0x22, 0x63, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x6b, 0x69, 0x64, 0x22, 0x3a, 0x22, 0x61, 0x62, 0x63, 0x22, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x22, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x22, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x6e, 0x62, 0x66, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x74, 0x6f, 0x70, 0x5f, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x65, 0x78, 0x74, 0x72, 0x61, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x7d},
+			},
+			&oidc.Session{},
+			func(t *testing.T, ctx context.Context, store *mocks.MockOAuth2Storage) {
+				store.EXPECT().
+					GetClient(gomock.Eq(ctx), gomock.Eq("example")).
+					Return(nil, fmt.Errorf("failed to get client"))
+			},
+			nil,
+			"error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to lookup the registered client: failed to get client",
+		},
+		{
+			"ShouldHandleFormError",
+			&model.OAuth2DeviceCodeSession{
+				ID:                0,
+				ChallengeID:       uuid.NullUUID{UUID: uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Valid: false},
+				RequestID:         "1",
+				ClientID:          "example",
+				Signature:         "abc",
+				UserCodeSignature: "123",
+				Status:            0,
+				Subject:           sql.NullString{String: "john", Valid: true},
+				RequestedAt:       time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				CheckedAt:         time.Date(1973, time.March, 3, 20, 46, 40, 0, time.Local),
+				RequestedScopes:   model.StringSlicePipeDelimited{"openid", "offline"},
+				GrantedScopes:     model.StringSlicePipeDelimited{},
+				RequestedAudience: model.StringSlicePipeDelimited(nil),
+				GrantedAudience:   model.StringSlicePipeDelimited(nil),
+				Active:            true,
+				Revoked:           false,
+				Form:              "&&&%&*^@#Y$*&@#^$&*@#^scope=openid&scope=offline",
+				Session:           []uint8{0x7b, 0x22, 0x69, 0x64, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x3a, 0x7b, 0x22, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x22, 0x3a, 0x22, 0x6a, 0x6f, 0x68, 0x6e, 0x22, 0x2c, 0x22, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x22, 0x3a, 0x22, 0x30, 0x30, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x2d, 0x30, 0x31, 0x54, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x3a, 0x30, 0x30, 0x5a, 0x22, 0x7d, 0x2c, 0x22, 0x63, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x6b, 0x69, 0x64, 0x22, 0x3a, 0x22, 0x61, 0x62, 0x63, 0x22, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x22, 0x3a, 0x22, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x22, 0x2c, 0x22, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x6e, 0x62, 0x66, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x74, 0x6f, 0x70, 0x5f, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x65, 0x78, 0x74, 0x72, 0x61, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x7d}},
+			&oidc.Session{},
+			func(t *testing.T, ctx context.Context, store *mocks.MockOAuth2Storage) {
+				store.EXPECT().
+					GetClient(gomock.Eq(ctx), gomock.Eq("example")).
+					Return(client, nil)
+			},
+			nil,
+			"error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to parse the original form: invalid URL escape \"%\"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mocks.NewMockOAuth2Storage(ctrl)
+
+			if tc.setup != nil {
+				tc.setup(t, context.Background(), store)
+			}
+
+			request, err := tc.have.ToRequest(context.Background(), tc.session, store)
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, request)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, request)
+			}
+		})
+	}
+}
+
 func TestOAuth2ConsentPreConfig(t *testing.T) {
 	config := &model.OAuth2ConsentPreConfig{
 		ClientID: "abc",
@@ -501,15 +851,544 @@ func TestOAuth2ConsentPreConfig(t *testing.T) {
 
 	assert.False(t, config.CanConsent())
 
-	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}, nil))
 
 	config.Scopes = []string{oidc.ScopeProfile}
 
-	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}, nil))
 
 	config.Audience = []string{"abc"}
 
-	assert.True(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+	assert.True(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}, nil))
+
+	assert.False(t, config.HasClaimsSignature("abc"))
+}
+
+func TestOAuth2ConsentPreConfigHasExactGrants(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Config   model.OAuth2ConsentPreConfig
+		Scopes   []string
+		Audience []string
+		Resource []string
+		Expected bool
+	}{
+		{
+			Name:     "ShouldMatchWhenResourceMatches",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotMatchADifferentResource",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://b.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotMatchAStoredEmptyResourceAgainstARequestedOne",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldMatchAStoredEmptyResourceAgainstNoRequestedResource",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: nil,
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotMatchWhenOnlyTheResourceDiffers",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com", "https://b.example.com"},
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, tc.Config.HasExactGrants(tc.Scopes, tc.Audience, tc.Resource))
+		})
+	}
+}
+
+func TestOAuth2ConsentSessionMatchesRequester(t *testing.T) {
+	const prefixPAR = "urn:ietf:params:oauth:request_uri:"
+
+	testCases := []struct {
+		Name      string
+		Have      *model.OAuth2ConsentSession
+		Prefix    string
+		Requester oauthelia2.Requester
+		Err       string
+		Debug     string
+	}{
+		{
+			Name:   "ShouldMatchWhenClientScopesAndAudienceAreEqual",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedScope:    []string{"openid", "profile"},
+				RequestedAudience: []string{"https://app.example.com"},
+			},
+		},
+		{
+			Name:   "ShouldMatchWhenScopesAreOutOfOrder",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedScopes: []string{"openid", "profile"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:         &oidc.RegisteredClient{ID: "test"},
+				RequestedScope: []string{"profile", "openid"},
+			},
+		},
+		{
+			Name:   "ShouldMatchWhenAudienceIsOutOfOrder",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedAudience: []string{"a", "b"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedAudience: []string{"b", "a"},
+			},
+		},
+		{
+			Name:      "ShouldMatchWhenNothingIsRequested",
+			Have:      &model.OAuth2ConsentSession{ClientID: "test"},
+			Prefix:    prefixPAR,
+			Requester: &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "test"}},
+		},
+		{
+			Name:   "ShouldMatchWhenNonceAndStateAreEqual",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123&state=xyz789"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form: url.Values{
+					oidc.FormParameterNonce: []string{"abc123"},
+					oidc.FormParameterState: []string{"xyz789"},
+				},
+			},
+		},
+		{
+			Name:   "ShouldMatchWhenOnlyTheNonceIsPresent",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{oidc.FormParameterNonce: []string{"abc123"}},
+			},
+		},
+		{
+			Name:   "ShouldMatchWhenOnlyTheStateIsPresent",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "state=xyz789"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{oidc.FormParameterState: []string{"xyz789"}},
+			},
+		},
+		{
+			Name:   "ShouldMatchWhenFormParametersOtherThanTheNonceAndStateDiffer",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "client_id=test&nonce=abc123&redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback&state=xyz789"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form: url.Values{
+					oidc.FormParameterClientID:    []string{"test"},
+					oidc.FormParameterNonce:       []string{"abc123"},
+					oidc.FormParameterState:       []string{"xyz789"},
+					oidc.FormParameterRedirectURI: []string{"https://app.example.com/other"},
+					"consent_id":                  []string{"7ab3a0a4-d6a3-4dd6-8b06-e3e4e1a1b18e"},
+				},
+			},
+		},
+		{
+			Name:      "ShouldNotMatchDifferentClientID",
+			Have:      &model.OAuth2ConsentSession{ClientID: "other"},
+			Prefix:    prefixPAR,
+			Requester: &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "test"}},
+			Err:       "invalid_request",
+			Debug:     "The requested client id 'test' does not match the requested client id 'other' from the consent session.",
+		},
+		{
+			Name:      "ShouldNotMatchClientIDDifferingOnlyByCase",
+			Have:      &model.OAuth2ConsentSession{ClientID: "Test"},
+			Prefix:    prefixPAR,
+			Requester: &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "test"}},
+			Err:       "invalid_request",
+			Debug:     "The requested client id 'test' does not match the requested client id 'Test' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchAdditionalRequestedScope",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedScopes: []string{"openid"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:         &oidc.RegisteredClient{ID: "test"},
+				RequestedScope: []string{"openid", "profile"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested scope 'openid profile' does not match the requested scope 'openid' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchMissingRequestedScope",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedScopes: []string{"openid", "profile"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:         &oidc.RegisteredClient{ID: "test"},
+				RequestedScope: []string{"openid"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested scope 'openid' does not match the requested scope 'openid profile' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchDifferentRequestedScope",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedScopes: []string{"openid"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:         &oidc.RegisteredClient{ID: "test"},
+				RequestedScope: []string{"profile"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested scope 'profile' does not match the requested scope 'openid' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchDuplicateRequestedScope",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedScopes: []string{"openid", "profile"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:         &oidc.RegisteredClient{ID: "test"},
+				RequestedScope: []string{"openid", "openid"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested scope 'openid openid' does not match the requested scope 'openid profile' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchRequestedScopeDifferingOnlyByCase",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedScopes: []string{"openid"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:         &oidc.RegisteredClient{ID: "test"},
+				RequestedScope: []string{"OpenID"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested scope 'OpenID' does not match the requested scope 'openid' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchAdditionalRequestedAudience",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedAudience: []string{"a"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedAudience: []string{"a", "b"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested audience 'a b' does not match the requested audience 'a' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchMissingRequestedAudience",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedAudience: []string{"a", "b"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedAudience: []string{"a"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested audience 'a' does not match the requested audience 'a b' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchDifferentRequestedAudience",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedAudience: []string{"a"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedAudience: []string{"b"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested audience 'b' does not match the requested audience 'a' from the consent session.",
+		},
+		{
+			Name:   "ShouldMatchWhenRequestedResourceIsEqual",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedResource: []string{"https://rs.example.com"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedResource: []string{"https://rs.example.com"},
+			},
+		},
+		{
+			Name:      "ShouldMatchWhenRequestedResourceIsEmpty",
+			Have:      &model.OAuth2ConsentSession{ClientID: "test"},
+			Prefix:    prefixPAR,
+			Requester: &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "test"}},
+		},
+		{
+			Name:   "ShouldNotMatchDifferentRequestedResource",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedResource: []string{"https://rs.example.com"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedResource: []string{"https://other.example.com"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested resource 'https://other.example.com' does not match the requested resource 'https://rs.example.com' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchDifferentNonce",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{oidc.FormParameterNonce: []string{"def456"}},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested nonce does not match the requested nonce from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchNonceDifferingOnlyByCase",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{oidc.FormParameterNonce: []string{"ABC123"}},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested nonce does not match the requested nonce from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchMissingNonceInRequest",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested nonce does not match the requested nonce from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchAdditionalNonceInRequest",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{oidc.FormParameterNonce: []string{"abc123"}},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested nonce does not match the requested nonce from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchDifferentState",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123&state=xyz789"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form: url.Values{
+					oidc.FormParameterNonce: []string{"abc123"},
+					oidc.FormParameterState: []string{"uvw321"},
+				},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested state does not match the requested state from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchStateDifferingOnlyByCase",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "state=xyz789"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{oidc.FormParameterState: []string{"XYZ789"}},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested state does not match the requested state from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchMissingStateInRequest",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "state=xyz789"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested state does not match the requested state from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchAdditionalStateInRequest",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form:   url.Values{oidc.FormParameterState: []string{"xyz789"}},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested state does not match the requested state from the consent session.",
+		},
+		{
+			Name:   "ShouldPreferTheClientIDMismatchOverTheScopeMismatch",
+			Have:   &model.OAuth2ConsentSession{ClientID: "other", RequestedScopes: []string{"openid"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:         &oidc.RegisteredClient{ID: "test"},
+				RequestedScope: []string{"profile"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested client id 'test' does not match the requested client id 'other' from the consent session.",
+		},
+		{
+			Name:   "ShouldPreferTheScopeMismatchOverTheAudienceMismatch",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedScopes: []string{"openid"}, RequestedAudience: []string{"a"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedScope:    []string{"profile"},
+				RequestedAudience: []string{"b"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested scope 'profile' does not match the requested scope 'openid' from the consent session.",
+		},
+		{
+			Name:   "ShouldPreferTheAudienceMismatchOverTheNonceMismatch",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedAudience: []string{"a"}, Form: "nonce=abc123"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedAudience: []string{"b"},
+				Form:              url.Values{oidc.FormParameterNonce: []string{"def456"}},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested audience 'b' does not match the requested audience 'a' from the consent session.",
+		},
+		{
+			Name:   "ShouldPreferTheNonceMismatchOverTheStateMismatch",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123&state=xyz789"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form: url.Values{
+					oidc.FormParameterNonce: []string{"def456"},
+					oidc.FormParameterState: []string{"uvw321"},
+				},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested nonce does not match the requested nonce from the consent session.",
+		},
+		{
+			Name:      "ShouldNotMatchMalformedConsentSessionForm",
+			Have:      &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=%zz"},
+			Prefix:    prefixPAR,
+			Requester: &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "test"}},
+			Err:       "server_error",
+			Debug:     "Error occurred parsing the consent request form. invalid URL escape \"%zz\"",
+		},
+		{
+			Name:   "ShouldMatchPushedAuthorizationRequestWithMergedNonceAndState",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123", RequestedScopes: []string{"openid"}, RequestedAudience: []string{"https://app.example.com"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedScope:    []string{"openid"},
+				RequestedAudience: []string{"https://app.example.com"},
+				Form: url.Values{
+					oidc.FormParameterClientID:   []string{"test"},
+					oidc.FormParameterRequestURI: []string{"urn:ietf:params:oauth:request_uri:abc123"},
+					oidc.FormParameterNonce:      []string{"abc123"},
+					oidc.FormParameterState:      []string{"xyz789"},
+				},
+			},
+		},
+		{
+			Name:   "ShouldNotMatchPushedAuthorizationRequestWithDifferentRequestURI",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form: url.Values{
+					oidc.FormParameterRequestURI: []string{"urn:ietf:params:oauth:request_uri:def456"},
+				},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested request uri 'urn:ietf:params:oauth:request_uri:def456' does not match the requested request uri 'urn:ietf:params:oauth:request_uri:abc123' from the consent session.",
+		},
+		{
+			Name:      "ShouldNotMatchPushedAuthorizationRequestWithMissingRequestURI",
+			Have:      &model.OAuth2ConsentSession{ClientID: "test", Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123"},
+			Prefix:    prefixPAR,
+			Requester: &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "test"}},
+			Err:       "invalid_request",
+			Debug:     "The requested request uri '' does not match the requested request uri 'urn:ietf:params:oauth:request_uri:abc123' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotMatchPushedAuthorizationRequestWithDifferentScope",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123", RequestedScopes: []string{"openid"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:         &oidc.RegisteredClient{ID: "test"},
+				RequestedScope: []string{"openid", "profile"},
+				Form: url.Values{
+					oidc.FormParameterRequestURI: []string{"urn:ietf:params:oauth:request_uri:abc123"},
+				},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested scope 'openid profile' does not match the requested scope 'openid' from the consent session.",
+		},
+		{
+			Name:   "ShouldNotSkipTheNonceAndStateWhenThePrefixIsEmpty",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123"},
+			Prefix: "",
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form: url.Values{
+					oidc.FormParameterRequestURI: []string{"urn:ietf:params:oauth:request_uri:abc123"},
+					oidc.FormParameterNonce:      []string{"def456"},
+				},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested nonce does not match the requested nonce from the consent session.",
+		},
+		{
+			Name:   "ShouldNotSkipTheNonceAndStateWhenTheRequestURIDoesNotHaveThePrefix",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", Form: "nonce=abc123&request_uri=https%3A%2F%2Fclient.example.com%2Frequest.jwt"},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client: &oidc.RegisteredClient{ID: "test"},
+				Form: url.Values{
+					oidc.FormParameterRequestURI: []string{"https://client.example.com/request.jwt"},
+					oidc.FormParameterNonce:      []string{"def456"},
+				},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested nonce does not match the requested nonce from the consent session.",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err := tc.Have.MatchesRequester(tc.Requester, tc.Prefix)
+
+			if tc.Err == "" {
+				assert.NoError(t, err)
+
+				return
+			}
+
+			assert.EqualError(t, err, tc.Err)
+
+			var e *oauthelia2.RFC6749Error
+
+			require.ErrorAs(t, err, &e)
+			assert.Equal(t, tc.Debug, e.DebugField)
+		})
+	}
 }
 
 func TestOAuth2ConsentSession(t *testing.T) {
@@ -525,7 +1404,35 @@ func TestOAuth2ConsentSession(t *testing.T) {
 	assert.True(t, session.CanGrant(before))
 	assert.False(t, session.CanGrant(after))
 
-	session.Subject = uuid.NullUUID{Valid: true}
+	assert.Equal(t, []string(nil), session.GetGrantedScopes())
+	assert.Equal(t, []string(nil), session.GetRequestedScopes())
+	assert.Equal(t, []string(nil), session.GetGrantedAudience())
+	assert.Equal(t, []string(nil), session.GetRequestedAudience())
+	assert.Equal(t, []string(nil), session.GetGrantedResource())
+	assert.Equal(t, []string(nil), session.GetRequestedResource())
+
+	session.GrantedScopes = []string{"abc1"}
+	session.RequestedScopes = []string{"abc2"}
+	session.GrantedAudience = []string{"abc3"}
+	session.RequestedAudience = []string{"abc4"}
+	session.GrantedResource = []string{"abc5"}
+	session.RequestedResource = []string{"abc6"}
+
+	assert.Equal(t, []string{"abc1"}, session.GetGrantedScopes())
+	assert.Equal(t, []string{"abc2"}, session.GetRequestedScopes())
+	assert.Equal(t, []string{"abc3"}, session.GetGrantedAudience())
+	assert.Equal(t, []string{"abc4"}, session.GetRequestedAudience())
+	assert.Equal(t, []string{"abc5"}, session.GetGrantedResource())
+	assert.Equal(t, []string{"abc6"}, session.GetRequestedResource())
+
+	session.GrantedResource = nil
+	session.RequestedResource = nil
+
+	session.GrantScope("abc")
+	assert.Equal(t, []string{"abc1", "abc"}, session.GetGrantedScopes())
+	assert.Equal(t, session.RequestedAt, session.GetRequestedAt())
+
+	session.SetSubject(uuid.Must(uuid.NewRandom()))
 
 	assert.True(t, session.CanGrant(before))
 	assert.False(t, session.IsDenied())
@@ -546,22 +1453,21 @@ func TestOAuth2ConsentSession(t *testing.T) {
 
 	assert.False(t, session.CanGrant(before))
 
-	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}, nil))
 
 	session.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
 
-	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}, nil))
 
 	session.GrantedAudience = model.StringSlicePipeDelimited{"abc"}
 
-	assert.True(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+	assert.True(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}, nil))
 
 	session.GrantedScopes = nil
 	session.GrantedAudience = nil
 
 	oidc.ConsentGrant(session, true, nil)
 
-	assert.Nil(t, session.GrantedScopes)
 	session.HasExactGrantedAudience([]string{"a-client"})
 
 	session.RequestedScopes = []string{oidc.ScopeOpenID}
@@ -590,11 +1496,83 @@ func TestOAuth2ConsentSession(t *testing.T) {
 
 	assert.EqualError(t, err, "invalid semicolon separator in query")
 	assert.Equal(t, url.Values{}, form)
+
+	assert.Equal(t, model.StringSlicePipeDelimited(nil), session.GrantedClaims)
+
+	session.GrantClaims([]string{"abc"})
+
+	assert.Equal(t, model.StringSlicePipeDelimited{"abc"}, session.GrantedClaims)
+
+	now := time.Now().UTC()
+
+	session.SetRespondedAt(now, 10)
+
+	assert.Equal(t, sql.NullInt64{Valid: true, Int64: 10}, session.PreConfiguration)
+	assert.Equal(t, sql.NullTime{Time: now, Valid: true}, session.RespondedAt)
+}
+
+func TestOAuth2ConsentSessionHasExactGrants(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Session  model.OAuth2ConsentSession
+		Scopes   []string
+		Audience []string
+		Resource []string
+		Expected bool
+	}{
+		{
+			Name:     "ShouldMatchWhenResourceMatches",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}, GrantedResource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotMatchADifferentResource",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}, GrantedResource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://b.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotMatchAStoredEmptyResourceAgainstARequestedOne",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldMatchAStoredEmptyResourceAgainstNoRequestedResource",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: nil,
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotMatchWhenOnlyTheResourceDiffers",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}, GrantedResource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com", "https://b.example.com"},
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, tc.Session.HasExactGrants(tc.Scopes, tc.Audience, tc.Resource))
+		})
+	}
 }
 
 func TestMisc(t *testing.T) {
-	jti := model.NewOAuth2BlacklistedJTI("abc", time.Unix(10000, 0).UTC())
+	jti := model.NewOAuth2BlacklistedJTI("client", "abc", time.Unix(10000, 0).UTC())
 
+	assert.Equal(t, "client", jti.ClientID)
 	assert.Equal(t, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", jti.Signature)
 	assert.Equal(t, time.Unix(10000, 0).UTC(), jti.ExpiresAt)
 
@@ -606,11 +1584,203 @@ func TestMisc(t *testing.T) {
 	assert.NotNil(t, session)
 }
 
-func MustParseRequestURI(uri string) (parsed *url.URL) {
-	var err error
-	if parsed, err = url.ParseRequestURI(uri); err != nil {
-		panic(err)
+func TestOAuth2ResourceSurvivesRehydration(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Resource model.StringSlicePipeDelimited
+		Expected oauthelia2.Arguments
+	}{
+		{
+			Name:     "ShouldRestoreASingleResource",
+			Resource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			Expected: oauthelia2.Arguments{"https://api.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreMultipleResources",
+			Resource: model.StringSlicePipeDelimited{"https://a.example.com", "https://b.example.com"},
+			Expected: oauthelia2.Arguments{"https://a.example.com", "https://b.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreAnEmptyResource",
+			Resource: nil,
+			Expected: oauthelia2.Arguments(nil),
+		},
 	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			store := mocks.NewMockOAuth2Storage(ctrl)
+
+			store.EXPECT().GetClient(context.TODO(), "test-client").Return(&oidc.RegisteredClient{ID: "test-client"}, nil)
+
+			session := &model.OAuth2Session{
+				RequestID:         "req-1",
+				ClientID:          "test-client",
+				RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+				GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+				RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+				GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+				RequestedResource: tc.Resource,
+				GrantedResource:   tc.Resource,
+				Session:           []byte("{}"),
+			}
+
+			request, err := session.ToRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, request.GetRequestedResource())
+			assert.Equal(t, tc.Expected, request.GetGrantedResource())
+			assert.Equal(t, oauthelia2.Arguments{"aud-a"}, request.GetRequestedAudience())
+		})
+	}
+}
+
+func TestOAuth2DeviceCodeResourceSurvivesRehydration(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Resource model.StringSlicePipeDelimited
+		Expected oauthelia2.Arguments
+	}{
+		{
+			Name:     "ShouldRestoreASingleResource",
+			Resource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			Expected: oauthelia2.Arguments{"https://api.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreMultipleResources",
+			Resource: model.StringSlicePipeDelimited{"https://a.example.com", "https://b.example.com"},
+			Expected: oauthelia2.Arguments{"https://a.example.com", "https://b.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreAnEmptyResource",
+			Resource: nil,
+			Expected: oauthelia2.Arguments(nil),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			store := mocks.NewMockOAuth2Storage(ctrl)
+
+			store.EXPECT().GetClient(context.TODO(), "test-client").Return(&oidc.RegisteredClient{ID: "test-client"}, nil)
+
+			session := &model.OAuth2DeviceCodeSession{
+				RequestID:         "req-1",
+				ClientID:          "test-client",
+				RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+				GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+				RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+				GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+				RequestedResource: tc.Resource,
+				GrantedResource:   tc.Resource,
+				Session:           []byte("{}"),
+			}
+
+			request, err := session.ToRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, request.GetRequestedResource())
+			assert.Equal(t, tc.Expected, request.GetGrantedResource())
+			assert.Equal(t, oauthelia2.Arguments{"aud-a"}, request.GetRequestedAudience())
+		})
+	}
+}
+
+func TestOAuth2PARResourceSurvivesRehydration(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Resource model.StringSlicePipeDelimited
+		Expected oauthelia2.Arguments
+	}{
+		{
+			Name:     "ShouldRestoreASingleResource",
+			Resource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			Expected: oauthelia2.Arguments{"https://api.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreMultipleResources",
+			Resource: model.StringSlicePipeDelimited{"https://a.example.com", "https://b.example.com"},
+			Expected: oauthelia2.Arguments{"https://a.example.com", "https://b.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreAnEmptyResource",
+			Resource: nil,
+			Expected: oauthelia2.Arguments(nil),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			store := mocks.NewMockOAuth2Storage(ctrl)
+
+			store.EXPECT().GetClient(context.TODO(), "test-client").Return(&oidc.RegisteredClient{ID: "test-client"}, nil)
+
+			par := &model.OAuth2PushedAuthorizationSession{
+				RequestID: "req-1",
+				ClientID:  "test-client",
+				Scopes:    model.StringSlicePipeDelimited{"openid"},
+				Audience:  model.StringSlicePipeDelimited{"aud-a"},
+				Resource:  tc.Resource,
+				Session:   []byte("{}"),
+			}
+
+			request, err := par.ToAuthorizeRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, request.GetRequestedResource())
+			assert.Equal(t, oauthelia2.Arguments{"aud-a"}, request.GetRequestedAudience())
+		})
+	}
+}
+
+func TestOAuth2ConsentSessionGrantResource(t *testing.T) {
+	testCases := []struct {
+		Name      string
+		Requested model.StringSlicePipeDelimited
+		Expected  model.StringSlicePipeDelimited
+	}{
+		{
+			Name:      "ShouldGrantTheRequestedResource",
+			Requested: model.StringSlicePipeDelimited{"https://api.example.com"},
+			Expected:  model.StringSlicePipeDelimited{"https://api.example.com"},
+		},
+		{
+			Name:      "ShouldGrantNothingWhenNoneRequested",
+			Requested: nil,
+			Expected:  nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			consent := &model.OAuth2ConsentSession{RequestedResource: tc.Requested}
+
+			consent.GrantResource()
+
+			assert.Equal(t, tc.Expected, consent.GrantedResource)
+		})
+	}
+}
+
+func MustParseRequestURI(t *testing.T, uri string) (parsed *url.URL) {
+	t.Helper()
+
+	var err error
+
+	parsed, err = url.ParseRequestURI(uri)
+	require.NoError(t, err)
 
 	return parsed
 }

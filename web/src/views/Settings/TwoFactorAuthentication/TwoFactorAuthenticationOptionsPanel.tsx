@@ -1,11 +1,14 @@
-import React, { ChangeEvent, Fragment, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Paper, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { Fragment, useEffect, useMemo, useReducer } from "react";
+
 import { useTranslation } from "react-i18next";
 
+import { Card, CardContent } from "@components/UI/Card";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
@@ -18,64 +21,67 @@ interface Props {
     info: UserInfo;
 }
 
+type ComponentState = {
+    method: SecondFactorMethod | undefined;
+};
+
+type Action = { type: "setMethod"; method: SecondFactorMethod };
+
+const initialState: ComponentState = {
+    method: undefined,
+};
+
+function reducer(state: ComponentState, action: Action): ComponentState {
+    if (action.type === "setMethod") {
+        return { ...state, method: action.method };
+    }
+    return state;
+}
+
 const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const { createErrorNotification } = useNotifications();
-    const { localStorageMethod, setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethod, localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
 
-    const [method, setMethod] = useState<SecondFactorMethod>();
-    const [methods, setMethods] = useState<SecondFactorMethod[]>([]);
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const { method } = state;
 
     const hasMethods = props.info.has_totp || props.info.has_webauthn || props.info.has_duo;
 
     useEffect(() => {
         if (props.info === undefined) return;
 
-        setMethod(props.info.method);
+        dispatch({ method: props.info.method, type: "setMethod" });
     }, [props.info]);
 
-    useEffect(() => {
-        if (!hasMethods) return;
-        let valuesFinal: SecondFactorMethod[] = [];
+    const methods = useMemo(() => {
+        if (!hasMethods) return [];
 
-        const values = Array.from(props.config.available_methods);
-
-        values.forEach((value) => {
-            if (!valuesFinal.includes(value)) {
-                switch (value) {
-                    case SecondFactorMethod.WebAuthn:
-                        if (props.info.has_webauthn) {
-                            valuesFinal.push(value);
-                        }
-                        break;
-                    case SecondFactorMethod.TOTP:
-                        if (props.info.has_totp) {
-                            valuesFinal.push(value);
-                        }
-                        break;
-                    case SecondFactorMethod.MobilePush:
-                        if (props.info.has_duo) {
-                            valuesFinal.push(value);
-                        }
-                        break;
-                }
+        return Array.from(props.config.available_methods).filter((method) => {
+            switch (method) {
+                case SecondFactorMethod.WebAuthn:
+                    return props.info.has_webauthn;
+                case SecondFactorMethod.TOTP:
+                    return props.info.has_totp;
+                case SecondFactorMethod.MobilePush:
+                    return props.info.has_duo;
+                default:
+                    return false;
             }
         });
-
-        setMethods(valuesFinal);
     }, [props.config, hasMethods, props.info.has_webauthn, props.info.has_totp, props.info.has_duo]);
 
-    const handleMethodAccountChanged = (event: ChangeEvent<HTMLInputElement>) => {
-        if (isMethod2FA(event.target.value)) {
-            const value = toSecondFactorMethod(event.target.value as Method2FA);
+    const handleMethodAccountChanged = (method: string) => {
+        if (isMethod2FA(method)) {
+            const value = toSecondFactorMethod(method as Method2FA);
 
             setPreferred2FAMethod(value)
+                .then(() => {
+                    dispatch({ method: value, type: "setMethod" });
+                })
                 .catch((err) => {
                     console.error(err);
                     createErrorNotification(translate("There was an issue updating preferred second factor method"));
-                })
-                .then(() => {
-                    setMethod(value);
                 })
                 .finally(() => {
                     props.refresh();
@@ -83,24 +89,24 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
         }
     };
 
-    const handleMethodBrowserChanged = (event: ChangeEvent<HTMLInputElement>) => {
-        if (isMethod2FA(event.target.value)) {
-            setLocalStorageMethod(toSecondFactorMethod(event.target.value as Method2FA));
+    const handleMethodBrowserChanged = (method: string) => {
+        if (isMethod2FA(method)) {
+            setLocalStorageMethod(toSecondFactorMethod(method as Method2FA));
         }
     };
 
     return (
         <Fragment>
             {!props.config || !hasMethods ? undefined : (
-                <Paper variant={"outlined"}>
-                    <Grid container spacing={2} padding={2}>
-                        <Grid size={{ xs: 12 }}>
-                            <Typography variant={"h5"}>{translate("Options")}</Typography>
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <Grid container spacing={2} padding={2}>
+                <Card>
+                    <CardContent className="p-4 space-y-4">
+                        <div className="w-full">
+                            <h5 className="text-xl font-semibold">{translate("Options")}</h5>
+                        </div>
+                        <div className="w-full">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
                                 {method === undefined ? null : (
-                                    <Grid size={{ xs: 12, md: 4 }}>
+                                    <div>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"account"}
                                             name={"Default Method"}
@@ -108,10 +114,10 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                                             methods={methods}
                                             handleMethodChanged={handleMethodAccountChanged}
                                         />
-                                    </Grid>
+                                    </div>
                                 )}
                                 {!localStorageMethodAvailable || localStorageMethod === undefined ? null : (
-                                    <Grid size={{ xs: 12, md: 4 }}>
+                                    <div>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"local"}
                                             name={"Default Method (Browser)"}
@@ -119,12 +125,12 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                                             methods={methods}
                                             handleMethodChanged={handleMethodBrowserChanged}
                                         />
-                                    </Grid>
+                                    </div>
                                 )}
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                </Paper>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
         </Fragment>
     );

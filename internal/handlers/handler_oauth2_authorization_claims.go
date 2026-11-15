@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -17,8 +21,8 @@ func handleOAuth2AuthorizationClaims(ctx *middlewares.AutheliaCtx, rw http.Respo
 	var err error
 
 	if requester.GetRequestedScopes().Has(oidc.ScopeOpenID) {
-		if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err != nil {
-			ctx.Logger.WithError(err).Errorf("%s Request with id '%s' on client with id '%s' could not be processed: error occurred parsing the claims parameter", flow, requester.GetID(), client.GetID())
+		if requests, err = oidc.NewClaimRequestsFromRequester(requester); err != nil {
+			ctx.GetLogger().WithError(err).Errorf("%s Request with id '%s' on client with id '%s' could not be processed: error occurred parsing the claims parameter", flow, requester.GetID(), client.GetID())
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, err)
 
@@ -29,15 +33,15 @@ func handleOAuth2AuthorizationClaims(ctx *middlewares.AutheliaCtx, rw http.Respo
 		scopeStrategy := ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx)
 
 		if err = claimsStrategy.ValidateClaimsRequests(ctx, scopeStrategy, client, requests); err != nil {
-			ctx.Logger.WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Errorf("%s Request with id '%s' on client with id '%s' could not be processed: the client requested claims were not permitted.", flow, requester.GetID(), client.GetID())
+			ctx.GetLogger().WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Errorf("%s Request with id '%s' on client with id '%s' could not be processed: the client requested claims were not permitted.", flow, requester.GetID(), client.GetID())
 
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested claims were not permitted."))
 
 			return nil, true
 		}
 
 		if requested, ok := requests.MatchesIssuer(issuer); !ok {
-			ctx.Logger.Errorf("%s Request with id '%s' on client with id '%s' could not be processed: the client requested issuer '%s' but the issuer for the token will be '%s' instead", flow, requester.GetID(), client.GetID(), requested, issuer.String())
+			ctx.GetLogger().Errorf("%s Request with id '%s' on client with id '%s' could not be processed: the client requested issuer '%s' but the issuer for the token will be '%s' instead", flow, requester.GetID(), client.GetID(), requested, issuer.String())
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested issuer was not the same issuer that attempted to authorize the request."))
 
@@ -45,9 +49,9 @@ func handleOAuth2AuthorizationClaims(ctx *middlewares.AutheliaCtx, rw http.Respo
 		}
 
 		if requested, ok := requests.MatchesSubject(consent.Subject.UUID.String()); !ok {
-			ctx.Logger.Errorf("%s Request with id '%s' on client with id '%s' could not be processed: the client requested subject '%s' but the subject value for '%s' is '%s' for the '%s' sector identifier", flow, requester.GetID(), client.GetID(), requested, userSession.Username, consent.Subject.UUID, client.GetSectorIdentifierURI())
+			ctx.GetLogger().Errorf("%s Request with id '%s' on client with id '%s' could not be processed: the client requested subject '%s' but the subject value for '%s' is '%s' for the '%s' sector identifier", flow, requester.GetID(), client.GetID(), requested, userSession.Username, consent.Subject.UUID, client.GetSectorIdentifierURI())
 
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrLoginRequired.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
 
 			return nil, true
 		}
@@ -60,8 +64,8 @@ func handleOAuth2AuthorizationClaims(ctx *middlewares.AutheliaCtx, rw http.Respo
 			implicit = r.GetResponseTypes().ExactOne(oidc.ResponseTypeImplicitFlowIDToken)
 		}
 
-		if err = claimsStrategy.PopulateIDTokenClaims(ctx, scopeStrategy, client, requester.GetGrantedScopes(), oauthelia2.Arguments(consent.GrantedClaims), requests.GetIDTokenRequests(), details, consent.RequestedAt, ctx.Clock.Now(), nil, extra, implicit); err != nil {
-			ctx.Logger.Errorf("%s Response for Request with id '%s' on client with id '%s' could not be created: %s", flow, requester.GetID(), client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
+		if err = claimsStrategy.HydrateIDTokenClaims(ctx, scopeStrategy, client, requester.GetGrantedScopes(), oauthelia2.Arguments(consent.GrantedClaims), requests.GetIDTokenRequests(), details, consent.RequestedAt, ctx.GetClock().Now(), nil, extra, implicit); err != nil {
+			ctx.GetLogger().Errorf("%s Response for Request with id '%s' on client with id '%s' could not be created: %s", flow, requester.GetID(), client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, err)
 

@@ -1,15 +1,22 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
 	"context"
+	"net"
 
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
@@ -32,15 +39,17 @@ type AutheliaCtx struct {
 	Providers     Providers
 	Configuration schema.Configuration
 
-	Clock clock.Provider
+	session session.Strategy
 
-	session *session.Session
+	sessions map[string]*session.UserSession
 }
 
 // Providers contain all provider provided to Authelia.
 type Providers struct {
 	Authorizer            *authorization.Authorizer
-	SessionProvider       *session.Provider
+	Cache                 cache.Provider
+	Session               session.Provider
+	SessionRepository     session.Repository
 	Regulator             *regulation.Regulator
 	OpenIDConnect         *oidc.OpenIDConnectProvider
 	Metrics               metrics.Provider
@@ -51,15 +60,35 @@ type Providers struct {
 	Templates             *templates.Provider
 	TOTP                  totp.Provider
 	PasswordPolicy        PasswordPolicyProvider
-	Random                random.Provider
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
+	Duo                   duo.Provider
+
+	GarbageCollector *GarbageCollector
+
+	Random random.Provider
+	Clock  clock.Provider
 }
 
+// Context represents the context used by the middlewares.
 type Context interface {
-	GetLogger() *logrus.Entry
-	GetProviders() Providers
-	GetConfiguration() *schema.Configuration
+	GetClock() (clock clock.Provider)
+	GetRandom() (random random.Provider)
+	GetLogger() (logger *logrus.Entry)
+	GetProviders() (providers Providers)
+	GetConfiguration() (config *schema.Configuration)
+	RemoteIP() (ip net.IP)
+
+	context.Context
+}
+
+// ServiceContext represents the context used by the services.
+type ServiceContext interface {
+	GetClock() (clock clock.Provider)
+	GetRandom() (random random.Provider)
+	GetLogger() (logger *logrus.Entry)
+	GetProviders() (providers Providers)
+	GetConfiguration() (config *schema.Configuration)
 
 	context.Context
 }
@@ -136,12 +165,14 @@ type OKResponse struct {
 // ErrorResponse model of an error response.
 type ErrorResponse struct {
 	Status  string `json:"status"`
+	Code    string `json:"code,omitempty"`
 	Message string `json:"message"`
 }
 
 // AuthenticationErrorResponse model of an error response.
 type AuthenticationErrorResponse struct {
 	Status         string `json:"status"`
+	Code           string `json:"code,omitempty"`
 	Message        string `json:"message"`
 	Authentication bool   `json:"authentication"`
 	Elevation      bool   `json:"elevation"`

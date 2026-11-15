@@ -1,4 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/codecov.json
 codecov:
   require_ci_to_pass: true
 
@@ -10,41 +15,39 @@ comment:
 coverage:
   precision: 2
   round: down
-  range: "70...100"
+  range: "70...95"
   status:
     project:
       default: false
       backend:
-        base: auto
+        target: auto
         threshold: 0.15%
         flags:
           - backend
       frontend:
-        base: auto
+        target: auto
         threshold: 0.15%
         flags:
           - frontend
+    patch:
+      default:
+        target: 90%
+        threshold: 10%
 
 flags:
   backend:
     paths:
       - "cmd/authelia/"
       - "internal/"
+      - "!internal/mocks/"
       - "!internal/suites/"
+      - "!internal/**/*_mock_test.go"
   frontend:
     paths:
       - "web/"
       - "!web/coverage/"
 
 ignore:
-  - "web/src/serviceWorker.ts"
   - "**/coverage.txt"
-
-parsers:
-  gcov:
-    branch_detection:
-      conditional: true
-      loop: true
-      method: false
-      macro: false
+  - "**/*_msgp_gen.go"
 ...

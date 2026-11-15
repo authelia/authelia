@@ -1,0 +1,20 @@
+{{- /* Transpile SCSS with Dart Sass and silence legacy dependency warnings. */ -}}
+{{ with resources.Get . -}}
+  {{ $opts := dict
+    "enableSourceMap" hugo.IsDevelopment
+    "outputStyle" (cond hugo.IsDevelopment "expanded" "compressed")
+    "transpiler" "dartsass"
+    "includePaths" (slice "node_modules")
+    "silenceDeprecations" (slice "import" "if-function" "global-builtin" "color-functions")
+    "silenceDependencyDeprecations" true
+  -}}
+  {{ with . | css.Sass $opts -}}
+    {{ if hugo.IsDevelopment -}}
+      <link rel="stylesheet" href="{{ .RelPermalink }}">
+    {{ else -}}
+      {{ with . | postCSS (dict "config" "config/postcss.config.js") | fingerprint -}}
+        <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous">
+      {{ end -}}
+    {{ end -}}
+  {{ end -}}
+{{ end -}}

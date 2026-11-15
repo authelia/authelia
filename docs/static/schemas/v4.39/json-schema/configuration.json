@@ -90,7 +90,7 @@
           "description": "The literal domains to match the domain against that this rule applies to."
         },
         "domain_regex": {
-          "$ref": "#/$defs/AccessControlRuleRegex",
+          "$ref": "#/$defs/AccessControlRuleRegexCI",
           "title": "Domain Regex Patterns",
           "description": "The regex patterns to match the domain against that this rule applies to."
         },
@@ -132,6 +132,7 @@
         },
         "methods": {
           "$ref": "#/$defs/AccessControlRuleMethods",
+          "title": "Methods",
           "description": "The list of request methods this rule applies to."
         },
         "query": {
@@ -265,6 +266,22 @@
         }
       ]
     },
+    "AccessControlRuleRegexCI": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "regex"
+        },
+        {
+          "items": {
+            "type": "string",
+            "format": "regex"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
     "AccessControlRuleSubjects": {
       "oneOf": [
         {
@@ -316,12 +333,12 @@
         "password_reset": {
           "$ref": "#/$defs/AuthenticationBackendPasswordReset",
           "title": "Password Reset",
-          "description": "Allows configuration of the password reset behaviour."
+          "description": "Allows configuration of the password reset behavior."
         },
         "password_change": {
           "$ref": "#/$defs/AuthenticationBackendPasswordChange",
-          "title": "Password Reset",
-          "description": "Allows configuration of the password reset behaviour."
+          "title": "Password Change",
+          "description": "Allows configuration of the password change behavior."
         },
         "refresh_interval": {
           "$ref": "#/$defs/RefreshIntervalDuration",
@@ -362,7 +379,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "AuthenticationBackendExtraAttribute represents the configuration of an extra user attribute."
     },
     "AuthenticationBackendFile": {
       "properties": {
@@ -385,7 +403,7 @@
         "search": {
           "$ref": "#/$defs/AuthenticationBackendFileSearch",
           "title": "Search",
-          "description": "Configures the user searching behaviour."
+          "description": "Configures the user searching behavior."
         },
         "extra_attributes": {
           "patternProperties": {
@@ -635,6 +653,7 @@
             "scrypt",
             "yescrypt"
           ],
+          "title": "Variant",
           "description": "The Scrypt variant to be used.",
           "default": "scrypt"
         },
@@ -650,7 +669,7 @@
           "type": "integer",
           "maximum": 36028797018963967,
           "minimum": 1,
-          "title": "Key Length",
+          "title": "Block Size",
           "description": "The Scrypt block size to be used.",
           "default": 8
         },
@@ -658,7 +677,7 @@
           "type": "integer",
           "maximum": 1073741823,
           "minimum": 1,
-          "title": "Key Length",
+          "title": "Parallelism",
           "description": "The Scrypt parallelism factor to be used.",
           "default": 1
         },
@@ -789,7 +808,9 @@
           "default": "filter"
         },
         "attributes": {
-          "$ref": "#/$defs/AuthenticationBackendLDAPAttributes"
+          "$ref": "#/$defs/AuthenticationBackendLDAPAttributes",
+          "title": "Attributes",
+          "description": "The LDAP directory server attributes."
         },
         "permit_referrals": {
           "type": "boolean",
@@ -801,12 +822,6 @@
           "type": "boolean",
           "title": "Permit Unauthenticated Bind",
           "description": "Enables omission of the password to perform an unauthenticated bind.",
-          "default": false
-        },
-        "permit_feature_detection_failure": {
-          "type": "boolean",
-          "title": "Permit Feature Detection Failure",
-          "description": "Enables failures when detecting directory server features using the Root DSE lookup.",
           "default": false
         },
         "user": {
@@ -985,7 +1000,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "AuthenticationBackendLDAPAttributesAttribute represents the configuration of an extra LDAP attribute."
     },
     "AuthenticationBackendLDAPPooling": {
       "properties": {
@@ -1023,7 +1039,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "AuthenticationBackendLDAPPooling represents the LDAP connection pooling configuration."
     },
     "AuthenticationBackendPasswordChange": {
       "properties": {
@@ -1223,7 +1240,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "Definitions represents the definitions which can be referenced elsewhere in the configuration."
     },
     "DuoAPI": {
       "properties": {
@@ -1263,7 +1281,9 @@
     "IdentityProviders": {
       "properties": {
         "oidc": {
-          "$ref": "#/$defs/IdentityProvidersOpenIDConnect"
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnect",
+          "title": "OpenID Connect 1.0",
+          "description": "OpenID Connect 1.0 configuration."
         }
       },
       "additionalProperties": false,
@@ -1333,10 +1353,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Discovery Response Signing Algorithm",
-          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses.",
+          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "discovery_signed_response_key_id": {
@@ -1490,7 +1515,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectClaimsPolicy represents the claims policy configuration."
     },
     "IdentityProvidersOpenIDConnectClient": {
       "properties": {
@@ -1552,7 +1578,8 @@
               "address",
               "phone",
               "groups",
-              "authelia.bearer.authz"
+              "authelia.bearer.authz",
+              "authelia.pam"
             ]
           },
           "type": "array",
@@ -1687,7 +1714,6 @@
           "type": "string",
           "enum": [
             "",
-            "none",
             "HS256",
             "HS384",
             "HS512",
@@ -1699,11 +1725,16 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Authorization Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value.",
-          "default": "none"
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
+          "default": "RS256"
         },
         "authorization_signed_response_key_id": {
           "type": "string",
@@ -1772,10 +1803,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "ID Token Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the ID Token objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the ID Token objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "RS256"
         },
         "id_token_signed_response_key_id": {
@@ -1846,10 +1882,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Access Token Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Access Token objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Access Token objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "access_token_signed_response_key_id": {
@@ -1920,10 +1961,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Userinfo Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Userinfo objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Userinfo objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "userinfo_signed_response_key_id": {
@@ -1994,10 +2040,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Introspection Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Introspection objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Introspection objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "introspection_signed_response_key_id": {
@@ -2065,10 +2116,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Request Object Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client must use to sign Request Objects that it uses. i.e. the JWS 'alg' value."
+          "description": "The JOSE signing algorithm (JWS) this client must use to sign Request Objects that it uses. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "request_object_encryption_alg": {
           "type": "string",
@@ -2141,10 +2197,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Token Endpoint Auth Signing Algorithm",
-          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "revocation_endpoint_auth_method": {
           "type": "string",
@@ -2175,10 +2236,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Revocation Endpoint Auth Signing Algorithm",
-          "description": "The Revocation Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Revocation Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "introspection_endpoint_auth_method": {
           "type": "string",
@@ -2209,10 +2275,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Introspection Endpoint Auth Signing Algorithm",
-          "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "pushed_authorization_request_endpoint_auth_method": {
           "type": "string",
@@ -2243,10 +2314,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Pushed Authorization Request Endpoint Auth Signing Algorithm",
-          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "allow_multiple_auth_methods": {
           "type": "boolean",
@@ -2306,7 +2382,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectCustomClaim represents a single custom claim configuration."
     },
     "IdentityProvidersOpenIDConnectCustomClaims": {
       "patternProperties": {
@@ -2314,7 +2391,8 @@
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
         }
       },
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectCustomClaims represents the custom claims configuration."
     },
     "IdentityProvidersOpenIDConnectLifespan": {
       "properties": {
@@ -2596,7 +2674,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectLifespans represents the token lifespan configuration."
     },
     "IdentityProvidersOpenIDConnectPolicy": {
       "properties": {
@@ -2672,7 +2751,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectScope represents a single custom scope configuration."
     },
     "IdentityValidation": {
       "properties": {
@@ -2814,14 +2894,20 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Algorithm",
-          "description": "The Algorithm of this JWK."
+          "description": "The Algorithm of this JWK. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
         "key": {
           "type": "string",
           "pattern": "^-{5}BEGIN (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n?$",
+          "title": "Key",
           "description": "The Private/Public key material of this JWK in Base64 PEM format."
         },
         "certificate_chain": {
@@ -2912,7 +2998,7 @@
         "disable_failure": {
           "type": "boolean",
           "title": "Disable Failure",
-          "description": "Disables complete failure whe the Startup Check fails and instead just logs the error.",
+          "description": "Disables complete failure when the Startup Check fails and instead just logs the error.",
           "default": false
         }
       },
@@ -3328,17 +3414,23 @@
     "ServerEndpointRateLimit": {
       "properties": {
         "enable": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Enable",
+          "description": "Enables the rate limiter for this endpoint.",
+          "default": true
         },
         "buckets": {
           "items": {
             "$ref": "#/$defs/ServerEndpointRateLimitBucket"
           },
-          "type": "array"
+          "type": "array",
+          "title": "Buckets",
+          "description": "The list of rate limit buckets."
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "ServerEndpointRateLimit represents the rate limiter configuration for a single endpoint."
     },
     "ServerEndpointRateLimitBucket": {
       "properties": {
@@ -3353,39 +3445,85 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Period",
           "description": "The period of time this rate limit bucket applies to."
         },
         "requests": {
           "type": "integer",
+          "title": "Requests",
           "description": "The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "ServerEndpointRateLimitBucket represents a single rate limit bucket."
     },
     "ServerEndpointRateLimits": {
       "properties": {
         "reset_password_start": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Reset Password Start",
+          "description": "Configures the rate limiter which applies to the endpoint that initializes the reset password flow."
         },
         "reset_password_finish": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Reset Password Finish",
+          "description": "Configures the rate limiter which applies to endpoints which consume tokens for the reset password flow."
         },
         "second_factor_totp": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Second Factor TOTP",
+          "description": "Configures the rate limiter which applies to the TOTP endpoint code submissions for the second factor flow."
         },
         "second_factor_duo": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Second Factor Duo",
+          "description": "Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."
+        },
+        "second_factor_password": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Second Factor Password",
+          "description": "Configures the rate limiter which applies to the Password endpoint for the second factor flow."
         },
         "session_elevation_start": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Session Elevation Start",
+          "description": "Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."
         },
         "session_elevation_finish": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Session Elevation Finish",
+          "description": "Configures the rate limiter which applies to the Elevated Session endpoint which consumes the code for the elevated session flow."
+        },
+        "openid_connect_token": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect Token",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Token Endpoint."
+        },
+        "openid_connect_pushed_authorization_request": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect Pushed Authorization Request",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Pushed Authorization Request Endpoint."
+        },
+        "openid_connect_userinfo": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect UserInfo",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 UserInfo Endpoint."
+        },
+        "openid_connect_introspection": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect Introspection",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Introspection Endpoint."
+        },
+        "openid_connect_revocation": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect Revocation",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "ServerEndpointRateLimits represents the rate limiter configuration for each endpoint."
     },
     "ServerEndpoints": {
       "properties": {
@@ -3402,7 +3540,9 @@
           "default": false
         },
         "rate_limits": {
-          "$ref": "#/$defs/ServerEndpointRateLimits"
+          "$ref": "#/$defs/ServerEndpointRateLimits",
+          "title": "Rate Limits",
+          "description": "Configure the endpoint rate limits."
         },
         "authz": {
           "patternProperties": {
@@ -3499,7 +3639,7 @@
           "type": "string",
           "title": "CSP Template",
           "description": "The Content Security Policy template.",
-          "default": "default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='; frame-ancestors 'none'; base-uri 'self'"
+          "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s'"
         }
       },
       "additionalProperties": false,
@@ -3585,6 +3725,7 @@
       "properties": {
         "name": {
           "type": "string",
+          "title": "Name",
           "description": "The session cookie name.",
           "default": "authelia_session"
         },
@@ -3595,6 +3736,7 @@
             "strict",
             "none"
           ],
+          "title": "Same Site",
           "description": "The session cookie same site value.",
           "default": "lax"
         },
@@ -3609,6 +3751,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Expiration",
           "description": "The session cookie expiration when remember me is not checked."
         },
         "inactivity": {
@@ -3622,6 +3765,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Inactivity",
           "description": "The session inactivity timeout."
         },
         "remember_me": {
@@ -3635,6 +3779,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Remember Me",
           "description": "The session cookie expiration when remember me is checked."
         },
         "secret": {
@@ -3670,6 +3815,7 @@
       "properties": {
         "name": {
           "type": "string",
+          "title": "Name",
           "description": "The session cookie name.",
           "default": "authelia_session"
         },
@@ -3680,6 +3826,7 @@
             "strict",
             "none"
           ],
+          "title": "Same Site",
           "description": "The session cookie same site value.",
           "default": "lax"
         },
@@ -3694,6 +3841,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Expiration",
           "description": "The session cookie expiration when remember me is not checked."
         },
         "inactivity": {
@@ -3707,6 +3855,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Inactivity",
           "description": "The session inactivity timeout."
         },
         "remember_me": {
@@ -3720,6 +3869,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Remember Me",
           "description": "The session cookie expiration when remember me is checked."
         },
         "domain": {
@@ -3754,7 +3904,7 @@
         },
         "port": {
           "type": "integer",
-          "title": "Host",
+          "title": "Port",
           "description": "The redis server port.",
           "default": 6379
         },
@@ -3806,10 +3956,14 @@
           "description": "The minimum idle connections that should be open to redis."
         },
         "tls": {
-          "$ref": "#/$defs/TLS"
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS configuration for the redis server."
         },
         "high_availability": {
-          "$ref": "#/$defs/SessionRedisHighAvailability"
+          "$ref": "#/$defs/SessionRedisHighAvailability",
+          "title": "High Availability",
+          "description": "The redis high availability configuration."
         }
       },
       "additionalProperties": false,
@@ -3830,8 +3984,8 @@
         },
         "sentinel_password": {
           "type": "string",
-          "title": "Sentinel Username",
-          "description": "The username for the sentinel instance."
+          "title": "Sentinel Password",
+          "description": "The password for the sentinel instance."
         },
         "route_by_latency": {
           "type": "boolean",
@@ -3952,7 +4106,9 @@
           "description": "The timeout for the database connection."
         },
         "tls": {
-          "$ref": "#/$defs/TLS"
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS configuration for the SQL Server."
         }
       },
       "additionalProperties": false,
@@ -3996,7 +4152,9 @@
           "description": "The timeout for the database connection."
         },
         "tls": {
-          "$ref": "#/$defs/TLS"
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS configuration for the SQL Server."
         },
         "schema": {
           "type": "string",
@@ -4068,11 +4226,14 @@
           "description": "The address of the PostgreSQL Server."
         },
         "tls": {
-          "$ref": "#/$defs/TLS"
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS configuration for the PostgreSQL Server."
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "StoragePostgreSQLServer represents the PostgreSQL server configuration."
     },
     "TLS": {
       "properties": {
@@ -4294,7 +4455,8 @@
       "type": "object",
       "required": [
         "expression"
-      ]
+      ],
+      "description": "UserAttribute represents a user attribute definition."
     },
     "WebAuthn": {
       "properties": {
@@ -4360,10 +4522,12 @@
         },
         "selection_criteria": {
           "$ref": "#/$defs/WebAuthnSelectionCriteria",
+          "title": "Selection Criteria",
           "description": "WebAuthn Authenticator selection criteria settings."
         },
         "metadata": {
           "$ref": "#/$defs/WebAuthnMetadata",
+          "title": "Metadata",
           "description": "WebAuthn Metadata Service settings."
         }
       },
@@ -4397,7 +4561,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "WebAuthnFiltering represents the WebAuthn authenticator filtering configuration."
     },
     "WebAuthnMetadata": {
       "properties": {
@@ -4425,14 +4590,14 @@
         },
         "validate_entry": {
           "type": "boolean",
-          "title": "Filtering",
+          "title": "Validate Entry",
           "description": "WebAuthn Authenticator metadata entry validation requires the AAGUID exists as a MDS3 registered entry.",
           "default": true
         },
         "validate_entry_permit_zero_aaguid": {
           "type": "boolean",
-          "title": "Filtering",
-          "description": "WebAuthn Authenticator metadata entry validation zero AAGUID's can be skipped'.",
+          "title": "Validate Entry Permit Zero AAGUID",
+          "description": "WebAuthn Authenticator metadata entry validation zero AAGUID's can be skipped.",
           "default": true
         },
         "validate_status": {
@@ -4493,7 +4658,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "WebAuthnMetadata represents the WebAuthn Metadata Service configuration."
     },
     "WebAuthnSelectionCriteria": {
       "properties": {
@@ -4532,7 +4698,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "WebAuthnSelectionCriteria represents the WebAuthn authenticator selection criteria configuration."
     },
     "X509CertificateChain": {
       "type": "string",

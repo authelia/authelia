@@ -1,4 +1,6 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
 import style from "@components/PushNotificationIcon.module.css";
 import { useIntermittentClass } from "@hooks/IntermittentClass";

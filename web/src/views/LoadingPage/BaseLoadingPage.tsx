@@ -1,42 +1,45 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Theme, Typography, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import ScaleLoader from "react-spinners/ScaleLoader";
-import { makeStyles } from "tss-react/mui";
+import { cn } from "cn";
 
 export interface Props {
     message: string;
 }
 
-const BaseLoadingPage = function (props: Props) {
-    const theme = useTheme();
-    const { classes } = useStyles();
+const delays = [
+    "[animation-delay:0.1s]",
+    "[animation-delay:0.2s]",
+    "[animation-delay:0.3s]",
+    "[animation-delay:0.4s]",
+    "[animation-delay:0.5s]",
+];
 
+const BaseLoadingPage = function (props: Props) {
     return (
-        <Grid container className={classes.gridOuter}>
-            <Grid className={classes.gridInner}>
-                <Box padding={theme.spacing(2)}>
-                    <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />
-                </Box>
-                <Box padding={theme.spacing(2)}>
-                    <Typography>{props.message}...</Typography>
-                </Box>
-            </Grid>
-        </Grid>
+        <div className="grid min-h-screen items-center justify-center">
+            <div className="inline-block text-center">
+                <div className="p-4">
+                    <span className="inline-flex">
+                        {delays.map((delay) => (
+                            <span
+                                key={delay}
+                                className={cn(
+                                    "mx-0.5 inline-block h-[35px] w-1 rounded-[2px]",
+                                    "bg-[var(--custom-loading-bar)] animate-scale-loader",
+                                    delay,
+                                )}
+                            />
+                        ))}
+                    </span>
+                </div>
+                <div className="p-4">
+                    <p>{props.message}...</p>
+                </div>
+            </div>
+        </div>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    gridOuter: {
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-    },
-    gridInner: {
-        textAlign: "center",
-        display: "inline-block",
-    },
-}));
 
 export default BaseLoadingPage;

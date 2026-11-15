@@ -1,9 +1,11 @@
-import React, { ReactNode, useCallback, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Breakpoint, Container, Theme } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { ReactNode, useCallback, useEffect, useState } from "react";
+
+import { cn } from "cn";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import UserSvg from "@assets/images/user.svg?react";
 import AppBarLoginPortal from "@components/AppBarLoginPortal";
@@ -17,15 +19,23 @@ import { UserInfo } from "@models/UserInfo";
 import { getLocaleInformation } from "@services/LocaleInformation";
 import { getLogoOverride } from "@utils/Configuration";
 
+const maxWidthMap: Record<string, string> = {
+    lg: "max-w-4xl",
+    md: "max-w-2xl",
+    sm: "max-w-xl",
+    xl: "max-w-6xl",
+    xs: "max-w-[444px]",
+};
+
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string | null;
-    titleTooltip?: string | null;
-    subtitle?: string | null;
-    subtitleTooltip?: string | null;
+    title?: null | string;
+    titleTooltip?: null | string;
+    subtitle?: null | string;
+    subtitleTooltip?: null | string;
     userInfo?: UserInfo;
-    maxWidth?: false | Breakpoint;
+    maxWidth?: false | string;
 }
 
 const LoginLayout = function (props: Props) {
@@ -34,15 +44,17 @@ const LoginLayout = function (props: Props) {
 
     const [localeList, setLocaleList] = useState<Language[]>([]);
 
-    const { classes } = useStyles();
-
     const logo = getLogoOverride() ? (
-        <Box component={"img"} src="./static/media/logo.png" alt="Logo" className={classes.icon} />
+        <img
+            src="./static/media/logo.png"
+            alt="Logo"
+            className="mx-auto my-2 w-16"
+            style={{ fill: "var(--custom-icon)" }}
+        />
     ) : (
-        <UserSvg className={classes.icon} />
+        <UserSvg className="mx-auto my-2 w-16" style={{ fill: "var(--custom-icon)" }} />
     );
 
-    // handle the language selection
     const handleChangeLanguage = (locale: string) => {
         setLocale(locale);
     };
@@ -59,86 +71,56 @@ const LoginLayout = function (props: Props) {
     }, []);
 
     useEffect(() => {
-        fetchLocaleInformation().then();
+        const fetchData = async () => {
+            await fetchLocaleInformation();
+        };
+        void fetchData();
     }, [fetchLocaleInformation]);
 
     useEffect(() => {
-        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
+    const containerMaxWidth = props.maxWidth === false ? "" : (maxWidthMap[props.maxWidth ?? "xs"] ?? "max-w-xs");
+
     return (
-        <Box>
+        <div>
             <AppBarLoginPortal
                 userInfo={props.userInfo}
                 onLocaleChange={handleChangeLanguage}
                 localeList={localeList}
                 localeCurrent={locale}
             />
-            <Grid
-                id={props.id}
-                className={classes.root}
-                container
-                spacing={0}
-                alignItems="center"
-                justifyContent="center"
-            >
-                <Container
-                    maxWidth={props.maxWidth === undefined ? "xs" : props.maxWidth}
-                    className={classes.rootContainer}
-                >
-                    <Grid container>
-                        <Grid size={{ xs: 12 }}>{logo}</Grid>
+            <div id={props.id} className="flex min-h-[90vh] items-center justify-center text-center">
+                <div className={cn("mx-auto w-full px-8", containerMaxWidth)}>
+                    <div className="flex flex-col items-stretch">
+                        <div className="w-full p-2">{logo}</div>
                         {props.title ? (
-                            <Grid size={{ xs: 12 }} maxWidth={"xs"}>
+                            <div className="w-full">
                                 <TypographyWithTooltip
-                                    variant={"h5"}
+                                    variant="h5"
                                     value={props.title}
-                                    tooltip={props.titleTooltip !== null ? props.titleTooltip : undefined}
+                                    tooltip={props.titleTooltip ?? undefined}
                                 />
-                            </Grid>
+                            </div>
                         ) : null}
                         {props.subtitle ? (
-                            <Grid size={{ xs: 12 }}>
+                            <div className="w-full">
                                 <TypographyWithTooltip
-                                    variant={"h6"}
+                                    variant="h6"
                                     value={props.subtitle}
-                                    tooltip={props.subtitleTooltip !== null ? props.subtitleTooltip : undefined}
+                                    tooltip={props.subtitleTooltip ?? undefined}
                                 />
-                            </Grid>
+                            </div>
                         ) : null}
-                        <Grid size={{ xs: 12 }} className={classes.body}>
-                            {props.children}
-                        </Grid>
+                        <div className="mt-2 py-2">{props.children}</div>
                         <Brand />
-                    </Grid>
-                </Container>
+                    </div>
+                </div>
                 <PrivacyPolicyDrawer />
-            </Grid>
-        </Box>
+            </div>
+        </div>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        minHeight: "90vh",
-        textAlign: "center",
-    },
-    rootContainer: {
-        paddingLeft: 32,
-        paddingRight: 32,
-    },
-    title: {},
-    subtitle: {},
-    icon: {
-        margin: theme.spacing(),
-        width: "64px",
-        fill: theme.custom.icon,
-    },
-    body: {
-        marginTop: theme.spacing(),
-        paddingTop: theme.spacing(),
-        paddingBottom: theme.spacing(),
-    },
-}));
 
 export default LoginLayout;

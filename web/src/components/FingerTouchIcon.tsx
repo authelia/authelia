@@ -1,7 +1,8 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Theme } from "@mui/material";
-import { makeStyles } from "tss-react/mui";
+import { cn } from "cn";
 
 import style from "@components/FingerTouchIcon.module.css";
 
@@ -13,8 +14,6 @@ export interface Props {
 }
 
 const FingerTouchIcon = function (props: Props) {
-    const { cx } = useStyles();
-
     const shakingClass = props.animated ? style.shaking : undefined;
     const strong = props.strong ? style.strong : undefined;
 
@@ -25,7 +24,7 @@ const FingerTouchIcon = function (props: Props) {
             viewBox="0 0 500 500"
             width={props.size}
             height={props.size}
-            className={cx(style.hand, strong)}
+            className={cn(style.hand, strong)}
         >
             <path
                 className={shakingClass}
@@ -56,7 +55,5 @@ const FingerTouchIcon = function (props: Props) {
         </svg>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({}));
 
 export default FingerTouchIcon;

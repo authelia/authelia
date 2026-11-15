@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package cmd
 
 import (
@@ -23,21 +27,23 @@ func newCICmd() (cmd *cobra.Command) {
 }
 
 func cmdCIRun(cmd *cobra.Command, _ []string) {
+	buildkite, _ := cmd.Flags().GetBool("buildkite")
+
+	args := []string{"--log-level", "debug"}
+
+	if buildkite {
+		args = append(args, "--buildkite")
+	}
+
 	log.Info("=====> Build stage <=====")
 
-	if buildkite, _ := cmd.Flags().GetBool("buildkite"); buildkite {
-		if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "--buildkite", "build").Run(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "build").Run(); err != nil {
-			log.Fatal(err)
-		}
+	if err := utils.CommandWithStdout("authelia-scripts", append(args, "build")...).Run(); err != nil {
+		log.Fatal(err)
 	}
 
 	log.Info("=====> Unit testing stage <=====")
 
-	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "unittest").Run(); err != nil {
+	if err := utils.CommandWithStdout("authelia-scripts", append(args, "unittest")...).Run(); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Guidelines"
-description: "An introduction into guidelines for contributing to the Authelia project."
+description: "An introduction to the Authelia contribution guidelines covering automated enforcement, general recommendations, and expectations for pull request submissions."
 summary: "An introduction into guidelines for contributing to the Authelia project."
-date: 2022-10-02T14:32:16+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 310
@@ -29,4 +33,8 @@ Some general guidelines include:
 - It's recommended people wishing to contribute discuss their intended changes prior to contributing
   - This helps avoid people doubling up on contributions
   - This helps avoid conflicts between contributions
-  - This helps avoid contributors wasting their percussion time in a contribution that may not be accepted
+  - This helps avoid contributors wasting their precious limited time in a contribution that may not be accepted
+
+## Generative AI Guidelines
+
+Please see the [Artificial Intelligence Policy](../../policies/artificial-intelligence.md) for details.

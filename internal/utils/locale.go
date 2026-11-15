@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -26,14 +30,13 @@ func GetDirectoryLanguages(path string) (languages *Languages, err error) {
 	return lng, nil
 }
 
-// GetEmbeddedLanguages returns the available languages info from an embed.FS.
+// GetEmbeddedLanguages returns the available languages info from an [embed.FS].
 func GetEmbeddedLanguages(fs embed.FS) (languages *Languages, err error) {
 	return getLanguages(fs)
 }
 
 //nolint:gocyclo
 func getLanguages(dir fs.FS) (languages *Languages, err error) {
-	//nolint:prealloc
 	var locales []string
 
 	languages = &Languages{
@@ -59,6 +62,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 		if errWalk != nil {
 			return errWalk
 		}
+
 		if info.IsDir() {
 			return nil
 		}
@@ -68,7 +72,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 
 		ns := strings.Replace(nameLower, ext, "", 1)
 
-		if ext != extJSON {
+		if ext != ExtJSON {
 			return nil
 		}
 
@@ -88,6 +92,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 					}
 
 					languages.Languages[i].Namespaces = append(languages.Languages[i].Namespaces, ns)
+
 					break
 				}
 			}
@@ -120,9 +125,8 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 		return nil, err
 	}
 
-	var langs []Language //nolint:prealloc
+	var langs []Language
 
-	// adding locale fallbacks.
 	for i, lang := range languages.Languages {
 		p := lang.Tag.Parent()
 		parentString := p.String()

@@ -1,6 +1,17 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authorization
 
+import "github.com/authelia/authelia/v4/internal/utils"
+
+// NewAuthenticationMethodsReferencesFromClaim translate AMR claim arrays into a struct.
+//
+//nolint:gocyclo // This function is entirely clear even with the complexity.
 func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr AuthenticationMethodsReferences) {
+	var extras []string
+
 	for _, ref := range claim {
 		switch ref {
 		case AMRKnowledgeBasedAuthentication:
@@ -11,6 +22,8 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 			amr.TOTP = true
 		case AMRShortMessageService:
 			amr.Duo = true
+		case AMRRecoveryCode:
+			amr.RecoveryCode = true
 		case AMRProofOfPossession:
 			amr.WebAuthn = true
 		case AMRHardwareSecuredKey:
@@ -19,9 +32,32 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 		case AMRSoftwareSecuredKey:
 			amr.WebAuthn = true
 			amr.WebAuthnSoftware = true
-		case AMRUserPresence:
+		case AMRPersonalIdentificationNumber:
 			amr.WebAuthnUserVerified = true
+		case AMRUserPresence:
+			amr.WebAuthnUserPresence = true
+		default:
+			extras = append(extras, ref)
 		}
+	}
+
+	for _, extra := range extras {
+		switch extra {
+		case AMRMultiFactorAuthentication:
+			if amr.MultiFactorAuthentication() {
+				continue
+			}
+		case AMRMultiChannelAuthentication:
+			if amr.MultiChannelAuthentication() {
+				continue
+			}
+		}
+
+		if utils.IsStringInSlice(extra, amr.Extra) {
+			continue
+		}
+
+		amr.Extra = append(amr.Extra, extra)
 	}
 
 	return amr
@@ -38,6 +74,8 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
+	RecoveryCode                 bool
+	Extra                        []string
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.
@@ -47,7 +85,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.RecoveryCode
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -57,7 +95,7 @@ func (r AuthenticationMethodsReferences) MultiFactorAuthentication() bool {
 
 // ChannelBrowser returns true if a browser was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
-	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.RecoveryCode
 }
 
 // ChannelService returns true if a non-browser service was used to authenticate.
@@ -72,6 +110,8 @@ func (r AuthenticationMethodsReferences) MultiChannelAuthentication() bool {
 
 // MarshalRFC8176 returns the AMR claim slice of strings in the RFC8176 format.
 // https://datatracker.ietf.org/doc/html/rfc8176
+//
+//nolint:gocyclo // The function is simple to understand.
 func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 	var amr []string
 
@@ -111,12 +151,24 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 		amr = append(amr, AMRPersonalIdentificationNumber)
 	}
 
+	if r.RecoveryCode {
+		amr = append(amr, AMRRecoveryCode)
+	}
+
 	if r.MultiFactorAuthentication() {
 		amr = append(amr, AMRMultiFactorAuthentication)
 	}
 
 	if r.MultiChannelAuthentication() {
 		amr = append(amr, AMRMultiChannelAuthentication)
+	}
+
+	for _, extra := range r.Extra {
+		if utils.IsStringInSlice(extra, amr) {
+			continue
+		}
+
+		amr = append(amr, extra)
 	}
 
 	return amr

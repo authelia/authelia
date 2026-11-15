@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -5,16 +9,19 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/asaskevich/govalidator/v12"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -22,6 +29,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -47,7 +55,6 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	ctx.Providers = providers
 	ctx.Configuration = configuration
 	ctx.Logger = NewRequestLogger(ctx.RequestCtx)
-	ctx.Clock = clock.New()
 
 	return ctx
 }
@@ -71,41 +78,11 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 	return methods
 }
 
-// Error reply with an error and display the stack trace in the logs.
-func (ctx *AutheliaCtx) Error(err error, message string) {
-	ctx.SetJSONError(message)
-
-	ctx.Logger.Error(err)
-}
-
 // SetJSONError sets the body of the response to an JSON error KO message.
-func (ctx *AutheliaCtx) SetJSONError(message string) {
-	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
+func (ctx *AutheliaCtx) SetJSONError(message ErrorMessage) {
+	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Code: message.Code, Message: message.Message}, 0); err != nil {
 		ctx.Logger.Error(err)
 	}
-}
-
-// SetAuthenticationErrorJSON sets the body of the response to an JSON error KO message.
-func (ctx *AutheliaCtx) SetAuthenticationErrorJSON(status int, message string, authentication, elevation bool) {
-	if status > fasthttp.StatusOK {
-		ctx.SetStatusCode(status)
-	}
-
-	if err := ctx.ReplyJSON(AuthenticationErrorResponse{Status: "KO", Message: message, Authentication: authentication, Elevation: elevation}, 0); err != nil {
-		ctx.Logger.Error(err)
-	}
-}
-
-// ReplyError reply with an error but does not display any stack trace in the logs.
-func (ctx *AutheliaCtx) ReplyError(err error, message string) {
-	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
-	if marshalErr != nil {
-		ctx.Logger.Error(marshalErr)
-	}
-
-	ctx.SetContentTypeApplicationJSON()
-	ctx.SetBody(b)
-	ctx.Logger.Debug(err)
 }
 
 // ReplyStatusCode resets a response and replies with the given status code and relevant message.
@@ -160,7 +137,7 @@ func (ctx *AutheliaCtx) XForwardedMethod() (method []byte) {
 func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 	proto = ctx.Request.Header.PeekBytes(headerXForwardedProto)
 
-	if proto == nil {
+	if len(proto) == 0 {
 		if ctx.IsTLS() {
 			return protoHTTPS
 		}
@@ -180,7 +157,7 @@ func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
 func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 	host = ctx.XForwardedHost()
 
-	if host == nil {
+	if len(host) == 0 {
 		return ctx.Host()
 	}
 
@@ -188,7 +165,7 @@ func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 }
 
 // XForwardedURI returns the content of the X-Forwarded-URI header.
-func (ctx *AutheliaCtx) XForwardedURI() (host []byte) {
+func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return ctx.Request.Header.PeekBytes(headerXForwardedURI)
 }
 
@@ -204,12 +181,12 @@ func (ctx *AutheliaCtx) GetXForwardedURI() (uri []byte) {
 }
 
 // XOriginalMethod returns the content of the X-Original-Method header.
-func (ctx *AutheliaCtx) XOriginalMethod() []byte {
+func (ctx *AutheliaCtx) XOriginalMethod() (method []byte) {
 	return ctx.Request.Header.PeekBytes(headerXOriginalMethod)
 }
 
 // XOriginalURL returns the content of the X-Original-URL header.
-func (ctx *AutheliaCtx) XOriginalURL() []byte {
+func (ctx *AutheliaCtx) XOriginalURL() (uri []byte) {
 	return ctx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
@@ -229,13 +206,18 @@ func (ctx *AutheliaCtx) QueryArgAutheliaURL() []byte {
 	return ctx.QueryArgs().PeekBytes(qryArgAutheliaURL)
 }
 
-// AuthzPath returns the 'authz_path' value.
+// AuthzPath returns the 'authz_path' value including the query string if one is present.
 func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
-	if uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath); uv != nil {
-		return []byte(uv.(string))
+	uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath)
+	if uv == nil {
+		return nil
 	}
 
-	return nil
+	if query := ctx.URI().QueryString(); len(query) != 0 {
+		return utils.BytesJoin([]byte(uv.(string)), []byte("?"), query)
+	}
+
+	return []byte(uv.(string))
 }
 
 // BasePath returns the base_url as per the path visited by the client.
@@ -260,17 +242,8 @@ func (ctx *AutheliaCtx) BasePathSlash() string {
 	return strSlash
 }
 
-// RootURL returns the Root URL.
-func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
-	return &url.URL{
-		Scheme: string(ctx.XForwardedProto()),
-		Host:   string(ctx.GetXForwardedHost()),
-		Path:   ctx.BasePath(),
-	}
-}
-
-// RootURLSlash is the same as RootURL but includes a final slash as well.
-func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
+// TemplateRootURL is the same as RootURL but includes a final slash as well.
+func (ctx *AutheliaCtx) TemplateRootURL() (issuerURL *url.URL) {
 	return &url.URL{
 		Scheme: string(ctx.XForwardedProto()),
 		Host:   string(ctx.GetXForwardedHost()),
@@ -286,6 +259,12 @@ func (ctx *AutheliaCtx) GetCookieDomainFromTargetURI(targetURI *url.URL) string 
 
 	hostname := targetURI.Hostname()
 
+	if !utils.IsHostnameValid(hostname) {
+		ctx.Logger.Debugf("Target URL hostname '%s' is not a valid hostname", hostname)
+
+		return ""
+	}
+
 	for _, domain := range ctx.Configuration.Session.Cookies {
 		if utils.HasDomainSuffix(hostname, domain.Domain) {
 			return domain.Domain
@@ -293,6 +272,25 @@ func (ctx *AutheliaCtx) GetCookieDomainFromTargetURI(targetURI *url.URL) string 
 	}
 
 	return ""
+}
+
+// GetCookieConfigFromAutheliaURL returns the session cookie configuration which matches the given Authelia URL.
+func (ctx *AutheliaCtx) GetCookieConfigFromAutheliaURL(autheliaURL *url.URL) (cookie schema.SessionCookie) {
+	if len(ctx.Configuration.Session.Cookies) == 1 && ctx.Configuration.Session.Cookies[0].AutheliaURL == nil {
+		return ctx.Configuration.Session.Cookies[0]
+	}
+
+	for _, cookie = range ctx.Configuration.Session.Cookies {
+		if cookie.AutheliaURL == nil {
+			continue
+		}
+
+		if autheliaURL.Host == cookie.AutheliaURL.Host {
+			return cookie
+		}
+	}
+
+	return schema.SessionCookie{}
 }
 
 // IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
@@ -320,18 +318,28 @@ func (ctx *AutheliaCtx) GetCookieDomain() (domain string, err error) {
 }
 
 // GetSessionProviderByTargetURI returns the session provider for the Request's domain.
-func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provider *session.Session, err error) {
+func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provider session.Strategy, err error) {
 	domain := ctx.GetCookieDomainFromTargetURI(targetURL)
 
 	if domain == "" {
 		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the url '%s'", targetURL)
 	}
 
-	return ctx.Providers.SessionProvider.Get(domain)
+	return ctx.GetCookieDomainSessionProvider(domain)
+}
+
+// GetSessionManagerByTargetURI returns the session manager for the request's domain.
+func (ctx *AutheliaCtx) GetSessionManagerByTargetURI(targetURL *url.URL) (provider session.Manager, err error) {
+	base, err := ctx.GetSessionProviderByTargetURI(targetURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return session.NewEncapsulatedSession(base, ctx), nil
 }
 
 // GetSessionProvider returns the session provider for the Request's domain.
-func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
+func (ctx *AutheliaCtx) GetSessionProvider() (provider session.Strategy, err error) {
 	if ctx.session == nil {
 		var targetURI *url.URL
 
@@ -347,80 +355,96 @@ func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err err
 	return ctx.session, nil
 }
 
+// NewSession returns a new user session.
+func (ctx *AutheliaCtx) NewSession() (userSession session.UserSession) {
+	if provider, err := ctx.GetSessionProvider(); err != nil {
+		return session.NewDefaultUserSession()
+	} else {
+		return provider.NewDefault()
+	}
+}
+
+// GetSessionConfig returns the session configuration.
+func (ctx *AutheliaCtx) GetSessionConfig() (config schema.SessionCookie) {
+	if provider, err := ctx.GetSessionProvider(); err != nil {
+		return config
+	} else {
+		return provider.GetConfig()
+	}
+}
+
 // GetCookieDomainSessionProvider returns the session provider for the provided domain.
-func (ctx *AutheliaCtx) GetCookieDomainSessionProvider(domain string) (provider *session.Session, err error) {
+func (ctx *AutheliaCtx) GetCookieDomainSessionProvider(domain string) (provider session.Strategy, err error) {
 	if domain == "" {
 		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the domain '%s'", domain)
 	}
 
-	return ctx.Providers.SessionProvider.Get(domain)
+	if ctx.Providers.Session == nil {
+		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no session provider is configured")
+	}
+
+	return ctx.Providers.Session.GetStrategy(domain)
 }
 
 // GetSession returns the user session provided the cookie provider could be discovered. It is recommended to get the
 // provider itself if you also need to update or destroy sessions.
 func (ctx *AutheliaCtx) GetSession() (userSession session.UserSession, err error) {
-	var provider *session.Session
+	var (
+		provider session.Strategy
+		current  *session.UserSession
+	)
 
 	if provider, err = ctx.GetSessionProvider(); err != nil {
 		return userSession, err
 	}
 
-	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
-		ctx.Logger.Error("Unable to retrieve user session")
-		return provider.NewDefaultUserSession(), nil
-	}
-
-	if userSession.CookieDomain != provider.Config.Domain {
-		ctx.Logger.Warnf("Destroying session cookie as the cookie domain '%s' does not match the requests detected cookie domain '%s' which may be a sign a user tried to move this cookie from one domain to another", userSession.CookieDomain, provider.Config.Domain)
-
-		if err = provider.DestroySession(ctx.RequestCtx); err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred trying to destroy the session cookie")
+	if current, err = provider.Get(ctx); err != nil {
+		if errors.Is(err, session.ErrRepositoryGet) {
+			return userSession, err
 		}
 
-		userSession = provider.NewDefaultUserSession()
+		ctx.Logger.WithError(err).Error("Unable to retrieve user session")
 
-		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred trying to save the new session cookie")
-		}
+		return provider.NewDefault(), nil
 	}
 
-	return userSession, nil
+	return *current, nil
 }
 
 // SaveSession saves the content of the session.
-func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
+func (ctx *AutheliaCtx) SaveSession(userSession *session.UserSession) (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to save user session: %s", err)
 	}
 
-	return provider.SaveSession(ctx.RequestCtx, userSession)
+	return provider.Save(ctx, userSession)
 }
 
 // RegenerateSession regenerates a user session.
-func (ctx *AutheliaCtx) RegenerateSession() error {
+func (ctx *AutheliaCtx) RegenerateSession() (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to regenerate user session: %s", err)
 	}
 
-	return provider.RegenerateSession(ctx.RequestCtx)
+	return provider.Regenerate(ctx)
 }
 
 // DestroySession destroys a user session.
-func (ctx *AutheliaCtx) DestroySession() error {
+func (ctx *AutheliaCtx) DestroySession() (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to destroy user session: %s", err)
 	}
 
-	return provider.DestroySession(ctx.RequestCtx)
+	return provider.Destroy(ctx)
 }
 
 // GetDefaultRedirectionURL retrieves the default redirection URL for the request.
 func (ctx *AutheliaCtx) GetDefaultRedirectionURL() *url.URL {
 	if provider, err := ctx.GetSessionProvider(); err == nil {
-		return provider.Config.DefaultRedirectionURL
+		return provider.GetConfig().DefaultRedirectionURL
 	}
 
 	return nil
@@ -433,19 +457,13 @@ func (ctx *AutheliaCtx) ReplyOK() {
 }
 
 // ParseBody parse the request body into the type of value.
-func (ctx *AutheliaCtx) ParseBody(value any) error {
-	err := json.Unmarshal(ctx.PostBody(), &value)
-	if err != nil {
+func (ctx *AutheliaCtx) ParseBody(value any) (err error) {
+	if err = json.Unmarshal(ctx.PostBody(), &value); err != nil {
 		return fmt.Errorf("unable to parse body: %w", err)
 	}
 
-	valid, err := govalidator.ValidateStruct(value)
-	if err != nil {
+	if _, err = govalidator.ValidateStruct(value); err != nil {
 		return fmt.Errorf("unable to validate body: %w", err)
-	}
-
-	if !valid {
-		return fmt.Errorf("body is not valid")
 	}
 
 	return nil
@@ -471,19 +489,34 @@ func (ctx *AutheliaCtx) SetContentTypeApplicationYAML() {
 	ctx.SetContentTypeBytes(contentTypeApplicationYAML)
 }
 
-// SetContentSecurityPolicy sets the Content-Security-Policy header.
-func (ctx *AutheliaCtx) SetContentSecurityPolicy(value string) {
-	ctx.Response.Header.SetBytesK(headerContentSecurityPolicy, value)
-}
-
-// SetContentSecurityPolicyBytes sets the Content-Security-Policy header.
-func (ctx *AutheliaCtx) SetContentSecurityPolicyBytes(value []byte) {
-	ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, value)
-}
-
 // SetJSONBody Set json body.
 func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 	return ctx.ReplyJSON(OKResponse{Status: "OK", Data: value}, 0)
+}
+
+// GetRequestQueryArgValue returns the value of the query argument with the given key.
+func (ctx *AutheliaCtx) GetRequestQueryArgValue(key []byte) (value []byte) {
+	return ctx.QueryArgs().PeekBytes(key)
+}
+
+// GetRequestQueryArgValues returns the values of the query argument with the given key.
+func (ctx *AutheliaCtx) GetRequestQueryArgValues(key []byte) (values [][]byte) {
+	return ctx.QueryArgs().PeekMultiBytes(key)
+}
+
+// GetRequestHeaderValue returns the value of the header with the given key.
+func (ctx *AutheliaCtx) GetRequestHeaderValue(key []byte) (value []byte) {
+	return ctx.Request.Header.PeekBytes(key)
+}
+
+// SetResponseHeaderValue sets a response header with the specified key and value.
+func (ctx *AutheliaCtx) SetResponseHeaderValue(key []byte, value string) {
+	ctx.Response.Header.SetBytesK(key, value)
+}
+
+// SetResponseHeaderValueBytes sets a response header with the specified key and value as byte slices.
+func (ctx *AutheliaCtx) SetResponseHeaderValueBytes(key, value []byte) {
+	ctx.Response.Header.SetBytesKV(key, value)
 }
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
@@ -492,15 +525,11 @@ func (ctx *AutheliaCtx) RemoteIP() net.IP {
 }
 
 // GetXForwardedURL returns the parsed X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-URI request header as a
-// *url.URL.
+// *[url.URL].
 func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
 	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.GetXForwardedURI()
 
-	if forwardedProto == nil {
-		return nil, ErrMissingXForwardedProto
-	}
-
-	if forwardedHost == nil {
+	if len(forwardedHost) == 0 {
 		return nil, ErrMissingXForwardedHost
 	}
 
@@ -513,7 +542,7 @@ func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
 	return requestURI, nil
 }
 
-// GetXOriginalURL returns the parsed X-OriginalURL request header as a *url.URL.
+// GetXOriginalURL returns the parsed X-OriginalURL request header as a *[url.URL].
 func (ctx *AutheliaCtx) GetXOriginalURL() (requestURI *url.URL, err error) {
 	value := ctx.XOriginalURL()
 
@@ -545,33 +574,64 @@ func (ctx *AutheliaCtx) GetXOriginalURLOrXForwardedURL() (requestURI *url.URL, e
 
 // GetOrigin returns the expected origin for requests from this endpoint.
 func (ctx *AutheliaCtx) GetOrigin() (origin *url.URL, err error) {
-	if origin, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
+	if origin, err = ctx.GetXForwardedURL(); err != nil {
 		return nil, err
 	}
 
-	origin.Path = ""
-	origin.RawPath = ""
-
-	return origin, nil
+	return &url.URL{Scheme: origin.Scheme, Host: origin.Host}, nil
 }
 
 // IssuerURL returns the expected Issuer.
 func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	issuerURL = &url.URL{
-		Scheme: string(ctx.XForwardedProto()),
-		Host:   string(ctx.GetXForwardedHost()),
+		Scheme: strings.ToLower(string(ctx.XForwardedProto())),
+		Host:   strings.ToLower(string(ctx.GetXForwardedHost())),
 		Path:   ctx.BasePath(),
-	}
-
-	if len(issuerURL.Scheme) == 0 {
-		issuerURL.Scheme = strProtoHTTPS
 	}
 
 	if len(issuerURL.Host) == 0 {
 		return nil, ErrMissingXForwardedHost
 	}
 
+	switch issuerURL.Scheme {
+	case "":
+		return nil, ErrMissingXForwardedProto
+	case strProtoHTTPS:
+		break
+	default:
+		return nil, fmt.Errorf("invalid X-Forwarded-Proto header value '%s'", issuerURL.Scheme)
+	}
+
+	cookie := ctx.GetCookieConfigFromAutheliaURL(issuerURL)
+
+	if cookie.Domain == "" {
+		return nil, fmt.Errorf("error occurred discovering the issuer: no session cookie configuration matches url '%s'", issuerURL)
+	}
+
+	if cookie.AutheliaURL != nil {
+		return issuerURL, nil
+	} else if !utils.HasURIDomainSuffix(issuerURL, cookie.Domain) {
+		return nil, fmt.Errorf("error occurred discovering the issuer: the hostname '%s' does not match the configured domain '%s'", issuerURL.Hostname(), cookie.Domain)
+	}
+
 	return issuerURL, nil
+}
+
+// IsNavigation returns true if the request is a top-level browser navigation. The Fetch Metadata request headers are
+// used when present, otherwise this falls back to the X-Requested-With and Accept headers. Navigations of nested
+// browsing contexts such as iframes are not considered top-level navigations.
+func (ctx *AutheliaCtx) IsNavigation() (navigation bool) {
+	if mode := ctx.Request.Header.PeekBytes(headerSecFetchMode); len(mode) != 0 {
+		if !strings.EqualFold(string(mode), headerValueSecFetchModeNavigate) {
+			return false
+		}
+
+		dest := ctx.Request.Header.PeekBytes(headerSecFetchDest)
+
+		return len(dest) == 0 || strings.EqualFold(string(dest), headerValueSecFetchDestDocument)
+	}
+
+	return !ctx.IsXHR() && ctx.AcceptsMIME("text/html")
 }
 
 // IsXHR returns true if the request is a XMLHttpRequest.
@@ -597,25 +657,25 @@ func (ctx *AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
 	return false
 }
 
-// SpecialRedirect performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes body
-// content in the form of a link to the location if the request method was not head.
+// SpecialRedirect performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and 403 and
+// includes body content in the form of a link to the location if the request method was not head.
 func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	var u []byte
 
 	u, statusCode = ctx.setSpecialRedirect(uri, statusCode)
 
 	ctx.SetContentTypeTextHTML()
-	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
+	ctx.SetBodyString(fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
 }
 
-// SpecialRedirectNoBody performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes
-// no body.
+// SpecialRedirectNoBody performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and 403 and
+// includes no body.
 func (ctx *AutheliaCtx) SpecialRedirectNoBody(uri string, statusCode int) {
 	_, _ = ctx.setSpecialRedirect(uri, statusCode)
 }
 
 func (ctx *AutheliaCtx) setSpecialRedirect(uri string, statusCode int) ([]byte, int) {
-	if statusCode < fasthttp.StatusMovedPermanently || (statusCode > fasthttp.StatusSeeOther && statusCode != fasthttp.StatusTemporaryRedirect && statusCode != fasthttp.StatusPermanentRedirect && statusCode != fasthttp.StatusUnauthorized) {
+	if statusCode < fasthttp.StatusMovedPermanently || (statusCode > fasthttp.StatusSeeOther && statusCode != fasthttp.StatusTemporaryRedirect && statusCode != fasthttp.StatusPermanentRedirect && statusCode != fasthttp.StatusUnauthorized && statusCode != fasthttp.StatusForbidden) {
 		statusCode = fasthttp.StatusFound
 	}
 
@@ -636,32 +696,47 @@ func (ctx *AutheliaCtx) setSpecialRedirect(uri string, statusCode int) ([]byte, 
 }
 
 // RecordAuthn records authentication metrics.
-func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
+func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, authType string) {
 	if ctx.Providers.Metrics == nil {
 		return
 	}
 
-	ctx.Providers.Metrics.RecordAuthn(success, regulated, method)
+	ctx.Providers.Metrics.RecordAuthn(success, regulated, authType)
 }
 
 // GetClock returns the clock. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetClock() (clock clock.Provider) {
-	return ctx.Clock
+func (ctx *AutheliaCtx) GetClock() (provider clock.Provider) {
+	if ctx.Providers.Clock == nil {
+		ctx.Providers.Clock = clock.New()
+	}
+
+	return ctx.Providers.Clock
+}
+
+// GetJWTWithTimeFuncOption returns a jwt.ParserOption that sets the time function to the current clock's Now function.
+func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
+	return jwt.WithTimeFunc(ctx.GetClock().Now)
 }
 
 // GetRandom returns the random provider. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetRandom() (random random.Provider) {
+func (ctx *AutheliaCtx) GetRandom() (provider random.Provider) {
+	if ctx.Providers.Random == nil {
+		ctx.Providers.Random = random.New()
+	}
+
 	return ctx.Providers.Random
 }
 
-// GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
-	return jwt.WithTimeFunc(ctx.Clock.Now)
+// GetLogger returns the logger for this request.
+func (ctx *AutheliaCtx) GetLogger() (logger *logrus.Entry) {
+	return ctx.Logger
 }
 
 // GetConfiguration returns the current configuration.
-func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
-	return ctx.Configuration
+func (ctx *AutheliaCtx) GetConfiguration() (config *schema.Configuration) {
+	copied := ctx.Configuration
+
+	return &copied
 }
 
 // GetProviders returns the providers for this context.
@@ -669,6 +744,23 @@ func (ctx *AutheliaCtx) GetProviders() (providers Providers) {
 	return ctx.Providers
 }
 
+// GetUserProvider returns the UserProvider instance used for authentication and user management within the context.
+func (ctx *AutheliaCtx) GetUserProvider() authentication.UserProvider {
+	return ctx.Providers.UserProvider
+}
+
+// GetProviderStorage returns the storage provider associated with the current Authelia context.
+func (ctx *AutheliaCtx) GetProviderStorage() storage.Provider {
+	return ctx.Providers.StorageProvider
+}
+
+// GetProviderUserAttributeResolver returns the UserAttributeResolver provider instance from the Authelia context.
+func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	return ctx.Providers.UserAttributeResolver
+}
+
+// GetWebAuthnProvider initializes and returns a WebAuthn provider instance with the configured Relying Party (RP)
+// settings.
 func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) {
 	var (
 		origin *url.URL
@@ -722,11 +814,14 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 	return webauthn.New(config)
 }
 
-func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
-	return ctx.Providers.UserAttributeResolver
+// RecordAuthenticationDuration records the duration of an authentication attempt with the metrics provider.
+func (ctx *AutheliaCtx) RecordAuthenticationDuration(success bool, elapsed time.Duration) {
+	if ctx.Providers.Metrics != nil {
+		ctx.Providers.Metrics.RecordAuthenticationDuration(success, elapsed)
+	}
 }
 
-// Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key
+// Value is a shaded method of [context.Context] which returns the AutheliaCtx struct if the key is the internal key
 // otherwise it returns the shaded value.
 func (ctx *AutheliaCtx) Value(key any) any {
 	if key == model.CtxKeyAutheliaCtx {
@@ -736,7 +831,81 @@ func (ctx *AutheliaCtx) Value(key any) any {
 	return ctx.RequestCtx.Value(key)
 }
 
-// GetLogger returns the logger for this request.
-func (ctx *AutheliaCtx) GetLogger() *logrus.Entry {
-	return ctx.Logger
+// GetCookie returns the value of the request cookie with the given name.
+func (ctx *AutheliaCtx) GetCookie(name string) string {
+	return string(ctx.Request.Header.Cookie(name))
 }
+
+// SetCookie sets the given cookie on the response.
+func (ctx *AutheliaCtx) SetCookie(cookie *http.Cookie) {
+	setCookie := fasthttp.AcquireCookie()
+
+	setCookie.SetKey(cookie.Name)
+	setCookie.SetValue(cookie.Value)
+	setCookie.SetDomain(cookie.Domain)
+	setCookie.SetPath(cookie.Path)
+	setCookie.SetSecure(cookie.Secure)
+	setCookie.SetHTTPOnly(cookie.HttpOnly)
+	setCookie.SetPartitioned(cookie.Partitioned)
+	setCookie.SetMaxAge(cookie.MaxAge)
+	setCookie.SetExpire(cookie.Expires)
+
+	switch cookie.SameSite {
+	case http.SameSiteDefaultMode:
+		setCookie.SetSameSite(fasthttp.CookieSameSiteDefaultMode)
+	case http.SameSiteLaxMode:
+		setCookie.SetSameSite(fasthttp.CookieSameSiteLaxMode)
+	case http.SameSiteStrictMode:
+		setCookie.SetSameSite(fasthttp.CookieSameSiteStrictMode)
+	case http.SameSiteNoneMode:
+		setCookie.SetSameSite(fasthttp.CookieSameSiteNoneMode)
+	}
+
+	ctx.Request.Header.SetCookieBytesKV(setCookie.Key(), setCookie.Value())
+	ctx.Response.Header.SetCookie(setCookie)
+
+	fasthttp.ReleaseCookie(setCookie)
+}
+
+// ClearCookie expires the given cookie with the user agent. The cookie is expected to already be expired, and must
+// carry the same name, domain, and path as the cookie being cleared, as user agents key cookies on all three and would
+// otherwise retain the original alongside the expired one.
+func (ctx *AutheliaCtx) ClearCookie(cookie *http.Cookie) {
+	ctx.Request.Header.DelCookie(cookie.Name)
+	ctx.Response.Header.DelCookie(cookie.Name)
+
+	//nolint:gosec // The security attributes are carried over from the cookie being cleared, which must match it for the user agent to discard the original.
+	deletion := *cookie
+
+	deletion.Value = ""
+
+	ctx.SetCookie(&deletion)
+}
+
+// CachedSession returns the session retained for the given cookie domain during this request, if there is one. It
+// implements session.CachingContext so a session read by a middleware isn't read again by the handler behind it.
+func (ctx *AutheliaCtx) CachedSession(domain string) (userSession *session.UserSession, ok bool) {
+	userSession, ok = ctx.sessions[domain]
+
+	return userSession, ok
+}
+
+// CacheSession retains the session for the given cookie domain for the remainder of this request. A nil session
+// discards what is retained, which the session provider does when it destroys a session.
+func (ctx *AutheliaCtx) CacheSession(domain string, userSession *session.UserSession) {
+	if userSession == nil {
+		delete(ctx.sessions, domain)
+
+		return
+	}
+
+	if ctx.sessions == nil {
+		ctx.sessions = map[string]*session.UserSession{}
+	}
+
+	ctx.sessions[domain] = userSession
+}
+
+var (
+	_ session.CachingContext = (*AutheliaCtx)(nil)
+)

@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
 import { UserInfo2FAMethodPath, UserInfoPath } from "@services/Api";
 import { Get, Post, PostWithOptionalResponse } from "@services/Client";
 
-export type Method2FA = "webauthn" | "totp" | "mobile_push";
+export type Method2FA = "mobile_push" | "totp" | "webauthn";
 
 export interface UserInfoPayload {
     display_name: string;
@@ -19,7 +23,7 @@ export interface MethodPreferencePayload {
 }
 
 export function isMethod2FA(method: string) {
-    return ["webauthn", "totp", "mobile_push"].includes(method);
+    return ["mobile_push", "totp", "webauthn"].includes(method);
 }
 
 export function toSecondFactorMethod(method: Method2FA): SecondFactorMethod {

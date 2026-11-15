@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -44,7 +48,7 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	data := DocsDataMisc{
 		CSP: TemplateCSP{
 			PlaceholderNONCE:    codeCSPNonce,
-			TemplateDefault:     buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
+			TemplateDefault:     buildCSP(codeCSPSelf, codeCSPValuesCommon, codeCSPValuesProduction),
 			TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
 		},
 	}
@@ -105,7 +109,7 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 
 	encoder := json.NewEncoder(f)
 
-	encoder.SetIndent("", "    ")
+	encoder.SetIndent("", "  ")
 
 	if err = encoder.Encode(data); err != nil {
 		return fmt.Errorf("failed to encode json data: %w", err)
@@ -127,7 +131,6 @@ func newDocsDataKeysCmd() *cobra.Command {
 }
 
 func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
-	//nolint:prealloc
 	var (
 		data []ConfigurationKey
 	)
@@ -172,7 +175,7 @@ func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
 
 	encoder := json.NewEncoder(f)
 
-	encoder.SetIndent("", "    ")
+	encoder.SetIndent("", "  ")
 
 	if err = encoder.Encode(data); err != nil {
 		return fmt.Errorf("failed to encode json data: %w", err)

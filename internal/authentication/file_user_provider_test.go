@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,6 +18,7 @@ import (
 
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
+	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,11 +41,36 @@ func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
 }
 
 func TestShouldErrorAndGenerateUserDB(t *testing.T) {
-	dir := t.TempDir()
+	testCases := []struct {
+		name string
+		file string
+	}{
+		{"ShouldGenerateYAML", "users_database.yml"},
+		{"ShouldGenerateYAMLLong", "users_database.yaml"},
+		{"ShouldGenerateTOML", "users_database.toml"},
+		{"ShouldGenerateJSON", "users_database.json"},
+	}
 
-	f := filepath.Join(dir, "users_database.yml")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := filepath.Join(t.TempDir(), tc.file)
 
-	require.EqualError(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and has been generated", f))
+			require.EqualError(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and has been generated", f))
+
+			model := &FileDatabaseModel{}
+
+			require.NoError(t, model.Read(f))
+			require.Contains(t, model.Users, "authelia")
+
+			user := model.Users["authelia"]
+
+			assert.True(t, user.Disabled)
+			assert.Equal(t, "Test User", user.DisplayName)
+			assert.Equal(t, "authelia@authelia.com", user.Email)
+			assert.Equal(t, []string{"admins", "dev"}, user.Groups)
+			assert.Equal(t, "$argon2id$v=19$m=32768,t=1,p=8$eUhVT1dQa082YVk2VUhDMQ$E8QI4jHbUBt3EdsU1NFDu4Bq5jObKNx7nBKSn1EYQxk", user.Password)
+		})
+	}
 }
 
 func TestShouldErrorFailCreateDB(t *testing.T) {
@@ -90,6 +121,7 @@ func TestShouldNotPanicOnNilDB(t *testing.T) {
 	}
 
 	assert.NoError(t, provider.StartupCheck())
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldHandleBadConfig(t *testing.T) {
@@ -124,7 +156,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 				provider.timeoutReload = time.Now().Add(time.Minute)
 			},
 			false,
-			"",
+			"watcher on cooldown",
 		},
 		{
 			"ShouldReloadWithoutError",
@@ -148,7 +180,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive, nil)
 			},
 			false,
-			"",
+			"error reading the authentication database: no file content",
 		},
 	}
 
@@ -403,6 +435,242 @@ func TestShouldErrOnUpdatePasswordNoUser(t *testing.T) {
 	})
 }
 
+func TestFileUserProviderShouldNotDeadlockOnUpdatePassword(t *testing.T) {
+	const (
+		concurrency = 8
+		iterations  = 50
+		timeout     = 30 * time.Second
+	)
+
+	hash, err := plaintext.New()
+	require.NoError(t, err)
+
+	update := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_ = provider.UpdatePassword("john", "apple123")
+		}
+	}
+
+	reload := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_, _ = provider.Reload()
+		}
+	}
+
+	details := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_, _ = provider.GetDetails("john")
+		}
+	}
+
+	testCases := []struct {
+		name    string
+		workers []func(provider *FileUserProvider)
+	}{
+		{
+			"ShouldNotDeadlockWithConcurrentUpdates",
+			[]func(provider *FileUserProvider){update},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentUpdatesAndReloads",
+			[]func(provider *FileUserProvider){update, reload},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentUpdatesReloadsAndReads",
+			[]func(provider *FileUserProvider){update, reload, details},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				config := DefaultFileAuthenticationBackendConfiguration
+				config.Path = path
+
+				provider := NewFileUserProvider(&config)
+
+				require.NoError(t, provider.StartupCheck())
+
+				provider.hash = hash
+
+				done := make(chan struct{})
+
+				go func() {
+					defer close(done)
+
+					wg := &sync.WaitGroup{}
+
+					for _, worker := range tc.workers {
+						for i := 0; i < concurrency; i++ {
+							wg.Add(1)
+
+							go func() {
+								defer wg.Done()
+
+								worker(provider)
+							}()
+						}
+					}
+
+					wg.Wait()
+				}()
+
+				select {
+				case <-done:
+					require.NoError(t, provider.UpdatePassword("john", "apple123"))
+				case <-time.After(timeout):
+					t.Fatalf("deadlock detected: the concurrent workload did not complete within %s", timeout)
+				}
+			})
+		})
+	}
+}
+
+func TestShouldChangePassword(t *testing.T) {
+	testCases := []struct {
+		name        string
+		username    string
+		oldPassword string
+		newPassword string
+		err         string
+	}{
+		{
+			"ShouldChangePasswordSuccessfully",
+			"john",
+			"password",
+			"newpassword",
+			"",
+		},
+		{
+			"ShouldErrUserNotFound",
+			"nouser",
+			"password",
+			"newpassword",
+			"user not found",
+		},
+		{
+			"ShouldErrDisabledUser",
+			"dis",
+			"password",
+			"newpassword",
+			"user not found",
+		},
+		{
+			"ShouldErrEmptyNewPassword",
+			"john",
+			"password",
+			"",
+			"your supplied password does not meet the password policy requirements",
+		},
+		{
+			"ShouldErrWhitespaceNewPassword",
+			"john",
+			"password",
+			"   ",
+			"your supplied password does not meet the password policy requirements",
+		},
+		{
+			"ShouldErrSamePassword",
+			"john",
+			"password",
+			"password",
+			"your supplied password does not meet the password policy requirements",
+		},
+		{
+			"ShouldErrIncorrectOldPassword",
+			"john",
+			"wrong_password",
+			"newpassword",
+			"incorrect password",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				config := DefaultFileAuthenticationBackendConfiguration
+				config.Path = path
+
+				provider := NewFileUserProvider(&config)
+
+				assert.NoError(t, provider.StartupCheck())
+
+				err := provider.ChangePassword(tc.username, tc.oldPassword, tc.newPassword)
+
+				if tc.err == "" {
+					assert.NoError(t, err)
+
+					// Verify the new password works by resetting the provider.
+					provider = NewFileUserProvider(&config)
+
+					assert.NoError(t, provider.StartupCheck())
+
+					ok, err := provider.CheckUserPassword(tc.username, tc.newPassword)
+					assert.NoError(t, err)
+					assert.True(t, ok)
+				} else {
+					assert.ErrorContains(t, err, tc.err)
+				}
+			})
+		})
+	}
+}
+
+func TestShouldChangePasswordHashError(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mock := NewMockHash(ctrl)
+		provider.hash = mock
+
+		mock.EXPECT().Hash("newpassword").Return(nil, fmt.Errorf("failed to mock hash"))
+
+		err := provider.ChangePassword("john", "password", "newpassword")
+		assert.ErrorContains(t, err, "operation failed")
+	})
+}
+
+func TestShouldChangePasswordSaveError(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		db := NewFileUserDatabase(path, false, false, nil)
+		assert.NoError(t, db.Load())
+
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mock := NewMockFileUserDatabase(ctrl)
+
+		provider.database = mock
+
+		details, _ := db.GetUserDetails("john")
+
+		gomock.InOrder(
+			mock.EXPECT().GetUserDetails("john").Return(details, nil),
+			mock.EXPECT().GetUserDetails("john").Return(details, nil),
+			mock.EXPECT().SetUserDetails("john", gomock.Any()),
+			mock.EXPECT().Save().Return(fmt.Errorf("failed to mock save")),
+		)
+
+		err := provider.ChangePassword("john", "password", "newpassword")
+		assert.ErrorContains(t, err, "operation failed")
+	})
+}
+
 func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 	WithDatabase(t, MalformedUserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
@@ -410,7 +678,7 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: yaml: line 4: mapping values are not allowed in this context")
+		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: go-yaml load error in scanner at L4.C6: mapping values are not allowed in this context")
 	})
 }
 
@@ -502,7 +770,7 @@ func TestShouldNotAllowLoginOfDisabledUsers(t *testing.T) {
 }
 
 func TestShouldErrorOnInvalidCaseSensitiveFile(t *testing.T) {
-	WithDatabase(t, UserDatabaseContentInvalidSearchCaseInsenstive, func(path string) {
+	WithDatabase(t, UserDatabaseContentInvalidSearchCaseInsensitive, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = false
@@ -524,7 +792,7 @@ func TestShouldErrorOnDuplicateEmail(t *testing.T) {
 		provider := NewFileUserProvider(&config)
 
 		err := provider.StartupCheck()
-		assert.Regexp(t, regexp.MustCompile(`^error loading authentication database: email 'john.doe@authelia.com' is configured for for more than one user \(users are '(harry|john)', '(harry|john)'\) which isn't allowed when email search is enabled$`), err.Error())
+		assert.Regexp(t, regexp.MustCompile(`^error loading authentication database: email 'john.doe@authelia.com' is configured for more than one user \(users are '(harry|john)', '(harry|john)'\) which isn't allowed when email search is enabled$`), err.Error())
 	})
 }
 
@@ -614,6 +882,67 @@ func TestShouldAllowLookupCI(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 	})
+}
+
+func TestShouldRegenerateAliasesOnReload(t *testing.T) {
+	testCases := []struct {
+		name            string
+		searchEmail     bool
+		searchCI        bool
+		expectedEmails  map[string]string
+		expectedAliases map[string]string
+	}{
+		{
+			"ShouldRegenerateNothing",
+			false,
+			false,
+			map[string]string{},
+			map[string]string{},
+		},
+		{
+			"ShouldRegenerateEmails",
+			true,
+			false,
+			map[string]string{"john.doe@authelia.com": "john"},
+			map[string]string{},
+		},
+		{
+			"ShouldRegenerateAliases",
+			false,
+			true,
+			map[string]string{},
+			map[string]string{"john": "john"},
+		},
+		{
+			"ShouldRegenerateEmailsAndAliases",
+			true,
+			true,
+			map[string]string{"john.doe@authelia.com": "john"},
+			map[string]string{"john": "john"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				database := NewFileUserDatabase(path, tc.searchEmail, tc.searchCI, nil)
+
+				require.NoError(t, database.Load())
+
+				require.NoError(t, os.WriteFile(path, UserDatabaseContentSingleUser, fileAuthenticationMode))
+				require.NoError(t, database.Load())
+
+				assert.Equal(t, tc.expectedEmails, database.Emails)
+				assert.Equal(t, tc.expectedAliases, database.Aliases)
+
+				_, err := database.GetUserDetails("harry")
+				assert.EqualError(t, err, "user not found")
+
+				_, err = database.GetUserDetails("harry.potter@authelia.com")
+				assert.EqualError(t, err, "user not found")
+			})
+		})
+	}
 }
 
 func TestNewFileCryptoHashFromConfig(t *testing.T) {
@@ -828,6 +1157,17 @@ users:
     email: disabled@authelia.com
 `)
 
+var UserDatabaseContentSingleUser = []byte(`
+users:
+  john:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+`)
+
 var UserDatabaseContentExtra = []byte(`
 users:
   john:
@@ -841,7 +1181,7 @@ users:
       example: '123'
 `)
 
-var UserDatabaseContentInvalidSearchCaseInsenstive = []byte(`
+var UserDatabaseContentInvalidSearchCaseInsensitive = []byte(`
 users:
   john:
     displayname: "John Doe"
@@ -1015,6 +1355,8 @@ users:
 `)
 
 func WithDatabase(t *testing.T, content []byte, f func(path string)) {
+	t.Helper()
+
 	dir := t.TempDir()
 
 	db, err := os.CreateTemp(dir, "users_database.*.yml")
@@ -1026,4 +1368,41 @@ func WithDatabase(t *testing.T, content []byte, f func(path string)) {
 	f(db.Name())
 
 	require.NoError(t, db.Close())
+}
+
+func TestShouldNotStartReloadCooldownWhenContentUnchanged(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "users.yml")
+
+	require.NoError(t, os.WriteFile(path, UserDatabaseContent, 0600))
+
+	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: path, Password: schema.DefaultPasswordConfig})
+
+	require.NoError(t, provider.StartupCheck())
+
+	reloaded, err := provider.Reload()
+
+	assert.False(t, reloaded)
+	assert.NoError(t, err)
+	assert.False(t, time.Now().Before(provider.timeoutReload))
+
+	_, err = provider.GetDetails("harry")
+	require.NoError(t, err)
+
+	require.NoError(t, os.WriteFile(path, bytes.Replace(UserDatabaseContent, []byte("harry:"), []byte("harold:"), 1), 0600))
+
+	reloaded, err = provider.Reload()
+
+	assert.True(t, reloaded)
+	assert.NoError(t, err)
+
+	_, err = provider.GetDetails("harold")
+	assert.NoError(t, err)
+
+	require.NoError(t, provider.UpdatePassword("john", "apple123"))
+
+	reloaded, err = provider.Reload()
+
+	assert.False(t, reloaded)
+	assert.EqualError(t, err, "watcher on cooldown")
 }

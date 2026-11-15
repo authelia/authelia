@@ -2,7 +2,7 @@
 <dl class="flex flex-wrap mxn1">
   <div class="m1">
     <dd>
-      CI/CD steps have been skipped as this is a draft build related to dependencies.
+      CI/CD steps were skipped because this is a draft build related to dependencies.
     </dd>
   </div>
 </dl>

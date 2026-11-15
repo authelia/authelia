@@ -1,10 +1,11 @@
-import React, { ReactNode, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Button, Container, Theme, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import { makeStyles } from "tss-react/mui";
+import { ReactNode, useState } from "react";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
+import { Button } from "@components/UI/Button";
 
 export enum State {
     DEVICE = 1,
@@ -23,20 +24,19 @@ export interface SelectedDevice {
 }
 
 export interface Props {
-    children?: ReactNode;
     devices: SelectableDevice[];
 
     onBack: () => void;
-    onSelect: (device: SelectedDevice) => void;
+    onSelect: (_device: SelectedDevice) => void;
 }
 const DefaultDeviceSelectionContainer = function (props: Props) {
     const [state, setState] = useState(State.DEVICE);
     const [device, setDevice] = useState([] as unknown as SelectableDevice);
 
-    const handleDeviceSelected = (selecteddevice: SelectableDevice) => {
-        if (selecteddevice.methods.length === 1) handleMethodSelected(selecteddevice.methods[0], selecteddevice.id);
+    const handleDeviceSelected = (selectedDevice: SelectableDevice) => {
+        if (selectedDevice.methods.length === 1) handleMethodSelected(selectedDevice.methods[0], selectedDevice.id);
         else {
-            setDevice(selecteddevice);
+            setDevice(selectedDevice);
             setState(State.METHOD);
         }
     };
@@ -50,45 +50,45 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
     switch (state) {
         case State.DEVICE:
             container = (
-                <Grid container justifyContent="center" spacing={1} id="device-selection">
+                <div className="grid w-full grid-cols-1 justify-center gap-2" id="device-selection">
                     {props.devices.map((value, index) => {
                         return (
                             <DeviceItem
                                 id={index}
-                                key={index}
+                                key={value.id}
                                 device={value}
                                 onSelect={() => handleDeviceSelected(value)}
                             />
                         );
                     })}
-                </Grid>
+                </div>
             );
             break;
         case State.METHOD:
             container = (
-                <Grid container justifyContent="center" spacing={1} id="method-selection">
+                <div className="grid w-full grid-cols-1 justify-center gap-2" id="method-selection">
                     {device.methods.map((value, index) => {
                         return (
                             <MethodItem
                                 id={index}
-                                key={index}
+                                key={value}
                                 method={value}
                                 onSelect={() => handleMethodSelected(value)}
                             />
                         );
                     })}
-                </Grid>
+                </div>
             );
             break;
     }
 
     return (
-        <Container>
+        <div className="mx-auto flex max-w-lg flex-col items-center gap-2">
             {container}
-            <Button color="primary" onClick={props.onBack} id="device-selection-back">
+            <Button variant={"ghost"} color={"primary"} onClick={props.onBack} id="device-selection-back">
                 back
             </Button>
-        </Container>
+        </div>
     );
 };
 
@@ -102,25 +102,16 @@ interface DeviceItemProps {
 const DeviceItem = function (props: DeviceItemProps) {
     const className = "device-option-" + props.id;
     const idName = "device-" + props.device.id;
-    const { classes } = useStyles();
 
     return (
-        <Grid size={{ xs: 12 }} className={className} id={idName}>
-            <Button
-                className={classes.item}
-                color="primary"
-                classes={{ root: classes.buttonRoot }}
-                variant="contained"
-                onClick={props.onSelect}
-            >
-                <Box className={classes.icon}>
+        <div className={`${className} w-full`} id={idName}>
+            <Button className="flex w-full flex-col items-center py-6" variant="default" onClick={props.onSelect}>
+                <span className="fill-white">
                     <PushNotificationIcon width={32} height={32} />
-                </Box>
-                <Box>
-                    <Typography>{props.device.name}</Typography>
-                </Box>
+                </span>
+                <span className="text-xs">{props.device.name}</span>
             </Button>
-        </Grid>
+        </div>
     );
 };
 
@@ -134,41 +125,17 @@ interface MethodItemProps {
 const MethodItem = function (props: MethodItemProps) {
     const className = "method-option-" + props.id;
     const idName = "method-" + props.method;
-    const { classes } = useStyles();
 
     return (
-        <Grid size={{ xs: 12 }} className={className} id={idName}>
-            <Button
-                className={classes.item}
-                color="primary"
-                classes={{ root: classes.buttonRoot }}
-                variant="contained"
-                onClick={props.onSelect}
-            >
-                <Box className={classes.icon}>
+        <div className={`${className} w-full`} id={idName}>
+            <Button className="flex w-full flex-col items-center py-6" variant="default" onClick={props.onSelect}>
+                <span className="fill-white">
                     <PushNotificationIcon width={32} height={32} />
-                </Box>
-                <Box>
-                    <Typography>{props.method}</Typography>
-                </Box>
+                </span>
+                <span className="text-xs">{props.method}</span>
             </Button>
-        </Grid>
+        </div>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    item: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-        width: "100%",
-    },
-    icon: {
-        display: "inline-block",
-        fill: "white",
-    },
-    buttonRoot: {
-        display: "block",
-    },
-}));
 
 export default DefaultDeviceSelectionContainer;

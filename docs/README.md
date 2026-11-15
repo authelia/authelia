@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 The **Authelia** website / documentation source.
 
 # Viewing the Documentation
@@ -7,11 +13,6 @@ elements will not render on GitHub, and as such, the markdown is not the officia
 representation of it.
 
 # Contributing
-
-Please:
-
-- Only edit the `/content` folder via the main Authelia [monorepo](https://github.com/authelia/authelia/tree/master/docs)
-- Edit everything else via the Authelia [website repo](https://github.com/authelia/website)
 
 See the [Documentation Contributing Guide](https://www.authelia.com/contributing/prologue/documentation-contributions/) for more
 information.

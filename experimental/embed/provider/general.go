@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package provider
 
 import (
@@ -39,11 +43,12 @@ func NewAuthorizer(config *schema.Configuration) *authorization.Authorizer {
 	return authorization.NewAuthorizer(config)
 }
 
-// NewSession creates a new *session.Provider given a valid configuration.
+// NewSession creates a new session.Provider given a valid configuration. The hmac key is used to sign session
+// identifiers and the repository is the backend the sessions are persisted to.
 //
 // Warning: This method may panic if the provided configuration isn't validated.
-func NewSession(config *schema.Configuration, caCertPool *x509.CertPool) *session.Provider {
-	return session.NewProvider(config.Session, caCertPool)
+func NewSession(config *schema.Configuration, hmac []byte, clock clock.Provider, random random.Provider, repository session.Repository) (provider session.Provider, err error) {
+	return session.NewProvider(config, hmac, clock, random, repository)
 }
 
 // NewRegulator creates a new *regulation.Regulator given a valid configuration.
@@ -55,7 +60,9 @@ func NewRegulator(config *schema.Configuration, storage storage.RegulatorProvide
 
 // NewMetrics creates a new metrics.Provider.
 func NewMetrics() metrics.Provider {
-	return metrics.NewPrometheus()
+	provider, _ := metrics.NewPrometheus()
+
+	return provider
 }
 
 // NewNTP creates a new *ntp.Provider given a valid configuration.
@@ -95,7 +102,7 @@ func NewPasswordPolicy(config *schema.Configuration) middlewares.PasswordPolicyP
 
 // NewRandom creates a new random.Provider given a valid configuration. This uses the rand/crypto package.
 func NewRandom() random.Provider {
-	return &random.Cryptographical{}
+	return random.New()
 }
 
 // NewUserAttributeResolver creates a new expression.UserAttributeResolver given a valid configuration.

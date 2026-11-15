@@ -1,6 +1,10 @@
-import React, { useEffect } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+
+import { Route, Routes } from "react-router";
 
 import { IndexRoute, SecuritySubRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
@@ -11,9 +15,7 @@ import SecurityView from "@views/Settings/Security/SecurityView";
 import SettingsView from "@views/Settings/SettingsView";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
 
-export interface Props {}
-
-const SettingsRouter = function (props: Props) {
+const SettingsRouter = function () {
     const navigate = useRouterNavigate();
     const [state, fetchState, , fetchStateError] = useAutheliaState();
 

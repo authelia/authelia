@@ -1,9 +1,10 @@
-import React, { ReactNode, useEffect } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Container, Theme } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { ReactNode, useEffect } from "react";
+
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import UserSvg from "@assets/images/user.svg?react";
 import AppBarLoginPortal from "@components/AppBarLoginPortal";
@@ -16,74 +17,47 @@ import { getLogoOverride } from "@utils/Configuration";
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string | null;
+    title?: null | string;
     userInfo?: UserInfo;
 }
 
 const MinimalLayout = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const { classes } = useStyles();
-
     const logo = getLogoOverride() ? (
-        <Box component={"img"} src="./static/media/logo.png" alt="Logo" className={classes.icon} />
+        <img
+            src="./static/media/logo.png"
+            alt="Logo"
+            className="mx-auto my-2 w-16"
+            style={{ fill: "var(--custom-icon)" }}
+        />
     ) : (
-        <UserSvg className={classes.icon} />
+        <UserSvg className="mx-auto my-2 w-16" style={{ fill: "var(--custom-icon)" }} />
     );
 
     useEffect(() => {
-        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
     return (
-        <Box>
+        <div>
             <AppBarLoginPortal userInfo={props.userInfo} />
-            <Grid
-                id={props.id}
-                className={classes.root}
-                container
-                spacing={0}
-                alignItems={"center"}
-                justifyContent={"center"}
-            >
-                <Container maxWidth={"xs"} className={classes.rootContainer}>
-                    <Grid container>
-                        <Grid size={{ xs: 12 }}>{logo}</Grid>
+            <div id={props.id} className="flex min-h-[90vh] items-center justify-center text-center">
+                <div className="mx-auto w-full max-w-[444px] px-8">
+                    <div className="flex flex-col items-stretch">
+                        <div className="w-full p-2">{logo}</div>
                         {props.title ? (
-                            <Grid size={{ xs: 12 }}>
-                                <TypographyWithTooltip variant={"h5"} value={props.title} />
-                            </Grid>
+                            <div className="w-full">
+                                <TypographyWithTooltip variant="h5" value={props.title} />
+                            </div>
                         ) : null}
-                        <Grid size={{ xs: 12 }} className={classes.body}>
-                            {props.children}
-                        </Grid>
-                    </Grid>
-                </Container>
+                        <div className="mt-2 py-2">{props.children}</div>
+                    </div>
+                </div>
                 <PrivacyPolicyDrawer />
-            </Grid>
-        </Box>
+            </div>
+        </div>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        minHeight: "90vh",
-        textAlign: "center",
-    },
-    rootContainer: {
-        paddingLeft: 32,
-        paddingRight: 32,
-    },
-    icon: {
-        margin: theme.spacing(),
-        width: "64px",
-        fill: theme.custom.icon,
-    },
-    body: {
-        marginTop: theme.spacing(),
-        paddingTop: theme.spacing(),
-        paddingBottom: theme.spacing(),
-    },
-}));
 
 export default MinimalLayout;

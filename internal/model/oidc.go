@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package model
 
 import (
@@ -10,8 +14,9 @@ import (
 	"strings"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -31,8 +36,10 @@ func NewOAuth2ConsentSessionWithForm(expires time.Time, subject uuid.UUID, r oau
 		ExpiresAt:         expires,
 		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		RequestedResource: StringSlicePipeDelimited(r.GetRequestedResource()),
 		GrantedScopes:     StringSlicePipeDelimited(r.GetGrantedScopes()),
 		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		GrantedResource:   StringSlicePipeDelimited(r.GetGrantedResource()),
 	}
 
 	if consent.ChallengeID, err = uuid.NewRandom(); err != nil {
@@ -42,10 +49,27 @@ func NewOAuth2ConsentSessionWithForm(expires time.Time, subject uuid.UUID, r oau
 	return consent, nil
 }
 
-// NewOAuth2BlacklistedJTI creates a new OAuth2BlacklistedJTI.
-func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2BlacklistedJTI) {
+// NewOAuth2BlacklistedJTI creates a new OAuth2BlacklistedJTI for a JTI of a JWT issued by the given client.
+func NewOAuth2BlacklistedJTI(clientID, jti string, exp time.Time) (jtiBlacklist OAuth2BlacklistedJTI) {
 	return OAuth2BlacklistedJTI{
-		Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(jti))),
+		ClientID:  clientID,
+		Signature: NewOAuth2BlacklistedJTISignature(jti),
+		ExpiresAt: exp,
+	}
+}
+
+// NewOAuth2BlacklistedJTISignature returns the signature a JTI is stored with.
+func NewOAuth2BlacklistedJTISignature(jti string) (signature string) {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(jti)))
+}
+
+// NewOAuth2RequestReplay creates a new OAuth2RequestReplay which records that a client used a value of the given type
+// until the given expiry. The value is stored as a digest.
+func NewOAuth2RequestReplay(replayType OAuth2RequestReplayType, clientID, value string, exp time.Time) (replay OAuth2RequestReplay) {
+	return OAuth2RequestReplay{
+		Type:      replayType,
+		ClientID:  clientID,
+		Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(value))),
 		ExpiresAt: exp,
 	}
 }
@@ -68,7 +92,7 @@ func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (sess
 		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the session type OpenIDSession was expected but the type '%T' was used", r.GetSession())
 	}
 
-	subject = sql.NullString{String: s.GetSubject()}
+	subject = sql.NullString{String: s.GetStorageSubject()}
 
 	subject.Valid = len(subject.String) > 0
 
@@ -96,7 +120,9 @@ func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (sess
 		RequestedScopes:   StringSlicePipeDelimited(requested),
 		GrantedScopes:     StringSlicePipeDelimited(granted),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		RequestedResource: StringSlicePipeDelimited(r.GetRequestedResource()),
 		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		GrantedResource:   StringSlicePipeDelimited(r.GetGrantedResource()),
 		Active:            true,
 		Revoked:           false,
 		Form:              r.GetRequestForm().Encode(),
@@ -122,7 +148,7 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 		return nil, fmt.Errorf("failed to create new *model.OAuth2DeviceCodeSession: the session type OpenIDSession was expected but the type '%T' was used", r.GetSession())
 	}
 
-	subject = sql.NullString{String: s.GetSubject()}
+	subject = sql.NullString{String: s.GetStorageSubject()}
 
 	subject.Valid = len(subject.String) > 0
 
@@ -153,7 +179,9 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 		RequestedScopes:   StringSlicePipeDelimited(requested),
 		GrantedScopes:     StringSlicePipeDelimited(granted),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		RequestedResource: StringSlicePipeDelimited(r.GetRequestedResource()),
 		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		GrantedResource:   StringSlicePipeDelimited(r.GetGrantedResource()),
 		Active:            true,
 		Revoked:           false,
 		Form:              r.GetRequestForm().Encode(),
@@ -161,8 +189,8 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 	}, nil
 }
 
-// NewOAuth2PARContext creates a new Pushed Authorization Request Context as a OAuth2PARContext.
-func NewOAuth2PARContext(contextID string, r oauthelia2.AuthorizeRequester) (context *OAuth2PARContext, err error) {
+// NewOAuth2PushedAuthorizationSession creates a new Pushed Authorization Request Context as a OAuth2PushedAuthorizationSession.
+func NewOAuth2PushedAuthorizationSession(contextID string, r oauthelia2.AuthorizeRequester) (context *OAuth2PushedAuthorizationSession, err error) {
 	var (
 		s       OpenIDSession
 		ok      bool
@@ -184,13 +212,14 @@ func NewOAuth2PARContext(contextID string, r oauthelia2.AuthorizeRequester) (con
 		handled = StringSlicePipeDelimited(req.HandledResponseTypes)
 	}
 
-	return &OAuth2PARContext{
+	return &OAuth2PushedAuthorizationSession{
 		Signature:            contextID,
 		RequestID:            r.GetID(),
 		ClientID:             r.GetClient().GetID(),
 		RequestedAt:          r.GetRequestedAt(),
 		Scopes:               StringSlicePipeDelimited(r.GetRequestedScopes()),
 		Audience:             StringSlicePipeDelimited(r.GetRequestedAudience()),
+		Resource:             StringSlicePipeDelimited(r.GetRequestedResource()),
 		HandledResponseTypes: handled,
 		ResponseMode:         string(r.GetResponseMode()),
 		DefaultResponseMode:  string(r.GetDefaultResponseMode()),
@@ -213,21 +242,28 @@ type OAuth2ConsentPreConfig struct {
 
 	Scopes   StringSlicePipeDelimited `db:"scopes"`
 	Audience StringSlicePipeDelimited `db:"audience"`
+	Resource StringSlicePipeDelimited `db:"resource"`
 
 	RequestedClaims sql.NullString           `db:"requested_claims"`
 	SignatureClaims sql.NullString           `db:"signature_claims"`
 	GrantedClaims   StringSlicePipeDelimited `db:"granted_claims"`
 }
 
-// HasExactGrants returns true if the granted audience and scopes of this consent pre-configuration matches exactly with
-// another audience and set of scopes.
-func (s *OAuth2ConsentPreConfig) HasExactGrants(scopes, audience []string) (has bool) {
-	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience)
+// HasExactGrants returns true if the granted audience, resource and scopes of this consent
+// pre-configuration matches exactly with another audience, resource and set of scopes.
+func (s *OAuth2ConsentPreConfig) HasExactGrants(scopes, audience, resource []string) (has bool) {
+	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience) && s.HasExactGrantedResource(resource)
 }
 
 // HasExactGrantedAudience returns true if the granted audience of this consent matches exactly with another audience.
 func (s *OAuth2ConsentPreConfig) HasExactGrantedAudience(audience []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.Audience, audience)
+}
+
+// HasExactGrantedResource returns true if the granted resource indicators of this consent matches
+// exactly with another set of resource indicators.
+func (s *OAuth2ConsentPreConfig) HasExactGrantedResource(resource []string) (has bool) {
+	return !utils.IsStringSlicesDifferent(s.Resource, resource)
 }
 
 // HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
@@ -270,9 +306,11 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	RequestedResource StringSlicePipeDelimited `db:"requested_resource"`
+	GrantedResource   StringSlicePipeDelimited `db:"granted_resource"`
 	GrantedClaims     StringSlicePipeDelimited `db:"granted_claims"`
 
-	PreConfiguration sql.NullInt64
+	PreConfiguration sql.NullInt64 `db:"preconfiguration"`
 }
 
 // GetRequestedAt returns the requested at value.
@@ -318,15 +356,26 @@ func (s *OAuth2ConsentSession) GrantAudience() {
 	s.GrantedAudience = s.RequestedAudience
 }
 
-// HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another
-// audience and set of scopes.
-func (s *OAuth2ConsentSession) HasExactGrants(scopes, audience []string) (has bool) {
-	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience)
+// GrantResource grants all of the requested resource indicators.
+func (s *OAuth2ConsentSession) GrantResource() {
+	s.GrantedResource = s.RequestedResource
+}
+
+// HasExactGrants returns true if the granted audience, resource and scopes of this consent matches
+// exactly with another audience, resource and set of scopes.
+func (s *OAuth2ConsentSession) HasExactGrants(scopes, audience, resource []string) (has bool) {
+	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience) && s.HasExactGrantedResource(resource)
 }
 
 // HasExactGrantedAudience returns true if the granted audience of this consent matches exactly with another audience.
 func (s *OAuth2ConsentSession) HasExactGrantedAudience(audience []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.GrantedAudience, audience)
+}
+
+// HasExactGrantedResource returns true if the granted resource indicators of this consent matches
+// exactly with another set of resource indicators.
+func (s *OAuth2ConsentSession) HasExactGrantedResource(resource []string) (has bool) {
+	return !utils.IsStringSlicesDifferent(s.GrantedResource, resource)
 }
 
 // HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
@@ -360,27 +409,117 @@ func (s *OAuth2ConsentSession) GetForm() (form url.Values, err error) {
 	return url.ParseQuery(s.Form)
 }
 
+// GetRequestedScopes returns the requested scopes.
 func (s *OAuth2ConsentSession) GetRequestedScopes() []string {
 	return s.RequestedScopes
 }
 
+// GetGrantedScopes returns the granted scopes.
 func (s *OAuth2ConsentSession) GetGrantedScopes() []string {
 	return s.GrantedScopes
 }
 
+// GetRequestedAudience returns the requested audience.
 func (s *OAuth2ConsentSession) GetRequestedAudience() []string {
 	return s.RequestedAudience
 }
 
+// GetGrantedAudience returns the granted audience.
 func (s *OAuth2ConsentSession) GetGrantedAudience() []string {
 	return s.GrantedAudience
+}
+
+// GetRequestedResource returns the requested resource.
+func (s *OAuth2ConsentSession) GetRequestedResource() []string {
+	return s.RequestedResource
+}
+
+// GetGrantedResource returns the granted resource.
+func (s *OAuth2ConsentSession) GetGrantedResource() []string {
+	return s.GrantedResource
+}
+
+// MatchesRequester returns an error if the requester is not a technical match for this OAuth2ConsentSession. The
+// prefixPAR value must be the Pushed Authorization Request URI prefix as consent sessions generated for a Pushed
+// Authorization Request only record the 'request_uri' and 'client_id' parameters, so only those parameters are
+// compared for such sessions.
+func (s *OAuth2ConsentSession) MatchesRequester(requester oauthelia2.Requester, prefixPAR string) (err error) {
+	if s.ClientID != requester.GetClient().GetID() {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested client id '%s' does not match the requested client id '%s' from the consent session.", requester.GetClient().GetID(), s.ClientID)
+	}
+
+	if !oauthelia2.Arguments(s.RequestedScopes).Matches(requester.GetRequestedScopes()...) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested scope '%s' does not match the requested scope '%s' from the consent session.", strings.Join(requester.GetRequestedScopes(), " "), strings.Join(s.RequestedScopes, " "))
+	}
+
+	if !oauthelia2.Arguments(s.RequestedAudience).Matches(requester.GetRequestedAudience()...) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested audience '%s' does not match the requested audience '%s' from the consent session.", strings.Join(requester.GetRequestedAudience(), " "), strings.Join(s.RequestedAudience, " "))
+	}
+
+	if !oauthelia2.Arguments(s.RequestedResource).Matches(requester.GetRequestedResource()...) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested resource '%s' does not match the requested resource '%s' from the consent session.", strings.Join(requester.GetRequestedResource(), " "), strings.Join(s.RequestedResource, " "))
+	}
+
+	var form url.Values
+
+	if form, err = s.GetForm(); err != nil {
+		return oauthelia2.ErrServerError.WithDebugf("Error occurred parsing the consent request form. %v", err)
+	}
+
+	if requestURI := form.Get(formParameterRequestURI); len(prefixPAR) != 0 && strings.HasPrefix(requestURI, prefixPAR) {
+		if requestURI != requester.GetRequestForm().Get(formParameterRequestURI) {
+			return oauthelia2.ErrInvalidRequest.WithDebugf("The requested request uri '%s' does not match the requested request uri '%s' from the consent session.", requester.GetRequestForm().Get(formParameterRequestURI), requestURI)
+		}
+
+		return nil
+	}
+
+	if form.Get(formParameterNonce) != requester.GetRequestForm().Get(formParameterNonce) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested nonce does not match the requested nonce from the consent session.")
+	}
+
+	if form.Get(formParameterState) != requester.GetRequestForm().Get(formParameterState) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested state does not match the requested state from the consent session.")
+	}
+
+	return nil
 }
 
 // OAuth2BlacklistedJTI represents a blacklisted JTI used with OAuth2.0.
 type OAuth2BlacklistedJTI struct {
 	ID        int       `db:"id"`
+	ClientID  string    `db:"client_id"`
 	Signature string    `db:"signature"`
 	ExpiresAt time.Time `db:"expires_at"`
+}
+
+const (
+	// OAuth2DeviceCodeStatusNew is the stored status of a device code session no end user has acted on.
+	OAuth2DeviceCodeStatusNew = int(oauthelia2.DeviceAuthorizeStatusNew)
+
+	// OAuth2DeviceCodeStatusClaimed is the stored status of a device code session whose user code an end user has
+	// entered but not yet approved or denied.
+	OAuth2DeviceCodeStatusClaimed = int(oauthelia2.DeviceAuthorizeStatusClaimed)
+)
+
+// OAuth2RequestReplayType is the type of value an OAuth2RequestReplay records.
+type OAuth2RequestReplayType string
+
+const (
+	// OAuth2RequestReplayTypePKCEChallenge records a PKCE 'code_challenge'.
+	OAuth2RequestReplayTypePKCEChallenge OAuth2RequestReplayType = "pkce_challenge"
+
+	// OAuth2RequestReplayTypeOpenIDConnectNonce records an OpenID Connect 'nonce'.
+	OAuth2RequestReplayTypeOpenIDConnectNonce OAuth2RequestReplayType = "openid_connect_nonce"
+)
+
+// OAuth2RequestReplay represents a value of an authorization request a client may only use once until it expires.
+type OAuth2RequestReplay struct {
+	ID        int                     `db:"id"`
+	Type      OAuth2RequestReplayType `db:"type"`
+	ClientID  string                  `db:"client_id"`
+	Signature string                  `db:"signature"`
+	ExpiresAt time.Time               `db:"expires_at"`
 }
 
 // OAuth2Session represents a OAuth2.0 session.
@@ -390,12 +529,15 @@ type OAuth2Session struct {
 	RequestID         string                   `db:"request_id"`
 	ClientID          string                   `db:"client_id"`
 	Signature         string                   `db:"signature"`
+	AccessSignature   string                   `db:"access_signature"`
 	RequestedAt       time.Time                `db:"requested_at"`
 	Subject           sql.NullString           `db:"subject"`
 	RequestedScopes   StringSlicePipeDelimited `db:"requested_scopes"`
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	RequestedResource StringSlicePipeDelimited `db:"requested_resource"`
+	GrantedResource   StringSlicePipeDelimited `db:"granted_resource"`
 	Active            bool                     `db:"active"`
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
@@ -409,6 +551,10 @@ func (s *OAuth2Session) SetSubject(subject string) {
 
 // ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.
 func (s *OAuth2Session) ToRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.Request, err error) {
+	if s == nil {
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request: the OAuth 2.0 Session is nil")
+	}
+
 	sessionData := s.Session
 
 	if session != nil {
@@ -435,6 +581,8 @@ func (s *OAuth2Session) ToRequest(ctx context.Context, session oauthelia2.Sessio
 		GrantedScope:      oauthelia2.Arguments(s.GrantedScopes),
 		RequestedAudience: oauthelia2.Arguments(s.RequestedAudience),
 		GrantedAudience:   oauthelia2.Arguments(s.GrantedAudience),
+		RequestedResource: oauthelia2.Arguments(s.RequestedResource),
+		GrantedResource:   oauthelia2.Arguments(s.GrantedResource),
 		Form:              values,
 		Session:           session,
 	}, nil
@@ -456,6 +604,8 @@ type OAuth2DeviceCodeSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	RequestedResource StringSlicePipeDelimited `db:"requested_resource"`
+	GrantedResource   StringSlicePipeDelimited `db:"granted_resource"`
 	Active            bool                     `db:"active"`
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
@@ -472,23 +622,37 @@ func (s *OAuth2DeviceCodeSession) GetForm() (form url.Values, err error) {
 	return url.ParseQuery(s.Form)
 }
 
+// GetRequestedScopes returns the requested scopes.
 func (s *OAuth2DeviceCodeSession) GetRequestedScopes() []string {
 	return s.RequestedScopes
 }
 
+// GetGrantedScopes returns the granted scopes.
 func (s *OAuth2DeviceCodeSession) GetGrantedScopes() []string {
 	return s.GrantedScopes
 }
 
+// GetRequestedAudience returns the requested audience.
 func (s *OAuth2DeviceCodeSession) GetRequestedAudience() []string {
 	return s.RequestedAudience
 }
 
+// GetGrantedAudience returns the granted audience.
 func (s *OAuth2DeviceCodeSession) GetGrantedAudience() []string {
 	return s.GrantedAudience
 }
 
-// ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.
+// GetRequestedResource returns the requested resource.
+func (s *OAuth2DeviceCodeSession) GetRequestedResource() []string {
+	return s.RequestedResource
+}
+
+// GetGrantedResource returns the granted resource.
+func (s *OAuth2DeviceCodeSession) GetGrantedResource() []string {
+	return s.GrantedResource
+}
+
+// ToRequest converts an OAuth2Session into a oauthelia2.Request given an oauthelia2.Session and oauthelia2.Storage.
 func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.DeviceAuthorizeRequest, err error) {
 	sessionData := s.Session
 
@@ -517,6 +681,8 @@ func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthel
 			GrantedScope:      oauthelia2.Arguments(s.GrantedScopes),
 			RequestedAudience: oauthelia2.Arguments(s.RequestedAudience),
 			GrantedAudience:   oauthelia2.Arguments(s.GrantedAudience),
+			RequestedResource: oauthelia2.Arguments(s.RequestedResource),
+			GrantedResource:   oauthelia2.Arguments(s.GrantedResource),
 			Form:              values,
 			Session:           session,
 		},
@@ -529,8 +695,8 @@ func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthel
 	return request, nil
 }
 
-// OAuth2PARContext holds relevant information about a Pushed Authorization Request in order to process the authorization.
-type OAuth2PARContext struct {
+// OAuth2PushedAuthorizationSession holds relevant information about a Pushed Authorization Request in order to process the authorization.
+type OAuth2PushedAuthorizationSession struct {
 	ID                   int                      `db:"id"`
 	Signature            string                   `db:"signature"`
 	RequestID            string                   `db:"request_id"`
@@ -538,6 +704,7 @@ type OAuth2PARContext struct {
 	RequestedAt          time.Time                `db:"requested_at"`
 	Scopes               StringSlicePipeDelimited `db:"scopes"`
 	Audience             StringSlicePipeDelimited `db:"audience"`
+	Resource             StringSlicePipeDelimited `db:"resource"`
 	HandledResponseTypes StringSlicePipeDelimited `db:"handled_response_types"`
 	ResponseMode         string                   `db:"response_mode"`
 	DefaultResponseMode  string                   `db:"response_mode_default"`
@@ -546,7 +713,8 @@ type OAuth2PARContext struct {
 	Session              []byte                   `db:"session_data"`
 }
 
-func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.AuthorizeRequest, err error) {
+// ToAuthorizeRequest returns the *oauthelia2.AuthorizeRequest this session was created from.
+func (par *OAuth2PushedAuthorizationSession) ToAuthorizeRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.AuthorizeRequest, err error) {
 	if session != nil {
 		if err = json.Unmarshal(par.Session, session); err != nil {
 			return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to unmarshal the JSON session data: %w", err)
@@ -574,6 +742,7 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session oau
 		Client:            client,
 		RequestedScope:    oauthelia2.Arguments(par.Scopes),
 		RequestedAudience: oauthelia2.Arguments(par.Audience),
+		RequestedResource: oauthelia2.Arguments(par.Resource),
 		Form:              form,
 		Session:           session,
 	}
@@ -610,4 +779,5 @@ type OpenIDSession interface {
 	oauthelia2.Session
 
 	GetChallengeID() uuid.NullUUID
+	GetStorageSubject() (subject string)
 }

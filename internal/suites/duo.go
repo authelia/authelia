@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -25,6 +29,8 @@ const (
 
 // ConfigureDuo configure duo api to allow or block auth requests.
 func ConfigureDuo(t *testing.T, allowDeny DuoPolicy) {
+	t.Helper()
+
 	url := fmt.Sprintf("%s/allow", DuoBaseURL)
 	if allowDeny == Deny {
 		url = fmt.Sprintf("%s/deny", DuoBaseURL)
@@ -41,6 +47,8 @@ func ConfigureDuo(t *testing.T, allowDeny DuoPolicy) {
 
 // ConfigureDuoPreAuth configure duo api to respond with available devices or enrollment Url.
 func ConfigureDuoPreAuth(t *testing.T, response duo.PreAuthResponse) {
+	t.Helper()
+
 	url := fmt.Sprintf("%s/preauth", DuoBaseURL)
 
 	body, err := json.Marshal(response)

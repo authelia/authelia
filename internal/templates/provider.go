@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package templates
 
 import (
@@ -27,46 +31,36 @@ type Provider struct {
 	templates Templates
 }
 
-// LoadTemplatedAssets takes an embed.FS and loads each templated asset document into a Template.
+// LoadTemplatedAssets takes an [fs.ReadFileFS], such as an [embed.FS], and loads each templated asset document into
+// a Template.
 func (p *Provider) LoadTemplatedAssets(fs fs.ReadFileFS) (err error) {
-	var (
-		data []byte
-	)
-
-	if data, err = fs.ReadFile("public_html/index.html"); err != nil {
+	if p.templates.asset.index, err = parseTemplatedAsset(fs, AssetPathIndex); err != nil {
 		return err
 	}
 
-	if p.templates.asset.index, err = tt.
-		New("assets/public_html/index.html").
-		Funcs(FuncMap()).
-		Parse(string(data)); err != nil {
+	if p.templates.asset.api.index, err = parseTemplatedAsset(fs, AssetPathAPIIndex); err != nil {
 		return err
 	}
 
-	if data, err = fs.ReadFile("public_html/api/index.html"); err != nil {
-		return err
-	}
-
-	if p.templates.asset.api.index, err = tt.
-		New("assets/public_html/api/index.html").
-		Funcs(FuncMap()).
-		Parse(string(data)); err != nil {
-		return err
-	}
-
-	if data, err = fs.ReadFile("public_html/api/openapi.yml"); err != nil {
-		return err
-	}
-
-	if p.templates.asset.api.spec, err = tt.
-		New("assets/public_html/api/openapi.yml").
-		Funcs(FuncMap()).
-		Parse(string(data)); err != nil {
+	if p.templates.asset.api.spec, err = parseTemplatedAsset(fs, AssetPathAPISpec); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func parseTemplatedAsset(fs fs.ReadFileFS, asset string) (t *tt.Template, err error) {
+	var data []byte
+
+	if data, err = fs.ReadFile(asset); err != nil {
+		return nil, fmt.Errorf("error occurred loading template '%s%s': %w", assetPathPrefix, asset, err)
+	}
+
+	if t, err = tt.New(assetPathPrefix + asset).Funcs(FuncMap()).Parse(string(data)); err != nil {
+		return nil, fmt.Errorf("error occurred loading template '%s%s': %w", assetPathPrefix, asset, err)
+	}
+
+	return t, nil
 }
 
 // GetAssetIndexTemplate returns a Template used to generate the React index document.
@@ -108,15 +102,15 @@ func (p *Provider) load() (err error) {
 	var errs []error
 
 	if p.templates.notification.jwtIdentityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerificationJWT, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("error occurred loading '%s' email template: %w", TemplateNameEmailIdentityVerificationJWT, err))
 	}
 
 	if p.templates.notification.otcIdentityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerificationOTC, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("error occurred loading '%s' email template: %w", TemplateNameEmailIdentityVerificationOTC, err))
 	}
 
 	if p.templates.notification.event, err = loadEmailTemplate(TemplateNameEmailEvent, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("error occurred loading '%s' email template: %w", TemplateNameEmailEvent, err))
 	}
 
 	var data []byte

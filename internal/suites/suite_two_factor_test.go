@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -28,6 +32,10 @@ func (s *TwoFactorSuite) TestTwoFactorWebAuthnScenario() {
 
 func (s *TwoFactorSuite) TestPasskeyScenario() {
 	suite.Run(s.T(), NewPasskeyScenario())
+}
+
+func (s *TwoFactorSuite) TestTwoFactorRecoveryCodeScenario() {
+	suite.Run(s.T(), New2FARecoveryCodeScenario())
 }
 
 func TestTwoFactorSuite(t *testing.T) {

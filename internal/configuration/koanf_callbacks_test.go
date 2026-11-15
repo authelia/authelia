@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package configuration
 
 import (
@@ -44,6 +48,7 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 	assert.Nil(t, value)
 }
 
+//nolint:gosec // Test Credentials.
 func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 	var (
 		key   string
@@ -61,7 +66,7 @@ func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 
 	dir := t.TempDir()
 
-	secretOne := filepath.Join(dir, "secert_one")
+	secretOne := filepath.Join(dir, "secret_one")
 	secretTwo := filepath.Join(dir, "secret_two")
 
 	assert.NoError(t, testCreateFile(secretOne, "value one", 0600))

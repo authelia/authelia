@@ -1,4 +1,8 @@
-import { useSearchParams } from "react-router-dom";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { useSearchParams } from "react-router";
 
 import { Flow, FlowID, RedirectionURL, SubFlow } from "@constants/SearchParams";
 
@@ -10,9 +14,9 @@ export function useFlow(): { id?: string; flow?: string; subflow?: string } {
     const subflow = query.get(SubFlow);
 
     return {
-        id: id === null ? undefined : id,
-        flow: flow === null ? undefined : flow,
-        subflow: subflow === null ? undefined : subflow,
+        flow: flow ?? undefined,
+        id: id ?? undefined,
+        subflow: subflow ?? undefined,
     };
 }
 

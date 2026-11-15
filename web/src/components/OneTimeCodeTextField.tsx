@@ -1,24 +1,40 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import TextField, { TextFieldProps } from "@mui/material/TextField";
+import { type ComponentProps, type Ref, useId } from "react";
 
-const OneTimeCodeTextField = function (props: TextFieldProps) {
+import { cn } from "cn";
+
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+
+interface OneTimeCodeInputProps extends ComponentProps<"input"> {
+    label?: string;
+    error?: boolean;
+    inputRef?: Ref<HTMLInputElement>;
+}
+
+const OneTimeCodeTextField = function ({ className, error, inputRef, label, ...props }: OneTimeCodeInputProps) {
+    const id = useId();
+    const inputId = props.id ?? id;
+
     return (
-        <TextField
-            {...props}
-            slotProps={{
-                htmlInput: {
-                    style: {
-                        textTransform: "uppercase",
-                        textAlign: "center",
-                        letterSpacing: ".5rem",
-                    },
-                },
-            }}
-            variant={"outlined"}
-            color={"info"}
-            spellCheck={false}
-        />
+        <div className="flex flex-col gap-1.5">
+            {label ? <Label htmlFor={inputId}>{label}</Label> : null}
+            <Input
+                {...props}
+                id={inputId}
+                error={error}
+                ref={inputRef}
+                className={cn(
+                    "tracking-[0.5rem] text-center uppercase",
+                    error && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/50",
+                    className,
+                )}
+                spellCheck={false}
+            />
+        </div>
     );
 };
 

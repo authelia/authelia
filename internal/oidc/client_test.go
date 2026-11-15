@@ -1,15 +1,22 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"testing"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
-	"github.com/go-jose/go-jose/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"authelia.com/provider/jose"
+	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -19,6 +26,8 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
+	const kidSigEnc1 = "kid-sig-enc-1"
+
 	config := schema.IdentityProvidersOpenIDConnectClient{}
 	client := oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{}, nil)
 	assert.Equal(t, "", client.GetID())
@@ -49,10 +58,13 @@ func TestNewClient(t *testing.T) {
 		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
 		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
 		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
+		ApplicationType:     oidc.ApplicationTypeNative,
 	}
 
 	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
 	assert.Equal(t, myclient, client.GetID())
+	assert.True(t, oauthelia2.IsNativeClient(client))
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, oauthelia2.ResponseModeFormPost, client.GetResponseModes()[0])
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
@@ -77,29 +89,100 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", client.GetUserinfoSignedResponseKeyID())
 	assert.Equal(t, "", fclient.GetUserinfoSignedResponseKeyID())
 
-	fclient.UserinfoSignedResponseKeyID = "aukeyid"
+	fclient.UserinfoSignedResponseKeyID = kidSigEnc1
 
-	assert.Equal(t, "aukeyid", client.GetUserinfoSignedResponseKeyID())
-	assert.Equal(t, "aukeyid", fclient.GetUserinfoSignedResponseKeyID())
+	assert.Equal(t, kidSigEnc1, client.GetUserinfoSignedResponseKeyID())
+	assert.Equal(t, kidSigEnc1, fclient.GetUserinfoSignedResponseKeyID())
+
+	assert.Equal(t, "", fclient.UserinfoEncryptedResponseKeyID)
+	assert.Equal(t, "", client.GetUserinfoEncryptedResponseKeyID())
+
+	fclient.UserinfoEncryptedResponseKeyID = kidSigEnc1
+
+	assert.Equal(t, kidSigEnc1, client.GetUserinfoEncryptedResponseKeyID())
+
+	assert.Equal(t, "", fclient.UserinfoEncryptedResponseAlg)
+	assert.Equal(t, "", client.GetUserinfoEncryptedResponseAlg())
+
+	fclient.UserinfoEncryptedResponseAlg = oidc.EncryptionAlgA192GCMKW
+	assert.Equal(t, oidc.EncryptionAlgA192GCMKW, client.GetUserinfoEncryptedResponseAlg())
+
+	assert.Equal(t, "", fclient.UserinfoEncryptedResponseEnc)
+	assert.Equal(t, "", client.GetUserinfoEncryptedResponseEnc())
+
+	fclient.UserinfoEncryptedResponseEnc = oidc.EncryptionEncA128GCM
+	assert.Equal(t, oidc.EncryptionEncA128GCM, client.GetUserinfoEncryptedResponseEnc())
 
 	assert.Equal(t, "", fclient.IntrospectionSignedResponseAlg)
 	assert.Equal(t, oidc.SigningAlgNone, client.GetIntrospectionSignedResponseAlg())
 	assert.Equal(t, oidc.SigningAlgNone, fclient.GetIntrospectionSignedResponseAlg())
 	assert.Equal(t, oidc.SigningAlgNone, fclient.IntrospectionSignedResponseAlg)
 
+	assert.Equal(t, "", fclient.AuthorizationSignedResponseAlg)
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, client.GetAuthorizationSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetAuthorizationSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.AuthorizationSignedResponseAlg)
+
+	assert.Equal(t, "", fclient.AuthorizationSignedResponseKeyID)
+	assert.Equal(t, "", client.GetAuthorizationSignedResponseKeyID())
+
+	fclient.AuthorizationSignedResponseKeyID = kidSigEnc1
+
+	assert.Equal(t, kidSigEnc1, client.GetAuthorizationSignedResponseKeyID())
+
+	assert.Equal(t, "", fclient.AuthorizationEncryptedResponseKeyID)
+	assert.Equal(t, "", client.GetAuthorizationEncryptedResponseKeyID())
+
+	fclient.AuthorizationEncryptedResponseKeyID = kidSigEnc1
+
+	assert.Equal(t, kidSigEnc1, client.GetAuthorizationEncryptedResponseKeyID())
+
+	assert.Equal(t, "", fclient.AuthorizationEncryptedResponseAlg)
+	assert.Equal(t, "", client.GetAuthorizationEncryptedResponseAlg())
+
+	fclient.AuthorizationEncryptedResponseAlg = oidc.EncryptionAlgA192GCMKW
+
+	assert.Equal(t, oidc.EncryptionAlgA192GCMKW, client.GetAuthorizationEncryptedResponseAlg())
+
+	assert.Equal(t, "", fclient.AuthorizationEncryptedResponseEnc)
+	assert.Equal(t, "", client.GetAuthorizationEncryptedResponseEnc())
+
+	fclient.AuthorizationEncryptedResponseEnc = oidc.EncryptionEncA128GCM
+
+	assert.Equal(t, oidc.EncryptionEncA128GCM, client.GetAuthorizationEncryptedResponseEnc())
+
 	assert.Equal(t, "", fclient.IntrospectionSignedResponseKeyID)
 	assert.Equal(t, "", client.GetIntrospectionSignedResponseKeyID())
 	assert.Equal(t, "", fclient.GetIntrospectionSignedResponseKeyID())
 
-	fclient.IntrospectionSignedResponseKeyID = "aikeyid"
+	fclient.IntrospectionSignedResponseKeyID = kidSigEnc1
 
-	assert.Equal(t, "aikeyid", client.GetIntrospectionSignedResponseKeyID())
-	assert.Equal(t, "aikeyid", fclient.GetIntrospectionSignedResponseKeyID())
+	assert.Equal(t, kidSigEnc1, client.GetIntrospectionSignedResponseKeyID())
+	assert.Equal(t, kidSigEnc1, fclient.GetIntrospectionSignedResponseKeyID())
 
 	fclient.IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
 
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, client.GetIntrospectionSignedResponseAlg())
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, fclient.GetIntrospectionSignedResponseAlg())
+
+	assert.Equal(t, "", fclient.IntrospectionEncryptedResponseKeyID)
+	assert.Equal(t, "", client.GetIntrospectionEncryptedResponseKeyID())
+
+	fclient.IntrospectionEncryptedResponseKeyID = kidSigEnc1
+
+	assert.Equal(t, kidSigEnc1, client.GetIntrospectionEncryptedResponseKeyID())
+
+	assert.Equal(t, "", fclient.IntrospectionEncryptedResponseAlg)
+	assert.Equal(t, "", client.GetIntrospectionEncryptedResponseAlg())
+
+	fclient.IntrospectionEncryptedResponseAlg = oidc.EncryptionAlgA192GCMKW
+	assert.Equal(t, oidc.EncryptionAlgA192GCMKW, client.GetIntrospectionEncryptedResponseAlg())
+
+	assert.Equal(t, "", fclient.IntrospectionEncryptedResponseEnc)
+	assert.Equal(t, "", client.GetIntrospectionEncryptedResponseEnc())
+
+	fclient.IntrospectionEncryptedResponseEnc = oidc.EncryptionEncA128GCM
+	assert.Equal(t, oidc.EncryptionEncA128GCM, client.GetIntrospectionEncryptedResponseEnc())
 
 	assert.Equal(t, "", fclient.IDTokenSignedResponseAlg)
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, client.GetIDTokenSignedResponseAlg())
@@ -110,24 +193,73 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", client.GetIDTokenSignedResponseKeyID())
 	assert.Equal(t, "", fclient.GetIDTokenSignedResponseKeyID())
 
-	fclient.IDTokenSignedResponseKeyID = "akeyid"
+	fclient.IDTokenSignedResponseKeyID = kidSigEnc1
 
-	assert.Equal(t, "akeyid", client.GetIDTokenSignedResponseKeyID())
-	assert.Equal(t, "akeyid", fclient.GetIDTokenSignedResponseKeyID())
+	assert.Equal(t, kidSigEnc1, client.GetIDTokenSignedResponseKeyID())
+	assert.Equal(t, kidSigEnc1, fclient.GetIDTokenSignedResponseKeyID())
+
+	assert.Equal(t, "", fclient.IDTokenEncryptedResponseKeyID)
+	assert.Equal(t, "", client.GetIDTokenEncryptedResponseKeyID())
+
+	fclient.IDTokenEncryptedResponseKeyID = kidSigEnc1
+
+	assert.Equal(t, kidSigEnc1, client.GetIDTokenEncryptedResponseKeyID())
+
+	assert.Equal(t, "", fclient.IDTokenEncryptedResponseAlg)
+	assert.Equal(t, "", client.GetIDTokenEncryptedResponseAlg())
+
+	fclient.IDTokenEncryptedResponseAlg = oidc.EncryptionAlgA192GCMKW
+
+	assert.Equal(t, oidc.EncryptionAlgA192GCMKW, client.GetIDTokenEncryptedResponseAlg())
+
+	assert.Equal(t, "", fclient.IDTokenEncryptedResponseEnc)
+	assert.Equal(t, "", client.GetIDTokenEncryptedResponseEnc())
+
+	fclient.IDTokenEncryptedResponseEnc = oidc.EncryptionEncA128GCM
+
+	assert.Equal(t, oidc.EncryptionEncA128GCM, client.GetIDTokenEncryptedResponseEnc())
 
 	assert.Equal(t, "", fclient.AccessTokenSignedResponseAlg)
+	assert.False(t, client.GetEnableJWTProfileOAuthAccessTokens())
 	assert.Equal(t, oidc.SigningAlgNone, client.GetAccessTokenSignedResponseAlg())
 	assert.Equal(t, oidc.SigningAlgNone, fclient.GetAccessTokenSignedResponseAlg())
 	assert.Equal(t, oidc.SigningAlgNone, fclient.AccessTokenSignedResponseAlg)
+	assert.False(t, client.GetEnableJWTProfileOAuthAccessTokens())
 
 	assert.Equal(t, "", fclient.AccessTokenSignedResponseKeyID)
 	assert.Equal(t, "", client.GetAccessTokenSignedResponseKeyID())
 	assert.Equal(t, "", fclient.GetAccessTokenSignedResponseKeyID())
 
-	fclient.AccessTokenSignedResponseKeyID = "atkeyid"
+	fclient.AccessTokenSignedResponseKeyID = kidSigEnc1
 
-	assert.Equal(t, "atkeyid", client.GetAccessTokenSignedResponseKeyID())
-	assert.Equal(t, "atkeyid", fclient.GetAccessTokenSignedResponseKeyID())
+	assert.Equal(t, kidSigEnc1, client.GetAccessTokenSignedResponseKeyID())
+	assert.Equal(t, kidSigEnc1, fclient.GetAccessTokenSignedResponseKeyID())
+	assert.False(t, client.GetEnableJWTProfileOAuthAccessTokens())
+
+	fclient.AccessTokenSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+
+	assert.True(t, client.GetEnableJWTProfileOAuthAccessTokens())
+
+	assert.Equal(t, "", fclient.AccessTokenEncryptedResponseKeyID)
+	assert.Equal(t, "", client.GetAccessTokenEncryptedResponseKeyID())
+
+	fclient.AccessTokenEncryptedResponseKeyID = kidSigEnc1
+
+	assert.Equal(t, kidSigEnc1, client.GetAccessTokenEncryptedResponseKeyID())
+
+	assert.Equal(t, "", fclient.AccessTokenEncryptedResponseAlg)
+	assert.Equal(t, "", client.GetAccessTokenEncryptedResponseAlg())
+
+	fclient.AccessTokenEncryptedResponseAlg = oidc.EncryptionAlgA192GCMKW
+
+	assert.Equal(t, oidc.EncryptionAlgA192GCMKW, client.GetAccessTokenEncryptedResponseAlg())
+
+	assert.Equal(t, "", fclient.AccessTokenEncryptedResponseEnc)
+	assert.Equal(t, "", client.GetAccessTokenEncryptedResponseEnc())
+
+	fclient.AccessTokenEncryptedResponseEnc = oidc.EncryptionEncA128GCM
+
+	assert.Equal(t, oidc.EncryptionEncA128GCM, client.GetAccessTokenEncryptedResponseEnc())
 
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.TokenEndpointAuthMethod)
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.GetTokenEndpointAuthMethod())
@@ -136,12 +268,58 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlg())
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlg)
 
+	assert.Equal(t, "", fclient.RevocationEndpointAuthMethod)
+	assert.Equal(t, "", fclient.GetRevocationEndpointAuthMethod())
+
+	fclient.RevocationEndpointAuthMethod = oidc.ClientAuthMethodClientSecretPost
+
+	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.GetRevocationEndpointAuthMethod())
+
+	assert.Equal(t, "", fclient.RevocationEndpointAuthSigningAlg)
+	assert.Equal(t, "", fclient.GetRevocationEndpointAuthSigningAlg())
+	assert.Equal(t, "", fclient.RevocationEndpointAuthSigningAlg)
+
+	fclient.RevocationEndpointAuthSigningAlg = oidc.SigningAlgRSAUsingSHA256
+
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRevocationEndpointAuthSigningAlg())
+
+	assert.Equal(t, "", fclient.IntrospectionEndpointAuthMethod)
+	assert.Equal(t, "", fclient.GetIntrospectionEndpointAuthMethod())
+
+	assert.Equal(t, "", fclient.PushedAuthorizationRequestEndpointAuthMethod)
+	assert.Equal(t, "", fclient.GetPushedAuthorizationRequestEndpointAuthMethod())
+
+	fclient.Public = true
+	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.GetIntrospectionEndpointAuthMethod())
+	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.IntrospectionEndpointAuthMethod)
+
+	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.GetPushedAuthorizationRequestEndpointAuthMethod())
+	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.PushedAuthorizationRequestEndpointAuthMethod)
+	fclient.Public = false
+
+	assert.Equal(t, "", fclient.IntrospectionEndpointAuthSigningAlg)
+	assert.Equal(t, "", fclient.GetIntrospectionEndpointAuthSigningAlg())
+
+	assert.Equal(t, "", fclient.PushedAuthorizationRequestEndpointAuthSigningAlg)
+	assert.Equal(t, "", fclient.GetPushedAuthorizationRequestEndpointAuthSigningAlg())
+
+	fclient.PushedAuthorizationRequestEndpointAuthSigningAlg = oidc.SigningAlgRSAUsingSHA256
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetPushedAuthorizationRequestEndpointAuthSigningAlg())
+
 	assert.Equal(t, "", fclient.RequestObjectSigningAlg)
 	assert.Equal(t, "", fclient.GetRequestObjectSigningAlg())
+
+	assert.False(t, fclient.GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType())
+	assert.Nil(t, fclient.GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowTypes())
+
+	fclient.RequestObjectSigningAlg = oidc.SigningAlgNone
+
+	assert.True(t, fclient.GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType(), "an unsigned request object needs no 'typ' header")
 
 	fclient.RequestObjectSigningAlg = oidc.SigningAlgRSAUsingSHA256
 
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlg())
+	assert.False(t, fclient.GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType(), "a signed request object keeps its 'typ' header check")
 
 	assert.Nil(t, fclient.JSONWebKeysURI)
 	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
@@ -285,7 +463,9 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				RequestedAudience: []string{"https://example.com"},
 			},
 			url.Values{
-				oidc.FormParameterState: []string{"123"},
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s %s", oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 			},
 			time.Unix(19000000000, 0),
 			false,
@@ -294,6 +474,29 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				ClientDescription: myclientname,
 				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
 				Audience:          []string{"https://example.com"},
+			},
+		},
+		{
+			"ShouldHandleRequestedResource",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedResource: []string{"https://api.example.com", "https://api.example.com/v2"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				Resource:          []string{"https://api.example.com", "https://api.example.com/v2"},
 			},
 		},
 		{
@@ -304,24 +507,82 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
 			},
 			&model.OAuth2ConsentSession{
-				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 				RequestedAudience: []string{"https://example.com"},
 			},
 			url.Values{
-				oidc.FormParameterState: []string{"123"},
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 			},
 			time.Unix(19000000000, 0),
 			false,
 			oidc.ConsentGetResponseBody{
 				ClientID:          myclient,
 				ClientDescription: myclientname,
-				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 				Audience:          []string{"https://example.com"},
 				PreConfiguration:  true,
 			},
 		},
 		{
-			"ShouldHandleStandardPreConfigurationDisabled",
+			"ShouldHandleNoPreConfigurationForPublicClientWithoutAssuredIdentity",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				Public:        true,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+				oidc.FormParameterRedirectURI:  []string{"http://127.0.0.1:43210/callback"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
+			},
+		},
+		{
+			"ShouldHandlePreConfigurationForPublicClientWithAssuredIdentity",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				Public:        true,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+				oidc.FormParameterRedirectURI:  []string{"https://app.example.com/callback"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  true,
+			},
+		},
+		{
+			"ShouldHandleNoPreConfigurationForRefreshTokens",
 			&oidc.RegisteredClient{
 				ID:            myclient,
 				Name:          myclientname,
@@ -332,7 +593,61 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				RequestedAudience: []string{"https://example.com"},
 			},
 			url.Values{
-				oidc.FormParameterState: []string{"123"},
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s %s", oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
+			},
+		},
+		{
+			"ShouldHandleExplicitConsentAuthCodeFlowRefreshToken",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s %s", oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			true,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
+			},
+		},
+		{
+			"ShouldHandlePreConfiguredConsentAuthCodeFlowRefreshToken",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s %s", oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 			},
 			time.Unix(19000000000, 0),
 			true,
@@ -351,7 +666,9 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
 				RequestedAudience: []string{"https://example.com"},
 				Form: url.Values{
-					oidc.FormParameterState: []string{"123"},
+					oidc.FormParameterState:        []string{"123"},
+					oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s %s", oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile)},
+					oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 				}.Encode(),
 			},
 			nil,
@@ -373,8 +690,10 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				RequestedAt:       time.Unix(19000000020, 0),
 			},
 			url.Values{
-				oidc.FormParameterState:  []string{"123"},
-				oidc.FormParameterPrompt: []string{oidc.PromptLogin},
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterPrompt:       []string{oidc.PromptLogin},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s %s", oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 			},
 			time.Unix(19000000000, 0),
 			false,
@@ -394,8 +713,10 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				RequestedAudience: []string{"https://example.com"},
 				RequestedAt:       time.Unix(19000000020, 0),
 				Form: url.Values{
-					oidc.FormParameterState:  []string{"123"},
-					oidc.FormParameterPrompt: []string{oidc.PromptLogin},
+					oidc.FormParameterState:        []string{"123"},
+					oidc.FormParameterPrompt:       []string{oidc.PromptLogin},
+					oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s %s", oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile)},
+					oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 				}.Encode(),
 			},
 			nil,
@@ -418,8 +739,10 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				RequestedAt:       time.Unix(19000000020, 0),
 			},
 			url.Values{
-				oidc.FormParameterState:      []string{"123"},
-				oidc.FormParameterMaximumAge: []string{"1"},
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterMaximumAge:   []string{"1"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s %s", oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 			},
 			time.Unix(19000000000, 0),
 			false,
@@ -439,8 +762,9 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				RequestedAudience: []string{"https://example.com"},
 				RequestedAt:       time.Unix(19000000020, 0),
 				Form: url.Values{
-					oidc.FormParameterState:      []string{"123"},
-					oidc.FormParameterMaximumAge: []string{"1"},
+					oidc.FormParameterState:        []string{"123"},
+					oidc.FormParameterMaximumAge:   []string{"1"},
+					oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 				}.Encode(),
 			},
 			nil,
@@ -471,6 +795,74 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				ClientDescription: myclientname,
 				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
 				Audience:          []string{"https://example.com"},
+			},
+		},
+		{
+			"ShouldHandlePromptConsent",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+				Form: url.Values{
+					oidc.FormParameterState:        []string{"123"},
+					oidc.FormParameterPrompt:       []string{oidc.PromptConsent},
+					oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+					oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+				}.Encode(),
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterPrompt:       []string{oidc.PromptConsent},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
+			},
+		},
+		{
+			"ShouldHandlePromptConsentMulti",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+				Form: url.Values{
+					oidc.FormParameterState:        []string{"123"},
+					oidc.FormParameterPrompt:       []string{fmt.Sprintf("%s %s", oidc.PromptConsent, oidc.PromptSelectAccount)},
+					oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+					oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+				}.Encode(),
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterPrompt:       []string{fmt.Sprintf("%s %s", oidc.PromptConsent, oidc.PromptSelectAccount)},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
 			},
 		},
 	}
@@ -693,6 +1085,36 @@ func TestNewClientPAR(t *testing.T) {
 			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 			assert.Equal(t, tc.expected, client.GetRequirePushedAuthorizationRequests())
+		})
+	}
+}
+
+func TestNewClientRequireSignedRequestObject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.IdentityProvidersOpenIDConnectClient
+		expected bool
+	}{
+		{
+			"ShouldNotRequireSignedRequestObject",
+			schema.IdentityProvidersOpenIDConnectClient{},
+			false,
+		},
+		{
+			"ShouldRequireSignedRequestObject",
+			schema.IdentityProvidersOpenIDConnectClient{RequireSignedRequestObject: true},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			registered, ok := client.(*oidc.RegisteredClient)
+			require.True(t, ok)
+
+			assert.Equal(t, tc.expected, registered.GetRequireSignedRequestObject())
 		})
 	}
 }
@@ -1351,4 +1773,700 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 	require.True(t, ok)
 
 	assert.Equal(t, "", registered.GetJSONWebKeysURI())
+}
+
+func TestGetClientSecretPlainText(t *testing.T) {
+	plainDigest, digestErr := schema.DecodePasswordDigest("$plaintext$mysecret")
+	require.NoError(t, digestErr)
+
+	argon2Digest, digestErr := schema.DecodePasswordDigest("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+	require.NoError(t, digestErr)
+
+	testCases := []struct {
+		name   string
+		client *oidc.RegisteredClient
+		secret []byte
+		ok     bool
+		err    string
+	}{
+		{
+			name:   "ShouldReturnNotOkAndNilErrorWhenSecretNil",
+			client: &oidc.RegisteredClient{ClientSecret: nil},
+			secret: nil,
+			ok:     false,
+			err:    "",
+		},
+		{
+			name:   "ShouldReturnNotOkWhenDigestInvalid",
+			client: &oidc.RegisteredClient{ClientSecret: &oidc.ClientSecretDigest{PasswordDigest: &schema.PasswordDigest{}}},
+			secret: nil,
+			ok:     false,
+			err:    "",
+		},
+		{
+			name:   "ShouldReturnOkButNilSecretForNonPlainText",
+			client: &oidc.RegisteredClient{ClientSecret: &oidc.ClientSecretDigest{PasswordDigest: argon2Digest}},
+			secret: nil,
+			ok:     true,
+			err:    "",
+		},
+		{
+			name:   "ShouldReturnSecretForPlainText",
+			client: &oidc.RegisteredClient{ClientSecret: &oidc.ClientSecretDigest{PasswordDigest: plainDigest}},
+			secret: []byte("mysecret"),
+			ok:     true,
+			err:    "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			secret, ok, err := tc.client.GetClientSecretPlainText()
+			assert.Equal(t, tc.secret, secret)
+			assert.Equal(t, tc.ok, ok)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestGetRotatedClientSecrets(t *testing.T) {
+	testCases := []struct {
+		name    string
+		secrets []*oidc.ClientSecretDigest
+	}{
+		{
+			name:    "ShouldReturnCopyOfRotatedSecrets",
+			secrets: []*oidc.ClientSecretDigest{{}, {}},
+		},
+		{
+			name:    "ShouldReturnEmptyWhenNoneConfigured",
+			secrets: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{RotatedClientSecrets: tc.secrets}
+			actual := c.GetRotatedClientSecrets()
+
+			if tc.secrets == nil {
+				assert.Len(t, actual, 0)
+				return
+			}
+
+			assert.Equal(t, len(tc.secrets), len(actual))
+
+			for i := range tc.secrets {
+				assert.Equal(t, tc.secrets[i], actual[i])
+			}
+
+			if len(tc.secrets) > 0 {
+				tc.secrets[0] = &oidc.ClientSecretDigest{PasswordDigest: schema.NewPasswordDigest(nil)}
+				assert.NotEqual(t, tc.secrets[0], actual[0])
+			}
+		})
+	}
+}
+
+func TestGetSectorIdentifierURI(t *testing.T) {
+	u := &url.URL{Scheme: "https", Host: "example.com", Path: "/sector.json"}
+	testCases := []struct {
+		name string
+		u    *url.URL
+		want string
+	}{
+		{
+			name: "ShouldReturnEmptyWhenNil",
+			u:    nil,
+			want: "",
+		},
+		{
+			name: "ShouldReturnStringWhenSet",
+			u:    u,
+			want: u.String(),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{SectorIdentifierURI: tc.u}
+			assert.Equal(t, tc.want, c.GetSectorIdentifierURI())
+		})
+	}
+}
+
+func TestGetClaimsStrategy(t *testing.T) {
+	testCases := []struct {
+		name string
+		cs   oidc.ClaimsStrategy
+	}{
+		{
+			name: "ShouldReturnNilWhenUnset",
+			cs:   nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClaimsStrategy: tc.cs}
+			assert.Equal(t, tc.cs, c.GetClaimsStrategy())
+		})
+	}
+}
+
+func TestGetRevocationEndpointAuthMethod(t *testing.T) {
+	testCases := []struct {
+		name   string
+		public bool
+		method string
+		want   string
+	}{
+		{
+			name:   "ShouldReturnNoneWhenPublicAndEmpty",
+			public: true,
+			method: "",
+			want:   oidc.ClientAuthMethodNone,
+		},
+		{
+			name:   "ShouldReturnEmptyWhenPrivateAndEmpty",
+			public: false,
+			method: "",
+			want:   "",
+		},
+		{
+			name:   "ShouldReturnConfiguredWhenSet",
+			public: true,
+			method: "private_key_jwt",
+			want:   "private_key_jwt",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{Public: tc.public, RevocationEndpointAuthMethod: tc.method}
+			assert.Equal(t, tc.want, c.GetRevocationEndpointAuthMethod())
+		})
+	}
+}
+
+func TestGetPushedAuthorizeContextLifespan(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "ShouldReturnZero",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{}
+			assert.Equal(t, time.Duration(0), c.GetPushedAuthorizeContextLifespan())
+		})
+	}
+}
+
+func TestRegisteredClient_GetRefreshTokenMaximumLifespan(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.RegisteredClient
+		expected time.Duration
+	}{
+		{
+			name:     "ShouldReturnZeroByDefault",
+			have:     &oidc.RegisteredClient{},
+			expected: time.Duration(0),
+		},
+		{
+			name:     "ShouldReturnConfiguredValue",
+			have:     &oidc.RegisteredClient{Lifespans: schema.IdentityProvidersOpenIDConnectLifespan{RefreshTokenMaximum: time.Hour}},
+			expected: time.Hour,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetRefreshTokenMaximumLifespan())
+		})
+	}
+}
+
+func TestRegisteredClient_GetApplicationType(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.RegisteredClient
+		expected string
+		native   bool
+	}{
+		{
+			name:     "ShouldReturnEmptyByDefault",
+			have:     &oidc.RegisteredClient{},
+			expected: "",
+			native:   false,
+		},
+		{
+			name:     "ShouldReturnWeb",
+			have:     &oidc.RegisteredClient{ApplicationType: oidc.ApplicationTypeWeb},
+			expected: oidc.ApplicationTypeWeb,
+			native:   false,
+		},
+		{
+			name:     "ShouldReturnNative",
+			have:     &oidc.RegisteredClient{ApplicationType: oidc.ApplicationTypeNative},
+			expected: oidc.ApplicationTypeNative,
+			native:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetApplicationType())
+			assert.Equal(t, tc.native, oauthelia2.IsNativeClient(tc.have))
+		})
+	}
+}
+
+func TestRegisteredClientRefreshTokenRotation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.RegisteredClient
+		expected bool
+		disabled bool
+	}{
+		{
+			name:     "ShouldRotateByDefault",
+			have:     &oidc.RegisteredClient{ID: "app"},
+			expected: false,
+			disabled: false,
+		},
+		{
+			name:     "ShouldNotRotateConfidentialClient",
+			have:     &oidc.RegisteredClient{ID: "app", DisableRefreshTokenRotation: true},
+			expected: true,
+			disabled: true,
+		},
+		{
+			name:     "ShouldRotatePublicClient",
+			have:     &oidc.RegisteredClient{ID: "app", Public: true, DisableRefreshTokenRotation: true},
+			expected: true,
+			disabled: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetDisableRefreshTokenRotation())
+
+			config := &oidc.Config{}
+
+			request := &oauthelia2.Request{Client: tc.have, Session: oidc.NewSession()}
+
+			assert.Equal(t, tc.disabled, oauthelia2.IsRefreshTokenRotationDisabledForRequest(context.Background(), config, request))
+		})
+	}
+}
+
+func TestNewClientDisableRefreshTokenRotation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     bool
+		expected bool
+	}{
+		{"ShouldMapEnabled", true, true},
+		{"ShouldMapDisabled", false, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{ID: "app", DisableRefreshTokenRotation: tc.have}, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			rotation, ok := client.(oauthelia2.RefreshTokenRotationClient)
+
+			require.True(t, ok)
+			assert.Equal(t, tc.expected, rotation.GetDisableRefreshTokenRotation())
+		})
+	}
+}
+
+func TestGetRevokeRefreshTokensExplicit(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "ShouldReturnFalse",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{}
+			assert.False(t, c.GetRevokeRefreshTokensExplicit(context.Background()))
+		})
+	}
+}
+
+func TestSetJSONWebKeys(t *testing.T) {
+	jwks := &jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{KeyID: "kid1", Algorithm: "RS256"}}}
+	testCases := []struct {
+		name string
+		jwks *jose.JSONWebKeySet
+	}{
+		{
+			name: "ShouldSetAndGetJWKS",
+			jwks: jwks,
+		},
+		{
+			name: "ShouldSetNilJWKS",
+			jwks: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{}
+			c.SetJSONWebKeys(tc.jwks)
+			assert.Equal(t, tc.jwks, c.GetJSONWebKeys())
+		})
+	}
+}
+
+func TestGetRequestObjectSigningKeyID(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "ShouldReturnEmpty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, "", (&oidc.RegisteredClient{}).GetRequestObjectSigningKeyID())
+		})
+	}
+}
+
+func TestGetRequestObjectEncryptionKeyID(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "ShouldReturnEmpty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, "", (&oidc.RegisteredClient{}).GetRequestObjectEncryptionKeyID())
+		})
+	}
+}
+
+func TestGetRequestObjectEncryptionAlg(t *testing.T) {
+	testCases := []struct {
+		name string
+		alg  string
+	}{
+		{
+			name: "ShouldReturnConfiguredAlg",
+			alg:  "RSA-OAEP",
+		},
+		{
+			name: "ShouldReturnEmptyWhenUnset",
+			alg:  "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{RequestObjectEncryptionAlg: tc.alg}
+			assert.Equal(t, tc.alg, c.GetRequestObjectEncryptionAlg())
+		})
+	}
+}
+
+func TestGetRequestObjectEncryptionEnc(t *testing.T) {
+	testCases := []struct {
+		name string
+		enc  string
+	}{
+		{
+			name: "ShouldReturnConfiguredEnc",
+			enc:  "A128GCM",
+		},
+		{
+			name: "ShouldReturnEmptyWhenUnset",
+			enc:  "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{RequestObjectEncryptionEnc: tc.enc}
+			assert.Equal(t, tc.enc, c.GetRequestObjectEncryptionEnc())
+		})
+	}
+}
+
+func TestGetAllowMultipleAuthenticationMethods(t *testing.T) {
+	testCases := []struct {
+		name  string
+		allow bool
+	}{
+		{
+			name:  "ShouldReturnTrueWhenAllowed",
+			allow: true,
+		},
+		{
+			name:  "ShouldReturnFalseWhenNotAllowed",
+			allow: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{AllowMultipleAuthenticationMethods: tc.allow}
+			assert.Equal(t, tc.allow, c.GetAllowMultipleAuthenticationMethods())
+		})
+	}
+}
+
+func TestGetClientAssertionJWTValidationHeaderAllowEmptyType(t *testing.T) {
+	testCases := []struct {
+		name  string
+		allow bool
+	}{
+		{
+			name:  "ShouldReturnTrueWhenAllowed",
+			allow: true,
+		},
+		{
+			name:  "ShouldReturnFalseWhenNotAllowed",
+			allow: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClientAssertionJWTValidationHeaderAllowEmptyType: tc.allow}
+			assert.Equal(t, tc.allow, c.GetClientAssertionJWTValidationHeaderAllowEmptyType())
+		})
+	}
+}
+
+func TestGetClientAssertionJWTValidationHeaderAllowTypes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected []string
+	}{
+		{
+			name:     "ShouldReturnExplicitTypeWhenUnconfigured",
+			have:     nil,
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication},
+		},
+		{
+			name:     "ShouldReturnExplicitTypeWhenEmpty",
+			have:     []string{},
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication},
+		},
+		{
+			name:     "ShouldReturnConfiguredTypes",
+			have:     []string{jwt.JSONWebTokenTypeClientAuthentication, jwt.JSONWebTokenTypeJWT},
+			expected: []string{jwt.JSONWebTokenTypeClientAuthentication, jwt.JSONWebTokenTypeJWT},
+		},
+		{
+			name:     "ShouldReturnConfiguredTypesWhenOnlyGeneric",
+			have:     []string{jwt.JSONWebTokenTypeJWT},
+			expected: []string{jwt.JSONWebTokenTypeJWT},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClientAssertionJWTValidationHeaderAllowTypes: tc.have}
+			assert.Equal(t, tc.expected, c.GetClientAssertionJWTValidationHeaderAllowTypes())
+		})
+	}
+}
+
+func TestGetIntrospectionPermitted(t *testing.T) {
+	testCases := []struct {
+		name              string
+		have              []string
+		expectedPermitted bool
+		expectedAudience  []string
+	}{
+		{
+			name:              "ShouldNotPermitWhenUnconfigured",
+			have:              nil,
+			expectedPermitted: false,
+			expectedAudience:  nil,
+		},
+		{
+			name:              "ShouldNotPermitWhenEmpty",
+			have:              []string{},
+			expectedPermitted: false,
+			expectedAudience:  []string{},
+		},
+		{
+			name:              "ShouldPermitWhenConfigured",
+			have:              []string{"https://api.example.com", "api"},
+			expectedPermitted: true,
+			expectedAudience:  []string{"https://api.example.com", "api"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{IntrospectionAudience: tc.have}
+			assert.Equal(t, tc.expectedPermitted, c.GetIntrospectionPermitted())
+			assert.Equal(t, tc.expectedAudience, c.GetIntrospectionAudience())
+		})
+	}
+}
+
+func TestGetClientCredentialsFlowRequestedScopeImplicit(t *testing.T) {
+	testCases := []struct {
+		name  string
+		allow bool
+	}{
+		{
+			name:  "ShouldReturnTrueWhenEnabled",
+			allow: true,
+		},
+		{
+			name:  "ShouldReturnFalseWhenDisabled",
+			allow: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClientCredentialsFlowAllowImplicitScope: tc.allow}
+			assert.Equal(t, tc.allow, c.GetClientCredentialsFlowRequestedScopeImplicit())
+		})
+	}
+}
+
+func TestGetRequestedAudienceImplicit(t *testing.T) {
+	testCases := []struct {
+		name string
+		mode oidc.ClientRequestedAudienceMode
+		want bool
+	}{
+		{
+			name: "ShouldReturnTrueWhenImplicit",
+			mode: oidc.ClientRequestedAudienceModeImplicit,
+			want: true,
+		},
+		{
+			name: "ShouldReturnFalseWhenDefault",
+			mode: 0,
+			want: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{RequestedAudienceMode: tc.mode}
+			assert.Equal(t, tc.want, c.GetRequestedAudienceImplicit())
+		})
+	}
+}
+
+func TestDecoratedUserinfoClient(t *testing.T) {
+	jwks := &jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{KeyID: "kid-userinfo", Algorithm: "RS256"}}}
+	u := &url.URL{Scheme: "https", Host: "client.example.com", Path: "/jwks.json"}
+	base := &oidc.RegisteredClient{
+		ID:                             "client-1",
+		UserinfoSignedResponseKeyID:    "kid-sign",
+		UserinfoSignedResponseAlg:      "RS256",
+		UserinfoEncryptedResponseKeyID: "kid-enc",
+		UserinfoEncryptedResponseAlg:   "RSA-OAEP",
+		UserinfoEncryptedResponseEnc:   "A128GCM",
+		JSONWebKeys:                    jwks,
+		JSONWebKeysURI:                 u,
+		ClientSecret:                   nil,
+	}
+
+	var d = oidc.NewUserinfoClient(base)
+
+	testCases := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "ShouldReturnSigningKeyID",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoSignedResponseKeyID, d.GetSigningKeyID())
+			},
+		},
+		{
+			name: "ShouldReturnSigningAlg",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoSignedResponseAlg, d.GetSigningAlg())
+			},
+		},
+		{
+			name: "ShouldReturnEncryptionKeyID",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoEncryptedResponseKeyID, d.GetEncryptionKeyID())
+			},
+		},
+		{
+			name: "ShouldReturnEncryptionAlg",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoEncryptedResponseAlg, d.GetEncryptionAlg())
+			},
+		},
+		{
+			name: "ShouldReturnEncryptionEnc",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoEncryptedResponseEnc, d.GetEncryptionEnc())
+			},
+		},
+		{
+			name: "ShouldReturnFalseForIsClientSigned",
+			test: func(t *testing.T) {
+				assert.False(t, d.IsClientSigned())
+			},
+		},
+		{
+			name: "ShouldReturnID",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.ID, d.GetID())
+			},
+		},
+		{
+			name: "ShouldReturnClientSecretPlainTextWhenNil",
+			test: func(t *testing.T) {
+				secret, ok, err := d.GetClientSecretPlainText()
+				assert.Nil(t, secret)
+				assert.False(t, ok)
+				assert.NoError(t, err)
+			},
+		},
+		{
+			name: "ShouldReturnJWKS",
+			test: func(t *testing.T) {
+				assert.Equal(t, jwks, d.GetJSONWebKeys())
+			},
+		},
+		{
+			name: "ShouldReturnJWKSURI",
+			test: func(t *testing.T) {
+				assert.Equal(t, u.String(), d.GetJSONWebKeysURI())
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, tc.test)
+	}
 }

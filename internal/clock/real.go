@@ -1,7 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package clock
 
 import (
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // New returns a new real clock.
@@ -17,11 +23,17 @@ func (Real) Now() time.Time {
 	return time.Now()
 }
 
+// GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption.
+func (r Real) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
+	return jwt.WithTimeFunc(r.Now)
+}
+
 // After return a channel receiving the time after the defined duration.
 func (Real) After(d time.Duration) <-chan time.Time {
 	return time.After(d)
 }
 
+// AfterFunc waits for the defined duration then calls the given function in its own goroutine.
 func (Real) AfterFunc(d time.Duration, f func()) *time.Timer {
 	return time.AfterFunc(d, f)
 }

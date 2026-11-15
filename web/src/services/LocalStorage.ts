@@ -1,4 +1,8 @@
-let hasLocalStorageSupport: null | boolean = null;
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+let hasLocalStorageSupport: boolean | null = null;
 const testKey = "authelia.test";
 const testValue = "foo";
 
@@ -7,12 +11,12 @@ export function localStorageAvailable() {
 
     hasLocalStorageSupport = false;
 
-    if (typeof window !== "undefined" && window.localStorage !== null) {
+    if (typeof globalThis !== "undefined" && globalThis.localStorage !== null) {
         hasLocalStorageSupport = true;
 
         try {
-            window.localStorage.setItem(testKey, testValue);
-            window.localStorage.removeItem(testKey);
+            globalThis.localStorage.setItem(testKey, testValue);
+            globalThis.localStorage.removeItem(testKey);
         } catch {
             hasLocalStorageSupport = false;
         }
@@ -24,13 +28,13 @@ export function localStorageAvailable() {
 export function getLocalStorage(key: string) {
     if (!localStorageAvailable()) return null;
 
-    return window.localStorage.getItem(key);
+    return globalThis.localStorage.getItem(key);
 }
 
 export function setLocalStorage(key: string, value: string) {
     if (!localStorageAvailable()) return false;
 
-    window.localStorage.setItem(key, value);
+    globalThis.localStorage.setItem(key, value);
 
     return true;
 }

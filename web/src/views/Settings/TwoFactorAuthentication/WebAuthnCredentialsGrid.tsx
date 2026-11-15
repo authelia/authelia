@@ -1,23 +1,22 @@
-import React from "react";
-
-import Grid from "@mui/material/Grid";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
 import { WebAuthnCredential } from "@models/WebAuthn";
 import WebAuthnCredentialItem from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialItem";
 
 interface Props {
     credentials: WebAuthnCredential[];
-    handleRefreshState: () => void;
-    handleInformation: (index: number) => void;
-    handleEdit: (index: number) => void;
-    handleDelete: (index: number) => void;
+    handleInformation: (_index: number) => void;
+    handleEdit: (_index: number) => void;
+    handleDelete: (_index: number) => void;
 }
 
 const WebAuthnCredentialsGrid = function (props: Props) {
     return (
-        <Grid container spacing={3}>
+        <div className="grid grid-cols-12 gap-6">
             {props.credentials.map((credential, index) => (
-                <Grid size={{ xs: 12, md: 6, xl: 3 }} key={index}>
+                <div className="col-span-12 md:col-span-6 xl:col-span-3" key={credential.id}>
                     <WebAuthnCredentialItem
                         index={index}
                         credential={credential}
@@ -25,9 +24,9 @@ const WebAuthnCredentialsGrid = function (props: Props) {
                         handleEdit={props.handleEdit}
                         handleDelete={props.handleDelete}
                     />
-                </Grid>
+                </div>
             ))}
-        </Grid>
+        </div>
     );
 };
 

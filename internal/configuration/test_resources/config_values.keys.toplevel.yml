@@ -1,0 +1,10 @@
+# yamllint disable-file
+---
+1.0: 'one'
+true: 'yes'
+~: 'nothing'
+Nested:
+  1.0: 'one'
+  true: 'yes'
+  ~: 'nothing'
+...

@@ -1,25 +1,49 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package duo
 
 import (
+	"context"
 	"encoding/json"
+	"net"
+	"net/http"
 	"net/url"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
+	"github.com/sirupsen/logrus"
 
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// API interface wrapping duo api library for testing purpose.
-type API interface {
-	Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (response *Response, err error)
-	PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
-	AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
+// Context describes the context requirements for the duo provider. It is intentionally minimal to avoid an import
+// cycle with the middlewares package which holds this provider.
+type Context interface {
+	context.Context
+
+	GetLogger() *logrus.Entry
+	RemoteIP() net.IP
 }
 
-// APIImpl implementation of DuoAPI interface.
-type APIImpl struct {
-	*duoapi.DuoApi
+// BaseProvider describes the upstream provider we intend to utilize. Implemented by duoapi.
+type BaseProvider interface {
+	SignedCall(method string, uri string, params url.Values, options ...duoapi.DuoApiOption) (*http.Response, []byte, error)
+	Call(method string, uri string, params url.Values, options ...duoapi.DuoApiOption) (*http.Response, []byte, error)
+}
+
+// The Provider interface is used to describe this provider for the purpose of mock testing.
+type Provider interface {
+	model.StartupCheck
+
+	PreAuthCall(ctx Context, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
+	AuthCall(ctx Context, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
+}
+
+// Production implementation of the Provider interface.
+type Production struct {
+	BaseProvider
 }
 
 // Device holds all necessary info for frontend.
@@ -52,8 +76,11 @@ type AuthResponse struct {
 
 // PreAuthResponse is a response for a preauthorization request.
 type PreAuthResponse struct {
-	Result          string   `json:"result"`
-	StatusMessage   string   `json:"status_msg"`
-	Devices         []Device `json:"devices"`
-	EnrollPortalURL string   `json:"enroll_portal_url"`
+	Result           string   `json:"result"`
+	StatusMessage    string   `json:"status_msg"`
+	Devices          []Device `json:"devices"`
+	EnrollPortalURL  string   `json:"enroll_portal_url"`
+	Expiration       int64    `json:"expiration"`
+	TransactionID    string   `json:"txid"`
+	VerificationCode string   `json:"verification_code"`
 }

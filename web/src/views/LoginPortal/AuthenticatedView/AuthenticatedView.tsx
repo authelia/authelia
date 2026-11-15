@@ -1,9 +1,8 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Theme } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
 import MinimalLayout from "@layouts/MinimalLayout";
@@ -17,34 +16,22 @@ export interface Props {
 const AuthenticatedView = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const { classes } = useStyles();
-
     return (
         <MinimalLayout
-            id={"authenticated-stage"}
+            id={"authenticated-view"}
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
         >
-            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
-                <Grid size={{ xs: 12 }}>
+            <div className="flex flex-col items-center justify-center">
+                <div className="w-full">
                     <LogoutButton />
-                </Grid>
-                <Grid size={{ xs: 12 }} className={classes.mainContainer}>
+                </div>
+                <div className="my-4 w-full rounded-[10px] border border-border p-8">
                     <Authenticated />
-                </Grid>
-            </Grid>
+                </div>
+            </div>
         </MinimalLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    mainContainer: {
-        border: "1px solid #d6d6d6",
-        borderRadius: "10px",
-        padding: theme.spacing(4),
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-}));
 
 export default AuthenticatedView;

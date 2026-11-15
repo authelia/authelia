@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+: "${DART_SASS_VERSION:?DART_SASS_VERSION must be set}"
+
+INSTALL_DIR="${HOME}/.local"
+ARCHIVE="dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
+
+mkdir -p "${INSTALL_DIR}"
+
+echo "Installing Dart Sass from https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/${ARCHIVE}"
+
+curl -fsSL "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/${ARCHIVE}" | tar -xz -C "${INSTALL_DIR}"
+
+export PATH="${INSTALL_DIR}/dart-sass:${PATH}"
+
+sass --version
+hugo version
+
+git config core.quotepath false
+
+echo "Building..."
+
+pnpm build "$@"

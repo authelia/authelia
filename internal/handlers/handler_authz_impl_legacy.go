@@ -1,70 +1,47 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func handleAuthzGetObjectLegacy(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
+func handleAuthzGetObjectLegacy(ctx AuthzContext) (object authorization.Object, err error) {
 	var (
-		targetURL *url.URL
-		method    []byte
+		method          []byte
+		requestedObject *authorization.Object
 	)
-
-	if targetURL, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
-		return object, fmt.Errorf("failed to get target URL: %w", err)
-	}
 
 	if method = ctx.XForwardedMethod(); len(method) == 0 {
 		method = ctx.Method()
 	}
 
-	if hasInvalidMethodCharacters(method) {
-		return object, fmt.Errorf("header 'X-Forwarded-Method' with value '%s' has invalid characters", method)
+	if requestedObject, err = authorization.NewObjectMethodURLOrSchemeHostPath(method, ctx.XOriginalURL(), ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.GetXForwardedURI()); err != nil {
+		return object, err
 	}
 
-	return authorization.NewObjectRaw(targetURL, method), nil
+	return *requestedObject, nil
 }
 
-func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
-	var (
-		statusCode int
-	)
-
+func handleAuthzUnauthorizedLegacy(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
 	if authn.Type == AuthnTypeAuthorization {
 		handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 
 		return
 	}
 
-	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == nil:
-		statusCode = fasthttp.StatusUnauthorized
-	default:
-		switch authn.Object.Method {
-		case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead, "":
-			statusCode = fasthttp.StatusFound
-		default:
-			statusCode = fasthttp.StatusSeeOther
-		}
-	}
-
-	if redirectionURL != nil {
-		ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, statusCode, redirectionURL)
-
-		switch authn.Object.Method {
-		case fasthttp.MethodHead:
-			ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
-		default:
-			ctx.SpecialRedirect(redirectionURL.String(), statusCode)
-		}
-	} else {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, statusCode)
+	if redirectionURL == nil {
+		ctx.GetLogger().Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.String(), authn.Method, authn.Username, fasthttp.StatusUnauthorized)
 		ctx.ReplyUnauthorized()
+
+		return
 	}
+
+	doAuthzRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
 }

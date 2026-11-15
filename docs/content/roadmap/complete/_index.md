@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Complete"
-description: "Complete Roadmap Details"
+description: "The completed Authelia roadmap items which have been fully implemented and are available for use in production deployments including recent feature additions."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-03-23T19:03:40+11:00
 draft: false
 images: []
 weight: 900

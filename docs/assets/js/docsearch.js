@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import docsearch from "@docsearch/js";
+
+docsearch({
+  container: "#docsearch",
+  appId: "BIQ7DDWR39",
+  indices: ["Production"],
+  apiKey: "27590c872bf247526427720080358240",
+  insights: true,
+});
+
+const onClick = function () {
+  document.getElementsByClassName("DocSearch-Button")[0].click();
+};
+
+document.getElementById("searchToggleMobile").onclick = onClick;
+document.getElementById("searchToggleDesktop").onclick = onClick;

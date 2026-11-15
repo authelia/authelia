@@ -1,36 +1,25 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { LinearProgress, Theme } from "@mui/material";
-import { makeStyles } from "tss-react/mui";
+import { cn } from "cn";
+
+import { Progress } from "@components/UI/Progress";
 
 export interface Props {
     value: number;
-    height?: string | number;
+    height?: number | string;
+    className?: string;
 }
 
 const LinearProgressBar = function (props: Props) {
-    const { classes } = useStyles({ props: props });
-
     return (
-        <LinearProgress
-            variant="determinate"
-            classes={{ root: classes.root, determinate: classes.determinate }}
+        <Progress
             value={props.value}
-            className={classes.default}
+            className={cn("mt-2 transition-transform duration-200 ease-linear", props.className)}
+            style={{ height: props.height ?? 8 }}
         />
     );
 };
-
-const useStyles = makeStyles<{ props: Props }>()((theme: Theme, { props }) => ({
-    root: {
-        height: props.height ? props.height : theme.spacing(),
-    },
-    determinate: {
-        transition: "transform .2s linear",
-    },
-    default: {
-        marginTop: theme.spacing(),
-    },
-}));
 
 export default LinearProgressBar;

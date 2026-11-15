@@ -1,19 +1,21 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 import TypographyWithTooltip, { Props } from "@components/TypographyWithTooltip";
 
 const defaultProps: Props = {
-    variant: "h5",
     value: "Example",
+    variant: "h5",
 };
 
 it("renders without crashing", () => {
     render(<TypographyWithTooltip {...defaultProps} />);
 });
 
-it("renders with tooltip without crashing", () => {
+it("renders with tooltip", () => {
     const props: Props = {
         ...defaultProps,
         tooltip: "A tooltip",
@@ -26,17 +28,17 @@ it("renders the text correctly", () => {
         ...defaultProps,
         value: "Test text",
     };
-    const { getByText } = render(<TypographyWithTooltip {...props} />);
-    const element = getByText(props.value!);
-    expect(element).toBeInTheDocument();
+    render(<TypographyWithTooltip {...props} />);
+    expect(screen.getByText(props.value!)).toBeInTheDocument();
 });
 
-it("renders the tooltip correctly", () => {
+it("renders the correct heading element for variant", () => {
     const props: Props = {
         ...defaultProps,
-        tooltip: "Test tooltip",
+        value: "Test text",
+        variant: "h3",
     };
-    const { getByText } = render(<TypographyWithTooltip {...props} />);
-    const element = getByText(props.value!);
-    expect(element).toHaveAttribute("aria-label", props.tooltip);
+    render(<TypographyWithTooltip {...props} />);
+    const element = screen.getByText(props.value!);
+    expect(element.tagName).toBe("H3");
 });

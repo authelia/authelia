@@ -1,50 +1,46 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, List, ListItem, ListItemIcon, ListItemText, Theme, Tooltip } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import { ScopeAvatar } from "@components/OpenIDConnect";
 import { formatScope } from "@services/ConsentOpenIDConnect";
+import DecisionFormSection, { DecisionFormSectionItem } from "@views/ConsentPortal/OpenIDConnect/DecisionFormSection";
 
 export interface Props {
-    scopes: string[];
+    scopes?: null | string[];
 }
 
-const DecisionFormScopes: React.FC<Props> = (props: Props) => {
+function DecisionFormScopes({ scopes }: Props) {
     const { t: translate } = useTranslation(["consent"]);
 
-    const { classes } = useStyles();
+    if (!scopes || scopes.length === 0) {
+        return null;
+    }
 
     return (
-        <Grid size={{ xs: 12 }}>
-            <Box className={classes.scopesListContainer}>
-                <List className={classes.scopesList}>
-                    {props.scopes.map((scope: string) => (
-                        <Tooltip key={scope} title={translate("Scope", { name: scope })}>
-                            <ListItem id={"scope-" + scope} key={scope} dense>
-                                <ListItemIcon>{ScopeAvatar(scope)}</ListItemIcon>
-                                <ListItemText primary={formatScope(translate(`scopes.${scope}`), scope)} />
-                            </ListItem>
-                        </Tooltip>
-                    ))}
-                </List>
-            </Box>
-        </Grid>
-    );
-};
+        <DecisionFormSection
+            id={"openid-consent-scopes"}
+            title={translate("Requested Permissions")}
+            description={translate("The actions the application will be allowed to perform on your behalf")}
+        >
+            {scopes.map((scope: string) => {
+                const label = formatScope(translate(`scopes.${scope}`, { nsSeparator: false }), scope);
 
-const useStyles = makeStyles()((theme: Theme) => ({
-    scopesListContainer: {
-        textAlign: "center",
-    },
-    scopesList: {
-        display: "inline-block",
-        backgroundColor: theme.palette.background.paper,
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-}));
+                return (
+                    <DecisionFormSectionItem
+                        key={scope}
+                        id={`scope-${scope}`}
+                        icon={ScopeAvatar(scope)}
+                        identifier={label.toLowerCase() === scope.toLowerCase() ? null : scope}
+                    >
+                        <span className="text-sm">{label}</span>
+                    </DecisionFormSectionItem>
+                );
+            })}
+        </DecisionFormSection>
+    );
+}
 
 export default DecisionFormScopes;

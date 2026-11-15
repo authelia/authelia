@@ -1,14 +1,16 @@
-import React, { lazy, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Button, Theme } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { lazy, useState } from "react";
+
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
-import { Route, Routes } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
+import { Route, Routes } from "react-router";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
+import { Button } from "@components/UI/Button";
 import {
     SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
@@ -18,8 +20,8 @@ import {
     SettingsTwoFactorAuthenticationSubRoute,
 } from "@constants/Routes";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlowPresent } from "@hooks/Flow";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
@@ -33,6 +35,7 @@ const OneTimePasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor
 const PushNotificationMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PushNotificationMethod"));
 const WebAuthnMethod = lazy(() => import("@views/LoginPortal/SecondFactor/WebAuthnMethod"));
 const PasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PasswordMethod"));
+const RecoveryCodeMethod = lazy(() => import("@views/LoginPortal/SecondFactor/RecoveryCodeMethod"));
 
 export interface Props {
     authenticationLevel: AuthenticationLevel;
@@ -42,24 +45,20 @@ export interface Props {
     duoSelfEnrollment: boolean;
 
     onMethodChanged: () => void;
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const SecondFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
-    const { classes } = useStyles();
 
     const navigate = useRouterNavigate();
     const flowPresent = useFlowPresent();
-    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
     const { createErrorNotification } = useNotifications();
 
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
-    const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
-
-    useEffect(() => {
-        setStateWebAuthnSupported(browserSupportsWebAuthn());
-    }, [setStateWebAuthnSupported]);
+    const [recoveryCodeMode, setRecoveryCodeMode] = useState(false);
+    const stateWebAuthnSupported = browserSupportsWebAuthn();
 
     const handleMethodSelectionClick = () => {
         setMethodSelectionOpen(true);
@@ -102,93 +101,109 @@ const SecondFactorForm = function (props: Props) {
                     onClick={handleMethodSelected}
                 />
             ) : null}
-            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
-                <Grid size={{ xs: 12 }}>
+            <div className="flex flex-col items-center justify-center">
+                <div className="w-full">
                     <LogoutButton />
                     {flowPresent ? " | " : null}
                     {flowPresent ? <SwitchUserButton /> : null}
                     {showMethods ? " | " : null}
                     {showMethods ? (
-                        <Button id={"methods-button"} color="secondary" onClick={handleMethodSelectionClick}>
+                        <Button
+                            id={"methods-button"}
+                            variant={"ghost"}
+                            className="text-sm tracking-wide"
+                            color={"secondary"}
+                            onClick={handleMethodSelectionClick}
+                        >
                             {translate("Methods")}
                         </Button>
                     ) : null}
-                </Grid>
-                <Box className={classes.methodContainer}>
-                    <Routes>
-                        <Route
-                            path={SecondFactorPasswordSubRoute}
-                            element={
-                                <PasswordMethod
-                                    id="password-method"
-                                    authenticationLevel={props.authenticationLevel}
-                                    userInfo={props.userInfo}
-                                    onAuthenticationSuccess={props.onAuthenticationSuccess}
-                                />
-                            }
+                </div>
+                <div className="my-4 min-w-[300px] rounded-[10px] border border-border p-8">
+                    {recoveryCodeMode ? (
+                        <RecoveryCodeMethod
+                            id={"recovery-code-method"}
+                            onSignInError={(err) => createErrorNotification(err.message)}
+                            onSignInSuccess={props.onAuthenticationSuccess}
+                            onCancel={() => setRecoveryCodeMode(false)}
                         />
-                        <Route
-                            path={SecondFactorTOTPSubRoute}
-                            element={
-                                <OneTimePasswordMethod
-                                    id={"one-time-password-method"}
-                                    authenticationLevel={props.authenticationLevel}
-                                    // Whether the user has a TOTP secret registered already
-                                    registered={props.userInfo.has_totp}
-                                    onRegisterClick={() => {
-                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
-                                    }}
-                                    onSignInError={(err) => createErrorNotification(err.message)}
-                                    onSignInSuccess={props.onAuthenticationSuccess}
-                                />
-                            }
-                        />
-                        <Route
-                            path={SecondFactorWebAuthnSubRoute}
-                            element={
-                                <WebAuthnMethod
-                                    id={"webauthn-method"}
-                                    authenticationLevel={props.authenticationLevel}
-                                    // Whether the user has a WebAuthn device registered already
-                                    registered={props.userInfo.has_webauthn}
-                                    onRegisterClick={() => {
-                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
-                                    }}
-                                    onSignInError={(err) => createErrorNotification(err.message)}
-                                    onSignInSuccess={props.onAuthenticationSuccess}
-                                />
-                            }
-                        />
-                        <Route
-                            path={SecondFactorPushSubRoute}
-                            element={
-                                <PushNotificationMethod
-                                    id={"push-notification-method"}
-                                    authenticationLevel={props.authenticationLevel}
-                                    duoSelfEnrollment={props.duoSelfEnrollment}
-                                    registered={props.userInfo.has_duo}
-                                    onSelectionClick={props.onMethodChanged}
-                                    onSignInError={(err) => createErrorNotification(err.message)}
-                                    onSignInSuccess={props.onAuthenticationSuccess}
-                                />
-                            }
-                        />
-                    </Routes>
-                </Box>
-            </Grid>
+                    ) : (
+                        <Routes>
+                            <Route
+                                path={SecondFactorPasswordSubRoute}
+                                element={
+                                    <PasswordMethod
+                                        id="password-method"
+                                        authenticationLevel={props.authenticationLevel}
+                                        onAuthenticationSuccess={props.onAuthenticationSuccess}
+                                    />
+                                }
+                            />
+                            <Route
+                                path={SecondFactorTOTPSubRoute}
+                                element={
+                                    <OneTimePasswordMethod
+                                        id={"one-time-password-method"}
+                                        authenticationLevel={props.authenticationLevel}
+                                        // Whether the user has a TOTP secret registered already
+                                        registered={props.userInfo.has_totp}
+                                        onRegisterClick={() => {
+                                            navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                                        }}
+                                        onSignInError={(err) => createErrorNotification(err.message)}
+                                        onSignInSuccess={props.onAuthenticationSuccess}
+                                    />
+                                }
+                            />
+                            <Route
+                                path={SecondFactorWebAuthnSubRoute}
+                                element={
+                                    <WebAuthnMethod
+                                        id={"webauthn-method"}
+                                        authenticationLevel={props.authenticationLevel}
+                                        // Whether the user has a WebAuthn device registered already
+                                        registered={props.userInfo.has_webauthn}
+                                        onRegisterClick={() => {
+                                            navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                                        }}
+                                        onSignInError={(err) => createErrorNotification(err.message)}
+                                        onSignInSuccess={props.onAuthenticationSuccess}
+                                    />
+                                }
+                            />
+                            <Route
+                                path={SecondFactorPushSubRoute}
+                                element={
+                                    <PushNotificationMethod
+                                        id={"push-notification-method"}
+                                        authenticationLevel={props.authenticationLevel}
+                                        duoSelfEnrollment={props.duoSelfEnrollment}
+                                        registered={props.userInfo.has_duo}
+                                        onSelectionClick={props.onMethodChanged}
+                                        onSignInError={(err) => createErrorNotification(err.message)}
+                                        onSignInSuccess={props.onAuthenticationSuccess}
+                                    />
+                                }
+                            />
+                        </Routes>
+                    )}
+                    {!recoveryCodeMode && props.factorKnowledge && props.userInfo.has_recovery_codes ? (
+                        <div className="mt-4 text-center">
+                            <Button
+                                id={"recovery-code-link"}
+                                variant={"ghost"}
+                                className="text-sm tracking-wide"
+                                color={"secondary"}
+                                onClick={() => setRecoveryCodeMode(true)}
+                            >
+                                {translate("Use a recovery code instead")}
+                            </Button>
+                        </div>
+                    ) : null}
+                </div>
+            </div>
         </LoginLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    methodContainer: {
-        border: "1px solid #d6d6d6",
-        borderRadius: "10px",
-        padding: theme.spacing(4),
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-        minWidth: "300px",
-    },
-}));
 
 export default SecondFactorForm;

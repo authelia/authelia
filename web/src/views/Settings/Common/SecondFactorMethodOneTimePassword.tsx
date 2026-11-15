@@ -1,41 +1,67 @@
-import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { Fragment, useCallback, useEffect, useReducer } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
+import RateLimitCountdown from "@components/RateLimitCountdown";
+import { useNotifications } from "@contexts/NotificationsContext";
+import { useRateLimit } from "@hooks/RateLimit";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
+import { RateLimitedError } from "@services/RateLimit";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
+type ComponentState = {
+    passcode: string;
+    status: State;
+};
+
+type Action = { type: "setPasscode"; passcode: string } | { type: "setStatus"; status: State };
+
+const initialState: ComponentState = {
+    passcode: "",
+    status: State.Idle,
+};
+
+function reducer(state: ComponentState, action: Action): ComponentState {
+    switch (action.type) {
+        case "setPasscode":
+            return { ...state, passcode: action.passcode };
+        case "setStatus":
+            return { ...state, status: action.status };
+        default:
+            return state;
+    }
+}
+
 export interface Props {
-    closing: boolean;
     onSecondFactorSuccess: () => void;
 }
 
 const SecondFactorMethodOneTimePassword = function (props: Props) {
+    const { onSecondFactorSuccess } = props;
     const { t: translate } = useTranslation(["settings", "portal"]);
 
-    const [passcode, setPasscode] = useState("");
-    const [state, setState] = useState(State.Idle);
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const { passcode, status } = state;
     const { createErrorNotification } = useNotifications();
 
     const [config, fetchConfig, , fetchConfigError] = useUserInfoTOTPConfiguration();
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
-    }, []);
+    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() =>
+        dispatch({ status: State.Idle, type: "setStatus" }),
+    );
 
     useEffect(() => {
         if (fetchConfigError) {
             console.error(fetchConfigError);
-            setState(State.Failure);
+            dispatch({ status: State.Failure, type: "setStatus" });
         }
-    }, [fetchConfigError, translate]);
+    }, [fetchConfigError]);
 
     useEffect(() => {
         fetchConfig();
@@ -43,57 +69,60 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
-            }
-
-            setState(State.RateLimited);
+            dispatch({ status: State.RateLimited, type: "setStatus" });
 
             createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
 
-            timeoutRateLimit.current = setTimeout(() => {
-                setState(State.Idle);
-                timeoutRateLimit.current = null;
-            }, retryAfter * 1000);
+            triggerRateLimit(retryAfter);
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, triggerRateLimit],
     );
 
-    const handleSignIn = useCallback(async () => {
-        const passcodeStr = `${passcode}`;
+    const handleSignIn = useCallback(
+        async (passcodeValue: string) => {
+            const passcodeStr = `${passcodeValue}`;
 
-        if (!config) return;
+            if (!config) return;
 
-        if (!passcode || passcodeStr.length !== config.digits) {
-            return;
-        }
-
-        try {
-            setState(State.InProgress);
-
-            const res = await completeTOTPSignIn(passcodeStr);
-
-            if (res) {
-                if (!res.limited) {
-                    setState(State.Success);
-                } else {
-                    handleRateLimited(res.retryAfter);
-                }
-            } else {
-                createErrorNotification(translate("The One-Time Password might be wrong", { ns: "portal" }));
-                setState(State.Failure);
+            if (!passcodeValue || passcodeStr.length !== config.digits) {
+                return;
             }
-        } catch (err) {
-            console.error(err);
-            setState(State.Failure);
-        }
 
-        setPasscode("");
-    }, [passcode, config, handleRateLimited, createErrorNotification, translate]);
+            try {
+                dispatch({ status: State.InProgress, type: "setStatus" });
 
-    useEffect(() => {
-        handleSignIn().catch(console.error);
-    }, [handleSignIn]);
+                await completeTOTPSignIn(passcodeStr);
+
+                dispatch({ status: State.Success, type: "setStatus" });
+                onSecondFactorSuccess();
+            } catch (err) {
+                if (err instanceof RateLimitedError) {
+                    handleRateLimited(err.retryAfter);
+                } else {
+                    console.error(err);
+                    dispatch({ status: State.Failure, type: "setStatus" });
+                }
+            }
+
+            dispatch({ passcode: "", type: "setPasscode" });
+        },
+        [config, handleRateLimited, onSecondFactorSuccess],
+    );
+
+    const handlePasscodeChange = useCallback(
+        (value: string) => {
+            dispatch({ passcode: value, type: "setPasscode" });
+            if (
+                config &&
+                value.length === config.digits &&
+                status !== State.InProgress &&
+                status !== State.RateLimited
+            ) {
+                handleSignIn(value);
+            }
+        },
+        [config, status, handleSignIn],
+    );
 
     return (
         <Fragment>
@@ -102,12 +131,13 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
                     passcode={passcode}
                     period={config.period}
                     digits={config.digits}
-                    onChange={setPasscode}
-                    state={state}
+                    onChange={handlePasscodeChange}
+                    state={status}
                 />
             ) : (
                 <LoadingPage />
             )}
+            <RateLimitCountdown secondsRemaining={secondsRemaining} />
         </Fragment>
     );
 };

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package cmd
 
 import (
@@ -8,12 +12,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-// HostEntry represents an entry in /etc/hosts.
-type HostEntry struct {
-	Domain string
-	IP     string
-}
 
 // DockerImages represents some of the data from the docker images API.
 type DockerImages []DockerImage
@@ -28,7 +26,7 @@ type DockerImage struct {
 
 // Match returns true if this image matches the platform.
 func (d DockerImage) Match(platform string) bool {
-	parts := []string{d.OS, d.Architecture}
+	parts := []string{d.OS, d.Architecture} //nolint:prealloc
 
 	if strings.Join(parts, "/") == platform {
 		return true
@@ -113,7 +111,7 @@ func (b Build) ContainerLabels() (labels map[string]string) {
 
 	labels = map[string]string{
 		"org.opencontainers.image.created":       b.Date.Format(time.RFC3339),
-		"org.opencontainers.image.authors":       "",
+		"org.opencontainers.image.authors":       "Authelia Team <team@authelia.com>",
 		"org.opencontainers.image.url":           "https://github.com/authelia/authelia/pkgs/container/authelia",
 		"org.opencontainers.image.documentation": "https://www.authelia.com",
 		"org.opencontainers.image.source":        fmt.Sprintf("https://github.com/authelia/authelia/tree/%s", b.Commit),
@@ -121,7 +119,7 @@ func (b Build) ContainerLabels() (labels map[string]string) {
 		"org.opencontainers.image.revision":      b.Commit,
 		"org.opencontainers.image.vendor":        "Authelia",
 		"org.opencontainers.image.licenses":      "Apache-2.0",
-		"org.opencontainers.image.ref.name":      "",
+		"org.opencontainers.image.ref.name":      version,
 		"org.opencontainers.image.title":         "authelia",
 		"org.opencontainers.image.description":   "Authelia is an open-source authentication and authorization server and portal fulfilling the identity and access management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO) for your applications via a web portal. Authelia is an OpenID Connect 1.0 Provider which is OpenID Certified™ allowing comprehensive integrations and acts as a companion for common reverse proxies.",
 	}

@@ -1,12 +1,20 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"net/url"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -27,7 +35,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
 			if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
-				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+				ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 		} else {
 			ctx.ReplyOK()
@@ -36,10 +44,11 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	var targetURL *url.URL
+	var object *authorization.Object
 
-	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
+	if object, err = authorization.NewObjectMethodURL([]byte(requestMethod), []byte(targetURI)); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred parsing the target URL '%s'", targetURI)
+		ctx.SetJSONError(messageAuthenticationFailed)
 
 		return
 	}
@@ -50,25 +59,25 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 			Groups:   groups,
 			IP:       ctx.RemoteIP(),
 		},
-		authorization.NewObject(targetURL, requestMethod))
+		*object)
 
-	ctx.Logger.Debugf("Required level for the URL %s is %s", targetURI, requiredLevel)
+	ctx.GetLogger().Debugf("Required level for the URL %s is %s", targetURI, requiredLevel)
 
 	if requiredLevel == authorization.TwoFactor {
-		ctx.Logger.Warnf("%s requires 2FA, cannot be redirected yet", targetURI)
+		ctx.GetLogger().Warnf("%s requires 2FA, cannot be redirected yet", object.URL)
 		ctx.ReplyOK()
 
 		return
 	}
 
-	if !ctx.IsSafeRedirectionTargetURI(targetURL) {
-		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
+	if !ctx.IsSafeRedirectionTargetURI(object.URL) {
+		ctx.GetLogger().Debugf("Redirection URL %s is not safe", object.URL)
 
 		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
 			if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
-				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+				ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 
 			return
@@ -79,10 +88,10 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
+	ctx.GetLogger().Debugf("Redirection URL %s is safe", object.URL)
 
 	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
-		ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
+		ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)
 	}
 }
 
@@ -100,7 +109,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		}
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
-			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 
 		return
@@ -112,17 +121,19 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	)
 
 	if parsedURI, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to determine if URI '%s' is safe to redirect to: failed to parse URI '%s': %w", targetURI, targetURI, err), messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Errorf("Error occurred determining if the URI '%s' is safe to redirect to as it could not be parsed", targetURI)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
 	safe = ctx.IsSafeRedirectionTargetURI(parsedURI)
 
 	if safe {
-		ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
+		ctx.GetLogger().Debugf("Redirection URL %s is safe", targetURI)
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
-			ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
+			ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)
 		}
 
 		return
@@ -135,40 +146,41 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string, isTwoFactor bool) {
 	if isTwoFactor {
 		Handle2FAResponse(ctx, targetURI)
+		return
 	}
 
 	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
 }
 
-func handleFlowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, flow, subflow, userCode string) {
+func handleFlowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, id, flow, subflow, userCode string) {
 	switch flow {
 	case flowNameOpenIDConnect:
-		handleFlowResponseOpenIDConnect(ctx, userSession, id, subflow, userCode)
+		handleFlowResponseOpenIDConnect(ctx, userSession, details, id, subflow, userCode)
 	default:
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: id, logging.FieldFlow: flow, logging.FieldSubflow: subflow}).
 			Error("Failed to find flow handler for the given flow parameters")
 	}
 }
 
-func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow, userCode string) {
+func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, id, subflow, userCode string) {
 	switch subflow {
 	case "":
-		handleFlowResponseOpenIDConnectNoSubflow(ctx, userSession, id, subflow)
+		handleFlowResponseOpenIDConnectNoSubflow(ctx, userSession, details, id, subflow)
 	case flowOpenIDConnectSubFlowNameDeviceAuthorization:
-		handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx, userSession, id, subflow, userCode)
+		handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx, userSession, details, id, subflow, userCode)
 	default:
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: id, logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Failed to find flow handler for the given flow parameters")
 	}
 }
 
-func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow string) {
+func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, id, subflow string) {
 	var (
 		flowID  uuid.UUID
 		client  oidc.Client
@@ -178,7 +190,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if flowID, err = uuid.Parse(id); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: id, logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Error occurred parsing the consent session flow id")
@@ -189,7 +201,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Error occurred loading the consent session")
@@ -200,7 +212,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if consent.Responded() {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Failed to process consent session as it has already been responded to")
 
@@ -210,7 +222,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: consent.ClientID}).
 			Error("Error occurred loading the client for the consent session")
@@ -221,7 +233,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if userSession.IsAnonymous() {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID()}).
 			Error("Failed to redirect for consent as the user is anonymous")
 
@@ -233,12 +245,21 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		form   url.Values
 	)
 
-	issuer = ctx.RootURL()
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
+			Error("Error occurred determining the issuer")
+
+		return
+	}
 
 	if form, err = consent.GetForm(); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 			Error("Error occurred getting the original form from the consent session")
@@ -256,7 +277,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		targetURL.RawQuery = query.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 				Error("Error occurred marshaling JSON response body for consent redirection")
@@ -265,7 +286,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		return
 	}
 
-	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
+	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()})
 
 	switch {
 	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level), level == authorization.Denied:
@@ -275,13 +296,13 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		targetURL.RawQuery = form.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 				Error("Error occurred marshaling JSON response body for consent redirection")
 		}
 	default:
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 			Info("OpenID Connect 1.0 client requires 2FA")
 
@@ -291,8 +312,9 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	}
 }
 
-func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow, userCode string) {
+func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, id, subflow, userCode string) {
 	var (
+		issuer    *url.URL
 		signature string
 		device    *model.OAuth2DeviceCodeSession
 		client    oidc.Client
@@ -302,7 +324,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	if userSession.IsAnonymous() {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Failed to handle flow response as the user is anonymous")
@@ -310,15 +332,25 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		return
 	}
 
-	issuer := ctx.RootURL()
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
+			Error("Error occurred determining the issuer preventing a successful flow response")
+
+		return
+	}
 
 	if n := len(userCode); n == 0 {
 		handleFlowResponseOpenIDConnectDeviceAuthSubflowResponseNoUserCode(ctx, userSession, id, subflow, level, issuer)
 
 		return
 	} else if n > 32 {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).
 			Error("Failed to handle flow response as the user code is too long")
 
@@ -328,7 +360,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	}
 
 	if signature, err = ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, userCode); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).
 			Error("Error occurred determining the signature of the user code session preventing a successful flow response")
@@ -339,7 +371,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	}
 
 	if device, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature}).
 			Error("Error occurred using the signature of the user code session to retrieve the device code session preventing a successful flow response")
@@ -350,7 +382,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	}
 
 	if device.Subject.Valid || device.ChallengeID.Valid || device.Status != int(oauthelia2.DeviceAuthorizeStatusNew) {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldSubject: device.Subject, logging.FieldFlowID: device.ChallengeID, logging.FieldStatus: device.Status}).
 			Error("Failed to handle flow response as the device code session is in an invalid state")
 
@@ -362,7 +394,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, device.ClientID); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature, logging.FieldClientID: device.ClientID}).
 			Error("Error occurred loading the client for the device code session")
@@ -370,13 +402,13 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		return
 	}
 
-	handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx, userSession, subflow, userCode, level, client, issuer)
+	handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx, userSession, details, subflow, userCode, level, client, issuer)
 }
 
-func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, subflow, userCode string, level authentication.Level, client oidc.Client, issuer *url.URL) {
+func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, subflow, userCode string, level authentication.Level, client oidc.Client, issuer *url.URL) {
 	var err error
 
-	required := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
+	required := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()})
 
 	switch {
 	case authorization.IsAuthLevelSufficient(level, required), required == authorization.Denied:
@@ -391,13 +423,13 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx *middlewares.A
 		targetURL.RawQuery = query.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 				Error("Failed to marshal JSON response body for authorization redirection")
 		}
 	default:
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 			Info("OpenID Connect 1.0 client requires 2FA")
 
@@ -426,7 +458,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponseNoUserCode(ctx *mid
 		targetURL.RawQuery = query.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).
 				Error("Failed to marshal JSON response body for flow response redirection")
@@ -454,27 +486,26 @@ func doMarkAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, 
 	doMarkAuthenticationAttemptWithRequest(ctx, successful, ban, authType, requestURI, requestMethod, errAuth)
 }
 
-func doMarkAuthenticationAttemptWithRequest(ctx *middlewares.AutheliaCtx, successful bool, ban *regulation.Ban, authType, requestURI, requestMethod string, errAuth error) {
-	// We only Mark if there was no underlying error.
-	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, ban.Value())
+func doMarkAuthenticationAttemptWithRequest(ctx markContext, successful bool, ban *regulation.Ban, authType, requestURI, requestMethod string, errAuth error) {
+	ctx.GetLogger().Debugf("Mark %s authentication attempt made by user '%s'", authType, ban.Value())
 
-	ctx.Providers.Regulator.HandleAttempt(ctx, successful, ban.IsBanned(), ban.Value(), requestURI, requestMethod, authType)
+	ctx.GetProviders().Regulator.HandleAttempt(ctx, successful, ban, requestURI, requestMethod, authType)
 
 	if successful {
-		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, ban.Value())
+		ctx.GetLogger().Debugf("Successful %s authentication attempt made by user '%s'", authType, ban.Value())
 	} else {
 		switch {
 		case errAuth != nil:
-			ctx.Logger.WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
+			ctx.GetLogger().WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
 		case ban.IsBanned():
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, ban.Value(), ban.FormatExpires())
+			ctx.GetLogger().Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, ban.Value(), ban.FormatExpires())
 		default:
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
+			ctx.GetLogger().Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
 		}
 	}
 }
 
-func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
+func respondUnauthorized(ctx *middlewares.AutheliaCtx, message middlewares.ErrorMessage) {
 	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	ctx.SetJSONError(message)
 }
@@ -488,4 +519,13 @@ func SetStatusCodeResponse(ctx *fasthttp.RequestCtx, statusCode int) {
 
 	ctx.SetStatusCode(statusCode)
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
+}
+
+type markContext interface {
+	context.Context
+
+	GetLogger() *logrus.Entry
+	GetProviders() middlewares.Providers
+	RecordAuthn(success bool, banned bool, authType string)
+	RemoteIP() (ip net.IP)
 }

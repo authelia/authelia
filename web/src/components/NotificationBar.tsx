@@ -1,51 +1,44 @@
-import React, { useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
+import { useEffect, useRef } from "react";
 
-import { useNotifications } from "@hooks/NotificationsContext";
-import { Notification } from "@models/Notifications";
+import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 
-export interface Props {
-    onClose: () => void;
-}
+import { ToastProvider, Toaster } from "@components/UI/Toast";
+import { useNotifications } from "@contexts/NotificationsContext";
 
-type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
-
-function NotificationBarTransition(props: NotificationBarTransitionProps) {
-    return <Slide {...props} direction={"left"} />;
-}
-
-const NotificationBar = function (props: Props) {
-    const [tmpNotification, setTmpNotification] = useState(null as Notification | null);
-    const { notification } = useNotifications();
+const NotificationToasts = function () {
+    const { notification, resetNotification } = useNotifications();
+    const manager = ToastPrimitive.useToastManager();
+    const prevNotificationRef = useRef(notification);
 
     useEffect(() => {
-        if (notification) {
-            setTmpNotification(notification);
+        if (notification && notification !== prevNotificationRef.current) {
+            const current = notification;
+
+            manager.add({
+                onClose: () => {
+                    if (prevNotificationRef.current === current) resetNotification();
+                },
+                timeout: notification.timeout * 1000,
+                title: notification.message,
+                type: notification.level,
+            });
         }
-    }, [notification, setTmpNotification]);
 
-    const shouldSnackbarBeOpen = notification !== undefined && notification !== null;
+        prevNotificationRef.current = notification;
+    }, [notification, resetNotification, manager]);
 
+    return <Toaster />;
+};
+
+const NotificationBar = function () {
     return (
-        <Snackbar
-            open={shouldSnackbarBeOpen}
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-            autoHideDuration={tmpNotification ? tmpNotification.timeout * 1000 : 10000}
-            onClose={props.onClose}
-            TransitionComponent={NotificationBarTransition}
-            TransitionProps={{
-                onExited: () => setTmpNotification(null),
-            }}
-        >
-            {tmpNotification ? (
-                <Alert severity={tmpNotification.level} variant={"filled"} elevation={6} className={"notification"}>
-                    {tmpNotification.message}
-                </Alert>
-            ) : (
-                <Alert severity={"success"} elevation={6} variant={"filled"} className={"notification"} />
-            )}
-        </Snackbar>
+        <ToastProvider>
+            <NotificationToasts />
+        </ToastProvider>
     );
 };
 

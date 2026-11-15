@@ -1,0 +1,67 @@
+---
+title: "authelia storage encryption rotate hmac"
+description: "Reference for the authelia storage encryption rotate hmac command."
+lead: ""
+date: 2026-09-27T14:52:21+10:00
+draft: false
+images: []
+weight: 905
+toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
+---
+
+## authelia storage encryption rotate hmac
+
+Rotate HMAC keys
+
+### Synopsis
+
+Rotate HMAC keys.
+
+This subcommand allows rotation of HMAC keys used for various purposes.
+
+### Examples
+
+```
+authelia storage encryption rotate hmac --help
+```
+
+### Options
+
+```
+  -h, --help   help for hmac
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings                                   configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.filters strings                           list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.template.delimiter.left string    sets the left delimiter for the 'template' filter
+      --config.filters.template.delimiter.right string   sets the right delimiter for the 'template' filter
+      --config.filters.values strings                    file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
+      --encryption-key string                            the storage encryption key to use
+      --mysql.address string                             the MySQL server address (default "tcp://127.0.0.1:3306")
+      --mysql.database string                            the MySQL database name (default "authelia")
+      --mysql.password string                            the MySQL password
+      --mysql.username string                            the MySQL username (default "authelia")
+      --postgres.address string                          the PostgreSQL server address (default "tcp://127.0.0.1:5432")
+      --postgres.database string                         the PostgreSQL database name (default "authelia")
+      --postgres.password string                         the PostgreSQL password
+      --postgres.schema string                           the PostgreSQL schema name (default "public")
+      --postgres.username string                         the PostgreSQL username (default "authelia")
+      --sqlite.path string                               the SQLite database path
+```
+
+### SEE ALSO
+
+* [authelia storage encryption rotate](authelia_storage_encryption_rotate.md)	 - Rotate storage encryption values
+* [authelia storage encryption rotate hmac otc](authelia_storage_encryption_rotate_hmac_otc.md)	 - Rotate the OTC HMAC key
+* [authelia storage encryption rotate hmac otp](authelia_storage_encryption_rotate_hmac_otp.md)	 - Rotate the OTP HMAC key
+* [authelia storage encryption rotate hmac rc](authelia_storage_encryption_rotate_hmac_rc.md)	 - Rotate the recovery code HMAC key
+* [authelia storage encryption rotate hmac session](authelia_storage_encryption_rotate_hmac_session.md)	 - Rotate the session HMAC key
+

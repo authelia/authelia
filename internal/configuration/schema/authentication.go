@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 import (
@@ -8,8 +12,9 @@ import (
 
 // AuthenticationBackend represents the configuration related to the authentication backend.
 type AuthenticationBackend struct {
-	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
-	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behavior."`
+	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Change" jsonschema_description:"Allows configuration of the password change behavior."`
+	Registration   AuthenticationBackendRegistration   `koanf:"registration" yaml:"registration,omitempty" toml:"registration,omitempty" json:"registration,omitempty" jsonschema:"title=Registration" jsonschema_description:"Allows configuration of the registration behavior."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" yaml:"refresh_interval,omitempty" toml:"refresh_interval,omitempty" json:"refresh_interval,omitempty" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
@@ -29,6 +34,11 @@ type AuthenticationBackendPasswordReset struct {
 	CustomURL url.URL `koanf:"custom_url" yaml:"custom_url,omitempty" toml:"custom_url,omitempty" json:"custom_url,omitempty" jsonschema:"title=Custom URL" jsonschema_description:"Disables the internal Password Reset option and instead redirects users to this specified URL."`
 }
 
+// AuthenticationBackendRegistration represents the configuration related to registration functionality.
+type AuthenticationBackendRegistration struct {
+	CustomURL url.URL `koanf:"custom_url" yaml:"custom_url,omitempty" toml:"custom_url,omitempty" json:"custom_url,omitempty" jsonschema:"title=Custom URL" jsonschema_description:"Displays a registration link on the login page which directs users to this specified URL."`
+}
+
 // AuthenticationBackendFile represents the configuration related to file-based backend.
 type AuthenticationBackendFile struct {
 	Path  string `koanf:"path" yaml:"path,omitempty" toml:"path,omitempty" json:"path,omitempty" jsonschema:"title=Path" jsonschema_description:"The file path to the user database."`
@@ -36,20 +46,23 @@ type AuthenticationBackendFile struct {
 
 	Password AuthenticationBackendFilePassword `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
 
-	Search AuthenticationBackendFileSearch `koanf:"search" yaml:"search,omitempty" toml:"search,omitempty" json:"search,omitempty" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
+	Search AuthenticationBackendFileSearch `koanf:"search" yaml:"search,omitempty" toml:"search,omitempty" json:"search,omitempty" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behavior."`
 
 	ExtraAttributes map[string]AuthenticationBackendExtraAttribute `koanf:"extra_attributes" yaml:"extra_attributes,omitempty" toml:"extra_attributes,omitempty" json:"extra_attributes,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
+// AuthenticationBackendExtraAttribute represents the configuration of an extra user attribute.
 type AuthenticationBackendExtraAttribute struct {
 	MultiValued bool   `koanf:"multi_valued" yaml:"multi_valued" toml:"multi_valued" json:"multi_valued" jsonschema:"title=Multi-Valued" jsonschema_description:"Defines the attribute as multi-valued."`
 	ValueType   string `koanf:"value_type" yaml:"value_type,omitempty" toml:"value_type,omitempty" json:"value_type,omitempty" jsonschema:"enum=boolean,enum=integer,enum=string,title=Value Type" jsonschema_description:"Defines the value type for the attribute."`
 }
 
+// IsMultiValued returns true if this attribute is multi-valued.
 func (a AuthenticationBackendExtraAttribute) IsMultiValued() (multi bool) {
 	return a.MultiValued
 }
 
+// GetValueType returns the value type of this attribute.
 func (a AuthenticationBackendExtraAttribute) GetValueType() (vtype string) {
 	return a.ValueType
 }
@@ -118,10 +131,10 @@ type AuthenticationBackendFilePasswordBcrypt struct {
 
 // AuthenticationBackendFilePasswordScrypt represents the scrypt hashing settings.
 type AuthenticationBackendFilePasswordScrypt struct {
-	Variant     string `koanf:"variant" yaml:"variant,omitempty" toml:"variant,omitempty" json:"variant,omitempty" jsonschema:"default=scrypt,enum=scrypt,enum=yescrypt,titleVariant" jsonschema_description:"The Scrypt variant to be used."`
+	Variant     string `koanf:"variant" yaml:"variant,omitempty" toml:"variant,omitempty" json:"variant,omitempty" jsonschema:"default=scrypt,enum=scrypt,enum=yescrypt,title=Variant" jsonschema_description:"The Scrypt variant to be used."`
 	Iterations  int    `koanf:"iterations" yaml:"iterations" toml:"iterations" json:"iterations" jsonschema:"default=16,minimum=1,maximum=58,title=Iterations" jsonschema_description:"The Scrypt iterations to be used."`
-	BlockSize   int    `koanf:"block_size" yaml:"block_size" toml:"block_size" json:"block_size" jsonschema:"default=8,minimum=1,maximum=36028797018963967,title=Key Length" jsonschema_description:"The Scrypt block size to be used."`
-	Parallelism int    `koanf:"parallelism" yaml:"parallelism" toml:"parallelism" json:"parallelism" jsonschema:"default=1,minimum=1,maximum=1073741823,title=Key Length" jsonschema_description:"The Scrypt parallelism factor to be used."`
+	BlockSize   int    `koanf:"block_size" yaml:"block_size" toml:"block_size" json:"block_size" jsonschema:"default=8,minimum=1,maximum=36028797018963967,title=Block Size" jsonschema_description:"The Scrypt block size to be used."`
+	Parallelism int    `koanf:"parallelism" yaml:"parallelism" toml:"parallelism" json:"parallelism" jsonschema:"default=1,minimum=1,maximum=1073741823,title=Parallelism" jsonschema_description:"The Scrypt parallelism factor to be used."`
 	KeyLength   int    `koanf:"key_length" yaml:"key_length" toml:"key_length" json:"key_length" jsonschema:"default=32,minimum=1,maximum=137438953440,title=Key Length" jsonschema_description:"The Scrypt key length to be used."`
 	SaltLength  int    `koanf:"salt_length" yaml:"salt_length" toml:"salt_length" json:"salt_length" jsonschema:"default=16,minimum=8,maximum=1024,title=Salt Length" jsonschema_description:"The Scrypt salt length to be used."`
 }
@@ -145,16 +158,16 @@ type AuthenticationBackendLDAP struct {
 	GroupsFilter       string `koanf:"groups_filter" yaml:"groups_filter,omitempty" toml:"groups_filter,omitempty" json:"groups_filter,omitempty" jsonschema:"title=Groups Filter" jsonschema_description:"The LDAP filter used to search for group objects."`
 	GroupSearchMode    string `koanf:"group_search_mode" yaml:"group_search_mode,omitempty" toml:"group_search_mode,omitempty" json:"group_search_mode,omitempty" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Modes" jsonschema_description:"The LDAP group search mode used to search for group objects."`
 
-	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty"`
+	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty" jsonschema:"title=Attributes" jsonschema_description:"The LDAP directory server attributes."`
 
-	PermitReferrals               bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
-	PermitUnauthenticatedBind     bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
-	PermitFeatureDetectionFailure bool `koanf:"permit_feature_detection_failure" yaml:"permit_feature_detection_failure" toml:"permit_feature_detection_failure" json:"permit_feature_detection_failure" jsonschema:"default=false,title=Permit Feature Detection Failure" jsonschema_description:"Enables failures when detecting directory server features using the Root DSE lookup."`
+	PermitReferrals           bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
+	PermitUnauthenticatedBind bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
 
 	User     string `koanf:"user" yaml:"user,omitempty" toml:"user,omitempty" json:"user,omitempty" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
 	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
 }
 
+// AuthenticationBackendLDAPPooling represents the LDAP connection pooling configuration.
 type AuthenticationBackendLDAPPooling struct {
 	Enable  bool          `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"title=Enable,default=false" jsonschema_description:"Enable LDAP connection pooling."`
 	Count   int           `koanf:"count" yaml:"count" toml:"count" json:"count" jsonschema:"title=Count,default=5" jsonschema_description:"The number of connections to keep open for LDAP connection pooling."`
@@ -192,10 +205,11 @@ type AuthenticationBackendLDAPAttributes struct {
 	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
+// AuthenticationBackendLDAPAttributesAttribute represents the configuration of an extra LDAP attribute.
 type AuthenticationBackendLDAPAttributesAttribute struct {
 	Name string `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"title=Name" jsonschema_description:"The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."`
 
-	AuthenticationBackendExtraAttribute `koanf:",squash"`
+	AuthenticationBackendExtraAttribute `koanf:",squash" yaml:",inline"`
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
@@ -290,7 +304,6 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 		FamilyName:        ldapAttrSurname,
 		GivenName:         ldapAttrGivenName,
 		MiddleName:        ldapAttrMiddleName,
-		Website:           "wWWHomePage",
 		Mail:              ldapAttrMail,
 		PhoneNumber:       "telephoneNumber",
 		StreetAddress:     "streetAddress",
@@ -333,6 +346,8 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = Authent
 	Attributes: AuthenticationBackendLDAPAttributes{
 		Username:    ldapAttrUserID,
 		DisplayName: ldapAttrDisplayName,
+		FamilyName:  ldapAttrSurname,
+		GivenName:   ldapAttrGivenName,
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,

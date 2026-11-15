@@ -1,62 +1,59 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package session
 
 import (
-	"crypto/x509"
-	"fmt"
+	"errors"
 
-	"github.com/fasthttp/session/v2"
-
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
-// Provider contains a list of domain sessions.
-type Provider struct {
-	sessions map[string]*Session
-}
-
-// NewProvider instantiate a session provider given a configuration.
-func NewProvider(config schema.Session, certPool *x509.CertPool) *Provider {
-	log := logging.Logger()
-
-	name, p, s, err := NewSessionProvider(config, certPool)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	provider := &Provider{
-		sessions: map[string]*Session{},
-	}
-
+// NewProvider returns a new Provider with a Strategy for every configured session cookie domain, each sharing the
+// Codec derived from the session secret and HMAC key.
+func NewProvider(config *schema.Configuration, hmac []byte, clock clock.Provider, random random.Provider, repository Repository) (provider Provider, err error) {
 	var (
-		holder *session.Session
+		codec Codec
 	)
 
-	for _, dconfig := range config.Cookies {
-		if _, holder, err = NewProviderConfigAndSession(dconfig, name, s, p); err != nil {
-			log.Fatal(err)
-		}
-
-		provider.sessions[dconfig.Domain] = &Session{
-			Config:        dconfig,
-			sessionHolder: holder,
-		}
+	if codec, err = NewCodec(config.Session.Secret, hmac, random); err != nil {
+		return nil, err
 	}
 
-	return provider
+	strategies := make(map[string]Strategy, len(config.Session.Cookies))
+
+	for _, cookie := range config.Session.Cookies {
+		strategies[cookie.Domain] = NewStrategy(cookie, clock, codec, repository)
+	}
+
+	return &DefaultProvider{strategies: strategies}, nil
 }
 
-// Get returns session information for specified domain.
-func (p *Provider) Get(domain string) (*Session, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("can not get session from an undefined domain")
-	}
-
-	s, found := p.sessions[domain]
-
-	if !found {
-		return nil, fmt.Errorf("no session found for domain '%s'", domain)
-	}
-
-	return s, nil
+// DefaultProvider is the default Provider which resolves a Strategy from the cookie domain of a request.
+type DefaultProvider struct {
+	strategies map[string]Strategy
 }
+
+// StartupCheck implements the Provider interface.
+func (d DefaultProvider) StartupCheck() (err error) {
+	return nil
+}
+
+// GetStrategy returns the Strategy configured for the given cookie domain, returning an error when the domain has no
+// configured session cookie.
+func (d DefaultProvider) GetStrategy(domain string) (strategy Strategy, err error) {
+	var ok bool
+
+	if strategy, ok = d.strategies[domain]; ok {
+		return strategy, nil
+	}
+
+	return nil, errors.New("not found")
+}
+
+var (
+	_ Provider = (*DefaultProvider)(nil)
+)

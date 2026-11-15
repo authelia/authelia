@@ -1,9 +1,15 @@
-FROM golang:1.24.5-alpine@sha256:ddf52008bce1be455fe2b22d780b6693259aaf97b16383b6372f4b22dd33ad66
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+FROM golang:1.27.4-alpine@sha256:0a5f7fe796599ff487605987432e7619ae45beeb2fba4c2ce0b907879932aebf
 
 ARG USER_ID
 ARG GROUP_ID
 
-RUN addgroup --gid ${GROUP_ID} dev && \
+RUN if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \
+    if getent passwd ${USER_ID} >/dev/null; then deluser "$(getent passwd ${USER_ID} | cut -d: -f1)"; fi && \
+    addgroup --gid ${GROUP_ID} dev && \
     adduser --uid ${USER_ID} -G dev -D dev && \
     apk --no-cache add gcc git musl-dev
 
@@ -13,6 +19,7 @@ RUN \
 USER dev
 
 ENV PATH="/app:${PATH}" \
+	GOCACHE="/go/cache/go-build" \
 	X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 VOLUME /config

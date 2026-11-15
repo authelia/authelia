@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package provider
 
 import (
@@ -10,20 +14,20 @@ import (
 // NewStoragePostgreSQL creates a new storage.Provider using the *storage.PostgreSQLProvider given a valid configuration.
 //
 // Warning: This method may panic if the provided configuration isn't validated.
-func NewStoragePostgreSQL(config *schema.Configuration, caCertPool *x509.CertPool) storage.Provider {
+func NewStoragePostgreSQL(config *schema.Configuration, caCertPool *x509.CertPool) (storage.Provider, error) {
 	return storage.NewPostgreSQLProvider(config, caCertPool)
 }
 
 // NewStorageMySQL creates a new storage.Provider using the *storage.MySQLProvider given a valid configuration.
 //
 // Warning: This method may panic if the provided configuration isn't validated.
-func NewStorageMySQL(config *schema.Configuration, caCertPool *x509.CertPool) storage.Provider {
+func NewStorageMySQL(config *schema.Configuration, caCertPool *x509.CertPool) (storage.Provider, error) {
 	return storage.NewMySQLProvider(config, caCertPool)
 }
 
 // NewStorageSQLite creates a new storage.Provider using the *storage.SQLiteProvider given a valid configuration.
 //
 // Warning: This method may panic if the provided configuration isn't validated.
-func NewStorageSQLite(config *schema.Configuration) storage.Provider {
+func NewStorageSQLite(config *schema.Configuration) (storage.Provider, error) {
 	return storage.NewSQLiteProvider(config)
 }

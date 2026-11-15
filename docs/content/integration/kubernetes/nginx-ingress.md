@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "NGINX Ingress"
-description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
+description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress controller including ingress annotations, configuration examples, variables, and custom paths."
 summary: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 555
@@ -18,14 +22,14 @@ There are two nginx ingress controllers for Kubernetes. The Kubernetes official 
 official one [nginx-ingress-controller]. We only have integration documentation for [ingress-nginx] and there are no
 plans to support the F5 [nginx-ingress-controller].
 
-The [nginx documentation](../proxies/nginx.md) may also be useful for crafting advanced snippets to use with annotations
-even though it's not specific to Kubernetes.
+The [nginx Proxy documentation](../proxies/nginx.md) may also be useful with this ingress even though it's not
+specific to Kubernetes.
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Variables
 
@@ -42,7 +46,7 @@ Authelia HTTP port and that your cluster is configured with the default
 DNS domain name of `cluster.local`.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The following annotations should be applied to an Ingress you wish to protect. They __SHOULD NOT__
+The following annotations should be applied to an Ingress you wish to protect. They **SHOULD NOT**
 be applied to the Authelia Ingress itself.
 {{< /callout >}}
 

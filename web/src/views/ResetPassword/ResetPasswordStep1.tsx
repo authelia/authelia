@@ -1,52 +1,43 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Button, CircularProgress, FormControl, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
+import { useCallback, useState } from "react";
+
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import ComponentWithTooltip from "@components/ComponentWithTooltip";
+import RateLimitCountdown from "@components/RateLimitCountdown";
+import { Button } from "@components/UI/Button";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { Spinner } from "@components/UI/Spinner";
 import { IndexRoute } from "@constants/Routes";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
+import { useRateLimit } from "@hooks/RateLimit";
 import MinimalLayout from "@layouts/MinimalLayout";
+import { RateLimitedError } from "@services/RateLimit";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
-    const theme = useTheme();
     const [username, setUsername] = useState("");
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const [rateLimited, setRateLimited] = useState(false);
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+    const { limited: rateLimited, secondsRemaining, trigger: triggerRateLimit } = useRateLimit();
 
-    const { createInfoNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createInfoNotification } = useNotifications();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
-    useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
-    }, []);
-
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
-            }
-
-            setRateLimited(true);
+            triggerRateLimit(retryAfter);
 
             createErrorNotification(translate("You have made too many requests"));
-
-            timeoutRateLimit.current = setTimeout(() => {
-                setRateLimited(false);
-                timeoutRateLimit.current = null;
-            }, retryAfter * 1000);
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, triggerRateLimit],
     );
 
     const doInitiateResetPasswordProcess = async () => {
@@ -61,17 +52,15 @@ const ResetPasswordStep1 = function () {
         }
 
         try {
-            const response = await initiateResetPasswordProcess(username);
-            if (response && !response.limited) {
-                createInfoNotification(translate("An email has been sent to your address to complete the process"));
-                navigate(IndexRoute);
-            } else if (response && response.limited) {
-                handleRateLimited(response.retryAfter);
+            await initiateResetPasswordProcess(username);
+            createInfoNotification(translate("An email has been sent to your address to complete the process"));
+            navigate(IndexRoute);
+        } catch (err) {
+            if (err instanceof RateLimitedError) {
+                handleRateLimited(err.retryAfter);
             } else {
                 createErrorNotification(translate("There was an issue initiating the password reset process"));
             }
-        } catch {
-            createErrorNotification(translate("There was an issue initiating the password reset process"));
         }
         setLoading(false);
     };
@@ -86,15 +75,13 @@ const ResetPasswordStep1 = function () {
 
     return (
         <MinimalLayout title={translate("Reset password")} id="reset-password-step1-stage">
-            <FormControl id={"form-reset-password-username"}>
-                <Grid container sx={{ marginY: theme.spacing(2) }} spacing={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
+            <div id={"form-reset-password-username"}>
+                <div className="my-4 grid grid-cols-1 gap-4">
+                    <div className="w-full">
+                        <Label htmlFor="username-textfield">{translate("Username")}</Label>
+                        <Input
                             id="username-textfield"
-                            label={translate("Username")}
                             disabled={loading}
-                            variant="outlined"
-                            fullWidth
                             error={error}
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
@@ -105,36 +92,40 @@ const ResetPasswordStep1 = function () {
                                 }
                             }}
                         />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <ComponentWithTooltip render={rateLimited} title={translate("You have made too many requests")}>
-                            <Button
-                                id="reset-button"
-                                variant="contained"
-                                disabled={loading || rateLimited}
-                                color="primary"
-                                fullWidth
-                                onClick={handleResetClick}
-                                startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="w-full">
+                            <ComponentWithTooltip
+                                render={rateLimited}
+                                title={translate("You have made too many requests")}
                             >
-                                {translate("Reset")}
+                                <Button
+                                    id="reset-button"
+                                    variant="default"
+                                    disabled={loading || rateLimited}
+                                    className="w-full"
+                                    onClick={handleResetClick}
+                                >
+                                    {loading ? <Spinner size={20} className="mr-2 h-5 w-5" /> : null}
+                                    {translate("Reset")}
+                                </Button>
+                            </ComponentWithTooltip>
+                        </div>
+                        <div className="w-full">
+                            <Button
+                                id="cancel-button"
+                                variant="default"
+                                disabled={loading}
+                                className="w-full"
+                                onClick={handleCancelClick}
+                            >
+                                {translate("Cancel")}
                             </Button>
-                        </ComponentWithTooltip>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="cancel-button"
-                            variant="contained"
-                            disabled={loading}
-                            color="primary"
-                            fullWidth
-                            onClick={handleCancelClick}
-                        >
-                            {translate("Cancel")}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </FormControl>
+                        </div>
+                    </div>
+                    <RateLimitCountdown secondsRemaining={secondsRemaining} />
+                </div>
+            </div>
         </MinimalLayout>
     );
 };

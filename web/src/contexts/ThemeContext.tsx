@@ -1,68 +1,54 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Theme, ThemeProvider } from "@mui/material";
+import { ReactNode, createContext, use, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { LocalStorageThemeName } from "@constants/LocalStorage";
 import { localStorageAvailable, setLocalStorage } from "@services/LocalStorage";
-import * as themes from "@themes/index";
+import { ThemeNameAuto, ThemeNameDark, ThemeNameGrey, ThemeNameLight, ThemeNameOled } from "@themes/index";
 import { getTheme } from "@utils/Configuration";
 
 const MediaQueryDarkMode = "(prefers-color-scheme: dark)";
 
-export const ThemeContext = createContext<ValueProps | null>(null);
+export const ThemeContext = createContext<null | ValueProps>(null);
 
 export interface Props {
-    children: React.ReactNode;
+    readonly children: ReactNode;
 }
 
 export interface ValueProps {
-    theme: Theme;
     themeName: string;
-    setThemeName: (value: string) => void;
+    setThemeName: (_value: string) => void;
 }
 
 export default function ThemeContextProvider(props: Props) {
-    const [theme, setTheme] = useState(GetCurrentTheme());
-    const [themeName, setThemeName] = useState(GetCurrentThemeName());
+    const [themeName, setThemeName] = useState(() => GetCurrentThemeName());
+    const prefersDark = useSyncExternalStore(subscribePrefersDark, getPrefersDarkSnapshot, getPrefersDarkSnapshot);
 
     useEffect(() => {
-        if (themeName === themes.ThemeNameAuto) {
-            const query = window.matchMedia(MediaQueryDarkMode);
-            if (query.addEventListener) {
-                query.addEventListener("change", mediaQueryListener);
+        document.documentElement.dataset.theme = ResolveThemeName(themeName, prefersDark);
+    }, [themeName, prefersDark]);
 
-                return () => {
-                    query.removeEventListener("change", mediaQueryListener);
-                };
+    useEffect(() => {
+        const listener = (ev: StorageEvent) => {
+            if (ev.key !== LocalStorageThemeName) {
+                return;
             }
-        }
 
-        setTheme(ThemeFromName(themeName));
-    }, [themeName]);
+            if (ev.newValue && ev.newValue !== "") {
+                setThemeName(ev.newValue);
+            } else {
+                setThemeName(GetCurrentThemeName());
+            }
+        };
 
-    useEffect(() => {
-        window.addEventListener("storage", storageListener);
+        globalThis.addEventListener?.("storage", listener);
 
         return () => {
-            window.removeEventListener("storage", storageListener);
+            globalThis.removeEventListener?.("storage", listener);
         };
     }, []);
-
-    const storageListener = (ev: StorageEvent): any => {
-        if (ev.key !== LocalStorageThemeName) {
-            return;
-        }
-
-        if (ev.newValue && ev.newValue !== "") {
-            setThemeName(ev.newValue);
-        } else {
-            setThemeName(getUserThemeName());
-        }
-    };
-
-    const mediaQueryListener = (ev: MediaQueryListEvent) => {
-        setTheme(ev.matches ? themes.Dark : themes.Light);
-    };
 
     const callback = useCallback((name: string) => {
         setThemeName(name);
@@ -70,21 +56,19 @@ export default function ThemeContextProvider(props: Props) {
         setLocalStorage(LocalStorageThemeName, name);
     }, []);
 
-    return (
-        <ThemeContext.Provider
-            value={{
-                theme,
-                themeName,
-                setThemeName: callback,
-            }}
-        >
-            <ThemeWrapper>{props.children}</ThemeWrapper>
-        </ThemeContext.Provider>
+    const value = useMemo(
+        () => ({
+            setThemeName: callback,
+            themeName,
+        }),
+        [callback, themeName],
     );
+
+    return <ThemeContext value={value}>{props.children}</ThemeContext>;
 }
 
 export function useThemeContext() {
-    const context = useContext(ThemeContext);
+    const context = use(ThemeContext);
     if (!context) {
         throw new Error("useThemeContext must be used within a ThemeContextProvider");
     }
@@ -92,15 +76,25 @@ export function useThemeContext() {
     return context;
 }
 
-function ThemeWrapper(props: Props) {
-    const { theme } = useThemeContext();
-
-    return <ThemeProvider theme={theme}>{props.children}</ThemeProvider>;
+function ResolveThemeName(name: string, prefersDark: boolean): string {
+    switch (name) {
+        case ThemeNameLight:
+            return "light";
+        case ThemeNameDark:
+            return "dark";
+        case ThemeNameGrey:
+            return "grey";
+        case ThemeNameOled:
+            return "oled";
+        case ThemeNameAuto:
+        default:
+            return prefersDark ? "dark" : "light";
+    }
 }
 
 function GetCurrentThemeName() {
     if (localStorageAvailable()) {
-        const local = window.localStorage.getItem(LocalStorageThemeName);
+        const local = globalThis.localStorage?.getItem(LocalStorageThemeName);
 
         if (local) {
             return local;
@@ -110,35 +104,15 @@ function GetCurrentThemeName() {
     return getTheme();
 }
 
-function GetCurrentTheme() {
-    return ThemeFromName(GetCurrentThemeName());
+function subscribePrefersDark(listener: () => void): () => void {
+    const query = globalThis.matchMedia?.(MediaQueryDarkMode);
+    if (!query?.addEventListener) {
+        return () => {};
+    }
+    query.addEventListener("change", listener);
+    return () => query.removeEventListener("change", listener);
 }
 
-function ThemeFromName(name: string) {
-    switch (name) {
-        case themes.ThemeNameLight:
-            return themes.Light;
-        case themes.ThemeNameDark:
-            return themes.Dark;
-        case themes.ThemeNameGrey:
-            return themes.Grey;
-        case themes.ThemeNameOled:
-            return themes.Oled;
-        case themes.ThemeNameAuto:
-            return window.matchMedia(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
-        default:
-            return window.matchMedia(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
-    }
+function getPrefersDarkSnapshot(): boolean {
+    return globalThis.matchMedia?.(MediaQueryDarkMode).matches ?? false;
 }
-
-const getUserThemeName = () => {
-    if (localStorageAvailable()) {
-        const value = window.localStorage.getItem(LocalStorageThemeName);
-
-        if (value) {
-            return value;
-        }
-    }
-
-    return getTheme();
-};

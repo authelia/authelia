@@ -1,13 +1,16 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { MouseEvent } from "react";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
 import OneTimePasswordCredentialItem from "@views/Settings/TwoFactorAuthentication/OneTimePasswordCredentialItem";
 
 interface Props {
     config: UserInfoTOTPConfiguration;
-    handleRefresh: () => void;
-    handleInformation: (event: React.MouseEvent<HTMLElement>) => void;
-    handleDelete: (event: React.MouseEvent<HTMLElement>) => void;
+    handleInformation: (_event: MouseEvent<HTMLElement>) => void;
+    handleDelete: (_event: MouseEvent<HTMLElement>) => void;
 }
 
 const OneTimePasswordConfiguration = function (props: Props) {

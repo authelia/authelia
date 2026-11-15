@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ChangePasswordPath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 
@@ -9,9 +13,9 @@ interface PostPasswordChange {
 
 export async function postPasswordChange(username: string, old_password: string, new_password: string) {
     const data: PostPasswordChange = {
-        username,
-        old_password,
         new_password,
+        old_password,
+        username,
     };
     return PostWithOptionalResponse(ChangePasswordPath, data);
 }

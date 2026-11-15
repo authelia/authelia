@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -49,6 +53,7 @@ func SetRelaxedSecurityHeaders(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueCrossOrigin)
 }
 
+// SetBaseSecurityHeaders sets the security headers applied to every response.
 func SetBaseSecurityHeaders(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetBytesKV(headerXContentTypeOptions, headerValueNoSniff)
 	ctx.Response.Header.SetBytesKV(headerReferrerPolicy, headerValueStrictOriginCrossOrigin)
@@ -60,7 +65,7 @@ func SetBaseSecurityHeaders(ctx *fasthttp.RequestCtx) {
 // SecurityHeadersCSPNone middleware adds the Content-Security-Policy header with the value "default-src 'none';".
 func SecurityHeadersCSPNone(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, headerValueCSPNone)
+		SetSecurityHeadersCSPNone(ctx)
 
 		next(ctx)
 	}
@@ -103,5 +108,16 @@ func SecurityHeadersNoStore(next fasthttp.RequestHandler) fasthttp.RequestHandle
 		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueNoStore)
 
 		next(ctx)
+	}
+}
+
+// SecurityHeadersNoStoreAfter middleware adds the Cache-Control no-store and Pragma no-cache headers after the next
+// handler has been executed, ensuring the header is present even if the next handler resets the response.
+func SecurityHeadersNoStoreAfter(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		next(ctx)
+
+		ctx.Response.Header.SetBytesKV(headerPragma, headerValueNoCache)
+		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueNoStore)
 	}
 }

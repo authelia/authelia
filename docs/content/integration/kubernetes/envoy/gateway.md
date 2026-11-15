@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Envoy Gateway"
-description: "A guide to integrating Authelia with the Kubernetes Envoy Gateway."
+description: "A guide to integrating Authelia with the Kubernetes Envoy Gateway implementation using the external authorization filter and the Gateway API resource manifest."
 summary: "A guide to integrating Authelia with the Kubernetes Envoy Gateway."
 date: 2025-06-13T14:12:09+00:00
 draft: false
@@ -26,14 +30,16 @@ In addition to this configuration, it's possible to configure the integration vi
 desirable when you wish to share an ID Token or Access Token with a backend. See that guide
 [here](../../openid-connect/envoy-gateway/index.md).
 
-[Envoy]: ../proxies/envoy.md
+The [Envoy Proxy documentation](../../proxies/envoy.md) may also be useful with this ingress even though it's not
+specific to Kubernetes.
+
 [external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
+[Get started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping _Authelia_.
 
 ## Variables
 
@@ -72,22 +78,28 @@ spec:
       kind: 'Gateway'
       name: 'eg'
   extAuth:
+    headersToExtAuth:
+      - 'accept'
+      - 'sec-fetch-mode'
+      - 'sec-fetch-dest'
+      - 'x-requested-with'
+      - 'cookie'
+      - 'location'
+      - 'authorization'
+      - 'proxy-authorization'
+      - 'x-forwarded-proto'
+    failOpen: false
     http:
       backendRefs:
         - name: 'authelia'
           namespace: 'default'
           port: 80
       path: '/api/authz/ext-authz/'
-      failOpen: false
-      headersToExtAuth:
-        - 'accept'
-        - 'cookie'
-        - 'authorization'
-        - 'header-authorization'
-        - 'x-forwarded-proto'
       headersToBackend:
-        - 'remote-*'
-        - 'authelia-*'
+        - Remote-User
+        - Remote-Groups
+        - Remote-Name
+        - Remote-Email
 ```
 
 #### Scoped to HTTP Route
@@ -107,22 +119,27 @@ spec:
       kind: 'HTTPRoute'
       name: 'example'
   extAuth:
+    headersToExtAuth:
+      - 'accept'
+      - 'sec-fetch-mode'
+      - 'sec-fetch-dest'
+      - 'x-requested-with'
+      - 'cookie'
+      - 'authorization'
+      - 'proxy-authorization'
+      - 'x-forwarded-proto'
+    failOpen: false
     http:
       backendRefs:
         - name: 'authelia'
           namespace: 'default'
           port: 80
       path: '/api/authz/ext-authz/'
-      failOpen: false
-      headersToExtAuth:
-        - 'accept'
-        - 'cookie'
-        - 'authorization'
-        - 'header-authorization'
-        - 'x-forwarded-proto'
       headersToBackend:
-        - 'remote-*'
-        - 'authelia-*'
+        - Remote-User
+        - Remote-Groups
+        - Remote-Name
+        - Remote-Email
 ```
 
 ##### HTTP Route
@@ -130,7 +147,7 @@ spec:
 The following [HTTPRoute] has the above [SecurityPolicy] applied to it for the
 `app.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
-```yaml {title="authoriztion-policy.yml"}
+```yaml {title="authorization-policy.yml"}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -189,3 +206,4 @@ spec:
 [SecurityPolicy]: https://gateway.envoyproxy.io/contributions/design/security-policy/
 [HTTPRoute]: https://gateway-api.sigs.k8s.io/api-types/httproute/
 [Gateway]: https://gateway-api.sigs.k8s.io/api-types/gateway/
+[Envoy]: https://www.envoyproxy.io/

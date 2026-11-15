@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Identity Validation"
-description: "Identity Validation Configuration"
+description: "Reference documentation for configuring Authelia identity validation methods including elevated session and reset password verification procedure settings."
 summary: ""
-date: 2024-03-04T20:29:11+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 105000

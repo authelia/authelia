@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -37,23 +41,18 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsDeny() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, pairURI := range []urlpair{
-				{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://auth.example.com/")},
-				{s.RequireParseRequestURI("https://one-factor.example.com/subpath"), s.RequireParseRequestURI("https://auth.example.com/")},
+				{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://login.example.com:8080/")},
+				{s.RequireParseRequestURI("https://one-factor.example.com/subpath"), s.RequireParseRequestURI("https://login.example.com:8080/")},
 				{s.RequireParseRequestURI("https://one-factor.example2.com"), s.RequireParseRequestURI("https://auth.example2.com/")},
 				{s.RequireParseRequestURI("https://one-factor.example2.com/subpath"), s.RequireParseRequestURI("https://auth.example2.com/")},
 			} {
 				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, pairURI.TargetURI, true, false)
 
@@ -90,13 +89,10 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDen
 				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.RequestCtx.QueryArgs().Set("authelia_url", pairURI.AutheliaURI.String())
 					s.setRequest(mock.Ctx, method, pairURI.TargetURI, true, false)
@@ -132,11 +128,12 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
+
+					s.ConfigureMockSessionProviderWithoutAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -158,21 +155,18 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 			for xname, x := range testXHR {
 				t.Run(xname, func(t *testing.T) {
 					for _, pairURI := range []urlpair{
-						{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://auth.example.com/")},
-						{s.RequireParseRequestURI("https://one-factor.example.com/subpath"), s.RequireParseRequestURI("https://auth.example.com/")},
+						{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://login.example.com:8080/")},
+						{s.RequireParseRequestURI("https://one-factor.example.com/subpath"), s.RequireParseRequestURI("https://login.example.com:8080/")},
 						{s.RequireParseRequestURI("https://one-factor.example2.com"), s.RequireParseRequestURI("https://auth.example2.com/")},
 						{s.RequireParseRequestURI("https://one-factor.example2.com/subpath"), s.RequireParseRequestURI("https://auth.example2.com/")},
 					} {
 						t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 							expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-							authz := s.Builder().Build()
+							authz := s.BuildWithDelayer()
 
 							mock := mocks.NewMockAutheliaCtx(t)
-
 							defer mock.Close()
-
-							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							s.setRequest(mock.Ctx, method, pairURI.TargetURI, x, x)
 
@@ -196,7 +190,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 	for _, method := range testRequestMethods {
-		method += "z"
+		method += "1"
 
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
@@ -206,13 +200,10 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -229,13 +220,10 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 func (s *ForwardAuthAuthzSuite) TestShouldHandleMissingHostDeny() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
-			authz := s.Builder().Build()
+			authz := s.BuildWithDelayer()
 
 			mock := mocks.NewMockAutheliaCtx(t)
-
 			defer mock.Close()
-
-			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 			mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
@@ -261,13 +249,10 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllow() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -287,13 +272,11 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 			for _, methodACL := range testRequestMethods {
 				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com", strings.ToLower(methodACL)))
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -303,7 +286,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 						assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 					} else {
-						expected := s.RequireParseRequestURI("https://auth.example.com/")
+						expected := s.RequireParseRequestURI("https://login.example.com:8080/")
 
 						query := expected.Query()
 						query.Set(queryArgRD, targetURI.String())
@@ -340,13 +323,11 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, true)
 
@@ -381,7 +362,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 		s.T().Run(tc.name, func(t *testing.T) {
 			for _, method := range testRequestMethods {
 				t.Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -389,8 +370,6 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 
 					mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 					mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(fasthttp.HeaderXForwardedProto), tc.scheme)
@@ -418,7 +397,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleAuthRequestAllMethodsAllow() 
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -442,13 +421,11 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleAuthRequestAllMethodsWithMeth
 			for _, methodACL := range testRequestMethods {
 				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com", strings.ToLower(methodACL)))
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestAuthRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -472,13 +449,11 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllow() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
@@ -504,13 +479,11 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllowXHR() 
 						s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 					} {
 						t.Run(targetURI.String(), func(t *testing.T) {
-							authz := s.Builder().Build()
+							authz := s.BuildWithDelayer()
 
 							mock := mocks.NewMockAutheliaCtx(t)
 
 							defer mock.Close()
-
-							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							setRequestExtAuthz(mock.Ctx, method, targetURI, x, x)
 
@@ -532,13 +505,11 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsWithMethods
 			for _, methodACL := range testRequestMethods {
 				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com", strings.ToLower(methodACL)))
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
@@ -564,4 +535,57 @@ func setRequestForwardAuth(ctx *middlewares.AutheliaCtx, method string, targetUR
 	}
 
 	setRequestXHRValues(ctx, accept, xhr)
+}
+
+func TestHandleAuthzGetObjectForwardAuth(t *testing.T) {
+	testCases := []struct {
+		name           string
+		method         string
+		expectedMethod string
+		err            string
+	}{
+		{
+			"ShouldUseForwardedMethod",
+			fasthttp.MethodPost,
+			fasthttp.MethodPost,
+			"",
+		},
+		{
+			"ShouldNormalizeLowercaseForwardedMethod",
+			"post",
+			fasthttp.MethodPost,
+			"",
+		},
+		{
+			"ShouldRejectEmptyForwardedMethod",
+			"",
+			"",
+			"header 'X-Forwarded-Method' is empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+			mock.Ctx.Request.Header.Set("X-Forwarded-Host", "app.example.com")
+			mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
+
+			if tc.method != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-Method", tc.method)
+			}
+
+			object, err := handleAuthzGetObjectForwardAuth(mock.Ctx)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedMethod, object.Method)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
 }

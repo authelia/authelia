@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package totp
 
 import (
@@ -18,8 +22,8 @@ func NewTimeBasedProvider(config schema.TOTP) (provider *TimeBased) {
 		issuer:    config.Issuer,
 		algorithm: config.DefaultAlgorithm,
 		digits:    uint32(config.DefaultDigits), //nolint:gosec // Validated at runtime.
-		period:    uint(config.DefaultPeriod),   //nolint:gosec // Validated at runtime.
-		size:      uint(config.SecretSize),      //nolint:gosec // Validated at runtime.
+		period:    uint(config.DefaultPeriod),
+		size:      uint(config.SecretSize),
 	}
 
 	if config.Skew != nil && *config.Skew >= 0 {
@@ -31,6 +35,7 @@ func NewTimeBasedProvider(config schema.TOTP) (provider *TimeBased) {
 	return provider
 }
 
+// NewTOTPOptionsFromSchema returns the *model.TOTPOptions for the given TOTP configuration.
 func NewTOTPOptionsFromSchema(config schema.TOTP) *model.TOTPOptions {
 	return &model.TOTPOptions{
 		Algorithm:  config.DefaultAlgorithm,
@@ -82,7 +87,7 @@ func (p TimeBased) GenerateCustom(ctx Context, username, algorithm, secret strin
 	}
 
 	if key, err = totp.Generate(opts); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error generating totp: %w", err)
 	}
 
 	config = &model.TOTPConfiguration{

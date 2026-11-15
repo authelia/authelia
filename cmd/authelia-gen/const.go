@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 const (
@@ -8,7 +12,7 @@ const (
 	subPathCmd      = "cmd"
 	subPathInternal = "internal"
 
-	fileCICommitLintConfig = ".commitlintrc.cjs"
+	fileCICommitLintConfig = "commitlint.config.mjs"
 	fileWebI18NIndex       = "src/i18n/index.ts"
 	fileWebPackage         = "package.json"
 
@@ -36,26 +40,19 @@ const (
 	fileDocsStaticJSONSchemasExportsWebAuthn    = "exports.webauthn"
 	fileDocsStaticJSONSchemasExportsIdentifiers = "exports.identifiers"
 
+	dirDocsStaticImages             = "images"
+	dirDocsStaticImagesContributors = "contributors"
+	fileAllContributors             = ".all-contributorsrc"
+	fileREADME                      = "README.md"
+
+	extSVG = ".svg"
+
 	fileGitHubIssueTemplateFR = ".github/ISSUE_TEMPLATE/feature-request.yml"
 	fileGitHubIssueTemplateBR = ".github/ISSUE_TEMPLATE/bug-report.yml"
 )
 
 const (
-	suiteNameBasicFormPost           = "basic-form-post"
-	suiteNameHybridFormPost          = "hybrid-form-post"
-	suiteNameImplicitFormPost        = "implicit-form-post"
-	suiteConformanceBasic            = "conformance-basic"
-	suiteConformanceBasicFormPost    = "conformance-basic-form-post"
-	suiteConformanceImplicit         = "conformance-implicit"
-	suiteConformanceImplicitFormPost = "conformance-implicit-form-post"
-	suiteConformanceHybrid           = "conformance-hybrid"
-	suiteConformanceHybridFormPost   = "conformance-hybrid-form-post"
-)
-
-const (
 	pathJSONSchema = "json-schema"
-	extJSON        = ".json"
-	extYAML        = ".yaml"
 )
 
 const (
@@ -75,6 +72,7 @@ const (
 const (
 	cmdUseRoot                   = "authelia-gen"
 	cmdUseCompletion             = "completion"
+	cmdUseHelp                   = "help"
 	cmdUseDocs                   = "docs"
 	cmdUseManage                 = "manage"
 	cmdUseMisc                   = "misc"
@@ -90,6 +88,7 @@ const (
 	cmdUseCommitLint             = "commit-lint"
 	cmdUseCode                   = "code"
 	cmdUseCodeScripts            = "scripts"
+	cmdUseContributors           = "contributors"
 	cmdUseKeys                   = "keys"
 	cmdUseServer                 = "server"
 )
@@ -134,14 +133,17 @@ const (
 )
 
 const (
-	metaVersionNext    = "next"
+	metaVersionMajor   = "major"
+	metaVersionMinor   = "minor"
 	metaVersionLatest  = "latest"
 	metaVersionCurrent = "current"
 )
 
 const (
-	codeCSPProductionDefaultSrc  = "'self'"
+	codeCSPDirectiveDefaultSrc   = "default-src"
+	codeCSPSelf                  = "'self'"
 	codeCSPDevelopmentDefaultSrc = "'self' 'unsafe-eval'"
+	codeCSPNone                  = "'none'"
 	codeCSPNonce                 = "${NONCE}"
 )
 
@@ -151,19 +153,27 @@ const (
 
 const (
 	windows = "windows"
+
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
 )
 
 var (
 	codeCSPValuesCommon = []CSPValue{
-		{Name: "default-src", Value: ""},
-		{Name: "frame-src", Value: "'none'"},
-		{Name: "object-src", Value: "'none'"},
-		{Name: "style-src", Value: "'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"},
-		{Name: "frame-ancestors", Value: "'none'"},
-		{Name: "base-uri", Value: "'self'"},
+		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPSelf},
+		{Name: "frame-src", Value: codeCSPNone},
+		{Name: "object-src", Value: codeCSPNone},
+		{Name: "style-src", Value: "'self' 'nonce-%s'"},
+		{Name: "frame-ancestors", Value: codeCSPNone},
+		{Name: "base-uri", Value: codeCSPSelf},
 	}
 
-	codeCSPValuesProduction = []CSPValue{}
+	codeCSPValuesProduction = []CSPValue{
+		{Name: "connect-src", Value: codeCSPSelf},
+		{Name: "script-src", Value: codeCSPSelf},
+	}
 
-	codeCSPValuesDevelopment = []CSPValue{}
+	codeCSPValuesDevelopment = []CSPValue{
+		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPDevelopmentDefaultSrc},
+	}
 )

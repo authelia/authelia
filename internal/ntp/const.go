@@ -1,20 +1,31 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package ntp
 
-const ntpEpochOffset = 2208988800
+const epochOffset = 2208988800
 
 const (
-	ntpV3 ntpVersion = iota
-	ntpV4
+	v3 version = iota
+	v4
 )
 
 const (
-	maskMode    = 0xf8
-	maskVersion = 0xc7
-	maskLeap    = 0x3f
+	maskMode      = 0xf8
+	maskVersion   = 0xc7
+	maskLeap      = 0x3f
+	maskModeValue = 0x07
 )
 
 const (
 	modeClient = 3
+	modeServer = 4
+)
+
+const (
+	stratumMinimum = 1
+	stratumMaximum = 15
 )
 
 const (

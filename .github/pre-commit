@@ -1,6 +1,0 @@
-#!/bin/sh
-
-. "${0%/*}/required-apps"
-
-golangci-lint run -v --fix && \
-cd web && ${PMGR_RUN} lint

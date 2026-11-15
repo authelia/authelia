@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -346,7 +350,7 @@ func TestBuildStringFuncsMissingTests(t *testing.T) {
 }
 
 func TestStringJoinOr(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		name     string
 		items    []string
 		expected string
@@ -356,7 +360,7 @@ func TestStringJoinOr(t *testing.T) {
 		{"Empty slice", []string{}, ""},
 	}
 
-	for _, test := range tests {
+	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			result := StringJoinOr(test.items)
 			assert.Equal(t, test.expected, result)
@@ -423,6 +427,77 @@ func TestStringJoinBuild(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			result := StringJoinBuild(test.sep, test.sepFinal, test.quote, test.items)
 			assert.Equal(t, test.expected, result)
+		})
+	}
+}
+
+func TestStringHasPrefixFold(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		S        string
+		Prefix   string
+		Expected bool
+	}{
+		{"ShouldMatchExactCase", "Hello, World", "Hello", true},
+		{"ShouldMatchDifferentCase", "Hello, World", "hElLo", true},
+		{"ShouldMatchUpperCasePrefix", "hello, world", "HELLO", true},
+		{"ShouldMatchEntireString", "Hello", "HELLO", true},
+		{"ShouldMatchEmptyPrefix", "Hello", "", true},
+		{"ShouldMatchEmptyStringAndEmptyPrefix", "", "", true},
+		{"ShouldNotMatchWhenPrefixLonger", "Hi", "Hello", false},
+		{"ShouldNotMatchDifferentContent", "Hello, World", "World", false},
+		{"ShouldNotMatchEmptyStringWithPrefix", "", "Hello", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, StringHasPrefixFold(tc.S, tc.Prefix))
+		})
+	}
+}
+
+func TestStringHasSuffixFold(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		S        string
+		Suffix   string
+		Expected bool
+	}{
+		{"ShouldMatchExactCase", "Hello, World", "World", true},
+		{"ShouldMatchDifferentCase", "Hello, World", "wOrLd", true},
+		{"ShouldMatchUpperCaseSuffix", "hello, world", "WORLD", true},
+		{"ShouldMatchEntireString", "Hello", "HELLO", true},
+		{"ShouldMatchEmptySuffix", "Hello", "", true},
+		{"ShouldMatchEmptyStringAndEmptySuffix", "", "", true},
+		{"ShouldNotMatchWhenSuffixLonger", "Hi", "Hello", false},
+		{"ShouldNotMatchDifferentContent", "Hello, World", "Hello", false},
+		{"ShouldNotMatchEmptyStringWithSuffix", "", "World", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, StringHasSuffixFold(tc.S, tc.Suffix))
+		})
+	}
+}
+
+func TestStringSplitClean(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{"ShouldSplitStandardScenario", "apple,banana,cherry", []string{"apple", "banana", "cherry"}},
+		{"ShouldSplitLeadingTrailingScenario", " apple,banana,cherry ", []string{"apple", "banana", "cherry"}},
+		{"ShouldTrimEmptyItems", "apple,,banana", []string{"apple", "banana"}},
+		{"ShouldHandleOnlyWhiteSpace", "   ", nil},
+		{"ShouldHandleEmptyString", "", nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := StringSplitClean(tc.input, ",")
+			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }

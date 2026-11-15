@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OpenID Connect 1.0"
-description: "OpenID Connect 1.0 Integration"
+description: "An overview of integrating the Authelia OpenID Connect 1.0 Provider with OpenID Connect 1.0 Relying Parties, client applications, and single sign-on flows."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 600

@@ -1,23 +1,31 @@
-import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Button, Theme } from "@mui/material";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+
+import axios from "axios";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import SuccessIcon from "@components/SuccessIcon";
+import { Button } from "@components/UI/Button";
 import { RedirectionURL } from "@constants/SearchParams";
+import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
-import { useIsMountedRef } from "@hooks/Mounted";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
+import { useRateLimit } from "@hooks/RateLimit";
 import {
     DuoDevicePostRequest,
     completeDuoDeviceSelectionProcess,
     completePushNotificationSignIn,
+    getPreferredDuoDevice,
     initiateDuoDeviceSelectionProcess,
 } from "@services/PushNotification";
+import { RateLimitedError } from "@services/RateLimit";
 import { AuthenticationLevel } from "@services/State";
 import DeviceSelectionContainer, {
     SelectableDevice,
@@ -40,87 +48,119 @@ export interface Props {
     duoSelfEnrollment: boolean;
     registered: boolean;
 
-    onSignInError: (err: Error) => void;
+    onSignInError: (_err: Error) => void;
     onSelectionClick: () => void;
-    onSignInSuccess: (redirectURL: string | undefined) => void;
+    onSignInSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const PushNotificationMethod = function (props: Props) {
     const { t: translate } = useTranslation();
-    const { classes } = useStyles();
 
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
 
-    const [state, setState] = useState(State.SignInInProgress);
+    const [state, setState] = useState(
+        props.authenticationLevel >= AuthenticationLevel.TwoFactor ? State.Success : State.SignInInProgress,
+    );
     const redirectionURL = useQueryParam(RedirectionURL);
-    const mounted = useIsMountedRef();
-    const [enroll_url, setEnrollUrl] = useState("");
+    const getSignal = useAbortSignal();
+    const [enrollUrl, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
+    const [preferredDevice, setPreferredDevice] = useState<{ device?: string; method?: string }>({});
 
-    const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorCallback = useRef(onSignInError).current;
-    const onSignInSuccessCallback = useRef(onSignInSuccess).current;
+    const { onSignInError, onSignInSuccess } = props;
+    const stateRef = useRef<null | State>(null);
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() => setState(State.Failure));
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
+        return () => {
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
+            }
+        };
     }, []);
+
+    useEffect(() => {
+        if (props.authenticationLevel < AuthenticationLevel.TwoFactor) {
+            getPreferredDuoDevice(getSignal())
+                .then((res) => {
+                    if (res.preferred_device && res.preferred_method) {
+                        setPreferredDevice({ device: res.preferred_device, method: res.preferred_method });
+                    }
+                })
+                .catch((err) => {
+                    if (axios.isCancel(err)) return;
+                    console.debug("No preferred Duo device found or error fetching:", err);
+                });
+        }
+    }, [props.authenticationLevel, getSignal]);
+
+    const processDevices = useCallback((devices: any[]) => {
+        return devices.map((d: { device: any; display_name: any; capabilities: any }) => ({
+            id: d.device,
+            methods: d.capabilities,
+            name: d.display_name,
+        }));
+    }, []);
+
+    const handleSuccess = useCallback(
+        (redirect: string | undefined) => {
+            setState(State.Success);
+            timeoutSuccessRef.current = setTimeout(() => {
+                onSignInSuccess(redirect);
+                timeoutSuccessRef.current = null;
+            }, 1500);
+        },
+        [onSignInSuccess],
+    );
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
-            }
-
             setState(State.RateLimited);
 
-            onSignInErrorCallback(new Error(translate("You have made too many requests")));
+            onSignInError(new Error(translate("You have made too many requests")));
 
-            timeoutRateLimit.current = setTimeout(() => {
-                setState(State.Failure);
-                timeoutRateLimit.current = null;
-            }, retryAfter * 1000);
+            triggerRateLimit(retryAfter);
         },
-        [onSignInErrorCallback, translate],
+        [onSignInError, translate, triggerRateLimit],
     );
 
     const handleFetchDuoDevices = useCallback(async () => {
         try {
-            const res = await initiateDuoDeviceSelectionProcess();
-            if (!mounted.current) return;
+            const res = await initiateDuoDeviceSelectionProcess(getSignal());
+            if (res.preferred_device && res.preferred_method) {
+                setPreferredDevice({ device: res.preferred_device, method: res.preferred_method });
+            }
             switch (res.result) {
-                case "auth":
-                    let selectableDevices = [] as SelectableDevice[];
-                    res.devices.forEach((d: { device: any; display_name: any; capabilities: any }) =>
-                        selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
-                    );
-                    setDevices(selectableDevices);
+                case "auth": {
+                    setDevices(processDevices(res.devices));
+                    stateRef.current = state;
                     setState(State.Selection);
                     break;
+                }
                 case "allow":
-                    onSignInErrorCallback(new Error(translate("Device selection was bypassed by Duo policy")));
+                    onSignInError(new Error(translate("Device selection was bypassed by Duo policy")));
                     setState(State.Success);
                     break;
                 case "deny":
-                    onSignInErrorCallback(new Error(translate("Device selection was denied by Duo policy")));
+                    onSignInError(new Error(translate("Device selection was denied by Duo policy")));
                     setState(State.Failure);
                     break;
                 case "enroll":
-                    onSignInErrorCallback(new Error(translate("No compatible device found")));
+                    onSignInError(new Error(translate("No compatible device found")));
                     if (res.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.enroll_url);
                     setState(State.Enroll);
                     break;
             }
         } catch (err) {
-            if (!mounted.current) return;
+            if (axios.isCancel(err)) return;
             console.error(err);
-            onSignInErrorCallback(new Error(translate("There was an issue fetching Duo device(s)")));
+            onSignInError(new Error(translate("There was an issue fetching Duo device(s)")));
         }
-    }, [props.duoSelfEnrollment, mounted, onSignInErrorCallback, translate]);
+    }, [getSignal, onSignInError, translate, props.duoSelfEnrollment, processDevices, state]);
 
     const handleSignIn = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -129,57 +169,43 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(redirectionURL, flowID, flow, subflow, userCode);
-            // If the request was initiated and the user changed 2FA method in the meantime,
-            // the process is interrupted to avoid updating state of unmounted component.
-            if (!mounted.current) return;
-            if (res) {
-                if (res.data && !res.limited) {
-                    switch (res.data.result) {
-                        case "auth":
-                            let selectableDevices = [] as SelectableDevice[];
-                            res.data.devices.forEach((d) =>
-                                selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
-                            );
-                            setDevices(selectableDevices);
-                            setState(State.Selection);
-                            break;
-                        case "enroll":
-                            onSignInErrorCallback(new Error(translate("No compatible device found")));
-                            if (res.data.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.data.enroll_url);
-                            setState(State.Enroll);
-                            break;
-                        case "deny":
-                            onSignInErrorCallback(new Error(translate("Device selection was denied by Duo policy")));
-                            setState(State.Failure);
-                            break;
-                        default:
-                            setState(State.Success);
-                            setTimeout(() => {
-                                if (!mounted.current) return;
-                                onSignInSuccessCallback(res.data ? res.data.redirect : undefined);
-                            }, 1500);
-                    }
-                } else if (res.limited) {
-                    handleRateLimited(res.retryAfter);
-                } else {
-                    setState(State.Success);
-                    setTimeout(() => {
-                        if (!mounted.current) return;
-                        onSignInSuccessCallback(res.data ? res.data.redirect : undefined);
-                    }, 1500);
-                }
-            } else {
-                onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
-                setState(State.Failure);
+            const res = await completePushNotificationSignIn(
+                redirectionURL,
+                flowID,
+                flow,
+                subflow,
+                userCode,
+                getSignal(),
+            );
+            if (!res) {
+                handleSuccess(undefined);
+                return;
+            }
+            switch (res.result) {
+                case "auth":
+                    setDevices(processDevices(res.devices));
+                    setState(State.Selection);
+                    break;
+                case "enroll":
+                    onSignInError(new Error(translate("No compatible device found")));
+                    if (res.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.enroll_url);
+                    setState(State.Enroll);
+                    break;
+                case "deny":
+                    onSignInError(new Error(translate("Device selection was denied by Duo policy")));
+                    setState(State.Failure);
+                    break;
+                default:
+                    handleSuccess(res.redirect);
             }
         } catch (err) {
-            // If the request was initiated and the user changed 2FA method in the meantime,
-            // the process is interrupted to avoid updating state of unmounted component.
-            if (!mounted.current || state !== State.SignInInProgress) return;
-
+            if (axios.isCancel(err)) return;
+            if (err instanceof RateLimitedError) {
+                handleRateLimited(err.retryAfter);
+                return;
+            }
             console.error(err);
-            onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
+            onSignInError(new Error(translate("There was an issue completing sign in process")));
             setState(State.Failure);
         }
     }, [
@@ -190,55 +216,80 @@ const PushNotificationMethod = function (props: Props) {
         flow,
         subflow,
         userCode,
-        mounted,
-        onSignInErrorCallback,
+        getSignal,
+        onSignInError,
         translate,
-        onSignInSuccessCallback,
         handleRateLimited,
-        state,
+        processDevices,
+        handleSuccess,
     ]);
 
     const updateDuoDevice = useCallback(
         async function (device: DuoDevicePostRequest) {
             try {
-                await completeDuoDeviceSelectionProcess(device);
+                await completeDuoDeviceSelectionProcess(device, getSignal());
                 if (!props.registered) {
-                    setState(State.SignInInProgress);
                     props.onSelectionClick();
-                } else {
-                    setState(State.SignInInProgress);
                 }
             } catch (err) {
+                if (axios.isCancel(err)) return;
                 console.error(err);
-                onSignInErrorCallback(new Error(translate("There was an issue updating preferred Duo device")));
+                onSignInError(new Error(translate("There was an issue updating preferred Duo device")));
             }
         },
-        [onSignInErrorCallback, props, translate],
+        [getSignal, onSignInError, props, translate],
     );
 
     const handleDuoDeviceSelected = useCallback(
         (device: SelectedDevice) => {
-            updateDuoDevice({ device: device.id, method: device.method });
+            const selected = { device: device.id, method: device.method };
+            const isDifferent =
+                selected.device !== preferredDevice?.device || selected.method !== preferredDevice?.method;
+
+            setPreferredDevice(selected);
+
+            if (isDifferent) {
+                updateDuoDevice(selected)
+                    .then(() => {
+                        if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
+                            setState(State.Success);
+                        } else {
+                            handleSignIn();
+                        }
+                    })
+                    .catch(() => {
+                        setState(State.Failure);
+                    });
+            } else if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
+                setState(State.Success);
+            } else {
+                setState(State.SignInInProgress);
+            }
         },
-        [updateDuoDevice],
+        [updateDuoDevice, preferredDevice, handleSignIn, setPreferredDevice, props.authenticationLevel],
     );
 
-    // Set successful state if user is already authenticated.
-    useEffect(() => {
-        if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
-            setState(State.Success);
-        }
-    }, [props.authenticationLevel, setState]);
+    const handleSignInRef = useRef(handleSignIn);
 
     useEffect(() => {
-        if (state === State.SignInInProgress) handleSignIn();
-    }, [handleSignIn, state]);
+        handleSignInRef.current = handleSignIn;
+    }, [handleSignIn]);
+
+    const shouldSignIn = props.authenticationLevel < AuthenticationLevel.TwoFactor;
+
+    useEffect(() => {
+        if (!shouldSignIn) {
+            return;
+        }
+
+        handleSignInRef.current();
+    }, [shouldSignIn]);
 
     if (state === State.Selection)
         return (
             <DeviceSelectionContainer
                 devices={devices}
-                onBack={() => setState(State.SignInInProgress)}
+                onBack={() => setState(stateRef.current || State.SignInInProgress)}
                 onSelect={handleDuoDeviceSelected}
             />
         );
@@ -267,28 +318,21 @@ const PushNotificationMethod = function (props: Props) {
             id={props.id}
             title={translate("Push Notification")}
             explanation={translate("A notification has been sent to your smartphone")}
-            duoSelfEnrollment={enroll_url ? props.duoSelfEnrollment : false}
+            duoSelfEnrollment={enrollUrl ? props.duoSelfEnrollment : false}
             registered={props.registered}
             state={methodState}
             onSelectClick={handleFetchDuoDevices}
-            onRegisterClick={() => window.open(enroll_url, "_blank")}
+            onRegisterClick={() => window.open(enrollUrl, "_blank", "noopener,noreferrer")}
         >
-            <Box className={classes.icon}>{icon}</Box>
-            <Box className={state !== State.Failure ? "hidden" : ""}>
-                <Button color="secondary" onClick={handleSignIn}>
+            <div className="flex w-full justify-center">{icon}</div>
+            <RateLimitCountdown secondsRemaining={secondsRemaining} />
+            <div className={state === State.Failure ? "" : "hidden"}>
+                <Button variant={"ghost"} color={"secondary"} onClick={handleSignIn}>
                     {translate("Retry")}
                 </Button>
-            </Box>
+            </div>
         </MethodContainer>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    icon: {
-        width: "64px",
-        height: "64px",
-        display: "inline-block",
-    },
-}));
 
 export default PushNotificationMethod;

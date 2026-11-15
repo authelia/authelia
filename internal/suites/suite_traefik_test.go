@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -18,8 +22,20 @@ func NewTraefikSuite(name string) *TraefikSuite {
 	}
 }
 
+func (s *TraefikSuite) dockerEnvironment() *DockerEnvironment {
+	if s.Name == traefik2SuiteName {
+		return traefik2DockerEnvironment
+	}
+
+	return traefik3DockerEnvironment
+}
+
 func (s *TraefikSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
+}
+
+func (s *TraefikSuite) TestAccessDeniedScenario() {
+	suite.Run(s.T(), NewAccessDeniedScenario())
 }
 
 func (s *TraefikSuite) Test2FATOTPScenario() {
@@ -50,8 +66,7 @@ func (s *TraefikSuite) TestShouldKeepSessionAfterRedisRestart() {
 	s.Require().NoError(err)
 	s.RodSession = browser
 
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
@@ -59,9 +74,11 @@ func (s *TraefikSuite) TestShouldKeepSessionAfterRedisRestart() {
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
-	err = traefik3DockerEnvironment.Restart("redis")
+	err = s.dockerEnvironment().Restart("redis")
 	s.Require().NoError(err)
 
-	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+	doWithDisruptedDatastore(func() {
+		s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
+		s.verifySecretAuthorized(s.T(), s.Context(ctx))
+	})
 }

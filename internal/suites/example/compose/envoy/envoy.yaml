@@ -1,5 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
-# Enable the admin interface at http://192.168.240.100:9901/ for debugging.
+# Enable the admin interface on port 9901 of the proxy for debugging. The suite subnet is configurable, so the address
+# is ${SUITE_SUBNET}.100 rather than a fixed one.
 admin:
   address:
     socket_address:
@@ -104,6 +109,7 @@ static_resources:
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
+                              - exact: 'location'
                               - exact: 'authorization'
                               - exact: 'proxy-authorization'
                               - prefix: 'remote-'
@@ -223,7 +229,7 @@ static_resources:
                   address:
                     socket_address:
                       address: 'httpbin'
-                      port_value: 8000
+                      port_value: 8080
     - name: 'nginx-backend'
       connect_timeout: '0.25s'
       type: 'logical_dns'

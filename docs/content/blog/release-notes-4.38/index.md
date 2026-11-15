@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "4.38: Release Notes"
-description: "Authelia 4.38 release notes."
+description: "Authelia 4.38 release notes covering several major roadmap additions including new features, improvements, and important changes for all administrators."
 summary: "Authelia 4.38 has been released and the following is a guide on all the massive changes."
-date: 2024-03-12T22:03:58+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 weight: 50
 categories: ["News", "Release Notes"]
@@ -80,7 +84,7 @@ This blog article is rather large so this serves as an index for all of the area
 ## OpenID Connect 1.0
 
 As part of our ongoing effort for comprehensive support for [OpenID Connect 1.0] we'll be introducing several important
-features. Please see the [roadmap](../../roadmap/active/openid-connect.md) for more information.
+features. Please see the [roadmap](../../roadmap/active/openid-connect-1.0-provider.md) for more information.
 
 Those of you familiar with the various specifications are going to notice a few features which are very large steps
 towards the Financial-grade API Security Profile and OAuth 2.0 Security Best Current Practice, this is because we are
@@ -184,7 +188,6 @@ These features combined with our requirement for the HTTPS scheme are very power
 
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
-
 [Proof Key for Code Exchange]: https://oauth.net/2/pkce/
 [Access Token]: https://oauth.net/2/access-tokens/
 [Authorization Code]: https://oauth.net/2/grant-types/authorization-code/
@@ -250,6 +253,7 @@ template filter example. To use this example you'll need to enable the `template
 [Templating](#templating) for more information.
 
 {{< details "Before" >}}
+
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
@@ -262,9 +266,11 @@ identity_providers:
       ...
       -----END CERTIFICATE-----
 ```
+
 {{< /details >}}
 
 {{< details "After" >}}
+
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
@@ -278,9 +284,11 @@ identity_providers:
           ...
           -----END CERTIFICATE-----
 ```
+
 {{< /details >}}
 
 {{< details "After (template filter)" >}}
+
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
@@ -288,6 +296,7 @@ identity_providers:
       - key: {{ secret "/config/jwks/rsa.2048.pem" | mindent 10 "|" | msquote }}
         certificate_chain: {{ secret "/config/jwks/rsa.2048.cert" | mindent 10 "|" | msquote }}
 ```
+
 {{< /details >}}
 
 #### Client JSON Web Key Selection
@@ -373,6 +382,7 @@ To use the template filter example you'll need to enable the `template` filter u
 environment variable i.e. `X_AUTHELIA_CONFIG_FILTERS=template`. See [Templating](#templating) for more information.
 
 {{< details "Before" >}}
+
 ```yaml {title="configuration.yml"}
 default_redirection_url: 'https://www.example.com'
 session:
@@ -384,9 +394,11 @@ session:
   inactivity: '5m'
   remember_me_duration: '1M'
 ```
+
 {{< /details >}}
 
 {{< details "After" >}}
+
 ```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
@@ -400,9 +412,11 @@ session:
       authelia_url: 'https://auth.example.com'
       default_redirection_url: 'https://www.example.com'
 ```
+
 {{< /details >}}
 
 {{< details "After (template filter)" >}}
+
 ```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
@@ -416,6 +430,7 @@ session:
       authelia_url: 'https://auth.{{ env "DOMAIN_A" }}'
       default_redirection_url: 'https://www.{{ env "DOMAIN_A" }}'
 ```
+
 {{< /details >}}
 
 ## WebAuthn
@@ -472,7 +487,6 @@ is supplied then only the configured endpoints will actually exist, and the prox
 configuration depending on your proxy and you should consult the
 [Integration Guide](../../integration/proxies/introduction.md) for your particular proxy.
 
-
 ## User Dashboard / Control Panel
 
 As part of our ongoing effort for comprehensive support for a User Dashboard / Control Panel we'll be introducing
@@ -518,13 +532,14 @@ of the File Methods guide for more information.
 #### Templating
 
 The file based configuration will have access to several experimental templating filters which will assist in creating
-configuration templates. The initial one will just expand *most* environment variables into the configuration. The
+configuration templates. The initial one will just expand _most_ environment variables into the configuration. The
 second will use the go template engine in a very similar way to how Helm operates.
 
 As these features are experimental they may break, be removed, or otherwise not operate as expected. However most of our
 testing indicates they're incredibly solid.
 
 See Also:
+
 - [Configuration > Prologue > Security Sensitive Values](../../configuration/prologue/security-sensitive-values.md)
 - [Configuration > Methods > Files: File Filters](../../configuration/methods/files.md#file-filters)
 - [Reference > Guides > Templating](../../reference/guides/templating.md)
@@ -568,18 +583,21 @@ following shows how to properly map the old values to he new. For more informati
 [Server Configuration](../../configuration/miscellaneous/server.md#address).
 
 {{< details "Before" >}}
+
 ```yaml {title="configuration.yml"}
 server:
   host: '0.0.0.0'
   port: {{</* sitevar name="port" nojs="9091" */>}}
   path: 'authelia'
 ```
+
 {{< /details >}}
 
 {{< details "After" >}}
+
 ```yaml {title="configuration.yml"}
 server:
   address: 'tcp://0.0.0.0:{{</* sitevar name="port" nojs="9091" */>}}/authelia'
 ```
-{{< /details >}}
 
+{{< /details >}}

@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/go-crypt/crypt/algorithm/argon2"
@@ -40,6 +45,15 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		}
 	}
 
+	if config.Registration.CustomURL.String() != "" {
+		switch config.Registration.CustomURL.Scheme {
+		case schemeHTTP, schemeHTTPS:
+			break
+		default:
+			validator.Push(fmt.Errorf(errFmtAuthBackendRegistrationCustomURLScheme, config.Registration.CustomURL.String(), config.Registration.CustomURL.Scheme))
+		}
+	}
+
 	if config.LDAP != nil && config.File != nil {
 		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}
@@ -53,7 +67,6 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 	}
 }
 
-// validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(errors.New(errFmtFileAuthBackendPathNotConfigured))
@@ -131,7 +144,7 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Authen
 		config.Argon2.Memory = schema.DefaultPasswordConfig.Argon2.Memory
 	case config.Argon2.Memory < argon2.MemoryMin:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMin))
-	case uint64(config.Argon2.Memory) > uint64(argon2.MemoryMax): //nolint:gosec // Validated at runtime.
+	case uint64(config.Argon2.Memory) > uint64(argon2.MemoryMax):
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMax))
 	case config.Argon2.Memory < (config.Argon2.Parallelism * argon2.MemoryMinParallelismMultiplier):
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2MemoryTooLow, config.Argon2.Memory, config.Argon2.Parallelism*argon2.MemoryMinParallelismMultiplier, config.Argon2.Parallelism, argon2.MemoryMinParallelismMultiplier))
@@ -308,11 +321,7 @@ func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Authen
 		}
 
 		if config.SaltLength > 0 && config.SHA2Crypt.SaltLength == 0 {
-			if config.SaltLength > 16 {
-				config.SHA2Crypt.SaltLength = 16
-			} else {
-				config.SHA2Crypt.SaltLength = config.SaltLength
-			}
+			config.SHA2Crypt.SaltLength = min(config.SaltLength, 16)
 		}
 	case hashLegacyArgon2id:
 		config.Algorithm = hashArgon2
@@ -453,28 +462,25 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 		config.GroupSearchMode = implementation.GroupSearchMode
 	}
 
-	if ldapImplementationShouldSetStr(config.Attributes.DistinguishedName, implementation.Attributes.DistinguishedName) {
-		config.Attributes.DistinguishedName = implementation.Attributes.DistinguishedName
-	}
+	setDefaultImplementationLDAPAuthenticationBackendAttributes(&config.Attributes, &implementation.Attributes)
+}
 
-	if ldapImplementationShouldSetStr(config.Attributes.Username, implementation.Attributes.Username) {
-		config.Attributes.Username = implementation.Attributes.Username
-	}
+// setDefaultImplementationLDAPAuthenticationBackendAttributes copies every attribute name which the user has not
+// configured from the implementation defaults. It's performed over every string field so an attribute added to the
+// schema is applied without needing to be added here as well.
+func setDefaultImplementationLDAPAuthenticationBackendAttributes(config, implementation *schema.AuthenticationBackendLDAPAttributes) {
+	values, defaults := reflect.ValueOf(config).Elem(), reflect.ValueOf(implementation).Elem()
 
-	if ldapImplementationShouldSetStr(config.Attributes.DisplayName, implementation.Attributes.DisplayName) {
-		config.Attributes.DisplayName = implementation.Attributes.DisplayName
-	}
+	for i := range values.NumField() {
+		value := values.Field(i)
 
-	if ldapImplementationShouldSetStr(config.Attributes.Mail, implementation.Attributes.Mail) {
-		config.Attributes.Mail = implementation.Attributes.Mail
-	}
+		if value.Kind() != reflect.String {
+			continue
+		}
 
-	if ldapImplementationShouldSetStr(config.Attributes.MemberOf, implementation.Attributes.MemberOf) {
-		config.Attributes.MemberOf = implementation.Attributes.MemberOf
-	}
-
-	if ldapImplementationShouldSetStr(config.Attributes.GroupName, implementation.Attributes.GroupName) {
-		config.Attributes.GroupName = implementation.Attributes.GroupName
+		if def := defaults.Field(i).String(); ldapImplementationShouldSetStr(value.String(), def) {
+			value.SetString(def)
+		}
 	}
 }
 

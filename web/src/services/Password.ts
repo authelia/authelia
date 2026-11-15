@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { CompletePasswordSignInPath, FirstFactorPath, FirstFactorReauthenticatePath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 import { SignInResponse } from "@services/SignIn";
@@ -36,19 +40,19 @@ export async function postFirstFactor(
     userCode?: string,
 ) {
     const data: PostFirstFactorBody = {
-        username,
-        password,
-        keepMeLoggedIn: rememberMe,
-        targetURL,
-        requestMethod,
-        flowID,
         flow,
+        flowID,
+        keepMeLoggedIn: rememberMe,
+        password,
+        requestMethod,
         subflow,
+        targetURL,
         userCode,
+        username,
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
-    return res ? res : ({} as SignInResponse);
+    return res ?? ({} as SignInResponse);
 }
 
 export async function postFirstFactorReauthenticate(
@@ -61,17 +65,17 @@ export async function postFirstFactorReauthenticate(
     userCode?: string,
 ) {
     const data: PostFirstFactorReauthenticateBody = {
-        password,
-        targetURL,
-        requestMethod,
-        flowID,
         flow,
+        flowID,
+        password,
+        requestMethod,
         subflow,
+        targetURL,
         userCode,
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorReauthenticatePath, data);
-    return res ? res : ({} as SignInResponse);
+    return res ?? ({} as SignInResponse);
 }
 
 interface PostSecondFactorBody {
@@ -90,13 +94,12 @@ export async function postSecondFactor(
     subflow?: string,
 ) {
     const data: PostSecondFactorBody = {
-        password,
-        targetURL,
-        flowID,
         flow,
+        flowID,
+        password,
         subflow,
+        targetURL,
     };
 
-    const res = await PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);
-    return res ? res : ({} as SignInResponse);
+    return PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);
 }

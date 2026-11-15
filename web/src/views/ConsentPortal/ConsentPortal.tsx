@@ -1,10 +1,14 @@
-import React, { Fragment, lazy, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { Fragment, lazy, useEffect } from "react";
 
 import { useTranslation } from "react-i18next";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 
 import { ConsentCompletionSubRoute, ConsentOpenIDSubRoute } from "@constants/Routes";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import { UserInfo } from "@models/UserInfo";
@@ -14,36 +18,25 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 const OpenIDConnect = lazy(() => import("@views/ConsentPortal/OpenIDConnect/ConsentPortal"));
 const CompletionView = lazy(() => import("@views/ConsentPortal/CompletionView"));
 
-export interface Props {}
-
-const ConsentPortal: React.FC<Props> = (props: Props) => {
+function ConsentPortal() {
     const { t: translate } = useTranslation();
 
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
     const [state, fetchState, , fetchStateError] = useAutheliaState();
-    const [loading, setLoading] = useState(true);
-
+    const loading = !state || (state.authentication_level >= AuthenticationLevel.OneFactor && !userInfo);
     const { createErrorNotification, resetNotification } = useNotifications();
 
     useEffect(() => {
         fetchState();
-    }, [fetchState, fetchUserInfo]);
+    }, [fetchState]);
 
     useEffect(() => {
         if (state) {
             if (state.authentication_level >= AuthenticationLevel.OneFactor) {
                 fetchUserInfo();
-            } else {
-                setLoading(false);
             }
         }
     }, [state, fetchUserInfo]);
-
-    useEffect(() => {
-        if (userInfo) {
-            setLoading(false);
-        }
-    }, [userInfo]);
 
     useEffect(() => {
         if (fetchUserInfoError) {
@@ -62,26 +55,23 @@ const ConsentPortal: React.FC<Props> = (props: Props) => {
             {loading || !state ? <LoadingPage /> : <ConsentPortalRouter userInfo={userInfo} state={state} />}
         </Fragment>
     );
-};
+}
 
 interface RouterProps {
     userInfo?: UserInfo;
     state: AutheliaState;
 }
 
-const ConsentPortalRouter: React.FC<RouterProps> = (props: RouterProps) => {
+function ConsentPortalRouter(props: RouterProps) {
     return (
         <Routes>
             <Route
                 path={`${ConsentOpenIDSubRoute}/*`}
                 element={<OpenIDConnect userInfo={props.userInfo} state={props.state} />}
             />
-            <Route
-                path={ConsentCompletionSubRoute}
-                element={<CompletionView userInfo={props.userInfo} state={props.state} />}
-            />
+            <Route path={ConsentCompletionSubRoute} element={<CompletionView />} />
         </Routes>
     );
-};
+}
 
 export default ConsentPortal;

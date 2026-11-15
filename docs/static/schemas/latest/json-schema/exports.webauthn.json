@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/exports.webauthn.json",
+  "$id": "https://www.authelia.com/schemas/v4.40/json-schema/exports.webauthn.json",
   "$ref": "#/$defs/WebAuthnCredentialDataExport",
   "$defs": {
     "WebAuthnCredentialData": {
@@ -48,7 +48,12 @@
         "attestation_type": {
           "type": "string",
           "title": "Attestation Type",
-          "description": "The attestation format type this credential uses."
+          "description": "The attestation type this credential uses."
+        },
+        "attestation_format": {
+          "type": "string",
+          "title": "Attestation Format",
+          "description": "The attestation format this credential uses."
         },
         "attachment": {
           "type": "string",
@@ -100,8 +105,8 @@
         },
         "backup_state": {
           "type": "boolean",
-          "title": "Backup Eligible",
-          "description": "The backup eligible status of this credential."
+          "title": "Backup State",
+          "description": "The backup state of this credential."
         },
         "public_key": {
           "type": "string",

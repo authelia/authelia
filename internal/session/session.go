@@ -1,114 +1,87 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package session
 
 import (
-	"encoding/json"
-	"time"
-
-	"github.com/fasthttp/session/v2"
-	"github.com/valyala/fasthttp"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// Session a session provider.
-type Session struct {
-	Config schema.SessionCookie
+// NewEncapsulatedSession returns a new encapsulated session which binds a Strategy to the Context of a single request.
+func NewEncapsulatedSession(base Strategy, ctx Context) *EncapsulatedSession {
+	return &EncapsulatedSession{base: base, ctx: ctx}
+}
 
-	sessionHolder *session.Session
+// EncapsulatedSession encapsulates a Strategy and the Context of the request it's handling, which allows consumers to
+// use the session without having to thread the Context through every call.
+type EncapsulatedSession struct {
+	base Strategy
+
+	ctx Context
 }
 
 // NewDefaultUserSession returns a new default UserSession for this session provider.
-func (p *Session) NewDefaultUserSession() (userSession UserSession) {
-	userSession = NewDefaultUserSession()
-
-	userSession.CookieDomain = p.Config.Domain
-
-	return userSession
+func (p *EncapsulatedSession) NewDefaultUserSession() (userSession UserSession) {
+	return p.base.NewDefault()
 }
 
 // GetSession return the user session from a request.
-func (p *Session) GetSession(ctx *fasthttp.RequestCtx) (userSession UserSession, err error) {
-	var store *session.Store
+func (p *EncapsulatedSession) GetSession() (userSession UserSession, err error) {
+	var session *UserSession
 
-	if store, err = p.sessionHolder.Get(ctx); err != nil {
-		return p.NewDefaultUserSession(), err
+	if session, err = p.base.Get(p.ctx); err != nil {
+		return p.base.NewDefault(), err
 	}
 
-	userSessionJSON, ok := store.Get(userSessionStorerKey).([]byte)
-
-	// If userSession is not yet defined we create the new session with default values
-	// and save it in the store.
-	if !ok {
-		userSession = p.NewDefaultUserSession()
-
-		store.Set(userSessionStorerKey, userSession)
-
-		return userSession, nil
-	}
-
-	if err = json.Unmarshal(userSessionJSON, &userSession); err != nil {
-		return p.NewDefaultUserSession(), err
-	}
-
-	return userSession, nil
+	return *session, nil
 }
 
 // SaveSession save the user session.
-func (p *Session) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession) (err error) {
-	var (
-		store           *session.Store
-		userSessionJSON []byte
-	)
-
-	if store, err = p.sessionHolder.Get(ctx); err != nil {
-		return err
-	}
-
-	if userSessionJSON, err = json.Marshal(userSession); err != nil {
-		return err
-	}
-
-	store.Set(userSessionStorerKey, userSessionJSON)
-
-	if err = p.sessionHolder.Save(ctx, store); err != nil {
-		return err
-	}
-
-	return nil
+func (p *EncapsulatedSession) SaveSession(userSession *UserSession) (err error) {
+	return p.base.Save(p.ctx, userSession)
 }
 
 // RegenerateSession regenerate a session ID.
-func (p *Session) RegenerateSession(ctx *fasthttp.RequestCtx) error {
-	return p.sessionHolder.Regenerate(ctx)
+func (p *EncapsulatedSession) RegenerateSession() (err error) {
+	return p.base.Regenerate(p.ctx)
 }
 
 // DestroySession destroy a session ID and delete the cookie.
-func (p *Session) DestroySession(ctx *fasthttp.RequestCtx) error {
-	return p.sessionHolder.Destroy(ctx)
+func (p *EncapsulatedSession) DestroySession() (err error) {
+	return p.base.Destroy(p.ctx)
 }
 
-// UpdateExpiration update the expiration of the cookie and session.
-func (p *Session) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Duration) (err error) {
-	var store *session.Store
-
-	if store, err = p.sessionHolder.Get(ctx); err != nil {
-		return err
-	}
-
-	err = store.SetExpiration(expiration)
-	if err != nil {
-		return err
-	}
-
-	return p.sessionHolder.Save(ctx, store)
+// GetSessionConfig returns the session configuration.
+func (p *EncapsulatedSession) GetSessionConfig() (config schema.SessionCookie) {
+	return p.base.GetConfig()
 }
 
-// GetExpiration get the expiration of the current session.
-func (p *Session) GetExpiration(ctx *fasthttp.RequestCtx) (time.Duration, error) {
-	store, err := p.sessionHolder.Get(ctx)
-	if err != nil {
-		return time.Duration(0), err
-	}
+// Manager is the interface that wraps the basic methods of a session provider bound to a specific request.
+type Manager interface {
+	// NewDefaultUserSession returns an anonymous session bound to the cookie domain of the underlying Strategy, which
+	// isn't persisted until it's saved.
+	NewDefaultUserSession() (userSession UserSession)
 
-	return store.GetExpiration(), nil
+	// GetSession returns the session of the bound request, which is an anonymous session when the request carries no
+	// session cookie or the cookie doesn't resolve to a persisted session.
+	GetSession() (userSession UserSession, err error)
+
+	// SaveSession persists the session of the bound request and delivers the session cookie to the user agent.
+	SaveSession(userSession *UserSession) (err error)
+
+	// RegenerateSession issues a new session identifier for the session of the bound request, preserving the session
+	// data, which mitigates session fixation across an authentication level change.
+	RegenerateSession() (err error)
+
+	// DestroySession removes the persisted session of the bound request and instructs the user agent to discard the
+	// session cookie.
+	DestroySession() (err error)
+
+	// GetSessionConfig returns the session cookie configuration of the underlying Strategy.
+	GetSessionConfig() (config schema.SessionCookie)
 }
+
+var (
+	_ Manager = (*EncapsulatedSession)(nil)
+)

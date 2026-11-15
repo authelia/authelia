@@ -1,7 +1,8 @@
-import React, { ReactNode } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Theme } from "@mui/material";
-import { makeStyles } from "tss-react/mui";
+import { ReactNode } from "react";
 
 interface IconWithContextProps {
     icon: ReactNode;
@@ -11,32 +12,14 @@ interface IconWithContextProps {
 }
 
 const IconWithContext = function (props: IconWithContextProps) {
-    const { classes, cx } = useStyles({ iconSize: 64 });
-
     return (
-        <Box className={cx(props.className, classes.root)}>
-            <Box className={classes.iconContainer}>
-                <Box className={classes.icon}>{props.icon}</Box>
-            </Box>
-            <Box className={classes.context}>{props.children}</Box>
-        </Box>
+        <div className={props.className}>
+            <div className="flex flex-col items-center">
+                <div className="flex size-17.5 items-center justify-center">{props.icon}</div>
+            </div>
+            <div className="block">{props.children}</div>
+        </div>
     );
 };
-
-const useStyles = makeStyles<{ iconSize: number }>()((theme: Theme, { iconSize }) => ({
-    root: {},
-    iconContainer: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-    },
-    icon: {
-        width: iconSize,
-        height: iconSize,
-    },
-    context: {
-        display: "block",
-    },
-}));
 
 export default IconWithContext;

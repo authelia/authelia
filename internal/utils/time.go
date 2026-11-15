@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -80,14 +84,14 @@ func standardizeQuantityAndUnits(qty int, unit string) (output string, err error
 	return "", fmt.Errorf("the unit '%s' is not valid", unit)
 }
 
-// ParseDurationString standardizes a duration string with StandardizeDurationString then uses time.ParseDuration to
-// convert it into a time.Duration.
+// ParseDurationString standardizes a duration string with StandardizeDurationString then uses [time.ParseDuration] to
+// convert it into a [time.Duration].
 func ParseDurationString(input string) (duration time.Duration, err error) {
 	if reOnlyNumeric.MatchString(input) {
 		var seconds int
 
 		if seconds, err = strconv.Atoi(input); err != nil {
-			return 0, nil
+			return 0, err
 		}
 
 		return time.Second * time.Duration(seconds), nil
@@ -149,7 +153,7 @@ func matchParseTimeStringWithLayouts(input string, layouts []string) (index int,
 // UnixNanoTimeToMicrosoftNTEpoch converts a unix timestamp in nanosecond format to win32 epoch format.
 func UnixNanoTimeToMicrosoftNTEpoch(nano int64) (t uint64) {
 	if nano >= 0 {
-		return uint64(nano/100) + timeUnixEpochAsMicrosoftNTEpoch //nolint:gosec // This is a gated condition and is checked,
+		return uint64(nano/100) + timeUnixEpochAsMicrosoftNTEpoch
 	}
 
 	return timeUnixEpochAsMicrosoftNTEpoch

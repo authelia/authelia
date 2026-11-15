@@ -1,24 +1,26 @@
-import React, { Fragment, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Paper, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { useEffect, useState } from "react";
+
 import { useTranslation } from "react-i18next";
 
+import { Card, CardContent } from "@components/UI/Card";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import { SecondFactorMethod } from "@models/Methods";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
+import RecoveryCodesPanel from "@views/Settings/TwoFactorAuthentication/RecoveryCodesPanel";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsDisabledPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsDisabledPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
 
-interface Props {}
-
-const TwoFactorAuthenticationView = function (props: Props) {
+const TwoFactorAuthenticationView = function () {
     const { t: translate } = useTranslation("settings");
 
     const [refreshState, setRefreshState] = useState(0);
@@ -29,11 +31,12 @@ const TwoFactorAuthenticationView = function (props: Props) {
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [userTOTPConfig, fetchUserTOTPConfig, , fetchUserTOTPConfigError] = useUserInfoTOTPConfigurationOptional();
-    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
     const [userWebAuthnCredentials, fetchUserWebAuthnCredentials, , fetchUserWebAuthnCredentialsError] =
         useUserWebAuthnCredentials();
-    const [hasTOTP, setHasTOTP] = useState(false);
-    const [hasWebAuthn, setHasWebAuthn] = useState(false);
+
+    const hasTOTP = userInfo?.has_totp ?? false;
+    const hasWebAuthn = userInfo?.has_webauthn ?? false;
 
     const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
@@ -58,20 +61,6 @@ const TwoFactorAuthenticationView = function (props: Props) {
             setLocalStorageMethod([...configuration.available_methods][0]);
         }
     }, [configuration, localStorageMethodAvailable, setLocalStorageMethod]);
-
-    useEffect(() => {
-        if (userInfo === undefined) {
-            return;
-        }
-
-        if (userInfo.has_webauthn !== hasWebAuthn) {
-            setHasWebAuthn(userInfo.has_webauthn);
-        }
-
-        if (userInfo.has_totp !== hasTOTP) {
-            setHasTOTP(userInfo.has_totp);
-        }
-    }, [hasTOTP, hasWebAuthn, userInfo]);
 
     useEffect(() => {
         if (!enabledTOTP) {
@@ -142,50 +131,55 @@ const TwoFactorAuthenticationView = function (props: Props) {
     };
 
     return (
-        <Fragment>
-            <Grid container spacing={2}>
-                {renderSecondFactorDisabled() ? (
-                    <Grid size={{ xs: 12 }} display="flex" justifyContent="center" alignItems="center">
-                        <Paper>
-                            <Typography variant={"h6"} sx={{ p: 6 }} text-align="center">
+        <div className="grid grid-cols-1 gap-4">
+            {renderSecondFactorDisabled() ? (
+                <div className="w-full flex justify-center items-center">
+                    <Card>
+                        <CardContent>
+                            <h6 className="text-lg font-semibold p-12 text-center">
                                 {translate("There are no protected applications that require a second factor method")}
-                            </Typography>
-                        </Paper>
-                    </Grid>
-                ) : null}
-                {!renderSecondFactorDisabled() && enabledTOTP ? (
-                    <Grid size={{ xs: 12 }}>
-                        <OneTimePasswordPanel
+                            </h6>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : null}
+            {!renderSecondFactorDisabled() && enabledTOTP ? (
+                <div className="w-full">
+                    <OneTimePasswordPanel
+                        info={userInfo}
+                        config={userTOTPConfig}
+                        handleRefreshState={handleRefreshTOTPState}
+                    />
+                </div>
+            ) : null}
+            {!renderSecondFactorDisabled() || enabledWebAuthn ? (
+                <div className="w-full">
+                    {enabledWebAuthn ? (
+                        <WebAuthnCredentialsPanel
                             info={userInfo}
-                            config={userTOTPConfig}
-                            handleRefreshState={handleRefreshTOTPState}
+                            credentials={userWebAuthnCredentials}
+                            handleRefreshState={handleRefreshWebAuthnState}
                         />
-                    </Grid>
-                ) : null}
-                {!renderSecondFactorDisabled() || enabledWebAuthn ? (
-                    <Grid size={{ xs: 12 }}>
-                        {enabledWebAuthn ? (
-                            <WebAuthnCredentialsPanel
-                                info={userInfo}
-                                credentials={userWebAuthnCredentials}
-                                handleRefreshState={handleRefreshWebAuthnState}
-                            />
-                        ) : (
-                            <WebAuthnCredentialsDisabledPanel />
-                        )}
-                    </Grid>
-                ) : null}
-                {configuration && userInfo ? (
-                    <Grid size={{ xs: 12 }}>
-                        <TwoFactorAuthenticationOptionsPanel
-                            config={configuration}
-                            info={userInfo}
-                            refresh={handleRefreshUserInfo}
-                        />
-                    </Grid>
-                ) : undefined}
-            </Grid>
-        </Fragment>
+                    ) : (
+                        <WebAuthnCredentialsDisabledPanel />
+                    )}
+                </div>
+            ) : null}
+            {!renderSecondFactorDisabled() && configuration?.recovery_codes_disabled === false ? (
+                <div className="w-full">
+                    <RecoveryCodesPanel info={userInfo} />
+                </div>
+            ) : null}
+            {configuration && userInfo ? (
+                <div className="w-full">
+                    <TwoFactorAuthenticationOptionsPanel
+                        config={configuration}
+                        info={userInfo}
+                        refresh={handleRefreshUserInfo}
+                    />
+                </div>
+            ) : null}
+        </div>
     );
 };
 

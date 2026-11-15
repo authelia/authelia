@@ -1,22 +1,27 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import {
-    Box,
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Theme,
-} from "@mui/material";
+import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import OneTimeCodeTextField from "@components/OneTimeCodeTextField";
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import SuccessIcon from "@components/SuccessIcon";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Spinner } from "@components/UI/Spinner";
+import { useNotifications } from "@contexts/NotificationsContext";
+import { useRateLimit } from "@hooks/RateLimit";
+import { RateLimitedError } from "@services/RateLimit";
 import {
     UserSessionElevation,
     deleteUserSessionElevation,
@@ -27,17 +32,15 @@ import {
 type Props = {
     elevation?: UserSessionElevation;
     opening: boolean;
-    handleClosed: (ok: boolean) => void;
+    handleClosed: (_ok: boolean) => void;
     handleOpened: () => void;
 };
 
 const IdentityVerificationDialog = function (props: Props) {
+    const { elevation, handleClosed, handleOpened, opening } = props;
     const { t: translate } = useTranslation("settings");
-    const { classes } = useStyles();
-
     const { createErrorNotification } = useNotifications();
 
-    const [open, setOpen] = useState(false);
     const [closing, setClosing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -45,21 +48,44 @@ const IdentityVerificationDialog = function (props: Props) {
     const [codeInput, setCodeInput] = useState("");
     const [codeDelete, setCodeDelete] = useState<string>();
     const [codeError, setCodeError] = useState(false);
+    const [ready, setReady] = useState(false);
+    const { clear: clearRateLimit, limited: rateLimited, secondsRemaining, trigger: triggerRateLimit } = useRateLimit();
     const codeRef = useRef<HTMLInputElement>(null);
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+    const attemptRef = useRef(0);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
+            }
+        };
+    }, []);
+
+    const open = useMemo(() => ready && !closing && opening && !!elevation, [ready, closing, opening, elevation]);
+
+    const wasRateLimitedRef = useRef(rateLimited);
+
+    useEffect(() => {
+        if (wasRateLimitedRef.current && !rateLimited && open) codeRef.current?.focus();
+
+        wasRateLimitedRef.current = rateLimited;
+    }, [open, rateLimited]);
 
     const handleClose = useCallback(
         (ok: boolean) => {
-            setOpen(false);
-
             setCodeInput("");
             setCodeDelete(undefined);
             setCodeError(false);
             setLoading(false);
             setSuccess(false);
             setClosing(false);
-            props.handleClosed(ok);
+            setReady(false);
+            clearRateLimit();
+            handleClosed(ok);
         },
-        [props],
+        [clearRateLimit, handleClosed],
     );
 
     const handleDelete = useCallback(async () => {
@@ -71,6 +97,7 @@ const IdentityVerificationDialog = function (props: Props) {
     }, [codeDelete]);
 
     const handleCancelled = useCallback(() => {
+        attemptRef.current++;
         setClosing(true);
 
         handleDelete().catch(console.error);
@@ -81,7 +108,9 @@ const IdentityVerificationDialog = function (props: Props) {
     const handleSuccess = useCallback(() => {
         setSuccess(true);
 
-        setTimeout(() => {
+        timeoutSuccessRef.current = setTimeout(() => {
+            timeoutSuccessRef.current = null;
+
             handleClose(true);
         }, 750);
     }, [handleClose]);
@@ -98,49 +127,44 @@ const IdentityVerificationDialog = function (props: Props) {
         codeRef.current?.focus();
     }, [createErrorNotification, translate]);
 
-    const handleLoad = useCallback(async () => {
-        if (props.elevation && (props.elevation.elevated || props.elevation.skip_second_factor)) {
-            handleClose(true);
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            setCodeInput("");
+            setLoading(false);
+            triggerRateLimit(retryAfter);
 
-            return;
-        }
-
-        if (open) {
-            return;
-        }
-
-        const attempt = await generateUserSessionElevation();
-
-        if (!attempt) throw new Error("Failed to load the data.");
-
-        setCodeDelete(attempt.delete_id);
-        props.handleOpened();
-        setOpen(true);
-    }, [handleClose, open, props]);
+            createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
+        },
+        [createErrorNotification, translate, triggerRateLimit],
+    );
 
     const handleSubmit = useCallback(async () => {
-        if (codeInput === "") return;
+        if (codeInput === "" || rateLimited) return;
 
         setLoading(true);
-        const success = await verifyUserSessionElevation(codeInput);
+        const attempt = ++attemptRef.current;
+        const result = await verifyUserSessionElevation(codeInput).catch((err: unknown) => err);
 
-        if (success) {
+        if (attempt !== attemptRef.current) return;
+
+        if (result instanceof RateLimitedError) {
+            handleRateLimited(result.retryAfter);
+        } else if (result === true) {
             handleSuccess();
         } else {
+            if (result instanceof Error) console.error(result);
+
             handleFailure();
         }
-    }, [codeInput, handleFailure, handleSuccess]);
+    }, [codeInput, handleFailure, handleRateLimited, handleSuccess, rateLimited]);
 
     const handleSubmitKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        async (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
-                if (!codeInput.length) {
+                if (codeInput.length === 0) {
                     setCodeError(true);
-                } else if (codeInput.length) {
-                    handleSubmit();
                 } else {
-                    setCodeError(false);
-                    codeRef.current?.focus();
+                    await handleSubmit();
                 }
             }
         },
@@ -148,106 +172,108 @@ const IdentityVerificationDialog = function (props: Props) {
     );
 
     useEffect(() => {
-        if (closing || !props.opening || !props.elevation) {
+        if (closing || !opening || !elevation) {
             return;
         }
 
-        handleLoad().catch(console.error);
-    }, [closing, handleLoad, props.elevation, props.opening]);
+        if (ready) return;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setCodeInput(e.target.value.replace(/\s/g, ""));
+        generateUserSessionElevation()
+            .then((attempt) => {
+                if (!attempt) throw new Error("Failed to load the data.");
+
+                setCodeDelete(attempt.delete_id);
+                handleOpened();
+                setReady(true);
+            })
+            .catch((error) => {
+                if (error instanceof RateLimitedError) {
+                    createErrorNotification(
+                        translate("You have made too many requests, try again in {{count}} seconds", {
+                            count: error.retryAfter,
+                            ns: "portal",
+                        }),
+                    );
+                } else {
+                    console.error(error);
+                    createErrorNotification(translate("Failed to generate the One-Time Code. Please try again later."));
+                }
+
+                handleClose(false);
+            });
+    }, [closing, opening, elevation, ready, translate, handleClose, handleOpened, createErrorNotification]);
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setCodeInput(e.target.value.replaceAll(/\s/g, ""));
         setCodeError(false);
     };
 
     return (
-        <Dialog id={"dialog-verify-one-time-code"} open={open} onClose={handleCancelled}>
-            <DialogTitle>{translate("Identity Verification")}</DialogTitle>
-            {success ? (
-                <DialogContent>
-                    <Box
-                        className={classes.success}
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            m: "auto",
-                            width: "fit-content",
-                            padding: "5.0rem",
-                        }}
-                    >
+        <Dialog
+            open={open}
+            onOpenChange={(isOpen) => {
+                if (!isOpen) handleCancelled();
+            }}
+        >
+            <DialogContent id={"dialog-verify-one-time-code"} showCloseButton={false}>
+                <DialogHeader>
+                    <DialogTitle>{translate("Identity Verification")}</DialogTitle>
+                </DialogHeader>
+                {success ? (
+                    <div className="flex flex-col m-auto mb-4 p-20 w-fit">
                         <SuccessIcon />
-                    </Box>
-                </DialogContent>
-            ) : (
-                <DialogContent dividers>
-                    <DialogContentText gutterBottom>
-                        {translate(
-                            "In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email",
-                        )}
-                    </DialogContentText>
-                    <DialogContentText gutterBottom>
-                        {translate("Closing this dialog or selecting cancel will invalidate the One-Time Code")}
-                    </DialogContentText>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            m: "auto",
-                            width: "fit-content",
-                            marginY: "2.5rem",
-                        }}
-                    >
-                        <OneTimeCodeTextField
-                            id={"one-time-code"}
-                            label={"One-Time Code"}
-                            autoFocus={true}
-                            value={codeInput}
-                            onChange={handleChange}
-                            error={codeError}
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <DialogDescription>
+                            {translate(
+                                "In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email",
+                            )}
+                        </DialogDescription>
+                        <DialogDescription>
+                            {translate("Closing this dialog or selecting cancel will invalidate the One-Time Code")}
+                        </DialogDescription>
+                        <div className="flex flex-col m-auto my-10 w-fit">
+                            <OneTimeCodeTextField
+                                id={"one-time-code"}
+                                label={"One-Time Code"}
+                                value={codeInput}
+                                onChange={handleChange}
+                                error={codeError}
+                                disabled={loading || rateLimited}
+                                inputRef={codeRef}
+                                onKeyDown={handleSubmitKeyDown}
+                            />
+                        </div>
+                        <RateLimitCountdown secondsRemaining={secondsRemaining} />
+                    </div>
+                )}
+                {success ? null : (
+                    <DialogFooter>
+                        <Button
+                            id={"dialog-cancel"}
+                            variant={"ghost"}
+                            color={"destructive"}
                             disabled={loading}
-                            inputRef={codeRef}
-                            onKeyDown={handleSubmitKeyDown}
-                        />
-                    </Box>
-                </DialogContent>
-            )}
-            {success ? null : (
-                <DialogActions>
-                    <Button
-                        id={"dialog-cancel"}
-                        variant={"contained"}
-                        color={"error"}
-                        disabled={loading}
-                        onClick={handleCancelled}
-                    >
-                        {translate("Cancel")}
-                    </Button>
-                    <Button
-                        id={"dialog-verify"}
-                        variant={"contained"}
-                        color={"info"}
-                        disabled={loading}
-                        startIcon={loading ? <CircularProgress color="inherit" size={20} /> : undefined}
-                        onClick={handleSubmit}
-                    >
-                        {translate("Verify")}
-                    </Button>
-                </DialogActions>
-            )}
+                            onClick={handleCancelled}
+                        >
+                            {translate("Cancel")}
+                        </Button>
+                        <Button
+                            id={"dialog-verify"}
+                            variant={"ghost"}
+                            color={"primary"}
+                            disabled={loading || rateLimited}
+                            onClick={handleSubmit}
+                        >
+                            {loading ? <Spinner size={20} /> : null}
+                            {translate("Verify")}
+                        </Button>
+                    </DialogFooter>
+                )}
+            </DialogContent>
         </Dialog>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    success: {
-        marginBottom: theme.spacing(2),
-        flex: "0 0 100%",
-        display: "flex",
-        flexDirection: "column",
-        m: "auto",
-        width: "fit-content",
-        marginY: "2.5rem",
-    },
-}));
 
 export default IdentityVerificationDialog;

@@ -1,8 +1,12 @@
-import React, { useCallback } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-export const useCheckCapsLock = (setCapsLockNotify: React.Dispatch<React.SetStateAction<boolean>>) => {
+import { Dispatch, KeyboardEvent, SetStateAction, useCallback } from "react";
+
+export const useCheckCapsLock = (setCapsLockNotify: Dispatch<SetStateAction<boolean>>) => {
     return useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.getModifierState("CapsLock")) {
                 setCapsLockNotify(true);
             } else {

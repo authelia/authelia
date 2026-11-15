@@ -1,11 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { CustomDetector, DetectorOptions } from "i18next-browser-languagedetector";
 
 import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
 import { getLocalStorage, localStorageAvailable } from "@services/LocalStorage";
 
 const LocalStorageCustomDetector: CustomDetector = {
-    name: "localStorageCustom",
-
     lookup(options: DetectorOptions): string | undefined {
         let found;
 
@@ -19,6 +21,8 @@ const LocalStorageCustomDetector: CustomDetector = {
 
         return found;
     },
+
+    name: "localStorageCustom",
 };
 
 export default LocalStorageCustomDetector;

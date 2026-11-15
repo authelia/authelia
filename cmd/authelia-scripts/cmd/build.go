@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package cmd
 
 import (
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -30,12 +33,6 @@ func newBuildCmd() (cmd *cobra.Command) {
 func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	branch := os.Getenv("BUILDKITE_BRANCH")
 
-	if strings.HasPrefix(branch, "renovate/") {
-		buildFrontend(branch)
-		log.Info("Skip building Authelia for deps...")
-		os.Exit(0)
-	}
-
 	log.Info("Building Authelia...")
 
 	cmdCleanRun(cobraCmd, args)
@@ -52,7 +49,7 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	}
 
 	log.Debug("Building Authelia frontend...")
-	buildFrontend(branch)
+	buildFrontend()
 
 	log.Debug("Building swagger-ui frontend...")
 	buildSwagger()
@@ -60,9 +57,9 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
 
 	if buildkite {
-		log.Info("Building Authelia Go binaries with gox...")
+		log.Info("Building Authelia Go binaries with GoReleaser...")
 
-		buildAutheliaBinaryGOX(buildMetaData.XFlags())
+		buildAutheliaBinaryCI(buildMetaData.XFlags())
 	} else {
 		log.Info("Building Authelia Go binary...")
 
@@ -72,52 +69,57 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	cleanAssets()
 }
 
-func buildAutheliaBinaryGOX(xflags []string) {
-	var wg sync.WaitGroup
-
+func buildAutheliaBinaryCI(xflags []string) {
 	s := time.Now()
 
-	wg.Add(2)
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	go func() {
-		defer wg.Done()
+	args := []string{
+		"run", "--rm",
+		"--user", "1000:1000",
+		"-e", "BUILDKITE_TAG=" + os.Getenv("BUILDKITE_TAG"),
+		"-e", "GOPATH=/tmp/go",
+		"-e", "GOCACHE=/tmp/go-build",
+		"-e", "GOTOOLCHAIN=auto",
+		"-e", "GPG_PASSWORD=" + os.Getenv("GPG_PASSWORD"),
+		"-e", "GPG_KEY_PATH=" + os.Getenv("GPG_KEY_PATH"),
+		"-e", "HOME=/tmp",
+		"-e", "NFPM_DEBIAN_PASSPHRASE=" + os.Getenv("GPG_PASSWORD"),
+		"-e", "XFLAGS=" + strings.Join(xflags, " "),
+		"-v", pwd + ":/workdir",
+		"-v", "/buildkite/.gnupg:/tmp/.gnupg",
+		"-v", "/buildkite/.go:/tmp/go",
+		"-v", "/buildkite/.sign:/tmp/sign",
+		// The toolchain comes from the agent tree rather than from /usr, because on a shared daemon these sources are
+		// resolved against the host rather than inside the agent, and the agent image's own /usr is not visible there.
+		"-v", "/buildkite/.tools/go:/usr/local/go",
+		"-v", "/buildkite/.tools/include:/usr/local/include",
+		"-v", "/buildkite/.tools/bin/goreleaser:/usr/local/bin/goreleaser",
+		"-v", "/buildkite/.tools/bin/grype:/usr/local/bin/grype",
+		"-v", "/buildkite/.tools/bin/syft:/usr/local/bin/syft",
+		"--tmpfs", "/run/user/1000:uid=1000,gid=1000,mode=0700",
+		"authelia/crossbuild",
+		"goreleaser", "release", "--skip=publish,validate",
+	}
 
-		cmd := utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
+	cmd := utils.CommandWithStdout("docker", args...)
 
-		cmd.Env = append(os.Environ(),
-			"GOEXPERIMENT=nosynchashtriemap", "CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
-			"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOEXPERIMENT=nosynchashtriemap -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd14-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
-			"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	wg.Wait()
-
-	e := time.Since(s)
-
-	log.Debugf("Binary compilation completed in %s.", e)
+	log.Debugf("Binary compilation completed in %s.", time.Since(s))
 }
 
 func buildAutheliaBinaryGO(xflags []string) {
 	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+pathAuthelia, "-ldflags", "-linkmode=external -s -w "+strings.Join(xflags, " "), "./cmd/authelia/")
 
 	cmd.Env = append(os.Environ(),
-		"GOEXPERIMENT=nosynchashtriemap", "CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
+		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
 
 	err := cmd.Run()
 	if err != nil {
@@ -125,8 +127,8 @@ func buildAutheliaBinaryGO(xflags []string) {
 	}
 }
 
-func buildFrontend(branch string) {
-	cmd := utils.CommandWithStdout("pnpm", "install")
+func buildFrontend() {
+	cmd := utils.CommandWithStdout("pnpm", "install", "--ignore-scripts")
 	cmd.Dir = webDirectory
 
 	err := cmd.Run()
@@ -134,14 +136,12 @@ func buildFrontend(branch string) {
 		log.Fatal(err)
 	}
 
-	if !strings.HasPrefix(branch, "renovate/") {
-		cmd = utils.CommandWithStdout("pnpm", "build")
-		cmd.Dir = webDirectory
+	cmd = utils.CommandWithStdout("pnpm", "build")
+	cmd.Dir = webDirectory
 
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 

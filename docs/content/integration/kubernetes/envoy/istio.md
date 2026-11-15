@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Istio"
-description: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
+description: "A guide to integrating Authelia with the Istio Kubernetes Ingress which uses Envoy and the external authorization filter for authentication and authorization."
 summary: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
-date: 2022-10-02T13:59:09+11:00
+date: 2025-06-13T14:12:09+00:00
 draft: false
 images: []
 menu:
@@ -12,6 +16,7 @@ weight: 553
 toc: true
 aliases:
   - '/kubernetes/istio/'
+  - '/integration/kubernetes/istio/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -22,14 +27,16 @@ seo:
 Istio uses [Envoy] as an Ingress. This means it has a relatively comprehensive integration option.
 Istio is supported with Authelia v4.37.0 and higher via the [Envoy] proxy [external authorization] filter.
 
-[Envoy]: ../proxies/envoy.md
+The [Envoy Proxy documentation](../../proxies/envoy.md) may also be useful with this ingress even though it's not
+specific to Kubernetes.
+
 [external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
+[Get started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping _Authelia_.
 
 ## Variables
 
@@ -62,7 +69,11 @@ spec:
           pathPrefix: '/api/authz/ext-authz/'
           includeRequestHeadersInCheck:
             - 'accept'
+            - 'sec-fetch-mode'
+            - 'sec-fetch-dest'
+            - 'x-requested-with'
             - 'cookie'
+            - 'location'
             - 'authorization'
             - 'proxy-authorization'
           headersToUpstreamOnAllow:
@@ -80,7 +91,7 @@ spec:
 
 The following [Authorization Policy] applies the above filter extension provider to the `app.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
-```yaml {title="authoriztion-policy.yml"}
+```yaml {title="authorization-policy.yml"}
 apiVersion: 'security.istio.io/v1beta1'
 kind: 'AuthorizationPolicy'
 metadata:
@@ -104,3 +115,4 @@ spec:
 - Istio [MeshConfig Extension Provider EnvoyExtAuthz HTTP Provider](https://istio.io/latest/docs/reference/config/istio.mesh.v1alpha1/#MeshConfig-ExtensionProvider-EnvoyExternalAuthorizationHttpProvider) Documentation
 
 [Authorization Policy]: https://istio.io/latest/docs/reference/config/security/authorization-policy/
+[Envoy]: https://www.envoyproxy.io/

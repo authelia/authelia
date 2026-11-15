@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Methods"
-description: "Methods of Configuration"
+description: "Reference documentation for the various Authelia configuration methods including YAML configuration files, environment variables, and the secrets method."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 101000

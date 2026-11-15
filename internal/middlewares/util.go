@@ -1,14 +1,22 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
 	"crypto/x509"
+	"slices"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
@@ -16,7 +24,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
@@ -35,24 +42,40 @@ func SetContentTypeTextPlain(ctx *fasthttp.RequestCtx) {
 
 // NewProviders provisions all providers based on the configuration provided.
 func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (providers Providers, warns, errs []error) {
-	providers.Random = &random.Cryptographical{}
-	providers.StorageProvider = storage.NewProvider(config, caCertPool)
-	providers.Authorizer = authorization.NewAuthorizer(config)
-	providers.NTP = ntp.NewProvider(&config.NTP)
-	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
-	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, clock.New())
-	providers.SessionProvider = session.NewProvider(config.Session, caCertPool)
-	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
-	providers.UserAttributeResolver = expression.NewUserAttributes(config)
-	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
+	providers = NewProvidersBasic()
 
 	var err error
+
+	if providers.StorageProvider, err = storage.NewProvider(config, caCertPool); err != nil {
+		errs = append(errs, err)
+	}
+
 	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
 		errs = append(errs, err)
 	}
 
 	if providers.MetaDataService, err = webauthn.NewMetaDataProvider(config, providers.StorageProvider); err != nil {
 		errs = append(errs, err)
+	}
+
+	providers.Authorizer = authorization.NewAuthorizer(config)
+	providers.NTP = ntp.NewProvider(&config.NTP)
+	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
+	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, providers.Clock)
+	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
+	providers.UserAttributeResolver = expression.NewUserAttributes(config)
+	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
+	providers.Duo = duo.New(config)
+
+	switch {
+	case config.Cache.Redis != nil:
+		providers.Cache = cache.NewRedisStandalone(config.Cache.Redis, caCertPool)
+	case config.Cache.RedisSentinel != nil:
+		providers.Cache = cache.NewRedisSentinel(config.Cache.RedisSentinel, caCertPool)
+	case config.Cache.RedisCluster != nil:
+		providers.Cache = cache.NewRedisCluster(config.Cache.RedisCluster, caCertPool)
+	default:
+		providers.Cache = cache.NewMemory()
 	}
 
 	switch {
@@ -65,10 +88,29 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates)
 
 	if config.Telemetry.Metrics.Enabled {
-		providers.Metrics = metrics.NewPrometheus()
+		var prom *metrics.Prometheus
+
+		if prom, err = metrics.NewPrometheus(); err != nil {
+			errs = append(errs, err)
+		} else {
+			if !config.RecoveryCodes.Disable {
+				prom.RegisterRecoveryCodeGauges(providers.StorageProvider)
+			}
+
+			providers.Metrics = prom
+		}
 	}
 
 	return providers, warns, errs
+}
+
+// NewProvidersBasic returns a new Providers with the simple providers.
+func NewProvidersBasic() Providers {
+	return Providers{
+		GarbageCollector: NewGarbageCollector(),
+		Clock:            clock.New(),
+		Random:           random.New(),
+	}
 }
 
 // NewAuthenticationProvider returns a new authentication.UserProvider.
@@ -77,8 +119,20 @@ func NewAuthenticationProvider(config *schema.Configuration, caCertPool *x509.Ce
 	case config.AuthenticationBackend.File != nil:
 		return authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		return authentication.NewLDAPUserProvider(config.AuthenticationBackend, caCertPool)
+		provider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, caCertPool)
 	default:
 		return nil
 	}
+
+	return authentication.NewCachedUserProvider(provider, config.AuthenticationBackend.RefreshInterval)
+}
+
+func formatRequestMethod(method string) string {
+	method = strings.ToUpper(method)
+
+	if slices.Contains(schema.HTTPMethods, method) {
+		return method
+	}
+
+	return ""
 }

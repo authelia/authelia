@@ -1,17 +1,22 @@
-import React, { useCallback, useEffect } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { useCallback, useEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 
 import { IndexRoute } from "@constants/Routes";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useToken } from "@hooks/Revoke";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
+import { RateLimitedError } from "@services/RateLimit";
 import { deleteResetPasswordToken } from "@services/ResetPassword";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const RevokeResetPasswordTokenView = function () {
     const { t: translate } = useTranslation();
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const token = useToken();
     const navigate = useRouterNavigate();
@@ -25,14 +30,25 @@ const RevokeResetPasswordTokenView = function () {
     const handleRevoke = useCallback(async () => {
         if (!token) return;
 
-        const { ok, status } = await deleteResetPasswordToken(token);
+        try {
+            const { ok } = await deleteResetPasswordToken(token);
 
-        if (ok) {
-            createSuccessNotification(translate("Successfully revoked the Token"));
-        } else if (status === 429) {
-            createErrorNotification(translate("You have made too many requests"));
-        } else {
-            createErrorNotification(translate("Failed to revoke the Token"));
+            if (ok) {
+                createSuccessNotification(translate("Successfully revoked the Token"));
+            } else {
+                createErrorNotification(translate("Failed to revoke the Token"));
+            }
+        } catch (err) {
+            if (err instanceof RateLimitedError) {
+                createErrorNotification(
+                    translate("You have made too many requests, try again in {{count}} seconds", {
+                        count: err.retryAfter,
+                    }),
+                );
+            } else {
+                console.error(err);
+                createErrorNotification(translate("Failed to revoke the Token"));
+            }
         }
 
         handleRedirect();

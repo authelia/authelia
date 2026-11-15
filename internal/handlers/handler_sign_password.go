@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -10,14 +15,14 @@ import (
 
 // SecondFactorPasswordPOST is the handler performing the knowledge based authentication factor after a user utilizes a
 // alternative to usernames and passwords like passkeys.
-func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
+func SecondFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var successful bool
 
 		requestTime := time.Now()
 
-		if delayFunc != nil {
-			defer delayFunc(ctx, requestTime, &successful)
+		if delayer != nil {
+			defer delayer.Delay(ctx, requestTime, &successful)
 		}
 
 		bodyJSON := bodySecondFactorPasswordRequest{}
@@ -32,7 +37,7 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 		}
 
 		var (
-			provider    *session.Session
+			provider    session.Strategy
 			userSession session.UserSession
 		)
 
@@ -44,13 +49,17 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 			return
 		}
 
-		if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+		var current *session.UserSession
+
+		if current, err = provider.Get(ctx); err != nil {
 			ctx.Logger.Errorf("%s", err)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
 			return
 		}
+
+		userSession = *current
 
 		var (
 			userPasswordOk bool
@@ -72,9 +81,19 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 			return
 		}
 
+		var details *authentication.UserDetails
+
+		if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+			ctx.GetLogger().WithError(err).Errorf(logFmtErrObtainProfileDetails, regulation.AuthTypePassword, userSession.Username)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
 		doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypePassword, nil)
 
-		userSession.SetTwoFactorPassword(ctx.Clock.Now())
+		userSession.SetTwoFactorPassword(ctx.GetClock().Now())
 
 		if err = ctx.RegenerateSession(); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypePassword, userSession.Username)
@@ -84,7 +103,7 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 			return
 		}
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = ctx.SaveSession(&userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthTypePassword, logFmtActionAuthentication, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -95,7 +114,7 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {
-			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+			handleFlowResponse(ctx, &userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 		} else {
 			Handle2FAResponse(ctx, bodyJSON.TargetURL)
 		}

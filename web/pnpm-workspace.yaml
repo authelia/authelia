@@ -1,0 +1,22 @@
+allowBuilds:
+  lefthook: true
+  unrs-resolver: true
+overrides:
+  body-parser: 2.4.0
+  brace-expansion: 5.0.13
+  fast-uri: 4.2.3
+  glob: 14.0.6
+  js-yaml: 5.5.0
+  minimatch: 11.0.8
+  picomatch: 4.0.7
+  qs: 6.17.1
+  semver: 7.8.6
+  source-map-js: 1.2.2
+  vite: 8.3.8
+  zod: 4.6.7
+peerDependencyRules:
+  allowedVersions:
+    "@types/react": "19"
+    eslint: "10"
+    react: "19"
+    react-dom: "19"

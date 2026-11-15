@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package logging
 
 import (
@@ -7,6 +11,7 @@ import (
 	"time"
 )
 
+// NewFile returns a new *File for the log file with the given name.
 func NewFile(name string) *File {
 	return &File{
 		mu:   sync.Mutex{},
@@ -14,6 +19,7 @@ func NewFile(name string) *File {
 	}
 }
 
+// File is a log file which can be reopened, primarily to facilitate log rotation.
 type File struct {
 	mu   sync.Mutex
 	file *os.File
@@ -41,6 +47,7 @@ func (f *File) Open() (err error) {
 	return nil
 }
 
+// Reopen closes and reopens the underlying log file.
 func (f *File) Reopen() (err error) {
 	f.mu.Lock()
 
@@ -51,7 +58,7 @@ func (f *File) Reopen() (err error) {
 	}
 
 	if err = f.file.Close(); err != nil {
-		return fmt.Errorf("error reopning log file: error closing current log file: %w", err)
+		return fmt.Errorf("error reopening log file: error closing current log file: %w", err)
 	}
 
 	f.file = nil
@@ -59,7 +66,7 @@ func (f *File) Reopen() (err error) {
 	var file *os.File
 
 	if file, err = os.OpenFile(FormatFilePath(f.name, time.Now()), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
-		return fmt.Errorf("error reopning log file: error opening new log file: %w", err)
+		return fmt.Errorf("error reopening log file: error opening new log file: %w", err)
 	}
 
 	f.file = file
@@ -72,6 +79,10 @@ func (f *File) Close() (err error) {
 	f.mu.Lock()
 
 	defer f.mu.Unlock()
+
+	if f.file == nil {
+		return fmt.Errorf("error closing log file: file isn't open")
+	}
 
 	if err = f.file.Close(); err != nil {
 		return fmt.Errorf("error closing log file: error closing current log file: %w", err)

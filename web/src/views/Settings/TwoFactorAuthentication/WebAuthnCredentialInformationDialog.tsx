@@ -1,20 +1,22 @@
-import React, { Fragment } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import {
-    Alert,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Divider,
-    Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { Fragment } from "react";
+
 import { useTranslation } from "react-i18next";
 
 import CopyButton from "@components/CopyButton";
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Separator } from "@components/UI/Separator";
 import { FormatDateHumanReadable } from "@i18n/formats";
 import { WebAuthnCredential, toAttachmentName, toTransportName } from "@models/WebAuthn";
 
@@ -28,51 +30,53 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
-        <Dialog open={props.open} onClose={props.handleClose} aria-labelledby="webauthn-credential-info-dialog-title">
-            <DialogTitle id="webauthn-credential-info-dialog-title">
-                {translate("WebAuthn Credential Information")}
-            </DialogTitle>
-            <DialogContent>
-                {!props.credential ? (
-                    <DialogContentText sx={{ mb: 3 }}>
-                        {translate("The WebAuthn Credential information is not loaded")}
-                    </DialogContentText>
-                ) : (
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open) props.handleClose();
+            }}
+        >
+            <DialogContent showCloseButton={false} aria-labelledby="webauthn-credential-info-dialog-title">
+                <DialogHeader>
+                    <DialogTitle id="webauthn-credential-info-dialog-title">
+                        {translate("WebAuthn Credential Information")}
+                    </DialogTitle>
+                </DialogHeader>
+                {props.credential ? (
                     <Fragment>
-                        <DialogContentText sx={{ mb: 3 }}>
+                        <DialogDescription className="mb-6">
                             {translate("Extended information for WebAuthn Credential", {
                                 description: props.credential.description,
                             })}
-                        </DialogContentText>
+                        </DialogDescription>
                         {props.credential.legacy ? (
-                            <DialogContentText sx={{ mb: 3 }}>
-                                <Alert severity={"warning"}>
-                                    {translate(
-                                        "This is a legacy WebAuthn Credential if it's not operating normally you may need to delete it and register it again",
-                                    )}
-                                </Alert>
-                            </DialogContentText>
+                            <div className="mb-6 rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
+                                {translate(
+                                    "This is a legacy WebAuthn Credential if it's not operating normally you may need to delete it and register it again",
+                                )}
+                            </div>
                         ) : null}
-                        <Grid container spacing={2}>
-                            <Grid size={{ md: 3 }} sx={{ display: { xs: "none", md: "block" } }}>
-                                <Fragment />
-                            </Grid>
-                            <Grid size={{ xs: 12 }}>
-                                <Divider />
-                            </Grid>
+                        <div className="grid grid-cols-12 gap-4">
+                            <div className="col-span-12">
+                                <Separator />
+                            </div>
                             <PropertyText name={translate("Description")} value={props.credential.description} />
                             <PropertyText name={translate("Relying Party ID")} value={props.credential.rpid} />
                             <PropertyText
                                 name={translate("Authenticator GUID")}
-                                value={
-                                    props.credential.aaguid === undefined
-                                        ? translate("Unknown")
-                                        : props.credential.aaguid
-                                }
+                                value={props.credential.aaguid ?? translate("Unknown")}
                             />
                             <PropertyText
                                 name={translate("Attestation Type")}
-                                value={props.credential.attestation_type}
+                                value={
+                                    props.credential.attestation_type == ""
+                                        ? translate("Unknown")
+                                        : props.credential.attestation_type
+                                }
+                            />
+                            <PropertyText
+                                name={translate("Attestation Format")}
+                                value={props.credential.attestation_format}
                             />
                             <PropertyText
                                 name={translate("Attachment")}
@@ -89,13 +93,14 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             <PropertyText
                                 name={translate("Backup State")}
                                 value={
-                                    props.credential.backup_eligible
-                                        ? props.credential.backup_state
-                                            ? translate("Backed Up")
-                                            : translate("Eligible")
-                                        : translate("Not Eligible")
+                                    !props.credential.backup_eligible
+                                        ? translate("Not Eligible")
+                                        : props.credential.backup_state
+                                          ? translate("Backed Up")
+                                          : translate("Eligible")
                                 }
                             />
+
                             <PropertyText
                                 name={translate("Transports")}
                                 value={
@@ -114,8 +119,8 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             <PropertyText
                                 name={translate("Added")}
                                 value={translate("{{when, datetime}}", {
-                                    when: new Date(props.credential.created_at),
                                     formatParams: { when: FormatDateHumanReadable },
+                                    when: new Date(props.credential.created_at),
                                 })}
                             />
                             <PropertyText
@@ -123,62 +128,62 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                                 value={
                                     props.credential.last_used_at
                                         ? translate("{{when, datetime}}", {
-                                              when: new Date(props.credential.last_used_at),
                                               formatParams: { when: FormatDateHumanReadable },
+                                              when: new Date(props.credential.last_used_at),
                                           })
                                         : translate("Never")
                                 }
                             />
-                        </Grid>
+                        </div>
                     </Fragment>
+                ) : (
+                    <DialogDescription className="mb-6">
+                        {translate("The WebAuthn Credential information is not loaded")}
+                    </DialogDescription>
                 )}
+                <DialogFooter>
+                    {props.credential ? (
+                        <Fragment>
+                            <CopyButton
+                                variant={"default"}
+                                tooltip={translate("Click to copy the {{value}}", { value: "KID" })}
+                                value={props.credential.kid.toString()}
+                                fullWidth={false}
+                                childrenCopied={translate("Copied")}
+                            >
+                                {translate("KID")}
+                            </CopyButton>
+                            <CopyButton
+                                variant={"default"}
+                                tooltip={translate("Click to copy the {{value}}", { value: translate("Public Key") })}
+                                value={props.credential.public_key.toString()}
+                                fullWidth={false}
+                                childrenCopied={translate("Copied")}
+                            >
+                                {translate("Public Key")}
+                            </CopyButton>
+                        </Fragment>
+                    ) : undefined}
+                    <Button id={"dialog-close"} variant={"ghost"} color={"primary"} onClick={props.handleClose}>
+                        {translate("Close")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                {props.credential ? (
-                    <Fragment>
-                        {" "}
-                        <CopyButton
-                            variant={"contained"}
-                            tooltip={translate("Click to copy the {{value}}", { value: "KID" })}
-                            value={props.credential.kid.toString()}
-                            fullWidth={false}
-                            childrenCopied={translate("Copied")}
-                        >
-                            {translate("KID")}
-                        </CopyButton>
-                        <CopyButton
-                            variant={"contained"}
-                            tooltip={translate("Click to copy the {{value}}", { value: translate("Public Key") })}
-                            value={props.credential.public_key.toString()}
-                            fullWidth={false}
-                            childrenCopied={translate("Copied")}
-                        >
-                            {translate("Public Key")}
-                        </CopyButton>
-                    </Fragment>
-                ) : undefined}
-                <Button id={"dialog-close"} onClick={props.handleClose}>
-                    {translate("Close")}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };
 
 interface PropertyTextProps {
-    name: string;
-    value: string;
-    xs?: number;
+    readonly name: string;
+    readonly value: string;
 }
 
 function PropertyText(props: PropertyTextProps) {
     return (
-        <Grid size={{ xs: props.xs !== undefined ? props.xs : 12 }}>
-            <Typography display="inline" sx={{ fontWeight: "bold" }}>
-                {`${props.name}: `}
-            </Typography>
-            <Typography display="inline">{props.value}</Typography>
-        </Grid>
+        <div className="col-span-12">
+            <span className="font-bold">{`${props.name}: `}</span>
+            <span>{props.value}</span>
+        </div>
     );
 }
 

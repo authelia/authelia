@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -69,7 +73,7 @@ func newCodeKeysCmd() *cobra.Command {
 func codeServerRunE(cmd *cobra.Command, args []string) (err error) {
 	data := TemplateCSP{
 		PlaceholderNONCE:    codeCSPNonce,
-		TemplateDefault:     buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
+		TemplateDefault:     buildCSP(codeCSPSelf, codeCSPValuesCommon, codeCSPValuesProduction),
 		TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
 	}
 

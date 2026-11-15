@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
@@ -21,9 +25,9 @@ const (
 	onefactor      = "one_factor"
 	twofactor      = "two_factor"
 	examplecom     = "https://example.com"
+	authExampleCom = "https://auth.example.com"
 	examplecomsid  = "example.com"
 	badhmac        = "asbdhaaskmdlkamdklasmdlkams"
-	badTokenString = "badTokenString"
 )
 
 const (

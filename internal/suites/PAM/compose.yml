@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+services:
+  authelia-backend:
+    environment:
+      X_AUTHELIA_CONFIG_FILTERS: 'template'
+    volumes:
+      - './PAM/configuration.yml:/config/configuration.yml'
+      - './PAM/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+      - '${SUITE_TMP:-/tmp}:/tmp'
+    user: '${USER_ID}:${GROUP_ID}'
+...

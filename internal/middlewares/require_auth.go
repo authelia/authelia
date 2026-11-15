@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -121,7 +125,7 @@ func handleRequireElevatedShouldDoNextValidate(ctx *AutheliaCtx, userSession *se
 	if invalid {
 		userSession.Elevations.User = nil
 
-		if err = ctx.SaveSession(*userSession); err != nil {
+		if err = ctx.SaveSession(userSession); err != nil {
 			ctx.Logger.WithError(err).Error("Error occurred trying to save the user session after a policy constraint violation occurred.")
 		}
 

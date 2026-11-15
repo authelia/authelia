@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
 	"regexp"
+	"time"
 )
 
 const (
@@ -12,6 +17,9 @@ const (
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
+	tableRecoveryCodes        = "recovery_codes"
+	tableRecoveryCodesLock    = "recovery_codes_lock"
+	tableSession              = "session"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableTOTPHistory          = "totp_history"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
@@ -20,6 +28,7 @@ const (
 	tableWebAuthnUsers        = "webauthn_users"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
+	tableOAuth2RequestReplay           = "oauth2_request_replay"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
 
@@ -33,6 +42,21 @@ const (
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"
+)
+
+const (
+	tableAADPushedAuthorizationRequestSession = "oauth2_pushed_authorization_session"
+)
+
+const (
+	sessionGarbageCollectionFrequency = time.Minute * 5
+)
+
+const (
+	columnSessionData = "session_data"
+	columnValue       = "value"
+	columnCode        = "code"
+	columnSecret      = "secret"
 )
 
 const (
@@ -63,7 +87,29 @@ const (
 )
 
 const (
+	keyTypeCryptographyEnc  = "enc"
+	keyTypeCryptographyHMAC = "hmac"
+
+	fmtNameKeyHMAC = "hmac_key_%s"
+	fmtNameKeyEnc  = "enc_key_%s"
+)
+
+const (
 	driverParameterFmtAppName = "authelia %s"
+)
+
+const (
+	dsnFmtSQLite = "%s?_txlock=immediate"
+)
+
+const (
+	codeMySQLDuplicateEntry  uint16 = 1062
+	codeMySQLLockWaitTimeout uint16 = 1205
+	codeMySQLLockDeadlock    uint16 = 1213
+
+	codePostgresUniqueViolation      = "23505"
+	codePostgresSerializationFailure = "40001"
+	codePostgresDeadlockDetected     = "40P01"
 )
 
 const (
@@ -75,6 +121,26 @@ type ctxKey int
 
 const (
 	ctxKeyTransaction ctxKey = iota
+	ctxKeyConnection
+)
+
+const (
+	hmacNameOneTimeCode     = "otc"
+	hmacNameOneTimePassword = "otp"
+	hmacNameRecoveryCode    = "rc"
+	hmacNameSession         = "session"
+)
+
+const (
+	hkdfKeyInfo = "authelia:kdf:storage:encryption_key:v1"
+
+	// schemaVersionEncryptionKeyDerivation is the schema version at which HKDF key derivation and GCM AAD were
+	// introduced. Databases below this version store encrypted values using the legacy SHA256 key without AAD.
+	schemaVersionEncryptionKeyDerivation = 25
+
+	// schemaVersionEncryptionAADRowScoped is the schema version at which encrypted values became bound to their
+	// individual row. Databases below this version bind values to their table and column only.
+	schemaVersionEncryptionAADRowScoped = 26
 )
 
 var (
@@ -83,6 +149,5 @@ var (
 )
 
 const (
-	na      = "N/A"
-	invalid = "invalid"
+	na = "N/A"
 )

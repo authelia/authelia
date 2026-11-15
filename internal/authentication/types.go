@@ -1,11 +1,25 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/mail"
 	"net/url"
+	"strings"
+	"sync"
+	"time"
 
+	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/singleflight"
 	"golang.org/x/text/language"
+
+	"github.com/authelia/authelia/v4/internal/clock"
 )
 
 // UserDetails represent the details retrieved for a given user.
@@ -18,6 +32,10 @@ type UserDetails struct {
 
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
 func (d *UserDetails) Addresses() (addresses []mail.Address) {
+	if d == nil {
+		return nil
+	}
+
 	if len(d.Emails) == 0 {
 		return nil
 	}
@@ -34,19 +52,51 @@ func (d *UserDetails) Addresses() (addresses []mail.Address) {
 	return addresses
 }
 
+// Address returns the first email as a [mail.Address] formatted with DisplayName as the Name attribute.
+func (d *UserDetails) Address() mail.Address {
+	if len(d.Emails) == 0 {
+		return mail.Address{}
+	}
+
+	return mail.Address{
+		Name:    d.DisplayName,
+		Address: d.Emails[0],
+	}
+}
+
+// GetUsername returns the username.
 func (d *UserDetails) GetUsername() (username string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Username
 }
 
+// GetGroups returns the groups.
 func (d *UserDetails) GetGroups() (groups []string) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Groups
 }
 
+// GetDisplayName returns the display name.
 func (d *UserDetails) GetDisplayName() (name string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.DisplayName
 }
 
+// GetEmails returns the emails.
 func (d *UserDetails) GetEmails() (emails []string) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Emails
 }
 
@@ -72,47 +122,147 @@ type UserDetailsExtended struct {
 	*UserDetails
 }
 
+// Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
+func (d *UserDetailsExtended) Addresses() (addresses []mail.Address) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.Addresses()
+}
+
+// GetUsername returns the username.
+func (d *UserDetailsExtended) GetUsername() (username string) {
+	if d == nil {
+		return ""
+	}
+
+	return d.UserDetails.GetUsername()
+}
+
+// GetGroups returns the groups.
+func (d *UserDetailsExtended) GetGroups() (groups []string) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.GetGroups()
+}
+
+// GetDisplayName returns the display name.
+func (d *UserDetailsExtended) GetDisplayName() (name string) {
+	if d == nil {
+		return ""
+	}
+
+	return d.UserDetails.GetDisplayName()
+}
+
+// GetEmails returns the emails.
+func (d *UserDetailsExtended) GetEmails() (emails []string) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.GetEmails()
+}
+
+// GetGivenName returns the given name.
 func (d *UserDetailsExtended) GetGivenName() (given string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.GivenName
 }
 
+// GetFamilyName returns the family name.
 func (d *UserDetailsExtended) GetFamilyName() (family string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.FamilyName
 }
 
+// GetMiddleName returns the middle name.
 func (d *UserDetailsExtended) GetMiddleName() (middle string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.MiddleName
 }
 
+// GetNickname returns the nickname.
 func (d *UserDetailsExtended) GetNickname() (nickname string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Nickname
 }
 
+// GetProfile returns the profile URL as a string.
 func (d *UserDetailsExtended) GetProfile() (profile string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Profile)
 }
 
+// GetPicture returns the picture URL as a string.
 func (d *UserDetailsExtended) GetPicture() (picture string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Picture)
 }
 
+// GetWebsite returns the website URL as a string.
 func (d *UserDetailsExtended) GetWebsite() (website string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Website)
 }
 
+// GetGender returns the gender.
 func (d *UserDetailsExtended) GetGender() (gender string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Gender
 }
 
+// GetBirthdate returns the birthdate.
 func (d *UserDetailsExtended) GetBirthdate() (birthdate string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Birthdate
 }
 
+// GetZoneInfo returns the zone information.
 func (d *UserDetailsExtended) GetZoneInfo() (info string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.ZoneInfo
 }
 
+// GetLocale returns the locale as a string.
 func (d *UserDetailsExtended) GetLocale() (locale string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Locale == nil {
 		return ""
 	}
@@ -120,15 +270,30 @@ func (d *UserDetailsExtended) GetLocale() (locale string) {
 	return d.Locale.String()
 }
 
+// GetPhoneNumber returns the phone number without the extension.
 func (d *UserDetailsExtended) GetPhoneNumber() (number string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.PhoneNumber
 }
 
+// GetPhoneExtension returns the phone extension.
 func (d *UserDetailsExtended) GetPhoneExtension() (extension string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.PhoneExtension
 }
 
+// GetPhoneNumberRFC3966 returns the phone number and extension formatted as per RFC3966.
 func (d *UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.PhoneNumber == "" {
 		return ""
 	}
@@ -140,7 +305,12 @@ func (d *UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
 	return fmt.Sprintf("%s;ext=%s", d.PhoneNumber, d.PhoneExtension)
 }
 
+// GetStreetAddress returns the street address.
 func (d *UserDetailsExtended) GetStreetAddress() (address string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -148,7 +318,12 @@ func (d *UserDetailsExtended) GetStreetAddress() (address string) {
 	return d.Address.StreetAddress
 }
 
+// GetLocality returns the locality.
 func (d *UserDetailsExtended) GetLocality() (locality string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -156,7 +331,12 @@ func (d *UserDetailsExtended) GetLocality() (locality string) {
 	return d.Address.Locality
 }
 
+// GetRegion returns the region.
 func (d *UserDetailsExtended) GetRegion() (region string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -164,7 +344,12 @@ func (d *UserDetailsExtended) GetRegion() (region string) {
 	return d.Address.Region
 }
 
+// GetPostalCode returns the postal code.
 func (d *UserDetailsExtended) GetPostalCode() (postcode string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -172,7 +357,12 @@ func (d *UserDetailsExtended) GetPostalCode() (postcode string) {
 	return d.Address.PostalCode
 }
 
+// GetCountry returns the country.
 func (d *UserDetailsExtended) GetCountry() (country string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -180,7 +370,12 @@ func (d *UserDetailsExtended) GetCountry() (country string) {
 	return d.Address.Country
 }
 
+// GetExtra returns the extra attributes.
 func (d *UserDetailsExtended) GetExtra() (extra map[string]any) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Extra
 }
 
@@ -192,6 +387,7 @@ func stringURL(uri *url.URL) string {
 	return uri.String()
 }
 
+// UserDetailsAddress is a structure with a users address information.
 type UserDetailsAddress struct {
 	StreetAddress string
 	Locality      string
@@ -228,22 +424,94 @@ type ldapUserProfileExtended struct {
 	*ldapUserProfile
 }
 
-// LDAPSupportedFeatures represents features which a server may support which are implemented in code.
-type LDAPSupportedFeatures struct {
-	Extensions   LDAPSupportedExtensions
-	ControlTypes LDAPSupportedControlTypes
+// LDAPDiscovery represents various information about a server, such as LDAP Version, Features, Extensions, Controls.
+// and SASL Mechanisms.
+type LDAPDiscovery struct {
+	Successful bool
+
+	LDAPVersion    []int
+	SASLMechanisms []string
+
+	Extensions LDAPDiscoveryExtensions
+	Controls   LDAPDiscoveryControls
+	Features   LDAPDiscoveryFeatures
+	Vendor     LDAPDiscoveryVendor
 }
 
-// LDAPSupportedExtensions represents extensions which a server may support which are implemented in code.
-type LDAPSupportedExtensions struct {
-	TLS           bool
-	PwdModifyExOp bool
+// Strings returns the string representations of the discovered extensions, controls, features, and SASL mechanisms.
+func (d LDAPDiscovery) Strings() (extensions, controls, features, saslMechanisms string) {
+	if !d.Successful {
+		return none, none, none, none
+	}
+
+	extensions = d.Extensions.String()
+	controls = d.Controls.String()
+	features = d.Features.String()
+
+	if len(d.SASLMechanisms) == 0 {
+		return extensions, controls, features, none
+	}
+
+	saslMechanisms = strings.Join(d.SASLMechanisms, ", ")
+
+	return extensions, controls, features, saslMechanisms
 }
 
-// LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
-type LDAPSupportedControlTypes struct {
+// LDAPDiscoveryExtensions represents the extended operations a server supports.
+type LDAPDiscoveryExtensions struct {
+	OIDs []string
+
+	TLS       bool
+	PwdModify bool
+	WhoAmI    bool
+}
+
+// String returns the string representation of the discovered extension OIDs.
+func (s LDAPDiscoveryExtensions) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+// LDAPDiscoveryControls represents the request and response controls which a server may support.
+type LDAPDiscoveryControls struct {
+	OIDs []string
+
 	MsftPwdPolHints           bool
 	MsftPwdPolHintsDeprecated bool
+}
+
+// String returns the string representation of the discovered control OIDs.
+func (s LDAPDiscoveryControls) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+// LDAPDiscoveryFeatures represents the features a server supports.
+type LDAPDiscoveryFeatures struct {
+	OIDs []string
+}
+
+// String returns the string representation of the discovered feature OIDs.
+func (s LDAPDiscoveryFeatures) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+// LDAPDiscoveryVendor represents the vendor information a server discloses.
+type LDAPDiscoveryVendor struct {
+	Name                  string
+	Version               string
+	ForestFunctionalLevel int
+	DomainFunctionalLevel int
 }
 
 // Level is the type representing a level of authentication.
@@ -272,4 +540,103 @@ func (l Level) String() string {
 	default:
 		return "invalid"
 	}
+}
+
+// Context represents the context used by the authentication backends.
+type Context interface {
+	context.Context
+
+	GetUserProvider() UserProvider
+	GetLogger() *logrus.Entry
+	GetClock() clock.Provider
+}
+
+// NewPoolCtxErr returns a PoolErr which wraps the given error, or nil if the given error is nil.
+func NewPoolCtxErr(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return &PoolErr{
+			err:             err,
+			isDeadlineError: true,
+		}
+	}
+
+	return &PoolErr{err: err}
+}
+
+// PoolErr is an error which occurred while obtaining a client from a client pool.
+type PoolErr struct {
+	err             error
+	isDeadlineError bool
+}
+
+// Error returns the string representation of the underlying error.
+func (e *PoolErr) Error() string {
+	return e.err.Error()
+}
+
+// Is returns true if the underlying error matches the target error.
+func (e *PoolErr) Is(target error) bool {
+	return errors.Is(e.err, target)
+}
+
+// Unwrap returns the underlying error.
+func (e *PoolErr) Unwrap() error {
+	return e.err
+}
+
+// IsDeadlineError returns true if the underlying error was a context deadline error.
+func (e *PoolErr) IsDeadlineError() bool {
+	return e.isDeadlineError
+}
+
+// LDAPBaseClient is an extended version of the ldap.Client with some additional functions.
+type LDAPBaseClient interface {
+	ldap.Client
+
+	GSSAPIBind(client ldap.GSSAPIClient, servicePrincipal, authzid string) (err error)
+	GSSAPIBindRequest(client ldap.GSSAPIClient, req *ldap.GSSAPIBindRequest) (err error)
+	GSSAPIBindRequestWithAPOptions(client ldap.GSSAPIClient, req *ldap.GSSAPIBindRequest, APOptions []int) (err error)
+	MD5Bind(host, username, password string) error
+	DigestMD5Bind(digestMD5BindRequest *ldap.DigestMD5BindRequest) (*ldap.DigestMD5BindResult, error)
+	NTLMChallengeBind(challenge *ldap.NTLMBindRequest) (result *ldap.NTLMBindResult, err error)
+	NTLMBindWithHash(domain, username, hash string) (err error)
+	NTLMBind(domain, username, password string) (err error)
+	WhoAmI(controls []ldap.Control) (result *ldap.WhoAmIResult, err error)
+}
+
+// LDAPExtendedClient is an extended version of the LDAPBaseClient which also performs discovery.
+type LDAPExtendedClient interface {
+	LDAPBaseClient
+
+	Discovery() (features LDAPDiscovery)
+}
+
+// CredentialCacheHMACFlightResult is the result of a credential check shared between duplicate in-flight checks.
+type CredentialCacheHMACFlightResult struct {
+	Valid  bool
+	Cached bool
+}
+
+// CachedCredential is a cached credential which has an expiration and checksum value.
+type CachedCredential struct {
+	expires time.Time
+	value   []byte
+}
+
+// CachedUserValues is the cache of *T values keyed by username.
+type CachedUserValues[T any] struct {
+	singleflight.Group
+	sync.Mutex
+
+	values map[string]CachedUserValue[T]
+}
+
+// CachedUserValue is a cached *T value and the time it expires at.
+type CachedUserValue[T any] struct {
+	value   *T
+	expires time.Time
 }

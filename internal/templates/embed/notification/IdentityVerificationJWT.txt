@@ -2,42 +2,30 @@ A ONE-TIME LINK HAS BEEN GENERATED TO COMPLETE A REQUESTED ACTION
 
 Hi {{ .DisplayName }},
 
-We would like to confirm a requested action related to the security of your
-account at {{ .Domain }}
+We would like to confirm a requested action related to the security of your account at {{ .Domain }}
 
 Do not share this notification or the content of this notification with anyone.
 
---------------------------------------------------------------------------------
+----------------------------------------
 
 If you made this request, click the validation link below.
 
-{{ .LinkText }} {{ .LinkURL }}
+{{ .LinkURL }}
 
-Alternatively, copy and paste this URL into your browser:
+----------------------------------------
 
-{{ .LinkURL }} {{ .LinkURL }}
-
---------------------------------------------------------------------------------
-
-If you did NOT initiate this request, your credentials may have been compromised
-and you should:
+If you did NOT initiate this request, your credentials may have been compromised and you should:
 
  1. Revoke the validation link using the provided links below
  2. Reset your password or other login credentials
  3. Contact an Administrator
 
-{{ .RevocationLinkText }} {{ .RevocationLinkURL }}
+To revoke the code, click the link below:
 
-To revoke the code click the above button or alternatively copy and paste this
-URL into your browser:
+{{ .RevocationLinkURL }}
 
-{{ .RevocationLinkURL }} {{ .RevocationLinkURL }}
+----------------------------------------
 
---------------------------------------------------------------------------------
-
-This email was intended for {{ .DisplayName }}. This event was generated due to
-an action from {{ .RemoteIP }}. If you do not believe that your actions could
-have triggered this event or if you are concerned about your account's safety,
-please follow the explicit directions in this notification.
+This email was intended for {{ .DisplayName }}. This event was generated due to an action from {{ .RemoteIP }}. If you do not believe that your actions could have triggered this event or if you are concerned about your account's safety, please follow the explicit directions in this notification.
 
 Powered by Authelia https://www.authelia.com

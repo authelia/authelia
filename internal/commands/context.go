@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -5,7 +9,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"os"
 	"os/user"
 	"strconv"
 	"strings"
@@ -15,6 +18,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -30,16 +34,14 @@ func NewCmdCtx() *CmdCtx {
 	ctx := context.Background()
 
 	return &CmdCtx{
-		Context: ctx,
-		log:     logrus.NewEntry(logging.Logger()),
-		providers: middlewares.Providers{
-			Random: &random.Cryptographical{},
-		},
-		config: &schema.Configuration{},
+		Context:   ctx,
+		log:       logrus.NewEntry(logging.Logger()),
+		providers: middlewares.NewProvidersBasic(),
+		config:    &schema.Configuration{},
 	}
 }
 
-// CmdCtx is a context.Context used for the root command.
+// CmdCtx is a [context.Context] used for the root command.
 type CmdCtx struct {
 	context.Context
 
@@ -50,6 +52,9 @@ type CmdCtx struct {
 	trusted   *x509.CertPool
 
 	cconfig *CmdCtxConfig
+	cpaths  []string
+
+	factoryX509SystemCertPool utils.X509SystemCertPoolFactory
 }
 
 // NewCmdCtxConfig returns a new CmdCtxConfig.
@@ -83,11 +88,28 @@ func (ctx *CmdCtx) GetProviders() middlewares.Providers {
 	return ctx.providers
 }
 
+// GetClock returns the clock provider.
+func (ctx *CmdCtx) GetClock() (clock clock.Provider) {
+	return ctx.providers.Clock
+}
+
+// GetRandom returns the random provider.
+func (ctx *CmdCtx) GetRandom() (random random.Provider) {
+	return ctx.providers.Random
+}
+
 // GetConfiguration returns *schema.Configuration satisfying part of the ServiceCtx.
 func (ctx *CmdCtx) GetConfiguration() *schema.Configuration {
 	return ctx.config
 }
 
+// GetConfigurationPaths returns the configuration file and directory paths which were loaded, satisfying part of the
+// ServiceCtx. The paths are retained separately to the CmdCtxConfig as it's discarded prior to the services running.
+func (ctx *CmdCtx) GetConfigurationPaths() (paths []string) {
+	return ctx.cpaths
+}
+
+// CheckSchemaVersion returns an error if the storage schema is not at the latest version.
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
 		return fmt.Errorf("storage not loaded")
@@ -134,7 +156,11 @@ func (ctx *CmdCtx) CheckSchema() (err error) {
 
 // LoadTrustedCertificates loads the trusted certificates into the CmdCtx.
 func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
-	ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
+	if ctx.factoryX509SystemCertPool == nil {
+		ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
+	} else {
+		ctx.trusted, warns, errs = utils.NewX509CertPoolWithFactory(ctx.config.CertificatesDirectory, ctx.factoryX509SystemCertPool)
+	}
 
 	return warns, errs
 }
@@ -150,10 +176,11 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	return warns, errs
 }
 
+// LoadTrustedCertificatesRunE is a RunE which loads the trusted certificates.
 func (ctx *CmdCtx) LoadTrustedCertificatesRunE(cmd *cobra.Command, args []string) (err error) {
 	var warns, errs []error
 
-	ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
+	warns, errs = ctx.LoadTrustedCertificates()
 
 	if len(warns) != 0 || len(errs) != 0 {
 		for _, e := range warns {
@@ -243,6 +270,7 @@ func (ctx *CmdCtx) HelperConfigValidateRunE(_ *cobra.Command, _ []string) (err e
 	return nil
 }
 
+// LogConfigure configures the logger from the loaded configuration.
 func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 	config := ctx.config.Log
 
@@ -267,11 +295,12 @@ func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	ctx.log.WithFields(map[string]any{"filters": ctx.cconfig.filters, "files": ctx.cconfig.files}).Debug("Loaded Configuration Sources")
-	ctx.log.WithFields(map[string]any{"level": ctx.config.Log.Level, "format": ctx.config.Log.Format, "file": ctx.config.Log.FilePath, "keep_stdout": ctx.config.Log.KeepStdout}).Debug("Logging Initialized")
+	ctx.log.WithFields(map[string]any{"level": ctx.config.Log.Level, "format": ctx.config.Log.Format, "disable_timestamp": ctx.config.Log.DisableTimestamp, "file": ctx.config.Log.FilePath, "keep_stdout": ctx.config.Log.KeepStdout}).Debug("Logging Initialized")
 
 	return nil
 }
 
+// LogProcessCurrentUserRunE is a RunE which logs the user the process is running as.
 func (ctx *CmdCtx) LogProcessCurrentUserRunE(_ *cobra.Command, _ []string) (err error) {
 	var current *user.User
 
@@ -334,7 +363,7 @@ func (ctx *CmdCtx) ConfigValidateLogRunE(_ *cobra.Command, _ []string) (err erro
 }
 
 // ConfigValidateSectionPasswordRunE validates the configuration (structure, password section).
-func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(cmd *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(_ *cobra.Command, _ []string) (err error) {
 	if ctx.config.AuthenticationBackend.File == nil {
 		return fmt.Errorf("password configuration was not initialized")
 	}
@@ -391,7 +420,7 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 
 	if created {
 		ctx.log.Warnf("Configuration did not exist so a default one has been generated at %s, you will need to configure this", configs[0])
-		os.Exit(0)
+		return ErrConfigCreated
 	}
 
 	return nil
@@ -408,17 +437,15 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 		ctx.cconfig = NewCmdCtxConfig()
 	}
 
-	if ctx.cconfig.files, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
+	if ctx.cconfig.files, filters, err = loadXEnvCLIConfigValues(cmd, ctx.cconfig.validator); err != nil {
 		return err
 	}
+
+	ctx.cpaths = ctx.cconfig.files
 
 	ctx.cconfig.filters = make([]string, len(filters))
 
 	for i, filter := range filters {
-		if filter.Name() == "expand-env" {
-			ctx.log.Warn("Experimental file filter 'expand-env' is deprecated in favor of the 'template' filter and will be removed in v4.40.0")
-		}
-
 		ctx.cconfig.filters[i] = filter.Name()
 	}
 

@@ -1,12 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
-	"net/url"
-	"time"
-
-	"authelia.com/provider/oauth2/token/jwt"
-	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -20,52 +21,30 @@ import (
 // RFC8414: OAuth 2.0 Authorization Server Metadata (https://datatracker.ietf.org/doc/html/rfc8414)
 func WellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
 	var (
-		issuer *url.URL
-		err    error
+		metadata *oauthelia2.OAuth2AuthorizationServerMetadata
+		err      error
 	)
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
+
+	if _, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("OAuth 2.0 Discovery Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.ReplyStatusCode(rfc.StatusCode())
+
+		return
+	}
+
+	if metadata, err = ctx.Providers.OpenIDConnect.NewOAuth2AuthorizationServerMetadata(ctx); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("OAuth 2.0 Discovery Request could not be processed: error occurred building the metadata")
 
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
 		return
 	}
 
-	metadata := oidc.OAuth2WellKnownSignedConfiguration{
-		OAuth2WellKnownConfiguration: ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String()),
-	}
-
-	headers := &jwt.Headers{}
-
-	if ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID != "" {
-		headers.Add(oidc.JWTHeaderKeyIdentifier, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID)
-	}
-
-	if ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg != "" {
-		headers.Add(oidc.JWTHeaderKeyAlgorithm, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg)
-	}
-
-	if len(headers.Extra) != 0 {
-		claims := metadata.ToMap()
-
-		claims[oidc.ClaimJWTID] = uuid.New().String()
-		claims[oidc.ClaimIssuer] = issuer.String()
-		claims[oidc.ClaimIssuedAt] = ctx.Clock.Now().UTC().Unix()
-		claims[oidc.ClaimExpirationTime] = ctx.Clock.Now().Add(time.Hour).UTC().Unix()
-
-		strategy := ctx.Providers.OpenIDConnect.GetJWTStrategy(ctx)
-
-		if metadata.SignedMetadata, _, err = strategy.Encode(ctx, claims, jwt.WithHeaders(headers)); err != nil {
-			ctx.Logger.WithError(err).Errorf("Error occurred signing metadata")
-
-			ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
-
-			return
-		}
-	}
-
 	if err = ctx.ReplyJSON(metadata, fasthttp.StatusOK); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred encoding JSON response")
+		ctx.GetLogger().WithError(err).Error("Error occurred encoding JSON response")
 
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 

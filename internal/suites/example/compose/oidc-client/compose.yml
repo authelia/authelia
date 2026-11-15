@@ -1,7 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 services:
   oidc-client:
     image: 'ghcr.io/authelia/oidc-tester-app:master-c3235cd'
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
     command: '/entrypoint.sh'
     depends_on:
       - 'authelia-backend'

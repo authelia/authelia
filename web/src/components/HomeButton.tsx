@@ -1,14 +1,17 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Button } from "@mui/material";
+import { House } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
 import { IndexRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {}
 
-const HomeButton = function (props: Props) {
+const HomeButton = function () {
     const { t: translate } = useTranslation(["portal"]);
 
     const navigate = useRouterNavigate();
@@ -18,7 +21,8 @@ const HomeButton = function (props: Props) {
     };
 
     return (
-        <Button id={"home-button"} color={"secondary"} onClick={handleHomeClick}>
+        <Button id={"home-button"} variant={"outline"} color={"default"} onClick={handleHomeClick}>
+            <House />
             {translate("Home")}
         </Button>
     );

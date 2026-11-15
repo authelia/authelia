@@ -1,30 +1,47 @@
-import { DependencyList, useCallback, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-type PromisifiedFunction<Ret> = (...args: any) => Promise<Ret>;
+import { useCallback, useState } from "react";
+
+type PromisifiedFunction<Ret> = (..._args: any) => Promise<Ret>;
+
+export interface RemoteCallOptions {
+    resetDataOnCall?: boolean;
+}
 
 export function useRemoteCall<Ret>(
     fn: PromisifiedFunction<Ret>,
-    deps: DependencyList,
+    options?: RemoteCallOptions,
 ): [Ret | undefined, () => void, boolean, Error | undefined] {
     const [data, setData] = useState(undefined as Ret | undefined);
     const [inProgress, setInProgress] = useState(false);
     const [error, setError] = useState(undefined as Error | undefined);
 
-    const fnCallback = useCallback(fn, [fn, deps]);
+    const resetDataOnCall = options?.resetDataOnCall ?? false;
+
+    const fnCallback = useCallback(() => fn(), [fn]);
 
     const triggerCallback = useCallback(() => {
         (async () => {
             try {
                 setInProgress(true);
+                setError(undefined);
+
+                if (resetDataOnCall) {
+                    setData(undefined);
+                }
+
                 const res = await fnCallback();
-                setInProgress(false);
                 setData(res);
             } catch (err) {
                 console.error(err);
                 setError(err as Error);
+            } finally {
+                setInProgress(false);
             }
         })();
-    }, [setInProgress, setError, fnCallback]);
+    }, [setInProgress, setError, fnCallback, resetDataOnCall]);
 
     return [data, triggerCallback, inProgress, error];
 }

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package notification
 
 import (
@@ -13,7 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
-// FileNotifier a notifier to send emails to SMTP servers.
+// FileNotifier a notifier to write notifications to a file.
 type FileNotifier struct {
 	path   string
 	append bool
@@ -29,18 +33,23 @@ func NewFileNotifier(configuration schema.NotifierFileSystem) *FileNotifier {
 // StartupCheck implements the startup check provider interface.
 func (n *FileNotifier) StartupCheck() (err error) {
 	dir := filepath.Dir(n.path)
-	if _, err := os.Stat(dir); err != nil {
+	if _, err = os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
-			if err = os.MkdirAll(dir, fileNotifierMode); err != nil {
+			if err = os.MkdirAll(dir, fileNotifierDirMode); err != nil {
 				return err
 			}
 		} else {
 			return err
 		}
-	} else if _, err = os.Stat(n.path); err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
+	}
+
+	fifo, err := isFIFO(n.path)
+	if err != nil {
+		return err
+	}
+
+	if fifo {
+		return nil
 	}
 
 	return os.WriteFile(n.path, []byte(""), fileNotifierMode)
@@ -48,11 +57,18 @@ func (n *FileNotifier) StartupCheck() (err error) {
 
 // Send send a identity verification link to a user.
 func (n *FileNotifier) Send(_ context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
+	fifo, err := isFIFO(n.path)
+	if err != nil {
+		return fmt.Errorf("failed to stat file: %w", err)
+	}
+
 	var f *os.File
 
 	var flag int
 
 	switch {
+	case fifo:
+		flag = os.O_WRONLY
 	case n.append:
 		flag = os.O_APPEND | os.O_CREATE | os.O_WRONLY
 	default:
@@ -64,6 +80,13 @@ func (n *FileNotifier) Send(_ context.Context, recipient mail.Address, subject s
 	}
 
 	defer f.Close()
+
+	info, err := f.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	fifo = info.Mode()&os.ModeNamedPipe != 0
 
 	w := bufio.NewWriter(f)
 
@@ -83,9 +106,24 @@ func (n *FileNotifier) Send(_ context.Context, recipient mail.Address, subject s
 		return fmt.Errorf("failed to flush buffer: %w", err)
 	}
 
-	if err = f.Sync(); err != nil {
-		return fmt.Errorf("failed to sync the file: %w", err)
+	if !fifo {
+		if err = f.Sync(); err != nil {
+			return fmt.Errorf("failed to sync the file: %w", err)
+		}
 	}
 
 	return nil
+}
+
+func isFIFO(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return info.Mode()&os.ModeNamedPipe != 0, nil
 }

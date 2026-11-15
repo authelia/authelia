@@ -1,12 +1,24 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+	"hash"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -14,7 +26,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
+
+func TestShouldReturnErrorWhenX509CertPoolFactoryNotProvided(t *testing.T) {
+	pool, warnings, errors := NewX509CertPoolWithFactory("", nil)
+	assert.Nil(t, pool)
+	assert.Nil(t, warnings)
+
+	require.Len(t, errors, 1)
+	assert.EqualError(t, errors[0], "failed to create x509 cert pool as no factory was provided")
+}
 
 func TestShouldReturnErrWhenX509DirectoryNotExist(t *testing.T) {
 	pool, warnings, errors := NewX509CertPool("/tmp/asdfzyxabc123/not/a/real/dir")
@@ -57,7 +80,7 @@ func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
 	assert.NotNil(t, pool)
 	require.Len(t, errors, 3)
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == windows {
 		require.Len(t, warnings, 1)
 		assert.EqualError(t, warnings[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 	} else {
@@ -122,6 +145,13 @@ func TestShouldParseKeySigAlgorithm(t *testing.T) {
 			InputKey:       "DDD",
 			InputSig:       "SHA1",
 			ExpectedKeyAlg: x509.UnknownPublicKeyAlgorithm,
+			ExpectedSigAlg: x509.UnknownSignatureAlgorithm,
+		},
+		{
+			Name:           "ShouldNotParseKeyRSAInvalidSig",
+			InputKey:       "RSA",
+			InputSig:       "invalid",
+			ExpectedKeyAlg: x509.RSA,
 			ExpectedSigAlg: x509.UnknownSignatureAlgorithm,
 		},
 		{
@@ -546,4 +576,1044 @@ func TestTLSVersionFromBytesString(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParsePEM(t *testing.T) {
+	testCases := []struct {
+		name     string
+		path     string
+		expected any
+		err      string
+	}{
+		{
+			"ShouldHandleEmpty",
+			"",
+			nil,
+			"failed to parse PEM block as it was empty",
+		},
+		{
+			"ShouldHandleRSAKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.pem"),
+			&rsa.PrivateKey{},
+			"",
+		},
+		{
+			"ShouldHandleRSAPublicKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.pair.2048.public.pem"),
+			&rsa.PublicKey{},
+			"",
+		},
+		{
+			"ShouldHandleECDSAKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "ecdsa.pair.P256.pem"),
+			&ecdsa.PrivateKey{},
+			"",
+		},
+		{
+			"ShouldHandleECDSAPublicKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "ecdsa.pair.P256.public.pem"),
+			&ecdsa.PublicKey{},
+			"",
+		},
+		{
+			"ShouldHandleEd25519Key",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "ed25519.pair.pem"),
+			ed25519.PrivateKey{},
+			"",
+		},
+		{
+			"ShouldHandleEd25519PublicKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "ed25519.pair.public.pem"),
+			ed25519.PublicKey{},
+			"",
+		},
+		{
+			"ShouldHandleRSAKeyLegacy",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.pair.2048.legacy.pem"),
+			&rsa.PrivateKey{},
+			"",
+		},
+		{
+			"ShouldHandleRSAPublicKeyLegacy",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.pair.2048.public.legacy.pem"),
+			&rsa.PublicKey{},
+			"",
+		},
+		{
+			"ShouldHandleECDSAKeyLegacy",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "ecdsa.P521.legacy.pem"),
+			&ecdsa.PrivateKey{},
+			"",
+		},
+		{
+			"ShouldHandleCRL",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "example.crl"),
+			&x509.RevocationList{},
+			"",
+		},
+		{
+			"ShouldHandleCSR",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "example.csr"),
+			&x509.CertificateRequest{},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				raw []byte
+				err error
+			)
+
+			if tc.path != "" {
+				raw, err = os.ReadFile(tc.path)
+				require.NoError(t, err)
+			}
+
+			block, rest := pem.Decode(raw)
+
+			if tc.path != "" {
+				require.NotNil(t, block)
+				require.Len(t, rest, 0)
+			} else {
+				require.Nil(t, block)
+				require.Len(t, rest, 0)
+
+				key, err := ParsePEMBlock(block)
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, key)
+
+				return
+			}
+
+			key, err := ParsePEMBlock(block)
+			require.NoError(t, err)
+
+			newblock, err := PEMBlockFromX509Key(key, false)
+			require.NoError(t, err)
+
+			newlegacyblock, err := PEMBlockFromX509Key(key, true)
+			assert.NoError(t, err)
+
+			if strings.HasSuffix(tc.name, "Legacy") {
+				assert.Equal(t, block, newlegacyblock)
+			} else {
+				assert.Equal(t, block, newblock)
+			}
+
+			assert.IsType(t, tc.expected, key)
+		})
+	}
+}
+
+func TestPEMBlockFromX509Key(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   any
+		legacy bool
+		err    string
+	}{
+		{
+			"ShouldHandleRSAKeyError",
+			&rsa.PrivateKey{},
+			false,
+			"failed to marshal key: crypto/rsa: missing primes",
+		},
+		{
+			"ShouldHandleRSAPublicKeyError",
+			&rsa.PublicKey{},
+			false,
+			"failed to marshal key: asn1: structure error: empty integer",
+		},
+		{
+			"ShouldFailToMarshalNonKey",
+			&x509.CertPool{},
+			false,
+			"failed to marshal key: failed to match key type: *x509.CertPool",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			block, err := PEMBlockFromX509Key(tc.have, tc.legacy)
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.NotNil(t, block)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, block)
+			}
+		})
+	}
+}
+
+func TestParseX509FromPEM(t *testing.T) {
+	testCases := []struct {
+		name string
+		path string
+		err  string
+	}{
+		{
+			"ShouldHandleStandard",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.crt"),
+			"",
+		},
+		{
+			"ShouldHandleStandardKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.pem"),
+			"",
+		},
+		{
+			"ShouldHandleChainError",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.chain.crt"),
+			"error occurred attempting to parse PEM block: the block either had trailing data or was otherwise malformed",
+		},
+		{
+			"ShouldHandleNotPEM",
+			filepath.Join("..", "configuration", "test_resources", "config_glob.yml"),
+			"error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw, err := os.ReadFile(tc.path)
+			require.NoError(t, err)
+
+			key, err := ParseX509FromPEM(raw)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.NotNil(t, key)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, key)
+			}
+		})
+	}
+}
+
+func TestAssertToX509Certificate(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   any
+		expect any
+		ok     bool
+	}{
+		{
+			"ShouldHandleNil",
+			nil,
+			(*x509.Certificate)(nil),
+			false,
+		},
+		{
+			"ShouldHandlePointer",
+			&x509.Certificate{},
+			&x509.Certificate{},
+			true,
+		},
+		{
+			"ShouldHandleNonPointer",
+			x509.Certificate{},
+			&x509.Certificate{},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, ok := AssertToX509Certificate(tc.have)
+
+			assert.Equal(t, tc.expect, actual)
+			assert.Equal(t, tc.ok, ok)
+		})
+	}
+}
+
+func TestIsX509PrivateKey(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   any
+		expect bool
+	}{
+		{
+			"ShouldHandleNil",
+			nil,
+			false,
+		},
+		{
+			"ShouldHandleRSAPrivateKey",
+			&rsa.PrivateKey{},
+			true,
+		},
+		{
+			"ShouldHandleRSAPrivateKeyNonPointer",
+			rsa.PrivateKey{},
+			true,
+		},
+		{
+			"ShouldHandleRSAPublicKey",
+			&rsa.PublicKey{},
+			false,
+		},
+		{
+			"ShouldHandleECDSAPrivateKey",
+			&ecdsa.PrivateKey{},
+			true,
+		},
+		{
+			"ShouldHandleECDSAPrivateKeyNonPointer",
+			ecdsa.PrivateKey{},
+			true,
+		},
+		{
+			"ShouldHandleECDSAPublicKey",
+			&ecdsa.PublicKey{},
+			false,
+		},
+		{
+			"ShouldHandleEDPrivateKey",
+			&ed25519.PrivateKey{},
+			true,
+		},
+		{
+			"ShouldHandleEDKeyNonPointer",
+			ed25519.PrivateKey{},
+			true,
+		},
+		{
+			"ShouldHandleEDPublicKey",
+			&ed25519.PublicKey{},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := IsX509PrivateKey(tc.have)
+
+			assert.Equal(t, tc.expect, actual)
+		})
+	}
+}
+
+func TestParseX509FromPEMRecursive(t *testing.T) {
+	testCases := []struct {
+		name string
+		path string
+		err  string
+	}{
+		{
+			"ShouldHandleStandard",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.crt"),
+			"",
+		},
+		{
+			"ShouldHandleStandardKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.pem"),
+			"",
+		},
+		{
+			"ShouldHandleChainError",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.chain.crt"),
+			"",
+		},
+		{
+			"ShouldHandleNotPEM",
+			filepath.Join("..", "configuration", "test_resources", "config_glob.yml"),
+			"error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw, err := os.ReadFile(tc.path)
+			require.NoError(t, err)
+
+			key, err := ParseX509FromPEMRecursive(raw)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.NotNil(t, key)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, key)
+			}
+		})
+	}
+}
+
+func TestNewTLSConfig(t *testing.T) {
+	sys, err := x509.SystemCertPool()
+	require.NoError(t, err)
+
+	rawKey, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.pem"))
+	require.NoError(t, err)
+
+	keyAny, err := ParseX509FromPEM(rawKey)
+	require.NoError(t, err)
+
+	key, ok := keyAny.(*rsa.PrivateKey)
+	require.True(t, ok)
+
+	rawCert, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.crt"))
+	require.NoError(t, err)
+
+	chain, err := schema.NewX509CertificateChain(string(rawCert))
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name   string
+		have   *schema.TLS
+		pool   *x509.CertPool
+		expect bool
+	}{
+		{
+			"ShouldHandleNil",
+			nil,
+			nil,
+			false,
+		},
+		{
+			"ShouldHandleStandard",
+			&schema.TLS{},
+			sys,
+			true,
+		},
+		{
+			"ShouldHandleKeySolo",
+			&schema.TLS{
+				PrivateKey: key,
+			},
+			sys,
+			true,
+		},
+		{
+			"ShouldHandleKey",
+			&schema.TLS{
+				PrivateKey:       key,
+				CertificateChain: *chain,
+			},
+			sys,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := NewTLSConfig(tc.have, tc.pool)
+
+			if tc.expect {
+				assert.NotNil(t, actual)
+			} else {
+				assert.Nil(t, actual)
+			}
+		})
+	}
+}
+
+func TestIsInsecureCipherSuite(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   tls.CipherSuite
+		expect bool
+	}{
+		{
+			"ShouldHandleSecure",
+			*tls.CipherSuites()[0],
+			false,
+		},
+		{
+			"ShouldHandleInsecure",
+			*tls.InsecureCipherSuites()[0],
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expect, IsInsecureCipherSuite(tc.have.ID))
+		})
+	}
+}
+
+func TestUnsafeGetIntermediatesFromPeerCertificates(t *testing.T) {
+	sys, err := x509.SystemCertPool()
+	require.NoError(t, err)
+
+	data1, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.crt"))
+	require.NoError(t, err)
+
+	data2, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.4096.crt"))
+	require.NoError(t, err)
+
+	data3, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "ca.rsa.4096.crt"))
+	require.NoError(t, err)
+
+	key1, err := ParseX509FromPEM(data1)
+	require.NoError(t, err)
+
+	key2, err := ParseX509FromPEM(data2)
+	require.NoError(t, err)
+
+	key3, err := ParseX509FromPEM(data3)
+	require.NoError(t, err)
+
+	cert1, ok := key1.(*x509.Certificate)
+	require.True(t, ok)
+
+	cert2, ok := key2.(*x509.Certificate)
+	require.True(t, ok)
+
+	cert3, ok := key3.(*x509.Certificate)
+	require.True(t, ok)
+
+	testCases := []struct {
+		name          string
+		have          []*x509.Certificate
+		roots         *x509.CertPool
+		intermediates *x509.CertPool
+	}{
+		{
+			"ShouldHandleNils",
+			nil,
+			nil,
+			&x509.CertPool{},
+		},
+		{
+			"ShouldHandleSys",
+			nil,
+			sys,
+			sys,
+		},
+		{
+			"ShouldHandleSysWithCerts",
+			[]*x509.Certificate{cert1, cert2, cert3},
+			sys,
+			sys,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := UnsafeGetIntermediatesFromPeerCertificates(tc.have, tc.roots, tc.intermediates)
+
+			assert.NotNil(t, result)
+		})
+	}
+}
+
+func TestWriteCertificateBytesAsPEMToPath(t *testing.T) {
+	testCases := []struct {
+		name  string
+		setup func(t *testing.T, dir string)
+		certs [][]byte
+		csr   bool
+		check func(t *testing.T, dir string, err error)
+	}{
+		{
+			"ShouldHandleNil",
+			nil,
+			nil,
+			false,
+			func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"ShouldHandleRandomBytes",
+			nil,
+			[][]byte{[]byte("abc")},
+			false,
+			func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"ShouldHandleRandomBytesCSR",
+			nil,
+			[][]byte{[]byte("abc")},
+			true,
+			func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"ShouldHandlePerms",
+			func(t *testing.T, dir string) {
+				require.NoError(t, os.Chmod(filepath.Join(dir, "subdir"), 0000))
+			},
+			[][]byte{[]byte("abc")},
+			false,
+			func(t *testing.T, dir string, err error) {
+				assert.EqualError(t, err, fmt.Sprintf("open %s: permission denied", filepath.Join(dir, "subdir", "out.pem")))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+
+			require.NoError(t, os.MkdirAll(filepath.Join(dir, "subdir"), 0700))
+
+			if tc.setup != nil {
+				tc.setup(t, dir)
+			}
+
+			err := WriteCertificateBytesAsPEMToPath(filepath.Join(dir, "subdir", "out.pem"), tc.csr, tc.certs...)
+
+			tc.check(t, dir, err)
+		})
+	}
+}
+
+func TestWritePEMBlocksToPath(t *testing.T) {
+	testCases := []struct {
+		name   string
+		setup  func(t *testing.T, dir string)
+		blocks []*pem.Block
+		check  func(t *testing.T, dir string, err error)
+	}{
+		{
+			"ShouldHandleNil",
+			nil,
+			nil,
+			func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"ShouldHandleRandomBytes",
+			nil,
+			[]*pem.Block{
+				{
+					Type:  "CERTIFICATE",
+					Bytes: []byte("abc"),
+				},
+			},
+			func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"ShouldHandlePerms",
+			func(t *testing.T, dir string) {
+				require.NoError(t, os.Chmod(filepath.Join(dir, "subdir"), 0000))
+			},
+			[]*pem.Block{
+				{
+					Type:  "CERTIFICATE",
+					Bytes: []byte("abc"),
+				},
+			},
+			func(t *testing.T, dir string, err error) {
+				assert.EqualError(t, err, fmt.Sprintf("open %s: permission denied", filepath.Join(dir, "subdir", "out.pem")))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+
+			require.NoError(t, os.MkdirAll(filepath.Join(dir, "subdir"), 0700))
+
+			if tc.setup != nil {
+				tc.setup(t, dir)
+			}
+
+			err := WritePEMBlocksToPath(filepath.Join(dir, "subdir", "out.pem"), tc.blocks...)
+
+			tc.check(t, dir, err)
+		})
+	}
+}
+
+func TestWritePEMBlocksToWriter(t *testing.T) {
+	testCases := []struct {
+		name  string
+		block *pem.Block
+		err   string
+	}{
+		{
+			"ShouldHandleBadHeader",
+			&pem.Block{
+				Type: "Example",
+				Headers: map[string]string{
+					"Bad:header": "",
+				},
+				Bytes: []byte("x"),
+			},
+			"pem: cannot encode a header key that contains a colon",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			buf := new(bytes.Buffer)
+
+			err := WritePEMBlocksToWriter(buf, tc.block)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
+}
+
+func TestWriteKeyToPEM(t *testing.T) {
+	key, _, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name   string
+		key    any
+		legacy bool
+		err    string
+	}{
+		{
+			"ShouldWriteEd25519Key",
+			key,
+			false,
+			"",
+		},
+		{
+			"ShouldReturnErrorForInvalidKey",
+			"not-a-key",
+			false,
+			"failed to marshal key: failed to match key type: string",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "key.pem")
+
+			err := WriteKeyToPEM(tc.key, path, tc.legacy)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				require.NoError(t, err)
+
+				data, err := os.ReadFile(path)
+				require.NoError(t, err)
+				assert.Contains(t, string(data), "-----BEGIN")
+			}
+		})
+	}
+}
+
+func TestParsePEMBlockUnknownTypes(t *testing.T) {
+	testCases := []struct {
+		name      string
+		blockType string
+		err       string
+	}{
+		{
+			"ShouldReturnErrorForUnknownBlockType",
+			"UNKNOWN BLOCK",
+			"unknown block type: UNKNOWN BLOCK",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			block := &pem.Block{
+				Type:  tc.blockType,
+				Bytes: []byte("invalid"),
+			}
+
+			key, err := ParsePEMBlock(block)
+
+			assert.Nil(t, key)
+			assert.EqualError(t, err, tc.err)
+		})
+	}
+}
+
+func TestShouldEncryptAndDecriptUsingAES(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+	secret := "the secret"
+
+	encryptedSecret, err := Encrypt([]byte(secret), []byte("test"), key)
+	assert.NoError(t, err, "")
+
+	decryptedSecret, err := Decrypt(encryptedSecret, []byte("test"), key)
+
+	assert.NoError(t, err, "")
+	assert.Equal(t, secret, string(decryptedSecret))
+}
+
+func TestShouldFailDecryptOnInvalidKey(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+	secret := "the secret"
+
+	encryptedSecret, err := Encrypt([]byte(secret), []byte("test"), key)
+	assert.NoError(t, err, "")
+
+	key = DeriveLegacyCryptographicKey([]byte("the key 2"))
+
+	_, err = Decrypt(encryptedSecret, []byte("test"), key)
+
+	assert.EqualError(t, err, "cipher: message authentication failed")
+}
+
+func TestDecrypt(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+
+	testCases := []struct {
+		name       string
+		ciphertext []byte
+		err        string
+	}{
+		{
+			"ShouldReturnErrorForTooShortCiphertext",
+			[]byte("abc123"),
+			"malformed ciphertext",
+		},
+		{
+			"ShouldReturnErrorForEmptyCiphertext",
+			[]byte{},
+			"malformed ciphertext",
+		},
+		{
+			"ShouldReturnErrorForNilCiphertext",
+			nil,
+			"malformed ciphertext",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Decrypt(tc.ciphertext, []byte("test"), key)
+
+			if len(tc.err) != 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestEncryptDecryptAAD(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+
+	testCases := []struct {
+		name       string
+		plaintext  []byte
+		encryptAAD []byte
+		decryptAAD []byte
+		errEncrypt string
+		errDecrypt string
+	}{
+		{
+			name:       "ShouldRoundTripWithMatchingAAD",
+			plaintext:  []byte("the secret"),
+			encryptAAD: []byte("authelia:storage:totp_configurations:secret"),
+			decryptAAD: []byte("authelia:storage:totp_configurations:secret"),
+		},
+		{
+			name:       "ShouldRoundTripWithNilAAD",
+			plaintext:  []byte("the secret"),
+			encryptAAD: nil,
+			decryptAAD: nil,
+		},
+		{
+			name:       "ShouldRoundTripWithEmptyPlaintext",
+			plaintext:  []byte{},
+			encryptAAD: []byte("aad"),
+			decryptAAD: []byte("aad"),
+		},
+		{
+			name:       "ShouldFailDecryptWithMismatchedAAD",
+			plaintext:  []byte("the secret"),
+			encryptAAD: []byte("authelia:storage:totp_configurations:secret"),
+			decryptAAD: []byte("authelia:storage:one_time_code:code"),
+			errDecrypt: "cipher: message authentication failed",
+		},
+		{
+			name:       "ShouldFailDecryptWhenAADMissing",
+			plaintext:  []byte("the secret"),
+			encryptAAD: []byte("aad"),
+			decryptAAD: nil,
+			errDecrypt: "cipher: message authentication failed",
+		},
+		{
+			name:       "ShouldFailDecryptWhenAADAddedUnexpectedly",
+			plaintext:  []byte("the secret"),
+			encryptAAD: nil,
+			decryptAAD: []byte("aad"),
+			errDecrypt: "cipher: message authentication failed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ciphertext, err := Encrypt(tc.plaintext, tc.encryptAAD, key)
+
+			if tc.errEncrypt != "" {
+				assert.EqualError(t, err, tc.errEncrypt)
+
+				return
+			}
+
+			require.NoError(t, err)
+
+			plaintext, err := Decrypt(ciphertext, tc.decryptAAD, key)
+
+			if tc.errDecrypt != "" {
+				assert.EqualError(t, err, tc.errDecrypt)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, string(tc.plaintext), string(plaintext))
+			}
+		})
+	}
+}
+
+func TestEncryptDecryptInvalidKey(t *testing.T) {
+	testCases := []struct {
+		name string
+		key  []byte
+		err  string
+	}{
+		{
+			name: "ShouldErrOnEmptyKey",
+			key:  []byte{},
+			err:  "crypto/aes: invalid key size 0",
+		},
+		{
+			name: "ShouldErrOnShortKey",
+			key:  []byte("tooshort"),
+			err:  "crypto/aes: invalid key size 8",
+		},
+		{
+			name: "ShouldErrOnOversizedKey",
+			key:  bytes.Repeat([]byte{0x00}, 33),
+			err:  "crypto/aes: invalid key size 33",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Run("Encrypt", func(t *testing.T) {
+				_, err := Encrypt([]byte("the secret"), nil, tc.key)
+
+				assert.EqualError(t, err, tc.err)
+			})
+
+			t.Run("Decrypt", func(t *testing.T) {
+				_, err := Decrypt([]byte("some-ciphertext-value-longer-than-nonce"), nil, tc.key)
+
+				assert.EqualError(t, err, tc.err)
+			})
+		})
+	}
+}
+
+func TestDeriveCryptographicKey(t *testing.T) {
+	testCases := []struct {
+		name string
+		raw  []byte
+		info string
+		hash func() hash.Hash
+		size int
+		err  string
+	}{
+		{
+			name: "ShouldDeriveSHA256Key",
+			raw:  []byte("the key"),
+			info: "authelia:kdf:storage:encryption_key:v1",
+			hash: sha256.New,
+			size: 32,
+		},
+		{
+			name: "ShouldDeriveSHA512Key",
+			raw:  []byte("the key"),
+			info: "authelia:kdf:storage:encryption_key:v1",
+			hash: sha512.New,
+			size: 64,
+		},
+		{
+			name: "ShouldDeriveKeyWithEmptyInfo",
+			raw:  []byte("the key"),
+			info: "",
+			hash: sha256.New,
+			size: 32,
+		},
+		{
+			name: "ShouldErrOnNilValue",
+			raw:  nil,
+			info: "authelia:kdf:storage:encryption_key:v1",
+			hash: sha256.New,
+			err:  "error deriving cryptographic key: value is empty",
+		},
+		{
+			name: "ShouldErrOnEmptyValue",
+			raw:  []byte{},
+			info: "authelia:kdf:storage:encryption_key:v1",
+			hash: sha256.New,
+			err:  "error deriving cryptographic key: value is empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			key, err := DeriveCryptographicKey(tc.raw, tc.info, tc.hash)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, key)
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Len(t, key, tc.size)
+		})
+	}
+
+	t.Run("ShouldBeDeterministic", func(t *testing.T) {
+		first, err := DeriveCryptographicKey([]byte("the key"), "info", sha256.New)
+		require.NoError(t, err)
+
+		second, err := DeriveCryptographicKey([]byte("the key"), "info", sha256.New)
+		require.NoError(t, err)
+
+		assert.Equal(t, first, second)
+	})
+
+	t.Run("ShouldDeriveDifferentKeyForDifferentInfo", func(t *testing.T) {
+		first, err := DeriveCryptographicKey([]byte("the key"), "info-a", sha256.New)
+		require.NoError(t, err)
+
+		second, err := DeriveCryptographicKey([]byte("the key"), "info-b", sha256.New)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, first, second)
+	})
+
+	t.Run("ShouldDeriveDifferentKeyForDifferentValue", func(t *testing.T) {
+		first, err := DeriveCryptographicKey([]byte("the key a"), "info", sha256.New)
+		require.NoError(t, err)
+
+		second, err := DeriveCryptographicKey([]byte("the key b"), "info", sha256.New)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, first, second)
+	})
+
+	t.Run("ShouldDeriveDifferentKeyFromLegacyDerivation", func(t *testing.T) {
+		derived, err := DeriveCryptographicKey([]byte("the key"), "info", sha256.New)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, DeriveLegacyCryptographicKey([]byte("the key")), derived)
+	})
 }

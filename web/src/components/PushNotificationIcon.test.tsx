@@ -1,4 +1,6 @@
-import React from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
 import { render } from "@testing-library/react";
 
@@ -8,6 +10,6 @@ it("renders without crashing", () => {
     render(<PushNotificationIcon width={32} height={32} />);
 });
 
-it("renders animated without crashing", () => {
+it("renders with animation", () => {
     render(<PushNotificationIcon width={32} height={32} animated />);
 });

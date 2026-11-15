@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -5,6 +9,8 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -25,10 +31,10 @@ var (
 	headerProxyAuthenticate  = []byte(fasthttp.HeaderProxyAuthenticate)
 
 	headerSessionUsername = []byte("Session-Username")
-	headerRemoteUser      = []byte("Remote-User")
-	headerRemoteGroups    = []byte("Remote-Groups")
-	headerRemoteName      = []byte("Remote-Name")
-	headerRemoteEmail     = []byte("Remote-Email")
+	headerRemoteUser      = []byte(schema.HeaderRemoteUser)
+	headerRemoteGroups    = []byte(schema.HeaderRemoteGroups)
+	headerRemoteName      = []byte(schema.HeaderRemoteName)
+	headerRemoteEmail     = []byte(schema.HeaderRemoteEmail)
 )
 
 const (
@@ -48,6 +54,13 @@ const (
 	queryArgSubflow   = "subflow"
 	queryArgUserCode  = oidc.FormParameterUserCode
 	queryArgFlowID    = oidc.FormParameterFlowID
+	queryArgEC        = "ec"
+)
+
+const (
+	queryValueECForbidden = "forbidden"
+
+	pathError = "error"
 )
 
 var (
@@ -60,23 +73,24 @@ var (
 
 var (
 	qryValueBasic = []byte("basic")
-	qryValueEmpty = []byte("")
 )
 
-const (
-	messageOperationFailed                       = "Operation failed."
-	messageAuthenticationFailed                  = "Authentication failed. Check your credentials."
-	messageUnableToOptionsOneTimePassword        = "Unable to retrieve TOTP registration options."            //nolint:gosec
-	messageUnableToRegisterOneTimePassword       = "Unable to set up one-time password."                      //nolint:gosec
-	messageUnableToDeleteRegisterOneTimePassword = "Unable to delete one-time password registration session." //nolint:gosec
-	messageUnableToDeleteOneTimePassword         = "Unable to delete one-time password."
-	messageUnableToRegisterSecurityKey           = "Unable to register your security key."
-	messageSecurityKeyDuplicateName              = "Another one of your security keys is already registered with that display name."
-	messageUnableToResetPassword                 = "Unable to reset your password."
-	messageUnableToChangePassword                = "Unable to change your password."
-	messageIncorrectPassword                     = "Incorrect Password"
-	messageMFAValidationFailed                   = "Authentication failed, please retry later."
-	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements."
+var (
+	messageOperationFailed                       = middlewares.ErrorMessageOperationFailed
+	messageAuthenticationFailed                  = middlewares.ErrorMessageAuthenticationFailed
+	messageUnableToOptionsOneTimePassword        = middlewares.ErrorMessageTOTPOptionsFailed
+	messageUnableToRegisterOneTimePassword       = middlewares.ErrorMessageTOTPRegisterFailed
+	messageUnableToDeleteRegisterOneTimePassword = middlewares.ErrorMessageTOTPRegisterSessionDeleteFailed
+	messageUnableToDeleteOneTimePassword         = middlewares.ErrorMessageTOTPDeleteFailed
+	messageUnableToRegisterSecurityKey           = middlewares.ErrorMessageWebAuthnRegisterFailed
+	messageSecurityKeyDuplicateName              = middlewares.ErrorMessageWebAuthnDuplicateName
+	messageUnableToResetPassword                 = middlewares.ErrorMessagePasswordResetFailed
+	messageUnableToChangePassword                = middlewares.ErrorMessagePasswordChangeFailed
+	messageIncorrectPassword                     = middlewares.ErrorMessagePasswordIncorrect
+	messageMFAValidationFailed                   = middlewares.ErrorMessageMFAValidationFailed
+	messagePasswordWeak                          = middlewares.ErrorMessagePasswordPolicy
+	messageTOTPConfigurationNotFound             = middlewares.ErrorMessageTOTPConfigurationNotFound
+	messagePasswordBackendComplexity             = middlewares.ErrorMessagePasswordBackendComplexity
 )
 
 const (
@@ -92,14 +106,14 @@ const (
 	logFmtErrParseRequestBody     = "Failed to parse %s request body"
 	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s'"
 	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s'"
-	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s'"
 	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
 )
 
 const (
-	logFmtAuthzRedirect = "Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s"
+	logFmtAuthzRedirect          = "Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s"
+	logFmtAuthzForbiddenRedirect = "Access to %s (method %s) is forbidden to user %s, responding with status code %d with location redirect to %s"
 
 	logFmtAuthorizationPrefix = "Authorization Request with id '%s' on client with id '%s' "
 
@@ -113,12 +127,13 @@ const (
 	logFmtErrConsentZeroID           = logFmtConsentPrefix + "could not be processed: the consent id had a zero value"
 	logFmtErrConsentCantGetSubject   = logFmtConsentPrefix + "could not be processed: error occurred retrieving subject identifier for user '%s' and sector identifier '%s': %+v"
 	logFmtErrConsentGenerateError    = logFmtConsentPrefix + "could not be processed: error occurred %s consent: %+v"
+	logFmtErrConsentMatchError       = logFmtConsentPrefix + "could not be processed: error occurred matching the consent session to the request"
 
 	logFmtDbgConsentGenerate                  = logFmtConsentPrefix + "proceeding to generate a new consent session"
 	logFmtDbgConsentAuthenticationSufficiency = logFmtConsentPrefix + "authentication level '%s' is %s for client level '%s'"
 	logFmtDbgConsentRedirect                  = logFmtConsentPrefix + "is being redirected to '%s'"
 	logFmtDbgConsentPreConfSuccessfulLookup   = logFmtConsentPrefix + "successfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s' with id '%d'"
-	logFmtDbgConsentPreConfUnsuccessfulLookup = logFmtConsentPrefix + "unsuccessfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s' and audience '%s'"
+	logFmtDbgConsentPreConfUnsuccessfulLookup = logFmtConsentPrefix + "unsuccessfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s' and audience '%s' and resource '%s'"
 	logFmtDbgConsentPreConfTryingLookup       = logFmtConsentPrefix + "attempting to discover pre-configurations with signature of client id '%s' and subject '%s' and scopes '%s'"
 
 	logFmtErrConsentWithIDCouldNotBeProcessed = logFmtConsentPrefix + "could not be processed: error occurred performing consent for consent session with id '%s': "
@@ -146,8 +161,6 @@ const (
 	auth   = "auth"
 )
 
-const ldapPasswordComplexityCode = "0000052D."
-
 var ldapPasswordComplexityCodes = []string{
 	"0000052D", "SynoNumber", "SynoMixedCase", "SynoExcludeNameDesc", "SynoSpecialChar",
 }
@@ -155,6 +168,23 @@ var ldapPasswordComplexityCodes = []string{
 var ldapPasswordComplexityErrors = []string{
 	"LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy",
 	"LDAP Result Code 19 \"Constraint Violation\": Password is too young to change",
+}
+
+var ldapPasswordReuseErrors = []string{
+	// OpenLDAP, servers/slapd/overlays/ppolicy.c.
+	"Password is not being changed from existing value",
+	"Password is in history of old passwords",
+
+	// 389 Directory Server and therefore FreeIPA, ldap/servers/slapd/pw.c.
+	"password in history",
+}
+
+var ldapPasswordTooYoungErrors = []string{
+	// OpenLDAP, servers/slapd/overlays/ppolicy.c.
+	"Password is too young to change",
+
+	// 389 Directory Server and therefore FreeIPA, ldap/servers/slapd/pw.c.
+	"within password minimum age",
 }
 
 const (
@@ -167,4 +197,8 @@ const (
 var (
 	errUserAnonymous              = errors.New("user is anonymous")
 	errUserIsAlreadyAuthenticated = errors.New("user is already authenticated")
+)
+
+const (
+	sessionActivityRefreshDivisor = 10
 )

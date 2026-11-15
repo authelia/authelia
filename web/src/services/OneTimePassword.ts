@@ -1,9 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { CompleteTOTPSignInPath, TOTPRegistrationPath } from "@services/Api";
-import {
-    DeleteWithOptionalResponse,
-    PostWithOptionalResponse,
-    PostWithOptionalResponseRateLimited,
-} from "@services/Client";
+import { DeleteWithOptionalResponse, PostWithOptionalResponse } from "@services/Client";
 import { SignInResponse } from "@services/SignIn";
 
 interface CompleteTOTPSignInBody {
@@ -24,15 +24,15 @@ export function completeTOTPSignIn(
     userCode?: string,
 ) {
     const body: CompleteTOTPSignInBody = {
-        token: `${passcode}`,
-        targetURL,
-        flowID,
         flow,
+        flowID,
         subflow,
+        targetURL,
+        token: `${passcode}`,
         userCode,
     };
 
-    return PostWithOptionalResponseRateLimited<SignInResponse>(CompleteTOTPSignInPath, body);
+    return PostWithOptionalResponse<SignInResponse>(CompleteTOTPSignInPath, body);
 }
 
 export function completeTOTPRegister(passcode: string) {

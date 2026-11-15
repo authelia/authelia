@@ -1,9 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
 	"errors"
+	"net"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 var (
@@ -17,6 +24,9 @@ var (
 	headerXForwardedHost  = []byte(fasthttp.HeaderXForwardedHost)
 	headerXForwardedFor   = []byte(fasthttp.HeaderXForwardedFor)
 	headerXRequestedWith  = []byte(fasthttp.HeaderXRequestedWith)
+
+	headerSecFetchMode = []byte("Sec-Fetch-Mode")
+	headerSecFetchDest = []byte("Sec-Fetch-Dest")
 
 	headerXForwardedURI    = []byte("X-Forwarded-URI")
 	headerXOriginalURL     = []byte("X-Original-URL")
@@ -41,14 +51,25 @@ var (
 	headerPragma                = []byte(fasthttp.HeaderPragma)
 	headerCacheControl          = []byte(fasthttp.HeaderCacheControl)
 	headerContentSecurityPolicy = []byte(fasthttp.HeaderContentSecurityPolicy)
+	headerContentType           = []byte(fasthttp.HeaderContentType)
 
 	headerPermissionsPolicy         = []byte("Permissions-Policy")
 	headerCrossOriginOpenerPolicy   = []byte("Cross-Origin-Opener-Policy")
 	headerCrossOriginEmbedderPolicy = []byte("Cross-Origin-Embedder-Policy")
 	headerCrossOriginResourcePolicy = []byte("Cross-Origin-Resource-Policy")
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
+
+	headerForwarded = []byte(fasthttp.HeaderForwarded)
+	headerVia       = []byte(fasthttp.HeaderVia)
 )
 
+var (
+	headerPrefixXForwarded = []byte("X-Forwarded-")
+	headerPrefixXOriginal  = []byte("X-Original-")
+	headerPrefixXReal      = []byte("X-Real-")
+)
+
+// Header value strings.
 const (
 	HeaderCacheControlNotStore = "no-store"
 	HeaderPragmaNoCache        = "no-cache"
@@ -81,37 +102,54 @@ var (
 )
 
 const (
+	strProtoHTTP2 = "HTTP/2"
 	strProtoHTTPS = "https"
 	strProtoHTTP  = "http"
 	strSlash      = "/"
+	localhost     = "127.0.0.1"
 
 	queryArgRedirect    = "rd"
 	queryArgAutheliaURL = "authelia_url"
 	queryArgToken       = "token"
 )
 
+const healthCheckEnv = `# Written by Authelia Process
+X_AUTHELIA_HEALTHCHECK=1
+X_AUTHELIA_HEALTHCHECK_SCHEME=%s
+X_AUTHELIA_HEALTHCHECK_HOST=%s
+X_AUTHELIA_HEALTHCHECK_PORT=%d
+X_AUTHELIA_HEALTHCHECK_PATH=%s
+`
+
+// User value keys.
 const (
 	UserValueKeyBaseURL int8 = iota
 	UserValueKeyOpenIDConnectResponseModeFormPost
 	UserValueKeyRawURI
+	UserValueRateLimitExempt
 )
 
+// Router user value keys.
 const (
 	UserValueRouterKeyExtAuthzPath = "extauthz"
 )
 
+// Startup check log messages and provider names.
 const (
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
 
-	ProviderNameNTP              = "ntp"
-	ProviderNameStorage          = "storage"
-	ProviderNameUser             = "user"
-	ProviderNameNotification     = "notification"
-	ProviderNameExpressions      = "expressions"
-	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+	ProviderNameNTP              = schema.ProviderNameNTP
+	ProviderNameStorage          = schema.ProviderNameStorage
+	ProviderNameCache            = schema.ProviderNameCache
+	ProviderNameUser             = schema.ProviderNameUser
+	ProviderNameNotification     = schema.ProviderNameNotification
+	ProviderNameExpressions      = schema.ProviderNameExpressions
+	ProviderNameDuo              = schema.ProviderNameDuo
+	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData
 )
 
+// Content Type strings.
 const (
 	ContentTypeApplicationJSON = "application/json; charset=utf-8"
 	ContentTypeApplicationJWT  = "application/jwt; charset=utf-8"
@@ -132,20 +170,32 @@ var (
 	contentTypeApplicationYAML = []byte("application/yaml; charset=utf-8")
 )
 
+// bodyOpenIDConnectRateLimitExceeded is the JSON body returned by HandlerRateLimitOpenIDConnect. OAuth 2.0 has no
+// canonical rate-limit error code; temporarily_unavailable is borrowed from RFC 6749 §4.1.2.1 because its
+// "try again later" semantics align with rate limiting and clients tend to treat it as a retryable condition.
+var (
+	bodyOpenIDConnectRateLimitExceeded = []byte(`{"error":"temporarily_unavailable","error_description":"Too many requests. The endpoint is temporarily unavailable. Try again later."}`)
+)
+
 const (
 	headerValueXRequestedWithXHR = "XMLHttpRequest"
+
+	headerValueSecFetchModeNavigate = "navigate"
+	headerValueSecFetchDestDocument = "document"
 )
 
 var okMessageBytes = []byte("{\"status\":\"OK\"}")
 
-const (
-	messageOperationFailed                      = "Operation failed"
-	messageIdentityVerificationTokenAlreadyUsed = "The identity verification token has already been used"
-	messageIdentityVerificationTokenHasExpired  = "The identity verification token has expired"
-	messageIdentityVerificationTokenNotValidYet = "The identity verification token is only valid in the future"
-	messageIdentityVerificationTokenSig         = "The identity verification token has an invalid signature"
+var (
+	messageOperationFailed                      = ErrorMessageOperationFailed
+	messageIdentityVerificationTokenAlreadyUsed = ErrorMessageIdentityTokenUsed
+	messageIdentityVerificationTokenHasExpired  = ErrorMessageIdentityTokenExpired
+	messageIdentityVerificationTokenNotValidYet = ErrorMessageIdentityTokenNotYetValid
+	messageIdentityVerificationTokenSig         = ErrorMessageIdentityTokenInvalidSignature
 )
 
 var protoHostSeparator = []byte("://")
 
 var errPasswordPolicyNoMet = errors.New("the supplied password does not met the security policy")
+
+var ipv6TranslationPrefix = &net.IPNet{IP: net.ParseIP("64:ff9b::"), Mask: net.CIDRMask(96, net.IPv6len*8)}

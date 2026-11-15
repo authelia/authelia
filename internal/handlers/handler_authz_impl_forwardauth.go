@@ -1,61 +1,28 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
 	"fmt"
-	"net/url"
-
-	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func handleAuthzGetObjectForwardAuth(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
-	protocol, host, uri := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
-
+func handleAuthzGetObjectForwardAuth(ctx AuthzContext) (object authorization.Object, err error) {
 	var (
-		targetURL *url.URL
-		method    []byte
+		method          []byte
+		requestedObject *authorization.Object
 	)
-
-	if targetURL, err = getRequestURIFromForwardedHeaders(protocol, host, uri); err != nil {
-		return object, fmt.Errorf("failed to get target URL: %w", err)
-	}
 
 	if method = ctx.XForwardedMethod(); len(method) == 0 {
 		return object, fmt.Errorf("header 'X-Forwarded-Method' is empty")
 	}
 
-	if hasInvalidMethodCharacters(method) {
-		return object, fmt.Errorf("header 'X-Forwarded-Method' with value '%s' has invalid characters", method)
+	if requestedObject, err = authorization.NewObjectMethodSchemeHostPath(method, ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()); err != nil {
+		return object, err
 	}
 
-	return authorization.NewObjectRaw(targetURL, method), nil
-}
-
-func handleAuthzUnauthorizedForwardAuth(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
-	var (
-		statusCode int
-	)
-
-	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html"):
-		statusCode = fasthttp.StatusUnauthorized
-	default:
-		switch authn.Object.Method {
-		case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
-			statusCode = fasthttp.StatusFound
-		default:
-			statusCode = fasthttp.StatusSeeOther
-		}
-	}
-
-	ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
-
-	switch authn.Object.Method {
-	case fasthttp.MethodHead:
-		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
-	default:
-		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
-	}
+	return *requestedObject, nil
 }

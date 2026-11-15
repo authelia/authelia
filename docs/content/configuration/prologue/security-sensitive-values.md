@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Security Sensitive Values"
-description: "An introduction into configuring Authelia's security sensitive values."
+description: "A guide to securely configuring Authelia security sensitive values such as secrets, passwords, and keys using the secrets system or environment variables."
 summary: "An introduction into configuring Authelia's security sensitive values."
 date: 2024-03-31T23:24:06+00:00
 draft: false
@@ -38,7 +42,6 @@ There are three special ways to achieve this goal:
    - Generally easy to set up.
    - Can't be used keys located within lists.
    - Does include the value in the environment which is slightly less secure.
-
 
 ## Template Example
 

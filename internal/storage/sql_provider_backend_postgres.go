@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -24,23 +28,31 @@ type PostgreSQLProvider struct {
 }
 
 // NewPostgreSQLProvider a PostgreSQL provider.
-func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider) {
+func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider, err error) {
+	var p SQLProvider
+
+	if p, err = NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)); err != nil {
+		return nil, err
+	}
+
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)),
+		SQLProvider: p,
 	}
 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryPostgreSelectExistingTables
 
-	// Specific alterations to this provider.
 	// PostgreSQL doesn't have a UPSERT statement but has an ON CONFLICT operation instead.
 	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValuePostgreSQL, tableEncryption)
-	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2RequestReplay = fmt.Sprintf(queryFmtInsertOAuth2RequestReplayPostgreSQL, tableOAuth2RequestReplay)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
+	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionPostgreSQL, tableSession)
+	provider.sqlLockRecoveryCodesByUsername = fmt.Sprintf(queryFmtLockRecoveryCodesByUsernamePostgreSQL, tableRecoveryCodesLock)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
@@ -64,6 +76,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOneTimeCodeBySignature = provider.db.Rebind(provider.sqlSelectOneTimeCodeBySignature)
 	provider.sqlSelectOneTimeCodeByID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByID)
 	provider.sqlSelectOneTimeCodeByPublicID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByPublicID)
+
+	provider.sqlInsertRecoveryCode = provider.db.Rebind(provider.sqlInsertRecoveryCode)
+	provider.sqlSelectRecoveryCodeBySignatureAndUsername = provider.db.Rebind(provider.sqlSelectRecoveryCodeBySignatureAndUsername)
+	provider.sqlSelectRecoveryCodesByUsername = provider.db.Rebind(provider.sqlSelectRecoveryCodesByUsername)
+	provider.sqlConsumeRecoveryCode = provider.db.Rebind(provider.sqlConsumeRecoveryCode)
+	provider.sqlRevokeRecoveryCodesByUsername = provider.db.Rebind(provider.sqlRevokeRecoveryCodesByUsername)
+	provider.sqlCountUnusedRecoveryCodesByUsername = provider.db.Rebind(provider.sqlCountUnusedRecoveryCodesByUsername)
 
 	provider.sqlSelectTOTPConfig = provider.db.Rebind(provider.sqlSelectTOTPConfig)
 	provider.sqlUpdateTOTPConfigRecordSignIn = provider.db.Rebind(provider.sqlUpdateTOTPConfigRecordSignIn)
@@ -116,16 +135,27 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectCachedData = provider.db.Rebind(provider.sqlSelectCachedData)
 	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)
 
+	provider.sqlSelectSession = provider.db.Rebind(provider.sqlSelectSession)
+	provider.sqlSelectSessionByPublicID = provider.db.Rebind(provider.sqlSelectSessionByPublicID)
+	provider.sqlSelectSessionSignatureByPublicID = provider.db.Rebind(provider.sqlSelectSessionSignatureByPublicID)
+	provider.sqlSelectSessionSignaturesByUsername = provider.db.Rebind(provider.sqlSelectSessionSignaturesByUsername)
+	provider.sqlUpdateSessionData = provider.db.Rebind(provider.sqlUpdateSessionData)
+	provider.sqlUpdateSessionSignature = provider.db.Rebind(provider.sqlUpdateSessionSignature)
+	provider.sqlUpdateSessionDestroyed = provider.db.Rebind(provider.sqlUpdateSessionDestroyed)
+	provider.sqlDeleteSessionExpired = provider.db.Rebind(provider.sqlDeleteSessionExpired)
+
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
 	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)
 	provider.sqlSelectLatestMigration = provider.db.Rebind(provider.sqlSelectLatestMigration)
 
+	provider.sqlInsertEncryptionValue = provider.db.Rebind(provider.sqlInsertEncryptionValue)
 	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
 
 	provider.sqlSelectOAuth2ConsentPreConfigurations = provider.db.Rebind(provider.sqlSelectOAuth2ConsentPreConfigurations)
 
 	provider.sqlInsertOAuth2ConsentSession = provider.db.Rebind(provider.sqlInsertOAuth2ConsentSession)
-	provider.sqlUpdateOAuth2ConsentSessionResponse = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponse)
+	provider.sqlUpdateOAuth2ConsentSessionResponseByID = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponseByID)
+	provider.sqlUpdateOAuth2ConsentSessionResponseByChallengeID = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponseByChallengeID)
 	provider.sqlUpdateOAuth2ConsentSessionGranted = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionGranted)
 	provider.sqlSelectOAuth2ConsentSessionByChallengeID = provider.db.Rebind(provider.sqlSelectOAuth2ConsentSessionByChallengeID)
 
@@ -147,6 +177,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSession)
 	provider.sqlUpdateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSession)
 	provider.sqlUpdateOAuth2DeviceCodeSessionData = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSessionData)
+	provider.sqlDecideOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDecideOAuth2DeviceCodeSession)
 	provider.sqlDeactivateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDeactivateOAuth2DeviceCodeSession)
 	provider.sqlSelectOAuth2DeviceCodeSessionByUserCode = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSessionByUserCode)
 
@@ -175,12 +206,14 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeactivateOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSession)
 	provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID)
 	provider.sqlSelectOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSession)
+	provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature)
+	provider.sqlUpdateOAuth2RefreshTokenSessionRequest = provider.db.Rebind(provider.sqlUpdateOAuth2RefreshTokenSessionRequest)
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 
-	return provider
+	return provider, nil
 }
 
 func dsnPostgreSQL(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (dsn string) {
@@ -278,11 +311,13 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 	default:
 		var caCertPool *x509.CertPool
 
-		switch ca {
-		case nil:
-			caCertPool = globalCACertPool
-		default:
-			caCertPool = globalCACertPool
+		if globalCACertPool == nil {
+			caCertPool = x509.NewCertPool()
+		} else {
+			caCertPool = globalCACertPool.Clone()
+		}
+
+		if ca != nil {
 			caCertPool.AddCert(ca)
 		}
 
@@ -294,10 +329,14 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 
 		switch {
 		case config.SSL.Mode == "require" && config.SSL.RootCertificate != "" || config.SSL.Mode == "verify-ca":
-			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyCAFunc(tlsConfig)
+			tlsConfig.VerifyConnection = newPostgreSQLVerifyConnectionFunc(tlsConfig)
+			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyPeerCertificateFunc(tlsConfig)
 		case config.SSL.Mode == "verify-full":
 			tlsConfig.InsecureSkipVerify = false
-			tlsConfig.ServerName = config.Address.Hostname()
+
+			if config.Address != nil {
+				tlsConfig.ServerName = config.Address.Hostname()
+			}
 		}
 	}
 
@@ -352,7 +391,28 @@ func loadPostgreSQLLegacyTLSConfigFiles(config *schema.StoragePostgreSQL) (ca *x
 	return ca, certs
 }
 
-func newPostgreSQLVerifyCAFunc(config *tls.Config) func(certificates [][]byte, _ [][]*x509.Certificate) (err error) {
+func newPostgreSQLVerifyConnectionFunc(config *tls.Config) func(cs tls.ConnectionState) error {
+	return func(state tls.ConnectionState) error {
+		if len(state.PeerCertificates) == 0 {
+			return errors.New("failed to parse certificate from server: no peer certificates")
+		}
+
+		opts := x509.VerifyOptions{
+			Roots:         config.RootCAs,
+			Intermediates: x509.NewCertPool(),
+		}
+
+		for _, cert := range state.PeerCertificates[1:] {
+			opts.Intermediates.AddCert(cert)
+		}
+
+		_, err := state.PeerCertificates[0].Verify(opts)
+
+		return err
+	}
+}
+
+func newPostgreSQLVerifyPeerCertificateFunc(config *tls.Config) func(certificates [][]byte, _ [][]*x509.Certificate) (err error) {
 	return func(certificates [][]byte, _ [][]*x509.Certificate) (err error) {
 		certs := make([]*x509.Certificate, len(certificates))
 
@@ -360,20 +420,17 @@ func newPostgreSQLVerifyCAFunc(config *tls.Config) func(certificates [][]byte, _
 
 		for i, asn1Data := range certificates {
 			if cert, err = x509.ParseCertificate(asn1Data); err != nil {
-				return errors.New("failed to parse certificate from server: " + err.Error())
+				return fmt.Errorf("failed to parse certificate from server: %w", err)
 			}
 
 			certs[i] = cert
 		}
 
-		// Leave DNSName empty to skip hostname verification.
 		opts := x509.VerifyOptions{
 			Roots:         config.RootCAs,
 			Intermediates: x509.NewCertPool(),
 		}
 
-		// Skip the first cert because it's the leaf. All others
-		// are intermediates.
 		for _, cert = range certs[1:] {
 			opts.Intermediates.AddCert(cert)
 		}

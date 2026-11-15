@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -13,7 +17,7 @@ func newDocsCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newDocsCLICmd(), newDocsDataCmd(), newDocsDateCmd(), newDocsJSONSchemaCmd(), newDocsManageCmd())
+	cmd.AddCommand(newDocsCLICmd(), newDocsDataCmd(), newDocsDateCmd(), newDocsSEOCmd(), newDocsJSONSchemaCmd(), newDocsManageCmd())
 
 	return cmd
 }

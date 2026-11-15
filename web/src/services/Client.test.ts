@@ -1,0 +1,235 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import axios from "axios";
+
+import { hasServiceError, toData } from "@services/Api";
+import * as Client from "@services/Client";
+import { ServiceError } from "@services/ServiceError";
+
+vi.mock("axios");
+vi.mock("@services/Api");
+
+it("handles successful post", async () => {
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.post as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    const result = await Client.Post("/path", {});
+    expect(result).toBe("test");
+});
+
+it("handles successful post with optional response", async () => {
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.post as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    const result = await Client.PostWithOptionalResponse("/path", {});
+    expect(result).toBe("test");
+});
+
+it("throws on post error", async () => {
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
+    (axios.post as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
+
+    await expect(Client.PostWithOptionalResponse("/path", {})).rejects.toThrow(
+        "Failed POST to /path. Code: 400. Message: error",
+    );
+});
+
+it("throws a service error carrying the status and code", async () => {
+    const mockRes = { data: { code: "password_policy", message: "error", status: "KO" }, status: 200 };
+    (axios.post as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ code: "password_policy", errored: true, message: "error" });
+
+    const err = await Client.PostWithOptionalResponse("/path", {}).catch((e) => e);
+
+    expect(err).toBeInstanceOf(ServiceError);
+    expect(err.message).toBe("Failed POST to /path. Code: 200. Message: error");
+    expect(err.status).toBe(200);
+    expect(err.code).toBe("password_policy");
+});
+
+it("throws on post with no data", async () => {
+    const mockRes = { data: { status: "OK" }, status: 200 };
+    (axios.post as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue(undefined);
+
+    await expect(Client.Post("/path", {})).rejects.toThrow("unexpected type of response");
+});
+
+it("handles successful get", async () => {
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    const result = await Client.Get("/path");
+    expect(result).toBe("test");
+});
+
+it("handles get with optional data returning data", async () => {
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    const result = await Client.GetWithOptionalData("/path");
+    expect(result).toBe("test");
+});
+
+it("handles get with optional data returning null", async () => {
+    const mockRes = { data: { status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue(null);
+
+    const result = await Client.GetWithOptionalData("/path");
+    expect(result).toBeNull();
+});
+
+it("throws on get with no data", async () => {
+    const mockRes = { data: { status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue(undefined);
+
+    await expect(Client.Get("/path")).rejects.toThrow("unexpected type of response");
+});
+
+it("handles successful put with optional response", async () => {
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.put as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    const result = await Client.PutWithOptionalResponse("/path", {});
+    expect(result).toBe("test");
+});
+
+it("throws on put error", async () => {
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
+    (axios.put as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
+
+    await expect(Client.PutWithOptionalResponse("/path", {})).rejects.toThrow(
+        "Failed PUT to /path. Code: 400. Message: error",
+    );
+});
+
+it("handles successful delete with optional response", async () => {
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.delete as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    const result = await Client.DeleteWithOptionalResponse("/path", {});
+    expect(result).toBe("test");
+});
+
+it("throws on delete error", async () => {
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
+    (axios.delete as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
+
+    await expect(Client.DeleteWithOptionalResponse("/path", {})).rejects.toThrow(
+        "Failed DELETE to /path. Code: 400. Message: error",
+    );
+});
+
+it("handles successful put", async () => {
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.put as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    const result = await Client.Put("/path", {});
+    expect(result).toBe("test");
+});
+
+it("throws on put with no data", async () => {
+    const mockRes = { data: { status: "OK" }, status: 200 };
+    (axios.put as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue(undefined);
+
+    await expect(Client.Put("/path", {})).rejects.toThrow("unexpected type of response");
+});
+
+it("throws on get error", async () => {
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
+
+    await expect(Client.Get("/path")).rejects.toThrow("Failed GET from /path. Code: 400.");
+});
+
+it("throws on get with optional data error", async () => {
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
+
+    await expect(Client.GetWithOptionalData("/path")).rejects.toThrow("Failed GET from /path. Code: 400.");
+});
+
+it.each([
+    ["Get", Client.Get],
+    ["GetWithOptionalData", Client.GetWithOptionalData],
+])("throws a service error carrying the status and code on %s", async (_, fn) => {
+    const mockRes = { data: { code: "totp_configuration_not_found", message: "error", status: "KO" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ code: "totp_configuration_not_found", errored: true, message: "error" });
+
+    const err = await fn("/path").catch((e) => e);
+
+    expect(err).toBeInstanceOf(ServiceError);
+    expect(err.message).toBe("Failed GET from /path. Code: 200.");
+    expect(err.status).toBe(200);
+    expect(err.code).toBe("totp_configuration_not_found");
+});
+
+it("throws on get with optional data returning undefined", async () => {
+    const mockRes = { data: { status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue(undefined);
+
+    await expect(Client.GetWithOptionalData("/path")).rejects.toThrow("unexpected type of response");
+});
+
+it("forwards the abort signal to axios on every helper", async () => {
+    const signal = new AbortController().signal;
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (axios.post as any).mockResolvedValue(mockRes);
+    (axios.put as any).mockResolvedValue(mockRes);
+    (axios.delete as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    await Client.Get("/path", signal);
+    expect(axios.get).toHaveBeenLastCalledWith("/path", { signal });
+
+    await Client.GetWithOptionalData("/path", signal);
+    expect(axios.get).toHaveBeenLastCalledWith("/path", { signal });
+
+    await Client.Post("/path", { body: 1 }, signal);
+    expect(axios.post).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });
+
+    await Client.PostWithOptionalResponse("/path", { body: 1 }, signal);
+    expect(axios.post).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });
+
+    await Client.Put("/path", { body: 1 }, signal);
+    expect(axios.put).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });
+
+    await Client.PutWithOptionalResponse("/path", { body: 1 }, signal);
+    expect(axios.put).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });
+
+    await Client.DeleteWithOptionalResponse("/path", { body: 1 }, signal);
+    expect(axios.delete).toHaveBeenLastCalledWith("/path", { data: { body: 1 }, signal });
+});

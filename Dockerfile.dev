@@ -1,22 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:24-alpine@sha256:22b3c1a1171c798c0429f36272922dbb356bbab8a6d11b3b095a143d3321262a AS builder-frontend
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS builder-frontend
 
 WORKDIR /node/src/app
 
+ENV \
+    SHELL="/bin/sh" \
+    PNPM_HOME="/usr/local"
+
 COPY --link web ./
 
-# Install the dependencies and build
-RUN \
-	yarn global add pnpm && \
-	pnpm install --frozen-lockfile && \
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+	wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/7c26e549143daf5cf072a38c428170ad8eccaf2d/install.sh && \
+    ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
+	pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm/store && \
 	pnpm coverage
 
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.24.5-bookworm@sha256:69adc37c19ac6ef724b561b0dc675b27d8c719dfe848db7dd1092a7c9ac24bc6 AS builder-backend
+FROM golang:1.27.4-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -36,13 +44,13 @@ ARG LDFLAGS_EXTRA
 RUN \
 	mv api internal/server/public_html/api && \
 	echo ">> Starting go build..." && \
-	GOEXPERIMENT="nosynchashtriemap" CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build \
+	CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build \
 	-tags dev -ldflags "-linkmode=external -s -w ${LDFLAGS_EXTRA}" -trimpath -buildmode=pie -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest
+FROM authelia/base:latest@sha256:e92bd176400feab3077eb51cd523bb4aefb4c7f5cee8cca6b544241bbe39aaa2
 
 WORKDIR /app
 

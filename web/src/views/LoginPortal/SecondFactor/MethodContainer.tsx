@@ -1,8 +1,10 @@
-import React, { Fragment, ReactNode } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box, Link, Theme, Typography } from "@mui/material";
+import { Fragment, ReactNode } from "react";
+
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import InformationIcon from "@components/InformationIcon";
 import Authenticated from "@views/LoginPortal/Authenticated";
@@ -29,13 +31,12 @@ export interface Props {
 const DefaultMethodContainer = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const { classes, cx } = useStyles();
-
-    const registerMessage = props.registered
-        ? props.title === "Push Notification"
-            ? ""
-            : translate("Manage devices")
-        : translate("Register device");
+    let registerMessage;
+    if (props.registered) {
+        registerMessage = props.title === translate("Push Notification") ? "" : translate("Manage devices");
+    } else {
+        registerMessage = translate("Register device");
+    }
 
     let container: ReactNode;
     let stateClass: string = "";
@@ -55,93 +56,77 @@ const DefaultMethodContainer = function (props: Props) {
     }
 
     return (
-        <Box id={props.id}>
-            <Typography variant={"h6"}>{props.title}</Typography>
-            <Box id={"2fa-container"} className={cx(classes.container, stateClass)}>
-                <Box className={classes.containerFlex}>{container}</Box>
-            </Box>
+        <div id={props.id}>
+            <h6 className="text-xl font-medium">{props.title}</h6>
+            <div id={"2fa-container"} className={`${stateClass} h-[200px]`}>
+                <div className="flex h-full w-full flex-wrap content-center items-center justify-center">
+                    {container}
+                </div>
+            </div>
             {props.onSelectClick && props.registered ? (
-                <Link id={"selection-link"} component={"button"} onClick={props.onSelectClick} underline={"hover"}>
+                <button
+                    id={"selection-link"}
+                    className="text-base text-primary underline-offset-4 hover:underline"
+                    onClick={props.onSelectClick}
+                >
                     {translate("Select a Device")}
-                </Link>
+                </button>
             ) : null}
             {(props.onRegisterClick && props.title !== "Push Notification") ||
             (props.onRegisterClick && props.title === "Push Notification" && props.duoSelfEnrollment) ? (
-                <Link id={"register-link"} component={"button"} onClick={props.onRegisterClick} underline={"hover"}>
+                <button
+                    id={"register-link"}
+                    className="text-base text-primary underline-offset-4 hover:underline"
+                    onClick={props.onRegisterClick}
+                >
                     {registerMessage}
-                </Link>
+                </button>
             ) : null}
-        </Box>
+        </div>
     );
 };
 
 interface NotRegisteredContainerProps {
-    title: string;
-    duoSelfEnrollment: boolean;
+    readonly title: string;
+    readonly duoSelfEnrollment: boolean;
 }
 
 function NotRegisteredContainer(props: NotRegisteredContainerProps) {
     const { t: translate } = useTranslation();
-    const { classes } = useStyles();
+    let infoText;
+    if (props.title === translate("Push Notification")) {
+        infoText = props.duoSelfEnrollment
+            ? translate("Register your first device by clicking on the link below")
+            : translate("Contact your administrator to register a device");
+    } else {
+        infoText = translate("Register your first device by clicking on the link below");
+    }
 
     return (
         <Fragment>
-            <Box className={classes.info}>
+            <div className="mb-4 flex basis-full justify-center">
                 <InformationIcon />
-            </Box>
-            <Typography className={classes.infoTypography}>
+            </div>
+            <p className="text-[#5858ff]">
                 {translate("The resource you're attempting to access requires two-factor authentication")}
-            </Typography>
-            <Typography className={classes.infoTypography}>
-                {props.title === "Push Notification"
-                    ? props.duoSelfEnrollment
-                        ? translate("Register your first device by clicking on the link below")
-                        : translate("Contact your administrator to register a device")
-                    : translate("Register your first device by clicking on the link below")}
-            </Typography>
+            </p>
+            <p className="text-[#5858ff]">{infoText}</p>
         </Fragment>
     );
 }
 
 interface MethodContainerProps {
-    explanation: string;
-    children: ReactNode;
+    readonly explanation: string;
+    readonly children: ReactNode;
 }
 
 function MethodContainer(props: MethodContainerProps) {
-    const { classes } = useStyles();
-
     return (
         <Fragment>
-            <Box className={classes.containerMethod}>{props.children}</Box>
-            <Typography>{props.explanation}</Typography>
+            <div className="mb-4">{props.children}</div>
+            <p>{props.explanation}</p>
         </Fragment>
     );
 }
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    container: {
-        height: "200px",
-    },
-    containerFlex: {
-        display: "flex",
-        flexWrap: "wrap",
-        height: "100%",
-        width: "100%",
-        alignItems: "center",
-        alignContent: "center",
-        justifyContent: "center",
-    },
-    containerMethod: {
-        marginBottom: theme.spacing(2),
-    },
-    info: {
-        marginBottom: theme.spacing(2),
-        flex: "0 0 100%",
-    },
-    infoTypography: {
-        color: "#5858ff",
-    },
-}));
 
 export default DefaultMethodContainer;

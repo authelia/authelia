@@ -1,95 +1,118 @@
-import React, { useCallback, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, IconButton, InputAdornment, Theme } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
+import { useNavigate } from "react-router";
 
 import PasswordMeter from "@components/PasswordMeter";
+import RateLimitCountdown from "@components/RateLimitCountdown";
+import { Button } from "@components/UI/Button";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
+import { useRateLimit } from "@hooks/RateLimit";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
+import { RateLimitedError } from "@services/RateLimit";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+import { ServiceError } from "@services/ServiceError";
+
+const uninitiated = Symbol("uninitiated");
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
-    const { classes, cx } = useStyles();
 
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
     const [password2, setPassword2] = useState("");
     const [errorPassword1, setErrorPassword1] = useState(false);
     const [errorPassword2, setErrorPassword2] = useState(false);
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
+    const { showPassword, toggleProps } = usePasswordVisibility();
 
     const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
         max_length: 0,
         min_length: 8,
         min_score: 0,
+        mode: PasswordPolicyMode.Disabled,
         require_lowercase: false,
         require_number: false,
         require_special: false,
         require_uppercase: false,
-        mode: PasswordPolicyMode.Disabled,
     });
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
     const processToken = useQueryParam(IdentityToken);
 
+    const resetInitiatedRef = useRef<null | string | typeof uninitiated | undefined>(uninitiated);
+    const [attempt, setAttempt] = useState(0);
+    const attemptInitiatedRef = useRef(attempt);
+
+    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() => setAttempt((value) => value + 1));
+
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
+            triggerRateLimit(retryAfter);
+
             createErrorNotification(translate("You have made too many requests"));
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, triggerRateLimit],
     );
 
-    const handleSubmitReset = useCallback(async () => {
-        if (!processToken) {
-            setFormDisabled(true);
-            createErrorNotification(translate("No verification token provided"));
+    useEffect(() => {
+        if (resetInitiatedRef.current === processToken && attemptInitiatedRef.current === attempt) {
             return;
         }
 
-        try {
-            setFormDisabled(true);
+        resetInitiatedRef.current = processToken;
+        attemptInitiatedRef.current = attempt;
 
-            const response = await completeResetPasswordProcess(processToken);
-
-            if (response && response.limited) {
-                handleRateLimited(response.retryAfter);
-
+        const submitReset = async () => {
+            if (!processToken) {
+                setFormDisabled(true);
+                createErrorNotification(translate("No verification token provided"));
                 return;
             }
 
-            const policy = await getPasswordPolicyConfiguration();
-            setPPolicy(policy);
-            setFormDisabled(false);
-        } catch (err) {
-            console.error(err);
-            createErrorNotification(
-                translate("There was an issue completing the process the verification token might have expired"),
-            );
-            setFormDisabled(true);
-        }
-    }, [processToken, createErrorNotification, translate, handleRateLimited]);
+            try {
+                await completeResetPasswordProcess(processToken);
 
-    useEffect(() => {
-        handleSubmitReset();
-    }, [handleSubmitReset]);
+                const policy = await getPasswordPolicyConfiguration();
+                setPPolicy(policy);
+                setFormDisabled(false);
+            } catch (err) {
+                if (err instanceof RateLimitedError) {
+                    handleRateLimited(err.retryAfter);
+                    return;
+                }
+
+                console.error(err);
+                createErrorNotification(
+                    translate("There was an issue completing the process the verification token might have expired"),
+                );
+                setFormDisabled(true);
+            }
+        };
+
+        submitReset().catch(console.error);
+    }, [attempt, processToken, createErrorNotification, translate, handleRateLimited]);
 
     const doResetPassword = async () => {
         setPassword1("");
         setPassword2("");
+        setErrorPassword1(false);
+        setErrorPassword2(false);
 
         if (password1 === "" || password2 === "") {
             if (password1 === "") {
@@ -117,83 +140,58 @@ const ResetPasswordStep2 = function () {
             setTimeout(() => navigate(IndexRoute), 1500);
         } catch (err) {
             console.error(err);
-            if ((err as Error).message.includes("0000052D.")) {
-                createErrorNotification(
-                    translate("Your supplied password does not meet the password policy requirements"),
-                );
-            } else if ((err as Error).message.includes("policy")) {
+            if (
+                err instanceof ServiceError &&
+                (err.code === "password_policy" || err.code === "password_backend_complexity")
+            ) {
                 createErrorNotification(
                     translate("Your supplied password does not meet the password policy requirements"),
                 );
             } else {
                 createErrorNotification(translate("There was an issue resetting the password"));
             }
+
+            setFormDisabled(false);
         }
     };
 
-    const handleResetClick = () => doResetPassword();
+    const handleResetClick = () => {
+        doResetPassword().catch(console.error);
+    };
 
     const handleCancelClick = () => navigate(IndexRoute);
 
     return (
         <MinimalLayout title={translate("Enter new password")} id="reset-password-step2-stage">
-            <FormControl id={"form-reset-password"}>
-                <Grid container className={classes.root} spacing={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            id="password1-textfield"
-                            label={translate("New password")}
-                            variant="outlined"
-                            type={showPassword ? "text" : "password"}
-                            value={password1}
-                            disabled={formDisabled}
-                            onChange={(e) => setPassword1(e.target.value)}
-                            error={errorPassword1}
-                            className={cx(classes.fullWidth)}
-                            autoComplete="new-password"
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                size="large"
-                                                onMouseDown={() => setShowPassword(true)}
-                                                onMouseUp={() => setShowPassword(false)}
-                                                onMouseLeave={() => setShowPassword(false)}
-                                                onTouchStart={() => setShowPassword(true)}
-                                                onTouchEnd={() => setShowPassword(false)}
-                                                onTouchCancel={() => setShowPassword(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(true);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onKeyUp={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(false);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                            >
-                                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
-                        />
+            <div id={"form-reset-password"}>
+                <div className="my-4 grid grid-cols-1 gap-4">
+                    <div className="w-full">
+                        <Label htmlFor="password1-textfield">{translate("New password")}</Label>
+                        <div className="relative">
+                            <Input
+                                id="password1-textfield"
+                                type={showPassword ? "text" : "password"}
+                                value={password1}
+                                disabled={formDisabled}
+                                onChange={(e) => setPassword1(e.target.value)}
+                                error={errorPassword1}
+                                className="pr-10"
+                                autoComplete="new-password"
+                            />
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle password visibility")}
+                                showPassword={showPassword}
+                                {...toggleProps}
+                            />
+                        </div>
                         {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                             <PasswordMeter value={password1} policy={pPolicy} />
                         )}
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
+                    </div>
+                    <div className="w-full">
+                        <Label htmlFor="password2-textfield">{translate("Repeat new password")}</Label>
+                        <Input
                             id="password2-textfield"
-                            label={translate("Repeat new password")}
-                            variant="outlined"
                             type={showPassword ? "text" : "password"}
                             disabled={formDisabled}
                             value={password2}
@@ -201,53 +199,43 @@ const ResetPasswordStep2 = function () {
                             error={errorPassword2}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
-                                    doResetPassword();
+                                    doResetPassword().catch(console.error);
                                     ev.preventDefault();
                                 }
                             }}
-                            className={cx(classes.fullWidth)}
                             autoComplete="new-password"
                         />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="reset-button"
-                            variant="contained"
-                            color="primary"
-                            name="password1"
-                            disabled={formDisabled}
-                            onClick={handleResetClick}
-                            className={classes.fullWidth}
-                        >
-                            {translate("Reset")}
-                        </Button>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="cancel-button"
-                            variant="contained"
-                            color="primary"
-                            name="password2"
-                            onClick={handleCancelClick}
-                            className={classes.fullWidth}
-                        >
-                            {translate("Cancel")}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </FormControl>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="w-full">
+                            <Button
+                                id="reset-button"
+                                variant="default"
+                                name="password1"
+                                disabled={formDisabled}
+                                onClick={handleResetClick}
+                                className="w-full"
+                            >
+                                {translate("Reset")}
+                            </Button>
+                        </div>
+                        <div className="w-full">
+                            <Button
+                                id="cancel-button"
+                                variant="default"
+                                name="password2"
+                                onClick={handleCancelClick}
+                                className="w-full"
+                            >
+                                {translate("Cancel")}
+                            </Button>
+                        </div>
+                    </div>
+                    <RateLimitCountdown secondsRemaining={secondsRemaining} />
+                </div>
+            </div>
         </MinimalLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-    fullWidth: {
-        width: "100%",
-    },
-}));
 
 export default ResetPasswordStep2;

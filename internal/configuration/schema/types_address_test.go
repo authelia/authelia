@@ -1,10 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +18,12 @@ import (
 )
 
 func TestNewAddressFromString(t *testing.T) {
-	four := uint64(4)
+	dir := t.TempDir()
+
+	f, err := os.CreateTemp(dir, "fd-test")
+	require.NoError(t, err)
+
+	fd := uint64(f.Fd())
 
 	testCases := []struct {
 		name                                         string
@@ -174,26 +185,26 @@ func TestNewAddressFromString(t *testing.T) {
 		},
 		{
 			"ShouldParseFileDescriptor",
-			"fd://4",
-			&Address{true, false, -1, 0, &four, &url.URL{Scheme: "fd", Host: "4"}},
-			"4",
-			"fd://4",
+			fmt.Sprintf("fd://%d", fd),
+			&Address{true, false, -1, 0, &fd, &url.URL{Scheme: "fd", Host: fmt.Sprintf("%d", fd)}},
+			fmt.Sprintf("%d", fd),
+			fmt.Sprintf("fd://%d", fd),
 			"",
 		},
 		{
 			"ShouldParseFileDescriptorWithUmask",
-			"fd://4?umask=0022",
-			&Address{true, false, 18, 0, &four, &url.URL{Scheme: "fd", Host: "4", RawQuery: "umask=0022"}},
-			"4",
-			"fd://4?umask=0022",
+			fmt.Sprintf("fd://%d?umask=0022", fd),
+			&Address{true, false, 18, 0, &fd, &url.URL{Scheme: "fd", Host: fmt.Sprintf("%d", fd), RawQuery: "umask=0022"}},
+			fmt.Sprintf("%d", fd),
+			fmt.Sprintf("fd://%d?umask=0022", fd),
 			"",
 		},
 		{
 			"ShouldParseFileDescriptorWithUmaskAndPath",
-			"fd://4?umask=0022&path=example",
-			&Address{true, false, 18, 0, &four, &url.URL{Scheme: "fd", Host: "4", RawQuery: "umask=0022&path=example"}},
-			"4",
-			"fd://4?umask=0022&path=example",
+			fmt.Sprintf("fd://%d?umask=0022&path=example", fd),
+			&Address{true, false, 18, 0, &fd, &url.URL{Scheme: "fd", Host: fmt.Sprintf("%d", fd), RawQuery: "umask=0022&path=example"}},
+			fmt.Sprintf("%d", fd),
+			fmt.Sprintf("fd://%d?umask=0022&path=example", fd),
 			"",
 		},
 		{
@@ -657,30 +668,46 @@ func TestNewSMTPAddress(t *testing.T) {
 }
 
 func TestAddress_Dial(t *testing.T) {
-	testCases := []struct {
+	type testCase struct {
 		name    string
 		have    Address
 		success bool
 		err     string
-	}{
+		errmap  map[string]string
+	}
+
+	testCases := []testCase{
 		{
 			"ShouldNotDialNil",
 			Address{true, false, -1, 0, nil, nil},
 			false,
 			"address url is nil",
+			nil,
 		},
 		{
 			"ShouldNotDialInvalid",
 			Address{false, false, -1, 0, nil, &url.URL{}},
 			false,
 			"address url is nil",
+			nil,
 		},
 		{
 			"ShouldNotDialInvalidAddress",
 			Address{true, false, -1, 0, nil, &url.URL{Scheme: "abc", Host: "127.0.0.1:0"}},
 			false,
 			"dial tcp 127.0.0.1:0: connect: connection refused",
+			map[string]string{
+				"darwin": "dial tcp 127.0.0.1:0: connect: can't assign requested address",
+			},
 		},
+	}
+
+	getExpectedErr := func(tc testCase) string {
+		if tc.errmap == nil {
+			return tc.err
+		}
+
+		return tc.errmap[runtime.GOOS]
 	}
 
 	for _, tc := range testCases {
@@ -700,8 +727,10 @@ func TestAddress_Dial(t *testing.T) {
 			} else {
 				assert.Nil(t, conn)
 
-				if tc.err != "" {
-					assert.EqualError(t, err, tc.err)
+				expectedErr := getExpectedErr(tc)
+
+				if expectedErr != "" {
+					assert.EqualError(t, err, expectedErr)
 				} else {
 					assert.NotNil(t, err)
 				}
@@ -713,7 +742,10 @@ func TestAddress_Dial(t *testing.T) {
 func TestAddress_UnixDomainSocket(t *testing.T) {
 	dir := t.TempDir()
 
-	four := uint64(4)
+	f, err := os.CreateTemp(dir, "fd-test")
+	require.NoError(t, err)
+
+	fd := uint64(f.Fd())
 
 	testCases := []struct {
 		name     string
@@ -777,15 +809,15 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 		},
 		{
 			"ShouldParseFileDescriptorWithUmaskAndPath",
-			"fd://4?umask=0022&path=abc",
+			fmt.Sprintf("fd://%d?umask=0022&path=abc", fd),
 			false,
-			&four,
+			&fd,
 			"",
 			"/abc",
 			"0022",
 			18,
 			"",
-			"file file+net 4: getsockopt: socket operation on non-socket",
+			fmt.Sprintf("file file+net %d: getsockopt: socket operation on non-socket", fd),
 		},
 		{
 			"ShouldParseSocketWithBadUmask",
@@ -819,6 +851,10 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 				assert.Equal(t, tc.rpath, actual.RouterPath())
 				assert.Equal(t, tc.strUmask, actual.Umask())
 				assert.Equal(t, tc.umask, actual.umask)
+
+				if runtime.GOOS == "darwin" && actual.IsUnixDomainSocket() {
+					return
+				}
 
 				ln, err := actual.Listener()
 
@@ -869,6 +905,51 @@ func TestAddress_SocketHostname(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, tc.have.SocketHostname())
+		})
+	}
+}
+
+func TestAddress_HostnameLiteral(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     Address
+		expected string
+	}{
+		{
+			"ShouldReturnHostname",
+			Address{true, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "examplea:80"}},
+			"examplea",
+		},
+		{
+			"ShouldReturnIPv4",
+			Address{true, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "127.0.0.1:80"}},
+			"127.0.0.1",
+		},
+		{
+			"ShouldReturnIPv6WithBrackets",
+			Address{true, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "[::1]:80"}},
+			"[::1]",
+		},
+		{
+			"ShouldReturnIPv6ExpandedWithBrackets",
+			Address{true, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "[2001:db8::1]:80"}},
+			"[2001:db8::1]",
+		},
+		{
+			"ShouldReturnNothingInvalid",
+			Address{false, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "[::1]:80"}},
+			"",
+		},
+		{
+			"ShouldReturnNothingNil",
+			Address{true, false, -1, 80, nil, nil},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.HostnameLiteral())
 		})
 	}
 }

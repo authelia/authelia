@@ -1,8 +1,12 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Financial"
-description: "Information on contributing financially to the Authelia project."
+description: "Information on contributing financially to the Authelia project via Open Collective including how funds are used, sponsorship tiers, and recognition benefits."
 summary: "The Authelia team is small and all of the maintainers spend their free time managing the project. Some may wish to contribute financially for various reasons, this page provides information about doing so."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 120
@@ -55,7 +59,7 @@ the Authelia binary itself.
 
 We are currently directly looking for someone to sponsor:
 
-* [Security Audit](../../policies/security.md#help-wanted)
+- [Security Audit](../../policies/security.md#help-wanted)
 
 To see a list of our sponsors please see the [sponsors section](../../information/about.md#sponsors) on the about page.
 

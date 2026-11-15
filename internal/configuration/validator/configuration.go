@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -57,6 +61,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateSession(config, validator)
 
+	ValidateCache(config, validator)
+
 	ValidateRegulation(config, validator)
 
 	ValidateServer(config, validator)
@@ -106,12 +112,14 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 	}
 }
 
+// NewValidateCtx returns a new *ValidateCtx.
 func NewValidateCtx() *ValidateCtx {
 	return &ValidateCtx{
 		Context: context.Background(),
 	}
 }
 
+// ValidateCtx is the context used during configuration validation.
 type ValidateCtx struct {
 	client *http.Client
 
@@ -122,6 +130,7 @@ type ValidateCtx struct {
 	context.Context
 }
 
+// GetHTTPClient returns the [http.Client] used during configuration validation.
 func (ctx *ValidateCtx) GetHTTPClient() (client *http.Client) {
 	if ctx.client == nil {
 		dialer := &net.Dialer{
@@ -146,6 +155,7 @@ func (ctx *ValidateCtx) GetHTTPClient() (client *http.Client) {
 	return ctx.client
 }
 
+// WithTLSConfig returns a function which sets the [tls.Config] of a ValidateCtx.
 func WithTLSConfig(config *tls.Config) func(ctx *ValidateCtx) {
 	return func(ctx *ValidateCtx) {
 		ctx.tlsconfig, ctx.client = config, nil
