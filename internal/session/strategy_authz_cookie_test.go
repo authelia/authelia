@@ -473,7 +473,7 @@ func TestStrategyShouldIgnoreAFailureToDeleteThePointer(t *testing.T) {
 				return strategy.Authz().Destroy(ctx)
 			},
 			0,
-			[]string{testNameAuthz, testNameSession},
+			[]string{testNameSession, testNameAuthz, testNameCSRF},
 			false,
 		},
 	}

@@ -499,11 +499,15 @@ func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
 	p.setCached(ctx, p.cacheKey(), nil)
 	p.setCached(ctx, p.cacheKeyAuthz(), nil)
 
+	p.clearCookies(ctx)
+
+	return nil
+}
+
+func (p *DefaultStrategy) clearCookies(ctx Context) {
 	ctx.ClearCookie(p.newDeletionCookie())
 	ctx.ClearCookie(p.newAuthzDeletionCookie())
 	ctx.ClearCookie(p.newCSRFDeletionCookie())
-
-	return nil
 }
 
 func (p *DefaultStrategy) destroyByID(ctx Context, id string, userSession *UserSession) (err error) {
@@ -539,9 +543,7 @@ func (p *DefaultStrategy) discard(ctx Context, session *UserSession) (err error)
 	p.setCached(ctx, p.cacheKey(), nil)
 	p.setCached(ctx, p.cacheKeyAuthz(), nil)
 
-	ctx.ClearCookie(p.newDeletionCookie())
-	ctx.ClearCookie(p.newAuthzDeletionCookie())
-	ctx.ClearCookie(p.newCSRFDeletionCookie())
+	p.clearCookies(ctx)
 
 	return nil
 }
@@ -649,7 +651,7 @@ func (p *DefaultStrategy) establishCSRFSecret(ctx Context, sid string, session *
 
 		stored := &UserSession{}
 
-		if record == nil || len(record.GetSessionData()) == 0 || record.GetSessionSignature() != sid || p.codec.Open(p.config.Domain, record, stored) != nil {
+		if record == nil || len(record.GetSessionData()) == 0 || record.GetSessionSignature() != sid || p.codec.Open(p.config.Domain, record, stored) != nil || stored.CookieDomain != p.config.Domain {
 			return false, p.generateCSRFSecret(session)
 		}
 

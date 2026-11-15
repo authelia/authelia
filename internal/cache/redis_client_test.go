@@ -213,7 +213,7 @@ func TestRedis_SessionSave(t *testing.T) {
 			func(t *testing.T, client *mockRedisCmdable) {
 				require.Len(t, client.evals, 1)
 
-				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keySession}, args: []any{[]byte("data"), int64(3600000), "pid", "john", "0", []byte(nil)}}, client.evals[0])
+				assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keySession}, args: []any{[]byte("data"), int64(3600000), "pid", "john", "0", []byte(nil), "0"}}, client.evals[0])
 				assert.Equal(t, []mockRedisSet{{key: keyPublic, value: "id", expiration: time.Hour}}, client.sets)
 
 				require.Len(t, client.added[keyUser], 1)
@@ -232,7 +232,7 @@ func TestRedis_SessionSave(t *testing.T) {
 			nil,
 			"",
 			func(t *testing.T, client *mockRedisCmdable) {
-				assert.Equal(t, []any{[]byte("data"), int64(3600000), "pid", "", "0", []byte(nil)}, client.evals[0].args)
+				assert.Equal(t, []any{[]byte("data"), int64(3600000), "pid", "", "0", []byte(nil), "0"}, client.evals[0].args)
 				assert.Len(t, client.sets, 1)
 				assert.Empty(t, client.added)
 			},
@@ -362,6 +362,21 @@ func TestRedis_SessionSave(t *testing.T) {
 					assert.EqualError(t, err, tc.Error)
 				}
 
+				exists := "0"
+
+				if data {
+					exists = "1"
+				}
+
+				for i, eval := range client.evals {
+					if eval.script == redisSessionSave {
+						require.Len(t, eval.args, 7)
+						assert.Equal(t, exists, eval.args[6])
+
+						client.evals[i].args[6] = "0"
+					}
+				}
+
 				if tc.Assert != nil {
 					tc.Assert(t, client)
 				}
@@ -379,7 +394,7 @@ func TestRedis_SessionSaveDataShouldPassThePreviousDataToTheScript(t *testing.T)
 	require.NoError(t, provider.SessionSaveData(t.Context(), "example.com", "id", "pid", "john", time.Hour, []byte("previous"), []byte("data")))
 
 	require.Len(t, client.evals, 1)
-	assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keySession}, args: []any{[]byte("data"), int64(3600000), "pid", "john", "1", []byte("previous")}}, client.evals[0])
+	assert.Equal(t, mockRedisEval{script: redisSessionSave, keys: []string{keySession}, args: []any{[]byte("data"), int64(3600000), "pid", "john", "1", []byte("previous"), "1"}}, client.evals[0])
 
 	client = &mockRedisCmdable{evalResults: []any{[]any{int64(0)}}}
 	provider = NewRedis(client, "standalone")

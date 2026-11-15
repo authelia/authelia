@@ -126,7 +126,7 @@ func (a *DefaultAuthzStrategy) SaveActivity(ctx Context, userSession *UserSessio
 }
 
 // Destroy removes the session the authz cookie of the request is linked to along with the pointer record, and instructs
-// the user agent to discard both cookies. A session which the authz cookie doesn't resolve to is never removed. It
+// the user agent to discard its session cookies. A session which the authz cookie doesn't resolve to is never removed. It
 // returns ErrNotPermittedOnPortalRequest on a request which isn't to an authorization endpoint.
 func (a *DefaultAuthzStrategy) Destroy(ctx Context) (err error) {
 	if !ctx.IsAuthzEndpointRequest() {
@@ -140,8 +140,7 @@ func (a *DefaultAuthzStrategy) Destroy(ctx Context) (err error) {
 	p.setCached(ctx, p.cacheKeyAuthz(), nil)
 	p.setCached(ctx, p.cacheKey(), nil)
 
-	ctx.ClearCookie(p.newAuthzDeletionCookie())
-	ctx.ClearCookie(p.newDeletionCookie())
+	p.clearCookies(ctx)
 
 	return err
 }

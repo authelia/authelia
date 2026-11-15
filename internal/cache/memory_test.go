@@ -247,6 +247,25 @@ func TestMemory_SessionChangeIDMissingSession(t *testing.T) {
 	assert.Empty(t, provider.lookupUsername)
 }
 
+func TestMemory_SessionChangeIDExpiredSession(t *testing.T) {
+	ctx := t.Context()
+	provider := NewMemory()
+
+	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
+
+	provider.session[provider.key("example.com", "id")].expires = time.Now().Add(-time.Second)
+
+	assert.ErrorIs(t, provider.SessionChangeID(ctx, "example.com", "id", "id2", "", "", time.Hour, []byte("anonymous")), session.ErrSessionSuperseded)
+
+	record, err := provider.SessionGet(ctx, "example.com", "id2")
+	assert.NoError(t, err)
+	assert.Nil(t, record)
+
+	ids, err := provider.SessionGetIDsByUsername(ctx, "example.com", "john")
+	assert.NoError(t, err)
+	assert.NotContains(t, ids, "id2")
+}
+
 func TestMemory_SessionSaveShouldDiscardStaleSaveAfterChangeID(t *testing.T) {
 	ctx := t.Context()
 	provider := NewMemory()
