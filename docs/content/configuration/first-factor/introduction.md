@@ -66,6 +66,12 @@ refresh this value, and `disable` will never refresh the profile.
 
 ### password_reset
 
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Authelia does not currently destroy the user's other existing sessions when they reset their password; those sessions
+remain valid until they expire or the user logs out of them. Destroying these sessions may become a guarantee in a
+future release, but it should not be relied upon today.
+{{< /callout >}}
+
 #### disable
 
 {{< confkey type="boolean" default="false" required="no" >}}
@@ -81,6 +87,12 @@ This replaces the inbuilt password reset functionality and disables the endpoint
 other than nothing or an empty string.
 
 ### password_change
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Authelia does not currently destroy the user's other existing sessions when they change their password; those sessions
+remain valid until they expire or the user logs out of them. Destroying these sessions may become a guarantee in a
+future release, but it should not be relied upon today.
+{{< /callout >}}
 
 #### disable
 
