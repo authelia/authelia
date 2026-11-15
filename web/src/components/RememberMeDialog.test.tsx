@@ -11,13 +11,13 @@ vi.mock("react-i18next", () => ({
 }));
 
 it("renders nothing when closed", () => {
-    render(<RememberMeDialog open={false} onChoice={vi.fn()} />);
+    render(<RememberMeDialog open={false} onCancel={vi.fn()} onChoice={vi.fn()} />);
 
     expect(screen.queryByText("Remember me")).not.toBeInTheDocument();
 });
 
 it("renders the prompt when open", () => {
-    render(<RememberMeDialog open={true} onChoice={vi.fn()} />);
+    render(<RememberMeDialog open={true} onCancel={vi.fn()} onChoice={vi.fn()} />);
 
     expect(document.getElementById("remember-me-dialog")).toBeInTheDocument();
     expect(screen.getByText("Remember me")).toBeInTheDocument();
@@ -27,7 +27,7 @@ it("renders the prompt when open", () => {
 it("calls onChoice with true when yes is clicked", () => {
     const onChoice = vi.fn();
 
-    render(<RememberMeDialog open={true} onChoice={onChoice} />);
+    render(<RememberMeDialog open={true} onCancel={vi.fn()} onChoice={onChoice} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Yes" }));
 
@@ -37,19 +37,21 @@ it("calls onChoice with true when yes is clicked", () => {
 it("calls onChoice with false when no is clicked", () => {
     const onChoice = vi.fn();
 
-    render(<RememberMeDialog open={true} onChoice={onChoice} />);
+    render(<RememberMeDialog open={true} onCancel={vi.fn()} onChoice={onChoice} />);
 
     fireEvent.click(screen.getByRole("button", { name: "No" }));
 
     expect(onChoice).toHaveBeenCalledWith(false);
 });
 
-it("calls onChoice with false when dismissed", async () => {
+it("calls onCancel rather than onChoice when dismissed", async () => {
+    const onCancel = vi.fn();
     const onChoice = vi.fn();
 
-    render(<RememberMeDialog open={true} onChoice={onChoice} />);
+    render(<RememberMeDialog open={true} onCancel={onCancel} onChoice={onChoice} />);
 
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
 
-    await waitFor(() => expect(onChoice).toHaveBeenCalledWith(false));
+    await waitFor(() => expect(onCancel).toHaveBeenCalled());
+    expect(onChoice).not.toHaveBeenCalled();
 });

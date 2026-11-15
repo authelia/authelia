@@ -93,6 +93,12 @@ function getAssertionResultFromDOMException(
     }
 }
 
+function isCeremonyAborted(exception: unknown) {
+    if (!(exception instanceof Error)) return false;
+
+    return exception.name === "AbortError" || (exception as { code?: string }).code === "ERROR_CEREMONY_ABORTED";
+}
+
 export async function getWebAuthnOptions(signal?: AbortSignal): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
@@ -125,7 +131,7 @@ export async function getWebAuthnResult(
         if (exception) {
             result.result = getAssertionResultFromDOMException(exception, options);
 
-            console.error(exception);
+            if (!isCeremonyAborted(exception)) console.error(exception);
 
             return result;
         } else {

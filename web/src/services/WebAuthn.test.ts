@@ -77,6 +77,33 @@ it("handles webauthn result with AbortError dom exception", async () => {
     expect(result.result).toBe(AssertionResult.FailureUserConsent);
 });
 
+it("does not log a webauthn result which was aborted", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "AbortError"));
+
+    await getWebAuthnResult({} as any, true);
+
+    expect(console.error).not.toHaveBeenCalled();
+});
+
+it("does not log a webauthn result which was cancelled by the abort service", async () => {
+    const error = Object.assign(new Error("cancelled"), { code: "ERROR_CEREMONY_ABORTED", name: "AbortError" });
+
+    (startAuthentication as any).mockRejectedValue(error);
+
+    const result = await getWebAuthnResult({} as any, true);
+
+    expect(result.result).toBe(AssertionResult.FailureUserConsent);
+    expect(console.error).not.toHaveBeenCalled();
+});
+
+it("logs a webauthn result which was not allowed", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "NotAllowedError"));
+
+    await getWebAuthnResult({} as any);
+
+    expect(console.error).toHaveBeenCalled();
+});
+
 it("handles webauthn result with UnknownError dom exception", async () => {
     (startAuthentication as any).mockRejectedValue(new DOMException("test", "UnknownError"));
 

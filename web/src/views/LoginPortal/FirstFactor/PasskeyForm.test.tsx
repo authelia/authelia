@@ -75,6 +75,12 @@ function pending() {
     return new Promise(() => {}) as any;
 }
 
+function setVisibility(state: DocumentVisibilityState, dispatch = true) {
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue(state);
+
+    if (dispatch) document.dispatchEvent(new Event("visibilitychange"));
+}
+
 function getButton() {
     return document.getElementById("passkey-sign-in-button") as HTMLButtonElement;
 }
@@ -533,11 +539,6 @@ describe("conditional mediation rearm", () => {
         expect(getOptionsMock).toHaveBeenCalledTimes(2);
         expect(getOptionsMock).toHaveBeenLastCalledWith(expect.anything(), true);
         expect(mocks.cancelCeremony).toHaveBeenCalledTimes(1);
-
-        const [first, second] = getOptionsMock.mock.calls.map(([signal]) => signal as AbortSignal);
-
-        expect(first.aborted).toBe(true);
-        expect(second.aborted).toBe(false);
     });
 
     it("keeps restarting the ceremony for as long as it is left waiting", async () => {
@@ -600,8 +601,10 @@ describe("conditional mediation rearm", () => {
         expect(getOptionsMock).toHaveBeenLastCalledWith(expect.anything(), false);
     });
 
-    it("cancels the options request of the ceremony when an explicit one starts", async () => {
-        getOptionsMock.mockReturnValueOnce(pending());
+    it("waits for the options request of the ceremony to settle before an explicit one starts", async () => {
+        let resolveFirst: (value: unknown) => void = () => {};
+
+        getOptionsMock.mockReturnValueOnce(new Promise((r) => (resolveFirst = r)) as any);
 
         renderForm();
 
@@ -609,10 +612,38 @@ describe("conditional mediation rearm", () => {
 
         fireEvent.click(getButton());
 
-        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(2));
+        await advance(0);
 
-        expect((getOptionsMock.mock.calls[0][0] as AbortSignal).aborted).toBe(true);
-        expect((getOptionsMock.mock.calls[1][0] as AbortSignal).aborted).toBe(false);
+        expect(getOptionsMock).toHaveBeenCalledTimes(1);
+
+        resolveFirst({ options: timedOptions, status: 200 });
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(2));
+        expect(getOptionsMock).toHaveBeenLastCalledWith(expect.anything(), false);
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
+        expect(getResultMock).toHaveBeenLastCalledWith(timedOptions, false);
+    });
+
+    it("waits for the options request of a superseded ceremony to settle before restarting", async () => {
+        let resolveFirst: (value: unknown) => void = () => {};
+
+        getOptionsMock.mockReturnValueOnce(new Promise((r) => (resolveFirst = r)) as any);
+
+        renderForm();
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(1));
+
+        await act(async () => setVisibility("hidden"));
+        await act(async () => setVisibility("visible"));
+
+        await advance(0);
+
+        expect(getOptionsMock).toHaveBeenCalledTimes(1);
+
+        resolveFirst({ options: timedOptions, status: 200 });
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(2));
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
     });
 
     it("restarts the ceremony after an explicit one is cancelled by the user", async () => {
@@ -665,15 +696,103 @@ describe("conditional mediation rearm", () => {
 
         await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(1));
 
-        await advance(49000);
+        await advance(1900);
 
         expect(getOptionsMock).toHaveBeenCalledTimes(1);
 
-        await advance(1000);
+        await advance(100);
 
         await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
         expect(getOptionsMock).toHaveBeenCalledTimes(2);
         expect(props.onAuthenticationError).not.toHaveBeenCalled();
+    });
+
+    it("backs off exponentially while the options request keeps failing", async () => {
+        getOptionsMock.mockResolvedValue({ options: null, status: 500 } as any);
+
+        renderForm();
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(1));
+
+        await advance(2000);
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(2));
+
+        await advance(3900);
+        expect(getOptionsMock).toHaveBeenCalledTimes(2);
+
+        await advance(100);
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(3));
+
+        await advance(7900);
+        expect(getOptionsMock).toHaveBeenCalledTimes(3);
+
+        await advance(100);
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(4));
+    });
+
+    it("caps the delay between attempts while the options request keeps failing", async () => {
+        getOptionsMock.mockResolvedValue({ options: null, status: 500 } as any);
+
+        renderForm();
+
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(1));
+
+        for (let delay = 2000; delay < 300000; delay *= 2) {
+            const calls = getOptionsMock.mock.calls.length;
+
+            await advance(delay);
+            await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(calls + 1));
+        }
+
+        const calls = getOptionsMock.mock.calls.length;
+
+        await advance(300000);
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(calls + 1));
+
+        await advance(300000);
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(calls + 2));
+    });
+
+    it("attempts the ceremony again shortly when the browser rejects it without a credential", async () => {
+        getResultMock.mockResolvedValueOnce({ result: AssertionResult.FailureUserConsent } as any);
+
+        const { props } = renderForm();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
+
+        await advance(1900);
+
+        expect(getResultMock).toHaveBeenCalledTimes(1);
+
+        await advance(100);
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(2));
+        expect(getResultMock).toHaveBeenLastCalledWith(timedOptions, true);
+        expect(props.onAuthenticationError).not.toHaveBeenCalled();
+    });
+
+    it("resets the back off once a ceremony has been left waiting until it is restarted", async () => {
+        getResultMock
+            .mockResolvedValueOnce({ result: AssertionResult.FailureUserConsent } as any)
+            .mockResolvedValueOnce({ result: AssertionResult.FailureUserConsent } as any)
+            .mockReturnValueOnce(pending())
+            .mockResolvedValueOnce({ result: AssertionResult.FailureUserConsent } as any);
+
+        renderForm();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
+
+        await advance(2000);
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(2));
+
+        await advance(4000);
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(3));
+
+        await advance(50000);
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(4));
+
+        await advance(2000);
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(5));
     });
 
     it("attempts the ceremony again later when the options request throws", async () => {
@@ -683,7 +802,7 @@ describe("conditional mediation rearm", () => {
 
         await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(1));
 
-        await advance(50000);
+        await advance(2000);
 
         await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
         expect(props.onAuthenticationError).not.toHaveBeenCalled();
@@ -700,6 +819,98 @@ describe("conditional mediation rearm", () => {
 
         expect(getOptionsMock).toHaveBeenCalledTimes(1);
         expect((getOptionsMock.mock.calls[0][0] as AbortSignal).aborted).toBe(true);
+    });
+});
+
+describe("conditional mediation visibility", () => {
+    const timedOptions = { challenge: "challenge", timeout: 60000 } as any;
+
+    beforeEach(() => {
+        mocks.autofillSupported = true;
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        getOptionsMock.mockResolvedValue({ options: timedOptions, status: 200 } as any);
+        getResultMock.mockReturnValue(pending());
+    });
+
+    const advance = async (ms: number) => {
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(ms);
+        });
+    };
+
+    it("does not start a ceremony while the page is hidden", async () => {
+        setVisibility("hidden", false);
+
+        renderForm();
+
+        await advance(120000);
+
+        expect(getOptionsMock).not.toHaveBeenCalled();
+    });
+
+    it("starts a ceremony once a hidden page becomes visible", async () => {
+        setVisibility("hidden", false);
+
+        renderForm();
+
+        await advance(0);
+
+        expect(getOptionsMock).not.toHaveBeenCalled();
+
+        await act(async () => setVisibility("visible"));
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
+        expect(getOptionsMock).toHaveBeenLastCalledWith(expect.anything(), true);
+    });
+
+    it("cancels the ceremony and stops restarting it while the page is hidden", async () => {
+        renderForm();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
+
+        await act(async () => setVisibility("hidden"));
+
+        expect(mocks.cancelCeremony).toHaveBeenCalledTimes(1);
+
+        await advance(120000);
+
+        expect(getOptionsMock).toHaveBeenCalledTimes(1);
+
+        await act(async () => setVisibility("visible"));
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(2));
+    });
+
+    it("does not cancel an explicit ceremony when the page is hidden", async () => {
+        renderForm();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(2));
+
+        mocks.cancelCeremony.mockClear();
+
+        await act(async () => setVisibility("hidden"));
+
+        expect(mocks.cancelCeremony).not.toHaveBeenCalled();
+    });
+
+    it("does not abort the sign in when the page is hidden after a credential is picked from autofill", async () => {
+        getResultMock.mockResolvedValueOnce({ response: assertionResponse, result: AssertionResult.Success } as any);
+
+        const { props } = renderForm({ rememberMe: true });
+
+        await waitFor(() => expect(getRememberMeDialog()).toBeInTheDocument());
+
+        await act(async () => setVisibility("hidden"));
+
+        await answerRememberMe(true);
+
+        await waitFor(() => expect(props.onAuthenticationSuccess).toHaveBeenCalled());
+        expect(postResponseMock.mock.calls[0][1]).toBe(true);
+        expect((postResponseMock.mock.calls[0][7] as AbortSignal).aborted).toBe(false);
     });
 });
 
@@ -756,8 +967,8 @@ describe("remember me", () => {
         expect(postResponseMock.mock.calls[0][1]).toBe(false);
     });
 
-    it("does not remember the session when the prompt is dismissed", async () => {
-        renderForm({ rememberMe: true });
+    it("cancels the sign in when the prompt is dismissed", async () => {
+        const { props } = renderForm({ rememberMe: true });
 
         fireEvent.click(getButton());
 
@@ -765,8 +976,43 @@ describe("remember me", () => {
 
         fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
 
-        await waitFor(() => expect(postResponseMock).toHaveBeenCalled());
-        expect(postResponseMock.mock.calls[0][1]).toBe(false);
+        await waitFor(() => expect(getRememberMeDialog()).not.toBeInTheDocument());
+        await waitFor(() => expect(props.onAuthenticationStop).toHaveBeenCalled());
+        expect(postResponseMock).not.toHaveBeenCalled();
+        expect(props.onAuthenticationError).not.toHaveBeenCalled();
+        expect(props.onAuthenticationSuccess).not.toHaveBeenCalled();
+        expect(getButton()).not.toBeDisabled();
+    });
+
+    it("restarts the conditional ceremony when the prompt is dismissed", async () => {
+        mocks.autofillSupported = true;
+        getResultMock
+            .mockResolvedValueOnce({ response: assertionResponse, result: AssertionResult.Success } as any)
+            .mockReturnValue(pending());
+
+        renderForm({ rememberMe: true });
+
+        await waitFor(() => expect(getRememberMeDialog()).toBeInTheDocument());
+
+        fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(2));
+        expect(getResultMock).toHaveBeenLastCalledWith(options, true);
+        expect(postResponseMock).not.toHaveBeenCalled();
+    });
+
+    it("does not sign in when the component unmounts while prompting", async () => {
+        const { unmount } = renderForm({ rememberMe: true });
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(getRememberMeDialog()).toBeInTheDocument());
+
+        unmount();
+
+        await act(async () => {});
+
+        expect(postResponseMock).not.toHaveBeenCalled();
     });
 
     it("closes the prompt once it has been answered", async () => {

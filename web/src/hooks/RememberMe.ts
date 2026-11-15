@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useRememberMePrompt(enabled: boolean) {
     const [open, setOpen] = useState(false);
 
-    const resolverRef = useRef<((_rememberMe: boolean) => void) | null>(null);
+    const resolverRef = useRef<((_rememberMe: boolean | null) => void) | null>(null);
 
-    const handleChoice = useCallback((rememberMe: boolean) => {
+    const settle = useCallback((rememberMe: boolean | null) => {
         const resolve = resolverRef.current;
 
         resolverRef.current = null;
@@ -19,13 +19,22 @@ export function useRememberMePrompt(enabled: boolean) {
         resolve?.(rememberMe);
     }, []);
 
-    const prompt = useCallback(() => {
-        if (!enabled) return Promise.resolve(false);
+    const handleChoice = useCallback((rememberMe: boolean) => settle(rememberMe), [settle]);
 
-        return new Promise<boolean>((resolve) => {
-            // A prompt which is somehow still outstanding belongs to a superseded flow, so it declines rather than
-            // being left dangling.
-            resolverRef.current?.(false);
+    const handleCancel = useCallback(() => settle(null), [settle]);
+
+    useEffect(() => {
+        return () => {
+            resolverRef.current?.(null);
+            resolverRef.current = null;
+        };
+    }, []);
+
+    const prompt = useCallback(() => {
+        if (!enabled) return Promise.resolve<boolean | null>(false);
+
+        return new Promise<boolean | null>((resolve) => {
+            resolverRef.current?.(null);
             resolverRef.current = resolve;
 
             setOpen(true);
@@ -34,6 +43,7 @@ export function useRememberMePrompt(enabled: boolean) {
 
     return {
         dialogProps: {
+            onCancel: handleCancel,
             onChoice: handleChoice,
             open,
         },

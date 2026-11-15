@@ -4645,6 +4645,18 @@ components:
                           type: string
                           examples:
                             - '{{ .BaseURL | default "https://auth.example.com/" }}'
+            mediation:
+              type: string
+              description: >
+                The credential mediation requirement the client should use when requesting the credential.
+                Omitted when the default mediation applies.
+              examples:
+                - 'conditional'
+              enum:
+                - 'silent'
+                - 'optional'
+                - 'conditional'
+                - 'required'
     webauthn.Transports:
       type: object
       properties:

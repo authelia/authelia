@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } f
 export interface Props {
     open: boolean;
 
+    onCancel: () => void;
     onChoice: (_rememberMe: boolean) => void;
 }
 
@@ -20,7 +21,7 @@ const RememberMeDialog = function (props: Props) {
         <Dialog
             open={props.open}
             onOpenChange={(open) => {
-                if (!open) props.onChoice(false);
+                if (!open) props.onCancel();
             }}
         >
             <DialogContent id="remember-me-dialog" className="sm:max-w-md" showCloseButton={false}>

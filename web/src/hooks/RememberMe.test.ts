@@ -15,7 +15,7 @@ it("starts closed", () => {
 it("resolves false without opening when the feature is disabled", async () => {
     const { result } = renderHook(() => useRememberMePrompt(false));
 
-    let resolved: boolean | undefined;
+    let resolved: boolean | null | undefined;
 
     await act(async () => {
         resolved = await result.current.prompt();
@@ -28,7 +28,7 @@ it("resolves false without opening when the feature is disabled", async () => {
 it("opens and resolves with the choice the user makes", async () => {
     const { result } = renderHook(() => useRememberMePrompt(true));
 
-    let resolved: boolean | undefined;
+    let resolved: boolean | null | undefined;
 
     act(() => {
         result.current.prompt().then((value) => (resolved = value));
@@ -46,7 +46,7 @@ it("opens and resolves with the choice the user makes", async () => {
 it("resolves false when the user declines", async () => {
     const { result } = renderHook(() => useRememberMePrompt(true));
 
-    let resolved: boolean | undefined;
+    let resolved: boolean | null | undefined;
 
     act(() => {
         result.current.prompt().then((value) => (resolved = value));
@@ -57,11 +57,11 @@ it("resolves false when the user declines", async () => {
     expect(resolved).toBe(false);
 });
 
-it("declines an outstanding prompt that a new one supersedes", async () => {
+it("cancels an outstanding prompt that a new one supersedes", async () => {
     const { result } = renderHook(() => useRememberMePrompt(true));
 
-    let first: boolean | undefined;
-    let second: boolean | undefined;
+    let first: boolean | null | undefined;
+    let second: boolean | null | undefined;
 
     act(() => {
         result.current.prompt().then((value) => (first = value));
@@ -71,13 +71,44 @@ it("declines an outstanding prompt that a new one supersedes", async () => {
         result.current.prompt().then((value) => (second = value));
     });
 
-    expect(first).toBe(false);
+    expect(first).toBeNull();
     expect(second).toBeUndefined();
     expect(result.current.dialogProps.open).toBe(true);
 
     await act(async () => result.current.dialogProps.onChoice(true));
 
     expect(second).toBe(true);
+});
+
+it("resolves null when the user cancels", async () => {
+    const { result } = renderHook(() => useRememberMePrompt(true));
+
+    let resolved: boolean | null | undefined;
+
+    act(() => {
+        result.current.prompt().then((value) => (resolved = value));
+    });
+
+    await act(async () => result.current.dialogProps.onCancel());
+
+    expect(resolved).toBeNull();
+    expect(result.current.dialogProps.open).toBe(false);
+});
+
+it("resolves null when unmounted with a prompt outstanding", async () => {
+    const { result, unmount } = renderHook(() => useRememberMePrompt(true));
+
+    let resolved: boolean | null | undefined;
+
+    act(() => {
+        result.current.prompt().then((value) => (resolved = value));
+    });
+
+    unmount();
+
+    await act(async () => {});
+
+    expect(resolved).toBeNull();
 });
 
 it("ignores a choice made while no prompt is outstanding", async () => {
@@ -92,10 +123,11 @@ it("keeps a stable prompt and choice handler across renders", () => {
     const { rerender, result } = renderHook(() => useRememberMePrompt(true));
 
     const { prompt } = result.current;
-    const { onChoice } = result.current.dialogProps;
+    const { onCancel, onChoice } = result.current.dialogProps;
 
     rerender();
 
     expect(result.current.prompt).toBe(prompt);
     expect(result.current.dialogProps.onChoice).toBe(onChoice);
+    expect(result.current.dialogProps.onCancel).toBe(onCancel);
 });

@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/subtle"
 	"errors"
 	"fmt"
 
@@ -80,7 +81,11 @@ func FirstFactorPasskeyGET(conditionalMediation bool) middlewares.RequestHandler
 			return
 		}
 
-		userSession.WebAuthn = &data
+		if conditionalMediation {
+			userSession.WebAuthnConditional = &data
+		} else {
+			userSession.WebAuthn = &data
+		}
 
 		if err = ctx.SaveSession(&userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionDataSave)
@@ -154,7 +159,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	defer func() {
-		userSession.WebAuthn = nil
+		userSession.WebAuthn, userSession.WebAuthnConditional = nil, nil
 
 		if err = ctx.SaveSession(&userSession); err != nil {
 			ctx.GetLogger().WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
@@ -183,7 +188,9 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.WebAuthn == nil || userSession.WebAuthn.SessionData == nil {
+	data := passkeySessionData(&userSession, response)
+
+	if data == nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -205,7 +212,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if u, c, err = w.ValidatePasskeyLogin(handlerWebAuthnDiscoverableLogin(ctx, w.Config.RPID), *userSession.WebAuthn.SessionData, response); err != nil {
+	if u, c, err = w.ValidatePasskeyLogin(handlerWebAuthnDiscoverableLogin(ctx, w.Config.RPID), *data, response); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -358,4 +365,26 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	} else {
 		HandlePasskeyResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, details.Groups, userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) == authentication.TwoFactor)
 	}
+}
+
+func passkeySessionData(userSession *session.UserSession, response *protocol.ParsedCredentialAssertionData) *webauthn.SessionData {
+	var candidates []*webauthn.SessionData
+
+	for _, slot := range []*session.WebAuthn{userSession.WebAuthn, userSession.WebAuthnConditional} {
+		if slot != nil && slot.SessionData != nil {
+			candidates = append(candidates, slot.SessionData)
+		}
+	}
+
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	for _, candidate := range candidates {
+		if subtle.ConstantTimeCompare([]byte(candidate.Challenge), []byte(response.Response.CollectedClientData.Challenge)) == 1 {
+			return candidate
+		}
+	}
+
+	return candidates[0]
 }

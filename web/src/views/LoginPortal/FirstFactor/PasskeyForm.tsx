@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Fragment, useEffect, useEffectEvent, useRef, useState } from "react";
+import { Fragment, useEffect, useEffectEvent, useRef, useState, useSyncExternalStore } from "react";
 
 import { WebAuthnAbortService, browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
 import axios from "axios";
@@ -23,6 +23,18 @@ import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyRespon
 
 const CONDITIONAL_REARM_MARGIN = 10000;
 const CONDITIONAL_REARM_FALLBACK = 60000;
+const CONDITIONAL_RETRY_BASE = 2000;
+const CONDITIONAL_RETRY_MAX = 300000;
+
+const subscribeVisibility = (callback: () => void) => {
+    document.addEventListener("visibilitychange", callback);
+
+    return () => document.removeEventListener("visibilitychange", callback);
+};
+
+const getVisibility = () => document.visibilityState === "visible";
+
+const ignore = () => undefined;
 
 export interface Props {
     disabled: boolean;
@@ -41,6 +53,7 @@ const PasskeyForm = function (props: Props) {
     const requestMethod = useQueryParam(RequestMethod);
     const { flow, id: flowID, subflow } = useFlow();
     const getSignal = useAbortSignal();
+    const visible = useSyncExternalStore(subscribeVisibility, getVisibility);
 
     const { dialogProps: rememberMeDialogProps, prompt: promptRememberMe } = useRememberMePrompt(props.rememberMe);
 
@@ -50,6 +63,8 @@ const PasskeyForm = function (props: Props) {
     const loadingRef = useRef(false);
     const conditionalRef = useRef<AbortController | null>(null);
     const rearmTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const failuresRef = useRef(0);
+    const pendingOptionsRef = useRef<null | Promise<unknown>>(null);
 
     const rearm = () => {
         setConditionalGeneration((generation) => generation + 1);
@@ -64,7 +79,24 @@ const PasskeyForm = function (props: Props) {
     const scheduleRearm = (timeout: number = CONDITIONAL_REARM_FALLBACK) => {
         clearRearm();
 
-        rearmTimerRef.current = setTimeout(rearm, Math.max(timeout - CONDITIONAL_REARM_MARGIN, timeout / 2));
+        rearmTimerRef.current = setTimeout(
+            () => {
+                failuresRef.current = 0;
+
+                rearm();
+            },
+            Math.max(timeout - CONDITIONAL_REARM_MARGIN, timeout / 2),
+        );
+    };
+
+    const scheduleRetry = () => {
+        clearRearm();
+
+        const delay = Math.min(CONDITIONAL_RETRY_BASE * 2 ** failuresRef.current, CONDITIONAL_RETRY_MAX);
+
+        failuresRef.current += 1;
+
+        rearmTimerRef.current = setTimeout(rearm, delay);
     };
 
     const disarm = () => {
@@ -74,12 +106,30 @@ const PasskeyForm = function (props: Props) {
         conditionalRef.current = null;
     };
 
+    const fetchOptions = async (conditionalMediation: boolean) => {
+        // The server keeps the challenge in the session, so an options request which has been superseded is still
+        // allowed to settle before the next one is made. Aborting it would only abort it on the client, and it could
+        // then still be saved after the next one.
+        await pendingOptionsRef.current?.then(ignore, ignore);
+
+        const request = getWebAuthnPasskeyOptions(getSignal(), conditionalMediation);
+
+        pendingOptionsRef.current = request;
+
+        try {
+            return await request;
+        } finally {
+            if (pendingOptionsRef.current === request) pendingOptionsRef.current = null;
+        }
+    };
+
     const handleSignIn = async (conditional?: AbortSignal) => {
         if (loadingRef.current) return;
 
         const conditionalMediation = conditional !== undefined;
 
         let interactive = !conditionalMediation;
+        let signal = conditional ?? getSignal();
 
         const startUI = () => {
             interactive = true;
@@ -98,7 +148,11 @@ const PasskeyForm = function (props: Props) {
         };
 
         const fail = (message: string) => {
-            if (!interactive) return;
+            if (!interactive) {
+                scheduleRetry();
+
+                return;
+            }
 
             stopUI();
 
@@ -112,16 +166,12 @@ const PasskeyForm = function (props: Props) {
             startUI();
         }
 
-        const signal = conditional ?? getSignal();
-
         try {
-            const optionsStatus = await getWebAuthnPasskeyOptions(signal, conditionalMediation);
+            const optionsStatus = await fetchOptions(conditionalMediation);
 
             if (signal.aborted) return;
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                if (conditionalMediation) scheduleRearm();
-
                 fail("Failed to initiate security key sign in process");
 
                 return;
@@ -148,11 +198,20 @@ const PasskeyForm = function (props: Props) {
             if (conditionalMediation) {
                 clearRearm();
                 startUI();
+
+                signal = getSignal();
             }
 
             const rememberMe = await promptRememberMe();
 
             if (signal.aborted) return;
+
+            if (rememberMe === null) {
+                stopUI();
+                rearm();
+
+                return;
+            }
 
             const response = await postWebAuthnPasskeyResponse(
                 result.response,
@@ -181,13 +240,7 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            if (!interactive) {
-                scheduleRearm();
-
-                return;
-            }
-
-            console.error(err);
+            if (interactive) console.error(err);
 
             fail("Failed to initiate security key sign in process");
         }
@@ -214,16 +267,18 @@ const PasskeyForm = function (props: Props) {
 
         controller.abort();
 
-        WebAuthnAbortService.cancelCeremony();
+        if (!loadingRef.current) WebAuthnAbortService.cancelCeremony();
     });
 
     useEffect(() => {
+        if (!visible) return;
+
         const controller = new AbortController();
 
         void handleConditionalMediation(controller);
 
         return () => handleConditionalMediationStop(controller);
-    }, [conditionalGeneration]);
+    }, [conditionalGeneration, visible]);
 
     return (
         <Fragment>
