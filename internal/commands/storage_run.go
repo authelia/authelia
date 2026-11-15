@@ -2200,21 +2200,44 @@ func runStorageUserIdentifiersAdd(ctx context.Context, w io.Writer, store storag
 }
 
 // StorageLogsAuthPruneRunE is the RunE for the authelia storage logs auth prune command.
-func (ctx *CmdCtx) StorageLogsAuthPruneRunE(cmd *cobra.Command, args []string) error {
+func (ctx *CmdCtx) StorageLogsAuthPruneRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
-		_ = ctx.providers.StorageProvider.Close()
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
 	}()
 
-	olderThanStr, _ := cmd.Flags().GetString(cmdFlagLogsOlderThan)
+	var (
+		value     string
+		olderThan time.Duration
+		batchSize int
+		dryRun    bool
+	)
 
-	olderThan, err := utils.ParseDurationString(olderThanStr)
-	if err != nil {
+	if value, err = cmd.Flags().GetString(cmdFlagLogsOlderThan); err != nil {
+		return err
+	}
+
+	if olderThan, err = utils.ParseDurationString(value); err != nil {
 		return fmt.Errorf("invalid duration: %w", err)
 	}
 
-	batchSize, _ := cmd.Flags().GetInt(cmdFlagLogsBatchSize)
-	dryRun, _ := cmd.Flags().GetBool(cmdFlagLogsDryRun)
+	if batchSize, err = cmd.Flags().GetInt(cmdFlagLogsBatchSize); err != nil {
+		return err
+	}
 
+	if dryRun, err = cmd.Flags().GetBool(cmdFlagLogsDryRun); err != nil {
+		return err
+	}
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	return runStorageLogsAuthPrune(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, olderThan, batchSize, dryRun)
+}
+
+func runStorageLogsAuthPrune(ctx context.Context, w io.Writer, store storage.Provider, olderThan time.Duration, batchSize int, dryRun bool) (err error) {
 	if olderThan <= 0 {
 		return fmt.Errorf("duration must be positive, got: %v", olderThan)
 	}
@@ -2224,83 +2247,94 @@ func (ctx *CmdCtx) StorageLogsAuthPruneRunE(cmd *cobra.Command, args []string) e
 	}
 
 	if dryRun {
-		fmt.Printf("DRY RUN: Would delete logs older than %v...\n", olderThan)
-
-		// Get stats for what would be deleted.
-		stats, err := ctx.providers.StorageProvider.GetAuthenticationLogsPrunePreview(cmd.Context(), olderThan)
-		if err != nil {
-			return fmt.Errorf("failed to get preview: %w", err)
-		}
-
-		if stats.TotalCount == 0 || !stats.MinID.Valid || !stats.MaxID.Valid {
-			fmt.Println("No records found to delete.")
-			return nil
-		}
-
-		estimatedBatches := int((stats.TotalCount + int64(batchSize) - 1) / int64(batchSize))
-
-		fmt.Printf("Would delete %d records in approximately %d batches\n", stats.TotalCount, estimatedBatches)
-		fmt.Printf("Record ID range: %d to %d\n", stats.MinID.Int64, stats.MaxID.Int64)
-		fmt.Printf("Batch size: %d\n", batchSize)
-
-		return nil
+		return runStorageLogsAuthPruneDryRun(ctx, w, store, olderThan, batchSize)
 	}
 
-	fmt.Printf("Deleting logs older than %v...\n", olderThan)
+	_, _ = fmt.Fprintf(w, "Deleting logs older than %v...\n", olderThan)
 
-	results, err := ctx.providers.StorageProvider.PruneAuthenticationLogs(cmd.Context(), olderThan, batchSize)
+	results, err := store.PruneAuthenticationLogs(ctx, olderThan, batchSize)
 	if err != nil {
-		if results != nil {
-			fmt.Printf("Partially completed: deleted %d records in %d batches before error\n",
-				results.TotalDeleted, results.TotalBatches)
+		if results != nil && results.TotalDeleted > 0 {
+			_, _ = fmt.Fprintf(w, "Partially completed: deleted %d records in %d batches before error\n", results.TotalDeleted, results.TotalBatches)
 		}
 
 		return fmt.Errorf("pruning failed: %w", err)
 	}
 
 	if results.TotalDeleted == 0 {
-		fmt.Println("No records found to delete.")
+		_, _ = fmt.Fprintln(w, "No records found to delete.")
+
 		return nil
 	}
 
-	fmt.Printf("Successfully deleted %d records in %d batches.\n", results.TotalDeleted, results.TotalBatches)
-	fmt.Printf("Total duration: %.2fs\n", results.TotalTime.Seconds())
-	fmt.Printf("Average time per batch: %.2fs\n", results.AverageTime.Seconds())
-	fmt.Printf("Records per second: %d\n", results.RecordsPerSecond)
+	_, _ = fmt.Fprintf(w, "Successfully deleted %d records in %d batches.\n", results.TotalDeleted, results.TotalBatches)
+	_, _ = fmt.Fprintf(w, "Total duration: %.2fs\n", results.TotalTime.Seconds())
+	_, _ = fmt.Fprintf(w, "Average time per batch: %.2fs\n", results.AverageTime.Seconds())
+	_, _ = fmt.Fprintf(w, "Records per second: %d\n", results.RecordsPerSecond)
+
+	return nil
+}
+
+func runStorageLogsAuthPruneDryRun(ctx context.Context, w io.Writer, store storage.Provider, olderThan time.Duration, batchSize int) (err error) {
+	_, _ = fmt.Fprintf(w, "DRY RUN: Would delete logs older than %v...\n", olderThan)
+
+	stats, err := store.GetAuthenticationLogsPrunePreview(ctx, olderThan)
+	if err != nil {
+		return fmt.Errorf("failed to get preview: %w", err)
+	}
+
+	if stats.TotalCount == 0 {
+		_, _ = fmt.Fprintln(w, "No records found to delete.")
+
+		return nil
+	}
+
+	_, _ = fmt.Fprintf(w, "Would delete %d records in %d batches\n", stats.TotalCount, (stats.TotalCount+int64(batchSize)-1)/int64(batchSize))
+	_, _ = fmt.Fprintf(w, "Record ID range: %d to %d\n", stats.MinID, stats.MaxID)
+	_, _ = fmt.Fprintf(w, "Batch size: %d\n", batchSize)
 
 	return nil
 }
 
 // StorageLogsAuthStatsRunE is the RunE for the authelia storage logs auth stats command.
-func (ctx *CmdCtx) StorageLogsAuthStatsRunE(cmd *cobra.Command, args []string) error {
+func (ctx *CmdCtx) StorageLogsAuthStatsRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
-		_ = ctx.providers.StorageProvider.Close()
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
 	}()
 
-	stats, err := ctx.providers.StorageProvider.GetAuthenticationLogsStats(cmd.Context())
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	return runStorageLogsAuthStats(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider)
+}
+
+func runStorageLogsAuthStats(ctx context.Context, w io.Writer, store storage.Provider) (err error) {
+	stats, err := store.GetAuthenticationLogsStats(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get authentication log statistics: %w", err)
 	}
 
-	fmt.Printf("Authentication Log Statistics:\n")
-	fmt.Printf("Total records: %d\n", stats.Total)
+	_, _ = fmt.Fprintln(w, "Authentication Log Statistics:")
+	_, _ = fmt.Fprintf(w, "Total records: %d\n", stats.Total)
 
-	if stats.Total > 0 {
-		successPct := float64(stats.SuccessCount) / float64(stats.Total) * 100
-		failurePct := float64(stats.FailureCount) / float64(stats.Total) * 100
-		bannedPct := float64(stats.BannedCount) / float64(stats.Total) * 100
-
-		fmt.Printf("Successful logins: %d (%.1f%%)\n", stats.SuccessCount, successPct)
-		fmt.Printf("Failed logins: %d (%.1f%%)\n", stats.FailureCount, failurePct)
-		fmt.Printf("Banned attempts: %d (%.1f%%)\n", stats.BannedCount, bannedPct)
-	} else {
-		fmt.Printf("Successful logins: %d\n", stats.SuccessCount)
-		fmt.Printf("Failed logins: %d\n", stats.FailureCount)
-		fmt.Printf("Banned attempts: %d\n", stats.BannedCount)
+	if stats.Total == 0 {
+		return nil
 	}
 
-	fmt.Printf("Oldest record: %v\n", stats.Oldest)
-	fmt.Printf("Newest record: %v\n", stats.Newest)
+	_, _ = fmt.Fprintf(w, "Successful logins: %d (%.1f%%)\n", stats.SuccessCount, float64(stats.SuccessCount)/float64(stats.Total)*100)
+	_, _ = fmt.Fprintf(w, "Failed logins: %d (%.1f%%)\n", stats.FailureCount, float64(stats.FailureCount)/float64(stats.Total)*100)
+	_, _ = fmt.Fprintf(w, "Banned attempts: %d (%.1f%%)\n", stats.BannedCount, float64(stats.BannedCount)/float64(stats.Total)*100)
+
+	if stats.Oldest.Valid {
+		_, _ = fmt.Fprintf(w, "Oldest record: %s\n", stats.Oldest.Time.Format(time.RFC3339))
+	}
+
+	if stats.Newest.Valid {
+		_, _ = fmt.Fprintf(w, "Newest record: %s\n", stats.Newest.Time.Format(time.RFC3339))
+	}
 
 	return nil
 }

@@ -1040,14 +1040,12 @@ func newStorageLogsAuthPruneCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().String(cmdFlagLogsOlderThan, "", "Delete logs older than this duration (e.g., 90d, 6m, 1y)")
+	cmd.Flags().String(cmdFlagLogsOlderThan, "", "Delete logs older than this duration (e.g., 90d, 6M, 1y)")
 	cmd.Flags().Int(cmdFlagLogsBatchSize, 20000, "Number of records to delete per batch (prevents long-running commands)")
 	cmd.Flags().Bool(cmdFlagLogsDryRun, false, "Show what would be deleted without actually deleting")
 
-	err := cmd.MarkFlagRequired(cmdFlagLogsOlderThan)
-	if err != nil {
-		fmt.Printf("Error marking flag as required: %v\n", err)
-		return nil
+	if err := cmd.MarkFlagRequired(cmdFlagLogsOlderThan); err != nil {
+		panic(err)
 	}
 
 	return cmd

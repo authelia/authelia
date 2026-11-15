@@ -597,7 +597,7 @@ Use this to remove authentication records older than a specified period to
 prevent excessive database growth and improve performance.`
 
 	cmdAutheliaStorageLogsAuthPruneExample = `authelia storage logs auth prune --older-than 90d
-authelia storage logs auth prune --older-than 6m --batch-size 50000
+authelia storage logs auth prune --older-than 6M --batch-size 50000
 authelia storage logs auth prune --older-than 1y --dry-run`
 
 	cmdAutheliaConfigShort = "Perform config related actions"

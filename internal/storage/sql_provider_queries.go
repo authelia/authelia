@@ -876,25 +876,43 @@ const (
 const (
 	queryFmtSelectAuthenticationLogsStats = `
 		SELECT
-		COUNT(*) as total,
-		SUM(CASE WHEN successful = true THEN 1 ELSE 0 END) as success_count,
-		SUM(CASE WHEN successful = false THEN 1 ELSE 0 END) as failure_count,
-		SUM(CASE WHEN banned = true THEN 1 ELSE 0 END) as banned_count,
-		MIN(time) as oldest,
-		MAX(time) as newest
+		COUNT(*) AS total,
+		COALESCE(SUM(CASE WHEN successful = true THEN 1 ELSE 0 END), 0) AS success_count,
+		COALESCE(SUM(CASE WHEN successful = false THEN 1 ELSE 0 END), 0) AS failure_count,
+		COALESCE(SUM(CASE WHEN banned = true THEN 1 ELSE 0 END), 0) AS banned_count
 		FROM %s;`
+
+	queryFmtSelectAuthenticationLogsOldestTime = `
+		SELECT time
+		FROM %s
+		ORDER BY time ASC
+		LIMIT 1;`
+
+	queryFmtSelectAuthenticationLogsNewestTime = `
+		SELECT time
+		FROM %s
+		ORDER BY time DESC
+		LIMIT 1;`
 
 	queryFmtSelectTotalMinMaxAuthenticationLogs = `
 		SELECT
-		COUNT(*) as total,
-		MIN(id) as min,
-		MAX(id) as max
+		COUNT(*) AS total,
+		COALESCE(MIN(id), 0) AS min,
+		COALESCE(MAX(id), 0) AS max
 		FROM %s
 		WHERE time < ?;`
 
-	queryFmtDeleteAuthenticationLogsWithTime = `
+	// The nested derived table is required by MySQL which does not permit LIMIT directly within an IN subquery, nor
+	// a subquery referencing the table being deleted from unless it is materialized.
+	queryFmtDeleteAuthenticationLogsBatch = `
 		DELETE FROM %s
-		WHERE time < ?
-		    AND id >= ?
-		    AND id < ?;`
+		WHERE id IN (
+			SELECT id FROM (
+				SELECT id
+				FROM %s
+				WHERE time < ?
+				ORDER BY id
+				LIMIT ?
+			) AS batch
+		);`
 )

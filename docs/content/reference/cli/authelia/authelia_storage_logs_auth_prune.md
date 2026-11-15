@@ -34,7 +34,7 @@ authelia storage logs auth prune [flags]
 
 ```
 authelia storage logs auth prune --older-than 90d
-authelia storage logs auth prune --older-than 6m --batch-size 50000
+authelia storage logs auth prune --older-than 6M --batch-size 50000
 authelia storage logs auth prune --older-than 1y --dry-run
 ```
 
@@ -44,7 +44,7 @@ authelia storage logs auth prune --older-than 1y --dry-run
       --batch-size int      Number of records to delete per batch (prevents long-running commands) (default 20000)
       --dry-run             Show what would be deleted without actually deleting
   -h, --help                help for prune
-      --older-than string   Delete logs older than this duration (e.g., 90d, 6m, 1y)
+      --older-than string   Delete logs older than this duration (e.g., 90d, 6M, 1y)
 ```
 
 ### Options inherited from parent commands
