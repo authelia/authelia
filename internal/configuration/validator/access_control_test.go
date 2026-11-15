@@ -316,6 +316,40 @@ func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainRegexGrou
 	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1: 'policy' option 'bypass' is not supported when 'domain_regex' option contains the user or group named matches. For more information see: https://www.authelia.com/c/acl-match-concept-2")
 }
 
+func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectResourcesGroup() {
+	testCases := []struct {
+		name    string
+		pattern string
+	}{
+		{"ShouldRaiseErrorForUserGroup", `^/(?P<User>\w+)/.*$`},
+		{"ShouldRaiseErrorForGroupGroup", `^/(?P<Group>\w+)/.*$`},
+	}
+
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{AccessControl: schema.AccessControl{
+				DefaultPolicy: "deny",
+				Rules: []schema.AccessControlRule{
+					{
+						Domains:   []string{"public.example.com"},
+						Resources: schema.AccessControlRuleRegex{*regexp.MustCompile(tc.pattern)},
+						Policy:    "bypass",
+					},
+				},
+			}}
+
+			ValidateRules(config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			require.Len(t, validator.Errors(), 1)
+
+			assert.EqualError(t, validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): 'policy' option 'bypass' is not supported when 'resources' option contains the user or group named matches. For more information see: https://www.authelia.com/c/acl-match-concept-2")
+		})
+	}
+}
+
 func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainToken() {
 	testCases := []struct {
 		name    string

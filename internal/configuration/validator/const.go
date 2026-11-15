@@ -484,6 +484,9 @@ const (
 	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = errAccessControlRuleBypassPolicyOptionBypassIs +
 		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
 		"https://www.authelia.com/c/acl-match-concept-2"
+	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithResourcesRegex = errAccessControlRuleBypassPolicyOptionBypassIs +
+		"not supported when 'resources' option contains the user or group named matches. For more information see: " +
+		"https://www.authelia.com/c/acl-match-concept-2"
 	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomain = errAccessControlRuleBypassPolicyOptionBypassIs +
 		"not supported when 'domain' option contains the user or group tokens. For more information see: " +
 		"https://www.authelia.com/c/acl-match-concept-2"

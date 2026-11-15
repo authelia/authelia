@@ -77,6 +77,13 @@ func validateBypass(rulePosition int, rule schema.AccessControlRule, validator *
 		}
 	}
 
+	for _, pattern := range rule.Resources {
+		if utils.IsStringSliceContainsAny(authorization.IdentitySubexpNames, pattern.SubexpNames()) {
+			validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjectsWithResourcesRegex, ruleDescriptor(rulePosition, rule)))
+			return
+		}
+	}
+
 	for _, domain := range rule.Domains {
 		domain = strings.ToLower(domain)
 

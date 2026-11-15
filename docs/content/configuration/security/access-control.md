@@ -599,6 +599,7 @@ must not be used with the [bypass] policy. The criteria which have subject relia
 
 - The [subject] criteria itself
 - The [domain_regex] criteria when it contains the [Named Regex Groups].
+- The [resources](#resources) criteria when it contains the [Named Regex Groups].
 
 In addition if the rule has a subject criteria but all other criteria match then the user will be immediately forwarded
 for authentication if no prior rules match the request per [Rule Matching Concept 1]. This means if you have two
