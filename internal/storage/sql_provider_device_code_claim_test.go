@@ -351,7 +351,7 @@ func TestSQLProviderDenyOAuth2DeviceCodeSession(t *testing.T) {
 
 			assert.Equal(t, model.OAuth2DeviceCodeStatusDenied, loaded.Status)
 			assert.Equal(t, challenge, loaded.ChallengeID)
-			assert.False(t, loaded.Active)
+			assert.True(t, loaded.Active)
 		})
 	}
 }

@@ -841,9 +841,7 @@ const (
 
 	queryFmtDenyOAuth2DeviceCodeSession = `
 		UPDATE %s
-		SET
-			status = ?,
-			active = FALSE
+		SET status = ?
 		WHERE signature = ? AND status = ? AND challenge_id = ? AND active = TRUE AND revoked = FALSE;`
 
 	queryFmtSelectOAuth2PARContext = `
