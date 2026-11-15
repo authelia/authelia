@@ -81,11 +81,16 @@ type AccessControlQueryMatcherEqual struct {
 
 // IsMatch returns true if this rule matches the object.
 func (acl AccessControlQueryMatcherEqual) IsMatch(object Object) (isMatch bool) {
+	value, ok := queryValueSingle(object, acl.key)
+	if !ok {
+		return false
+	}
+
 	switch {
 	case acl.equal:
-		return object.URL.Query().Get(acl.key) == acl.value
+		return value == acl.value
 	default:
-		return object.URL.Query().Get(acl.key) != acl.value
+		return value != acl.value
 	}
 }
 
@@ -114,10 +119,28 @@ type AccessControlQueryMatcherPattern struct {
 
 // IsMatch returns true if this rule matches the object.
 func (acl AccessControlQueryMatcherPattern) IsMatch(object Object) (isMatch bool) {
+	value, ok := queryValueSingle(object, acl.key)
+	if !ok {
+		return false
+	}
+
 	switch {
 	case acl.match:
-		return acl.pattern.MatchString(object.URL.Query().Get(acl.key))
+		return acl.pattern.MatchString(value)
 	default:
-		return !acl.pattern.MatchString(object.URL.Query().Get(acl.key))
+		return !acl.pattern.MatchString(value)
+	}
+}
+
+func queryValueSingle(object Object, key string) (value string, ok bool) {
+	values := object.URL.Query()[key]
+
+	switch len(values) {
+	case 0:
+		return "", true
+	case 1:
+		return values[0], true
+	default:
+		return "", false
 	}
 }

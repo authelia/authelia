@@ -469,6 +469,12 @@ The format of this rule is unique in as much as it is a list of lists. The logic
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
 Additionally each level of these lists does not have to be explicitly defined.
 
+Each individual query criteria which compares the value of a query argument only matches when the query argument
+[key](#key) is specified at most once in the request. If the [key](#key) is specified more than once these criteria
+never match, as the effective value is ambiguous and may be interpreted differently by the backend application. The
+`present` and `absent` [operators](#operator) are not affected by this as they only consider whether the [key](#key) is
+specified at all.
+
 ##### key
 
 {{< confkey type="string" required="yes" >}}

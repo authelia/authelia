@@ -463,6 +463,13 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 		{"ShouldDenyRuleWithNotMatchingNotPatternOne", "https://five.example.com/?test=one", Denied},
 		{"ShouldDenyRuleWithNotMatchingNotPatternTwo", "https://five.example.com/?test=two", Denied},
 		{"ShouldDenyRuleWithNotMatchingNotPatternThree", "https://five.example.com/?test=three", Denied},
+		{"ShouldDenyAbsentRuleWithDuplicateKey", "https://one.example.com/?test=two&admin=true&admin=true", Denied},
+		{"ShouldAllow1FAPresentRuleWithDuplicateKey", "https://one.example.com/?public=true&public=true", OneFactor},
+		{"ShouldDenyEqualRuleWithDuplicateKey", "https://one.example.com/?test=two&test=two", Denied},
+		{"ShouldDenyEqualRuleWithDuplicateKeyMixed", "https://two.example.com/?test=one&test=three", Denied},
+		{"ShouldDenyNotEqualRuleWithDuplicateKey", "https://three.example.com/?test=three&test=one", Denied},
+		{"ShouldDenyPatternRuleWithDuplicateKey", "https://four.example.com/?test=one&test=two", Denied},
+		{"ShouldDenyNotPatternRuleWithDuplicateKey", "https://five.example.com/?test=five&test=six", Denied},
 	}
 
 	for _, tc := range testCases {
