@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
@@ -46,17 +47,27 @@ func validateOAuth2DeviceCodeSessionClaimed(ctx *middlewares.AutheliaCtx, device
 }
 
 func validateOAuth2DeviceCodeSessionUnexpired(ctx *middlewares.AutheliaCtx, device *model.OAuth2DeviceCodeSession) (err error) {
-	session := oidc.NewSession()
+	var expires time.Time
 
-	if err = json.Unmarshal(device.Session, session); err != nil {
-		return fmt.Errorf("error occurred restoring the device code session data: %w", err)
+	if expires, err = getOAuth2DeviceCodeSessionUserCodeExpiresAt(device); err != nil {
+		return err
 	}
 
-	if session.GetExpiresAt(oauthelia2.UserCode).Before(ctx.GetClock().Now()) {
+	if expires.Before(ctx.GetClock().Now()) {
 		return errOAuth2DeviceCodeSessionExpired
 	}
 
 	return nil
+}
+
+func getOAuth2DeviceCodeSessionUserCodeExpiresAt(device *model.OAuth2DeviceCodeSession) (expires time.Time, err error) {
+	session := oidc.NewSession()
+
+	if err = json.Unmarshal(device.Session, session); err != nil {
+		return expires, fmt.Errorf("error occurred restoring the device code session data: %w", err)
+	}
+
+	return session.GetExpiresAt(oauthelia2.UserCode), nil
 }
 
 func validateOAuth2DeviceAuthorizationConsent(ctx *middlewares.AutheliaCtx, requester oauthelia2.DeviceAuthorizeRequester, consent *model.OAuth2ConsentSession) (err error) {

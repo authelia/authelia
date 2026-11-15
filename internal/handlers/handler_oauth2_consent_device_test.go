@@ -175,6 +175,10 @@ func TestOAuth2ConsentUserCodePOSTShouldExchangeUserCode(t *testing.T) {
 
 	device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
 
+	expires, err := getOAuth2DeviceCodeSessionUserCodeExpiresAt(device)
+	require.NoError(t, err)
+
+	assert.True(t, expires.Equal(consent.ExpiresAt))
 	assert.Equal(t, model.OAuth2DeviceCodeStatusClaimed, device.Status)
 	assert.Equal(t, uuid.NullUUID{UUID: flowID, Valid: true}, device.ChallengeID)
 	assert.True(t, device.Active)
@@ -245,7 +249,7 @@ func TestOAuth2ConsentUserCodePOSTShouldResumeExchangeForTheSameUserAgent(t *tes
 			mock.GetResponseData(t, &body)
 
 			assert.Equal(t, flowID.String(), body.FlowID)
-			assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.AuthorizationBindingCookieName("authelia_session")))
+			assert.Equal(t, mocks.AuthorizationBinding, assertTestOAuth2AuthorizationBindingCookie(t, mock))
 		})
 	}
 }
