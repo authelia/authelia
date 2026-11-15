@@ -498,7 +498,7 @@ func TestDefaultStrategy_CSRFTokenShouldReturnNoSessionForUnknownSessionCookie(t
 	assert.NotContains(t, ctx.cookies, testNameCSRF)
 }
 
-func TestDefaultStrategy_CSRFTokenShouldReturnNoSessionForUnreadableSession(t *testing.T) {
+func TestDefaultStrategy_CSRFTokenShouldRejectUnreadableSession(t *testing.T) {
 	repository := newTestRepository()
 	strategy := newTestStrategyWithRepository(t, repository, nil)
 
@@ -515,8 +515,12 @@ func TestDefaultStrategy_CSRFTokenShouldReturnNoSessionForUnreadableSession(t *t
 	ctx := newTestContext()
 	ctx.cookies[testNameSession] = previous.cookies[testNameSession]
 
-	assert.ErrorIs(t, strategy.VerifyCSRFToken(ctx, previous.cookies[testNameCSRF]), ErrCSRFTokenNoSession)
-	assert.NoError(t, strategy.SetCSRFCookie(ctx))
+	err := strategy.VerifyCSRFToken(ctx, previous.cookies[testNameCSRF])
+
+	assert.Error(t, err)
+	assert.NotErrorIs(t, err, ErrCSRFTokenNoSession)
+	assert.NotErrorIs(t, err, ErrCSRFTokenInvalid)
+	assert.Error(t, strategy.SetCSRFCookie(ctx))
 }
 
 func TestDefaultStrategy_VerifyCSRFTokenShouldReturnRepositoryFailure(t *testing.T) {

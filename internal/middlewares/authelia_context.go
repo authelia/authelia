@@ -135,6 +135,10 @@ func (ctx *AutheliaCtx) XForwardedMethod() (method []byte) {
 
 // XForwardedProto returns the content of the X-Forwarded-Proto header.
 func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
+	return getXForwardedProto(ctx.RequestCtx)
+}
+
+func getXForwardedProto(ctx *fasthttp.RequestCtx) (proto []byte) {
 	proto = ctx.Request.Header.PeekBytes(headerXForwardedProto)
 
 	if len(proto) == 0 {
@@ -155,7 +159,11 @@ func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
 
 // GetXForwardedHost returns the content of the X-Forwarded-Host header falling back to the Host header.
 func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
-	host = ctx.XForwardedHost()
+	return getXForwardedHost(ctx.RequestCtx)
+}
+
+func getXForwardedHost(ctx *fasthttp.RequestCtx) (host []byte) {
+	host = ctx.Request.Header.PeekBytes(headerXForwardedHost)
 
 	if len(host) == 0 {
 		return ctx.Host()

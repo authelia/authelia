@@ -606,11 +606,7 @@ func (p *DefaultStrategy) getCSRFSession(ctx Context) (sid string, session *User
 	}
 
 	if sid, session, err = p.get(ctx, false); err != nil {
-		if errors.Is(err, ErrRepositoryGet) {
-			return "", nil, err
-		}
-
-		return "", nil, ErrCSRFTokenNoSession
+		return "", nil, err
 	}
 
 	if session == nil || session.PublicID == "" {

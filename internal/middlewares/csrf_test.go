@@ -109,10 +109,46 @@ func TestCrossSiteRequestForgery(t *testing.T) {
 			fasthttp.StatusOK,
 		},
 		{
-			"ShouldAllowUnsafeMethodMatchingFirstForwardedOrigin",
+			"ShouldRejectUnsafeMethodMultipleForwardedOrigins",
 			fasthttp.MethodPost,
 			map[string]string{"Origin": "https://login.example.com", "X-Forwarded-Proto": "https, http", "X-Forwarded-Host": "login.example.com ,auth.internal"},
+			fasthttp.StatusForbidden,
+		},
+		{
+			"ShouldAllowUnsafeMethodMatchingForwardedOriginWithDefaultPort",
+			fasthttp.MethodPost,
+			map[string]string{"Origin": "https://login.example.com", "X-Forwarded-Proto": "https", "X-Forwarded-Host": "login.example.com:443"},
 			fasthttp.StatusOK,
+		},
+		{
+			"ShouldAllowUnsafeMethodMatchingOriginWithDefaultPort",
+			fasthttp.MethodPost,
+			map[string]string{"Origin": "http://auth.example.com:80"},
+			fasthttp.StatusOK,
+		},
+		{
+			"ShouldAllowUnsafeMethodMatchingForwardedOriginWithNonDefaultPort",
+			fasthttp.MethodPost,
+			map[string]string{"Origin": "https://login.example.com:8443", "X-Forwarded-Proto": "https", "X-Forwarded-Host": "login.example.com:8443"},
+			fasthttp.StatusOK,
+		},
+		{
+			"ShouldAllowUnsafeMethodMatchingIPv6OriginWithDefaultPort",
+			fasthttp.MethodPost,
+			map[string]string{"Origin": "https://[::1]", "X-Forwarded-Proto": "https", "X-Forwarded-Host": "[::1]:443"},
+			fasthttp.StatusOK,
+		},
+		{
+			"ShouldRejectUnsafeMethodOriginDefaultPortOfOtherScheme",
+			fasthttp.MethodPost,
+			map[string]string{"Origin": "https://login.example.com", "X-Forwarded-Proto": "https", "X-Forwarded-Host": "login.example.com:80"},
+			fasthttp.StatusForbidden,
+		},
+		{
+			"ShouldRejectUnsafeMethodOriginWithPath",
+			fasthttp.MethodPost,
+			map[string]string{"Origin": "http://auth.example.com/path"},
+			fasthttp.StatusForbidden,
 		},
 		{
 			"ShouldRejectUnsafeMethodOriginMatchingLaterForwardedOrigin",
