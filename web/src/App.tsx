@@ -28,6 +28,7 @@ import { getBasePath } from "@utils/BasePath";
 import {
     getCSPNonce,
     getDuoSelfEnrollment,
+    getExternalIdentityLogin,
     getPasskeyLogin,
     getRegistrationURL,
     getRememberMe,
@@ -66,6 +67,7 @@ function App() {
                                                 element={
                                                     <LoginPortal
                                                         duoSelfEnrollment={getDuoSelfEnrollment()}
+                                                        externalIdentityLogin={getExternalIdentityLogin()}
                                                         passkeyLogin={getPasskeyLogin()}
                                                         rememberMe={getRememberMe()}
                                                         resetPassword={getResetPassword()}

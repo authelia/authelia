@@ -370,12 +370,13 @@ func TestETagRootURL(t *testing.T) {
 
 func TestNewTemplatedFileOptions(t *testing.T) {
 	testCases := []struct {
-		name                   string
-		config                 *schema.Configuration
-		expectedResetPassword  string
-		expectedPasswordChange string
-		expectedTheme          string
-		expectedPasskeyLogin   string
+		name                          string
+		config                        *schema.Configuration
+		expectedResetPassword         string
+		expectedPasswordChange        string
+		expectedTheme                 string
+		expectedPasskeyLogin          string
+		expectedExternalIdentityLogin string
 	}{
 		{
 			"ShouldReturnDefaultOptions",
@@ -383,6 +384,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"true",
 			"",
+			"false",
 			"false",
 		},
 		{
@@ -398,6 +400,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"",
 			"false",
+			"false",
 		},
 		{
 			"ShouldEnablePasskeyLogin",
@@ -410,6 +413,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"",
 			"true",
+			"false",
 		},
 		{
 			"ShouldSetTheme",
@@ -419,6 +423,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"true",
 			"dark",
+			"false",
 			"false",
 		},
 		{
@@ -434,6 +439,37 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"false",
 			"",
 			"false",
+			"false",
+		},
+		{
+			"ShouldEnableExternalIdentityLogin",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					ExternalIdentity: &schema.AuthenticationBackendExternalIdentity{
+						Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+							{ID: "example", Name: "Example", Issuer: "https://example.com"},
+						},
+					},
+				},
+			},
+			"true",
+			"true",
+			"",
+			"false",
+			"true",
+		},
+		{
+			"ShouldNotEnableExternalIdentityLoginWithoutProviders",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					ExternalIdentity: &schema.AuthenticationBackendExternalIdentity{},
+				},
+			},
+			"true",
+			"true",
+			"",
+			"false",
+			"false",
 		},
 	}
 
@@ -446,6 +482,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			assert.Equal(t, tc.expectedPasswordChange, opts.PasswordChange)
 			assert.Equal(t, tc.expectedTheme, opts.Theme)
 			assert.Equal(t, tc.expectedPasskeyLogin, opts.PasskeyLogin)
+			assert.Equal(t, tc.expectedExternalIdentityLogin, opts.ExternalIdentityLogin)
 		})
 	}
 }
@@ -528,6 +565,7 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 			assert.Equal(t, "nonce123", data.CSPNonce)
 			assert.Equal(t, "en", data.Language)
 			assert.Equal(t, tc.expectedRM, data.RememberMe)
+			assert.Equal(t, opts.ExternalIdentityLogin, data.ExternalIdentityLogin)
 		})
 	}
 }

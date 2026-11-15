@@ -7,14 +7,17 @@ package server
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
@@ -364,6 +367,109 @@ func TestHandlerMainWithOptionalFeatures(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.NotNil(t, handler)
+		})
+	}
+}
+
+func TestHandlerMainExternalIdentityLinkRoutes(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	config := &schema.Configuration{
+		Server: schema.Server{
+			Address:   schema.DefaultServerConfiguration.Address,
+			Endpoints: schema.DefaultServerConfiguration.Endpoints,
+		},
+		Session: schema.Session{
+			Cookies: []schema.SessionCookie{
+				{
+					SessionCookieCommon: schema.SessionCookieCommon{
+						Name:       "authelia_session",
+						RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+						Expiration: schema.DefaultSessionConfiguration.Expiration,
+					},
+					Domain:                "example.com",
+					DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "www.example.com"},
+					AutheliaURL:           &url.URL{Scheme: "https", Host: "login.example.com"},
+				},
+			},
+		},
+		AuthenticationBackend: schema.AuthenticationBackend{
+			ExternalIdentity: &schema.AuthenticationBackendExternalIdentity{
+				Providers: []schema.AuthenticationBackendExternalIdentityProvider{
+					{ID: "example", Name: "Example", Issuer: "https://op.example.com"},
+				},
+			},
+		},
+	}
+
+	providers := middlewares.NewProvidersBasic()
+	providers.Random = random.NewMathematical()
+	providers.Templates = provider
+	providers.Clock = clock.New()
+
+	providers.Session, err = mocks.NewSessionProvider(config, providers.Clock, providers.Random)
+	require.NoError(t, err)
+
+	handler, err := handlerMain(config, providers)
+
+	require.NoError(t, err)
+	require.NotNil(t, handler)
+
+	testCases := []struct {
+		Name                 string
+		Method               string
+		Path                 string
+		ExpectedStatusCode   int
+		ExpectedContentType  string
+		ExpectedBodyContains string
+	}{
+		{
+			"ShouldRoutePendingDeclineToThePlainFirstFactorMiddleware",
+			fasthttp.MethodDelete,
+			"/api/user/identity/link/pending",
+			fasthttp.StatusForbidden,
+			"text/plain; charset=utf-8",
+			"403 Forbidden",
+		},
+		{
+			"ShouldRouteIDDeleteToTheElevatedMiddleware",
+			fasthttp.MethodDelete,
+			"/api/user/identity/link/123",
+			fasthttp.StatusForbidden,
+			"application/json; charset=utf-8",
+			`"first_factor":true`,
+		},
+		{
+			"ShouldRouteAcceptToTheElevatedMiddleware",
+			fasthttp.MethodPut,
+			"/api/user/identity/link",
+			fasthttp.StatusForbidden,
+			"application/json; charset=utf-8",
+			`"first_factor":true`,
+		},
+		{
+			"ShouldRouteLinksListToThePlainFirstFactorMiddleware",
+			fasthttp.MethodGet,
+			"/api/user/identity/links",
+			fasthttp.StatusForbidden,
+			"text/plain; charset=utf-8",
+			"403 Forbidden",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctx := newAssetRequestCtx(tc.Method, tc.Path, "")
+			ctx.Request.Header.SetHost("login.example.com")
+
+			handler(ctx)
+
+			assert.Equal(t, tc.ExpectedStatusCode, ctx.Response.StatusCode())
+			assert.Equal(t, tc.ExpectedContentType, string(ctx.Response.Header.ContentType()))
+			assert.Contains(t, string(ctx.Response.Body()), tc.ExpectedBodyContains)
 		})
 	}
 }

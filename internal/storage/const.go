@@ -10,22 +10,23 @@ import (
 )
 
 const (
-	tableAuthenticationLogs   = "authentication_logs"
-	tableBannedUser           = "banned_user"
-	tableBannedIP             = "banned_ip"
-	tableCachedData           = "cached_data"
-	tableDuoDevices           = "duo_devices"
-	tableIdentityVerification = "identity_verification"
-	tableOneTimeCode          = "one_time_code"
-	tableRecoveryCodes        = "recovery_codes"
-	tableRecoveryCodesLock    = "recovery_codes_lock"
-	tableSession              = "session"
-	tableTOTPConfigurations   = "totp_configurations"
-	tableTOTPHistory          = "totp_history"
-	tableUserOpaqueIdentifier = "user_opaque_identifier"
-	tableUserPreferences      = "user_preferences"
-	tableWebAuthnCredentials  = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
-	tableWebAuthnUsers        = "webauthn_users"
+	tableAuthenticationLogs        = "authentication_logs"
+	tableBannedUser                = "banned_user"
+	tableBannedIP                  = "banned_ip"
+	tableCachedData                = "cached_data"
+	tableDuoDevices                = "duo_devices"
+	tableIdentityVerification      = "identity_verification"
+	tableOneTimeCode               = "one_time_code"
+	tableRecoveryCodes             = "recovery_codes"
+	tableRecoveryCodesLock         = "recovery_codes_lock"
+	tableSession                   = "session"
+	tableTOTPConfigurations        = "totp_configurations"
+	tableTOTPHistory               = "totp_history"
+	tableUserOpaqueIdentifier      = "user_opaque_identifier"
+	tableUserExternalIdentityLinks = "user_external_identity_links"
+	tableUserPreferences           = "user_preferences"
+	tableWebAuthnCredentials       = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
+	tableWebAuthnUsers             = "webauthn_users"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 	tableOAuth2RequestReplay           = "oauth2_request_replay"
@@ -125,10 +126,11 @@ const (
 )
 
 const (
-	hmacNameOneTimeCode     = "otc"
-	hmacNameOneTimePassword = "otp"
-	hmacNameRecoveryCode    = "rc"
-	hmacNameSession         = "session"
+	hmacNameOneTimeCode          = "otc"
+	hmacNameOneTimePassword      = "otp"
+	hmacNameRecoveryCode         = "rc"
+	hmacNameExternalIdentityLink = "external_identity_link"
+	hmacNameSession              = "session"
 )
 
 const (

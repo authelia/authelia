@@ -4,6 +4,7 @@
 
 export const IndexRoute: string = "/";
 export const AuthenticatedRoute: string = "/authenticated";
+export const ExternalIdentityLinkRoute: string = "/external-identity/link";
 
 export const SecondFactorRoute: string = "/2fa";
 export const SecondFactorPasswordSubRoute: string = "/password";
@@ -18,6 +19,7 @@ export const ErrorRoute: string = "/error";
 
 export const SettingsRoute: string = "/settings";
 export const SettingsTwoFactorAuthenticationSubRoute: string = "/two-factor-authentication";
+export const SettingsExternalIdentitySubRoute: string = "/external-identity";
 export const RevokeOneTimeCodeRoute: string = "/revoke/one-time-code";
 export const RevokeResetPasswordRoute: string = "/revoke/reset-password";
 export const SecuritySubRoute: string = "/security";
