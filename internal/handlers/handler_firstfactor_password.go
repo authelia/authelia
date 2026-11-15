@@ -41,6 +41,14 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 			return
 		}
 
+		if err = validatePasswordLength(bodyJSON.Password); err != nil {
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			ctx.GetLogger().WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA)
+
+			return
+		}
+
 		if details, err = ctx.Providers.UserProvider.GetDetails(bodyJSON.Username); err != nil || details == nil {
 			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, err)
 
@@ -158,6 +166,14 @@ func FirstFactorReauthenticatePOST(delayer middlewares.Delayer) middlewares.Requ
 
 		var err error
 		if err = ctx.ParseBody(&bodyJSON); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
+		if err = validatePasswordLength(bodyJSON.Password); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)

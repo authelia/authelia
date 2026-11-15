@@ -178,3 +178,13 @@ func isRegulatorSkippedErr(err error) bool {
 
 	return false
 }
+
+func validatePasswordLength(passwords ...string) (err error) {
+	for _, password := range passwords {
+		if len(password) > passwordMaxLength {
+			return fmt.Errorf("password exceeds the maximum length of %d bytes", passwordMaxLength)
+		}
+	}
+
+	return nil
+}

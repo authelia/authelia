@@ -24,6 +24,10 @@ const (
 	anonymous = "<anonymous>"
 )
 
+const (
+	passwordMaxLength = 256
+)
+
 var (
 	headerAuthorization   = []byte(fasthttp.HeaderAuthorization)
 	headerWWWAuthenticate = []byte(fasthttp.HeaderWWWAuthenticate)

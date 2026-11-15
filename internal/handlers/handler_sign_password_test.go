@@ -7,6 +7,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -332,6 +333,17 @@ func (s *HandlerSignPasswordSuite) TestShouldErrorBadRequestBody() {
 
 	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 	s.AssertLastLogMessage("Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
+}
+
+func (s *HandlerSignPasswordSuite) TestShouldErrorPasswordTooLong() {
+	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
+
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"password":"%s"}`, strings.Repeat("a", passwordMaxLength+1)))
+
+	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
+	s.AssertLastLogMessage("Failed to parse Password request body", "password exceeds the maximum length of 256 bytes")
 }
 
 func (s *HandlerSignPasswordSuite) TestShouldHandleUserDetailsError() {

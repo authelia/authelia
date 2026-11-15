@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/mail"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -344,6 +345,19 @@ func TestResetPasswordPOST(t *testing.T) {
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the reset password request body", "unable to parse body: unexpected end of JSON input")
+			},
+		},
+		{
+			"ShouldHandlePasswordTooLong",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				setTestPasswordResetUsername(t, mock)
+
+				mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"password":"%s"}`, strings.Repeat("a", passwordMaxLength+1)))
+			},
+			`{"status":"KO","code":"password_reset_failed","message":"Unable to reset your password."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating the reset password request body", "password exceeds the maximum length of 256 bytes")
 			},
 		},
 		{

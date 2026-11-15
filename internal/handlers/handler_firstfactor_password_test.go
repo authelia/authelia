@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -64,6 +65,14 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "unable to validate body: password: non zero value required")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
+}
+
+func (s *FirstFactorSuite) TestShouldFailIfPasswordTooLong() {
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"username":"test","password":"%s"}`, strings.Repeat("a", passwordMaxLength+1)))
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "password exceeds the maximum length of 256 bytes")
 	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 
@@ -1348,6 +1357,14 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfBodyIsInBadFormat() {
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "unable to validate body: password: non zero value required")
+	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
+}
+
+func (s *FirstFactorReauthenticateSuite) TestShouldFailIfPasswordTooLong() {
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"password":"%s"}`, strings.Repeat("a", passwordMaxLength+1)))
+	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
+
+	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "password exceeds the maximum length of 256 bytes")
 	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 }
 

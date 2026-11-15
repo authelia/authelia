@@ -36,6 +36,14 @@ func SecondFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHa
 			return
 		}
 
+		if err = validatePasswordLength(bodyJSON.Password); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypePassword)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
 		var (
 			provider    session.Strategy
 			userSession session.UserSession

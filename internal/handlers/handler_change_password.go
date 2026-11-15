@@ -66,6 +66,16 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if err = validatePasswordLength(requestBody.OldPassword, requestBody.NewPassword); err != nil {
+		ctx.GetLogger().WithError(err).
+			WithFields(map[string]any{"username": username}).
+			Error("Unable to change password for user: invalid request body")
+		ctx.SetJSONError(messageUnableToChangePassword)
+		ctx.SetStatusCode(http.StatusBadRequest)
+
+		return
+	}
+
 	if err = ctx.Providers.PasswordPolicy.Check(requestBody.NewPassword); err != nil {
 		ctx.GetLogger().WithError(err).
 			WithFields(map[string]any{"username": username}).

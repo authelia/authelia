@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,34 @@ func TestRedactEmail(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			require.Equal(t, tc.expected, redactEmail(tc.input))
+		})
+	}
+}
+
+func TestValidatePasswordLength(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected string
+	}{
+		{"ShouldPassNone", nil, ""},
+		{"ShouldPassEmpty", []string{""}, ""},
+		{"ShouldPassMaximum", []string{strings.Repeat("a", passwordMaxLength)}, ""},
+		{"ShouldPassMultipleMaximum", []string{"abc", strings.Repeat("a", passwordMaxLength)}, ""},
+		{"ShouldFailExceedsMaximum", []string{strings.Repeat("a", passwordMaxLength+1)}, "password exceeds the maximum length of 256 bytes"},
+		{"ShouldFailMultipleExceedsMaximum", []string{"abc", strings.Repeat("a", passwordMaxLength+1)}, "password exceeds the maximum length of 256 bytes"},
+		{"ShouldFailExceedsMaximumMultiByte", []string{strings.Repeat("é", passwordMaxLength/2+1)}, "password exceeds the maximum length of 256 bytes"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validatePasswordLength(tc.have...)
+
+			if tc.expected == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.expected)
+			}
 		})
 	}
 }

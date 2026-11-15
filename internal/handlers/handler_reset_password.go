@@ -183,6 +183,13 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if err = validatePasswordLength(requestBody.Password); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred validating the reset password request body")
+		ctx.SetJSONError(messageUnableToResetPassword)
+
+		return
+	}
+
 	if err = ctx.Providers.PasswordPolicy.Check(requestBody.Password); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred checking the new password against the password policy")
 		ctx.SetJSONError(messagePasswordWeak)

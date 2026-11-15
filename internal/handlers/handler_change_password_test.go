@@ -8,10 +8,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
@@ -145,6 +147,43 @@ func TestChangePasswordPOST_ShouldFailWhenRequestBodyIsInvalid(t *testing.T) {
 	assert.Equal(t, "KO", errResponse.Status)
 	assert.Equal(t, messageUnableToChangePassword.Message, errResponse.Message)
 	assert.Equal(t, messageUnableToChangePassword.Code, errResponse.Code)
+}
+
+func TestChangePasswordPOST_ShouldFailWhenPasswordTooLong(t *testing.T) {
+	testCases := []struct {
+		name        string
+		oldPassword string
+		newPassword string
+	}{
+		{"ShouldFailOldPasswordTooLong", strings.Repeat("a", passwordMaxLength+1), "abc"},
+		{"ShouldFailNewPasswordTooLong", "abc", strings.Repeat("a", passwordMaxLength+1)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			userSession, err := mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			userSession.Username = testUsername
+
+			require.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+			mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"username":"%s","old_password":"%s","new_password":"%s"}`, testUsername, tc.oldPassword, tc.newPassword))
+
+			ChangePasswordPOST(mock.Ctx)
+
+			mock.AssertLogEntryAdvanced(t, 0, logrus.ErrorLevel, "Unable to change password for user: invalid request body", map[string]any{"username": testUsername, "error": "password exceeds the maximum length of 256 bytes"})
+
+			errResponse := mock.GetResponseError(t)
+			assert.Equal(t, "KO", errResponse.Status)
+			assert.Equal(t, messageUnableToChangePassword.Message, errResponse.Message)
+			assert.Equal(t, messageUnableToChangePassword.Code, errResponse.Code)
+		})
+	}
 }
 
 func TestChangePasswordPOST_ShouldFailWhenOldPasswordIsIncorrect(t *testing.T) {
