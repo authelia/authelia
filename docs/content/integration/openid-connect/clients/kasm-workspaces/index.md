@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kasm Workspaces"
-description: "Integrating Kasm Workspaces with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Kasm Workspaces with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'Kasm Workspaces'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -98,9 +103,10 @@ To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Pr
    - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
    - User Info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
    - Scope (One Per Line): `openid profile groups email`
-   - User Identifier: `preferred_username`
+   - Username Attribute: `preferred_username`
+   - Redirect URL: `https://kasm.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc_callback`
 
-{{< figure src="kasm.png" alt="Kasam Workspaces" width="736" style="padding-right: 10px" >}}
+{{< figure src="kasm.png" alt="Kasm Workspaces" width="736" style="padding-right: 10px" >}}
 
 ## See Also
 
@@ -108,4 +114,5 @@ To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Pr
 
 [Authelia]: https://www.authelia.com
 [Kasm Workspaces]: https://kasmweb.com/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

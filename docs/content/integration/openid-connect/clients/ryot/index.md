@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Ryot (Roll Your Own Tracker)"
-description: "Integrating Ryot with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Ryot with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-07-26T19:41:59+10:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Ryot]
   - [v8.9.0](https://github.com/IgnisDa/ryot/releases/tag/v8.9.0)
 
@@ -35,7 +39,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://ryot.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://ryot.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/callback`.
+    `https://ryot.{{< sitevar name="domain" nojs="example.com" >}}/api/auth`.
     This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `ryot`
@@ -62,6 +66,7 @@ identity_providers:
         client_name: 'Ryot'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         require_pkce: false
         pkce_challenge_method: ''
         authorization_policy: 'two_factor'
@@ -92,12 +97,12 @@ To configure [Ryot] there are two methods, using the [Configuration File](#confi
 
 To configure [Ryot] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
-```toml {title="config.yaml"}
+```yaml {title="config.yaml"}
 frontend:
   url: 'https://ryot.{{< sitevar name="domain" nojs="example.com" >}}'
   oidc_button_label: 'Use Authelia'
 server:
-  odic:
+  oidc:
     client_id: 'ryot'
     client_secret: 'insecure_secret'
     issuer_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'

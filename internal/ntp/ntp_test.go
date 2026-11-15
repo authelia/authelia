@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 //nolint:gosec // G115: integer overflow conversion is safe in tests
 package ntp
 

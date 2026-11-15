@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -128,6 +132,13 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delay
 	}
 
 	return func(ctx *AutheliaCtx) {
+		if err := ctx.RegenerateSession(); err != nil {
+			ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+
 		requestTime := time.Now()
 		success := false
 

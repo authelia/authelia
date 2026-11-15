@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -23,6 +27,10 @@ var (
 
 	// ErrNoDuoDevice error thrown when no Duo device and method has been found in DB.
 	ErrNoDuoDevice = errors.New("no Duo device and method saved")
+
+	// ErrRecoveryCodeNotActive is returned when a recovery code could not be consumed because it has already been
+	// consumed or revoked.
+	ErrRecoveryCodeNotActive = errors.New("recovery code is not active")
 
 	// ErrNoAvailableMigrations is returned when no available migrations can be found.
 	ErrNoAvailableMigrations = errors.New("no available migrations")
@@ -70,6 +78,8 @@ const (
 	logFmtMigrationFromTo   = "Storage schema migration from %s to %s is being attempted"
 	logFmtMigrationComplete = "Storage schema migration from %s to %s is complete"
 	logFmtErrClosingConn    = "Error occurred closing SQL connection: %v"
+
+	logFmtEncryptionChangeKeyTableComplete = "Finished re-encrypting %d row(s) in table '%s'"
 )
 
 const (
@@ -99,6 +109,57 @@ func IsSerializationFailure(err error) (failure bool) {
 		return errMySQL.Number == codeMySQLLockDeadlock || errMySQL.Number == codeMySQLLockWaitTimeout
 	case errors.As(err, &errPostgres):
 		return errPostgres.Code == codePostgresSerializationFailure || errPostgres.Code == codePostgresDeadlockDetected
+	default:
+		return false
+	}
+}
+
+// IsUniqueConstraintViolation returns true when the error indicates a statement was rejected because it would have
+// duplicated a value in a column or set of columns with a unique constraint, which is what a concurrent insert of the
+// same row fails with. The statement has not been applied, and the row which it conflicted with exists.
+func IsUniqueConstraintViolation(err error) (violation bool) {
+	if err == nil {
+		return false
+	}
+
+	var (
+		errSQLite   sqlite3.Error
+		errMySQL    *mysql.MySQLError
+		errPostgres *pgconn.PgError
+	)
+
+	switch {
+	case errors.As(err, &errSQLite):
+		return errSQLite.ExtendedCode == sqlite3.ErrConstraintUnique
+	case errors.As(err, &errMySQL):
+		return errMySQL.Number == codeMySQLDuplicateEntry
+	case errors.As(err, &errPostgres):
+		return errPostgres.Code == codePostgresUniqueViolation
+	default:
+		return false
+	}
+}
+
+// IsUniqueViolation returns true when the error indicates a statement was rejected because it would have violated a
+// unique or primary key constraint.
+func IsUniqueViolation(err error) (violation bool) {
+	if err == nil {
+		return false
+	}
+
+	var (
+		errSQLite   sqlite3.Error
+		errMySQL    *mysql.MySQLError
+		errPostgres *pgconn.PgError
+	)
+
+	switch {
+	case errors.As(err, &errSQLite):
+		return errSQLite.ExtendedCode == sqlite3.ErrConstraintUnique || errSQLite.ExtendedCode == sqlite3.ErrConstraintPrimaryKey
+	case errors.As(err, &errMySQL):
+		return errMySQL.Number == codeMySQLDuplicateEntry
+	case errors.As(err, &errPostgres):
+		return errPostgres.Code == codePostgresUniqueViolation
 	default:
 		return false
 	}

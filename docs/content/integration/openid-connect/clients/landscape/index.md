@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Landscape"
-description: "Integrating Landscape with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Landscape with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Landscape]
   - [24.04 LTS](https://documentation.ubuntu.com/landscape/reference/release-notes/24-04-lts-release-notes/)
 
@@ -58,6 +62,7 @@ identity_providers:
         client_name: 'Landscape'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -86,7 +91,7 @@ To configure [Landscape] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 ```ini {title="service.conf"}
 [landscape]
-oidc-issuer = <https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}>
+oidc-issuer = https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 oidc-client-id = landscape
 oidc-client-secret = insecure_secret
 ```

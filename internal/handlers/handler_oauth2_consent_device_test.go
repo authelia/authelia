@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -18,6 +22,8 @@ func TestOAuth2ConsentDeviceAuthorizationGET(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
@@ -36,6 +42,8 @@ func TestOAuth2ConsentDeviceAuthorizationGET(t *testing.T) {
 	t.Run("ShouldHandleInactiveDeviceCodeSession", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
@@ -71,6 +79,8 @@ func TestOAuth2ConsentDeviceAuthorizationGET(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		client := newTestOIDCDeviceCodeClient(t)
 		client.AuthorizationPolicy = "two_factor"
 
@@ -95,6 +105,8 @@ func TestOAuth2ConsentDeviceAuthorizationGET(t *testing.T) {
 	t.Run("ShouldReturnConsentInformation", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
@@ -122,6 +134,8 @@ func TestOAuth2ConsentDeviceAuthorizationPOST(t *testing.T) {
 	t.Run("ShouldHandleMissingUserCode", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		setupTestOIDCProvider(t, mock, nil)
 
@@ -153,6 +167,8 @@ func TestOAuth2ConsentDeviceAuthorizationPOST(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
@@ -171,6 +187,8 @@ func TestOAuth2ConsentDeviceAuthorizationPOST(t *testing.T) {
 	t.Run("ShouldHandleClientIDMismatch", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
@@ -193,6 +211,8 @@ func TestOAuth2ConsentDeviceAuthorizationPOST(t *testing.T) {
 	t.Run("ShouldGrantConsent", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
@@ -219,6 +239,8 @@ func TestOAuth2ConsentDeviceAuthorizationPOST(t *testing.T) {
 	t.Run("ShouldRejectConsent", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}

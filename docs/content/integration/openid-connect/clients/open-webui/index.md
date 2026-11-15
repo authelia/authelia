@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Open WebUI"
-description: "Integrating Open WebUI with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Open WebUI with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-01-25T00:03:43+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Open WebUI]
   - [v0.6.13](https://github.com/open-webui/open-webui/releases/tag/v0.6.13)
 
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'Open WebUI'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -110,9 +115,9 @@ OAUTH_ROLES_CLAIM=groups
 OAUTH_CODE_CHALLENGE_METHOD=S256
 ```
 
-###### Docker Compose
+##### Docker Compose
 
-```yaml {title="comppse.yml"}
+```yaml {title="compose.yml"}
 services:
   open-webui:
     environment:

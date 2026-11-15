@@ -2,7 +2,7 @@
 title: "authelia storage user totp export"
 description: "Reference for the authelia storage user totp export command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-27T14:52:21+10:00
 draft: false
 images: []
 weight: 905
@@ -22,7 +22,9 @@ Perform exports of the TOTP configurations
 
 Perform exports of the TOTP configurations.
 
-This subcommand allows exporting TOTP configurations to importable YAML files, or use the subcommands to export them to other non-importable formats.
+This subcommand allows exporting TOTP configurations to importable files, or use the subcommands to export them to other
+non-importable formats. The format is determined by the extension of the file; '.toml' is written as TOML, '.json' as
+JSON, and anything else as YAML.
 
 ```
 authelia storage user totp export [flags]
@@ -39,26 +41,29 @@ authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707d
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "authelia.export.totp.yml")
+  -f, --file string   The file name for the export, the extension determines the format (default "authelia.export.totp.yml")
   -h, --help          help for export
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
-      --encryption-key string                 the storage encryption key to use
-      --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
-      --mysql.database string                 the MySQL database name (default "authelia")
-      --mysql.password string                 the MySQL password
-      --mysql.username string                 the MySQL username (default "authelia")
-      --postgres.address string               the PostgreSQL server address (default "tcp://127.0.0.1:5432")
-      --postgres.database string              the PostgreSQL database name (default "authelia")
-      --postgres.password string              the PostgreSQL password
-      --postgres.schema string                the PostgreSQL schema name (default "public")
-      --postgres.username string              the PostgreSQL username (default "authelia")
-      --sqlite.path string                    the SQLite database path
+  -c, --config strings                                   configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.filters strings                           list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.template.delimiter.left string    sets the left delimiter for the 'template' filter
+      --config.filters.template.delimiter.right string   sets the right delimiter for the 'template' filter
+      --config.filters.values strings                    file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
+      --encryption-key string                            the storage encryption key to use
+      --mysql.address string                             the MySQL server address (default "tcp://127.0.0.1:3306")
+      --mysql.database string                            the MySQL database name (default "authelia")
+      --mysql.password string                            the MySQL password
+      --mysql.username string                            the MySQL username (default "authelia")
+      --postgres.address string                          the PostgreSQL server address (default "tcp://127.0.0.1:5432")
+      --postgres.database string                         the PostgreSQL database name (default "authelia")
+      --postgres.password string                         the PostgreSQL password
+      --postgres.schema string                           the PostgreSQL schema name (default "public")
+      --postgres.username string                         the PostgreSQL username (default "authelia")
+      --sqlite.path string                               the SQLite database path
 ```
 
 ### SEE ALSO

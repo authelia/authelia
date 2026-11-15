@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -28,6 +32,10 @@ func (s *TraefikSuite) dockerEnvironment() *DockerEnvironment {
 
 func (s *TraefikSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
+}
+
+func (s *TraefikSuite) TestAccessDeniedScenario() {
+	suite.Run(s.T(), NewAccessDeniedScenario())
 }
 
 func (s *TraefikSuite) Test2FATOTPScenario() {

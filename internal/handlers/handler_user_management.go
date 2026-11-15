@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -50,7 +54,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !UserIsAdmin(ctx, userSession.Groups) {
+	if !UserIsAdmin(ctx, userSession.Username) {
 		ctx.Logger.Errorf("Error occurred adding new user: %s", fmt.Sprintf(logFmtErrUserNotAdmin, userSession.Username))
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -79,7 +83,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		if !utils.ValidateEmailString(newUserRequest.Emails[0]) {
 			ctx.Logger.Debugf("unable to add user '%s': %s", newUserRequest.GetUsername(), messageInvalidEmail)
 			ctx.SetStatusCode(fasthttp.StatusBadRequest)
-			ctx.SetJSONError(fmt.Sprintf("unable to add user '%s': %s", newUserRequest.GetUsername(), messageInvalidEmail))
+			ctx.SetJSONError(messageInvalidEmailAddress)
 
 			return
 		}
@@ -102,8 +106,9 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 
 			for _, group := range newUserRequest.Groups {
 				if !slices.Contains(availableGroups, group) {
+					ctx.Logger.Debugf("Group '%s' does not exist", group)
 					ctx.SetStatusCode(fasthttp.StatusBadRequest)
-					ctx.SetJSONError(fmt.Sprintf("Group '%s' does not exist", group))
+					ctx.SetJSONError(messageGroupNotFound)
 
 					return
 				}
@@ -190,14 +195,14 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.Providers.UserProvider.ValidateUserData(userData); err != nil {
 		if errors.Is(err, authentication.ErrUsernameIsRequired) {
 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-			ctx.SetJSONError("Username is required")
+			ctx.SetJSONError(messageUsernameRequired)
 
 			return
 		}
 
 		if errors.Is(err, authentication.ErrFamilyNameIsRequired) {
 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-			ctx.SetJSONError("Last name is required")
+			ctx.SetJSONError(messageFamilyNameRequired)
 
 			return
 		}
@@ -222,7 +227,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 
 		if ldap.IsErrorAnyOf(err, ldap.LDAPResultEntryAlreadyExists, ldap.LDAPResultConstraintViolation) || errors.Is(err, authentication.ErrUserExists) {
 			ctx.Response.SetStatusCode(fasthttp.StatusConflict)
-			ctx.SetJSONError("User already exists")
+			ctx.SetJSONError(messageUserAlreadyExists)
 
 			return
 		}
@@ -291,7 +296,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !UserIsAdmin(ctx, adminUser.Groups) {
+	if !UserIsAdmin(ctx, adminUser.Username) {
 		ctx.Logger.Errorf("Error occurred modifying user: %s", fmt.Sprintf(logFmtErrUserNotAdmin, adminUser.Username))
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -303,7 +308,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 	if updateMaskStr == "" {
 		ctx.Logger.Debug("update_mask is required")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("update_mask query parameter is required. Specify comma-separated field names to update (e.g., ?update_mask=display_name,emails,address.city)")
+		ctx.SetJSONError(messageUpdateMaskInvalid)
 
 		return
 	}
@@ -317,7 +322,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.ParseBody(&requestBody); err != nil {
 		ctx.Logger.WithError(err).Error(messageUnableToModifyUser)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(fmt.Sprintf("Invalid JSON format: %s", err.Error()))
+		ctx.SetJSONError(messageInvalidRequest)
 
 		return
 	}
@@ -325,7 +330,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 	if username == "" {
 		ctx.Logger.Debug("Username is required")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Username is required")
+		ctx.SetJSONError(messageUsernameRequired)
 
 		return
 	}
@@ -333,7 +338,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 	if slices.Contains(updateMask, "password") || requestBody.Password != "" {
 		ctx.Logger.Debug("Password modification not allowed via this endpoint")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Password modification not supported. Use the password change endpoint.")
+		ctx.SetJSONError(messagePasswordModifyUnsupported)
 
 		return
 	}
@@ -341,7 +346,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 	if userDetails, err = ctx.Providers.UserProvider.GetUser(username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error retrieving details for user '%s'", username)
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
-		ctx.SetJSONError("User not found")
+		ctx.SetJSONError(messageUserNotFound)
 
 		return
 	}
@@ -349,7 +354,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 	if err := validateUpdateMask(updateMask, ctx.Providers.UserProvider.GetSupportedAttributes()); err != nil {
 		ctx.Logger.WithError(err).Error("Invalid update_mask")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(err.Error())
+		ctx.SetJSONError(messageUpdateMaskInvalid)
 
 		return
 	}
@@ -377,7 +382,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 			if len(partialUpdate.Emails) == 0 || !utils.ValidateEmailString(partialUpdate.Emails[0]) {
 				ctx.Logger.Debugf("unable to add user '%s': %s", partialUpdate.GetUsername(), messageInvalidEmail)
 				ctx.SetStatusCode(fasthttp.StatusBadRequest)
-				ctx.SetJSONError(fmt.Sprintf("unable to add user '%s': %s", partialUpdate.GetUsername(), messageInvalidEmail))
+				ctx.SetJSONError(messageInvalidEmailAddress)
 
 				return
 			}
@@ -396,8 +401,9 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 
 				for _, group := range groups {
 					if !slices.Contains(availableGroups, group) {
+						ctx.Logger.Debugf("Group '%s' does not exist", group)
 						ctx.SetStatusCode(fasthttp.StatusBadRequest)
-						ctx.SetJSONError(fmt.Sprintf("Group '%s' does not exist", group))
+						ctx.SetJSONError(messageGroupNotFound)
 
 						return
 					}
@@ -442,7 +448,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 			if requestBody.Address == nil {
 				ctx.Logger.Debugf("Address object not provided for field '%s'", field)
 				ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-				ctx.SetJSONError(fmt.Sprintf("Address object must be provided when updating '%s'", field))
+				ctx.SetJSONError(messageInvalidRequest)
 
 				return
 			}
@@ -462,7 +468,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 			default:
 				ctx.Logger.Errorf("Unknown address subfield: '%s'", subField)
 				ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-				ctx.SetJSONError(fmt.Sprintf("Unknown address field: '%s'", subField))
+				ctx.SetJSONError(messageUpdateMaskInvalid)
 
 				return
 			}
@@ -480,28 +486,28 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 					} else {
 						ctx.Logger.Debugf("Extra field '%s' not provided in extra object", extraField)
 						ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-						ctx.SetJSONError(fmt.Sprintf("Field '%s' must be provided in the 'extra' object in the request body", extraField))
+						ctx.SetJSONError(messageInvalidRequest)
 
 						return
 					}
 				} else {
 					ctx.Logger.Debugf("Extra object not provided for extra field '%s'", extraField)
 					ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-					ctx.SetJSONError(fmt.Sprintf("'extra' object must be provided in the request body when updating '%s'", field))
+					ctx.SetJSONError(messageInvalidRequest)
 
 					return
 				}
 			} else {
 				ctx.Logger.Errorf("Unknown extra field: '%s'", extraField)
 				ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-				ctx.SetJSONError(fmt.Sprintf("Unknown extra field: '%s'", extraField))
+				ctx.SetJSONError(messageUpdateMaskInvalid)
 
 				return
 			}
 		default:
 			ctx.Logger.Errorf("Unhandled field in update_mask: '%s'", field)
 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-			ctx.SetJSONError(fmt.Sprintf("Unhandled field in update_mask: '%s'. Extra fields must use 'extra.' prefix (e.g., 'extra.%s')", field, field))
+			ctx.SetJSONError(messageUpdateMaskInvalid)
 
 			return
 		}
@@ -510,7 +516,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.Providers.UserProvider.ValidatePartialUpdate(partialUpdate, updateMask); err != nil {
 		ctx.Logger.WithError(err).Errorf("Validation failed for user '%s'", username)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(fmt.Sprintf("User modification failed: %s", err.Error()))
+		ctx.SetJSONError(messageInvalidRequest)
 
 		return
 	}
@@ -520,20 +526,20 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 
 		if errors.Is(err, authentication.ErrGroupNotFound) {
 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-			ctx.SetJSONError(fmt.Sprintf("group '%s' not found", username))
+			ctx.SetJSONError(messageGroupNotFound)
 
 			return
 		}
 
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
-			ctx.SetJSONError("User not found")
+			ctx.SetJSONError(messageUserNotFound)
 
 			return
 		}
 
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-		ctx.SetJSONError("Failed to update user")
+		ctx.SetJSONError(messageUnableToUpdateUser)
 
 		return
 	}
@@ -580,7 +586,7 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !UserIsAdmin(ctx, userSession.Groups) {
+	if !UserIsAdmin(ctx, userSession.Username) {
 		ctx.Logger.Warnf("problem retrieving user management fields: user '%s' is not an admin", userSession.Username)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -593,7 +599,7 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 		case errors.Is(err, authentication.ErrUserNotFound):
 			ctx.Logger.Debugf("User '%s' not found for deletion", username)
 		default:
-			ctx.Logger.WithError(err).Errorf(messageUnableToDeleteUser+" '%s'", username)
+			ctx.Logger.WithError(err).Errorf("Unable to delete specified user '%s'", username)
 
 			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 			ctx.SetJSONError(messageUnableToDeleteUser)
@@ -656,7 +662,7 @@ func AdminChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !UserIsAdmin(ctx, userSession.Groups) {
+	if !UserIsAdmin(ctx, userSession.Username) {
 		ctx.Logger.Warnf("problem retrieving user management fields: user '%s' is not an admin", userSession.Username)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -796,7 +802,7 @@ func AdminResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !UserIsAdmin(ctx, userSession.Groups) {
+	if !UserIsAdmin(ctx, userSession.Username) {
 		ctx.Logger.Warnf("problem retrieving user management fields: user '%s' is not an admin", userSession.Username)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -889,7 +895,7 @@ func UserManagementAttributesGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !UserIsAdmin(ctx, userSession.Groups) {
+	if !UserIsAdmin(ctx, userSession.Username) {
 		ctx.Logger.Warnf("problem retrieving user management fields: user '%s' is not an admin", userSession.Username)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)

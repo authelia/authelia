@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Zammad"
-description: "Integrating Zammad with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Zammad with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-06-07T03:50:17+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Zammad]
   - [v6.5.0](https://github.com/zammad/zammad/releases/tag/6.5.0)
 
@@ -34,12 +38,11 @@ seo:
 This example makes the following assumptions:
 
 - **Application Root URL:** `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
+    `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid_connect/callback`.
+    This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `zammad`
-- **Authentication Name (Zammad):** `authelia`:
-  - This option determines the redirect URI in the format of
-    `https://zammad.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
-    This means if you change this value you need to update the redirect URI.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -61,6 +64,7 @@ identity_providers:
       - client_id: 'zammad'
         client_name: 'Zammad'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -103,7 +107,7 @@ To configure [Zammad] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 ## See Also
 
 - [Zammad]:
-  - [Security > Thirt Party Applications > OpenID Connect](https://admin-docs.zammad.org/en/pre-release/settings/security/third-party/openid-connect.html
+  - [Security > Third Party Applications > OpenID Connect](https://admin-docs.zammad.org/en/pre-release/settings/security/third-party/openid-connect.html)
 
 [Authelia]: https://www.authelia.com
 [Zammad]: https://zammad.com/en

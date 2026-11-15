@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "1Password"
-description: "Integrating 1Password with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating 1Password with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [1Password]
 
 {{% oidc-common %}}
@@ -54,11 +58,12 @@ identity_providers:
       - client_id: '1password'
         client_name: '1Password'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - ''  # See step 5 below.
+          - ''  # See step 4 below.
         scopes:
           - 'openid'
           - 'email'
@@ -82,13 +87,10 @@ To configure [1Password] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 1. [Sign in to your 1Password](https://start.1password.com/policies/sso/configure-idp).
 2. Select `Other` from the list of identity providers and select `Next`.
-3. Select `Other` from the identity provider list.
-4. Configure the following options:
-
-- Client ID: `1password`
-- Well-known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-
-5. Copy the listed `Redirect URIs` and configure the Authelia `redirect_uris` option.
+3. Configure the following options:
+   - Client ID: `1password`
+   - Well-known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+4. Copy the listed `Redirect URIs` and configure the Authelia `redirect_uris` option.
 
 ## See Also
 

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 MODE=${1}
 
 sed "s/__SUITE_SUBNET__/${SUITE_SUBNET:-192.168.240}/g" "/templates/${MODE}.conf" > /data/redis.conf

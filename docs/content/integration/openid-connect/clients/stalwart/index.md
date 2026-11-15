@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Stalwart"
-description: "Integrating Stalwart with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Stalwart with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Stalwart]
   - [v0.11.7](https://github.com/stalwartlabs/mail-server/releases/tag/v0.11.7)
 
@@ -50,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 This client is created as an example but [Stalwart](https://stalw.art) doesn't use this client directly, it just queries
 the Introspection or User Info Endpoint given an Access Token. This means you must procure the relevant Access Token
 yourself in order to use it. In this example we issue it to an application that has a URI different to
-[Stalwart](https://stalw.art) which allows that application to leverage OAuth 2.0 to authenticate on a users behalf.
+[Stalwart](https://stalw.art) which allows that application to leverage OAuth 2.0 to authenticate on a user's behalf.
 {{< /callout >}}
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Stalwart] which will
@@ -66,6 +70,7 @@ identity_providers:
         client_name: 'Stalwart'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -120,7 +125,7 @@ To configure [Stalwart] to utilize Authelia as an [OpenID Connect 1.0] Provider,
    - Directory Id: `authelia`
    - Type: `OpenID Connect`
    - URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   - Type: `OpenID Connect Userinfo`
+   - Type (the endpoint type field below the URL): `OpenID Connect Userinfo`
    - Timeout: `15 seconds`
    - E-mail Field: `email`
    - Username field: `preferred_username`

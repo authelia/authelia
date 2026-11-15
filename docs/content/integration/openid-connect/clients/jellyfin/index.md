@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Jellyfin"
-description: "Integrating Jellyfin with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Jellyfin with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-04-12T21:54:41+10:00
 draft: false
@@ -76,6 +80,7 @@ identity_providers:
         client_name: 'Jellyfin'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -100,7 +105,7 @@ identity_providers:
 This configuration assumes [Jellyfin](https://jellyfin.org/) administrators are part of the `jellyfin-admins` group, and
 [Jellyfin](https://jellyfin.org/) users are part of the `jellyfin-users` group. Depending on your specific group configuration, you will have
 to adapt the `AdminRoles` and `Roles` nodes respectively. Alternatively you may elect to create a new authorization
-policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the [client authorization policy](./../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+policy in [provider authorization policies](../../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the [client authorization policy](../../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
 To configure the [Jellyfin SSO-Auth Plugin] there are two methods, using the [Configuration File](#configuration-file), or using the
@@ -160,6 +165,7 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
             <string>groups</string>
           </OidScopes>
           <CanonicalLinks></CanonicalLinks>
+          <DefaultUsernameClaim>preferred_username</DefaultUsernameClaim>
           <DisableHttps>false</DisableHttps>
           <DoNotValidateEndpoints>false</DoNotValidateEndpoints>
           <DoNotValidateIssuerName>false</DoNotValidateIssuerName>

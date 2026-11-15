@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -44,7 +48,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			username: true,
 			groups:   true,
 			ip:       true,
-			err:      "flag accessed but not defined: url",
+			err:      "flag \"url\" does not exist",
 		},
 		{
 			name:     "ShouldErrorOnInvalidURLFlag",
@@ -62,7 +66,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			username: true,
 			groups:   true,
 			ip:       true,
-			err:      "flag accessed but not defined: method",
+			err:      "flag \"method\" does not exist",
 		},
 		{
 			name:   "ShouldErrorOnMissingUsernameFlag",
@@ -70,7 +74,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			method: true,
 			groups: true,
 			ip:     true,
-			err:    "flag accessed but not defined: username",
+			err:    "flag \"username\" does not exist",
 		},
 		{
 			name:     "ShouldErrorOnMissingGroupsFlag",
@@ -78,7 +82,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			method:   true,
 			username: true,
 			ip:       true,
-			err:      "flag accessed but not defined: groups",
+			err:      "flag \"groups\" does not exist",
 		},
 		{
 			name:     "ShouldErrorOnMissingIPFlag",
@@ -86,7 +90,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			method:   true,
 			username: true,
 			groups:   true,
-			err:      "flag accessed but not defined: ip",
+			err:      "flag \"ip\" does not exist",
 		},
 		{
 			name:     "ShouldNotErrorWithAllFlagsSet",

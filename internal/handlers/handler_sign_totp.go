@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -6,6 +10,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -43,11 +48,11 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 		if errors.Is(err, storage.ErrNoTOTPConfiguration) {
 			ctx.GetLogger().WithError(err).Debugf("Error occurred retrieving TOTP configuration for user '%s'", userSession.Username)
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
-			ctx.SetJSONError("Could not find TOTP Configuration for user.")
+			ctx.SetJSONError(messageTOTPConfigurationNotFound)
 		} else {
 			ctx.GetLogger().WithError(err).Errorf("Error occurred retrieving TOTP configuration for user '%s': error occurred retrieving the configuration from the storage backend", userSession.Username)
 			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-			ctx.SetJSONError("Could not find TOTP Configuration for user.")
+			ctx.SetJSONError(messageOperationFailed)
 		}
 
 		return
@@ -161,13 +166,27 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 			return
 		}
-	} else if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
+	}
+
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred fetching user details for user", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
+	}
+
+	if !exists {
+		if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
+			ctx.GetLogger().WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
+
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
+
+			return
+		}
 	}
 
 	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeTOTP, nil)
@@ -194,7 +213,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.SetTwoFactorTOTP(ctx.GetClock().Now())
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -204,7 +223,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if len(bodyJSON.Flow) > 0 {
-		handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+		handleFlowResponse(ctx, &userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Threat Model"
-description: "An overview of the Authelia threat model."
+description: "An overview of the Authelia threat model describing security guarantees, trusted environment assumptions, and protections against common attack vectors."
 summary: "An overview of the Authelia threat model."
 date: 2024-03-14T06:00:14+11:00
 draft: false

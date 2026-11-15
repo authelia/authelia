@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Apache Guacamole"
-description: "Integrating Apache Guacamole with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Apache Guacamole with the Authelia OpenID Connect 1.0 Provider including tested configuration examples and available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Apache Guacamole]
   - [v1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
@@ -57,6 +61,7 @@ identity_providers:
       - client_id: 'guacamole'
         client_name: 'Apache Guacamole'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -73,7 +78,7 @@ identity_providers:
           - 'implicit'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'none'
 ```
 
 ### Application
@@ -93,7 +98,7 @@ openid-client-id: guacamole
 openid-scope: openid profile groups email
 openid-issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 openid-jwks-endpoint: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json
-openid-authorization-endpoint: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization?state=1234abcedfdhf
+openid-authorization-endpoint: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
 openid-redirect-uri: https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}
 openid-username-claim-type: preferred_username
 openid-groups-claim-type: groups

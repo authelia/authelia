@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package logging
 
 import (
@@ -68,6 +72,17 @@ const (
 	FieldGranted             = "granted"
 	FieldStatus              = "status"
 	FieldProvider            = "provider"
+	FieldCaller              = "caller"
+	FieldStack               = "stack"
+)
+
+// Stack trace hook values.
+const (
+	stackSkipFrames       = 8
+	stackSkipFramesFields = 6
+	stackMaxDepth         = 32
+
+	pathPackageLogrus = "github.com/sirupsen/logrus"
 )
 
 var (

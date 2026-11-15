@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Opengist"
-description: "Integrating Opengist with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Opengist with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2026-03-07T23:00:00+11:00
 draft: false
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Opengist]
   - [v1.12.1](https://github.com/thomiceli/opengist/releases/tag/v1.12.1)
 
@@ -43,9 +47,9 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ## Configuration
 
-### Opengist
+### Authelia
 
-The following YAML configuration is an example Opengist [client configuration] for use with [Opengist] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Opengist] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -57,6 +61,7 @@ identity_providers:
       - client_id: 'opengist'
         client_name: 'Opengist'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        application_type: 'web'
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://opengist.{{< sitevar name="domain" nojs="example.com" >}}/oauth/openid-connect/callback'
@@ -108,7 +113,7 @@ services:
 
 #### Configuration file
 
-```yaml {title="configuration.yml"}
+```yaml {title="config.yml"}
 oidc.provider-name: authelia
 oidc.client-key: opengist
 oidc.secret: insecure_secret

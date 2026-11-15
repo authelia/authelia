@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package server
 
 import (
@@ -17,7 +21,7 @@ import (
 )
 
 func TestHandleError(t *testing.T) {
-	handler := handleError("server")
+	handler := handleError("server", schema.ServerHeadersTrustedProxies{})
 
 	testCases := []struct {
 		name               string

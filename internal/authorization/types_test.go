@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authorization
 
 import (
@@ -144,6 +148,33 @@ func TestNewObjectMethodURL(t *testing.T) {
 			"",
 			"",
 			"method header with value 'GET ' has invalid characters",
+		},
+		{
+			"ShouldAllowHyphenatedMethod",
+			"version-control",
+			"https://app.example.com/",
+			"VERSION-CONTROL",
+			"app.example.com",
+			"/",
+			"",
+		},
+		{
+			"ShouldAllowMaxLengthMethod",
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF",
+			"https://app.example.com/",
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF",
+			"app.example.com",
+			"/",
+			"",
+		},
+		{
+			"ShouldRejectMethodOverMaxLength",
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFG",
+			"https://app.example.com/",
+			"",
+			"",
+			"",
+			"method header with length 33 exceeds the maximum length of 32",
 		},
 		{
 			"ShouldRejectInvalidURL",

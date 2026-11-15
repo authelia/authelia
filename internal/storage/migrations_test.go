@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -13,11 +17,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
-)
-
-const (
-	// This is the latest schema version for the purpose of tests.
-	LatestVersion = 30
 )
 
 func TestShouldObtainCorrectMigrations(t *testing.T) {
@@ -50,7 +49,6 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 				migrations []model.SchemaMigration
 			)
 
-			// UP.
 			migrations, err = loadMigrations(tc.provider, 0, ver)
 			require.NoError(t, err)
 
@@ -65,7 +63,6 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 
 			assert.Len(t, migrations, ver-1)
 
-			// DOWN.
 			migrations, err = loadMigrations(providerSQLite, ver, 0)
 			require.NoError(t, err)
 
@@ -405,3 +402,7 @@ func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
 		previousDown = append(previousDown, migration.Version)
 	}
 }
+
+const (
+	LatestVersion = 34
+)

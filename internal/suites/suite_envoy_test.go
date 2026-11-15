@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -18,6 +22,10 @@ func NewEnvoySuite() *EnvoySuite {
 
 func (s *EnvoySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
+}
+
+func (s *EnvoySuite) TestAccessDeniedScenario() {
+	suite.Run(s.T(), NewAccessDeniedScenario())
 }
 
 func (s *EnvoySuite) Test2FATOTPScenario() {

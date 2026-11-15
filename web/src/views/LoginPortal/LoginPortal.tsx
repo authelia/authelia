@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Fragment, ReactNode, lazy, useCallback, useEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
@@ -36,6 +40,7 @@ export interface Props {
     rememberMe: boolean;
     resetPassword: boolean;
     resetPasswordCustomURL: string;
+    registrationURL: string;
 }
 
 const RedirectionErrorMessage =
@@ -197,6 +202,7 @@ const LoginPortal = function (props: Props) {
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
                             resetPasswordCustomURL={props.resetPasswordCustomURL}
+                            registrationURL={props.registrationURL}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
                             onAuthenticationStop={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}

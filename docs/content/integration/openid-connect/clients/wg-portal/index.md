@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "WG-Portal"
 description: "Integrating WG-Portal with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [WG-Portal]
   - [v2.3.1](https://github.com/h44z/wg-portal/releases/tag/v2.3.1)
 
@@ -58,8 +62,9 @@ identity_providers:
     clients:
       - client_id: '{{< sitevar name="client-id" nojs="wg-portal" >}}'
         client_name: 'WG-Portal'
-        client_secret: '$pbkdf2-sha512$310000$hDm3SNqIGebGH33JVGnCZA$5XA6C8mg.j2MejL1uJfHwFPEqXbW2K.xufEuIIpwN.0Jn0dKs/LLvRKbPTo7MTOjTpwoAVyZj6BsUTHeBjd3sQ'  # The digest of 'insecure_secret'.
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

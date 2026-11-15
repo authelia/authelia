@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -93,6 +97,10 @@ func TestOAuth2DeviceAuthorizationPOST(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByUserCode(gomock.Any(), gomock.Any()).
+			Return(nil, sql.ErrNoRows)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
@@ -210,6 +218,8 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
@@ -239,6 +249,8 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 	t.Run("ShouldHandleInsufficientAuthenticationLevel", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		client := newTestOIDCDeviceCodeClient(t)
 		client.AuthorizationPolicy = "two_factor"
@@ -370,7 +382,7 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed to obtain the user details during the User Authorization Flow", regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed as an error occurred fetching the user details", regexpAnyError)
 	})
 
 	t.Run("ShouldHandleSaveConsentSessionGrantedError", func(t *testing.T) {
@@ -420,6 +432,10 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
 
 		setupTestOIDCProvider(t, mock, config)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2DeviceCodeSessionByUserCode(gomock.Any(), gomock.Any()).
+			Return(nil, sql.ErrNoRows)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
@@ -472,6 +488,8 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 	t.Run("ShouldHandleSubjectLookupError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
@@ -576,6 +594,10 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			AnyTimes().
 			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			SaveOAuth2ConsentSessionGranted(gomock.Any(), consent.ID).
+			Return(nil)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2Session(gomock.Any(), gomock.Any(), gomock.Any()).

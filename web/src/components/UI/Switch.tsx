@@ -3,8 +3,7 @@
 import { type ComponentProps } from "react";
 
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
-
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 function Switch({
     className,

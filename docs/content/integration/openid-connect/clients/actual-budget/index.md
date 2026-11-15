@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Actual Budget"
-description: "Integrating Actual Budget with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Actual Budget with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-01-25T12:36:00+11:00
 draft: false
@@ -35,7 +39,7 @@ This example makes the following assumptions:
 
 - **Application Root URL:** `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/openid/callback`.
     This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `actual-budget`
@@ -62,6 +66,7 @@ identity_providers:
         client_name: 'Actual Budget'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -123,7 +128,7 @@ ACTUAL_OPENID_AUTH_METHOD=oauth2
 services:
   actual-budget:
     environment:
-      ACTUAL_OPENID_DISCOVERY_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      ACTUAL_OPENID_DISCOVERY_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       ACTUAL_OPENID_CLIENT_ID: 'actual-budget'
       ACTUAL_OPENID_CLIENT_SECRET: 'insecure_secret'
       ACTUAL_OPENID_SERVER_HOSTNAME: 'https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}'

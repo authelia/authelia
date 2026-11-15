@@ -1,30 +1,28 @@
 #!/usr/bin/env bash
 
-BIN_DIR=/opt/build/repo/dart-sass
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
 
-mkdir -p "${BIN_DIR}"
+set -euo pipefail
 
-echo "Installing Dart SASS from https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
+: "${DART_SASS_VERSION:?DART_SASS_VERSION must be set}"
 
-curl -LJO "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
-tar -xzf "dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
-mv dart-sass/sass "${BIN_DIR}"
-mv dart-sass/src  "${BIN_DIR}/src"
+INSTALL_DIR="${HOME}/.local"
+ARCHIVE="dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
 
-rm -rf dart-sass
-rm "dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
+mkdir -p "${INSTALL_DIR}"
 
-echo "Binaries installed to ${BIN_DIR}"
-ls "${BIN_DIR}"
+echo "Installing Dart Sass from https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/${ARCHIVE}"
 
-export PATH="${BIN_DIR}:${PATH}"
+curl -fsSL "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/${ARCHIVE}" | tar -xz -C "${INSTALL_DIR}"
 
-echo "PATH=${PATH}"
+export PATH="${INSTALL_DIR}/dart-sass:${PATH}"
+
 sass --version
 hugo version
-hugo env
 
-which sass
+git config core.quotepath false
 
 echo "Building..."
 

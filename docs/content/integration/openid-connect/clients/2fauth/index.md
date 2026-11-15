@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "2FAuth"
 description: "Integrating 2FAuth with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
@@ -57,8 +61,9 @@ identity_providers:
     clients:
       - client_id: '{{< sitevar name="client-id" nojs="2fauth" >}}'
         client_name: '2FAuth'
-        client_secret: '$pbkdf2-sha512$310000$yTn6OQHuQRyif.WYB6/eJw$Plhbt5sn5800fNj4lMr5/gRAjtbur6nue6tbavbgJ4IyxISw.4i6py409653cv35gbvzWA'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'one_factor'
         require_pkce: false
         redirect_uris:

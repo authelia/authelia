@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -40,6 +44,15 @@ func ValidateAuthenticationBackend(config *schema.Configuration, validator *sche
 			config.AuthenticationBackend.PasswordReset.Disable = false
 		default:
 			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordResetCustomURLScheme, config.AuthenticationBackend.PasswordReset.CustomURL.String(), config.AuthenticationBackend.PasswordReset.CustomURL.Scheme))
+		}
+	}
+
+	if config.AuthenticationBackend.Registration.CustomURL.String() != "" {
+		switch config.AuthenticationBackend.Registration.CustomURL.Scheme {
+		case schemeHTTP, schemeHTTPS:
+			break
+		default:
+			validator.Push(fmt.Errorf(errFmtAuthBackendRegistrationCustomURLScheme, config.AuthenticationBackend.Registration.CustomURL.String(), config.AuthenticationBackend.Registration.CustomURL.Scheme))
 		}
 	}
 

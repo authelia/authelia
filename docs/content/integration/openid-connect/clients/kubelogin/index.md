@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kube Login"
-description: "Integrating Kube Login with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Kube Login with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-07-11T12:25:57+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Kube Login]
   - [v1.33.0](https://github.com/int128/kubelogin/releases/tag/v1.33.0)
 
@@ -53,12 +57,17 @@ identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
+    claims_policies:
+      kube_login:
+        id_token: ['email', 'email_verified', 'groups', 'preferred_username', 'name']
     clients:
       - client_id: 'kube_login'
         client_name: 'Kubernetes Cluster Access'
-        client_secret: 'insecure_secret'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'native'
         authorization_policy: 'two_factor'
+        claims_policy: 'kube_login'
         redirect_uris:
           - 'http://localhost:8000'
           - 'http://localhost:18000'

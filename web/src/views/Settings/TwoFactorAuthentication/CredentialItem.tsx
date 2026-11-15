@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { MouseEvent, ReactElement, ReactNode } from "react";
 
 import { AlertTriangle, Info, Pencil, Trash2 } from "lucide-react";
@@ -28,7 +32,7 @@ interface Props {
 const CredentialItem = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const timeSinceAdded = useRelativeTime(props.created_at);
-    const timeSinceLastUsed = useRelativeTime(props.last_used_at || new Date(0));
+    const timeSinceLastUsed = useRelativeTime(props.last_used_at);
 
     return (
         <Card id={props.id} className="p-0">

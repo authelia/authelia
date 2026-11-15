@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Windmill"
-description: "Integrating Windmill with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Windmill with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -42,6 +46,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
+## Configuration
+
 ### Authelia
 
 The following YAML configuration is an example **Authelia** [client configuration] for use with [Windmill]
@@ -57,6 +63,7 @@ identity_providers:
         client_name: 'Windmill'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -76,7 +83,7 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-## Application
+### Application
 
 To configure [Windmill] there is one method, using the [Web GUI](#web-gui).
 

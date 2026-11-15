@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "NGINX Proxy Manager"
-description: "An integration guide for Authelia and the NGINX Proxy Manager reverse proxy"
+description: "An integration guide for Authelia and NGINX Proxy Manager which is an NGINX-based reverse proxy with a web configuration user interface for easier management."
 summary: "A guide on integrating Authelia with NGINX Proxy Manager."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -39,7 +43,7 @@ _**Important:** You should read the [Forwarded Headers] section and this section
 Especially if you have never read it before._
 
 To configure trusted proxies for [NGINX Proxy Manager] see the [NGINX] section on
-[Trusted Proxies](../nginx.md#trusted-proxies). Adapting this to [NGINX Proxy Manager] is beyond the scope of
+[Trusted Proxies](../nginx.md#trusted-proxies-and-integration-security). Adapting this to [NGINX Proxy Manager] is beyond the scope of
 this documentation.
 
 ## Assumptions and Adaptation
@@ -163,6 +167,10 @@ substitute the standard variant of the `proxy.conf` for the headers only variant
 
 These snippets make the addition of a protected proxy host substantially easier.
 
+The snippets use the `$is_request_port` and `$request_port` variables which require [NGINX] 1.29.8 or newer. At the
+time of writing [NGINX Proxy Manager] 2.16.0 includes OpenResty 1.31.1.1, which is based on [NGINX] 1.31.1 and meets
+this requirement.
+
 ### Authelia Portal
 
 The Authelia portal requires minimal configuration.
@@ -252,6 +260,15 @@ location /custom {
 ```
 
 {{< picture src="protectedapp.customlocation.png" alt="Custom Location" width="450" >}}
+
+#### Protected Application Access Lists
+
+It's important to note that if you select an `Access List` on the `Details` tab of a proxy host it will have no effect
+when using the [Protected Application](#protected-application) example. [NGINX Proxy Manager] only applies the
+`Access List` to the `location` blocks it generates itself, which are the `location /` block and those defined in the
+`Custom Locations` tab, and it does not generate the `location /` block when one is defined in the `Advanced` tab.
+This is a known limitation of using [NGINX Proxy Manager] with Authelia, and you should seek advice from the
+[NGINX Proxy Manager] community if you need to restrict access using an `Access List`.
 
 #### Proxy Hosts Screenshot
 

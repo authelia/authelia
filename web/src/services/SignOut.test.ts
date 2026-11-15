@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { PostWithOptionalResponse } from "@services/Client";
 import { signOut } from "@services/SignOut";
 

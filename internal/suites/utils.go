@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -10,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -17,7 +22,6 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/input"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -90,20 +94,9 @@ const diagnosticsConsole = `() => JSON.stringify({
 	entries: window.__diagnostics__ || [],
 }, null, 2)`
 
+const coverageDir = "../../web/.nyc_output"
+
 var errPageNotCreated = errors.New("the page was not created")
-
-// StringToKeys returns the input.Key values which represent the given string.
-func StringToKeys(value string) []input.Key {
-	n := len(value)
-
-	keys := make([]input.Key, n)
-
-	for i := 0; i < n; i++ {
-		keys[i] = input.Key(value[i])
-	}
-
-	return keys
-}
 
 // ValidateBrowserPath validates the appropriate chromium browser path.
 func ValidateBrowserPath(path string) (browserPath string, err error) {
@@ -156,8 +149,6 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 		return
 	}
 
-	coverageDir := "../../web/.nyc_output"
-
 	resp, err := page.Eval("() => JSON.stringify(window.__coverage__)")
 	if err != nil {
 		log.Errorf("Error collecting coverage: %v", err)
@@ -170,15 +161,54 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	_ = os.MkdirAll(coverageDir, 0775)
 
 	if coverageData != "<nil>" {
-		if err = os.WriteFile(fmt.Sprintf("%s/coverage-%s.json", coverageDir, uuid.New().String()), []byte(coverageData), 0664); err != nil { //nolint:gosec
+		if err = writeCoverage(coverageDir, coverageData); err != nil {
 			log.Errorf("Error writing coverage: %v", err)
-
-			return
 		}
+	}
+}
 
-		if err = filepath.Walk("../../web/.nyc_output", fixCoveragePath); err != nil {
-			log.Errorf("Error rewriting coverage paths: %v", err)
-		}
+func writeCoverage(dir, data string) (err error) {
+	if err = os.MkdirAll(dir, 0775); err != nil {
+		return err
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	data = strings.ReplaceAll(data, "/node/src/app/", strings.TrimSuffix(wd, "internal/suites")+"web/")
+
+	return os.WriteFile(filepath.Join(dir, fmt.Sprintf("coverage-%s.json", uuid.New().String())), []byte(data), 0664) //nolint:gosec
+}
+
+func suiteDebug() bool {
+	return os.Getenv("SUITE_DEBUG") == t
+}
+
+func buildkiteGroups() bool {
+	return os.Getenv("BUILDKITE") == t && suiteDebug()
+}
+
+func buildkiteGroup(title string) string {
+	if !buildkiteGroups() {
+		return ""
+	}
+
+	return "--- " + title
+}
+
+func buildkiteExpandGroup() string {
+	if !buildkiteGroups() {
+		return ""
+	}
+
+	return "^^^ +++"
+}
+
+func emitBuildkiteMarker(marker string) {
+	if marker != "" {
+		fmt.Println(marker) //nolint:forbidigo
 	}
 }
 
@@ -209,11 +239,51 @@ func (s *BaseSuite) SetupLogging() {
 
 	log.SetLevel(l)
 
+	if isTest2JSON() {
+		log.SetOutput(&test2JSONWriter{out: os.Stderr})
+	}
+
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors: true,
 	})
 
 	s.T().Setenv("SUITE_SETUP_LOGGING", t)
+}
+
+// isTest2JSON returns true if the test binary output is being converted by cmd/internal/test2json. The
+// go command injects -test.v=test2json when -json is used, however the flag cannot be read back via the
+// flag package as -v appends a second -test.v=true which takes precedence, so the arguments are checked
+// directly.
+func isTest2JSON() bool {
+	return slices.Contains(os.Args, "-test.v=test2json")
+}
+
+// markEscape is the escape mark consumed by cmd/internal/test2json. Control bytes a test writes directly
+// to stderr rather than via t.Log must be escaped with it, otherwise test2json elides them, stripping the
+// ESC from ANSI sequences and leaving the remainder as literal text in the log.
+const markEscape = 0x1b
+
+// test2JSONWriter escapes the test2json escape mark so ANSI sequences survive `go test -json`.
+type test2JSONWriter struct {
+	out io.Writer
+}
+
+func (w *test2JSONWriter) Write(p []byte) (n int, err error) {
+	buf := make([]byte, 0, len(p))
+
+	for _, b := range p {
+		if b == markEscape {
+			buf = append(buf, markEscape)
+		}
+
+		buf = append(buf, b)
+	}
+
+	if _, err = w.out.Write(buf); err != nil {
+		return 0, err
+	}
+
+	return len(p), nil
 }
 
 // SetupEnvironment configures the environment for this suite.
@@ -412,6 +482,14 @@ func (rs *RodSession) collectDiagnostics(page *rod.Page, base string) {
 			log.Debugf("Error writing '%s': %v", path, err)
 		}
 	}
+
+	if data, ok := networkFailures(page); ok {
+		path, _ := screenshotPaths(base + ".network.json")
+
+		if err := os.WriteFile(path, data, 0600); err != nil {
+			log.Debugf("Error writing '%s': %v", path, err)
+		}
+	}
 }
 
 func (rs *RodSession) collectPage(page *rod.Page, base string) (err error) {
@@ -512,39 +590,6 @@ func (s *RodSuite) VerifyPageElementAttributeValue(t *testing.T, page *rod.Page,
 	}
 
 	assert.Equal(t, value, *attr)
-}
-
-func fixCoveragePath(path string, file os.FileInfo, err error) error {
-	if err != nil {
-		return err
-	}
-
-	if file.IsDir() {
-		return nil
-	}
-
-	coverage, err := filepath.Match("*.json", file.Name())
-	if err != nil {
-		return err
-	}
-
-	if coverage {
-		var data []byte
-
-		if data, err = os.ReadFile(path); err != nil { //nolint:gosec
-			return err
-		}
-
-		wd, _ := os.Getwd()
-		ciPath := strings.TrimSuffix(wd, "internal/suites")
-		content := strings.ReplaceAll(string(data), "/node/src/app/", ciPath+"web/")
-
-		if err = os.WriteFile(path, []byte(content), 0); err != nil { //nolint:gosec
-			return err
-		}
-	}
-
-	return nil
 }
 
 func getDomainEnvInfo(domain string) (info map[string]string, err error) {

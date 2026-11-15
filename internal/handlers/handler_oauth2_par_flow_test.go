@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -72,7 +76,7 @@ func TestOAuth2AuthorizationGETPushedAuthorizationRequest(t *testing.T) {
 
 		OAuth2AuthorizationGET(mock.Ctx, rw, r)
 
-		require.Equal(t, http.StatusFound, rw.Code)
+		require.Equal(t, http.StatusSeeOther, rw.Code)
 
 		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
 

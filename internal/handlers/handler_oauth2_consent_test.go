@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -51,6 +55,8 @@ func TestOAuth2ConsentGET(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
@@ -69,6 +75,8 @@ func TestOAuth2ConsentGET(t *testing.T) {
 	t.Run("ShouldHandleUnknownClient", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		setupTestOIDCProvider(t, mock, nil)
 
@@ -91,6 +99,8 @@ func TestOAuth2ConsentGET(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
@@ -109,12 +119,14 @@ func TestOAuth2ConsentGET(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been responded to", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session has already been responded to", nil)
 	})
 
 	t.Run("ShouldHandleInsufficientAuthenticationLevel", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		client := newTestOIDCAuthorizationCodeClient(t)
 		client.AuthorizationPolicy = "two_factor"
@@ -136,12 +148,14 @@ func TestOAuth2ConsentGET(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the user is not sufficiently authenticated", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the user is not sufficiently authenticated", nil)
 	})
 
 	t.Run("ShouldHandleExpiredSession", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
@@ -161,12 +175,14 @@ func TestOAuth2ConsentGET(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been granted or is expired", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session has already been granted or is expired", nil)
 	})
 
 	t.Run("ShouldHandleMalformedForm", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
@@ -192,6 +208,8 @@ func TestOAuth2ConsentGET(t *testing.T) {
 	t.Run("ShouldReturnConsentInformation", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
@@ -267,6 +285,8 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
@@ -290,6 +310,8 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 	t.Run("ShouldGrantConsent", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
@@ -327,6 +349,8 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
+		setupTestOIDCUserDetails(t, mock)
+
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
 
@@ -356,6 +380,8 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 	t.Run("ShouldIgnorePreConfigureForNonPreConfiguredClient", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		config := newTestOIDCConfig(t)
 		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
@@ -388,6 +414,8 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 	t.Run("ShouldSavePreConfiguredConsent", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		client := newTestOIDCAuthorizationCodeClient(t)
 		client.ConsentMode = "pre-configured"
@@ -427,6 +455,8 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 	t.Run("ShouldHandlePreConfiguredConsentSaveError", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
 
 		client := newTestOIDCAuthorizationCodeClient(t)
 		client.ConsentMode = "pre-configured"

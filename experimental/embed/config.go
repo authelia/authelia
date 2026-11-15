@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package embed
 
 import (
@@ -60,10 +64,12 @@ func ValidateConfiguration(config *schema.Configuration, val *schema.StructValid
 	validator.ValidateConfiguration(config, val)
 }
 
-// NewNamedConfigFileFilters allows configuring a set of file filters. The officially supported filter has the name
-// 'template'. The only other one at this stage is 'expand-env' which is deprecated.
-func NewNamedConfigFileFilters(names ...string) (filters []configuration.BytesFilter, err error) {
-	if filters, err = configuration.NewFileFilters(names); err != nil {
+// NewNamedConfigFileFilters allows configuring a set of file filters. The officially supported filter is 'template'.
+// The valuesFiles paths support .yml, .yaml, .json, and .toml; they are loaded in order and deep-merged on top of each
+// other, and are only loaded if one of the named filters utilizes them. The leftDelim and rightDelim parameters override
+// the default template delimiters used by the 'template' filter; pass empty strings to leave them at their defaults.
+func NewNamedConfigFileFilters(valuesFiles []string, leftDelim, rightDelim string, names ...string) (filters []configuration.BytesFilter, err error) {
+	if filters, err = configuration.NewFileFilters(valuesFiles, leftDelim, rightDelim, names...); err != nil {
 		return nil, fmt.Errorf("error occurred loading filters: %w", err)
 	}
 

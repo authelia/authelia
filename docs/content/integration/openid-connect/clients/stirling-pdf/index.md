@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Stirling-PDF"
-description: "Integrating Stirling-PDF with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Stirling-PDF with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2025-02-23T04:38:52+00:00
 draft: false
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'Stirling-PDF'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -86,7 +91,7 @@ identity_providers:
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 Stirling-PDF OIDC Login requires you to log in with a user who isn't already registered with Stirling-PDF. You can
-rename your current ('web') user via `https://stirlingpdf.{{</* sitevar name="domain" nojs="example.com" */>}}/account`
+rename your current ('web') user via `https://stirlingpdf.{{< sitevar name="domain" nojs="example.com" >}}/account`
 {{< /callout >}}
 
 To configure [Stirling-PDF] there is one method, using the [Environment Variables](#environment-variables).
@@ -107,7 +112,7 @@ SECURITY_OAUTH2_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth"
 SECURITY_OAUTH2_CLIENTID=stirlingpdf
 SECURITY_OAUTH2_CLIENTSECRET=insecure_secret
 SECURITY_OAUTH2_BLOCKREGISTRATION=false
-SECURITY_OAUTH2_SCOPES=openid,profile
+SECURITY_OAUTH2_SCOPES=openid,profile,email
 SECURITY_OAUTH2_USEASUSERNAME=preferred_username
 SECURITY_OAUTH2_PROVIDER=Authelia
 ```
@@ -127,7 +132,7 @@ services:
       SECURITY_OAUTH2_CLIENTID: 'stirlingpdf'
       SECURITY_OAUTH2_CLIENTSECRET: 'insecure_secret'
       SECURITY_OAUTH2_BLOCKREGISTRATION: 'false'
-      SECURITY_OAUTH2_SCOPES: 'openid, profile, email'
+      SECURITY_OAUTH2_SCOPES: 'openid,profile,email'
       SECURITY_OAUTH2_USEASUSERNAME: 'preferred_username'
       SECURITY_OAUTH2_PROVIDER: 'Authelia'
 ```

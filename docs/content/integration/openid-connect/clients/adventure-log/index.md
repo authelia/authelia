@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "AdventureLog"
-description: "Integrating AdventureLog with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating AdventureLog with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [AdventureLog]
   - [v0.9.0](https://github.com/seanmorley15/AdventureLog/releases/tag/v0.9.0)
 
@@ -64,6 +68,7 @@ identity_providers:
         client_name: 'Adventure Log'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -93,7 +98,7 @@ To configure [AdventureLog] to utilize Authelia as an [OpenID Connect 1.0] Provi
 
 1. Login to [AdventureLog].
 2. Navigate to the Admin Panel:
-   1. Clicking your profile picture.
+   1. Click your profile picture.
    2. Select Settings.
    3. Click Launch Admin Panel.
 3. Scroll down to Social Accounts.

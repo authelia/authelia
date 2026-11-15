@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Gatus"
-description: "Integrating Gatus with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Gatus with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Gatus]
   - [v5.17.0](https://github.com/TwiN/gatus/releases/tag/v5.17.0)
 
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'Gatus'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -79,8 +84,7 @@ identity_providers:
 
 ### Application
 
-To configure [Gatus] there are three methods, using the [Configuration File](#configuration-file), using
-[Environment Variables](#environment-variables), or using the [Web GUI](#web-gui).
+To configure [Gatus] there is one method, using the [Configuration File](#configuration-file).
 
 #### Configuration File
 

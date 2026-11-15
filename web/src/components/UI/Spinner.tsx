@@ -1,8 +1,7 @@
 import { type ComponentProps } from "react";
 
+import { cn } from "cn";
 import { Loader2 } from "lucide-react";
-
-import { cn } from "@utils/Styles";
 
 interface SpinnerProps extends ComponentProps<"div"> {
     size?: number;

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "HomeBox"
-description: "Integrate HomeBox with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating HomeBox with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2026-02-01T22:46:39+00:00
 draft: false
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [HomeBox]
   - [v0.23.1](https://github.com/sysadminsmedia/homebox/releases/tag/v0.23.1)
 
@@ -58,6 +62,7 @@ identity_providers:
         client_name: 'homebox'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -87,7 +92,7 @@ To configure [HomeBox] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 
 ```shell {title=".env"}
 HBOX_OIDC_ENABLED=true
-HBOX_OIDC_ISSUER_URL=https://auth.{{< sitevar name="domain" nojs="example.com" >}}
+HBOX_OIDC_ISSUER_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 HBOX_OIDC_CLIENT_ID=homebox
 HBOX_OIDC_CLIENT_SECRET=insecure_secret
 HBOX_OIDC_SCOPE=openid profile email groups
@@ -101,7 +106,7 @@ services:
   homebox:
     environment:
       HBOX_OIDC_ENABLED: 'true'
-      HBOX_OIDC_ISSUER_URL: 'https://auth.{{< sitevar name="domain" nojs="example.com" >}}'
+      HBOX_OIDC_ISSUER_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       HBOX_OIDC_CLIENT_ID: 'homebox'
       HBOX_OIDC_CLIENT_SECRET: 'insecure_secret'
       HBOX_OIDC_SCOPE: 'openid profile email groups'

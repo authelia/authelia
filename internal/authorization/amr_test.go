@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authorization_test
 
 import (
@@ -35,6 +39,11 @@ func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
 			[]string{"kba", "pop", "hwk", "mca", "mfa", "pwd", "sms", "user", "pin"},
 			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserPresence: true, WebAuthnUserVerified: true, KnowledgeBasedAuthentication: true},
 		},
+		{
+			"ShouldHandleRecoveryCodeWithPassword",
+			[]string{"pwd", "kba", "rc", "mfa"},
+			authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, KnowledgeBasedAuthentication: true, RecoveryCode: true},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -45,6 +54,31 @@ func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
 			out := actual.MarshalRFC8176()
 
 			assert.ElementsMatch(t, tc.have, out)
+		})
+	}
+}
+
+func TestNewAuthenticationMethodsReferencesFromClaimShouldDeduplicateExtra(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected authorization.AuthenticationMethodsReferences
+	}{
+		{
+			"ShouldDeduplicateUnknownValues",
+			[]string{"pwd", "abc", "xyz", "abc"},
+			authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, Extra: []string{"abc", "xyz"}},
+		},
+		{
+			"ShouldDeduplicateMultiChannelWhenNotImplied",
+			[]string{"mca", "mca"},
+			authorization.AuthenticationMethodsReferences{Extra: []string{"mca"}},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, authorization.NewAuthenticationMethodsReferencesFromClaim(tc.have))
 		})
 	}
 }
@@ -152,6 +186,34 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 				ChannelService:             false,
 				MultiChannelAuthentication: false,
 				RFC8176:                    []string{"hwk", "pop", "user", "pin"},
+			},
+		},
+		{
+			name: "RecoveryCode",
+
+			have: authorization.AuthenticationMethodsReferences{RecoveryCode: true},
+			expected: testAMRWant{
+				FactorKnowledge:            false,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  false,
+				ChannelBrowser:             true,
+				ChannelService:             false,
+				MultiChannelAuthentication: false,
+				RFC8176:                    []string{"rc"},
+			},
+		},
+		{
+			name: "UsernameAndPasswordWithRecoveryCode",
+
+			have: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, RecoveryCode: true},
+			expected: testAMRWant{
+				FactorKnowledge:            true,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  true,
+				ChannelBrowser:             true,
+				ChannelService:             false,
+				MultiChannelAuthentication: false,
+				RFC8176:                    []string{"pwd", "rc", "mfa"},
 			},
 		},
 		{

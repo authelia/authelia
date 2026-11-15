@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Gramps Web"
-description: "Integrating Gramps Web with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Gramps Web with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-10-25T18:05:17+01:00
 draft: false
@@ -58,6 +62,7 @@ identity_providers:
         client_name: 'gramps'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -97,13 +102,13 @@ GRAMPSWEB_OIDC_SCOPES="openid email profile"
 services:
   grampsweb:
     environment:
-      GRAMPSWEB_BASE_URL: https://gramps.{{< sitevar name="domain" nojs="example.com" >}}
-      GRAMPSWEB_OIDC_ENABLED: True
-      GRAMPSWEB_OIDC_ISSUER: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
-      GRAMPSWEB_OIDC_NAME: Authelia
-      GRAMPSWEB_OIDC_CLIENT_ID: gramps
-      GRAMPSWEB_OIDC_CLIENT_SECRET: insecure_secret
-      GRAMPSWEB_OIDC_SCOPES: openid email profile
+      GRAMPSWEB_BASE_URL: 'https://gramps.{{< sitevar name="domain" nojs="example.com" >}}'
+      GRAMPSWEB_OIDC_ENABLED: 'True'
+      GRAMPSWEB_OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/'
+      GRAMPSWEB_OIDC_NAME: 'Authelia'
+      GRAMPSWEB_OIDC_CLIENT_ID: 'gramps'
+      GRAMPSWEB_OIDC_CLIENT_SECRET: 'insecure_secret'
+      GRAMPSWEB_OIDC_SCOPES: 'openid email profile'
 ```
 
 ## See Also

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -258,6 +262,45 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			provider, _ := NewPostgreSQLProvider(tc.have, x509.NewCertPool())
 
 			assert.NotNil(t, provider)
+		})
+	}
+}
+
+func TestPostgreSQLProviderSessionQueriesShouldUseOrdinalPlaceholders(t *testing.T) {
+	address, err := schema.NewAddress("tcp://localhost:5432")
+	require.NoError(t, err)
+
+	provider, err := NewPostgreSQLProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "testing-key-only",
+			PostgreSQL: &schema.StoragePostgreSQL{
+				StorageSQL: schema.StorageSQL{
+					Address: &schema.AddressTCP{Address: *address},
+				},
+			},
+		},
+	}, x509.NewCertPool())
+	require.NoError(t, err)
+	require.NotNil(t, provider)
+
+	testCases := []struct {
+		name  string
+		query string
+	}{
+		{"ShouldUseOrdinalPlaceholdersForUpsertSession", provider.sqlUpsertSession},
+		{"ShouldUseOrdinalPlaceholdersForSelectSession", provider.sqlSelectSession},
+		{"ShouldUseOrdinalPlaceholdersForSelectSessionByPublicID", provider.sqlSelectSessionByPublicID},
+		{"ShouldUseOrdinalPlaceholdersForSelectSessionSignaturesByUsername", provider.sqlSelectSessionSignaturesByUsername},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionData", provider.sqlUpdateSessionData},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionSignature", provider.sqlUpdateSessionSignature},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionDestroyed", provider.sqlUpdateSessionDestroyed},
+		{"ShouldUseOrdinalPlaceholdersForDeleteSessionExpired", provider.sqlDeleteSessionExpired},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.NotContains(t, tc.query, "?")
+			assert.Contains(t, tc.query, "$1")
 		})
 	}
 }

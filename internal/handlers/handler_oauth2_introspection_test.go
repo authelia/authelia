@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -155,6 +159,64 @@ func TestOAuth2IntrospectionPOST(t *testing.T) {
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpIntrospectionRequestFailed, regexpIntrospectionIssuerMismatch)
 	})
+}
+
+func TestOAuth2IntrospectionPOSTIntrospectionAudience(t *testing.T) {
+	testCases := []struct {
+		name     string
+		audience []string
+		expected bool
+	}{
+		{
+			name:     "ShouldNotDiscloseTokenIssuedToAnotherClient",
+			audience: nil,
+			expected: false,
+		},
+		{
+			name:     "ShouldDiscloseTokenIntendedForResourceServer",
+			audience: []string{"https://app.example.com"},
+			expected: true,
+		},
+		{
+			name:     "ShouldNotDiscloseTokenNotIntendedForResourceServer",
+			audience: []string{"https://other.example.com"},
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			config := newTestOIDCConfig(t)
+
+			resourceServer := newTestOIDCClientCredentialsClient(t)
+			resourceServer.ID = "resource-server"
+			resourceServer.IntrospectionAudience = tc.audience
+
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCClientCredentialsClient(t), resourceServer}
+
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCSessionStore(t, mock)
+
+			token := mustGetTestOIDCClientCredentialsToken(t, mock)
+
+			rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCIntrospectionEndpoint, url.Values{
+				testOIDCFormParameterToken:        []string{token},
+				oidc.FormParameterClientID:        []string{resourceServer.ID},
+				testOIDCFormParameterClientSecret: []string{testOIDCClientSecretValue},
+			})
+
+			OAuth2IntrospectionPOST(mock.Ctx, rw, r)
+
+			require.Equal(t, http.StatusOK, rw.Code)
+
+			response := getTestOAuth2ErrorResponse(t, rw)
+
+			assert.Equal(t, tc.expected, response["active"])
+		})
+	}
 }
 
 const testOIDCIntrospectionEndpoint = "https://login.example.com:8080/api/oidc/introspection"
