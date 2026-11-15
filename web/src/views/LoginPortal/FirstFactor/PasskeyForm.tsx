@@ -221,8 +221,13 @@ const PasskeyForm = function (props: Props) {
                 flowID,
                 flow,
                 subflow,
-                signal,
             );
+
+            if (signal.aborted) {
+                stopUI();
+
+                return;
+            }
 
             if (response.data.status === "OK" && response.status === 200) {
                 stopUI();

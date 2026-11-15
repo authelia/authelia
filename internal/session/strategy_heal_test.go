@@ -403,7 +403,7 @@ func (r *failingAuthzIndexSaveRepository) Save(ctx context.Context, issuer, id, 
 	return r.testRepository.Save(ctx, issuer, id, pid, username, expiration, data)
 }
 
-func TestDefaultStrategy_GetShouldForwardARecentlyRegeneratedSession(t *testing.T) {
+func TestDefaultStrategy_GetShouldNotResolveTheCookieOfARegeneratedSession(t *testing.T) {
 	repository := newTestRepository()
 	strategy := newTestStrategyWithRepository(t, repository, nil)
 	saved := newTestSavedContext(t, strategy, testUsername)
@@ -412,72 +412,54 @@ func TestDefaultStrategy_GetShouldForwardARecentlyRegeneratedSession(t *testing.
 	stale.cookies[testNameSession] = saved.cookies[testNameSession]
 	stale.cookies[testNameAuthz] = saved.cookies[testNameAuthz]
 
-	old := newTestAuthzContext(saved)
+	old := newTestAuthzContext(stale)
 
-	require.NoError(t, strategy.Regenerate(saved))
+	request := newTestCachingContext()
+	request.cookies[testNameSession] = saved.cookies[testNameSession]
 
-	actual, err := strategy.Get(stale)
-
+	loaded, err := strategy.Get(request)
 	require.NoError(t, err)
-	assert.Equal(t, testUsername, actual.Username)
+
+	require.NoError(t, strategy.Regenerate(request))
+
+	loaded.SetTwoFactorTOTP(time.Now())
+
+	require.NoError(t, strategy.Save(request, loaded))
+	require.NotEqual(t, stale.cookies[testNameSession], request.cookies[testNameSession])
+
+	for range 2 {
+		actual, err := strategy.Get(stale)
+
+		require.NoError(t, err)
+		assert.True(t, actual.IsAnonymous())
+		assert.Empty(t, actual.Username)
+	}
+
+	assert.Zero(t, stale.set)
+	assert.Empty(t, stale.jar)
 	assert.Empty(t, stale.cleared)
-	assert.Equal(t, saved.cookies[testNameSession], stale.cookies[testNameSession])
-	assert.Equal(t, saved.cookies[testNameCSRF], stale.cookies[testNameCSRF])
-	assert.Equal(t, saved.cookies[testNameAuthz], stale.cookies[testNameAuthz])
+	assert.NotEqual(t, request.cookies[testNameSession], stale.cookies[testNameSession])
 
 	resolved, err := strategy.Authz().Get(old)
 
 	require.NoError(t, err)
 	assert.True(t, resolved.IsAnonymous())
 
-	resolved, err = strategy.Authz().Get(newTestAuthzContext(saved))
+	after := newTestContext()
+	after.cookies[testNameSession] = request.cookies[testNameSession]
+
+	actual, err := strategy.Get(after)
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, actual.Username)
+
+	resolved, err = strategy.Authz().Get(newTestAuthzContext(request.testContext))
 
 	require.NoError(t, err)
 	assert.Equal(t, testUsername, resolved.Username)
 }
 
-func TestDefaultStrategy_GetShouldNotClearTheAuthzCookieOfARegeneratedSessionOnceItIsNoLongerForwarded(t *testing.T) {
-	repository := newTestRepository()
-	strategy := newTestStrategyWithRepository(t, repository, nil)
-	saved := newTestSavedContext(t, strategy, testUsername)
-
-	p, ok := strategy.(*DefaultStrategy)
-	require.True(t, ok)
-
-	sid := getTestSessionSignature(t, strategy, saved)
-
-	stale := newTestContext()
-	stale.cookies[testNameSession] = saved.cookies[testNameSession]
-	stale.cookies[testNameAuthz] = saved.cookies[testNameAuthz]
-
-	require.NoError(t, strategy.Regenerate(saved))
-	require.NoError(t, repository.Delete(t.Context(), p.forwardIssuer, sid, getAuthzIndexPublicID(sid), ""))
-
-	actual, err := strategy.Get(stale)
-
-	require.NoError(t, err)
-	assert.True(t, actual.IsAnonymous())
-	assert.Empty(t, stale.cleared)
-}
-
-func TestDefaultStrategy_GetShouldNotForwardADestroyedSession(t *testing.T) {
-	repository := newTestRepository()
-	strategy := newTestStrategyWithRepository(t, repository, nil)
-	saved := newTestSavedContext(t, strategy, testUsername)
-
-	stale := newTestContext()
-	stale.cookies[testNameSession] = saved.cookies[testNameSession]
-
-	require.NoError(t, strategy.Regenerate(saved))
-	require.NoError(t, strategy.Destroy(saved))
-
-	actual, err := strategy.Get(stale)
-
-	require.NoError(t, err)
-	assert.True(t, actual.IsAnonymous())
-}
-
-func TestDefaultStrategy_RegenerateShouldAdoptTheSessionRegeneratedByAConcurrentRequest(t *testing.T) {
+func TestDefaultStrategy_RegenerateShouldFailWhenAConcurrentRequestRegeneratedTheSession(t *testing.T) {
 	repository := newTestRepository()
 	strategy := newTestStrategyWithRepository(t, repository, nil)
 	saved := newTestSavedContext(t, strategy, testUsername)
@@ -491,7 +473,7 @@ func TestDefaultStrategy_RegenerateShouldAdoptTheSessionRegeneratedByAConcurrent
 	loaded, err := strategy.Get(first)
 	require.NoError(t, err)
 
-	concurrent, err := strategy.Get(second)
+	_, err = strategy.Get(second)
 	require.NoError(t, err)
 
 	require.NoError(t, strategy.Regenerate(first))
@@ -500,15 +482,16 @@ func TestDefaultStrategy_RegenerateShouldAdoptTheSessionRegeneratedByAConcurrent
 
 	require.NoError(t, strategy.Save(first, loaded))
 
-	require.NoError(t, strategy.Regenerate(second))
+	set := second.set
 
-	concurrent.SetTwoFactorTOTP(time.Now())
+	delete(second.jar, testNameAuthz)
 
-	require.NoError(t, strategy.Save(second, concurrent))
+	assert.ErrorIs(t, strategy.Regenerate(second), ErrSessionSuperseded)
 
-	assert.Equal(t, first.cookies[testNameSession], second.cookies[testNameSession])
-	assert.Equal(t, first.cookies[testNameCSRF], second.cookies[testNameCSRF])
-	assert.Equal(t, first.cookies[testNameAuthz], second.cookies[testNameAuthz])
+	assert.Equal(t, set, second.set)
+	assert.Empty(t, second.jar)
+	assert.Equal(t, saved.cookies[testNameSession], second.cookies[testNameSession])
+	assert.NotEqual(t, first.cookies[testNameSession], second.cookies[testNameSession])
 
 	after := newTestContext()
 	after.cookies[testNameSession] = first.cookies[testNameSession]
@@ -521,7 +504,7 @@ func TestDefaultStrategy_RegenerateShouldAdoptTheSessionRegeneratedByAConcurrent
 	assert.Len(t, liveTestRecords(t, strategy, repository, repository.data), 2)
 }
 
-func TestDefaultStrategy_RegenerateShouldNotAdoptASessionDestroyedByAConcurrentRequest(t *testing.T) {
+func TestDefaultStrategy_RegenerateShouldFailWhenAConcurrentRequestDestroyedTheSession(t *testing.T) {
 	repository := newTestRepository()
 	strategy := newTestStrategyWithRepository(t, repository, nil)
 	saved := newTestSavedContext(t, strategy, testUsername)

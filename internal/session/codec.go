@@ -176,30 +176,6 @@ func (c *SecureCodec) Open(domain string, record Record, session *UserSession) (
 	return err
 }
 
-// SealForward encrypts the session identifier a session was moved to, binding the ciphertext to the domain and the
-// session identifier it was moved from so it cannot be replayed against another domain or session.
-func (c *SecureCodec) SealForward(domain, from string, to []byte) (data []byte, err error) {
-	if data, err = utils.Encrypt(to, getAADForward(domain, from), c.encKey); err != nil {
-		return nil, fmt.Errorf("unable to encrypt session forward: %w", err)
-	}
-
-	return data, nil
-}
-
-// OpenForward decrypts the session identifier a session was moved to from data sealed by SealForward for the same
-// domain and the session identifier it was moved from.
-func (c *SecureCodec) OpenForward(domain, from string, data []byte) (to []byte, err error) {
-	if to, err = utils.Decrypt(data, getAADForward(domain, from), c.encKey); err != nil {
-		return nil, fmt.Errorf("unable to decrypt session forward: %w", err)
-	}
-
-	return to, nil
-}
-
 func getAAD(domain, id string) []byte {
 	return []byte("authelia:session:v2:" + domain + ":" + id)
-}
-
-func getAADForward(domain, from string) []byte {
-	return []byte("authelia:session:forward:v1:" + domain + ":" + from)
 }

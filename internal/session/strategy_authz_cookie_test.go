@@ -595,7 +595,7 @@ func TestDefaultStrategy_ShouldNotHealTheAuthzCookieBeforeReplacingTheSession(t 
 
 			switch tc.name {
 			case "ShouldHandleRegenerate":
-				assert.Equal(t, saves+3, repository.saves)
+				assert.Equal(t, saves+2, repository.saves)
 			default:
 				assert.Equal(t, saves, repository.saves)
 			}

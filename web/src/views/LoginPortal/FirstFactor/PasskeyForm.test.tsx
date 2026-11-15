@@ -131,6 +131,41 @@ describe("rendering", () => {
 });
 
 describe("sign in", () => {
+    it("does not abort the passkey sign-in on unmount", async () => {
+        postResponseMock.mockReturnValue(new Promise(() => {}) as any);
+
+        const { unmount } = renderForm();
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalledTimes(1));
+
+        const signal = postResponseMock.mock.calls[0][7];
+
+        unmount();
+
+        expect(signal?.aborted).not.toBe(true);
+    });
+
+    it("ignores the passkey sign-in response after unmount", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        postResponseMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { props, unmount } = renderForm();
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalledTimes(1));
+
+        unmount();
+
+        await act(async () => {
+            resolve({ data: { status: "OK" }, status: 200 });
+        });
+
+        expect(props.onAuthenticationSuccess).not.toHaveBeenCalled();
+    });
+
     it("completes the passkey assertion and reports success", async () => {
         const { props } = renderForm();
 
@@ -161,7 +196,6 @@ describe("sign in", () => {
                 "flow-id",
                 "flow",
                 "subflow",
-                expect.anything(),
             ),
         );
     });
@@ -910,7 +944,7 @@ describe("conditional mediation visibility", () => {
 
         await waitFor(() => expect(props.onAuthenticationSuccess).toHaveBeenCalled());
         expect(postResponseMock.mock.calls[0][1]).toBe(true);
-        expect((postResponseMock.mock.calls[0][7] as AbortSignal).aborted).toBe(false);
+        expect((postResponseMock.mock.calls[0][7] as AbortSignal | undefined)?.aborted).not.toBe(true);
     });
 });
 

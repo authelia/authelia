@@ -423,14 +423,6 @@ type Codec interface {
 	// identifier the record reports to match those it was sealed with. A nil record, or one with no data, leaves the
 	// session untouched and returns no error.
 	Open(domain string, record Record, session *UserSession) (err error)
-
-	// SealForward encrypts the session identifier a session was moved to, binding the result to the cookie domain and
-	// the identifier the session was moved from so that it can only be opened for that identifier.
-	SealForward(domain, from string, to []byte) (data []byte, err error)
-
-	// OpenForward decrypts the session identifier a session was moved to, requiring the cookie domain and the
-	// identifier the session was moved from to match those it was sealed with.
-	OpenForward(domain, from string, data []byte) (to []byte, err error)
 }
 
 type defaultRecord struct {
