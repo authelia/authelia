@@ -131,10 +131,10 @@ type Strategy interface {
 	// record bound to it, such as one which loses a race to claim a record, should only issue it once it's stored.
 	IssueAuthorizationBinding(ctx Context, binding string)
 
-	// VerifyAuthorizationBinding returns true when the binding is the value AuthorizationBinding returns for the
-	// authorization binding cookie of the request, comparing them in constant time. A request which carries no such
-	// cookie, or an empty binding, is never verified.
-	VerifyAuthorizationBinding(ctx Context, binding string) (valid bool)
+	// VerifyAuthorizationBinding returns true when the digest is the AuthorizationBindingDigest of the value
+	// AuthorizationBinding returns for the authorization binding cookie of the request, comparing them in constant time.
+	// A request which carries no such cookie, or an empty digest, is never verified.
+	VerifyAuthorizationBinding(ctx Context, digest string) (valid bool)
 
 	// Authz returns the restricted view of this Strategy which the authorization endpoints use. The view resolves the
 	// session from the authz cookie alone and can only update the activity of the session or destroy it.

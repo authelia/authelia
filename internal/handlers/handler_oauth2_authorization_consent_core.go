@@ -354,11 +354,13 @@ func handleOAuth2NewConsentSession(ctx *middlewares.AutheliaCtx, subject uuid.UU
 		return nil, err
 	}
 
-	if err = handleOAuth2ConsentSessionBind(ctx, consent); err != nil {
+	var binding string
+
+	if binding, err = handleOAuth2ConsentSessionBind(ctx, consent); err != nil {
 		return nil, err
 	}
 
-	if err = handleOAuth2ConsentSessionIssueBinding(ctx, consent); err != nil {
+	if err = handleOAuth2ConsentSessionIssueBinding(ctx, binding); err != nil {
 		return nil, err
 	}
 

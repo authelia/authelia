@@ -74,6 +74,10 @@ type MockAutheliaCtx struct {
 // which binds the consent sessions in fixtures to the mock user agent.
 const AuthorizationBinding = "YXV0aGVsaWEtb2F1dGgyLWJpbmRpbmctZml4dHVyZSE"
 
+// AuthorizationBindingDigest is the digest of AuthorizationBinding which is stored with the consent sessions in fixtures
+// bound to the mock user agent.
+const AuthorizationBindingDigest = "98891c8676d35235024a91777e7262b096117b93f6647433c1dbfb43666d8d55"
+
 // NewMockAutheliaCtx create an instance of AutheliaCtx mock.
 func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia := new(MockAutheliaCtx)

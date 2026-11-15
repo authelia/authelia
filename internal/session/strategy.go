@@ -5,6 +5,7 @@
 package session
 
 import (
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
@@ -731,14 +732,22 @@ func (p *DefaultStrategy) IssueAuthorizationBinding(ctx Context, binding string)
 	ctx.SetCookie(p.newAuthorizationBindingCookie(binding))
 }
 
-// VerifyAuthorizationBinding returns true when the binding is the value of the authorization binding cookie of the
-// request, comparing them in constant time.
-func (p *DefaultStrategy) VerifyAuthorizationBinding(ctx Context, binding string) (valid bool) {
-	if len(binding) == 0 || len(p.getCookieID(ctx, p.bindingName)) == 0 {
+// VerifyAuthorizationBinding returns true when the digest is the AuthorizationBindingDigest of the value of the
+// authorization binding cookie of the request, comparing them in constant time.
+func (p *DefaultStrategy) VerifyAuthorizationBinding(ctx Context, digest string) (valid bool) {
+	if len(digest) == 0 || len(p.getCookieID(ctx, p.bindingName)) == 0 {
 		return false
 	}
 
-	return subtle.ConstantTimeCompare([]byte(ctx.GetCookie(p.bindingName)), []byte(binding)) == 1
+	return subtle.ConstantTimeCompare([]byte(AuthorizationBindingDigest(ctx.GetCookie(p.bindingName))), []byte(digest)) == 1
+}
+
+// AuthorizationBindingDigest returns the digest of a binding which is stored with the record it binds, so the stored
+// value can't be used as the authorization binding cookie of a user agent.
+func AuthorizationBindingDigest(binding string) (digest string) {
+	sum := sha256.Sum256([]byte(binding))
+
+	return hex.EncodeToString(sum[:])
 }
 
 func (p *DefaultStrategy) newAuthorizationBindingCookie(binding string) (cookie *http.Cookie) {

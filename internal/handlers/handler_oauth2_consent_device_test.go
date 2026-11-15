@@ -171,7 +171,7 @@ func TestOAuth2ConsentUserCodePOSTShouldExchangeUserCode(t *testing.T) {
 	assert.Equal(t, testOIDCDeviceCodeID, consent.ClientID)
 	assert.True(t, consent.Subject.Valid)
 	assert.False(t, consent.Responded())
-	assert.Equal(t, mocks.AuthorizationBinding, consent.Binding)
+	assert.Equal(t, mocks.AuthorizationBindingDigest, consent.Binding)
 
 	device := mustLoadTestOIDCDeviceCodeSession(t, mock, userCode)
 
@@ -356,7 +356,7 @@ func TestOAuth2ConsentUserCodePOSTShouldCompleteEveryFlowOfTheUserAgent(t *testi
 		consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
 		require.NoError(t, err)
 
-		assert.Equal(t, mocks.AuthorizationBinding, consent.Binding)
+		assert.Equal(t, mocks.AuthorizationBindingDigest, consent.Binding)
 		assert.True(t, consent.Responded())
 		assert.True(t, consent.Authorized)
 	}

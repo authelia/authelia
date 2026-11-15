@@ -73,7 +73,7 @@ func TestDefaultStrategyAuthorizationBindingShouldBeStableForTheUserAgent(t *tes
 	require.NoError(t, err)
 
 	assert.Equal(t, first, second)
-	assert.True(t, strategy.VerifyAuthorizationBinding(next, first))
+	assert.True(t, strategy.VerifyAuthorizationBinding(next, AuthorizationBindingDigest(first)))
 }
 
 func TestDefaultStrategyIssueAuthorizationBinding(t *testing.T) {
@@ -98,7 +98,7 @@ func TestDefaultStrategyIssueAuthorizationBinding(t *testing.T) {
 	assert.True(t, cookie.Secure)
 	assert.True(t, cookie.HttpOnly)
 	assert.Equal(t, http.SameSiteLaxMode, cookie.SameSite)
-	assert.True(t, strategy.VerifyAuthorizationBinding(ctx, binding))
+	assert.True(t, strategy.VerifyAuthorizationBinding(ctx, AuthorizationBindingDigest(binding)))
 }
 
 func TestDefaultStrategyAuthorizationBindingShouldBeUnique(t *testing.T) {
@@ -134,11 +134,12 @@ func TestDefaultStrategyVerifyAuthorizationBinding(t *testing.T) {
 		binding  string
 		expected bool
 	}{
-		{"ShouldVerifyMatchingBinding", binding, binding, true},
-		{"ShouldNotVerifyDifferentBinding", binding, newTestCookie("other"), false},
-		{"ShouldNotVerifyWithoutCookie", "", binding, false},
+		{"ShouldVerifyMatchingBinding", binding, AuthorizationBindingDigest(binding), true},
+		{"ShouldNotVerifyBindingAgainstItself", binding, binding, false},
+		{"ShouldNotVerifyDifferentBinding", binding, AuthorizationBindingDigest(newTestCookie("other")), false},
+		{"ShouldNotVerifyWithoutCookie", "", AuthorizationBindingDigest(binding), false},
 		{"ShouldNotVerifyEmptyBinding", binding, "", false},
-		{"ShouldNotVerifyMalformedCookie", "not-a-cookie-value", "not-a-cookie-value", false},
+		{"ShouldNotVerifyMalformedCookie", "not-a-cookie-value", AuthorizationBindingDigest("not-a-cookie-value"), false},
 	}
 
 	for _, tc := range testCases {
@@ -158,4 +159,11 @@ func TestDefaultStrategyVerifyAuthorizationBinding(t *testing.T) {
 
 func TestAuthorizationBindingCookieName(t *testing.T) {
 	assert.Equal(t, "__Host-Http-authelia_session_ua", AuthorizationBindingCookieName("authelia_session"))
+}
+
+func TestAuthorizationBindingDigest(t *testing.T) {
+	digest := AuthorizationBindingDigest("binding")
+
+	assert.Equal(t, "80f70afeef3caa57646fd20afb95be9c3f2c03d38e091906de31838813dcc22e", digest)
+	assert.NotEqual(t, AuthorizationBindingDigest("other"), digest)
 }

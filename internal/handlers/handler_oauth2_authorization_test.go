@@ -754,7 +754,7 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 				binding := assertTestOAuth2AuthorizationBindingCookie(t, mock)
 
 				assert.Equal(t, mocks.AuthorizationBinding, binding)
-				assert.Equal(t, binding, consent.Binding)
+				assert.Equal(t, session.AuthorizationBindingDigest(binding), consent.Binding)
 			},
 		},
 		{
@@ -767,7 +767,7 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
 				consent := assertTestOAuth2AuthorizationConsentReference(t, mock, rw)
 
-				assert.Equal(t, assertTestOAuth2AuthorizationBindingCookie(t, mock), consent.Binding)
+				assert.Equal(t, session.AuthorizationBindingDigest(assertTestOAuth2AuthorizationBindingCookie(t, mock)), consent.Binding)
 			},
 		},
 		{
@@ -784,7 +784,7 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 				binding := assertTestOAuth2AuthorizationBindingCookie(t, mock)
 
 				assert.NotEqual(t, mocks.AuthorizationBinding, binding)
-				assert.Equal(t, binding, consent.Binding)
+				assert.Equal(t, session.AuthorizationBindingDigest(binding), consent.Binding)
 			},
 		},
 		{
