@@ -69,6 +69,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertAuthenticationAttempt:                         fmt.Sprintf(queryFmtInsertAuthenticationLogEntry, tableAuthenticationLogs),
 		sqlSelectAuthenticationLogsRegulationRecordsByUsername: fmt.Sprintf(queryFmtSelectAuthenticationLogsRegulationRecordsByUsername, tableAuthenticationLogs),
 		sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP: fmt.Sprintf(queryFmtSelectAuthenticationLogsRegulationRecordsByRemoteIP, tableAuthenticationLogs),
+		sqlSelectAuthenticationLogsStats:                       fmt.Sprintf(queryFmtSelectAuthenticationLogsStats, tableAuthenticationLogs),
+		sqlSelectAuthenticationLogsOldestTime:                  fmt.Sprintf(queryFmtSelectAuthenticationLogsOldestTime, tableAuthenticationLogs),
+		sqlSelectAuthenticationLogsNewestTime:                  fmt.Sprintf(queryFmtSelectAuthenticationLogsNewestTime, tableAuthenticationLogs),
+		sqlSelectTotalMinMaxAuthenticationLogs:                 fmt.Sprintf(queryFmtSelectTotalMinMaxAuthenticationLogs, tableAuthenticationLogs),
+		sqlDeleteAuthenticationLogsBatch:                       fmt.Sprintf(queryFmtDeleteAuthenticationLogsBatch, tableAuthenticationLogs, tableAuthenticationLogs),
 
 		sqlInsertBannedUser:         fmt.Sprintf(queryFmtInsertBannedUser, tableBannedUser),
 		sqlSelectBannedUser:         fmt.Sprintf(queryFmtSelectBannedUser, tableBannedUser),
@@ -257,7 +262,11 @@ type SQLProvider struct {
 	sqlInsertAuthenticationAttempt                         string
 	sqlSelectAuthenticationLogsRegulationRecordsByUsername string
 	sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP string
-
+	sqlSelectAuthenticationLogsStats                       string
+	sqlSelectAuthenticationLogsOldestTime                  string
+	sqlSelectAuthenticationLogsNewestTime                  string
+	sqlSelectTotalMinMaxAuthenticationLogs                 string
+	sqlDeleteAuthenticationLogsBatch                       string
 	// Table: banned_user.
 	sqlInsertBannedUser         string
 	sqlSelectBannedUser         string
@@ -2000,6 +2009,92 @@ func (p *SQLProvider) RevokeBannedIP(ctx context.Context, id int, expired time.T
 	}
 
 	return nil
+}
+
+// GetAuthenticationLogsStats returns statistics about the authentication_logs table.
+func (p *SQLProvider) GetAuthenticationLogsStats(ctx context.Context) (stats *AuthLogStats, err error) {
+	stats = &AuthLogStats{}
+
+	if err = p.conn(ctx).GetContext(ctx, stats, p.sqlSelectAuthenticationLogsStats); err != nil {
+		return nil, fmt.Errorf("error retrieving statistics for table 'authentication_logs': %w", err)
+	}
+
+	if stats.Oldest, err = p.getAuthenticationLogsTime(ctx, p.sqlSelectAuthenticationLogsOldestTime); err != nil {
+		return nil, fmt.Errorf("error retrieving oldest record time for table 'authentication_logs': %w", err)
+	}
+
+	if stats.Newest, err = p.getAuthenticationLogsTime(ctx, p.sqlSelectAuthenticationLogsNewestTime); err != nil {
+		return nil, fmt.Errorf("error retrieving newest record time for table 'authentication_logs': %w", err)
+	}
+
+	return stats, nil
+}
+
+func (p *SQLProvider) getAuthenticationLogsTime(ctx context.Context, query string) (value sql.NullTime, err error) {
+	if err = p.conn(ctx).GetContext(ctx, &value, query); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return sql.NullTime{}, err
+	}
+
+	return value, nil
+}
+
+// GetAuthenticationLogsPrunePreview returns statistics about the authentication_logs records older than the cutoff duration.
+func (p *SQLProvider) GetAuthenticationLogsPrunePreview(ctx context.Context, cutoffDuration time.Duration) (stats *DeleteAuthLogStats, err error) {
+	stats = &DeleteAuthLogStats{}
+
+	if err = p.conn(ctx).GetContext(ctx, stats, p.sqlSelectTotalMinMaxAuthenticationLogs, time.Now().Add(-cutoffDuration)); err != nil {
+		return nil, fmt.Errorf("error retrieving preview for table 'authentication_logs': %w", err)
+	}
+
+	return stats, nil
+}
+
+// PruneAuthenticationLogs deletes authentication_logs records older than the cutoff duration in batches of at most
+// batchSize records, stopping once a batch deletes fewer records than the batch size. On error the results reflect the
+// batches which completed before the error occurred.
+func (p *SQLProvider) PruneAuthenticationLogs(ctx context.Context, cutoffDuration time.Duration, batchSize int) (results *DeleteAuthLogResults, err error) {
+	if batchSize <= 0 {
+		return &DeleteAuthLogResults{}, fmt.Errorf("error pruning table 'authentication_logs': batch size must be greater than 0 but is %d", batchSize)
+	}
+
+	var (
+		result   sql.Result
+		affected int64
+	)
+
+	start, cutoff := time.Now(), time.Now().Add(-cutoffDuration)
+	results = &DeleteAuthLogResults{}
+
+	defer func() {
+		results.TotalTime = time.Since(start)
+
+		if results.TotalBatches > 0 {
+			results.AverageTime = results.TotalTime / time.Duration(results.TotalBatches)
+		}
+
+		if seconds := results.TotalTime.Seconds(); seconds > 0 {
+			results.RecordsPerSecond = int(float64(results.TotalDeleted) / seconds)
+		}
+	}()
+
+	for {
+		if result, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteAuthenticationLogsBatch, cutoff, batchSize); err != nil {
+			return results, fmt.Errorf("error deleting batch %d from table 'authentication_logs': %w", results.TotalBatches+1, err)
+		}
+
+		if affected, err = result.RowsAffected(); err != nil {
+			return results, fmt.Errorf("error retrieving rows affected by batch %d from table 'authentication_logs': %w", results.TotalBatches+1, err)
+		}
+
+		if affected > 0 {
+			results.TotalBatches++
+			results.TotalDeleted += affected
+		}
+
+		if affected < int64(batchSize) {
+			return results, nil
+		}
+	}
 }
 
 // SaveCachedData saves cached data to the storage provider.

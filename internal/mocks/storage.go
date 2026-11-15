@@ -19,12 +19,11 @@ import (
 	reflect "reflect"
 	time "time"
 
-	uuid "github.com/google/uuid"
-	gomock "go.uber.org/mock/gomock"
-
 	model "github.com/authelia/authelia/v4/internal/model"
 	session "github.com/authelia/authelia/v4/internal/session"
 	storage "github.com/authelia/authelia/v4/internal/storage"
+	uuid "github.com/google/uuid"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -364,6 +363,36 @@ func (m *MockStorage) FindIdentityVerification(ctx context.Context, jti string) 
 func (mr *MockStorageMockRecorder) FindIdentityVerification(ctx, jti any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockStorage)(nil).FindIdentityVerification), ctx, jti)
+}
+
+// GetAuthenticationLogsPrunePreview mocks base method.
+func (m *MockStorage) GetAuthenticationLogsPrunePreview(ctx context.Context, cutoffDuration time.Duration) (*storage.DeleteAuthLogStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthenticationLogsPrunePreview", ctx, cutoffDuration)
+	ret0, _ := ret[0].(*storage.DeleteAuthLogStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAuthenticationLogsPrunePreview indicates an expected call of GetAuthenticationLogsPrunePreview.
+func (mr *MockStorageMockRecorder) GetAuthenticationLogsPrunePreview(ctx, cutoffDuration any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthenticationLogsPrunePreview", reflect.TypeOf((*MockStorage)(nil).GetAuthenticationLogsPrunePreview), ctx, cutoffDuration)
+}
+
+// GetAuthenticationLogsStats mocks base method.
+func (m *MockStorage) GetAuthenticationLogsStats(ctx context.Context) (*storage.AuthLogStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthenticationLogsStats", ctx)
+	ret0, _ := ret[0].(*storage.AuthLogStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAuthenticationLogsStats indicates an expected call of GetAuthenticationLogsStats.
+func (mr *MockStorageMockRecorder) GetAuthenticationLogsStats(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthenticationLogsStats", reflect.TypeOf((*MockStorage)(nil).GetAuthenticationLogsStats), ctx)
 }
 
 // LoadBannedIP mocks base method.
@@ -963,6 +992,21 @@ func (m *MockStorage) LoadWebAuthnUserByUserID(ctx context.Context, rpid, userID
 func (mr *MockStorageMockRecorder) LoadWebAuthnUserByUserID(ctx, rpid, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUserByUserID", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUserByUserID), ctx, rpid, userID)
+}
+
+// PruneAuthenticationLogs mocks base method.
+func (m *MockStorage) PruneAuthenticationLogs(ctx context.Context, cutoffDuration time.Duration, batchSize int) (*storage.DeleteAuthLogResults, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PruneAuthenticationLogs", ctx, cutoffDuration, batchSize)
+	ret0, _ := ret[0].(*storage.DeleteAuthLogResults)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PruneAuthenticationLogs indicates an expected call of PruneAuthenticationLogs.
+func (mr *MockStorageMockRecorder) PruneAuthenticationLogs(ctx, cutoffDuration, batchSize any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PruneAuthenticationLogs", reflect.TypeOf((*MockStorage)(nil).PruneAuthenticationLogs), ctx, cutoffDuration, batchSize)
 }
 
 // ReplaceRecoveryCodesByUsername mocks base method.
