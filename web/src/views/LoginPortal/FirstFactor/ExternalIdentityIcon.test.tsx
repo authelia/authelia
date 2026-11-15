@@ -18,6 +18,10 @@ vi.mock("@assets/images/identity/openid.svg?react", () => ({
     default: () => <div data-testid="mark-openid" />,
 }));
 
+vi.mock("@assets/images/identity/plex.svg?react", () => ({
+    default: () => <div data-testid="mark-plex" />,
+}));
+
 vi.mock("lucide-react", () => ({
     IdCardLanyard: () => <div data-testid="icon-fallback" />,
 }));
@@ -35,6 +39,7 @@ it.each([
     ["discord", "mark-discord"],
     ["github", "mark-github"],
     ["openid_connect", "mark-openid"],
+    ["plex", "mark-plex"],
 ])("renders the bundled mark for the %s type without a logo", (type, testid) => {
     render(<ExternalIdentityIcon type={type} />);
 
