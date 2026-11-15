@@ -115,7 +115,7 @@ func TestHandleOAuth2AuthorizationConsentGenerate(t *testing.T) {
 				},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:     mocks.AuthorizationBindingDigest,
+				Binding:     mocks.UserAgentBindingDigest,
 				ClientID:    "test",
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
 				Form:        "prompt=login",
@@ -147,7 +147,7 @@ func TestHandleOAuth2AuthorizationConsentGenerate(t *testing.T) {
 				},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:     mocks.AuthorizationBindingDigest,
+				Binding:     mocks.UserAgentBindingDigest,
 				ClientID:    "test",
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
 				Form:        "max_age=10",
@@ -544,7 +544,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Any()).
 						Return(&model.OAuth2ConsentSession{
-							Binding:     mocks.AuthorizationBindingDigest,
+							Binding:     mocks.UserAgentBindingDigest,
 							ID:          1,
 							ClientID:    "test",
 							Subject:     uuid.NullUUID{UUID: sub, Valid: true},
@@ -576,7 +576,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:     mocks.AuthorizationBindingDigest,
+				Binding:     mocks.UserAgentBindingDigest,
 				ClientID:    "test",
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
 				Form:        "prompt=login",
@@ -592,7 +592,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Any()).
 						Return(&model.OAuth2ConsentSession{
-							Binding:     mocks.AuthorizationBindingDigest,
+							Binding:     mocks.UserAgentBindingDigest,
 							ID:          1,
 							ClientID:    "test",
 							Subject:     uuid.NullUUID{UUID: sub, Valid: true},
@@ -622,7 +622,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:     mocks.AuthorizationBindingDigest,
+				Binding:     mocks.UserAgentBindingDigest,
 				ClientID:    "test",
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
 				Form:        "max_age=10",
@@ -638,7 +638,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Any()).
 						Return(&model.OAuth2ConsentSession{
-							Binding:     mocks.AuthorizationBindingDigest,
+							Binding:     mocks.UserAgentBindingDigest,
 							ID:          1,
 							ClientID:    "test",
 							Subject:     uuid.NullUUID{UUID: sub, Valid: true},
@@ -677,7 +677,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Any()).
 						Return(&model.OAuth2ConsentSession{
-							Binding:     mocks.AuthorizationBindingDigest,
+							Binding:     mocks.UserAgentBindingDigest,
 							ID:          1,
 							ClientID:    "test",
 							Subject:     uuid.NullUUID{UUID: sub, Valid: true},
@@ -713,7 +713,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Any()).
 						Return(&model.OAuth2ConsentSession{
-							Binding:     mocks.AuthorizationBindingDigest,
+							Binding:     mocks.UserAgentBindingDigest,
 							ID:          1,
 							ClientID:    "test",
 							Subject:     uuid.NullUUID{UUID: sub, Valid: true},
@@ -862,7 +862,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: challenge, Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: challenge, Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -890,7 +890,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: challenge, ClientID: "other", Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: challenge, ClientID: "other", Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -918,7 +918,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "nonce=abc123", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "nonce=abc123", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -947,7 +947,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "nonce=abc123&state=xyz789", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "nonce=abc123&state=xyz789", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -975,7 +975,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
 					mock.StorageMock.EXPECT().
 						SaveOAuth2ConsentSessionResponse(gomock.Eq(mock.Ctx), gomock.Any(), gomock.Eq(false)).
 						Return(fmt.Errorf("bad conn")),
@@ -1001,7 +1001,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:     mocks.AuthorizationBindingDigest,
+				Binding:     mocks.UserAgentBindingDigest,
 				ID:          40,
 				ClientID:    "test",
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
@@ -1015,7 +1015,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "prompt=login", RequestedAt: time.Unix(1000000, 0), ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "prompt=login", RequestedAt: time.Unix(1000000, 0), ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
 					mock.StorageMock.EXPECT().
 						SaveOAuth2ConsentSessionResponse(gomock.Eq(mock.Ctx), gomock.Any(), gomock.Eq(false)).
 						Return(nil),
@@ -1044,7 +1044,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "prompt=login", RequestedAt: time.Unix(1000000, 0)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "prompt=login", RequestedAt: time.Unix(1000000, 0)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},
@@ -1070,7 +1070,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},
@@ -1091,7 +1091,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:     mocks.AuthorizationBindingDigest,
+				Binding:     mocks.UserAgentBindingDigest,
 				ID:          40,
 				ClientID:    "test",
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
@@ -1105,7 +1105,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0), ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0), ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
 					mock.StorageMock.EXPECT().
 						SaveOAuth2ConsentSessionResponse(gomock.Eq(mock.Ctx), gomock.Any(), gomock.Eq(false)).
 						Return(nil),
@@ -1129,7 +1129,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:     mocks.AuthorizationBindingDigest,
+				Binding:     mocks.UserAgentBindingDigest,
 				ID:          40,
 				ClientID:    "test",
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
@@ -1143,7 +1143,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},
@@ -1169,7 +1169,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: false, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: false, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1335,7 +1335,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: challenge, Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: challenge, Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1361,7 +1361,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(-time.Second * 10)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(-time.Second * 10)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1388,7 +1388,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "other", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "other", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1415,7 +1415,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", RequestedScopes: []string{"openid"}, Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", RequestedScopes: []string{"openid"}, Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1442,7 +1442,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", RequestedAudience: []string{"https://a.example.com"}, Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", RequestedAudience: []string{"https://a.example.com"}, Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1471,7 +1471,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Form: "nonce=abc123", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Form: "nonce=abc123", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1501,7 +1501,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Form: "nonce=abc123&state=xyz789", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Form: "nonce=abc123&state=xyz789", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1527,13 +1527,13 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 					RequestedAt:       time.Unix(1000000, 0),
 				},
 			},
-			expected: &model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}, ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
+			expected: &model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}, ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
 			handled:  false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentPreConfigurations(gomock.Eq(mock.Ctx), gomock.Eq("test"), gomock.Eq(sub), gomock.Eq(mock.Ctx.Providers.Clock.Now())).
 						Return(&storage.ConsentPreConfigRows{}, nil),
@@ -1682,7 +1682,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: challenge, Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: challenge, Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1711,7 +1711,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "other", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "other", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1736,13 +1736,13 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 					RequestedAt:       time.Unix(1000000, 0),
 				},
 			},
-			expected: &model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}, ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
+			expected: &model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}, ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
 			handled:  false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, RequestedScopes: []string{"openid", "profile"}, RequestedAudience: []string{"https://app.example.com"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: nil,
@@ -1770,7 +1770,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, RequestedScopes: []string{"openid"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, RequestedScopes: []string{"openid"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1800,7 +1800,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, RequestedAudience: []string{"https://a.example.com"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, RequestedAudience: []string{"https://a.example.com"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1824,13 +1824,13 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 					RequestedAt: time.Unix(1000000, 0),
 				},
 			},
-			expected: &model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
+			expected: &model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
 			handled:  false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: nil,
@@ -1855,13 +1855,13 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 					RequestedAt:    time.Unix(1000000, 0),
 				},
 			},
-			expected: &model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123", RequestedScopes: []string{"openid"}, ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
+			expected: &model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123", RequestedScopes: []string{"openid"}, ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
 			handled:  false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123", RequestedScopes: []string{"openid"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123", RequestedScopes: []string{"openid"}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: nil,
@@ -1889,7 +1889,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "client_id=test&request_uri=urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Aabc123", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1918,7 +1918,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1947,7 +1947,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -1977,7 +1977,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -2006,7 +2006,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=abc123&state=xyz789", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -2035,7 +2035,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=%zz", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "nonce=%zz", ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -2058,13 +2058,13 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 					RequestedAt: time.Unix(1000000, 0),
 				},
 			},
-			expected: &model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
+			expected: &model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: time.Unix(1000000, 0).Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}},
 			handled:  false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},
@@ -2091,7 +2091,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},
@@ -2118,7 +2118,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -2147,7 +2147,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 44, Granted: true, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, Granted: true, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -2199,7 +2199,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "prompt=login", RequestedAt: time.Unix(1000000, 0)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "prompt=login", RequestedAt: time.Unix(1000000, 0)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},
@@ -2226,7 +2226,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
-						Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0)}, nil),
+						Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0)}, nil),
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},

@@ -87,7 +87,7 @@ func TestOAuth2AuthorizationPOSTFlow(t *testing.T) {
 			name:          "ShouldRejectReferenceFromAnotherUserAgent",
 			authenticated: true,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values) {
-				mock.Ctx.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), newTestSessionCookie("another-user-agent"))
+				mock.Ctx.Request.Header.SetCookie(session.UserAgentBindingCookieName("authelia_session"), newTestSessionCookie("another-user-agent"))
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values, rw *httptest.ResponseRecorder) {
 				assertTestOAuth2AuthorizationConsentReferenceRejected(t, mock, rw, "the consent session is not bound to the user agent")
@@ -97,7 +97,7 @@ func TestOAuth2AuthorizationPOSTFlow(t *testing.T) {
 			name:          "ShouldRejectReferenceWithoutBinding",
 			authenticated: true,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values) {
-				mock.Ctx.Request.Header.DelCookie(session.AuthorizationBindingCookieName("authelia_session"))
+				mock.Ctx.Request.Header.DelCookie(session.UserAgentBindingCookieName("authelia_session"))
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values, rw *httptest.ResponseRecorder) {
 				assertTestOAuth2AuthorizationConsentReferenceRejected(t, mock, rw, "the consent session is not bound to the user agent")

@@ -70,13 +70,13 @@ type MockAutheliaCtx struct {
 	Clock clock.Fixed
 }
 
-// AuthorizationBinding is the value of the authorization binding cookie every request of a MockAutheliaCtx carries,
+// UserAgentBinding is the value of the user agent binding cookie every request of a MockAutheliaCtx carries,
 // which binds the consent sessions in fixtures to the mock user agent.
-const AuthorizationBinding = "YXV0aGVsaWEtb2F1dGgyLWJpbmRpbmctZml4dHVyZSE"
+const UserAgentBinding = "YXV0aGVsaWEtb2F1dGgyLWJpbmRpbmctZml4dHVyZSE"
 
-// AuthorizationBindingDigest is the digest of AuthorizationBinding which is stored with the consent sessions in fixtures
+// UserAgentBindingDigest is the digest of UserAgentBinding which is stored with the consent sessions in fixtures
 // bound to the mock user agent.
-const AuthorizationBindingDigest = "98891c8676d35235024a91777e7262b096117b93f6647433c1dbfb43666d8d55"
+const UserAgentBindingDigest = "98891c8676d35235024a91777e7262b096117b93f6647433c1dbfb43666d8d55"
 
 // NewMockAutheliaCtx create an instance of AutheliaCtx mock.
 func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
@@ -273,7 +273,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	request.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	request.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
-	request.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), AuthorizationBinding)
+	request.Request.Header.SetCookie(session.UserAgentBindingCookieName("authelia_session"), UserAgentBinding)
 
 	ctx := middlewares.NewAutheliaCtx(request, config, providers)
 	mockAuthelia.Ctx = ctx

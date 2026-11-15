@@ -309,7 +309,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
 		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
-		consent.Binding = testOAuth2AuthorizationBindingAnotherUserAgent
+		consent.Binding = testOAuth2UserAgentBindingAnotherUserAgent
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).

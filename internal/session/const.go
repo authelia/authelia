@@ -84,12 +84,12 @@ const (
 
 	cookieValuePrefixCSRFToken = "authelia:session:csrf-token:v1:"
 
-	// CookieNameSuffixAuthorizationBinding is appended to the session cookie name to derive the name of the user agent
+	// CookieNameSuffixUserAgentBinding is appended to the session cookie name to derive the name of the user agent
 	// binding cookie, which binds records such as the OpenID Connect 1.0 consent sessions a user agent creates to that
 	// user agent.
-	CookieNameSuffixAuthorizationBinding = "_ua"
+	CookieNameSuffixUserAgentBinding = "_ua"
 
-	cookieMaxAgeAuthorizationBinding = 3600
+	cookieMaxAgeUserAgentBinding = 3600
 )
 
 // The names of the HMAC keys the session codec requires, which are the names they are stored under.

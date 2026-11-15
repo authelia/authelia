@@ -97,7 +97,7 @@ func TestOAuth2ConsentUserCodePOSTShouldOnlyAcceptUserCodeOnce(t *testing.T) {
 	assert.Equal(t, model.OAuth2DeviceCodeStatusClaimed, device.Status)
 	assert.Equal(t, flowID, device.ChallengeID.UUID)
 
-	mock.Ctx.Request.Header.SetCookie(session.AuthorizationBindingCookieName("authelia_session"), testOAuth2AuthorizationBindingAnotherUserAgent)
+	mock.Ctx.Request.Header.SetCookie(session.UserAgentBindingCookieName("authelia_session"), testOAuth2UserAgentBindingAnotherUserAgent)
 	mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"user_code":"%s"}`, userCode))
 
 	OAuth2ConsentUserCodePOST(mock.Ctx)

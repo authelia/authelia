@@ -273,7 +273,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 
 				mock.StorageMock.EXPECT().
 					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Any()).
-					Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: preConfChallenge, ClientID: testValue, RequestedAt: time.Unix(1000000, 0)}, nil)
+					Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: preConfChallenge, ClientID: testValue, RequestedAt: time.Unix(1000000, 0)}, nil)
 
 				mock.StorageMock.EXPECT().
 					SaveOAuth2ConsentSessionResponse(gomock.Eq(mock.Ctx), gomock.Any(), gomock.Eq(false)).
@@ -286,7 +286,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 		{
 			name: "ShouldGrantWithMatchingPreConfiguration",
 			expected: &model.OAuth2ConsentSession{
-				Binding:          mocks.AuthorizationBindingDigest,
+				Binding:          mocks.UserAgentBindingDigest,
 				ChallengeID:      preConfChallenge,
 				ClientID:         testValue,
 				Granted:          false,
@@ -304,7 +304,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 
 				mock.StorageMock.EXPECT().
 					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Any()).
-					Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: preConfChallenge, ClientID: testValue, RequestedAt: time.Unix(1000000, 0), RequestedScopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID}}, nil)
+					Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: preConfChallenge, ClientID: testValue, RequestedAt: time.Unix(1000000, 0), RequestedScopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID}}, nil)
 
 				mock.StorageMock.EXPECT().
 					SaveOAuth2ConsentSessionResponse(gomock.Eq(mock.Ctx), gomock.Any(), gomock.Eq(false)).
@@ -326,7 +326,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithoutID(t *testing.T
 
 				mock.StorageMock.EXPECT().
 					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Any()).
-					Return(&model.OAuth2ConsentSession{Binding: mocks.AuthorizationBindingDigest, ChallengeID: preConfChallenge, ClientID: testValue, RequestedAt: time.Unix(2000000, 0)}, nil)
+					Return(&model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ChallengeID: preConfChallenge, ClientID: testValue, RequestedAt: time.Unix(2000000, 0)}, nil)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusSeeOther, rw.Code)
@@ -390,7 +390,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 		{
 			name: "ShouldGrantWithMatchingPreConfiguration",
 			consent: &model.OAuth2ConsentSession{
-				Binding:         mocks.AuthorizationBindingDigest,
+				Binding:         mocks.UserAgentBindingDigest,
 				ID:              1,
 				ChallengeID:     preConfChallenge,
 				ClientID:        testValue,
@@ -399,7 +399,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 				RequestedScopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:          mocks.AuthorizationBindingDigest,
+				Binding:          mocks.UserAgentBindingDigest,
 				ChallengeID:      preConfChallenge,
 				ClientID:         testValue,
 				GrantedScopes:    model.StringSlicePipeDelimited{oidc.ScopeOpenID},
@@ -417,7 +417,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 		{
 			name: "ShouldHandleSaveConsentSessionResponseError",
 			consent: &model.OAuth2ConsentSession{
-				Binding:         mocks.AuthorizationBindingDigest,
+				Binding:         mocks.UserAgentBindingDigest,
 				ID:              1,
 				ChallengeID:     preConfChallenge,
 				ClientID:        testValue,
@@ -441,7 +441,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 		{
 			name: "ShouldHandlePreConfigurationLookupError",
 			consent: &model.OAuth2ConsentSession{
-				Binding:         mocks.AuthorizationBindingDigest,
+				Binding:         mocks.UserAgentBindingDigest,
 				ID:              1,
 				ChallengeID:     preConfChallenge,
 				ClientID:        testValue,
@@ -463,7 +463,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 		{
 			name: "ShouldDenyExplicitlyRejectedConsentSession",
 			consent: &model.OAuth2ConsentSession{
-				Binding:         mocks.AuthorizationBindingDigest,
+				Binding:         mocks.UserAgentBindingDigest,
 				ID:              1,
 				ChallengeID:     preConfChallenge,
 				ClientID:        testValue,
@@ -484,7 +484,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 		{
 			name: "ShouldRedirectUnrespondedConsentSessionToConsentPage",
 			consent: &model.OAuth2ConsentSession{
-				Binding:         mocks.AuthorizationBindingDigest,
+				Binding:         mocks.UserAgentBindingDigest,
 				ID:              1,
 				ChallengeID:     preConfChallenge,
 				ClientID:        testValue,
@@ -506,7 +506,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 			name: "ShouldDenyPromptNoneOnAuthorizedSessionWithoutPreConfiguration",
 			form: url.Values{oidc.FormParameterPrompt: []string{oidc.PromptNone}},
 			consent: &model.OAuth2ConsentSession{
-				Binding:         mocks.AuthorizationBindingDigest,
+				Binding:         mocks.UserAgentBindingDigest,
 				ID:              1,
 				ChallengeID:     preConfChallenge,
 				ClientID:        testValue,
@@ -528,7 +528,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 		{
 			name: "ShouldNotSaveResponseAgainForRespondedSessionWithPreConfiguration",
 			consent: &model.OAuth2ConsentSession{
-				Binding:          mocks.AuthorizationBindingDigest,
+				Binding:          mocks.UserAgentBindingDigest,
 				ID:               1,
 				ChallengeID:      preConfChallenge,
 				ClientID:         testValue,
@@ -542,7 +542,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 				PreConfiguration: sql.NullInt64{Int64: 10, Valid: true},
 			},
 			expected: &model.OAuth2ConsentSession{
-				Binding:          mocks.AuthorizationBindingDigest,
+				Binding:          mocks.UserAgentBindingDigest,
 				ChallengeID:      preConfChallenge,
 				ClientID:         testValue,
 				GrantedScopes:    model.StringSlicePipeDelimited{oidc.ScopeOpenID},
@@ -556,7 +556,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithIDExtra(t *testing
 		{
 			name: "ShouldReturnAuthorizedSessionWithoutPreConfiguration",
 			consent: &model.OAuth2ConsentSession{
-				Binding:         mocks.AuthorizationBindingDigest,
+				Binding:         mocks.UserAgentBindingDigest,
 				ID:              1,
 				ChallengeID:     preConfChallenge,
 				ClientID:        testValue,
@@ -628,7 +628,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredMisc(t *testing.T) {
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(preConfChallenge)).
 			Return(&model.OAuth2ConsentSession{
-				Binding:         mocks.AuthorizationBindingDigest,
+				Binding:         mocks.UserAgentBindingDigest,
 				ID:              1,
 				ChallengeID:     preConfChallenge,
 				ClientID:        testValue,

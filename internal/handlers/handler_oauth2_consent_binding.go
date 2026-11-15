@@ -24,11 +24,11 @@ func handleOAuth2ConsentSessionBind(ctx *middlewares.AutheliaCtx, consent *model
 		return "", fmt.Errorf("error occurred obtaining the session provider to bind the consent session: %w", err)
 	}
 
-	if binding, err = provider.AuthorizationBinding(ctx); err != nil {
+	if binding, err = provider.UserAgentBinding(ctx); err != nil {
 		return "", fmt.Errorf("error occurred binding the consent session: %w", err)
 	}
 
-	consent.Binding = session.AuthorizationBindingDigest(binding)
+	consent.Binding = session.UserAgentBindingDigest(binding)
 
 	return binding, nil
 }
@@ -40,7 +40,7 @@ func handleOAuth2ConsentSessionIssueBinding(ctx *middlewares.AutheliaCtx, bindin
 		return fmt.Errorf("error occurred obtaining the session provider to issue the consent session binding: %w", err)
 	}
 
-	provider.IssueAuthorizationBinding(ctx, binding)
+	provider.IssueUserAgentBinding(ctx, binding)
 
 	return nil
 }
@@ -56,7 +56,7 @@ func handleOAuth2ConsentSessionLoadBound(ctx *middlewares.AutheliaCtx, challenge
 		return nil, err
 	}
 
-	if !provider.VerifyAuthorizationBinding(ctx, consent.Binding) {
+	if !provider.VerifyUserAgentBinding(ctx, consent.Binding) {
 		return nil, errOAuth2ConsentSessionNotBound
 	}
 
