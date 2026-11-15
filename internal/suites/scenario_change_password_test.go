@@ -6,6 +6,7 @@ package suites
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -13,10 +14,12 @@ import (
 
 type ChangePasswordScenario struct {
 	*RodSuite
+
+	backend PasswordChangeRequiredBackend
 }
 
-func NewChangePasswordScenario() *ChangePasswordScenario {
-	return &ChangePasswordScenario{RodSuite: NewRodSuite("")}
+func NewChangePasswordScenario(backend PasswordChangeRequiredBackend) *ChangePasswordScenario {
+	return &ChangePasswordScenario{RodSuite: NewRodSuite(""), backend: backend}
 }
 
 func (s *ChangePasswordScenario) SetupSuite() {
@@ -128,4 +131,41 @@ func (s *ChangePasswordScenario) TestShouldNotChangePasswordNewPasswordsMustMatc
 	s.doChangePassword(s.T(), s.Context(ctx), testPassword, "my_new_password", "new_password", "Passwords do not match")
 
 	s.doLogout(s.T(), s.Context(ctx))
+}
+
+func (s *ChangePasswordScenario) TestShouldRequireAPasswordChangeBeforeAuthenticating() {
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	s.backend.Prepare(s.T())
+
+	defer s.backend.Reset(s.T())
+
+	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
+
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, BaseDomain, targetURL)
+
+	s.verifyIsPasswordChangeRequiredPage(s.T(), s.Context(ctx))
+
+	// The held session carries no authentication level, so a resource which only requires one factor is still out
+	// of reach with the password the administrator issued.
+	s.doVisit(s.T(), s.Context(ctx), targetURL)
+	s.verifyIsPasswordChangeRequiredPage(s.T(), s.Context(ctx))
+
+	s.doChangeRequiredPassword(s.T(), s.Context(ctx), testPassword, passwordChangeRequiredReplaced, "another-password")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Passwords do not match")
+	s.verifyIsPasswordChangeRequiredPage(s.T(), s.Context(ctx))
+
+	s.doChangeRequiredPassword(s.T(), s.Context(ctx), testPassword, passwordChangeRequiredReplaced, passwordChangeRequiredReplaced)
+
+	// The session which held the user is destroyed by the change, so they arrive back at the first factor page and
+	// sign in with the password they just set.
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, passwordChangeRequiredReplaced, false, BaseDomain, targetURL)
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }

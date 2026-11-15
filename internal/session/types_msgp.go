@@ -46,6 +46,11 @@ type UserSession struct {
 	// PasswordResetUsername is given a value when a session exists where the password is being reset.
 	PasswordResetUsername *string `msg:"pru,omitempty"`
 
+	// PasswordChangeRequiredUsername is set when a user has proven their password but the authentication backend
+	// says it must be changed before they go any further. The session deliberately holds no authentication level
+	// while it is set: the password they proved is one an administrator issued, and it opens nothing.
+	PasswordChangeRequiredUsername *string `msg:"pcru,omitempty"`
+
 	RefreshTTL time.Time `msg:"ttl"`
 
 	Elevations Elevations `msg:"e"`

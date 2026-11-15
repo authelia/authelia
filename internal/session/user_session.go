@@ -50,6 +50,7 @@ func (s *UserSession) RequiresPersistence() bool {
 		s.WebAuthn != nil,
 		s.TOTP != nil,
 		s.PasswordResetUsername != nil,
+		s.PasswordChangeRequiredUsername != nil,
 		s.Elevations.User != nil:
 		return true
 	default:
@@ -80,6 +81,20 @@ func (s *UserSession) SetOneFactorPassword(now time.Time, keepMeLoggedIn bool) {
 
 	s.AuthenticationMethodRefs.KnowledgeBasedAuthentication = true
 	s.AuthenticationMethodRefs.UsernameAndPassword = true
+}
+
+// SetPasswordChangeRequired records that the user proved their password but must change it before they can
+// authenticate. No authentication level, timestamp or method reference is set: the session is a holding state which
+// permits nothing except the password change itself. The session must already have been constructed for the
+// authenticating user via NewUserSession.
+func (s *UserSession) SetPasswordChangeRequired(now time.Time) {
+	s.LastActivity = now.Unix()
+	s.PasswordChangeRequiredUsername = new(s.Username)
+}
+
+// IsPasswordChangeRequired returns true while the session is held pending a password change.
+func (s *UserSession) IsPasswordChangeRequired() bool {
+	return s.PasswordChangeRequiredUsername != nil && *s.PasswordChangeRequiredUsername != ""
 }
 
 // SetOneFactorPasskey sets the 1FA AMR's and expected property values for one factor passkey authentication. The

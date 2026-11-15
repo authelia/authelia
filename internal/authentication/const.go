@@ -144,6 +144,10 @@ var (
 	// ErrAuthenticationFailed is returned when authentication of a user fails.
 	ErrAuthenticationFailed = errors.New("authentication failed")
 
+	// ErrPasswordChangeRequired is returned when the password provided is correct but the backend will not
+	// authenticate the user until they have changed it.
+	ErrPasswordChangeRequired = errors.New("password change required")
+
 	// ErrLDAPHealthCheckFailedEntryCount is returned when the RootDSE search performed during the LDAP health check returns an unexpected number of entries.
 	ErrLDAPHealthCheckFailedEntryCount = errors.New("incorrect number entries found when performing RootDSE search")
 
@@ -184,3 +188,18 @@ func (e *errReload) Unwrap() error {
 func (e *errReload) WatcherReloadErrorCritical() bool {
 	return e.critical
 }
+
+// Active Directory reports why a simple bind was refused in the diagnostic message of an Invalid Credentials
+// result, as a hexadecimal code following the literal "data ". These are the two which mean the password itself was
+// accepted and only its age or a reset stands in the way, which a wrong password never produces.
+//
+// Reference: https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/ldap-error-messages
+const (
+	ldapActiveDirectoryErrDataPrefix = "data "
+
+	// ldapActiveDirectoryErrDataPasswordExpired is ERROR_PASSWORD_EXPIRED.
+	ldapActiveDirectoryErrDataPasswordExpired = "532"
+
+	// ldapActiveDirectoryErrDataPasswordMustChange is ERROR_PASSWORD_MUST_CHANGE.
+	ldapActiveDirectoryErrDataPasswordMustChange = "773"
+)
