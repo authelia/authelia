@@ -264,6 +264,14 @@ specifically match a specific part of a subject.
 |      Group       |     `group:`     |                                                Matches if the user has a group with this name.                                                 |
 | OAuth 2.0 Client | `oauth2:client:` | Matches if the request has been authorized via a token issued by a client with the specified id utilizing the `client_credentials` grant type. |
 
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The values of these subjects are compared in a case-sensitive way. The `user:` and `group:` values must exactly match
+the canonical username and group names as determined by the [authentication backend](../first-factor/introduction.md),
+not the value the user typed when logging in. For example if the backend returns the username `John` then `user:john`
+will not match, even if the user logged in as `john`. Similarly the `oauth2:client:` value must exactly match the client
+id. This differs from the [Named Regex Groups](#named-regex-groups) which are compared in a case-insensitive way.
+{{< /callout >}}
+
 The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
 Additionally each level of these lists does not have to be explicitly defined.
