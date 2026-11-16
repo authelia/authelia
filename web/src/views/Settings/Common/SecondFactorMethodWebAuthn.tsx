@@ -9,23 +9,30 @@ import { useTranslation } from "react-i18next";
 
 import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { useAbortSignal } from "@hooks/Abort";
-import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
+import { AssertionResult, AssertionResultFailureString, WebAuthnCeremony, WebAuthnTouchState } from "@models/WebAuthn";
 import { getWebAuthnOptions, getWebAuthnResult, postWebAuthnResponse } from "@services/WebAuthn";
 
 type ComponentState = {
+    ceremony?: WebAuthnCeremony;
     status: WebAuthnTouchState;
     started: boolean;
 };
 
-type Action = { type: "setStarted"; started: boolean } | { type: "setStatus"; status: WebAuthnTouchState };
+type Action =
+    | { type: "setCeremony"; ceremony?: WebAuthnCeremony }
+    | { type: "setStarted"; started: boolean }
+    | { type: "setStatus"; status: WebAuthnTouchState };
 
 const initialState: ComponentState = {
+    ceremony: undefined,
     started: false,
     status: WebAuthnTouchState.WaitTouch,
 };
 
 function reducer(state: ComponentState, action: Action): ComponentState {
     switch (action.type) {
+        case "setCeremony":
+            return { ...state, ceremony: action.ceremony };
         case "setStatus":
             return { ...state, status: action.status };
         case "setStarted":
@@ -44,7 +51,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
     const getSignal = useAbortSignal();
     const { t: translate } = useTranslation();
 
-    const { started, status } = state;
+    const { ceremony, started, status } = state;
 
     const handleRetry = () => {
         dispatch({ status: WebAuthnTouchState.WaitTouch, type: "setStatus" });
@@ -53,6 +60,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
     const handleStart = useCallback(async () => {
         dispatch({ started: true, type: "setStarted" });
+        dispatch({ ceremony: undefined, type: "setCeremony" });
 
         const signal = getSignal();
 
@@ -65,6 +73,8 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
                 return;
             }
+
+            dispatch({ ceremony: { timeout: optionsStatus.options.timeout }, type: "setCeremony" });
 
             const result = await getWebAuthnResult(optionsStatus.options);
 
@@ -117,7 +127,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
         handleStart().catch(console.error);
     }, [handleStart, started]);
 
-    return <WebAuthnTryIcon onRetryClick={handleRetry} webauthnTouchState={status} />;
+    return <WebAuthnTryIcon ceremony={ceremony} onRetryClick={handleRetry} webauthnTouchState={status} />;
 };
 
 export default SecondFactorMethodWebAuthn;

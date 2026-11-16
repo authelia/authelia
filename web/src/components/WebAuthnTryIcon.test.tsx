@@ -5,6 +5,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
+import { useTimer } from "@hooks/Timer";
 import { WebAuthnTouchState } from "@models/WebAuthn";
 
 const mockTrigger = vi.fn();
@@ -75,7 +76,55 @@ it("retries on retry button click", () => {
     const button = screen.getByRole("button");
     fireEvent.click(button);
     expect(mockOnRetryClick).toHaveBeenCalledTimes(1);
+});
+
+it("does not run the countdown before the ceremony starts", () => {
+    render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />);
+    expect(mockTrigger).not.toHaveBeenCalled();
     expect(mockClear).toHaveBeenCalledTimes(1);
+});
+
+it("runs the countdown for the ceremony timeout", () => {
+    render(
+        <WebAuthnTryIcon
+            ceremony={{ timeout: 60000 }}
+            onRetryClick={mockOnRetryClick}
+            webauthnTouchState={WebAuthnTouchState.WaitTouch}
+        />,
+    );
+    expect(vi.mocked(useTimer)).toHaveBeenLastCalledWith(60000);
+    expect(mockTrigger).toHaveBeenCalledTimes(1);
+});
+
+it("does not run the countdown when the ceremony has no timeout", () => {
+    render(
+        <WebAuthnTryIcon
+            ceremony={{}}
+            onRetryClick={mockOnRetryClick}
+            webauthnTouchState={WebAuthnTouchState.WaitTouch}
+        />,
+    );
+    expect(mockTrigger).not.toHaveBeenCalled();
+    expect(mockClear).toHaveBeenCalledTimes(1);
+});
+
+it("restarts the countdown for a new ceremony", () => {
+    const { rerender } = render(
+        <WebAuthnTryIcon
+            ceremony={{ timeout: 60000 }}
+            onRetryClick={mockOnRetryClick}
+            webauthnTouchState={WebAuthnTouchState.WaitTouch}
+        />,
+    );
+
+    rerender(
+        <WebAuthnTryIcon
+            ceremony={{ timeout: 60000 }}
+            onRetryClick={mockOnRetryClick}
+            webauthnTouchState={WebAuthnTouchState.WaitTouch}
+        />,
+    );
+
     expect(mockTrigger).toHaveBeenCalledTimes(2);
 });
 

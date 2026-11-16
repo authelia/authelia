@@ -20,7 +20,11 @@ vi.mock("@services/WebAuthn", () => ({
 
 vi.mock("@components/WebAuthnTryIcon", () => ({
     default: (props: any) => (
-        <div data-testid="webauthn-try-icon" data-state={props.webauthnTouchState}>
+        <div
+            data-testid="webauthn-try-icon"
+            data-state={props.webauthnTouchState}
+            data-timeout={props.ceremony ? String(props.ceremony.timeout) : "none"}
+        >
             <button data-testid="retry" onClick={() => props.onRetryClick()} />
         </div>
     ),
@@ -61,6 +65,15 @@ describe("rendering", () => {
         renderMethod();
         expect(screen.getByTestId("webauthn-try-icon")).toBeInTheDocument();
         await waitFor(() => expect(getOptionsMock).toHaveBeenCalled());
+    });
+
+    it("starts the countdown with the challenge timeout", async () => {
+        getOptionsMock.mockResolvedValue({ options: { ...options, timeout: 30000 }, status: 200 } as any);
+        getResultMock.mockReturnValue(new Promise(() => {}) as any);
+
+        render(<SecondFactorMethodWebAuthn onSecondFactorSuccess={vi.fn()} />);
+
+        await waitFor(() => expect(screen.getByTestId("webauthn-try-icon")).toHaveAttribute("data-timeout", "30000"));
     });
 
     it("starts the assertion automatically", async () => {

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import axios from "axios";
 import { useTranslation } from "react-i18next";
@@ -13,7 +13,7 @@ import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
-import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
+import { AssertionResult, AssertionResultFailureString, WebAuthnCeremony, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
 import {
     cancelWebAuthnCeremony,
@@ -46,6 +46,7 @@ const WebAuthnMethod = function (props: Props) {
     const stateReducer = (_state: WebAuthnTouchState, action: { type: WebAuthnTouchState }) => action.type;
 
     const [state, dispatch] = useReducer(stateReducer, WebAuthnTouchState.WaitTouch);
+    const [ceremony, setCeremony] = useState<undefined | WebAuthnCeremony>(undefined);
 
     const { onSignInError, onSignInSuccess } = props;
 
@@ -68,6 +69,8 @@ const WebAuthnMethod = function (props: Props) {
 
         try {
             dispatch({ type: WebAuthnTouchState.WaitTouch });
+            setCeremony(undefined);
+
             const optionsStatus = await getWebAuthnOptions(signal);
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
@@ -76,6 +79,8 @@ const WebAuthnMethod = function (props: Props) {
 
                 return;
             }
+
+            setCeremony({ timeout: optionsStatus.options.timeout });
 
             const result = await getWebAuthnResult(optionsStatus.options);
 
@@ -169,6 +174,7 @@ const WebAuthnMethod = function (props: Props) {
             onRegisterClick={props.onRegisterClick}
         >
             <WebAuthnTryIcon
+                ceremony={ceremony}
                 onMethodSelectionClick={props.onMethodSelectionClick}
                 onRetryClick={doInitiateSignIn}
                 webauthnTouchState={state}

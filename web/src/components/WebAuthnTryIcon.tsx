@@ -12,10 +12,11 @@ import LinearProgressBar from "@components/LinearProgressBar";
 import { Button } from "@components/UI/Button";
 import { Spinner } from "@components/UI/Spinner";
 import { useTimer } from "@hooks/Timer";
-import { WebAuthnTouchState } from "@models/WebAuthn";
+import { WebAuthnCeremony, WebAuthnTouchState } from "@models/WebAuthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 
 interface Props {
+    ceremony?: WebAuthnCeremony;
     onMethodSelectionClick?: () => void;
     onRetryClick: () => void;
     webauthnTouchState: WebAuthnTouchState;
@@ -23,18 +24,16 @@ interface Props {
 
 const WebAuthnTryIcon = function (props: Props) {
     const { t: translate } = useTranslation();
-    const touchTimeout = 30;
-    const [timerPercent, triggerTimer, clearTimer] = useTimer(touchTimeout * 1000 - 500);
-
-    const handleRetryClick = () => {
-        clearTimer();
-        triggerTimer();
-        props.onRetryClick();
-    };
+    const timeout = props.ceremony?.timeout ?? 0;
+    const [timerPercent, triggerTimer, clearTimer] = useTimer(timeout > 0 ? timeout : 1);
 
     useEffect(() => {
-        triggerTimer();
-    }, [triggerTimer]);
+        if (props.ceremony && timeout > 0) {
+            triggerTimer();
+        } else {
+            clearTimer();
+        }
+    }, [props.ceremony, timeout, triggerTimer, clearTimer]);
 
     const touch = (
         <IconWithContext
@@ -76,7 +75,7 @@ const WebAuthnTryIcon = function (props: Props) {
                     </Button>
                 ) : null
             ) : (
-                <Button variant={"ghost"} className="tracking-wide" color={"secondary"} onClick={handleRetryClick}>
+                <Button variant={"ghost"} className="tracking-wide" color={"secondary"} onClick={props.onRetryClick}>
                     {translate("Retry")}
                 </Button>
             )}

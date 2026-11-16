@@ -158,6 +158,10 @@ export function toTransportName(transport: string) {
     }
 }
 
+export interface WebAuthnCeremony {
+    timeout?: number;
+}
+
 export enum WebAuthnTouchState {
     WaitTouch = 1,
     InProgress = 2,
