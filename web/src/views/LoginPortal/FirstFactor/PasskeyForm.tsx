@@ -4,7 +4,6 @@
 
 import { Fragment, useCallback, useRef, useState } from "react";
 
-import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import PasskeyIcon from "@components/PasskeyIcon";
@@ -12,11 +11,10 @@ import { Button } from "@components/UI/Button";
 import { Separator } from "@components/UI/Separator";
 import { Spinner } from "@components/UI/Spinner";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
-import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
 import { useQueryParam } from "@hooks/QueryParam";
-import { AssertionResult, AssertionResultFailureString } from "@models/WebAuthn";
-import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
+import { useWebAuthnAssertion } from "@hooks/WebAuthnAssertion";
+import { getWebAuthnPasskeyOptions, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
 
 export interface Props {
     disabled: boolean;
@@ -34,68 +32,31 @@ const PasskeyForm = function (props: Props) {
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
     const { flow, id: flowID, subflow } = useFlow();
-    const getSignal = useAbortSignal();
 
     const [loading, setLoading] = useState(false);
-
-    const onSignInErrorCallback = useRef(props.onAuthenticationError).current;
-
-    const handleAuthenticationStart = useCallback(() => {
-        props.onAuthenticationStart();
-        setLoading(true);
-    }, [props]);
+    const activeRef = useRef(false);
 
     const handleAuthenticationStop = useCallback(() => {
+        if (!activeRef.current) return;
+
+        activeRef.current = false;
         props.onAuthenticationStop();
         setLoading(false);
     }, [props]);
 
-    const handleSignIn = useCallback(async () => {
-        if (loading) {
-            return;
-        }
-
-        handleAuthenticationStart();
-
-        const signal = getSignal();
-
-        try {
-            const optionsStatus = await getWebAuthnPasskeyOptions(signal);
-
-            if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                handleAuthenticationStop();
-                onSignInErrorCallback(
-                    new Error(translate("Unable to start sign in with your passkey or security key")),
-                );
-
-                return;
-            }
-
-            const result = await getWebAuthnResult(optionsStatus.options);
-
-            if (signal.aborted) return;
-
-            if (result.result !== AssertionResult.Success) {
-                handleAuthenticationStop();
-
-                if (result.result === AssertionResult.FailureAborted) return;
-
-                onSignInErrorCallback(new Error(translate(AssertionResultFailureString(result.result))));
-
-                return;
-            }
-
-            if (result.response == null) {
-                onSignInErrorCallback(
-                    new Error(translate("Your browser did not return a response from your passkey or security key")),
-                );
-                handleAuthenticationStop();
-
-                return;
-            }
-
-            const response = await postWebAuthnPasskeyResponse(
-                result.response,
+    const { start } = useWebAuthnAssertion({
+        getOptions: getWebAuthnPasskeyOptions,
+        onError: (err) => {
+            handleAuthenticationStop();
+            props.onAuthenticationError(err);
+        },
+        onSuccess: (redirectURL) => {
+            handleAuthenticationStop();
+            props.onAuthenticationSuccess(redirectURL);
+        },
+        postResponse: (response, signal) =>
+            postWebAuthnPasskeyResponse(
+                response,
                 props.rememberMe,
                 redirectionURL,
                 requestMethod,
@@ -103,37 +64,22 @@ const PasskeyForm = function (props: Props) {
                 flow,
                 subflow,
                 signal,
-            );
+            ),
+    });
 
-            handleAuthenticationStop();
-
-            if (response.data.status === "OK" && response.status === 200) {
-                props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
-                return;
-            }
-
-            onSignInErrorCallback(new Error(translate("Your passkey or security key could not be verified")));
-        } catch (err) {
-            handleAuthenticationStop();
-
-            if (axios.isCancel(err)) return;
-            console.error(err);
-            onSignInErrorCallback(new Error(translate("Unable to start sign in with your passkey or security key")));
+    const handleSignIn = useCallback(async () => {
+        if (activeRef.current) {
+            return;
         }
-    }, [
-        getSignal,
-        loading,
-        handleAuthenticationStart,
-        props,
-        redirectionURL,
-        requestMethod,
-        flowID,
-        flow,
-        subflow,
-        handleAuthenticationStop,
-        onSignInErrorCallback,
-        translate,
-    ]);
+
+        activeRef.current = true;
+        props.onAuthenticationStart();
+        setLoading(true);
+
+        await start();
+
+        handleAuthenticationStop();
+    }, [handleAuthenticationStop, props, start]);
 
     return (
         <Fragment>

@@ -25,8 +25,10 @@ vi.mock("@hooks/Flow", () => ({
 }));
 
 vi.mock("@services/WebAuthn", () => ({
+    cancelWebAuthnCeremony: vi.fn(),
     getWebAuthnPasskeyOptions: vi.fn(),
     getWebAuthnResult: vi.fn(),
+    isWebAuthnSupported: () => true,
     postWebAuthnPasskeyResponse: vi.fn(),
 }));
 

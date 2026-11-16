@@ -2,26 +2,18 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
-import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { RedirectionURL } from "@constants/SearchParams";
-import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
-import { AssertionResult, AssertionResultFailureString, WebAuthnCeremony, WebAuthnTouchState } from "@models/WebAuthn";
+import { useWebAuthnAssertion } from "@hooks/WebAuthnAssertion";
 import { AuthenticationLevel } from "@services/State";
-import {
-    cancelWebAuthnCeremony,
-    getWebAuthnOptions,
-    getWebAuthnResult,
-    isWebAuthnSupported,
-    postWebAuthnResponse,
-} from "@services/WebAuthn";
+import { getWebAuthnOptions, postWebAuthnResponse } from "@services/WebAuthn";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export interface Props {
@@ -41,14 +33,14 @@ const WebAuthnMethod = function (props: Props) {
     const redirectionURL = useQueryParam(RedirectionURL);
     const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
-    const getSignal = useAbortSignal();
 
-    const stateReducer = (_state: WebAuthnTouchState, action: { type: WebAuthnTouchState }) => action.type;
-
-    const [state, dispatch] = useReducer(stateReducer, WebAuthnTouchState.WaitTouch);
-    const [ceremony, setCeremony] = useState<undefined | WebAuthnCeremony>(undefined);
-
-    const { onSignInError, onSignInSuccess } = props;
+    const { ceremony, start, state } = useWebAuthnAssertion({
+        getOptions: getWebAuthnOptions,
+        onError: props.onSignInError,
+        onSuccess: props.onSignInSuccess,
+        postResponse: (response, signal) =>
+            postWebAuthnResponse(response, redirectionURL, flowID, flow, subflow, userCode, signal),
+    });
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
@@ -56,93 +48,8 @@ const WebAuthnMethod = function (props: Props) {
             return;
         }
 
-        if (!isWebAuthnSupported()) {
-            dispatch({ type: WebAuthnTouchState.Unsupported });
-            onSignInError(
-                new Error(translate(AssertionResultFailureString(AssertionResult.FailureWebAuthnNotSupported))),
-            );
-
-            return;
-        }
-
-        const signal = getSignal();
-
-        try {
-            dispatch({ type: WebAuthnTouchState.WaitTouch });
-            setCeremony(undefined);
-
-            const optionsStatus = await getWebAuthnOptions(signal);
-
-            if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                dispatch({ type: WebAuthnTouchState.Failure });
-                onSignInError(new Error(translate("Unable to start sign in with your passkey or security key")));
-
-                return;
-            }
-
-            setCeremony({ timeout: optionsStatus.options.timeout });
-
-            const result = await getWebAuthnResult(optionsStatus.options);
-
-            if (signal.aborted) return;
-
-            if (result.result !== AssertionResult.Success) {
-                dispatch({ type: WebAuthnTouchState.Failure });
-
-                if (result.result === AssertionResult.FailureAborted) return;
-
-                onSignInError(new Error(translate(AssertionResultFailureString(result.result))));
-
-                return;
-            }
-
-            if (result.response == null) {
-                onSignInError(
-                    new Error(translate("Your browser did not return a response from your passkey or security key")),
-                );
-                dispatch({ type: WebAuthnTouchState.Failure });
-
-                return;
-            }
-
-            dispatch({ type: WebAuthnTouchState.InProgress });
-
-            const response = await postWebAuthnResponse(
-                result.response,
-                redirectionURL,
-                flowID,
-                flow,
-                subflow,
-                userCode,
-                signal,
-            );
-
-            if (response.data.status === "OK" && response.status === 200) {
-                onSignInSuccess(response.data.data ? response.data.data.redirect : undefined);
-                return;
-            }
-
-            onSignInError(new Error(translate("Your passkey or security key could not be verified")));
-            dispatch({ type: WebAuthnTouchState.Failure });
-        } catch (err) {
-            if (axios.isCancel(err)) return;
-            console.error(err);
-            onSignInError(new Error(translate("Unable to start sign in with your passkey or security key")));
-            dispatch({ type: WebAuthnTouchState.Failure });
-        }
-    }, [
-        props.registered,
-        props.authenticationLevel,
-        getSignal,
-        redirectionURL,
-        flowID,
-        flow,
-        subflow,
-        userCode,
-        onSignInError,
-        translate,
-        onSignInSuccess,
-    ]);
+        await start();
+    }, [props.registered, props.authenticationLevel, start]);
 
     const doInitiateSignInRef = useRef(doInitiateSignIn);
 
@@ -152,10 +59,6 @@ const WebAuthnMethod = function (props: Props) {
 
     useEffect(() => {
         doInitiateSignInRef.current().catch(console.error);
-
-        return () => {
-            cancelWebAuthnCeremony();
-        };
     }, []);
 
     let methodState = MethodContainerState.METHOD;

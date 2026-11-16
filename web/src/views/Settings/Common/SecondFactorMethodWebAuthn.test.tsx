@@ -13,8 +13,10 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("@services/WebAuthn", () => ({
+    cancelWebAuthnCeremony: vi.fn(),
     getWebAuthnOptions: vi.fn(),
     getWebAuthnResult: vi.fn(),
+    isWebAuthnSupported: () => true,
     postWebAuthnResponse: vi.fn(),
 }));
 
