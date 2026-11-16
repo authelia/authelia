@@ -29,7 +29,7 @@ func TestEncapsulatedSession_ShouldDelegateToTheStrategy(t *testing.T) {
 
 	require.NoError(t, manager.SaveSession(&userSession))
 
-	original := ctx.cookies[testName]
+	original := ctx.cookies[testNameSession]
 	require.NotEmpty(t, original)
 
 	actual, err := manager.GetSession()
@@ -39,7 +39,7 @@ func TestEncapsulatedSession_ShouldDelegateToTheStrategy(t *testing.T) {
 
 	require.NoError(t, manager.RegenerateSession())
 
-	regenerated := ctx.cookies[testName]
+	regenerated := ctx.cookies[testNameSession]
 
 	assert.NotEqual(t, original, regenerated)
 
@@ -50,7 +50,7 @@ func TestEncapsulatedSession_ShouldDelegateToTheStrategy(t *testing.T) {
 
 	require.NoError(t, manager.DestroySession())
 
-	assert.NotContains(t, ctx.cookies, testName)
+	assert.NotContains(t, ctx.cookies, testNameSession)
 
 	actual, err = manager.GetSession()
 
@@ -62,7 +62,7 @@ func TestEncapsulatedSession_GetSessionShouldReturnDefaultSessionAndErrorWhenThe
 	ctx := newTestContext()
 	manager := NewEncapsulatedSession(newTestStrategyWithRepository(t, &failingRepository{testRepository: newTestRepository()}, nil), ctx)
 
-	ctx.cookies[testName] = newTestCookie("an-identifier-which-cannot-be-retrieved")
+	ctx.cookies[testNameSession] = newTestCookie("an-identifier-which-cannot-be-retrieved")
 
 	userSession, err := manager.GetSession()
 

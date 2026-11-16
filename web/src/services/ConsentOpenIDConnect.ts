@@ -5,8 +5,12 @@
 import axios from "axios";
 
 import { ScopeDescription } from "@components/OpenIDConnect";
-import { FlowID, UserCode } from "@constants/SearchParams";
-import { OpenIDConnectConsentPath, OpenIDConnectDeviceAuthorizationPath } from "@services/Api";
+import { FlowID, SubFlow, UserCode } from "@constants/SearchParams";
+import {
+    OpenIDConnectConsentPath,
+    OpenIDConnectConsentUserCodePath,
+    OpenIDConnectDeviceAuthorizationPath,
+} from "@services/Api";
 import { Get, Post } from "@services/Client";
 
 interface ConsentPostRequestBody {
@@ -16,7 +20,10 @@ interface ConsentPostRequestBody {
     pre_configure: boolean;
     claims?: string[];
     subflow?: string;
-    user_code?: string;
+}
+
+interface ConsentUserCodePostRequestBody {
+    user_code: string;
 }
 
 interface ConsentPostResponseBody {
@@ -36,18 +43,24 @@ export interface ConsentGetResponseBody {
     require_login: boolean;
 }
 
-export function getConsentResponse(flowID?: string, userCode?: string) {
+export function getConsentResponse(flowID: string, subflow?: string) {
     const params = new URLSearchParams();
 
-    if (flowID) {
-        params.append(FlowID, flowID);
-    }
+    params.append(FlowID, flowID);
 
-    if (userCode) {
-        params.append(UserCode, userCode);
+    if (subflow) {
+        params.append(SubFlow, subflow);
     }
 
     return Get<ConsentGetResponseBody>(`${OpenIDConnectConsentPath}?${params.toString()}`);
+}
+
+export function postConsentUserCode(userCode: string) {
+    const body: ConsentUserCodePostRequestBody = {
+        user_code: userCode,
+    };
+
+    return Post<ConsentPostResponseBody>(OpenIDConnectConsentUserCodePath, body);
 }
 
 export function postConsentResponseAccept(
@@ -56,7 +69,6 @@ export function postConsentResponseAccept(
     claims: string[],
     flowID?: string,
     subflow?: string,
-    userCode?: string,
 ) {
     const body: ConsentPostRequestBody = {
         claims: claims,
@@ -65,7 +77,6 @@ export function postConsentResponseAccept(
         flow_id: flowID,
         pre_configure: preConfigure,
         subflow: subflow,
-        user_code: userCode,
     };
 
     return Post<ConsentPostResponseBody>(OpenIDConnectConsentPath, body);
@@ -80,14 +91,13 @@ export function putDeviceCodeFlowUserCode(flowID: string, userCode: string) {
     return axios.put(OpenIDConnectDeviceAuthorizationPath, params);
 }
 
-export function postConsentResponseReject(clientID: string, flowID?: string, subflow?: string, userCode?: string) {
+export function postConsentResponseReject(clientID: string, flowID?: string, subflow?: string) {
     const body: ConsentPostRequestBody = {
         client_id: clientID,
         consent: false,
         flow_id: flowID,
         pre_configure: false,
         subflow: subflow,
-        user_code: userCode,
     };
 
     return Post<ConsentPostResponseBody>(OpenIDConnectConsentPath, body);

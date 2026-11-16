@@ -35,7 +35,7 @@ func TestStorageSessionRepositoryShouldDelegateToTheProvider(t *testing.T) {
 	require.NotNil(t, record)
 	assert.Equal(t, []byte("first"), record.GetSessionData())
 
-	require.NoError(t, repository.SaveData(ctx, issuer, signature, publicID, username, time.Hour, []byte("second")))
+	require.NoError(t, repository.SaveData(ctx, issuer, signature, publicID, username, time.Hour, nil, []byte("second")))
 
 	record, err = repository.GetByPublicID(ctx, issuer, publicID)
 
@@ -88,7 +88,7 @@ func TestStorageSessionShouldReturnErrorsWhenTheDatabaseIsUnavailable(t *testing
 	assert.ErrorContains(t, err, "error selecting session ids by username: ")
 
 	assert.ErrorContains(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data")), "error upserting session: ")
-	assert.ErrorContains(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data")), "error updating session data: ")
+	assert.ErrorContains(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, nil, []byte("data")), "error updating session data: ")
 	assert.ErrorContains(t, provider.SessionDelete(ctx, "an-issuer", "a-signature", "a-public-id", "john"), "error deleting session: ")
 	assert.ErrorContains(t, provider.SessionChangeID(ctx, "an-issuer", "a-signature", "another-signature", "a-public-id", "john", time.Hour, []byte("data")), "error updating session signature: ")
 	assert.ErrorContains(t, provider.SessionGarbageCollection(ctx), "error deleting expired sessions: ")

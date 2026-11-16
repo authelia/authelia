@@ -86,7 +86,6 @@ date: Sat, 21 Mar 2026 04:35:35 GMT
 location: https://auth.example.com/?rd=https%3A%2F%2Fapp.example.com%2F&rm=GET
 permissions-policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()
 referrer-policy: strict-origin-when-cross-origin
-set-cookie: authelia-session=Zdlhz6#ZTKPg5MOul3!TRLWv4sb$RznL; expires=Sat, 21 Mar 2026 05:35:36 GMT; domain=example.com; path=/; HttpOnly; secure; SameSite=Lax
 x-content-type-options: nosniff
 x-dns-prefetch-control: off
 x-frame-options: DENY

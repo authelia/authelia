@@ -315,7 +315,6 @@ type ConsentPostRequestBody struct {
 	PreConfigure bool     `json:"pre_configure"`
 	Claims       []string `json:"claims"`
 	SubFlow      *string  `json:"subflow"`
-	UserCode     *string  `json:"user_code"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.

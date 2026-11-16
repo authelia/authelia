@@ -73,9 +73,15 @@ const PushNotificationMethod = function (props: Props) {
 
     const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() => setState(State.Failure));
     const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+    const mountedRef = useRef(false);
+    const startedRef = useRef(false);
 
     useEffect(() => {
+        mountedRef.current = true;
+
         return () => {
+            mountedRef.current = false;
+
             if (timeoutSuccessRef.current !== null) {
                 clearTimeout(timeoutSuccessRef.current);
                 timeoutSuccessRef.current = null;
@@ -169,14 +175,8 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(
-                redirectionURL,
-                flowID,
-                flow,
-                subflow,
-                userCode,
-                getSignal(),
-            );
+            const res = await completePushNotificationSignIn(redirectionURL, flowID, flow, subflow, userCode);
+            if (!mountedRef.current) return;
             if (!res) {
                 handleSuccess(undefined);
                 return;
@@ -199,7 +199,7 @@ const PushNotificationMethod = function (props: Props) {
                     handleSuccess(res.redirect);
             }
         } catch (err) {
-            if (axios.isCancel(err)) return;
+            if (!mountedRef.current || axios.isCancel(err)) return;
             if (err instanceof RateLimitedError) {
                 handleRateLimited(err.retryAfter);
                 return;
@@ -216,7 +216,6 @@ const PushNotificationMethod = function (props: Props) {
         flow,
         subflow,
         userCode,
-        getSignal,
         onSignInError,
         translate,
         handleRateLimited,
@@ -278,9 +277,11 @@ const PushNotificationMethod = function (props: Props) {
     const shouldSignIn = props.authenticationLevel < AuthenticationLevel.TwoFactor;
 
     useEffect(() => {
-        if (!shouldSignIn) {
+        if (!shouldSignIn || startedRef.current) {
             return;
         }
+
+        startedRef.current = true;
 
         handleSignInRef.current();
     }, [shouldSignIn]);

@@ -168,12 +168,12 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		handleFlowResponse(mock.Ctx, userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, "ABCDEFGH")
 
-		mock.Assert200KO(t, messageOperationFailed)
+		assertTestFlowResponseDeviceAuthorizationUserCodeRedirect(t, mock, "ABCDEFGH")
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred using the signature of the user code session to retrieve the device code session preventing a successful flow response", "sql: no rows in result set")
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred using the signature of the user code session to retrieve the device code session, deferring the user code to the consent stage", "sql: no rows in result set")
 	})
 
-	t.Run("ShouldRedirectToConsentDecisionWithUserCode", func(t *testing.T) {
+	t.Run("ShouldRedirectToUserCodeEntryWithUserCode", func(t *testing.T) {
 		mock, userSession := newMockWithSession(t, 1)
 		defer mock.Close()
 
@@ -197,7 +197,7 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflow(t *testing.T) {
 
 		require.NoError(t, err)
 
-		assert.Equal(t, oidc.FrontendEndpointPathConsentDecision, target.Path)
+		assert.Equal(t, oidc.FrontendEndpointPathConsentDeviceAuthorization, target.Path)
 		assert.Equal(t, userCode, target.Query().Get(queryArgUserCode))
 		assert.Equal(t, flowOpenIDConnectSubFlowNameDeviceAuthorization, target.Query().Get(queryArgSubflow))
 	})
@@ -263,24 +263,41 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflowDeviceState(t *testing.
 	testCases := []struct {
 		name   string
 		mutate func(device *model.OAuth2DeviceCodeSession)
+		err    string
 	}{
 		{
-			name: "ShouldRejectSessionWithSubject",
+			name: "ShouldDeferSessionWithSubject",
 			mutate: func(device *model.OAuth2DeviceCodeSession) {
 				device.Subject = sql.NullString{String: uuid.Must(uuid.NewRandom()).String(), Valid: true}
 			},
 		},
 		{
-			name: "ShouldRejectSessionWithChallengeID",
+			name: "ShouldDeferClaimedSession",
 			mutate: func(device *model.OAuth2DeviceCodeSession) {
 				device.ChallengeID = uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+				device.Status = model.OAuth2DeviceCodeStatusClaimed
 			},
 		},
 		{
-			name: "ShouldRejectSessionWithNonNewStatus",
+			name: "ShouldDeferSessionWithChallengeID",
+			mutate: func(device *model.OAuth2DeviceCodeSession) {
+				device.ChallengeID = uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+			},
+			err: "the device code session is not pending a decision",
+		},
+		{
+			name: "ShouldDeferSessionWithNonNewStatus",
 			mutate: func(device *model.OAuth2DeviceCodeSession) {
 				device.Status = int(oauthelia2.DeviceAuthorizeStatusApproved)
 			},
+			err: "the device code session is not pending a decision",
+		},
+		{
+			name: "ShouldDeferInactiveSession",
+			mutate: func(device *model.OAuth2DeviceCodeSession) {
+				device.Active = false
+			},
+			err: "the device code session is inactive or revoked",
 		},
 	}
 
@@ -293,9 +310,11 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflowDeviceState(t *testing.
 
 			handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), "", flowNameOpenIDConnect, flowOpenIDConnectSubFlowNameDeviceAuthorization, userCode)
 
-			mock.Assert200KO(t, messageOperationFailed)
+			assertTestFlowResponseDeviceAuthorizationUserCodeRedirect(t, mock, userCode)
 
-			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to handle flow response as the device code session is in an invalid state", nil)
+			if tc.err != "" {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to handle flow response as the user code can't be entered, deferring the user code to the consent stage", tc.err)
+			}
 		})
 	}
 
@@ -316,4 +335,20 @@ func TestHandleFlowResponseOpenIDConnectDeviceAuthSubflowDeviceState(t *testing.
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading the client for the device code session", regexpAnyError)
 	})
+}
+
+func assertTestFlowResponseDeviceAuthorizationUserCodeRedirect(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string) {
+	t.Helper()
+
+	body := redirectResponse{}
+
+	mock.GetResponseData(t, &body)
+
+	target, err := url.Parse(body.Redirect)
+
+	require.NoError(t, err)
+
+	assert.Equal(t, oidc.FrontendEndpointPathConsentDeviceAuthorization, target.Path)
+	assert.Equal(t, userCode, target.Query().Get(queryArgUserCode))
+	assert.Equal(t, flowOpenIDConnectSubFlowNameDeviceAuthorization, target.Query().Get(queryArgSubflow))
 }

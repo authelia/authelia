@@ -59,7 +59,8 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 
 	assert.NotEqual(t, "", body)
 	assert.Contains(t, body, "example: 'https://auth.example.com/?rd=https%3A%2F%2Fexample.com%2F&rm=GET'")
-	assert.Contains(t, body, "name: 'authelia_session'")
+	assert.Contains(t, body, "name: '__Host-Http-authelia_session'")
+	assert.Contains(t, body, "name: '__Secure-authelia_session_authz'")
 	assert.NotContains(t, body, "/api/health/verbose:")
 }
 
@@ -538,27 +539,46 @@ func TestNewTemplatedFileOptionsTOTPApps(t *testing.T) {
 
 func TestTemplatedFileOptionsCommonData(t *testing.T) {
 	testCases := []struct {
-		name       string
-		rememberMe string
-		expectedRM string
+		name           string
+		rememberMe     string
+		csrfCookieName string
+		expectedRM     string
+		expectedCSRF   string
 	}{
 		{
 			"ShouldReturnDefaultRememberMe",
 			"",
+			"",
 			"true",
+			"__Host-authelia_session_csrf",
 		},
 		{
 			"ShouldOverrideRememberMe",
 			"false",
+			"",
 			"false",
+			"__Host-authelia_session_csrf",
+		},
+		{
+			"ShouldOverrideCSRFCookieName",
+			"",
+			"example2_session_csrf",
+			"true",
+			"example2_session_csrf",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			opts := NewTemplatedFileOptions(&schema.Configuration{})
+			opts := NewTemplatedFileOptions(&schema.Configuration{
+				Session: schema.Session{
+					SessionCookieCommon: schema.SessionCookieCommon{
+						Name: "authelia_session",
+					},
+				},
+			})
 
-			data := opts.CommonData("/", "/", "example.com", "nonce123", "en", "", tc.rememberMe)
+			data := opts.CommonData("/", "/", "example.com", "nonce123", "en", "", tc.rememberMe, tc.csrfCookieName)
 
 			assert.Equal(t, "/", data.Base)
 			assert.Equal(t, "example.com", data.Domain)
@@ -566,6 +586,7 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 			assert.Equal(t, "en", data.Language)
 			assert.Equal(t, tc.expectedRM, data.RememberMe)
 			assert.Equal(t, opts.ExternalIdentityLogin, data.ExternalIdentityLogin)
+			assert.Equal(t, tc.expectedCSRF, data.CSRFCookieName)
 		})
 	}
 }
@@ -573,25 +594,31 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 func TestTemplatedFileOptionsOpenAPIData(t *testing.T) {
 	testCases := []struct {
 		name     string
+		config   string
 		cookie   string
 		expected string
 	}{
-		{"ShouldReturnOpenAPIData", "example_session", "example_session"},
-		{"ShouldReturnOpenAPIDataWithDefaultSessionCookieName", "", "authelia_session"},
+		{"ShouldReturnOpenAPIData", "", "example_session", "example_session"},
+		{"ShouldReturnOpenAPIDataWithDefaultSessionCookieName", "", "", "authelia_session"},
+		{"ShouldReturnOpenAPIDataWithConfiguredSessionCookieName", "configured_session", "", "configured_session"},
+		{"ShouldReturnOpenAPIDataWithDomainSessionCookieName", "configured_session", "example_session", "example_session"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			opts := NewTemplatedFileOptions(&schema.Configuration{})
+			opts := NewTemplatedFileOptions(&schema.Configuration{Session: schema.Session{SessionCookieCommon: schema.SessionCookieCommon{Name: tc.config}}})
 
 			data := opts.OpenAPIData("/", "/api", "example.com", tc.cookie, "nonce123")
 
 			assert.Equal(t, "/", data.Base)
 			assert.Equal(t, "/api", data.BaseURL)
 			assert.Equal(t, "example.com", data.Domain)
-			assert.Equal(t, tc.expected, data.Session)
 			assert.False(t, data.HealthVerbose)
 			assert.Equal(t, "nonce123", data.CSPNonce)
+			assert.Equal(t, "__Host-Http-"+tc.expected, data.Session)
+			assert.Equal(t, "__Secure-"+tc.expected+"_authz", data.SessionAuthz)
+			assert.Equal(t, "__Host-Http-"+tc.expected+"_ua", data.SessionBinding)
+			assert.Equal(t, "__Host-"+tc.expected+"_csrf", data.CSRFCookieName)
 		})
 	}
 }

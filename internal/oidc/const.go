@@ -341,6 +341,7 @@ const (
 	EndpointPathRoot = "/api/oidc"
 
 	EndpointPathConsent                    = EndpointPathRoot + "/" + EndpointConsent
+	EndpointPathConsentUserCode            = EndpointPathConsent + "/user-code"
 	EndpointPathAuthorization              = EndpointPathRoot + "/" + EndpointAuthorization
 	EndpointPathToken                      = EndpointPathRoot + "/" + EndpointToken
 	EndpointPathUserinfo                   = EndpointPathRoot + "/" + EndpointUserinfo

@@ -227,10 +227,11 @@ _**Important:** In order to use a subpath, you must also update your Authelia
 
 #### Removing the Authelia Session Header
 
-Some users may wish to prevent the Authelia session cookie from reaching the backend. It's theoretically possible to
-remove that value from the Cookie header. While this is untested, it's likely the following example, which includes a
-[header_up] directive will remove that value from the Cookie header provided the configured name for the cookie is
-`authelia_session`:
+Some users may wish to prevent the Authelia authorization cookie from reaching the backend. The session cookie itself
+is host only and is never sent to the backend. It's theoretically possible to remove the authorization cookie from the
+Cookie header. While this is untested, it's likely the following example, which includes a [header_up] directive will
+remove that value from the Cookie header provided the configured name for the cookie is `authelia_session`, which
+results in an authorization cookie named `__Secure-authelia_session_authz`:
 
 ```Caddyfile
 nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
@@ -240,7 +241,7 @@ nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
         }
 
         reverse_proxy nextcloud:80 {
-                header_up Cookie "authelia_session=[^;]+" "authelia_session=_"
+                header_up Cookie "__Secure-authelia_session_authz=[^;]+" "__Secure-authelia_session_authz=_"
         }
 }
 ```

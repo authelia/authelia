@@ -891,7 +891,7 @@ session:
   ## Undefined values will default to the values below.
   # cookies:
   #   -
-      ## The name of the session cookie.
+      ## The name the session cookie names are derived from. Authelia adds the cookie name prefixes itself.
       # name: 'authelia_session'
 
       ## The domain to protect.

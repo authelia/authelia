@@ -58,7 +58,7 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 		return nil, true
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
+	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, consentID); err != nil {
 		ctx.GetLogger().Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consentID, err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)

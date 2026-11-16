@@ -87,15 +87,9 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
             dispatch({ status: WebAuthnTouchState.InProgress, type: "setStatus" });
 
-            const response = await postWebAuthnResponse(
-                result.response,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                signal,
-            );
+            const response = await postWebAuthnResponse(result.response);
+
+            if (signal.aborted) return;
 
             if (response.data.status === "OK" && response.status === 200) {
                 props.onSecondFactorSuccess();
@@ -105,7 +99,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             console.error(new Error(translate("The server rejected the security key")));
             dispatch({ status: WebAuthnTouchState.Failure, type: "setStatus" });
         } catch (err) {
-            if (axios.isCancel(err)) return;
+            if (signal.aborted || axios.isCancel(err)) return;
             console.error(err);
             dispatch({ status: WebAuthnTouchState.Failure, type: "setStatus" });
         }

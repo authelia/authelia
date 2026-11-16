@@ -7,6 +7,7 @@ package handlers
 import (
 	"errors"
 	"net/url"
+	"regexp"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -97,3 +98,13 @@ const testOIDCClaimsPolicyMerged = "merged-audience"
 var testOIDCPreConfiguredDuration = time.Hour * 24
 
 var errTestSessionBackend = errors.New("backend unavailable")
+
+const (
+	testOAuth2AuthorizationBounceBasePath = "/authelia"
+	testOAuth2AuthorizationBounceState    = `<script>"'`
+)
+
+var (
+	regexpOAuth2AuthorizationBounceRefresh = regexp.MustCompile(`<meta http-equiv="refresh" content="([^"]*)">`)
+	regexpOAuth2AuthorizationBounceLink    = regexp.MustCompile(`<a href="([^"]*)">`)
+)

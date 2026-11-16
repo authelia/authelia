@@ -7,12 +7,14 @@ package handlers
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -79,7 +81,7 @@ func TestLogoutPOST(t *testing.T) {
 			assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Body()))
 
-			assert.True(t, strings.HasPrefix(string(mock.Ctx.Response.Header.PeekCookie("authelia_session")), "authelia_session=;"))
+			assert.True(t, strings.HasPrefix(string(mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")), "__Host-Http-authelia_session=;"))
 
 			if tc.expectedf != nil {
 				tc.expectedf(t, mock)
@@ -141,6 +143,71 @@ func TestOpenIDConnectStateDoesNotSurviveLogout(t *testing.T) {
 	}
 }
 
+func TestLogoutPOSTShouldBeRefusedCrossSiteByTheCSRFMiddleware(t *testing.T) {
+	testCases := []struct {
+		name      string
+		site      string
+		destroyed bool
+	}{
+		{"ShouldRefuseCrossSite", "cross-site", false},
+		{"ShouldRefuseCrossSiteMixedCase", "Cross-Site", false},
+		{"ShouldRefuseSameSite", "same-site", false},
+		{"ShouldAllowSameOrigin", "same-origin", true},
+		{"ShouldAllowWithoutFetchMetadata", "", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			us, err := mock.Ctx.GetSession()
+
+			require.NoError(t, err)
+
+			us.Username = testUsername
+
+			require.NoError(t, mock.Ctx.SaveSession(&us))
+
+			mock.Ctx.Request.Header.DelCookie("__Host-Http-authelia_session")
+			mock.Ctx.Response.Reset()
+
+			if tc.site != "" {
+				mock.Ctx.Request.Header.Set(headerSecFetchSite, tc.site)
+			}
+
+			mock.Ctx.Request.Header.SetMethod(fasthttp.MethodPost)
+			mock.Ctx.Request.SetBodyString(`{}`)
+
+			middlewares.CrossSiteRequestForgery(func(_ *fasthttp.RequestCtx) {
+				LogoutPOST(mock.Ctx)
+			})(mock.Ctx.RequestCtx)
+
+			cleared := mock.Ctx.Response.Header.PeekCookie("__Secure-authelia_session_authz")
+
+			if tc.destroyed {
+				assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
+				assert.True(t, strings.HasPrefix(string(cleared), "__Secure-authelia_session_authz=;"))
+
+				cookie := fasthttp.AcquireCookie()
+
+				defer fasthttp.ReleaseCookie(cookie)
+
+				require.NoError(t, cookie.ParseBytes(cleared))
+				assert.False(t, cookie.Expire().IsZero())
+				assert.True(t, cookie.Expire().Before(time.Now()))
+
+				return
+			}
+
+			assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+			assert.Empty(t, cleared)
+			assert.Empty(t, mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session"))
+		})
+	}
+}
+
 func TestRunLogoutSuite(t *testing.T) {
 	s := new(LogoutSuite)
 	suite.Run(t, s)
@@ -170,7 +237,7 @@ func (s *LogoutSuite) TearDownTest() {
 
 func (s *LogoutSuite) TestShouldDestroySession() {
 	LogoutPOST(s.mock.Ctx)
-	b := s.mock.Ctx.Response.Header.PeekCookie("authelia_session")
+	b := s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")
 
-	assert.True(s.T(), strings.HasPrefix(string(b), "authelia_session=;"))
+	assert.True(s.T(), strings.HasPrefix(string(b), "__Host-Http-authelia_session=;"))
 }

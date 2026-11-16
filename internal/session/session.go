@@ -82,6 +82,51 @@ type Manager interface {
 	GetSessionConfig() (config schema.SessionCookie)
 }
 
+// NewEncapsulatedAuthzSession returns a new encapsulated authz session which binds an AuthzStrategy to the Context of
+// a single request.
+func NewEncapsulatedAuthzSession(base AuthzStrategy, ctx Context) *EncapsulatedAuthzSession {
+	return &EncapsulatedAuthzSession{base: base, ctx: ctx}
+}
+
+// EncapsulatedAuthzSession encapsulates an AuthzStrategy and the Context of the request it's handling.
+type EncapsulatedAuthzSession struct {
+	base AuthzStrategy
+
+	ctx Context
+}
+
+// NewDefaultUserSession returns a new default UserSession for this session provider.
+func (p *EncapsulatedAuthzSession) NewDefaultUserSession() (userSession UserSession) {
+	return p.base.NewDefault()
+}
+
+// GetSession returns the user session the authz cookie of the request is linked to.
+func (p *EncapsulatedAuthzSession) GetSession() (userSession UserSession, err error) {
+	var session *UserSession
+
+	if session, err = p.base.Get(p.ctx); err != nil {
+		return p.base.NewDefault(), err
+	}
+
+	return *session, nil
+}
+
+// SaveSessionActivity saves the activity of the user session.
+func (p *EncapsulatedAuthzSession) SaveSessionActivity(userSession *UserSession) (err error) {
+	return p.base.SaveActivity(p.ctx, userSession)
+}
+
+// DestroySession destroys the session and deletes both cookies.
+func (p *EncapsulatedAuthzSession) DestroySession() (err error) {
+	return p.base.Destroy(p.ctx)
+}
+
+// GetSessionConfig returns the session configuration.
+func (p *EncapsulatedAuthzSession) GetSessionConfig() (config schema.SessionCookie) {
+	return p.base.GetConfig()
+}
+
 var (
-	_ Manager = (*EncapsulatedSession)(nil)
+	_ Manager      = (*EncapsulatedSession)(nil)
+	_ AuthzManager = (*EncapsulatedAuthzSession)(nil)
 )
