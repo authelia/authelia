@@ -374,6 +374,39 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 		assert.Equal(t, consent.ChallengeID.String(), target.Query().Get(queryArgConsentID))
 	})
 
+	t.Run("ShouldRedirectToAuthorizationWhenPromptLoginAndMaxAgeZeroAuthenticatedAfterRequested", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		consent := newConsent(t, mock)
+		consent.Form = url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}, oidc.FormParameterMaximumAge: []string{"0"}}.Encode()
+		consent.RequestedAt = mock.Ctx.GetClock().Now().Add(-time.Hour)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+
+		body := redirectResponse{}
+
+		mock.GetResponseData(t, &body)
+
+		target, err := url.Parse(body.Redirect)
+
+		require.NoError(t, err)
+
+		assert.Equal(t, oidc.EndpointPathAuthorization, target.Path)
+		assert.Equal(t, consent.ChallengeID.String(), target.Query().Get(queryArgConsentID))
+	})
+
 	t.Run("ShouldHandleMalformedFormOnConsentSession", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()

@@ -164,6 +164,41 @@ func TestHandleOAuth2ConsentFlowIDPOSTExtra(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "The authorization request requires the user performs a login even prior to providing consent", nil)
 	})
 
+	t.Run("ShouldHandleFormWithPromptLoginAndMaxAgeZeroAuthenticatedAfterRequested", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+
+		form := url.Values{
+			oidc.FormParameterClientID:   []string{testOIDCAuthorizationCodeID},
+			oidc.FormParameterPrompt:     []string{oidc.PromptLogin},
+			oidc.FormParameterMaximumAge: []string{"0"},
+		}
+
+		consent.Form = form.Encode()
+
+		consent.RequestedAt = mock.Ctx.GetClock().Now().Add(-time.Hour)
+
+		setupTestOIDCConsent(t, mock, consent)
+
+		mock.StorageMock.EXPECT().
+			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), true).
+			Return(nil)
+
+		mock.Ctx.Request.SetBodyString(newBody(consent, true, false))
+
+		OAuth2ConsentPOST(mock.Ctx)
+
+		body := oidc.ConsentPostResponseBody{}
+
+		mock.GetResponseData(t, &body)
+
+		assert.NotEmpty(t, body.RedirectURI)
+	})
+
 	t.Run("ShouldIgnorePreConfigureWhenFormRequiresExplicitConsent", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
