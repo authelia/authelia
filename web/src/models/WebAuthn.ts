@@ -54,7 +54,6 @@ export enum AssertionResult {
     FailureUnknown,
     FailureUnknownSecurity,
     FailureWebAuthnNotSupported,
-    FailureChallenge,
     FailureUnrecognized,
     FailureAborted,
 }
