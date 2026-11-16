@@ -92,3 +92,20 @@ it("displays failure without retry when unsupported", () => {
     expect(screen.getByTestId("spinner").parentElement).toHaveClass("hidden");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
 });
+
+it("offers another sign in method when unsupported", () => {
+    const onMethodSelectionClick = vi.fn();
+
+    render(
+        <WebAuthnTryIcon
+            onMethodSelectionClick={onMethodSelectionClick}
+            onRetryClick={mockOnRetryClick}
+            webauthnTouchState={WebAuthnTouchState.Unsupported}
+        />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Use another sign in method" }));
+
+    expect(onMethodSelectionClick).toHaveBeenCalledTimes(1);
+    expect(mockOnRetryClick).not.toHaveBeenCalled();
+});

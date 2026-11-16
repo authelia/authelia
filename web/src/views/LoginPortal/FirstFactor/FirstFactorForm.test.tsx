@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
     postMessage: vi.fn(),
     queryParams: {} as Record<string, null | string>,
     userCode: null as null | string,
+    webAuthnSupported: true,
 }));
 
 vi.mock("react-i18next", () => ({
@@ -71,6 +72,10 @@ vi.mock("@services/CapsLock", () => ({
 
 vi.mock("@services/Password", () => ({
     postFirstFactor: vi.fn(),
+}));
+
+vi.mock("@services/WebAuthn", () => ({
+    isWebAuthnSupported: () => mocks.webAuthnSupported,
 }));
 
 vi.mock("@views/LoginPortal/FirstFactor/PasskeyForm", () => ({
@@ -156,6 +161,7 @@ beforeEach(() => {
     mocks.channelListeners = [];
     mocks.queryParams = {};
     mocks.userCode = null;
+    mocks.webAuthnSupported = true;
     postFirstFactorMock.mockReset();
 });
 
@@ -180,6 +186,14 @@ describe("rendering", () => {
     it("renders passkey form when passkey login is enabled", () => {
         renderForm({ passkeyLogin: true });
         expect(screen.getByTestId("passkey-form")).toBeInTheDocument();
+    });
+
+    it("does not render passkey form when the browser does not support webauthn", () => {
+        mocks.webAuthnSupported = false;
+
+        renderForm({ passkeyLogin: true });
+
+        expect(screen.queryByTestId("passkey-form")).not.toBeInTheDocument();
     });
 
     it("renders the external identity form when external identity login is enabled", () => {

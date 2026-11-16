@@ -25,6 +25,7 @@ import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
+import { isWebAuthnSupported } from "@services/WebAuthn";
 import ExternalIdentityForm from "@views/LoginPortal/FirstFactor/ExternalIdentityForm";
 import ExternalIdentityLinkNotice from "@views/LoginPortal/FirstFactor/ExternalIdentityLinkNotice";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
@@ -348,7 +349,7 @@ const FirstFactorForm = function (props: Props) {
                             {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
                         </Button>
                     </div>
-                    {props.passkeyLogin ? (
+                    {props.passkeyLogin && isWebAuthnSupported() ? (
                         <PasskeyForm
                             disabled={disabled || loading || externalLoading}
                             rememberMe={props.rememberMe}

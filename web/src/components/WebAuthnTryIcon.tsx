@@ -16,6 +16,7 @@ import { WebAuthnTouchState } from "@models/WebAuthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 
 interface Props {
+    onMethodSelectionClick?: () => void;
     onRetryClick: () => void;
     webauthnTouchState: WebAuthnTouchState;
 }
@@ -63,7 +64,18 @@ const WebAuthnTryIcon = function (props: Props) {
                     : "hidden"
             }
         >
-            {props.webauthnTouchState === WebAuthnTouchState.Unsupported ? null : (
+            {props.webauthnTouchState === WebAuthnTouchState.Unsupported ? (
+                props.onMethodSelectionClick ? (
+                    <Button
+                        variant={"ghost"}
+                        className="tracking-wide"
+                        color={"secondary"}
+                        onClick={props.onMethodSelectionClick}
+                    >
+                        {translate("Use another sign in method")}
+                    </Button>
+                ) : null
+            ) : (
                 <Button variant={"ghost"} className="tracking-wide" color={"secondary"} onClick={handleRetryClick}>
                     {translate("Retry")}
                 </Button>

@@ -48,6 +48,7 @@ vi.mock("@components/WebAuthnTryIcon", () => ({
     default: (props: any) => (
         <div data-testid="webauthn-try-icon" data-state={props.webauthnTouchState}>
             <button data-testid="retry" onClick={() => props.onRetryClick()} />
+            <button data-testid="method-selection" onClick={() => props.onMethodSelectionClick?.()} />
         </div>
     ),
 }));
@@ -325,6 +326,19 @@ describe("assertion", () => {
             "data-state",
             String(WebAuthnTouchState.WaitTouch),
         );
+    });
+});
+
+describe("method selection", () => {
+    it("forwards the method selection request", async () => {
+        const onMethodSelectionClick = vi.fn();
+
+        renderMethod({ onMethodSelectionClick } as any);
+
+        fireEvent.click(screen.getByTestId("method-selection"));
+
+        expect(onMethodSelectionClick).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(getOptionsMock).toHaveBeenCalled());
     });
 });
 

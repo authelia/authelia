@@ -103,7 +103,12 @@ vi.mock("@views/LoginPortal/SecondFactor/OneTimePasswordMethod", () => ({
 
 vi.mock("@views/LoginPortal/SecondFactor/WebAuthnMethod", () => ({
     default: (props: any) => (
-        <div data-testid="webauthn-method" data-registered={String(props.registered)}>
+        <div
+            data-testid="webauthn-method"
+            data-registered={String(props.registered)}
+            data-method-selection={String(props.onMethodSelectionClick !== undefined)}
+        >
+            <button data-testid="webauthn-method-selection" onClick={() => props.onMethodSelectionClick?.()} />
             <button data-testid="webauthn-register" onClick={() => props.onRegisterClick()} />
             <button data-testid="webauthn-error" onClick={() => props.onSignInError(new Error("key failed"))} />
             <button data-testid="webauthn-success" onClick={() => props.onSignInSuccess("https://example.com")} />
@@ -352,6 +357,20 @@ describe("method selection", () => {
         fireEvent.click(screen.getByText("Methods"));
 
         await waitFor(() => expect(screen.getByTestId("method-selection-dialog")).toHaveAttribute("data-open", "true"));
+    });
+
+    it("opens the dialog from the WebAuthn method", async () => {
+        renderForm({}, "/webauthn");
+
+        fireEvent.click(await screen.findByTestId("webauthn-method-selection"));
+
+        await waitFor(() => expect(screen.getByTestId("method-selection-dialog")).toHaveAttribute("data-open", "true"));
+    });
+
+    it("does not offer method selection to the WebAuthn method when only one method is available", async () => {
+        renderForm({ configuration: { available_methods: new Set([SecondFactorMethod.WebAuthn]) } }, "/webauthn");
+
+        expect(await screen.findByTestId("webauthn-method")).toHaveAttribute("data-method-selection", "false");
     });
 
     it("closes the dialog", async () => {

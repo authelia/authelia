@@ -163,6 +163,7 @@ const SecondFactorForm = function (props: Props) {
                                         authenticationLevel={props.authenticationLevel}
                                         // Whether the user has a WebAuthn device registered already
                                         registered={props.userInfo.has_webauthn}
+                                        onMethodSelectionClick={showMethods ? handleMethodSelectionClick : undefined}
                                         onRegisterClick={() => {
                                             navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
                                         }}
