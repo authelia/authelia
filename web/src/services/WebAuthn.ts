@@ -131,16 +131,11 @@ export async function getWebAuthnResult(options: PublicKeyCredentialRequestOptio
     try {
         result.response = await startAuthentication({ optionsJSON: options });
     } catch (e) {
-        const exception = e as DOMException;
-        if (exception) {
-            result.result = getAssertionResultFromDOMException(exception, options);
+        result.result = getAssertionResultFromDOMException(e as DOMException, options);
 
-            console.error(exception);
+        console.error(e);
 
-            return result;
-        } else {
-            console.error(`Unhandled exception occurred during WebAuthn authentication: ${e}`);
-        }
+        return result;
     }
 
     if (result.response == null) {
