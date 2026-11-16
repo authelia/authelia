@@ -220,6 +220,18 @@ describe("failures", () => {
         expect(postResponseMock).not.toHaveBeenCalled();
     });
 
+    it("stays silent when the ceremony is aborted", async () => {
+        getResultMock.mockResolvedValue({ result: AssertionResult.FailureAborted } as any);
+
+        const { props } = renderForm();
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(props.onAuthenticationStop).toHaveBeenCalled());
+        expect(props.onAuthenticationError).not.toHaveBeenCalled();
+        expect(postResponseMock).not.toHaveBeenCalled();
+    });
+
     it("reports an unrecognized device", async () => {
         getResultMock.mockResolvedValue({ result: AssertionResult.FailureUnrecognized } as any);
 

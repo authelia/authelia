@@ -92,6 +92,51 @@ it("handles webauthn result with NotAllowedError dom exception", async () => {
     expect(result.result).toBe(AssertionResult.FailureUserConsent);
 });
 
+it("handles webauthn result with a passthrough NotAllowedError from the library", async () => {
+    const { WebAuthnError } =
+        await vi.importActual<typeof import("@simplewebauthn/browser")>("@simplewebauthn/browser");
+    (startAuthentication as any).mockRejectedValue(
+        new WebAuthnError({
+            cause: new DOMException("timed out", "NotAllowedError"),
+            code: "ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY",
+            message: "timed out",
+        }),
+    );
+
+    const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureUserConsent);
+});
+
+it("handles webauthn result with an aborted ceremony from the library", async () => {
+    const { WebAuthnError } =
+        await vi.importActual<typeof import("@simplewebauthn/browser")>("@simplewebauthn/browser");
+    (startAuthentication as any).mockRejectedValue(
+        new WebAuthnError({
+            cause: new DOMException("aborted", "AbortError"),
+            code: "ERROR_CEREMONY_ABORTED",
+            message: "Authentication ceremony was sent an abort signal",
+        }),
+    );
+
+    const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureAborted);
+});
+
+it("handles webauthn result with an authenticator error from the library", async () => {
+    const { WebAuthnError } =
+        await vi.importActual<typeof import("@simplewebauthn/browser")>("@simplewebauthn/browser");
+    (startAuthentication as any).mockRejectedValue(
+        new WebAuthnError({
+            cause: new DOMException("failed", "UnknownError"),
+            code: "ERROR_AUTHENTICATOR_GENERAL_ERROR",
+            message: "The authenticator was unable to process the specified options",
+        }),
+    );
+
+    const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureSyntax);
+});
+
 it("handles webauthn result when the browser does not support webauthn", async () => {
     (startAuthentication as any).mockRejectedValue(new Error("WebAuthn is not supported in this browser"));
 

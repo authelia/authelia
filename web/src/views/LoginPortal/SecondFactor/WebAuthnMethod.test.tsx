@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+import { StrictMode } from "react";
+
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AssertionResult, WebAuthnTouchState } from "@models/WebAuthn";
@@ -366,7 +368,52 @@ describe("method selection", () => {
     });
 });
 
+describe("strict mode", () => {
+    it("starts a single ceremony when mounted twice", async () => {
+        getOptionsMock.mockImplementation(async (signal?: AbortSignal) => {
+            await Promise.resolve();
+
+            if (signal?.aborted) {
+                throw { __CANCEL__: true };
+            }
+
+            return { options, status: 200 } as any;
+        });
+
+        const onSignInSuccess = vi.fn();
+
+        render(
+            <StrictMode>
+                <WebAuthnMethod {...defaultProps} onSignInSuccess={onSignInSuccess} />
+            </StrictMode>,
+        );
+
+        await waitFor(() => expect(onSignInSuccess).toHaveBeenCalledTimes(1));
+        expect(getOptionsMock).toHaveBeenCalledTimes(2);
+        expect(getResultMock).toHaveBeenCalledTimes(1);
+        expect(postResponseMock).toHaveBeenCalledTimes(1);
+    });
+});
+
 describe("unmount", () => {
+    it("discards a result that arrives after unmount", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        getResultMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { props, unmount } = renderMethod();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalled());
+
+        unmount();
+        resolve({ response: assertionResponse, result: AssertionResult.Success });
+
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(postResponseMock).not.toHaveBeenCalled();
+        expect(props.onSignInError).not.toHaveBeenCalled();
+        expect(props.onSignInSuccess).not.toHaveBeenCalled();
+    });
+
     it("cancels the ceremony on unmount", async () => {
         getResultMock.mockReturnValue(new Promise(() => {}) as any);
 
@@ -393,5 +440,19 @@ describe("retry", () => {
         fireEvent.click(screen.getByTestId("retry"));
 
         await waitFor(() => expect(getOptionsMock).toHaveBeenCalledTimes(2));
+    });
+
+    it("completes the assertion after a retry", async () => {
+        getOptionsMock.mockResolvedValueOnce({ options: null, status: 403 } as any);
+
+        const { props } = renderMethod();
+
+        await expectState(WebAuthnTouchState.Failure);
+
+        fireEvent.click(screen.getByTestId("retry"));
+
+        await waitFor(() => expect(props.onSignInSuccess).toHaveBeenCalledWith("https://example.com"));
+        expect(props.onSignInError).toHaveBeenCalledTimes(1);
+        expect(getResultMock).toHaveBeenCalledTimes(1);
     });
 });
