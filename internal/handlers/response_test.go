@@ -232,13 +232,13 @@ func TestHandle2FAResponse(t *testing.T) {
 		mock.Assert200OK(t, nil)
 	})
 
-	t.Run("ShouldHandleMalformedTargetURI", func(t *testing.T) {
+	t.Run("ShouldReplyOKWhenTargetURIMalformed", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
 		Handle2FAResponse(mock.Ctx, "!@#not a uri")
 
-		mock.Assert200KO(t, messageMFAValidationFailed)
+		mock.Assert200OK(t, nil)
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpUnsafeTargetURI, regexpAnyError)
 	})

@@ -6,7 +6,13 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AssertionResult, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
-import { getWebAuthnOptions, getWebAuthnResult, postWebAuthnResponse } from "@services/WebAuthn";
+import {
+    cancelWebAuthnCeremony,
+    getWebAuthnOptions,
+    getWebAuthnResult,
+    isWebAuthnSupported,
+    postWebAuthnResponse,
+} from "@services/WebAuthn";
 import WebAuthnMethod from "@views/LoginPortal/SecondFactor/WebAuthnMethod";
 
 const mocks = vi.hoisted(() => ({
@@ -31,8 +37,10 @@ vi.mock("@hooks/OpenIDConnect", () => ({
 }));
 
 vi.mock("@services/WebAuthn", () => ({
+    cancelWebAuthnCeremony: vi.fn(),
     getWebAuthnOptions: vi.fn(),
     getWebAuthnResult: vi.fn(),
+    isWebAuthnSupported: vi.fn(),
     postWebAuthnResponse: vi.fn(),
 }));
 
@@ -57,6 +65,8 @@ vi.mock("@views/LoginPortal/SecondFactor/MethodContainer", () => ({
 const getOptionsMock = vi.mocked(getWebAuthnOptions);
 const getResultMock = vi.mocked(getWebAuthnResult);
 const postResponseMock = vi.mocked(postWebAuthnResponse);
+const isSupportedMock = vi.mocked(isWebAuthnSupported);
+const cancelCeremonyMock = vi.mocked(cancelWebAuthnCeremony);
 
 const options = { challenge: "challenge" } as any;
 const assertionResponse = { id: "credential-id" };
@@ -91,6 +101,7 @@ beforeEach(() => {
     mocks.queryParams = {};
     mocks.userCode = null;
     vi.spyOn(console, "error").mockImplementation(() => {});
+    isSupportedMock.mockReturnValue(true);
     getOptionsMock.mockResolvedValue({ options, status: 200 } as any);
     getResultMock.mockResolvedValue({ response: assertionResponse, result: AssertionResult.Success } as any);
     postResponseMock.mockResolvedValue({
@@ -139,6 +150,20 @@ describe("initiation guards", () => {
     it("does not sign in when already at two factor level", async () => {
         renderMethod({ authenticationLevel: AuthenticationLevel.TwoFactor });
         await waitFor(() => expect(getOptionsMock).not.toHaveBeenCalled());
+    });
+
+    it("reports unsupported browsers without requesting a challenge", async () => {
+        isSupportedMock.mockReturnValue(false);
+
+        const { props } = renderMethod();
+
+        await waitFor(() =>
+            expect(props.onSignInError).toHaveBeenCalledWith(
+                expect.objectContaining({ message: "Your browser does not support the WebAuthn protocol" }),
+            ),
+        );
+        await expectState(WebAuthnTouchState.Unsupported);
+        expect(getOptionsMock).not.toHaveBeenCalled();
     });
 });
 
@@ -218,10 +243,19 @@ describe("assertion", () => {
 
         await waitFor(() =>
             expect(props.onSignInError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "You cancelled the assertion request" }),
+                expect.objectContaining({ message: "The request timed out or was cancelled" }),
             ),
         );
         await expectState(WebAuthnTouchState.Failure);
+    });
+
+    it("stays silent when the ceremony is aborted", async () => {
+        getResultMock.mockResolvedValue({ result: AssertionResult.FailureAborted } as any);
+
+        const { props } = renderMethod();
+
+        await expectState(WebAuthnTouchState.Failure);
+        expect(props.onSignInError).not.toHaveBeenCalled();
     });
 
     it("fails when the browser returns no attestation data", async () => {
@@ -252,8 +286,11 @@ describe("assertion", () => {
         expect(props.onSignInSuccess).not.toHaveBeenCalled();
     });
 
-    it("fails on a non-200 response status", async () => {
-        postResponseMock.mockResolvedValue({ data: { status: "OK" }, status: 401 } as any);
+    it("fails when the server forbids the assertion", async () => {
+        postResponseMock.mockResolvedValue({
+            data: { message: "Authentication failed.", status: "KO" },
+            status: 403,
+        } as any);
 
         const { props } = renderMethod();
 
@@ -288,6 +325,21 @@ describe("assertion", () => {
             "data-state",
             String(WebAuthnTouchState.WaitTouch),
         );
+    });
+});
+
+describe("unmount", () => {
+    it("cancels the ceremony on unmount", async () => {
+        getResultMock.mockReturnValue(new Promise(() => {}) as any);
+
+        const { unmount } = renderMethod();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalled());
+        expect(cancelCeremonyMock).not.toHaveBeenCalled();
+
+        unmount();
+
+        expect(cancelCeremonyMock).toHaveBeenCalledTimes(1);
     });
 });
 

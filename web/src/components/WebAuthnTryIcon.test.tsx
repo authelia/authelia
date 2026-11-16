@@ -29,6 +29,10 @@ vi.mock("@components/FingerTouchIcon", () => ({
     default: () => <div data-testid="finger-touch" />,
 }));
 
+vi.mock("@components/UI/Spinner", () => ({
+    Spinner: () => <div data-testid="spinner" />,
+}));
+
 vi.mock("@views/LoginPortal/SecondFactor/IconWithContext", () => ({
     default: ({
         children,
@@ -73,4 +77,18 @@ it("retries on retry button click", () => {
     expect(mockOnRetryClick).toHaveBeenCalledTimes(1);
     expect(mockClear).toHaveBeenCalledTimes(1);
     expect(mockTrigger).toHaveBeenCalledTimes(2);
+});
+
+it("displays progress when in progress", () => {
+    render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.InProgress} />);
+    expect(screen.getByTestId("spinner").parentElement).not.toHaveClass("hidden");
+    expect(screen.getByTestId("finger-touch").parentElement).toHaveClass("hidden");
+    expect(screen.getByTestId("failure-icon").parentElement).toHaveClass("hidden");
+});
+
+it("displays failure without retry when unsupported", () => {
+    render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.Unsupported} />);
+    expect(screen.getByTestId("failure-icon").parentElement).not.toHaveClass("hidden");
+    expect(screen.getByTestId("spinner").parentElement).toHaveClass("hidden");
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
 });

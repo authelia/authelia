@@ -126,7 +126,7 @@ describe("assertion", () => {
 
         await expectState(WebAuthnTouchState.Failure);
         expect(console.error).toHaveBeenCalledWith(
-            expect.objectContaining({ message: "You cancelled the assertion request" }),
+            expect.objectContaining({ message: "The request timed out or was cancelled" }),
         );
     });
 

@@ -7,6 +7,8 @@ import {
     PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialRequestOptionsJSON,
     RegistrationResponseJSON,
+    WebAuthnAbortService,
+    browserSupportsWebAuthn,
     startAuthentication,
     startRegistration,
 } from "@simplewebauthn/browser";
@@ -76,6 +78,7 @@ function getAssertionResultFromDOMException(
             // § 6.3.2 Step 3.
             return AssertionResult.FailureUnrecognized;
         case "AbortError":
+            return AssertionResult.FailureAborted;
         case "NotAllowedError":
             // § 6.3.3 Step 6 and Step 7.
             return AssertionResult.FailureUserConsent;
@@ -92,10 +95,21 @@ function getAssertionResultFromDOMException(
     }
 }
 
+export function isWebAuthnSupported() {
+    return browserSupportsWebAuthn();
+}
+
+export function cancelWebAuthnCeremony() {
+    WebAuthnAbortService.cancelCeremony();
+}
+
 export async function getWebAuthnOptions(signal?: AbortSignal): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath, { signal });
+    response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath, {
+        signal,
+        validateStatus: validateStatusAuthentication,
+    });
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -157,7 +171,7 @@ export async function postWebAuthnResponse(
             targetURL,
             userCode,
         },
-        { signal },
+        { signal, validateStatus: validateStatusAuthentication },
     );
 }
 
@@ -166,7 +180,10 @@ export async function getWebAuthnPasskeyOptions(
 ): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath, { signal });
+    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath, {
+        signal,
+        validateStatus: validateStatusAuthentication,
+    });
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -210,7 +227,10 @@ export async function postWebAuthnPasskeyResponse(
         targetURL,
     };
 
-    return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data, { signal });
+    return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data, {
+        signal,
+        validateStatus: validateStatusAuthentication,
+    });
 }
 
 export async function getWebAuthnRegistrationOptions(

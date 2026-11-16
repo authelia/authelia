@@ -197,7 +197,7 @@ describe("failures", () => {
 
         await waitFor(() =>
             expect(props.onAuthenticationError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "You cancelled the assertion request" }),
+                expect.objectContaining({ message: "The request timed out or was cancelled" }),
             ),
         );
         expect(postResponseMock).not.toHaveBeenCalled();

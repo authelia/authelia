@@ -170,7 +170,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 
 	if parsedURI, err = url.ParseRequestURI(targetURI); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Error occurred determining if the URI '%s' is safe to redirect to as it could not be parsed", targetURI)
-		ctx.SetJSONError(messageMFAValidationFailed)
+		ctx.ReplyOK()
 
 		return
 	}

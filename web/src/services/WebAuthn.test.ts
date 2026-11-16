@@ -2,17 +2,25 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import {
+    WebAuthnAbortService,
+    browserSupportsWebAuthn,
+    startAuthentication,
+    startRegistration,
+} from "@simplewebauthn/browser";
 import axios from "axios";
 
 import { AssertionResult, AttestationResult } from "@models/WebAuthn";
+import { validateStatusAuthentication } from "@services/Api";
 import {
+    cancelWebAuthnCeremony,
     deleteUserWebAuthnCredential,
     finishWebAuthnRegistration,
     getWebAuthnOptions,
     getWebAuthnPasskeyOptions,
     getWebAuthnRegistrationOptions,
     getWebAuthnResult,
+    isWebAuthnSupported,
     postWebAuthnPasskeyResponse,
     postWebAuthnResponse,
     startWebAuthnRegistration,
@@ -28,8 +36,10 @@ vi.mock("axios", async () => {
     return { ...actual, default: mocked };
 });
 vi.mock("@simplewebauthn/browser", () => ({
+    browserSupportsWebAuthn: vi.fn(),
     startAuthentication: vi.fn(),
     startRegistration: vi.fn(),
+    WebAuthnAbortService: { cancelCeremony: vi.fn() },
 }));
 beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -72,7 +82,33 @@ it("handles webauthn result with AbortError dom exception", async () => {
     (startAuthentication as any).mockRejectedValue(new DOMException("test", "AbortError"));
 
     const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureAborted);
+});
+
+it("handles webauthn result with NotAllowedError dom exception", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "NotAllowedError"));
+
+    const result = await getWebAuthnResult({} as any);
     expect(result.result).toBe(AssertionResult.FailureUserConsent);
+});
+
+it("handles webauthn result when the browser does not support webauthn", async () => {
+    (startAuthentication as any).mockRejectedValue(new Error("WebAuthn is not supported in this browser"));
+
+    const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureUnknown);
+});
+
+it("reports browser support for webauthn", () => {
+    (browserSupportsWebAuthn as any).mockReturnValue(false);
+
+    expect(isWebAuthnSupported()).toBe(false);
+});
+
+it("cancels the active webauthn ceremony", () => {
+    cancelWebAuthnCeremony();
+
+    expect(WebAuthnAbortService.cancelCeremony).toHaveBeenCalled();
 });
 
 it("handles webauthn result with UnknownError dom exception", async () => {
@@ -131,7 +167,7 @@ it("handles webauthn response posting", async () => {
             targetURL: "url",
             userCode: "code",
         },
-        { signal: undefined },
+        { signal: undefined, validateStatus: validateStatusAuthentication },
     );
     expect(result).toBe("response");
 });
@@ -175,7 +211,7 @@ it("handles webauthn passkey response posting", async () => {
             subflow: "sub",
             targetURL: "url",
         },
-        { signal: undefined },
+        { signal: undefined, validateStatus: validateStatusAuthentication },
     );
     expect(result).toBe("response");
 });
@@ -292,16 +328,28 @@ it("forwards the abort signal through GET, assertion POST and passkey POST", asy
     (axios.post as any).mockResolvedValue("response");
 
     await getWebAuthnOptions(signal);
-    expect(axios.get).toHaveBeenLastCalledWith("/webauthn/assertion", { signal });
+    expect(axios.get).toHaveBeenLastCalledWith("/webauthn/assertion", {
+        signal,
+        validateStatus: validateStatusAuthentication,
+    });
 
     await getWebAuthnPasskeyOptions(signal);
-    expect(axios.get).toHaveBeenLastCalledWith("/firstfactor/passkey", { signal });
+    expect(axios.get).toHaveBeenLastCalledWith("/firstfactor/passkey", {
+        signal,
+        validateStatus: validateStatusAuthentication,
+    });
 
     await postWebAuthnResponse("authResponse" as any, "url", "flow", "flowtype", "sub", "code", signal);
-    expect(axios.post).toHaveBeenLastCalledWith("/webauthn/assertion", expect.any(Object), { signal });
+    expect(axios.post).toHaveBeenLastCalledWith("/webauthn/assertion", expect.any(Object), {
+        signal,
+        validateStatus: validateStatusAuthentication,
+    });
 
     await postWebAuthnPasskeyResponse("authResponse" as any, true, "url", "POST", "flow", "flowtype", "sub", signal);
-    expect(axios.post).toHaveBeenLastCalledWith("/firstfactor/passkey", expect.any(Object), { signal });
+    expect(axios.post).toHaveBeenLastCalledWith("/firstfactor/passkey", expect.any(Object), {
+        signal,
+        validateStatus: validateStatusAuthentication,
+    });
 });
 
 it("handles webauthn credential deletion", async () => {

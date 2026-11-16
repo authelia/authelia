@@ -15,7 +15,13 @@ import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
-import { getWebAuthnOptions, getWebAuthnResult, postWebAuthnResponse } from "@services/WebAuthn";
+import {
+    cancelWebAuthnCeremony,
+    getWebAuthnOptions,
+    getWebAuthnResult,
+    isWebAuthnSupported,
+    postWebAuthnResponse,
+} from "@services/WebAuthn";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export interface Props {
@@ -48,6 +54,15 @@ const WebAuthnMethod = function (props: Props) {
             return;
         }
 
+        if (!isWebAuthnSupported()) {
+            dispatch({ type: WebAuthnTouchState.Unsupported });
+            onSignInError(
+                new Error(translate(AssertionResultFailureString(AssertionResult.FailureWebAuthnNotSupported))),
+            );
+
+            return;
+        }
+
         const signal = getSignal();
 
         try {
@@ -67,6 +82,8 @@ const WebAuthnMethod = function (props: Props) {
 
             if (result.result !== AssertionResult.Success) {
                 dispatch({ type: WebAuthnTouchState.Failure });
+
+                if (result.result === AssertionResult.FailureAborted) return;
 
                 onSignInError(new Error(translate(AssertionResultFailureString(result.result))));
 
@@ -127,6 +144,10 @@ const WebAuthnMethod = function (props: Props) {
 
     useEffect(() => {
         doInitiateSignInRef.current().catch(console.error);
+
+        return () => {
+            cancelWebAuthnCeremony();
+        };
     }, []);
 
     let methodState = MethodContainerState.METHOD;

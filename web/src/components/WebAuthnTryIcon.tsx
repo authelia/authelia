@@ -10,6 +10,7 @@ import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
 import LinearProgressBar from "@components/LinearProgressBar";
 import { Button } from "@components/UI/Button";
+import { Spinner } from "@components/UI/Spinner";
 import { useTimer } from "@hooks/Timer";
 import { WebAuthnTouchState } from "@models/WebAuthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
@@ -43,20 +44,37 @@ const WebAuthnTryIcon = function (props: Props) {
         </IconWithContext>
     );
 
+    const progress = (
+        <IconWithContext
+            icon={<Spinner size={48} />}
+            className={props.webauthnTouchState === WebAuthnTouchState.InProgress ? undefined : "hidden"}
+        >
+            <span>{translate("Verifying")}</span>
+        </IconWithContext>
+    );
+
     const failure = (
         <IconWithContext
             icon={<FailureIcon />}
-            className={props.webauthnTouchState === WebAuthnTouchState.Failure ? undefined : "hidden"}
+            className={
+                props.webauthnTouchState === WebAuthnTouchState.Failure ||
+                props.webauthnTouchState === WebAuthnTouchState.Unsupported
+                    ? undefined
+                    : "hidden"
+            }
         >
-            <Button variant={"ghost"} className="tracking-wide" color={"secondary"} onClick={handleRetryClick}>
-                {translate("Retry")}
-            </Button>
+            {props.webauthnTouchState === WebAuthnTouchState.Unsupported ? null : (
+                <Button variant={"ghost"} className="tracking-wide" color={"secondary"} onClick={handleRetryClick}>
+                    {translate("Retry")}
+                </Button>
+            )}
         </IconWithContext>
     );
 
     return (
         <div className="inline-block" style={{ minHeight: 101 }}>
             {touch}
+            {progress}
             {failure}
         </div>
     );

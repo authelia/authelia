@@ -14,7 +14,7 @@ import {
 it("returns correct strings for assertion result failures", () => {
     expect(AssertionResultFailureString(AssertionResult.Success)).toBe("");
     expect(AssertionResultFailureString(AssertionResult.FailureUserConsent)).toBe(
-        "You cancelled the assertion request",
+        "The request timed out or was cancelled",
     );
     expect(AssertionResultFailureString(AssertionResult.FailureU2FFacetID)).toBe(
         "The server responded with an invalid Facet ID for the URL",

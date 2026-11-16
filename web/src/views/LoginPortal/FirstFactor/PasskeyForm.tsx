@@ -76,6 +76,8 @@ const PasskeyForm = function (props: Props) {
             if (result.result !== AssertionResult.Success) {
                 handleAuthenticationStop();
 
+                if (result.result === AssertionResult.FailureAborted) return;
+
                 onSignInErrorCallback(new Error(translate(AssertionResultFailureString(result.result))));
 
                 return;

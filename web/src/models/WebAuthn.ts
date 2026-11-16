@@ -56,6 +56,7 @@ export enum AssertionResult {
     FailureWebAuthnNotSupported,
     FailureChallenge,
     FailureUnrecognized,
+    FailureAborted,
 }
 
 export function AssertionResultFailureString(result: AssertionResult) {
@@ -63,7 +64,7 @@ export function AssertionResultFailureString(result: AssertionResult) {
         case AssertionResult.Success:
             return "";
         case AssertionResult.FailureUserConsent:
-            return "You cancelled the assertion request";
+            return "The request timed out or was cancelled";
         case AssertionResult.FailureU2FFacetID:
             return "The server responded with an invalid Facet ID for the URL";
         case AssertionResult.FailureSyntax:
@@ -161,4 +162,5 @@ export enum WebAuthnTouchState {
     WaitTouch = 1,
     InProgress = 2,
     Failure = 3,
+    Unsupported = 4,
 }
