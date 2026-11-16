@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { lazy, useState } from "react";
+import { lazy, useCallback, useState } from "react";
 
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
@@ -27,7 +27,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { AuthenticationLevel } from "@services/State";
+import { AuthenticationLevel, getState } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
 
@@ -45,6 +45,7 @@ export interface Props {
     duoSelfEnrollment: boolean;
 
     onMethodChanged: () => void;
+    onAuthenticationLevelChanged: () => void;
     onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
@@ -59,6 +60,33 @@ const SecondFactorForm = function (props: Props) {
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const [recoveryCodeMode, setRecoveryCodeMode] = useState(false);
     const stateWebAuthnSupported = browserSupportsWebAuthn();
+
+    const { authenticationLevel, onAuthenticationLevelChanged } = props;
+
+    const handleSignInError = useCallback(
+        (err: Error) => {
+            (async () => {
+                let level: AuthenticationLevel | undefined;
+
+                try {
+                    level = (await getState()).authentication_level;
+                } catch (e) {
+                    console.error(e);
+                }
+
+                if (level === AuthenticationLevel.Unauthenticated) {
+                    createErrorNotification(translate("Your session has expired"));
+                } else if (level !== AuthenticationLevel.TwoFactor) {
+                    createErrorNotification(err.message);
+                }
+
+                if (level !== undefined && level !== authenticationLevel) {
+                    onAuthenticationLevelChanged();
+                }
+            })();
+        },
+        [authenticationLevel, createErrorNotification, onAuthenticationLevelChanged, translate],
+    );
 
     const handleMethodSelectionClick = () => {
         setMethodSelectionOpen(true);
@@ -123,7 +151,7 @@ const SecondFactorForm = function (props: Props) {
                     {recoveryCodeMode ? (
                         <RecoveryCodeMethod
                             id={"recovery-code-method"}
-                            onSignInError={(err) => createErrorNotification(err.message)}
+                            onSignInError={handleSignInError}
                             onSignInSuccess={props.onAuthenticationSuccess}
                             onCancel={() => setRecoveryCodeMode(false)}
                         />
@@ -150,7 +178,7 @@ const SecondFactorForm = function (props: Props) {
                                         onRegisterClick={() => {
                                             navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
                                         }}
-                                        onSignInError={(err) => createErrorNotification(err.message)}
+                                        onSignInError={handleSignInError}
                                         onSignInSuccess={props.onAuthenticationSuccess}
                                     />
                                 }
@@ -167,7 +195,7 @@ const SecondFactorForm = function (props: Props) {
                                         onRegisterClick={() => {
                                             navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
                                         }}
-                                        onSignInError={(err) => createErrorNotification(err.message)}
+                                        onSignInError={handleSignInError}
                                         onSignInSuccess={props.onAuthenticationSuccess}
                                     />
                                 }
@@ -181,7 +209,7 @@ const SecondFactorForm = function (props: Props) {
                                         duoSelfEnrollment={props.duoSelfEnrollment}
                                         registered={props.userInfo.has_duo}
                                         onSelectionClick={props.onMethodChanged}
-                                        onSignInError={(err) => createErrorNotification(err.message)}
+                                        onSignInError={handleSignInError}
                                         onSignInSuccess={props.onAuthenticationSuccess}
                                     />
                                 }

@@ -300,6 +300,7 @@ const LoginPortal = function (props: Props) {
                             configuration={configuration}
                             duoSelfEnrollment={props.duoSelfEnrollment}
                             onMethodChanged={() => fetchUserInfo()}
+                            onAuthenticationLevelChanged={fetchState}
                             onAuthenticationSuccess={handleAuthSuccess}
                         />
                     ) : null

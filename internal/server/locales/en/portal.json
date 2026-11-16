@@ -152,6 +152,7 @@
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
 	"Your browser rejected the sign in request as malformed or incompatible": "Your browser rejected the sign in request as malformed or incompatible",
 	"Your passkey or security key could not be verified": "Your passkey or security key could not be verified",
+	"Your session has expired": "Your session has expired",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements",
 	"or": "or"
 }

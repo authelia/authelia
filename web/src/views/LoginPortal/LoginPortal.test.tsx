@@ -109,6 +109,7 @@ vi.mock("@views/LoginPortal/SecondFactor/SecondFactorForm", () => ({
     default: (props: any) => (
         <div data-testid="second-factor-form" data-level={props.authenticationLevel}>
             <button data-testid="sf-method-changed" onClick={() => props.onMethodChanged()} />
+            <button data-testid="sf-level-changed" onClick={() => props.onAuthenticationLevelChanged()} />
             <button
                 data-testid="sf-success-redirect"
                 onClick={() => props.onAuthenticationSuccess("https://example.com")}
@@ -939,6 +940,16 @@ describe("second factor route", () => {
 
         mocks.fetchState.mockClear();
         fireEvent.click(screen.getByTestId("sf-success-plain"));
+
+        await waitFor(() => expect(mocks.fetchState).toHaveBeenCalled());
+    });
+
+    it("refetches the state when the authentication level changes", async () => {
+        renderSecondFactor();
+        await screen.findByTestId("second-factor-form");
+
+        mocks.fetchState.mockClear();
+        fireEvent.click(screen.getByTestId("sf-level-changed"));
 
         await waitFor(() => expect(mocks.fetchState).toHaveBeenCalled());
     });

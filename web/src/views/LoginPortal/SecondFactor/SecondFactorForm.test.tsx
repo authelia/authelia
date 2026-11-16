@@ -6,7 +6,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 
 import { SecondFactorMethod } from "@models/Methods";
-import { AuthenticationLevel } from "@services/State";
+import { AuthenticationLevel, getState } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
 
@@ -55,6 +55,11 @@ vi.mock("@constants/Routes", () => ({
     SecondFactorWebAuthnSubRoute: "/webauthn",
     SettingsRoute: "/settings",
     SettingsTwoFactorAuthenticationSubRoute: "/2fa",
+}));
+
+vi.mock("@services/State", async () => ({
+    ...(await vi.importActual<typeof import("@services/State")>("@services/State")),
+    getState: vi.fn(),
 }));
 
 vi.mock("@services/UserInfo", () => ({
@@ -145,12 +150,14 @@ vi.mock("@views/LoginPortal/SecondFactor/RecoveryCodeMethod", () => ({
 }));
 
 const setPreferredMock = vi.mocked(setPreferred2FAMethod);
+const getStateMock = vi.mocked(getState);
 
 const defaultProps = {
     authenticationLevel: AuthenticationLevel.OneFactor,
     configuration: { available_methods: new Set([SecondFactorMethod.TOTP, SecondFactorMethod.WebAuthn]) },
     duoSelfEnrollment: false,
     factorKnowledge: true,
+    onAuthenticationLevelChanged: vi.fn(),
     onAuthenticationSuccess: vi.fn(),
     onMethodChanged: vi.fn(),
     userInfo: {
@@ -164,6 +171,7 @@ const defaultProps = {
 function renderForm(props: Record<string, any> = {}, route = "/totp") {
     const merged = {
         ...defaultProps,
+        onAuthenticationLevelChanged: vi.fn(),
         onAuthenticationSuccess: vi.fn(),
         onMethodChanged: vi.fn(),
         ...props,
@@ -187,6 +195,7 @@ beforeEach(() => {
     mocks.localStorageMethodAvailable = false;
     mocks.supportsWebAuthn = true;
     setPreferredMock.mockResolvedValue(undefined as any);
+    getStateMock.mockResolvedValue({ authentication_level: AuthenticationLevel.OneFactor } as any);
 });
 
 afterEach(() => {
@@ -301,7 +310,7 @@ describe("method callbacks", () => {
 
         fireEvent.click(screen.getByTestId("otp-error"));
 
-        expect(mocks.createErrorNotification).toHaveBeenCalledWith("otp failed");
+        await waitFor(() => expect(mocks.createErrorNotification).toHaveBeenCalledWith("otp failed"));
     });
 
     it("surfaces WebAuthn errors as notifications", async () => {
@@ -310,7 +319,7 @@ describe("method callbacks", () => {
 
         fireEvent.click(screen.getByTestId("webauthn-error"));
 
-        expect(mocks.createErrorNotification).toHaveBeenCalledWith("key failed");
+        await waitFor(() => expect(mocks.createErrorNotification).toHaveBeenCalledWith("key failed"));
     });
 
     it("surfaces push errors as notifications", async () => {
@@ -319,7 +328,54 @@ describe("method callbacks", () => {
 
         fireEvent.click(screen.getByTestId("push-error"));
 
-        expect(mocks.createErrorNotification).toHaveBeenCalledWith("push failed");
+        await waitFor(() => expect(mocks.createErrorNotification).toHaveBeenCalledWith("push failed"));
+    });
+
+    it("does not report a level change when the session is unchanged", async () => {
+        const { props } = renderForm({}, "/totp");
+        await screen.findByTestId("otp-method");
+
+        fireEvent.click(screen.getByTestId("otp-error"));
+
+        await waitFor(() => expect(mocks.createErrorNotification).toHaveBeenCalledWith("otp failed"));
+        expect(props.onAuthenticationLevelChanged).not.toHaveBeenCalled();
+    });
+
+    it("reports an expired session instead of the method error", async () => {
+        getStateMock.mockResolvedValue({ authentication_level: AuthenticationLevel.Unauthenticated } as any);
+
+        const { props } = renderForm({}, "/webauthn");
+        await screen.findByTestId("webauthn-method");
+
+        fireEvent.click(screen.getByTestId("webauthn-error"));
+
+        await waitFor(() => expect(props.onAuthenticationLevelChanged).toHaveBeenCalledTimes(1));
+        expect(mocks.createErrorNotification).toHaveBeenCalledWith("Your session has expired");
+        expect(mocks.createErrorNotification).not.toHaveBeenCalledWith("key failed");
+    });
+
+    it("continues without an error when the session is already two factor", async () => {
+        getStateMock.mockResolvedValue({ authentication_level: AuthenticationLevel.TwoFactor } as any);
+
+        const { props } = renderForm({}, "/totp");
+        await screen.findByTestId("otp-method");
+
+        fireEvent.click(screen.getByTestId("otp-error"));
+
+        await waitFor(() => expect(props.onAuthenticationLevelChanged).toHaveBeenCalledTimes(1));
+        expect(mocks.createErrorNotification).not.toHaveBeenCalled();
+    });
+
+    it("surfaces the method error when the state cannot be retrieved", async () => {
+        getStateMock.mockRejectedValue(new Error("network"));
+
+        const { props } = renderForm({}, "/push");
+        await screen.findByTestId("push-method");
+
+        fireEvent.click(screen.getByTestId("push-error"));
+
+        await waitFor(() => expect(mocks.createErrorNotification).toHaveBeenCalledWith("push failed"));
+        expect(props.onAuthenticationLevelChanged).not.toHaveBeenCalled();
     });
 
     it("forwards a successful one-time password sign in", async () => {
@@ -457,7 +513,7 @@ describe("recovery code mode", () => {
         fireEvent.click(await screen.findByText("Use a recovery code instead"));
         fireEvent.click(await screen.findByTestId("recovery-error"));
 
-        expect(mocks.createErrorNotification).toHaveBeenCalledWith("recovery failed");
+        await waitFor(() => expect(mocks.createErrorNotification).toHaveBeenCalledWith("recovery failed"));
     });
 
     it("forwards a successful recovery code sign in", async () => {
