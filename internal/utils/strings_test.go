@@ -137,6 +137,11 @@ func TestStringSplitDelimitedEscaped(t *testing.T) {
 		{desc: "ShouldSplitNormalString", have: "abc,123,456", delimiter: ',', want: []string{"abc", "123", "456"}},
 		{desc: "ShouldSplitEscapedString", have: "a\\,bc,123,456", delimiter: ',', want: []string{"a,bc", "123", "456"}},
 		{desc: "ShouldSplitEscapedStringPipe", have: "a\\|bc|123|456", delimiter: '|', want: []string{"a|bc", "123", "456"}},
+		{desc: "ShouldReturnEmptySliceForEmptyString", have: "", delimiter: '|', want: []string{}},
+		{desc: "ShouldPreserveEmptyElementInMiddle", have: "abc||456", delimiter: '|', want: []string{"abc", "", "456"}},
+		{desc: "ShouldPreserveEmptyLeadingElement", have: "|b", delimiter: '|', want: []string{"", "b"}},
+		{desc: "ShouldPreserveEmptyTrailingElement", have: "a|", delimiter: '|', want: []string{"a", ""}},
+		{desc: "ShouldSplitEscapedDelimiterBeforeRealDelimiter", have: "a\\||b", delimiter: '|', want: []string{"a|", "b"}},
 	}
 
 	for _, tc := range testCases {
@@ -157,6 +162,7 @@ func TestStringJoinDelimitedEscaped(t *testing.T) {
 		{desc: "ShouldJoinNormalStringSlice", have: []string{"abc", "123", "456"}, delimiter: ',', want: "abc,123,456"},
 		{desc: "ShouldJoinEscapeNeededStringSlice", have: []string{"abc", "1,23", "456"}, delimiter: ',', want: "abc,1\\,23,456"},
 		{desc: "ShouldJoinEscapeNeededStringSlicePipe", have: []string{"abc", "1|23", "456"}, delimiter: '|', want: "abc|1\\|23|456"},
+		{desc: "ShouldRoundTripEmptyElement", have: []string{"abc", "", "456"}, delimiter: '|', want: "abc||456"},
 	}
 
 	for _, tc := range testCases {
