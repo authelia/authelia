@@ -78,6 +78,43 @@ it("retries on retry button click", () => {
     expect(mockOnRetryClick).toHaveBeenCalledTimes(1);
 });
 
+it("announces the waiting status", () => {
+    render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />);
+    expect(screen.getByRole("status")).toHaveTextContent("Touch the token of your security key");
+});
+
+it("announces the verifying status", () => {
+    render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.InProgress} />);
+    expect(screen.getByRole("status")).toHaveTextContent("Verifying");
+});
+
+it("labels the countdown", () => {
+    render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />);
+    expect(screen.getByRole("progressbar", { name: "Security key timeout" })).toBeInTheDocument();
+});
+
+it("focuses retry when failed", () => {
+    const { rerender } = render(
+        <WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />,
+    );
+
+    rerender(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.Failure} />);
+
+    expect(screen.getByRole("button", { name: "Retry" })).toHaveFocus();
+});
+
+it("focuses another sign in method when unsupported", () => {
+    render(
+        <WebAuthnTryIcon
+            onMethodSelectionClick={vi.fn()}
+            onRetryClick={mockOnRetryClick}
+            webauthnTouchState={WebAuthnTouchState.Unsupported}
+        />,
+    );
+
+    expect(screen.getByRole("button", { name: "Use another sign in method" })).toHaveFocus();
+});
+
 it("does not run the countdown before the ceremony starts", () => {
     render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />);
     expect(mockTrigger).not.toHaveBeenCalled();

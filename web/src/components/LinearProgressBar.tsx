@@ -10,12 +10,14 @@ export interface Props {
     value: number;
     height?: number | string;
     className?: string;
+    label?: string;
 }
 
 const LinearProgressBar = function (props: Props) {
     return (
         <Progress
             value={props.value}
+            aria-label={props.label}
             className={cn("mt-2 transition-transform duration-200 ease-linear", props.className)}
             style={{ height: props.height ?? 8 }}
         />

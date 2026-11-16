@@ -98,6 +98,23 @@ describe("rendering", () => {
 });
 
 describe("sign in", () => {
+    it("marks the button busy while signing in", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        getResultMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        renderForm();
+
+        expect(getButton()).toHaveAttribute("aria-busy", "false");
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(getButton()).toHaveAttribute("aria-busy", "true"));
+
+        resolve({ response: { id: "credential-id" }, result: AssertionResult.Success });
+
+        await waitFor(() => expect(getButton()).toHaveAttribute("aria-busy", "false"));
+    });
+
     it("completes the passkey assertion and reports success", async () => {
         const { props } = renderForm();
 

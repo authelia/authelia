@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -35,12 +35,34 @@ const WebAuthnTryIcon = function (props: Props) {
         }
     }, [props.ceremony, timeout, triggerTimer, clearTimer]);
 
+    const failureRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (
+            props.webauthnTouchState === WebAuthnTouchState.Failure ||
+            props.webauthnTouchState === WebAuthnTouchState.Unsupported
+        ) {
+            failureRef.current?.querySelector("button")?.focus();
+        }
+    }, [props.webauthnTouchState]);
+
+    let status = "";
+
+    switch (props.webauthnTouchState) {
+        case WebAuthnTouchState.WaitTouch:
+            status = translate("Touch the token of your security key");
+            break;
+        case WebAuthnTouchState.InProgress:
+            status = translate("Verifying");
+            break;
+    }
+
     const touch = (
         <IconWithContext
             icon={<FingerTouchIcon size={64} animated strong />}
             className={props.webauthnTouchState === WebAuthnTouchState.WaitTouch ? undefined : "hidden"}
         >
-            <LinearProgressBar value={timerPercent} height={16} />
+            <LinearProgressBar value={timerPercent} height={16} label={translate("Security key timeout")} />
         </IconWithContext>
     );
 
@@ -63,27 +85,37 @@ const WebAuthnTryIcon = function (props: Props) {
                     : "hidden"
             }
         >
-            {props.webauthnTouchState === WebAuthnTouchState.Unsupported ? (
-                props.onMethodSelectionClick ? (
+            <div ref={failureRef}>
+                {props.webauthnTouchState === WebAuthnTouchState.Unsupported ? (
+                    props.onMethodSelectionClick ? (
+                        <Button
+                            variant={"ghost"}
+                            className="tracking-wide"
+                            color={"secondary"}
+                            onClick={props.onMethodSelectionClick}
+                        >
+                            {translate("Use another sign in method")}
+                        </Button>
+                    ) : null
+                ) : (
                     <Button
                         variant={"ghost"}
                         className="tracking-wide"
                         color={"secondary"}
-                        onClick={props.onMethodSelectionClick}
+                        onClick={props.onRetryClick}
                     >
-                        {translate("Use another sign in method")}
+                        {translate("Retry")}
                     </Button>
-                ) : null
-            ) : (
-                <Button variant={"ghost"} className="tracking-wide" color={"secondary"} onClick={props.onRetryClick}>
-                    {translate("Retry")}
-                </Button>
-            )}
+                )}
+            </div>
         </IconWithContext>
     );
 
     return (
         <div className="inline-block" style={{ minHeight: 101 }}>
+            <span role="status" className="sr-only">
+                {status}
+            </span>
             {touch}
             {progress}
             {failure}

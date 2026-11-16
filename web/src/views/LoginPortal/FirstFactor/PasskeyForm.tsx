@@ -149,6 +149,7 @@ const PasskeyForm = function (props: Props) {
                     className="w-full"
                     onClick={handleSignIn}
                     disabled={props.disabled}
+                    aria-busy={loading}
                 >
                     <PasskeyIcon />
                     {translate("Sign in with a passkey")}

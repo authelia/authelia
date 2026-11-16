@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 import LinearProgressBar from "@components/LinearProgressBar";
 
@@ -27,4 +27,9 @@ it("renders with adjusted height", () => {
 it("keeps an explicit height of zero", () => {
     const { container } = render(<LinearProgressBar value={40} height={0} />);
     expect(track(container)).toHaveStyle({ height: "0px" });
+});
+
+it("labels the progress bar", () => {
+    render(<LinearProgressBar value={40} label="Timeout" />);
+    expect(screen.getByRole("progressbar", { name: "Timeout" })).toBeInTheDocument();
 });
