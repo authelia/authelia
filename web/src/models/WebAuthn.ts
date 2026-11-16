@@ -67,7 +67,7 @@ export function AssertionResultFailureString(result: AssertionResult) {
         case AssertionResult.FailureU2FFacetID:
             return "The server responded with an invalid Facet ID for the URL";
         case AssertionResult.FailureSyntax:
-            return "The assertion challenge was rejected as malformed or incompatible by your browser";
+            return "Your browser rejected the sign in request as malformed or incompatible";
         case AssertionResult.FailureWebAuthnNotSupported:
             return "Your browser does not support the WebAuthn protocol";
         case AssertionResult.FailureUnrecognized:

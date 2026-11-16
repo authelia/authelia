@@ -46,7 +46,7 @@ it("renders WebAuthn option when available and supported", () => {
             onClick={vi.fn()}
         />,
     );
-    expect(screen.getByText("Security Key - WebAuthn")).toBeInTheDocument();
+    expect(screen.getByText("Passkey or Security Key")).toBeInTheDocument();
 });
 
 it("does not render WebAuthn option when not supported", () => {
@@ -59,7 +59,7 @@ it("does not render WebAuthn option when not supported", () => {
             onClick={vi.fn()}
         />,
     );
-    expect(screen.queryByText("Security Key - WebAuthn")).not.toBeInTheDocument();
+    expect(screen.queryByText("Passkey or Security Key")).not.toBeInTheDocument();
 });
 
 it("renders Push Notification option when available", () => {
@@ -118,7 +118,7 @@ it("calls onClick with WebAuthn", () => {
             onClick={onClick}
         />,
     );
-    fireEvent.click(screen.getByText("Security Key - WebAuthn"));
+    fireEvent.click(screen.getByText("Passkey or Security Key"));
     expect(onClick).toHaveBeenCalledWith(SecondFactorMethod.WebAuthn);
 });
 

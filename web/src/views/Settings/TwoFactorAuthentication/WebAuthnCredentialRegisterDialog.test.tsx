@@ -366,7 +366,9 @@ describe("credential creation", () => {
         fireEvent.change(getDescription(), { target: { value: "My Key" } });
         clickNext();
 
-        expect(await screen.findByText("Touch the token on your security key")).toBeInTheDocument();
+        expect(
+            await screen.findByText("Follow your browser's prompt to register your passkey or security key"),
+        ).toBeInTheDocument();
         expect(screen.getByTestId("webauthn-register-icon")).toHaveAttribute("data-timeout", "60000");
         expect(document.getElementById("dialog-cancel")).toBeDisabled();
         expect(document.getElementById("dialog-next")).toBeNull();
@@ -385,7 +387,9 @@ describe("credential creation", () => {
         fireEvent.change(getDescription(), { target: { value: "My Key" } });
         clickNext();
 
-        expect(await screen.findByText("Touch the token on your security key")).toBeInTheDocument();
+        expect(
+            await screen.findByText("Follow your browser's prompt to register your passkey or security key"),
+        ).toBeInTheDocument();
         expect(screen.queryByTestId("webauthn-register-icon")).not.toBeInTheDocument();
 
         resolve({ response: { id: "credential-id" }, result: AttestationResult.Success });
@@ -427,7 +431,7 @@ describe("dismissal", () => {
 
         fireEvent.change(getDescription(), { target: { value: "My Key" } });
         clickNext();
-        await screen.findByText("Touch the token on your security key");
+        await screen.findByText("Follow your browser's prompt to register your passkey or security key");
 
         fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
 

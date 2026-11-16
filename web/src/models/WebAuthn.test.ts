@@ -20,7 +20,7 @@ it("returns correct strings for assertion result failures", () => {
         "The server responded with an invalid Facet ID for the URL",
     );
     expect(AssertionResultFailureString(AssertionResult.FailureSyntax)).toBe(
-        "The assertion challenge was rejected as malformed or incompatible by your browser",
+        "Your browser rejected the sign in request as malformed or incompatible",
     );
     expect(AssertionResultFailureString(AssertionResult.FailureWebAuthnNotSupported)).toBe(
         "Your browser does not support the WebAuthn protocol",

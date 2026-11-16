@@ -124,7 +124,7 @@ afterEach(() => {
 describe("rendering", () => {
     it("renders method container with security key title", async () => {
         renderMethod();
-        expect(screen.getByTestId("method-container")).toHaveAttribute("data-title", "Security Key");
+        expect(screen.getByTestId("method-container")).toHaveAttribute("data-title", "Passkey or Security Key");
         expect(screen.getByTestId("webauthn-try-icon")).toBeInTheDocument();
         await waitFor(() => expect(getOptionsMock).toHaveBeenCalled());
     });
@@ -228,7 +228,7 @@ describe("assertion", () => {
 
         await waitFor(() =>
             expect(props.onSignInError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "Failed to initiate security key sign in process" }),
+                expect.objectContaining({ message: "Unable to start sign in with your passkey or security key" }),
             ),
         );
         await expectState(WebAuthnTouchState.Failure);
@@ -273,7 +273,7 @@ describe("assertion", () => {
         await waitFor(() =>
             expect(props.onSignInError).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    message: "The browser did not respond with the expected attestation data",
+                    message: "Your browser did not return a response from your passkey or security key",
                 }),
             ),
         );
@@ -287,7 +287,7 @@ describe("assertion", () => {
 
         await waitFor(() =>
             expect(props.onSignInError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "The server rejected the security key" }),
+                expect.objectContaining({ message: "Your passkey or security key could not be verified" }),
             ),
         );
         expect(props.onSignInSuccess).not.toHaveBeenCalled();
@@ -303,7 +303,7 @@ describe("assertion", () => {
 
         await waitFor(() =>
             expect(props.onSignInError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "The server rejected the security key" }),
+                expect.objectContaining({ message: "Your passkey or security key could not be verified" }),
             ),
         );
     });
@@ -315,7 +315,7 @@ describe("assertion", () => {
 
         await waitFor(() =>
             expect(props.onSignInError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "Failed to initiate security key sign in process" }),
+                expect.objectContaining({ message: "Unable to start sign in with your passkey or security key" }),
             ),
         );
         expect(console.error).toHaveBeenCalled();

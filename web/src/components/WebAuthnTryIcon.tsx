@@ -50,7 +50,7 @@ const WebAuthnTryIcon = function (props: Props) {
 
     switch (props.webauthnTouchState) {
         case WebAuthnTouchState.WaitTouch:
-            status = translate("Touch the token of your security key");
+            status = translate("Use your passkey or security key to continue");
             break;
         case WebAuthnTouchState.InProgress:
             status = translate("Verifying");
@@ -62,7 +62,7 @@ const WebAuthnTryIcon = function (props: Props) {
             icon={<FingerTouchIcon size={64} animated strong />}
             className={props.webauthnTouchState === WebAuthnTouchState.WaitTouch ? undefined : "hidden"}
         >
-            <LinearProgressBar value={timerPercent} height={16} label={translate("Security key timeout")} />
+            <LinearProgressBar value={timerPercent} height={16} label={translate("Time remaining to respond")} />
         </IconWithContext>
     );
 

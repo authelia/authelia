@@ -80,7 +80,7 @@ it("retries on retry button click", () => {
 
 it("announces the waiting status", () => {
     render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />);
-    expect(screen.getByRole("status")).toHaveTextContent("Touch the token of your security key");
+    expect(screen.getByRole("status")).toHaveTextContent("Use your passkey or security key to continue");
 });
 
 it("announces the verifying status", () => {
@@ -90,7 +90,7 @@ it("announces the verifying status", () => {
 
 it("labels the countdown", () => {
     render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />);
-    expect(screen.getByRole("progressbar", { name: "Security key timeout" })).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "Time remaining to respond" })).toBeInTheDocument();
 });
 
 it("focuses retry when failed", () => {

@@ -69,7 +69,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 dispatch({ status: WebAuthnTouchState.Failure, type: "setStatus" });
-                console.error(new Error(translate("Failed to initiate security key sign in process")));
+                console.error(new Error(translate("Unable to start sign in with your passkey or security key")));
 
                 return;
             }
@@ -89,7 +89,9 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             }
 
             if (result.response == null) {
-                console.error(new Error(translate("The browser did not respond with the expected attestation data")));
+                console.error(
+                    new Error(translate("Your browser did not return a response from your passkey or security key")),
+                );
                 dispatch({ status: WebAuthnTouchState.Failure, type: "setStatus" });
 
                 return;
@@ -112,7 +114,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
                 return;
             }
 
-            console.error(new Error(translate("The server rejected the security key")));
+            console.error(new Error(translate("Your passkey or security key could not be verified")));
             dispatch({ status: WebAuthnTouchState.Failure, type: "setStatus" });
         } catch (err) {
             if (axios.isCancel(err)) return;

@@ -230,7 +230,9 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 return (
                     <Fragment>
                         <div className="py-8">{timeout ? <WebAuthnRegisterIcon timeout={timeout} /> : null}</div>
-                        <p className="pb-8">{translate("Touch the token on your security key")}</p>
+                        <p className="pb-8">
+                            {translate("Follow your browser's prompt to register your passkey or security key")}
+                        </p>
                     </Fragment>
                 );
         }

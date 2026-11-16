@@ -75,7 +75,7 @@ const WebAuthnMethod = function (props: Props) {
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 dispatch({ type: WebAuthnTouchState.Failure });
-                onSignInError(new Error(translate("Failed to initiate security key sign in process")));
+                onSignInError(new Error(translate("Unable to start sign in with your passkey or security key")));
 
                 return;
             }
@@ -97,7 +97,9 @@ const WebAuthnMethod = function (props: Props) {
             }
 
             if (result.response == null) {
-                onSignInError(new Error(translate("The browser did not respond with the expected attestation data")));
+                onSignInError(
+                    new Error(translate("Your browser did not return a response from your passkey or security key")),
+                );
                 dispatch({ type: WebAuthnTouchState.Failure });
 
                 return;
@@ -120,12 +122,12 @@ const WebAuthnMethod = function (props: Props) {
                 return;
             }
 
-            onSignInError(new Error(translate("The server rejected the security key")));
+            onSignInError(new Error(translate("Your passkey or security key could not be verified")));
             dispatch({ type: WebAuthnTouchState.Failure });
         } catch (err) {
             if (axios.isCancel(err)) return;
             console.error(err);
-            onSignInError(new Error(translate("Failed to initiate security key sign in process")));
+            onSignInError(new Error(translate("Unable to start sign in with your passkey or security key")));
             dispatch({ type: WebAuthnTouchState.Failure });
         }
     }, [
@@ -166,8 +168,8 @@ const WebAuthnMethod = function (props: Props) {
     return (
         <MethodContainer
             id={props.id}
-            title={translate("Security Key")}
-            explanation={translate("Touch the token of your security key")}
+            title={translate("Passkey or Security Key")}
+            explanation={translate("Use your passkey or security key to continue")}
             duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}

@@ -64,7 +64,9 @@ const PasskeyForm = function (props: Props) {
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 handleAuthenticationStop();
-                onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+                onSignInErrorCallback(
+                    new Error(translate("Unable to start sign in with your passkey or security key")),
+                );
 
                 return;
             }
@@ -85,7 +87,7 @@ const PasskeyForm = function (props: Props) {
 
             if (result.response == null) {
                 onSignInErrorCallback(
-                    new Error(translate("The browser did not respond with the expected attestation data")),
+                    new Error(translate("Your browser did not return a response from your passkey or security key")),
                 );
                 handleAuthenticationStop();
 
@@ -110,13 +112,13 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            onSignInErrorCallback(new Error(translate("The server rejected the security key")));
+            onSignInErrorCallback(new Error(translate("Your passkey or security key could not be verified")));
         } catch (err) {
             handleAuthenticationStop();
 
             if (axios.isCancel(err)) return;
             console.error(err);
-            onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+            onSignInErrorCallback(new Error(translate("Unable to start sign in with your passkey or security key")));
         }
     }, [
         getSignal,

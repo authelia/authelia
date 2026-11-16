@@ -118,7 +118,7 @@ describe("assertion", () => {
 
         await expectState(WebAuthnTouchState.Failure);
         expect(console.error).toHaveBeenCalledWith(
-            expect.objectContaining({ message: "Failed to initiate security key sign in process" }),
+            expect.objectContaining({ message: "Unable to start sign in with your passkey or security key" }),
         );
         expect(onSecondFactorSuccess).not.toHaveBeenCalled();
     });
@@ -150,7 +150,9 @@ describe("assertion", () => {
 
         await expectState(WebAuthnTouchState.Failure);
         expect(console.error).toHaveBeenCalledWith(
-            expect.objectContaining({ message: "The browser did not respond with the expected attestation data" }),
+            expect.objectContaining({
+                message: "Your browser did not return a response from your passkey or security key",
+            }),
         );
         expect(postResponseMock).not.toHaveBeenCalled();
     });
@@ -162,7 +164,7 @@ describe("assertion", () => {
 
         await expectState(WebAuthnTouchState.Failure);
         expect(console.error).toHaveBeenCalledWith(
-            expect.objectContaining({ message: "The server rejected the security key" }),
+            expect.objectContaining({ message: "Your passkey or security key could not be verified" }),
         );
         expect(onSecondFactorSuccess).not.toHaveBeenCalled();
     });
