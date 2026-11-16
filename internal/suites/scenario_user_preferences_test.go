@@ -61,12 +61,10 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
-
-	// Switch context to clean up state in portal.
-	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
+	s.doLogout(s.T(), s.Context(ctx))
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	s.verifyIsHome(s.T(), s.Context(ctx))
