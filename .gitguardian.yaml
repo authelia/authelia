@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+version: 2
+secret:
+  ignored_matches:
+    - name: 'Generic Password - web/src/views/Settings/TwoFactorAuthentication/RecoveryCodesGenerateDialog.test.tsx'
+      match: '112a0b16667096311f8154cd380da54b915a1a286e2c2121aab60fbadb0e415b'
+    - name: 'Generic Password - internal/server/locales/tr-TR/settings.json'
+      match: '9132df96678749496a7bc8f80337f9fce0203d1623ff6d32dd56737b757655c5'
+    - name: 'Generic Password - web/src/views/ResetPassword/ResetPasswordStep2.tsx'
+      match: '7b9cd6d669a1c290933a052aba9c233f0587405a3fb8232226b86d7d21f1ddc0'
+    - name: 'Generic Encryption Key - internal/suites/example/kube/authelia/authelia.yml'
+      match: '87084ddd26c95ed73ba61b9105fd9dfe6206d93790f3fbc975f8fb8d289fd760'
+    - name: 'Generic Private Key - internal/configuration/test_resources/crypto/ed25519.pem'
+      match: 'bbd5760b9a4b29f60236794408c2863ada9ea929ed455b1026e9fcdbf4224b53'
+    - name: 'Generic Private Key - internal/configuration/test_resources/crypto/ca.ed25519.pem'
+      match: '0a716605fb081e2d6e60a68e71abb1a1955914912e4976175585b8ea9a4891a1'
+...
