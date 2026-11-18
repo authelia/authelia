@@ -44,8 +44,9 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		MinParameterEntropy:        config.MinimumParameterEntropy,
 		Lifespans: LifespansConfig{
 			IdentityProvidersOpenIDConnectLifespanToken: config.Lifespans.IdentityProvidersOpenIDConnectLifespanToken,
-			RFC8628Code:         config.Lifespans.DeviceCode,
-			RefreshTokenMaximum: config.Lifespans.RefreshTokenMaximum,
+			RFC8628Code:             config.Lifespans.DeviceCode,
+			RefreshTokenMaximum:     config.Lifespans.RefreshTokenMaximum,
+			RefreshTokenGracePeriod: config.Lifespans.RefreshTokenGracePeriod,
 		},
 		ProofKeyCodeExchange: ProofKeyCodeExchangeConfig{
 			Enforce:                   config.EnforcePKCE == "always",
@@ -228,7 +229,8 @@ type LifespansConfig struct {
 	RFC8628Code    time.Duration
 	RFC8628Polling time.Duration
 
-	RefreshTokenMaximum time.Duration
+	RefreshTokenMaximum     time.Duration
+	RefreshTokenGracePeriod time.Duration
 }
 
 // HashConfig holds specific oauthelia2.Configurator information for hashing.
@@ -843,6 +845,12 @@ func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Dur
 // limit.
 func (c *Config) GetRefreshTokenMaximumLifespan(ctx context.Context) (lifespan time.Duration) {
 	return c.Lifespans.RefreshTokenMaximum
+}
+
+// GetRefreshTokenGracePeriod returns the time a rotated refresh token remains redeemable after it is first redeemed. A
+// value of 0 disables the grace period.
+func (c *Config) GetRefreshTokenGracePeriod(ctx context.Context) (grace time.Duration) {
+	return c.Lifespans.RefreshTokenGracePeriod
 }
 
 // GetDisableRefreshTokenExpirationParameters returns false as the refresh token expiration parameters are always
@@ -1508,11 +1516,6 @@ func (c *Config) GetRFC7591ClientRegistrationEndpointHandlers(ctx context.Contex
 // RFC 7592 client configuration endpoint.
 func (c *Config) GetRFC7592ClientConfigurationEndpointHandlers(ctx context.Context) (handlers oauthelia2.RFC7592ClientConfigurationEndpointHandlers) {
 	return c.Handlers.RFC7592ClientConfigurationEndpoint
-}
-
-// GetRefreshTokenGracePeriod returns the period after a refresh token is used within which it may be used again.
-func (c *Config) GetRefreshTokenGracePeriod(ctx context.Context) (grace time.Duration) {
-	return 0
 }
 
 // GetAccessTokenURIQueryParameterEnabled returns true if the access token may be sent in the URI query.

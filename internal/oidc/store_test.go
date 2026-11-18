@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"testing"
 	"time"
@@ -21,8 +22,10 @@ import (
 	"go.uber.org/mock/gomock"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	hoauth2 "authelia.com/provider/oauth2/handler/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -278,6 +281,352 @@ func TestOAuth2RefreshTokenSessionExpiryDeadlineRoundTripsThroughStore(t *testin
 
 	require.True(t, ok)
 	assert.True(t, deadline.Equal(cloned.GetExpiryDeadline()))
+}
+
+func TestOAuth2RefreshTokenGracePeriodRotationThroughStore(t *testing.T) {
+	now := time.Date(2030, time.January, 2, 3, 4, 5, 0, time.UTC)
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider, nil)
+
+	fixed := clock.NewFixed(now)
+	ctx := &TestContext{Context: context.Background(), Clock: fixed}
+
+	subject, err := s.GetSubject(ctx, "", "john")
+
+	require.NoError(t, err)
+
+	newRequester := func() oauthelia2.Requester {
+		session := oidc.NewSession()
+		session.ChallengeID = model.MustNullUUID(model.NewRandomNullUUID())
+		session.Subject = subject.String()
+
+		return &oauthelia2.Request{
+			ID:             "req-grace",
+			Client:         &oidc.RegisteredClient{ID: myclient},
+			RequestedScope: oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+			GrantedScope:   oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+			Session:        session,
+		}
+	}
+
+	require.NoError(t, s.CreateAccessTokenSession(ctx, "at-1", newRequester()))
+	require.NoError(t, s.CreateRefreshTokenSession(ctx, "rt-1", "at-1", newRequester()))
+
+	deadline := now.Add(10 * time.Second)
+
+	require.NoError(t, s.RotateRefreshTokenWithGracePeriod(ctx, "req-grace", "rt-1", deadline))
+
+	_, err = s.GetAccessTokenSession(ctx, "at-1", oidc.NewSession())
+	assert.ErrorIs(t, err, oauthelia2.ErrNotFound)
+
+	_, err = s.GetRefreshTokenSession(ctx, "rt-1", oidc.NewSession())
+	require.NoError(t, err)
+
+	require.NoError(t, s.CreateAccessTokenSession(ctx, "at-2", newRequester()))
+	require.NoError(t, s.CreateRefreshTokenSession(ctx, "rt-2", "at-2", newRequester()))
+
+	fixed.Set(now.Add(5 * time.Second))
+
+	require.NoError(t, s.RotateRefreshTokenWithGracePeriod(ctx, "req-grace", "rt-1", now.Add(15*time.Second)))
+
+	state, err := provider.LoadOAuth2RefreshTokenSessionState(ctx, "rt-1")
+	require.NoError(t, err)
+	require.True(t, state.GraceDeadline.Valid)
+	assert.True(t, deadline.Equal(state.GraceDeadline.Time))
+	assert.True(t, state.Active)
+
+	_, err = s.GetAccessTokenSession(ctx, "at-2", oidc.NewSession())
+	require.NoError(t, err)
+
+	_, err = s.GetRefreshTokenSession(ctx, "rt-2", oidc.NewSession())
+	require.NoError(t, err)
+
+	fixed.Set(deadline)
+
+	r, err := s.GetRefreshTokenSession(ctx, "rt-1", oidc.NewSession())
+	assert.ErrorIs(t, err, oauthelia2.ErrInactiveToken)
+	require.NotNil(t, r)
+	assert.Equal(t, "req-grace", r.GetID())
+
+	assert.ErrorIs(t, s.RotateRefreshTokenWithGracePeriod(ctx, "req-grace", "rt-1", deadline.Add(10*time.Second)), oauthelia2.ErrInactiveToken)
+	assert.ErrorIs(t, s.RotateRefreshToken(ctx, "req-grace", "rt-1"), oauthelia2.ErrInactiveToken)
+
+	require.NoError(t, s.RotateRefreshTokenWithGracePeriod(ctx, "req-grace", "rt-2", deadline.Add(10*time.Second)))
+
+	require.NoError(t, s.RevokeRefreshToken(ctx, "req-grace"))
+
+	_, err = s.GetRefreshTokenSession(ctx, "rt-2", oidc.NewSession())
+	assert.ErrorIs(t, err, oauthelia2.ErrInactiveToken)
+
+	assert.ErrorIs(t, s.RotateRefreshTokenWithGracePeriod(ctx, "req-grace", "rt-2", deadline.Add(10*time.Second)), oauthelia2.ErrInactiveToken)
+	assert.ErrorIs(t, s.RotateRefreshTokenWithGracePeriod(ctx, "req-grace", "rt-missing", deadline), oauthelia2.ErrNotFound)
+}
+
+func TestOAuth2RefreshTokenGracePeriodForkRevocation(t *testing.T) {
+	const (
+		tokenAT0 = "at0"
+		tokenAT1 = "at1"
+		tokenAT2 = "at2"
+		tokenRT0 = "rt0"
+		tokenRT1 = "rt1"
+		tokenRT2 = "rt2"
+	)
+
+	testCases := []struct {
+		name     string
+		explicit bool
+		expired  bool
+		token    string
+		hint     oauthelia2.TokenType
+		inactive []string
+		active   []string
+	}{
+		{
+			name:     "ShouldRevokeBothForksWhenForkAccessTokenRevoked",
+			token:    tokenAT1,
+			hint:     oauthelia2.AccessToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2},
+		},
+		{
+			name:     "ShouldRevokeBothForksWhenSiblingForkAccessTokenRevoked",
+			token:    tokenAT2,
+			hint:     oauthelia2.AccessToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2},
+		},
+		{
+			name:     "ShouldRevokeOnlyAccessTokensOfBothForksWhenAccessTokenRevokedExplicitly",
+			explicit: true,
+			token:    tokenAT1,
+			hint:     oauthelia2.AccessToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2},
+			active:   []string{tokenRT0, tokenRT1, tokenRT2},
+		},
+		{
+			name:     "ShouldRevokeBothForksWhenForkRefreshTokenRevoked",
+			token:    tokenRT1,
+			hint:     oauthelia2.RefreshToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2},
+		},
+		{
+			name:     "ShouldRevokeBothForksWhenSiblingForkRefreshTokenRevoked",
+			token:    tokenRT2,
+			hint:     oauthelia2.RefreshToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2},
+		},
+		{
+			name:     "ShouldRevokeBothForksWhenForkRefreshTokenRevokedExplicitly",
+			explicit: true,
+			token:    tokenRT1,
+			hint:     oauthelia2.RefreshToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2},
+		},
+		{
+			name:     "ShouldRevokeBothForksWhenGraceRefreshTokenRevoked",
+			token:    tokenRT0,
+			hint:     oauthelia2.RefreshToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2},
+		},
+		{
+			name:     "ShouldRevokeBothForksWhenGraceRefreshTokenRevokedAfterDeadline",
+			expired:  true,
+			token:    tokenRT0,
+			hint:     oauthelia2.RefreshToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2},
+		},
+		{
+			name:     "ShouldRevokeBothForksWhenGraceRefreshTokenRevokedWithAccessTokenHint",
+			token:    tokenRT0,
+			hint:     oauthelia2.AccessToken,
+			inactive: []string{tokenAT0, tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			now := time.Now().UTC()
+
+			provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+				Storage: schema.Storage{
+					EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+					Local: &schema.StorageLocal{
+						Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+					},
+				},
+			})
+
+			require.NoError(t, err)
+			require.NoError(t, provider.StartupCheck())
+
+			s := oidc.NewStore(&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						IssuerCertificateChain: schema.X509CertificateChain{},
+						IssuerPrivateKey:       x509PrivateKeyRSA2048,
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  myclient,
+								Name:                myclientname,
+								AuthorizationPolicy: onefactor,
+								Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+								GrantTypes:          []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
+								Secret:              tOpenIDConnectPlainTextClientSecret,
+							},
+						},
+					},
+				},
+			}, provider, nil)
+
+			fixed := clock.NewFixed(now)
+			ctx := &TestContext{Context: context.Background(), Clock: fixed}
+
+			config := &oauthelia2.Config{
+				GlobalSecret:                []byte("a-test-global-secret-of-32-bytes"),
+				AccessTokenLifespan:         time.Hour,
+				RefreshTokenLifespan:        time.Hour,
+				RefreshTokenGracePeriod:     time.Minute,
+				RefreshTokenScopes:          []string{oidc.ScopeOfflineAccess},
+				ScopeStrategy:               oauthelia2.ExactScopeStrategy,
+				AudienceStrategy:            oauthelia2.DefaultAudienceStrategy,
+				RevokeRefreshTokensExplicit: tc.explicit,
+			}
+
+			strategy := hoauth2.NewHMACCoreStrategy(config, "authelia_%s_")
+
+			grant := &hoauth2.RefreshTokenGrantHandler{
+				AccessTokenStrategy:    strategy,
+				RefreshTokenStrategy:   strategy,
+				TokenRevocationStorage: s,
+				Config:                 config,
+			}
+
+			revocation := &hoauth2.TokenRevocationHandler{
+				TokenRevocationStorage: s,
+				AccessTokenStrategy:    strategy,
+				RefreshTokenStrategy:   strategy,
+				Config:                 config,
+			}
+
+			client, err := s.GetClient(ctx, myclient)
+			require.NoError(t, err)
+
+			subject, err := s.GetSubject(ctx, "", "john")
+			require.NoError(t, err)
+
+			session := oidc.NewSession()
+			session.ChallengeID = model.MustNullUUID(model.NewRandomNullUUID())
+			session.Subject = subject.String()
+			session.SetExpiresAt(oauthelia2.AccessToken, now.Add(time.Hour))
+			session.SetExpiresAt(oauthelia2.RefreshToken, now.Add(time.Hour))
+
+			original := &oauthelia2.Request{
+				ID:             "req-fork",
+				Client:         client,
+				RequestedAt:    now,
+				RequestedScope: oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+				GrantedScope:   oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+				Session:        session,
+			}
+
+			tokens := map[string]string{}
+			signatures := map[string]string{}
+
+			var accessSignature, refreshSignature string
+
+			tokens[tokenAT0], accessSignature, err = strategy.GenerateAccessToken(ctx, original)
+			require.NoError(t, err)
+
+			tokens[tokenRT0], refreshSignature, err = strategy.GenerateRefreshToken(ctx, original)
+			require.NoError(t, err)
+
+			signatures[tokenAT0], signatures[tokenRT0] = accessSignature, refreshSignature
+
+			require.NoError(t, s.CreateAccessTokenSession(ctx, accessSignature, original))
+			require.NoError(t, s.CreateRefreshTokenSession(ctx, refreshSignature, accessSignature, original))
+
+			refresh := func(at, rt string) {
+				request := oauthelia2.NewAccessRequest(oidc.NewSession())
+				request.Client = client
+				request.GrantTypes = oauthelia2.Arguments{oidc.GrantTypeRefreshToken}
+				request.Form = url.Values{oidc.GrantTypeRefreshToken: {tokens[tokenRT0]}}
+
+				require.NoError(t, grant.HandleTokenEndpointRequest(ctx, request))
+
+				response := oauthelia2.NewAccessResponse()
+
+				require.NoError(t, grant.PopulateTokenEndpointResponse(ctx, request, response))
+
+				tokens[at] = response.GetAccessToken()
+				tokens[rt] = response.GetExtra(oidc.GrantTypeRefreshToken).(string)
+				signatures[at] = strategy.AccessTokenSignature(ctx, tokens[at])
+				signatures[rt] = strategy.RefreshTokenSignature(ctx, tokens[rt])
+			}
+
+			refresh(tokenAT1, tokenRT1)
+			refresh(tokenAT2, tokenRT2)
+
+			isActive := func(name string) bool {
+				if name[:2] == "at" {
+					_, err := s.GetAccessTokenSession(ctx, signatures[name], oidc.NewSession())
+
+					return err == nil
+				}
+
+				_, err := s.GetRefreshTokenSession(ctx, signatures[name], oidc.NewSession())
+
+				return err == nil
+			}
+
+			assert.False(t, isActive(tokenAT0))
+
+			for _, name := range []string{tokenAT1, tokenAT2, tokenRT0, tokenRT1, tokenRT2} {
+				assert.True(t, isActive(name), name)
+			}
+
+			if tc.expired {
+				fixed.Set(now.Add(2 * time.Minute))
+
+				assert.False(t, isActive(tokenRT0))
+			}
+
+			require.NoError(t, revocation.RevokeToken(ctx, tokens[tc.token], tc.hint, client))
+
+			for _, name := range tc.inactive {
+				assert.False(t, isActive(name), name)
+			}
+
+			for _, name := range tc.active {
+				assert.True(t, isActive(name), name)
+			}
+		})
+	}
 }
 
 func TestOAuth2DeviceCodeSessionGrantedResourceRoundTripsThroughStore(t *testing.T) {
@@ -712,8 +1061,8 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(sql.ErrNoRows),
 		s.mock.
 			EXPECT().
-			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "1").
-			Return("at_paired_1", nil),
+			LoadOAuth2RefreshTokenSessionState(s.ctx, "1").
+			Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at_paired_1", Active: true}, nil),
 		s.mock.
 			EXPECT().
 			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "1").
@@ -728,8 +1077,8 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "2").
-			Return("", nil),
+			LoadOAuth2RefreshTokenSessionState(s.ctx, "2").
+			Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "", Active: true}, nil),
 		s.mock.
 			EXPECT().
 			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "2").
@@ -740,24 +1089,24 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(fmt.Errorf("not found")),
 		s.mock.
 			EXPECT().
-			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "3").
-			Return("", fmt.Errorf("no refresh token session")),
+			LoadOAuth2RefreshTokenSessionState(s.ctx, "3").
+			Return(nil, fmt.Errorf("no refresh token session")),
 		s.mock.
 			EXPECT().
-			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "4").
-			Return("", sql.ErrNoRows),
+			LoadOAuth2RefreshTokenSessionState(s.ctx, "4").
+			Return(nil, sql.ErrNoRows),
 		s.mock.
 			EXPECT().
-			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "5").
-			Return("at_paired_5", nil),
+			LoadOAuth2RefreshTokenSessionState(s.ctx, "5").
+			Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at_paired_5", Active: true}, nil),
 		s.mock.
 			EXPECT().
 			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "5").
 			Return(storage.ErrNoRowsAffected),
 		s.mock.
 			EXPECT().
-			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "6").
-			Return("at_paired_6", nil),
+			LoadOAuth2RefreshTokenSessionState(s.ctx, "6").
+			Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at_paired_6", Active: true}, nil),
 		s.mock.
 			EXPECT().
 			DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, "6").
@@ -878,6 +1227,210 @@ func (s *StoreSuite) TestGetRefreshTokenSessionShouldReturnInactiveWhenRevoked()
 			require.NotNil(t, r)
 			assert.Equal(t, abc, r.GetID())
 			assert.ErrorIs(t, err, oauthelia2.ErrInactiveToken)
+		})
+	}
+}
+
+func (s *StoreSuite) TestGetRefreshTokenSessionShouldReturnInactiveWhenGracePeriodEnded() {
+	sessionData, err := json.Marshal(&oidc.Session{ClientID: "hs256"})
+	s.Require().NoError(err)
+
+	testCases := []struct {
+		name     string
+		deadline sql.NullTime
+		err      error
+	}{
+		{"ShouldReturnActiveWithoutDeadline", sql.NullTime{}, nil},
+		{"ShouldReturnActiveWithinDeadline", sql.NullTime{Time: time.Now().Add(time.Hour), Valid: true}, nil},
+		{"ShouldReturnInactiveAfterDeadline", sql.NullTime{Time: time.Now().Add(-time.Second), Valid: true}, oauthelia2.ErrInactiveToken},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			s.mock.EXPECT().LoadOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).
+				Return(&model.OAuth2Session{RequestID: abc, ClientID: "hs256", Session: sessionData, Active: true, GraceDeadline: tc.deadline}, nil)
+
+			r, err := s.store.GetRefreshTokenSession(s.ctx, abc, &oidc.Session{})
+
+			require.NotNil(t, r)
+			assert.Equal(t, abc, r.GetID())
+
+			if tc.err == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, tc.err)
+			}
+		})
+	}
+}
+
+func (s *StoreSuite) TestRotateRefreshTokenShouldReturnInactiveWhenGracePeriodEnded() {
+	s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).
+		Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true, GraceDeadline: sql.NullTime{Time: time.Now().Add(-time.Second), Valid: true}}, nil)
+
+	assert.ErrorIs(s.T(), s.store.RotateRefreshToken(s.ctx, abc, abc), oauthelia2.ErrInactiveToken)
+}
+
+func (s *StoreSuite) TestRotateRefreshTokenWithGracePeriod() {
+	deadline := time.Now().Add(time.Minute)
+	future := sql.NullTime{Time: time.Now().Add(time.Hour), Valid: true}
+	past := sql.NullTime{Time: time.Now().Add(-time.Second), Valid: true}
+
+	testCases := []struct {
+		name  string
+		setup func()
+		err   error
+		msg   string
+	}{
+		{
+			name: "ShouldRecordDeadlineAndRevokePairedAccessToken",
+			setup: func() {
+				gomock.InOrder(
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true}, nil),
+					s.mock.EXPECT().UpdateOAuth2RefreshTokenSessionGraceDeadline(s.ctx, abc, deadline).Return(nil),
+					s.mock.EXPECT().RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, "at").Return(nil),
+				)
+			},
+		},
+		{
+			name: "ShouldIgnoreAlreadyRevokedPairedAccessToken",
+			setup: func() {
+				gomock.InOrder(
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true}, nil),
+					s.mock.EXPECT().UpdateOAuth2RefreshTokenSessionGraceDeadline(s.ctx, abc, deadline).Return(nil),
+					s.mock.EXPECT().RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, "at").Return(storage.ErrNoRowsAffected),
+				)
+			},
+		},
+		{
+			name: "ShouldRevokeAccessTokensByRequestIDWithoutPairedSignature",
+			setup: func() {
+				gomock.InOrder(
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{Active: true}, nil),
+					s.mock.EXPECT().UpdateOAuth2RefreshTokenSessionGraceDeadline(s.ctx, abc, deadline).Return(nil),
+					s.mock.EXPECT().RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "req").Return(nil),
+				)
+			},
+		},
+		{
+			name: "ShouldReturnErrorRevokingPairedAccessToken",
+			setup: func() {
+				gomock.InOrder(
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true}, nil),
+					s.mock.EXPECT().UpdateOAuth2RefreshTokenSessionGraceDeadline(s.ctx, abc, deadline).Return(nil),
+					s.mock.EXPECT().RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, "at").Return(fmt.Errorf("revoke error")),
+				)
+			},
+			msg: "revoke error",
+		},
+		{
+			name: "ShouldSucceedWithinRecordedDeadline",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true, GraceDeadline: future}, nil)
+			},
+		},
+		{
+			name: "ShouldReturnInactiveAfterRecordedDeadline",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true, GraceDeadline: past}, nil)
+			},
+			err: oauthelia2.ErrInactiveToken,
+		},
+		{
+			name: "ShouldReturnInactiveWhenDeactivated",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", GraceDeadline: future}, nil)
+			},
+			err: oauthelia2.ErrInactiveToken,
+		},
+		{
+			name: "ShouldReturnInactiveWhenDeactivatedWithoutDeadline",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at"}, nil)
+			},
+			err: oauthelia2.ErrInactiveToken,
+		},
+		{
+			name: "ShouldReturnInactiveWhenRevoked",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true, Revoked: true}, nil)
+			},
+			err: oauthelia2.ErrInactiveToken,
+		},
+		{
+			name: "ShouldSucceedWhenDeadlineRecordedConcurrently",
+			setup: func() {
+				gomock.InOrder(
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true}, nil),
+					s.mock.EXPECT().UpdateOAuth2RefreshTokenSessionGraceDeadline(s.ctx, abc, deadline).Return(storage.ErrNoRowsAffected),
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true, GraceDeadline: future}, nil),
+				)
+			},
+		},
+		{
+			name: "ShouldReturnInactiveWhenDeactivatedConcurrently",
+			setup: func() {
+				gomock.InOrder(
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true}, nil),
+					s.mock.EXPECT().UpdateOAuth2RefreshTokenSessionGraceDeadline(s.ctx, abc, deadline).Return(storage.ErrNoRowsAffected),
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at"}, nil),
+				)
+			},
+			err: oauthelia2.ErrInactiveToken,
+		},
+		{
+			name: "ShouldReturnNotFoundWhenDeletedConcurrently",
+			setup: func() {
+				gomock.InOrder(
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true}, nil),
+					s.mock.EXPECT().UpdateOAuth2RefreshTokenSessionGraceDeadline(s.ctx, abc, deadline).Return(storage.ErrNoRowsAffected),
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(nil, sql.ErrNoRows),
+				)
+			},
+			err: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldReturnNotFound",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(nil, sql.ErrNoRows)
+			},
+			err: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldReturnErrorLoadingState",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(nil, fmt.Errorf("load error"))
+			},
+			msg: "load error",
+		},
+		{
+			name: "ShouldReturnErrorRecordingDeadline",
+			setup: func() {
+				gomock.InOrder(
+					s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(&model.OAuth2RefreshTokenSessionState{AccessSignature: "at", Active: true}, nil),
+					s.mock.EXPECT().UpdateOAuth2RefreshTokenSessionGraceDeadline(s.ctx, abc, deadline).Return(fmt.Errorf("update error")),
+				)
+			},
+			msg: "update error",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+
+			err := s.store.RotateRefreshTokenWithGracePeriod(s.ctx, "req", abc, deadline)
+
+			switch {
+			case tc.err != nil:
+				assert.ErrorIs(t, err, tc.err)
+			case tc.msg != "":
+				assert.EqualError(t, err, tc.msg)
+			default:
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
@@ -1290,10 +1843,19 @@ func (s *StoreSuite) TestSerializationFailureMapping() {
 		{
 			name: "ShouldMapRotateRefreshToken",
 			setup: func() {
-				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, abc).Return("", errBusy)
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(nil, errBusy)
 			},
 			do: func() (err error) {
 				return s.store.RotateRefreshToken(s.ctx, abc, abc)
+			},
+		},
+		{
+			name: "ShouldMapRotateRefreshTokenWithGracePeriod",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionState(s.ctx, abc).Return(nil, errBusy)
+			},
+			do: func() (err error) {
+				return s.store.RotateRefreshTokenWithGracePeriod(s.ctx, abc, abc, time.Now().Add(time.Minute))
 			},
 		},
 		{

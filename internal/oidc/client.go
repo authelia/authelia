@@ -911,6 +911,17 @@ func (c *RegisteredClient) GetRefreshTokenMaximumLifespan() (lifespan time.Durat
 	return c.Lifespans.RefreshTokenMaximum
 }
 
+// GetRefreshTokenGracePeriod returns the time a rotated refresh token of this client remains redeemable after it is
+// first redeemed, or the fallback value when the client's lifespan does not configure one. This implements the
+// oauthelia2.RefreshTokenGracePeriodClient interface.
+func (c *RegisteredClient) GetRefreshTokenGracePeriod(fallback time.Duration) (grace time.Duration) {
+	if c.Lifespans.RefreshTokenGracePeriod > durationZero {
+		return c.Lifespans.RefreshTokenGracePeriod
+	}
+
+	return fallback
+}
+
 // GetDisableRefreshTokenRotation returns true if the refresh token grant should keep the presented refresh token of this
 // client rather than issue a new one. Refresh tokens of public clients are rotated regardless. This implements the
 // oauthelia2.RefreshTokenRotationClient interface.
