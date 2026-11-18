@@ -2065,6 +2065,65 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "wac":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "WebAuthnConditional")
+					return
+				}
+				z.WebAuthnConditional = nil
+			} else {
+				if z.WebAuthnConditional == nil {
+					z.WebAuthnConditional = new(WebAuthn)
+				}
+				var zb0003 uint32
+				zb0003, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "WebAuthnConditional")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "WebAuthnConditional")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "SessionData":
+						if dc.IsNil() {
+							err = dc.ReadNil()
+							if err != nil {
+								err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+								return
+							}
+							z.WebAuthnConditional.SessionData = nil
+						} else {
+							if z.WebAuthnConditional.SessionData == nil {
+								z.WebAuthnConditional.SessionData = new(webauthn.SessionData)
+							}
+							err = z.WebAuthnConditional.SessionData.DecodeMsg(dc)
+							if err != nil {
+								err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+								return
+							}
+						}
+					case "desc":
+						z.WebAuthnConditional.Description, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "Description")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional")
+							return
+						}
+					}
+				}
+			}
 		case "otp":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -2163,8 +2222,8 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(15)
-	var zb0001Mask uint16 /* 15 bits */
+	zb0001Len := uint32(16)
+	var zb0001Mask uint16 /* 16 bits */
 	_ = zb0001Mask
 	if z.Username == "" {
 		zb0001Len--
@@ -2182,24 +2241,28 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 		zb0001Len--
 		zb0001Mask |= 0x100
 	}
-	if z.TOTP == nil {
+	if z.WebAuthnConditional == nil {
 		zb0001Len--
 		zb0001Mask |= 0x200
 	}
-	if z.PasswordResetUsername == nil {
+	if z.TOTP == nil {
 		zb0001Len--
 		zb0001Mask |= 0x400
 	}
-	if z.ExternalIdentity == nil {
+	if z.PasswordResetUsername == nil {
 		zb0001Len--
-		zb0001Mask |= 0x2000
+		zb0001Mask |= 0x800
 	}
-	if z.ExternalIdentityPending == nil {
+	if z.ExternalIdentity == nil {
 		zb0001Len--
 		zb0001Mask |= 0x4000
 	}
+	if z.ExternalIdentityPending == nil {
+		zb0001Len--
+		zb0001Mask |= 0x8000
+	}
 	// variable map header, size zb0001Len
-	err = en.Append(0x80 | uint8(zb0001Len))
+	err = en.WriteMapHeader(zb0001Len)
 	if err != nil {
 		return
 	}
@@ -2353,6 +2416,66 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			}
 		}
 		if (zb0001Mask & 0x200) == 0 { // if not omitted
+			// write "wac"
+			err = en.Append(0xa3, 0x77, 0x61, 0x63)
+			if err != nil {
+				return
+			}
+			if z.WebAuthnConditional == nil {
+				err = en.WriteNil()
+				if err != nil {
+					return
+				}
+			} else {
+				// check for omitted fields
+				zb0003Len := uint32(2)
+				var zb0003Mask uint8 /* 2 bits */
+				_ = zb0003Mask
+				if z.WebAuthnConditional.Description == "" {
+					zb0003Len--
+					zb0003Mask |= 0x2
+				}
+				// variable map header, size zb0003Len
+				err = en.Append(0x80 | uint8(zb0003Len))
+				if err != nil {
+					return
+				}
+
+				// skip if no fields are to be emitted
+				if zb0003Len != 0 {
+					// write "SessionData"
+					err = en.Append(0xab, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61)
+					if err != nil {
+						return
+					}
+					if z.WebAuthnConditional.SessionData == nil {
+						err = en.WriteNil()
+						if err != nil {
+							return
+						}
+					} else {
+						err = z.WebAuthnConditional.SessionData.EncodeMsg(en)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+							return
+						}
+					}
+					if (zb0003Mask & 0x2) == 0 { // if not omitted
+						// write "desc"
+						err = en.Append(0xa4, 0x64, 0x65, 0x73, 0x63)
+						if err != nil {
+							return
+						}
+						err = en.WriteString(z.WebAuthnConditional.Description)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "Description")
+							return
+						}
+					}
+				}
+			}
+		}
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
 			// write "otp"
 			err = en.Append(0xa3, 0x6f, 0x74, 0x70)
 			if err != nil {
@@ -2371,7 +2494,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
 			// write "pru"
 			err = en.Append(0xa3, 0x70, 0x72, 0x75)
 			if err != nil {
@@ -2410,7 +2533,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "Elevations")
 			return
 		}
-		if (zb0001Mask & 0x2000) == 0 { // if not omitted
+		if (zb0001Mask & 0x4000) == 0 { // if not omitted
 			// write "eid"
 			err = en.Append(0xa3, 0x65, 0x69, 0x64)
 			if err != nil {
@@ -2429,7 +2552,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x4000) == 0 { // if not omitted
+		if (zb0001Mask & 0x8000) == 0 { // if not omitted
 			// write "eidp"
 			err = en.Append(0xa4, 0x65, 0x69, 0x64, 0x70)
 			if err != nil {
@@ -2456,8 +2579,8 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(15)
-	var zb0001Mask uint16 /* 15 bits */
+	zb0001Len := uint32(16)
+	var zb0001Mask uint16 /* 16 bits */
 	_ = zb0001Mask
 	if z.Username == "" {
 		zb0001Len--
@@ -2475,24 +2598,28 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 		zb0001Len--
 		zb0001Mask |= 0x100
 	}
-	if z.TOTP == nil {
+	if z.WebAuthnConditional == nil {
 		zb0001Len--
 		zb0001Mask |= 0x200
 	}
-	if z.PasswordResetUsername == nil {
+	if z.TOTP == nil {
 		zb0001Len--
 		zb0001Mask |= 0x400
 	}
-	if z.ExternalIdentity == nil {
+	if z.PasswordResetUsername == nil {
 		zb0001Len--
-		zb0001Mask |= 0x2000
+		zb0001Mask |= 0x800
 	}
-	if z.ExternalIdentityPending == nil {
+	if z.ExternalIdentity == nil {
 		zb0001Len--
 		zb0001Mask |= 0x4000
 	}
+	if z.ExternalIdentityPending == nil {
+		zb0001Len--
+		zb0001Mask |= 0x8000
+	}
 	// variable map header, size zb0001Len
-	o = append(o, 0x80|uint8(zb0001Len))
+	o = msgp.AppendMapHeader(o, zb0001Len)
 
 	// skip if no fields are to be emitted
 	if zb0001Len != 0 {
@@ -2569,6 +2696,44 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 			}
 		}
 		if (zb0001Mask & 0x200) == 0 { // if not omitted
+			// string "wac"
+			o = append(o, 0xa3, 0x77, 0x61, 0x63)
+			if z.WebAuthnConditional == nil {
+				o = msgp.AppendNil(o)
+			} else {
+				// check for omitted fields
+				zb0003Len := uint32(2)
+				var zb0003Mask uint8 /* 2 bits */
+				_ = zb0003Mask
+				if z.WebAuthnConditional.Description == "" {
+					zb0003Len--
+					zb0003Mask |= 0x2
+				}
+				// variable map header, size zb0003Len
+				o = append(o, 0x80|uint8(zb0003Len))
+
+				// skip if no fields are to be emitted
+				if zb0003Len != 0 {
+					// string "SessionData"
+					o = append(o, 0xab, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61)
+					if z.WebAuthnConditional.SessionData == nil {
+						o = msgp.AppendNil(o)
+					} else {
+						o, err = z.WebAuthnConditional.SessionData.MarshalMsg(o)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+							return
+						}
+					}
+					if (zb0003Mask & 0x2) == 0 { // if not omitted
+						// string "desc"
+						o = append(o, 0xa4, 0x64, 0x65, 0x73, 0x63)
+						o = msgp.AppendString(o, z.WebAuthnConditional.Description)
+					}
+				}
+			}
+		}
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
 			// string "otp"
 			o = append(o, 0xa3, 0x6f, 0x74, 0x70)
 			if z.TOTP == nil {
@@ -2581,7 +2746,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
 			// string "pru"
 			o = append(o, 0xa3, 0x70, 0x72, 0x75)
 			if z.PasswordResetUsername == nil {
@@ -2600,7 +2765,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 			err = msgp.WrapError(err, "Elevations")
 			return
 		}
-		if (zb0001Mask & 0x2000) == 0 { // if not omitted
+		if (zb0001Mask & 0x4000) == 0 { // if not omitted
 			// string "eid"
 			o = append(o, 0xa3, 0x65, 0x69, 0x64)
 			if z.ExternalIdentity == nil {
@@ -2613,7 +2778,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x4000) == 0 { // if not omitted
+		if (zb0001Mask & 0x8000) == 0 { // if not omitted
 			// string "eidp"
 			o = append(o, 0xa4, 0x65, 0x69, 0x64, 0x70)
 			if z.ExternalIdentityPending == nil {
@@ -2753,6 +2918,63 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "wac":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.WebAuthnConditional = nil
+			} else {
+				if z.WebAuthnConditional == nil {
+					z.WebAuthnConditional = new(WebAuthn)
+				}
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "WebAuthnConditional")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "WebAuthnConditional")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "SessionData":
+						if msgp.IsNil(bts) {
+							bts, err = msgp.ReadNilBytes(bts)
+							if err != nil {
+								return
+							}
+							z.WebAuthnConditional.SessionData = nil
+						} else {
+							if z.WebAuthnConditional.SessionData == nil {
+								z.WebAuthnConditional.SessionData = new(webauthn.SessionData)
+							}
+							bts, err = z.WebAuthnConditional.SessionData.UnmarshalMsg(bts)
+							if err != nil {
+								err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+								return
+							}
+						}
+					case "desc":
+						z.WebAuthnConditional.Description, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "Description")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional")
+							return
+						}
+					}
+				}
+			}
 		case "otp":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -2847,7 +3069,7 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserSession) Msgsize() (s int) {
-	s = 1 + 2 + msgp.StringPrefixSize + len(z.CookieDomain) + 2 + msgp.StringPrefixSize + len(z.PublicID) + 2 + msgp.StringPrefixSize + len(z.Username) + 2 + msgp.BoolSize + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + (*MessagePackAMR)(&z.AuthenticationMethodRefs).Msgsize() + 3
+	s = 3 + 2 + msgp.StringPrefixSize + len(z.CookieDomain) + 2 + msgp.StringPrefixSize + len(z.PublicID) + 2 + msgp.StringPrefixSize + len(z.Username) + 2 + msgp.BoolSize + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + (*MessagePackAMR)(&z.AuthenticationMethodRefs).Msgsize() + 3
 	if z.WebAuthn == nil {
 		s += msgp.NilSize
 	} else {
@@ -2858,6 +3080,18 @@ func (z *UserSession) Msgsize() (s int) {
 			s += z.WebAuthn.SessionData.Msgsize()
 		}
 		s += 5 + msgp.StringPrefixSize + len(z.WebAuthn.Description)
+	}
+	s += 4
+	if z.WebAuthnConditional == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 12
+		if z.WebAuthnConditional.SessionData == nil {
+			s += msgp.NilSize
+		} else {
+			s += z.WebAuthnConditional.SessionData.Msgsize()
+		}
+		s += 5 + msgp.StringPrefixSize + len(z.WebAuthnConditional.Description)
 	}
 	s += 4
 	if z.TOTP == nil {

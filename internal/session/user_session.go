@@ -49,6 +49,7 @@ func (s *UserSession) RequiresPersistence() bool {
 		s.AuthenticationMethodRefs.FederatedIdentity,
 		len(s.AuthenticationMethodRefs.Extra) != 0,
 		s.WebAuthn != nil,
+		s.WebAuthnConditional != nil,
 		s.TOTP != nil,
 		s.PasswordResetUsername != nil,
 		s.Elevations.User != nil,

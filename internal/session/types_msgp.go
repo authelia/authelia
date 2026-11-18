@@ -41,7 +41,13 @@ type UserSession struct {
 
 	// WebAuthn holds the session registration data for this session.
 	WebAuthn *WebAuthn `msg:"wa,omitempty"`
-	TOTP     *TOTP     `msg:"otp,omitempty"`
+
+	// WebAuthnConditional holds the session data for a passkey login ceremony started with the conditional mediation
+	// requirement. It is kept separate from WebAuthn so a conditional ceremony which is restarted in the background
+	// does not replace the challenge of a ceremony the user explicitly started.
+	WebAuthnConditional *WebAuthn `msg:"wac,omitempty"`
+
+	TOTP *TOTP `msg:"otp,omitempty"`
 
 	// PasswordResetUsername is given a value when a session exists where the password is being reset.
 	PasswordResetUsername *string `msg:"pru,omitempty"`
