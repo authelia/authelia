@@ -20,6 +20,10 @@ const (
 )
 
 const (
+	oidcRefreshTokenGracePeriodMaximum = time.Second * 10
+)
+
+const (
 	envExternalIdentityOpenIDConnectAllowDuplicateIssuer = "X_AUTHELIA_DEV_EXTID_OPENID_CONNECT_ALLOW_DUPLICATE_ISSUER"
 )
 
@@ -225,10 +229,12 @@ const (
 const (
 	errFmtOIDCProviderNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCProviderLifespansRefreshTokenMaximumNegative       = "identity_providers: oidc: lifespans: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '%s'"
-	errFmtOIDCProviderLifespansCustomRefreshTokenMaximumNegative = "identity_providers: oidc: lifespans: custom: %s: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '%s'"
-	errFmtOIDCProviderNoPrivateKey                               = "identity_providers: oidc: option `jwks` is required"
-	errFmtOIDCProviderEnforcePKCEInvalidValue                    = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+	errFmtOIDCProviderLifespansRefreshTokenMaximumNegative        = "identity_providers: oidc: lifespans: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '%s'"
+	errFmtOIDCProviderLifespansCustomRefreshTokenMaximumNegative  = "identity_providers: oidc: lifespans: custom: %s: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '%s'"
+	errFmtOIDCProviderLifespansRefreshTokenGracePeriodRange       = "identity_providers: oidc: lifespans: option 'refresh_token_grace_period' must be between 0s and %s but it's configured as '%s'"
+	errFmtOIDCProviderLifespansCustomRefreshTokenGracePeriodRange = "identity_providers: oidc: lifespans: custom: %s: option 'refresh_token_grace_period' must be between 0s and %s but it's configured as '%s'"
+	errFmtOIDCProviderNoPrivateKey                                = "identity_providers: oidc: option `jwks` is required"
+	errFmtOIDCProviderEnforcePKCEInvalidValue                     = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it's configured as '%s'"
 	errFmtOIDCProviderDPoPDurationNotPositive        = "identity_providers: oidc: dpop: option '%s' must be a positive duration but it's configured as '%s'"
 	errFmtOIDCProviderDPoPOptionRequiresEnabled      = "identity_providers: oidc: dpop: option '%s' can't be enabled when option 'enabled' is disabled"

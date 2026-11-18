@@ -5585,6 +5585,63 @@ func TestValidateLifespans(t *testing.T) {
 				"identity_providers: oidc: lifespans: custom: custom: option 'refresh_token_maximum' must be greater than or equal to 0 but it's configured as '-1m0s'",
 			},
 		},
+		{
+			"ShouldHandleRefreshTokenGracePeriod",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+							RefreshTokenGracePeriod: time.Second * 10,
+							Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
+								"custom": {RefreshTokenGracePeriod: time.Second * 5},
+							},
+						},
+					},
+				},
+			},
+			[]string{"custom"},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnNegativeRefreshTokenGracePeriod",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+							RefreshTokenGracePeriod: -time.Second,
+							Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
+								"custom": {RefreshTokenGracePeriod: -time.Minute},
+							},
+						},
+					},
+				},
+			},
+			[]string{"custom"},
+			[]string{
+				"identity_providers: oidc: lifespans: option 'refresh_token_grace_period' must be between 0s and 10s but it's configured as '-1s'",
+				"identity_providers: oidc: lifespans: custom: custom: option 'refresh_token_grace_period' must be between 0s and 10s but it's configured as '-1m0s'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnRefreshTokenGracePeriodAboveMaximum",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+							RefreshTokenGracePeriod: time.Second*10 + time.Millisecond,
+							Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
+								"custom": {RefreshTokenGracePeriod: time.Minute},
+							},
+						},
+					},
+				},
+			},
+			[]string{"custom"},
+			[]string{
+				"identity_providers: oidc: lifespans: option 'refresh_token_grace_period' must be between 0s and 10s but it's configured as '10.001s'",
+				"identity_providers: oidc: lifespans: custom: custom: option 'refresh_token_grace_period' must be between 0s and 10s but it's configured as '1m0s'",
+			},
+		},
 	}
 
 	for _, tc := range testCases {

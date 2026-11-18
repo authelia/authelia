@@ -1738,6 +1738,11 @@ session:
       ## first refresh token of the grant is issued. The value 0 applies no maximum.
       # refresh_token_maximum: 0
 
+      ## Configures how long a rotated refresh token remains redeemable after it is first redeemed, which allows a
+      ## client to retry a refresh token request whose response it did not receive. The value 0 disables the grace
+      ## period. The maximum value is 10 seconds.
+      # refresh_token_grace_period: 0
+
     ## OAuth 2.0 Token Exchange settings.
     # token_exchange:
       ## The maximum depth of the nested 'act' claim chain permitted in a token exchange.

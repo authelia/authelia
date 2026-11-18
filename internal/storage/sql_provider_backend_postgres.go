@@ -53,6 +53,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
 	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionPostgreSQL, tableSession)
+	provider.sqlSelectOAuth2RefreshTokenSessionState = fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSessionStateForUpdate, tableOAuth2RefreshTokenSession)
 	provider.sqlLockRecoveryCodesByUsername = fmt.Sprintf(queryFmtLockRecoveryCodesByUsernamePostgreSQL, tableRecoveryCodesLock)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
@@ -216,7 +217,8 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeactivateOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSession)
 	provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID)
 	provider.sqlSelectOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSession)
-	provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature)
+	provider.sqlSelectOAuth2RefreshTokenSessionState = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSessionState)
+	provider.sqlUpdateOAuth2RefreshTokenSessionGraceDeadline = provider.db.Rebind(provider.sqlUpdateOAuth2RefreshTokenSessionGraceDeadline)
 	provider.sqlUpdateOAuth2RefreshTokenSessionRequest = provider.db.Rebind(provider.sqlUpdateOAuth2RefreshTokenSessionRequest)
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)

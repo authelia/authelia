@@ -126,6 +126,11 @@ func TestConfig_Durations(t *testing.T) {
 	config.Lifespans.RefreshTokenMaximum = time.Hour * 24 * 90
 	assert.Equal(t, time.Hour*24*90, config.GetRefreshTokenMaximumLifespan(ctx))
 
+	assert.Equal(t, time.Duration(0), config.GetRefreshTokenGracePeriod(ctx))
+
+	config.Lifespans.RefreshTokenGracePeriod = time.Second * 10
+	assert.Equal(t, time.Second*10, config.GetRefreshTokenGracePeriod(ctx))
+
 	assert.Equal(t, time.Duration(0), config.Lifespans.AuthorizeCode)
 	assert.Equal(t, time.Minute*15, config.GetAuthorizeCodeLifespan(ctx))
 	assert.Equal(t, time.Minute*15, config.Lifespans.AuthorizeCode)

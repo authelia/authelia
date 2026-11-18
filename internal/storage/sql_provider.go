@@ -243,8 +243,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeactivateOAuth2PKCERequestSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2PKCERequestSession),
 
 		sqlInsertOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2RefreshTokenSession, tableOAuth2RefreshTokenSession),
-		sqlSelectOAuth2RefreshTokenSessionAccessSignature: fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSessionAccessSignature, tableOAuth2RefreshTokenSession),
-		sqlSelectOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2SessionIncludingRevoked, tableOAuth2RefreshTokenSession),
+		sqlSelectOAuth2RefreshTokenSessionState:           fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSessionState, tableOAuth2RefreshTokenSession),
+		sqlSelectOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSession, tableOAuth2RefreshTokenSession),
+		sqlUpdateOAuth2RefreshTokenSessionGraceDeadline:   fmt.Sprintf(queryFmtUpdateOAuth2RefreshTokenSessionGraceDeadline, tableOAuth2RefreshTokenSession),
 		sqlRevokeOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2RefreshTokenSession),
 		sqlRevokeOAuth2RefreshTokenSessionByRequestID:     fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2RefreshTokenSession),
 		sqlDeactivateOAuth2RefreshTokenSession:            fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2RefreshTokenSession),
@@ -471,8 +472,9 @@ type SQLProvider struct {
 
 	// Table: oauth2_refresh_token_session.
 	sqlInsertOAuth2RefreshTokenSession                string
-	sqlSelectOAuth2RefreshTokenSessionAccessSignature string
+	sqlSelectOAuth2RefreshTokenSessionState           string
 	sqlSelectOAuth2RefreshTokenSession                string
+	sqlUpdateOAuth2RefreshTokenSessionGraceDeadline   string
 	sqlRevokeOAuth2RefreshTokenSession                string
 	sqlRevokeOAuth2RefreshTokenSessionByRequestID     string
 	sqlDeactivateOAuth2RefreshTokenSession            string
@@ -1559,14 +1561,33 @@ func (p *SQLProvider) UpdateOAuth2RefreshTokenSessionRequest(ctx context.Context
 	return nil
 }
 
-// LoadOAuth2RefreshTokenSessionAccessSignature loads the signature of the access token issued alongside the refresh
-// token with the given signature.
-func (p *SQLProvider) LoadOAuth2RefreshTokenSessionAccessSignature(ctx context.Context, signature string) (accessSignature string, err error) {
-	if err = p.conn(ctx).GetContext(ctx, &accessSignature, p.sqlSelectOAuth2RefreshTokenSessionAccessSignature, signature); err != nil {
-		return "", fmt.Errorf("error selecting oauth2 refresh token session access signature with signature '%s': %w", signature, err)
+// LoadOAuth2RefreshTokenSessionState loads the state of the refresh token session with the given signature which
+// decides whether it may be rotated, along with the signature of the access token issued alongside it.
+func (p *SQLProvider) LoadOAuth2RefreshTokenSessionState(ctx context.Context, signature string) (state *model.OAuth2RefreshTokenSessionState, err error) {
+	state = &model.OAuth2RefreshTokenSessionState{}
+
+	if err = p.conn(ctx).GetContext(ctx, state, p.sqlSelectOAuth2RefreshTokenSessionState, signature); err != nil {
+		return nil, fmt.Errorf("error selecting oauth2 refresh token session state with signature '%s': %w", signature, err)
 	}
 
-	return accessSignature, nil
+	return state, nil
+}
+
+// UpdateOAuth2RefreshTokenSessionGraceDeadline records the time until which the active refresh token session with the
+// given signature remains redeemable once rotated. It returns ErrNoRowsAffected when no active session without a
+// recorded deadline exists for the signature, so the deadline is only ever recorded once.
+func (p *SQLProvider) UpdateOAuth2RefreshTokenSessionGraceDeadline(ctx context.Context, signature string, deadline time.Time) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2RefreshTokenSessionGraceDeadline, deadline, signature); err != nil {
+		return fmt.Errorf("error updating oauth2 refresh_token session grace deadline with signature '%s': %w", signature, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error updating oauth2 refresh_token session grace deadline with signature '%s': %w", signature, err)
+	}
+
+	return nil
 }
 
 // RevokeOAuth2Session marks an OAuth2.0 session as revoked in the storage provider.

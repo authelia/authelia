@@ -1997,6 +1997,40 @@ func TestRegisteredClient_GetRefreshTokenMaximumLifespan(t *testing.T) {
 	}
 }
 
+func TestRegisteredClient_GetRefreshTokenGracePeriod(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.RegisteredClient
+		fallback time.Duration
+		expected time.Duration
+	}{
+		{
+			name:     "ShouldReturnFallbackByDefault",
+			have:     &oidc.RegisteredClient{},
+			fallback: time.Second * 10,
+			expected: time.Second * 10,
+		},
+		{
+			name:     "ShouldReturnZeroFallback",
+			have:     &oidc.RegisteredClient{},
+			fallback: time.Duration(0),
+			expected: time.Duration(0),
+		},
+		{
+			name:     "ShouldReturnConfiguredValue",
+			have:     &oidc.RegisteredClient{Lifespans: schema.IdentityProvidersOpenIDConnectLifespan{RefreshTokenGracePeriod: time.Second * 30}},
+			fallback: time.Second * 10,
+			expected: time.Second * 30,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetRefreshTokenGracePeriod(tc.fallback))
+		})
+	}
+}
+
 func TestRegisteredClient_GetApplicationType(t *testing.T) {
 	testCases := []struct {
 		name     string
