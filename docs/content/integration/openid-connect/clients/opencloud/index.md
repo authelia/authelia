@@ -28,7 +28,7 @@ seo:
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [openCloud]
-  - [v7.2.4](https://github.com/opencloud-eu/opencloud/releases/tag/v7.2.4)
+  - [v9.1.1](https://github.com/opencloud-eu/opencloud/releases/tag/v9.1.1)
 
 {{% oidc-common %}}
 
@@ -58,6 +58,11 @@ The following YAML configuration is an example **Authelia** [client configuratio
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
+    cors:
+      allowed_origins_from_client_redirect_uris: true
+      endpoints:
+        - token
+        - userinfo
     clients:
       - client_id: 'opencloud'
         client_name: 'openCloud'
@@ -68,7 +73,6 @@ identity_providers:
         pkce_challenge_method: 'S256'
         scopes:
           - 'openid'
-          - 'offline_access'
           - 'groups'
           - 'profile'
           - 'email'
@@ -80,7 +84,9 @@ identity_providers:
           - 'code'
         grant_types:
           - 'authorization_code'
-          - 'refresh_token'
+        audience:
+          - 'opencloud'
+        requested_audience_mode: 'implicit'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
@@ -104,6 +110,9 @@ identity_providers:
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
+        audience:
+          - 'opencloud-android'
+        requested_audience_mode: 'implicit'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
@@ -128,6 +137,9 @@ identity_providers:
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
+        audience:
+          - 'opencloud-desktop'
+        requested_audience_mode: 'implicit'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
@@ -150,6 +162,9 @@ identity_providers:
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
+        audience:
+          - 'opencloud-ios'
+        requested_audience_mode: 'implicit'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
@@ -177,6 +192,7 @@ variables:
 ```shell {title=".env"}
 OC_OIDC_ISSUER="https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
 PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD="jwt"
+PROXY_OIDC_AUDIENCES="opencloud,opencloud-android,opencloud-desktop,opencloud-ios"
 PROXY_OIDC_REWRITE_WELLKNOWN="true"
 PROXY_AUTOPROVISION_ACCOUNTS="true"
 PROXY_AUTOPROVISION_CLAIM_USERNAME="preferred_username"
@@ -205,6 +221,7 @@ services:
     environment:
       OC_OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD: 'jwt'
+      PROXY_OIDC_AUDIENCES: 'opencloud,opencloud-android,opencloud-desktop,opencloud-ios'
       PROXY_OIDC_REWRITE_WELLKNOWN: 'true'
       PROXY_AUTOPROVISION_ACCOUNTS: 'true'
       PROXY_AUTOPROVISION_CLAIM_USERNAME: 'preferred_username'
@@ -272,6 +289,7 @@ directives:
     - '''self'''
   media-src:
     - '''self'''
+    - 'blob:'
   object-src:
     - '''self'''
     - 'blob:'
@@ -282,6 +300,7 @@ directives:
   style-src:
     - '''self'''
     - '''unsafe-inline'''
+    - 'blob:'
   worker-src:
     - '''self'''
     - 'blob:'
