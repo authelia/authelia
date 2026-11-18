@@ -7,7 +7,7 @@ overrides:
   brace-expansion: 5.0.13
   fast-uri: 4.2.3
   glob: 14.0.6
-  minimatch: 11.0.8
+  minimatch: 11.0.9
   next: 16.4.6
   postcss: 8.5.33
   source-map-js: 1.2.2
