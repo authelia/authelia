@@ -27,8 +27,8 @@ importers:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       react-email:
-        specifier: 6.11.15
-        version: 6.11.15(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: 6.11.16
+        version: 6.11.16(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
     devDependencies:
       '@eslint-react/eslint-plugin':
         specifier: 5.30.4
@@ -37,8 +37,8 @@ importers:
         specifier: 10.0.1
         version: 10.0.1(eslint@10.15.0(jiti@2.6.1))
       '@react-email/ui':
-        specifier: 6.11.15
-        version: 6.11.15(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: 6.11.16
+        version: 6.11.16(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
@@ -701,8 +701,8 @@ packages:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
       react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/ui@6.11.15':
-    resolution: {integrity: sha512-VFJL02HsAKwz41KzGDu893CsWgHB+8C1jYd900JSlEeQ235Z3tTaRLK+HB0qT5bICoAjXBg1vsLnpTN325fdbQ==}
+  '@react-email/ui@6.11.16':
+    resolution: {integrity: sha512-Lv7RaPjKoqFEZoUQ7EibbRxEiuu1xAa1/pBKe/ILTVG8502elgQznOnTbhtno9GI0Sf758DE+kWgszPqvjbomg==}
 
   '@rolldown/binding-android-arm-eabi@1.2.19':
     resolution: {integrity: sha512-e+Ebe0WT+9tbXmNKPIiC8YrWAHYwug3m6i4p3rZGGulfZri1jtI4HslT+OZnFf/OIHowWF71DTlHwXBP2SiA7A==}
@@ -1736,8 +1736,8 @@ packages:
     peerDependencies:
       react: ^19.3.1
 
-  react-email@6.11.15:
-    resolution: {integrity: sha512-fa8LDgBJzhIoB3smgb07L1Q1OCpEnevN5OgspjaDW6TpzvVZ9msxdbcG5Nochldqm/6wsEp40pGAQhpaSFtqxA==}
+  react-email@6.11.16:
+    resolution: {integrity: sha512-/d0gipOg2mB4IOqM46SfcQIZsJP2rumyxZWREOB8hKcyLAFDSlurCyvfWKVA85JaMUZECVFTN/U0UdqUAIBgXQ==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
@@ -2533,7 +2533,7 @@ snapshots:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@react-email/ui@6.11.15(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@react-email/ui@6.11.16(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       esbuild: 0.28.2
       jiti: 2.6.1
@@ -3513,7 +3513,7 @@ snapshots:
       react: 19.3.1
       scheduler: 0.28.0
 
-  react-email@6.11.15(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  react-email@6.11.16(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@babel/parser': 7.29.2
       '@babel/traverse': 8.1.2
