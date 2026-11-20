@@ -244,6 +244,7 @@ const (
 	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
 	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: jwks: keys: must at least have one key supporting the '%s' algorithm but only has %s"
+	errFmtOIDCProviderPrivateKeysRSA15NotEnabled         = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' but the 'enable_rsa1_5_key_management' option is not enabled"
 	errFmtOIDCProviderSigAlgDeprecated                   = "identity_providers: oidc: option '%s' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderPrivateKeysSigAlgDeprecated        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderInvalidValue                       = "identity_providers: oidc: option " +
@@ -292,6 +293,12 @@ const (
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = errFmtOIDCClientRedirectURIHas +
 		"an invalid value: redirect uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientRedirectURILoopbackNotNative = errFmtOIDCClientRedirectURIHas +
+		"the redirect uri '%s' which uses the 'http' scheme with a loopback address or a 'localhost' name but this is " +
+		"only permitted when option 'application_type' is 'native' but it's configured as '%s', the 'https' scheme " +
+		"should be used instead"
+	errFmtOIDCClientRedirectURIAuthorizationResponseParameter = errFmtOIDCClientRedirectURIHas +
+		"an invalid value: redirect uri '%s' must not include the authorization response parameter '%s' in the query"
 	errFmtOIDCClientRedirectURIInsecure = errFmtOIDCClientRedirectURIHas +
 		"the redirect uri '%s' which uses the 'http' scheme with a host which is not a loopback address or a " +
 		"'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme " +
@@ -355,6 +362,8 @@ const (
 		"'%s' must not have empty values but an empty value was present at index %d"
 	errFmtOIDCClientInvalidValue = errFmtOIDCClientOption +
 		errFmtMustBeOneOf
+	errFmtOIDCClientRSA15NotEnabled = errFmtOIDCClientOption +
+		"'%s' is configured as '%s' but the 'enable_rsa1_5_key_management' option is not enabled"
 	errFmtOIDCClientInvalidLifespan = errFmtOIDCClientOption +
 		"'lifespan' must not be configured when no custom lifespans are configured but it's configured as '%s'"
 	errFmtOIDCClientInvalidEndpointAuthMethod = errFmtOIDCClientOption +

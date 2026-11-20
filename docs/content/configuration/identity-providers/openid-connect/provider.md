@@ -87,6 +87,13 @@ identity_providers:
     audience_strategy: 'exact'
     resource_strategy: 'exact'
     enable_client_assertion_legacy_audience: false
+    enable_rsa1_5_key_management: false
+    enable_access_token_uri_query_parameter: false
+    enable_device_code_verification_uri_complete: false
+    special_use_address_guard:
+      disable: false
+      allowed_networks:
+        - '10.0.0.0/8'
     authorization_policies:
       policy_name:
         default_policy: 'two_factor'
@@ -469,6 +476,69 @@ By default, and as required by [RFC10070], the `aud` claim of a client assertion
 `private_key_jwt` [token_endpoint_auth_method](clients.md#token_endpoint_auth_method) values must contain the issuer
 identifier as its sole value. Enabling this option permits the legacy behavior where the `aud` claim may instead
 contain the URL of the endpoint the client is authenticating to, and may contain more than one value.
+
+### enable_rsa1_5_key_management
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option is generally discouraged. Clients should be configured to use `RSA-OAEP-256` or one of the
+`ECDH-ES` key management algorithms instead.
+{{< /callout >}}
+
+Permits the `RSA1_5` JSON Web Encryption key management algorithm. This algorithm is vulnerable to Bleichenbacher
+padding oracle attacks and both [RFC8725 Section 3.2] and [RFC7518 Section 8.3] advise against its use. When disabled
+the algorithm is not advertised in the discovery metadata, is not used to encrypt any response, and is not accepted to
+decrypt any request object or client assertion. Any client `*_encrypted_response_alg` option or issuer
+[jwks](#jwks) key configured with the `RSA1_5` algorithm is a configuration error unless this option is enabled.
+
+### enable_access_token_uri_query_parameter
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option is generally discouraged. Clients should send the Bearer Access Token in the `Authorization`
+header instead.
+{{< /callout >}}
+
+Permits the Bearer Access Token to be sent in the `access_token` URI query parameter at the UserInfo and Introspection
+endpoints as described in [RFC6750 Section 2.3]. Access Tokens in a URI leak through logs, browser history, and the
+`Referer` header, and the [OAuth 2.1] draft requires them to be ignored. When disabled only the `Authorization` header
+and the form-encoded body parameter are accepted.
+
+### enable_device_code_verification_uri_complete
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Includes the `verification_uri_complete` in the [RFC8628] Device Authorization Response. This value embeds the user
+code in the verification URI so the user does not have to enter it, which is convenient, but [RFC10027 Section 6.1.14]
+recommends omitting it as it makes it easier for an attacker to trick a user into approving a device they do not
+control.
+
+### special_use_address_guard
+
+The guard refuses connections to special-use addresses, such as loopback, private, and link-local addresses, when
+fetching a location supplied by a client such as the `jwks_uri` or a `request_uri`, as required by
+[draft-ietf-oauth-rfc8725bis Section 3.10]. The HTTP proxy is not used for these fetches while the guard is enabled.
+
+#### disable
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Disabling the guard is generally discouraged. Use [allowed_networks](#allowed_networks) to permit specific internal
+networks instead.
+{{< /callout >}}
+
+Disables the guard entirely which permits locations supplied by clients to be fetched from any address.
+
+#### allowed_networks
+
+{{< confkey type="list(string)" syntax="network" required="no" >}}
+
+The list of networks the guard permits connections to even when they are special-use addresses. This is useful when a
+client has a `jwks_uri` hosted on an internal network. Items in this list can also be named
+[Network Definitions](../../definitions/network.md).
 
 ### authorization_policies
 
@@ -881,6 +951,13 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [RFC8707]: https://datatracker.ietf.org/doc/html/rfc8707
 [RFC10070]: https://datatracker.ietf.org/doc/html/rfc10070
+[RFC8725 Section 3.2]: https://datatracker.ietf.org/doc/html/rfc8725#section-3.2
+[RFC7518 Section 8.3]: https://datatracker.ietf.org/doc/html/rfc7518#section-8.3
+[RFC6750 Section 2.3]: https://datatracker.ietf.org/doc/html/rfc6750#section-2.3
+[OAuth 2.1]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1
+[RFC8628]: https://datatracker.ietf.org/doc/html/rfc8628
+[RFC10027 Section 6.1.14]: https://datatracker.ietf.org/doc/html/rfc10027#section-6.1.14
+[draft-ietf-oauth-rfc8725bis Section 3.10]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-rfc8725bis#section-3.10
 [JWT-Secured Authorization Request]: https://datatracker.ietf.org/doc/html/rfc9101
 [OpenID Certified™]: https://openid.net/certification/
 [OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

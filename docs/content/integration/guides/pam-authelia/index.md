@@ -466,6 +466,7 @@ identity_providers:
           - 'urn:ietf:params:oauth:grant-type:device_code'
         token_endpoint_auth_method: 'client_secret_post'
         claims_policy: 'pam'
+        device_code_verification_uri_complete: true
         scopes:
           - 'openid'
           - 'authelia.pam'
@@ -477,6 +478,7 @@ What each block does:
 - **`scopes.authelia.pam`**: a custom OIDC scope named `authelia.pam` that grants the `authelia.pam.username` claim. The name is arbitrary but must match whatever you send via the PAM [`oauth2-scope`](#oauth2-scope) option; `authelia.pam` is the default the Go helper expects.
 - **Client-level `claims_policy: 'pam'`**: attaches the `pam` claims policy to this specific client so the custom claim is actually emitted when a token is issued.
 - **Client-level `scopes: ['openid', 'authelia.pam']`**: the client is only allowed to request these two scopes, matching the PAM module's defaults.
+- **Client-level `device_code_verification_uri_complete: true`**: includes the `verification_uri_complete` in the Device Authorization Response for this client, which embeds the user code in the URL [pam_authelia] renders as a QR code, so the user only has to scan it rather than also type the user code. This is disabled by default as it makes it easier to trick a user into approving a device they do not control; [pam_authelia] mitigates this with the [Device Authorization identity binding](#device-authorization-identity-binding) check. Omit it if you would rather your users enter the user code manually. See [device_code_verification_uri_complete](../../../configuration/identity-providers/openid-connect/clients.md#device_code_verification_uri_complete) for more information.
 
 Additional notes:
 

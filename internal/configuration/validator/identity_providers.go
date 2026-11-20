@@ -521,6 +521,10 @@ func validateOIDCIssuerPrivateKeysEncAlg(i int, props *JWKProperties, config *sc
 		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalidOptionOneOf, i+1, config.JSONWebKeys[i].KeyID, attrOIDCAlgorithm, utils.StringJoinOr(validOIDCJWKEncryptionAlgs), config.JSONWebKeys[i].Algorithm))
 	}
 
+	if config.JSONWebKeys[i].Algorithm == oidc.EncryptionAlgRSA15 && !config.EnableRSA15KeyManagement {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysRSA15NotEnabled, i+1, config.JSONWebKeys[i].KeyID, config.JSONWebKeys[i].Algorithm))
+	}
+
 	if config.JSONWebKeys[i].Algorithm != "" {
 		if !utils.IsStringInSlice(config.JSONWebKeys[i].Algorithm, config.Discovery.ResponseObjectEncryptionAlgs) {
 			config.Discovery.ResponseObjectEncryptionAlgs = append(config.Discovery.ResponseObjectEncryptionAlgs, config.JSONWebKeys[i].Algorithm)
@@ -1504,6 +1508,10 @@ func validateOIDCClientRedirectURIs(c int, config *schema.IdentityProvidersOpenI
 		if parsedRedirectURI.Scheme == schemeHTTP && !oauthelia2.IsLocalhost(parsedRedirectURI) {
 			validator.PushWarning(fmt.Errorf(errFmtOIDCClientRedirectURIInsecure, config.Clients[c].ID, redirectURI))
 		}
+
+		if name, found := oauthelia2.GetRedirectURIAuthorizationResponseParameter(parsedRedirectURI); found {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAuthorizationResponseParameter, config.Clients[c].ID, redirectURI, name))
+		}
 	}
 
 	_, duplicates := validateList(config.Clients[c].RedirectURIs, nil, true)
@@ -1544,6 +1552,19 @@ func validateOIDCClientApplicationType(c int, config *schema.IdentityProvidersOp
 	validateOIDCClientApplicationTypeRedirectURIs(c, config, validator, native, explicit)
 }
 
+func validateOIDCClientApplicationTypeRedirectURILoopback(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, redirectURI string, parsed *url.URL, native, explicit bool) {
+	if !oauthelia2.IsLocalhost(parsed) {
+		return
+	}
+
+	switch {
+	case !native:
+		validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURILoopbackNotNative, config.Clients[c].ID, redirectURI, config.Clients[c].ApplicationType))
+	case explicit && !isLoopbackIPLiteral(parsed.Hostname()):
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientRedirectURINativeLoopback, config.Clients[c].ID, redirectURI, parsed.Hostname()))
+	}
+}
+
 func validateOIDCClientApplicationTypeRedirectURIs(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, native, explicit bool) {
 	for _, redirectURI := range config.Clients[c].RedirectURIs {
 		if redirectURI == oidc.RedirectURISpecialOAuth2InstalledApp {
@@ -1559,9 +1580,7 @@ func validateOIDCClientApplicationTypeRedirectURIs(c int, config *schema.Identit
 		case schemeHTTPS:
 			continue
 		case schemeHTTP:
-			if native && explicit && oauthelia2.IsLocalhost(parsed) && !isLoopbackIPLiteral(parsed.Hostname()) {
-				validator.PushWarning(fmt.Errorf(errFmtOIDCClientRedirectURINativeLoopback, config.Clients[c].ID, redirectURI, parsed.Hostname()))
-			}
+			validateOIDCClientApplicationTypeRedirectURILoopback(c, config, validator, redirectURI, parsed, native, explicit)
 		default:
 			switch {
 			case !native:
@@ -1917,6 +1936,10 @@ func validateOIDDClientEncryptionAlg(c int, config *schema.IdentityProvidersOpen
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
 			config.Clients[c].ID, key, utils.StringJoinOr(validOIDCClientJWKEncryptionKeyAlgs), alg))
 	} else {
+		if alg == oidc.EncryptionAlgRSA15 && !config.EnableRSA15KeyManagement {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRSA15NotEnabled, config.Clients[c].ID, key, alg))
+		}
+
 		if jwt.IsEncryptedJWTClientSecretAlgStr(alg) && !config.Clients[c].Discovery.ClientSecretPlainText {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID, key, alg))
 		}
