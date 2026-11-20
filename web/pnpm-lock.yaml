@@ -14,7 +14,7 @@ overrides:
   picomatch: 4.0.7
   qs: 6.17.1
   semver: 7.8.6
-  source-map-js: 1.2.3
+  source-map-js: 1.2.4
   vite: 8.3.8
   zod: 4.6.7
 
@@ -3394,9 +3394,9 @@ packages:
   snake-case@3.0.4:
     resolution: {integrity: sha512-LAOh4z89bGQvl9pFfNF8V146i7o7/CqFPbqzYgP+yYzDIDeS9HaNFtXABamRW+AQzEVODcvE79ljJ+8a9YSdMg==}
 
-  source-map-js@1.2.3:
-    resolution: {integrity: sha512-xj+WrAkyv5Qp+t7r9N5HvCBu7g1qOe6CKRNpq22X1GGcPEQADFU54v5qsPVs3/vrUFQ7XivFrcAVKA2stI0kWA==}
-    engines: {node: '>=0.10.0'}
+  source-map-js@1.2.4:
+    resolution: {integrity: sha512-J7ZjMvHd9O1fcT/5V09QWaaSl2BbWx3F6O08spde82Namf9UB0GxRVIPiNbVsdKkoizHiSpTodo3vp2bAy91MA==}
+    engines: {node: '>=6.0.0'}
 
   source-map@0.7.6:
     resolution: {integrity: sha512-i5uvt8C3ikiWeNZSVZNWcfZPItFQOsYTUAOkcUPGd8DqDy1uOUikjt5dG+uRlwyvR108Fb9DOd4GvXfT0N2/uQ==}
@@ -4700,7 +4700,7 @@ snapshots:
       jiti: 2.7.0
       lightningcss: 1.33.0
       magic-string: 1.4.5
-      source-map-js: 1.2.3
+      source-map-js: 1.2.4
       tailwindcss: 4.3.5
 
   '@tailwindcss/oxide-android-arm64@4.3.5':
@@ -5495,7 +5495,7 @@ snapshots:
   css-tree@3.2.1:
     dependencies:
       mdn-data: 2.27.1
-      source-map-js: 1.2.3
+      source-map-js: 1.2.4
 
   css.escape@1.5.1: {}
 
@@ -6679,7 +6679,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.29.12
       '@babel/types': 7.29.11
-      source-map-js: 1.2.3
+      source-map-js: 1.2.4
 
   math-intrinsics@1.1.0: {}
 
@@ -6901,7 +6901,7 @@ snapshots:
     dependencies:
       nanoid: 3.3.20
       picocolors: 1.1.1
-      source-map-js: 1.2.3
+      source-map-js: 1.2.4
 
   prelude-ls@1.2.1: {}
 
@@ -7188,7 +7188,7 @@ snapshots:
       dot-case: 3.0.4
       tslib: 2.8.1
 
-  source-map-js@1.2.3: {}
+  source-map-js@1.2.4: {}
 
   source-map@0.7.6: {}
 

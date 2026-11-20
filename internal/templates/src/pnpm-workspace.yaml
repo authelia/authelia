@@ -10,5 +10,5 @@ overrides:
   minimatch: 11.0.9
   next: 16.4.6
   postcss: 8.5.33
-  source-map-js: 1.2.3
+  source-map-js: 1.2.4
   zod: 4.6.7
