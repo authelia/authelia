@@ -1691,6 +1691,28 @@ session:
     ## issuer identifier as the sole audience value.
     # enable_client_assertion_legacy_audience: false
 
+    ## SECURITY NOTICE: It's not recommended changing this option. Permits the RSA1_5 JWE key management algorithm
+    ## which is vulnerable to padding oracle attacks.
+    # enable_rsa1_5_key_management: false
+
+    ## SECURITY NOTICE: It's not recommended changing this option. Permits Bearer Access Tokens to be sent in the
+    ## 'access_token' URI query parameter which exposes them in logs, browser history, and Referer headers.
+    # enable_access_token_uri_query_parameter: false
+
+    ## SECURITY NOTICE: It's not recommended changing this option. Includes the 'verification_uri_complete' which
+    ## embeds the user code in the Device Authorization Response.
+    # enable_device_code_verification_uri_complete: false
+
+    ## The guard which refuses connections to special-use addresses such as loopback and private addresses when
+    ## fetching client supplied locations such as the 'jwks_uri' and 'request_uri'.
+    # special_use_address_guard:
+      ## SECURITY NOTICE: It's not recommended changing this option. Disables the guard entirely.
+      # disable: false
+
+      ## The networks the guard permits even when they are special-use addresses.
+      # allowed_networks:
+        # - '10.0.0.0/8'
+
     ## Authorization Policies which can be utilized by clients. The 'policy_name' is an arbitrary value that you pick
     ## which is utilized as the value for the 'authorization_policy' on the client.
     # authorization_policies:

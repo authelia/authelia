@@ -1233,6 +1233,20 @@ func TestValidateOIDCClientApplicationType(t *testing.T) {
 			redirectURIs: []string{"http://127.0.0.1/callback"},
 			grantTypes:   []string{oidc.GrantTypeAuthorizationCode},
 			expected:     oidc.ApplicationTypeWeb,
+			errs: []string{
+				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'http://127.0.0.1/callback' which uses the 'http' scheme with a loopback address or a 'localhost' name but this is only permitted when option 'application_type' is 'native' but it's configured as 'web', the 'https' scheme should be used instead",
+			},
+		},
+		{
+			name:            "ShouldRaiseErrorOnWebLocalhost",
+			applicationType: oidc.ApplicationTypeWeb,
+			public:          true,
+			redirectURIs:    []string{"http://localhost:8080/callback"},
+			grantTypes:      []string{oidc.GrantTypeAuthorizationCode},
+			expected:        oidc.ApplicationTypeWeb,
+			errs: []string{
+				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'http://localhost:8080/callback' which uses the 'http' scheme with a loopback address or a 'localhost' name but this is only permitted when option 'application_type' is 'native' but it's configured as 'web', the 'https' scheme should be used instead",
+			},
 		},
 		{
 			name:         "ShouldDefaultPublicClientWithHTTPSToWeb",
@@ -1288,6 +1302,9 @@ func TestValidateOIDCClientApplicationType(t *testing.T) {
 			redirectURIs: []string{"http://127.0.0.1/callback"},
 			grantTypes:   []string{oidc.GrantTypeImplicit},
 			expected:     oidc.ApplicationTypeWeb,
+			errs: []string{
+				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has the redirect uri 'http://127.0.0.1/callback' which uses the 'http' scheme with a loopback address or a 'localhost' name but this is only permitted when option 'application_type' is 'native' but it's configured as 'web', the 'https' scheme should be used instead",
+			},
 		},
 		{
 			name:            "ShouldAllowNativeLoopbackAndReverseDNSScheme",
@@ -1388,6 +1405,61 @@ func TestValidateOIDCClientApplicationType(t *testing.T) {
 
 			for i, err := range tc.errs {
 				assert.EqualError(t, validator.Errors()[i], err)
+			}
+		})
+	}
+}
+
+func TestValidateOIDCClientRedirectURIsAuthorizationResponseParameters(t *testing.T) {
+	testCases := []struct {
+		name     string
+		uri      string
+		expected string
+	}{
+		{
+			"ShouldNotErrorWithoutQuery",
+			"https://app.example.com/callback",
+			"",
+		},
+		{
+			"ShouldNotErrorWithOtherQuery",
+			"https://app.example.com/callback?tenant=abc",
+			"",
+		},
+		{
+			"ShouldErrorWithState",
+			"https://app.example.com/callback?state=abc",
+			"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has an invalid value: redirect uri 'https://app.example.com/callback?state=abc' must not include the authorization response parameter 'state' in the query",
+		},
+		{
+			"ShouldErrorWithIssuer",
+			"https://app.example.com/callback?tenant=abc&iss=https%3A%2F%2Fauth.example.com",
+			"identity_providers: oidc: clients: client 'test': option 'redirect_uris' has an invalid value: redirect uri 'https://app.example.com/callback?tenant=abc&iss=https%3A%2F%2Fauth.example.com' must not include the authorization response parameter 'iss' in the query",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:           "test",
+						RedirectURIs: []string{tc.uri},
+					},
+				},
+			}
+
+			validateOIDCClientRedirectURIs(0, config, validator, nil)
+
+			assert.Len(t, validator.Warnings(), 0)
+
+			if tc.expected == "" {
+				assert.Len(t, validator.Errors(), 0)
+			} else {
+				require.Len(t, validator.Errors(), 1)
+				assert.EqualError(t, validator.Errors()[0], tc.expected)
 			}
 		})
 	}
@@ -2717,7 +2789,7 @@ func TestValidateOIDCClients(t *testing.T) {
 					ID:                                 "abc",
 					Secret:                             nil,
 					Public:                             true,
-					RedirectURIs:                       []string{"http://localhost"},
+					RedirectURIs:                       []string{"https://localhost"},
 					Audience:                           nil,
 					Scopes:                             []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
 					GrantTypes:                         []string{oidc.GrantTypeImplicit},
@@ -2765,7 +2837,7 @@ func TestValidateOIDCClients(t *testing.T) {
 					ID:                                 "abc",
 					Secret:                             tOpenIDConnectPBKDF2ClientSecret,
 					Public:                             false,
-					RedirectURIs:                       []string{"http://localhost"},
+					RedirectURIs:                       []string{"https://localhost"},
 					Audience:                           nil,
 					Scopes:                             []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
 					GrantTypes:                         []string{oidc.GrantTypeImplicit},
@@ -2813,7 +2885,7 @@ func TestValidateOIDCClients(t *testing.T) {
 					ID:                                 "abc",
 					Secret:                             tOpenIDConnectPBKDF2ClientSecret,
 					Public:                             false,
-					RedirectURIs:                       []string{"http://localhost"},
+					RedirectURIs:                       []string{"https://localhost"},
 					Audience:                           nil,
 					Scopes:                             []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
 					GrantTypes:                         []string{oidc.GrantTypeClientCredentials},
@@ -2897,7 +2969,7 @@ func TestValidateOIDCClients(t *testing.T) {
 					ID:                                 "abc",
 					Secret:                             tOpenIDConnectPBKDF2ClientSecret,
 					Public:                             false,
-					RedirectURIs:                       []string{"http://localhost"},
+					RedirectURIs:                       []string{"https://localhost"},
 					Audience:                           []string{"https://app.example.com"},
 					Scopes:                             []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
 					GrantTypes:                         []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
@@ -3573,6 +3645,63 @@ func TestValidateOIDCClients(t *testing.T) {
 				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].AccessTokenEncryptedResponseEnc)
 
 				assert.True(t, have.Discovery.JWTResponseAccessTokens)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnRSA15EncryptionAlgWithoutRSA15KeyManagement",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].JSONWebKeysURI = &url.URL{Scheme: "https", Host: "example.com", Path: "/jwks.json"}
+
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgRSA15
+				have.Clients[0].IDTokenEncryptedResponseEnc = ""
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, oidc.EncryptionAlgRSA15, have.Clients[0].IDTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IDTokenEncryptedResponseEnc)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'id_token_encrypted_response_alg' is configured as 'RSA1_5' but the 'enable_rsa1_5_key_management' option is not enabled",
+			},
+		},
+		{
+			"ShouldNotRaiseErrorOnRSA15EncryptionAlgWithRSA15KeyManagement",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.EnableRSA15KeyManagement = true
+				have.Clients[0].JSONWebKeysURI = &url.URL{Scheme: "https", Host: "example.com", Path: "/jwks.json"}
+
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgRSA15
+				have.Clients[0].IDTokenEncryptedResponseEnc = ""
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, oidc.EncryptionAlgRSA15, have.Clients[0].IDTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IDTokenEncryptedResponseEnc)
 			},
 			tcv{
 				nil,
@@ -4998,6 +5127,50 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{"RS256": "35db6c-rs256"},
 					DefaultEncKeyIDs: map[string]string{"RSA-OAEP-256": "35db6c-rsa-oaep-256"},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnEncKeyRSA15WithoutRSA15KeyManagement",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, Use: oidc.KeyUseEncryption, Algorithm: oidc.EncryptionAlgRSA15},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, Use: oidc.KeyUseEncryption, Algorithm: oidc.EncryptionAlgRSA15, KeyID: "35db6c-rsa1_5"},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, KeyID: "35db6c-rs256"},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs: map[string]string{"RS256": "35db6c-rs256"},
+					DefaultEncKeyIDs: map[string]string{"RSA1_5": "35db6c-rsa1_5"},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1 with key id '35db6c-rsa1_5': option 'algorithm' is configured as 'RSA1_5' but the 'enable_rsa1_5_key_management' option is not enabled",
+			},
+		},
+		{
+			"ShouldHandleEncKeyRSA15WithRSA15KeyManagement",
+			&schema.IdentityProvidersOpenIDConnect{
+				EnableRSA15KeyManagement: true,
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, Use: oidc.KeyUseEncryption, Algorithm: oidc.EncryptionAlgRSA15},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				EnableRSA15KeyManagement: true,
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, Use: oidc.KeyUseEncryption, Algorithm: oidc.EncryptionAlgRSA15, KeyID: "35db6c-rsa1_5"},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, KeyID: "35db6c-rs256"},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs: map[string]string{"RS256": "35db6c-rs256"},
+					DefaultEncKeyIDs: map[string]string{"RSA1_5": "35db6c-rsa1_5"},
 				},
 			},
 			nil,

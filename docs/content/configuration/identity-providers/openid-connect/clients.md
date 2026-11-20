@@ -301,13 +301,17 @@ their redirect URIs are as follows:
 2. The redirect URIs are case-sensitive.
 3. The URI must include a scheme. Any scheme other than `http` or `https` is a private-use URI scheme which is only
    expected for a `native` [application_type](#application_type).
-4. The `http` scheme may only be used when the host is a loopback address such as `127.0.0.1` or `[::1]`, or is
-   `localhost` or a name ending in `.localhost`, as required by
-   [RFC9700 Section 2.6](https://datatracker.ietf.org/doc/html/rfc9700#section-2.6). This applies to both public and
-   confidential clients, and authorization requests using any other `http` redirect URI will be rejected. A warning is
-   logged at startup for each redirect URI which does not meet this requirement.
+4. The `http` scheme may only be used when the [application_type](#application_type) is `native` and the host is a
+   loopback address such as `127.0.0.1` or `[::1]`, or is `localhost` or a name ending in `.localhost`, as required by
+   [RFC9700 Section 2.6](https://datatracker.ietf.org/doc/html/rfc9700#section-2.6) and
+   [RFC8252 Section 7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3). Authorization requests using any
+   other `http` redirect URI will be rejected. A loopback `http` redirect URI on a client which is not `native` is a
+   configuration error, and a warning is logged at startup for each other `http` redirect URI.
 5. The port of a loopback redirect URI must match the registered port exactly unless the
    [application_type](#application_type) is `native`, in which case any port is permitted.
+6. The query must not include a parameter of the authorization response such as `code`, `state`, or `iss`, as required
+   by the [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1) draft, which is a configuration
+   error.
 
 ### request_uris
 

@@ -165,7 +165,7 @@ func (c *Config) GetClientAssertionSigningAlgValues(ctx context.Context) (algs [
 
 // GetClientAssertionEncryptionAlgValues returns the JWE 'alg' values accepted for an encrypted client assertion.
 func (c *Config) GetClientAssertionEncryptionAlgValues(ctx context.Context) (algs []string) {
-	return EncryptionAlgValuesSupported()
+	return jwt.FilterKeyAlgorithms(ctx, c, EncryptionAlgValuesSupported())
 }
 
 // GetClientAssertionEncryptionEncValues returns the JWE 'enc' values accepted for an encrypted client assertion.
@@ -191,7 +191,7 @@ func (c *Config) GetRequestObjectSigningAlgValues(ctx context.Context) (algs []s
 
 // GetRequestObjectEncryptionAlgValues returns the JWE 'alg' values accepted for an encrypted request object.
 func (c *Config) GetRequestObjectEncryptionAlgValues(ctx context.Context) (algs []string) {
-	return EncryptionAlgValuesSupported()
+	return jwt.FilterKeyAlgorithms(ctx, c, EncryptionAlgValuesSupported())
 }
 
 // GetRequestObjectEncryptionEncValues returns the JWE 'enc' values accepted for an encrypted request object.
@@ -201,7 +201,7 @@ func (c *Config) GetRequestObjectEncryptionEncValues(ctx context.Context) (encs 
 
 // GetResponseEncryptionAlgValues returns the JWE 'alg' values supported for the given response.
 func (c *Config) GetResponseEncryptionAlgValues(ctx context.Context, target oauthelia2.ResponseEncryptionTarget) (algs []string) {
-	return EncryptionAlgValuesSupported()
+	return jwt.FilterKeyAlgorithms(ctx, c, EncryptionAlgValuesSupported())
 }
 
 // GetResponseEncryptionEncValues returns the JWE 'enc' values supported for the given response.
