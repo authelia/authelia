@@ -60,7 +60,7 @@
     "@eslint-react/eslint-plugin": "5.30.4",
     "@limegrass/eslint-plugin-import-alias": "1.6.1",
     "@tailwindcss/vite": "4.3.5",
-    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/jest-dom": "8.0.0",
     "@testing-library/react": "16.3.3",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
