@@ -37,6 +37,12 @@ type IdentityProvidersOpenIDConnect struct {
 
 	EnableClientAssertionLegacyAudience bool `koanf:"enable_client_assertion_legacy_audience" yaml:"enable_client_assertion_legacy_audience" toml:"enable_client_assertion_legacy_audience" json:"enable_client_assertion_legacy_audience" jsonschema:"default=false,title=Enable Client Assertion Legacy Audience" jsonschema_description:"Allows JWT client authentication assertions to use the endpoint URL or carry multiple audience values instead of requiring the issuer identifier as the sole audience value."`
 
+	EnableRSA15KeyManagement                bool `koanf:"enable_rsa1_5_key_management" yaml:"enable_rsa1_5_key_management" toml:"enable_rsa1_5_key_management" json:"enable_rsa1_5_key_management" jsonschema:"default=false,title=Enable RSA1_5 Key Management" jsonschema_description:"Permits the RSA1_5 JWE key management algorithm which is vulnerable to padding oracle attacks."`
+	EnableAccessTokenURIQueryParameter      bool `koanf:"enable_access_token_uri_query_parameter" yaml:"enable_access_token_uri_query_parameter" toml:"enable_access_token_uri_query_parameter" json:"enable_access_token_uri_query_parameter" jsonschema:"default=false,title=Enable Access Token URI Query Parameter" jsonschema_description:"Permits Bearer Access Tokens to be sent in the 'access_token' URI query parameter."`
+	EnableDeviceCodeVerificationURIComplete bool `koanf:"enable_device_code_verification_uri_complete" yaml:"enable_device_code_verification_uri_complete" toml:"enable_device_code_verification_uri_complete" json:"enable_device_code_verification_uri_complete" jsonschema:"default=false,title=Enable Device Code Verification URI Complete" jsonschema_description:"Includes the 'verification_uri_complete' which embeds the user code in the Device Authorization Response."`
+
+	SpecialUseAddressGuard IdentityProvidersOpenIDConnectSpecialUseAddressGuard `koanf:"special_use_address_guard" yaml:"special_use_address_guard,omitempty" toml:"special_use_address_guard,omitempty" json:"special_use_address_guard,omitempty" jsonschema:"title=Special Use Address Guard" jsonschema_description:"Configuration options for the guard which refuses connections to special-use addresses such as loopback and private addresses when fetching client supplied locations."`
+
 	RequirePushedAuthorizationRequests bool `koanf:"require_pushed_authorization_requests" yaml:"require_pushed_authorization_requests" toml:"require_pushed_authorization_requests" json:"require_pushed_authorization_requests" jsonschema:"title=Require Pushed Authorization Requests" jsonschema_description:"Requires Pushed Authorization Requests for all clients for this Issuer."`
 	RequireSignedRequestObject         bool `koanf:"require_signed_request_object" yaml:"require_signed_request_object" toml:"require_signed_request_object" json:"require_signed_request_object" jsonschema:"default=false,title=Require Signed Request Object" jsonschema_description:"Requires all authorization requests for all clients for this Issuer be provided as a signed Request Object."`
 
@@ -172,6 +178,13 @@ type IdentityProvidersOpenIDConnectCORS struct {
 	AllowedOriginsFromClientRedirectURIs bool `koanf:"allowed_origins_from_client_redirect_uris" yaml:"allowed_origins_from_client_redirect_uris" toml:"allowed_origins_from_client_redirect_uris" json:"allowed_origins_from_client_redirect_uris" jsonschema:"default=false,title=Allowed Origins From Client Redirect URIs" jsonschema_description:"Automatically include the redirect URIs from the registered clients."`
 }
 
+// IdentityProvidersOpenIDConnectSpecialUseAddressGuard represents the configuration of the guard which refuses
+// connections to special-use addresses when fetching client supplied locations.
+type IdentityProvidersOpenIDConnectSpecialUseAddressGuard struct {
+	Disable         bool         `koanf:"disable" yaml:"disable" toml:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the guard which permits client supplied locations such as the 'jwks_uri' and 'request_uri' to be fetched from special-use addresses such as loopback and private addresses."`
+	AllowedNetworks []*net.IPNet `koanf:"allowed_networks" yaml:"allowed_networks,omitempty" toml:"allowed_networks,omitempty" json:"allowed_networks,omitempty" jsonschema:"title=Allowed Networks" jsonschema_description:"The networks the guard permits client supplied locations to be fetched from even when they are special-use addresses."`
+}
+
 // IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client.
 type IdentityProvidersOpenIDConnectClient struct {
 	ID                  string          `koanf:"client_id" yaml:"client_id" toml:"client_id" json:"client_id" jsonschema:"required,minLength=1,title=Client ID" jsonschema_description:"The Client ID."`
@@ -208,6 +221,8 @@ type IdentityProvidersOpenIDConnectClient struct {
 	RequirePKCE                        bool `koanf:"require_pkce" yaml:"require_pkce,omitempty" toml:"require_pkce,omitempty" json:"require_pkce" jsonschema:"default=false,title=Require PKCE" jsonschema_description:"Requires a Proof Key for this client to perform Code Exchange."`
 
 	DisableRefreshTokenRotation bool `koanf:"disable_refresh_token_rotation" yaml:"disable_refresh_token_rotation,omitempty" toml:"disable_refresh_token_rotation,omitempty" json:"disable_refresh_token_rotation" jsonschema:"default=false,title=Disable Refresh Token Rotation" jsonschema_description:"Keeps the presented refresh token during the refresh token grant rather than issuing a new one. This has no effect for public clients."`
+
+	DeviceCodeVerificationURIComplete bool `koanf:"device_code_verification_uri_complete" yaml:"device_code_verification_uri_complete,omitempty" toml:"device_code_verification_uri_complete,omitempty" json:"device_code_verification_uri_complete" jsonschema:"default=false,title=Device Code Verification URI Complete" jsonschema_description:"Includes the 'verification_uri_complete' which embeds the user code in the Device Authorization Response for this client."`
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method" yaml:"pkce_challenge_method,omitempty" toml:"pkce_challenge_method,omitempty" json:"pkce_challenge_method" jsonschema:"enum=,enum=plain,enum=S256,title=PKCE Challenge Method" jsonschema_description:"The PKCE Challenge Method enforced on this client."`
 

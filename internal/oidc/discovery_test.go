@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
 
@@ -62,7 +63,7 @@ func TestOpenIDConnectProviderMetadata(t *testing.T) {
 	require.NotNil(t, metadata.OpenIDConnectJARMMetadata)
 	assert.Equal(t, issued, metadata.AuthorizationSigningAlgValuesSupported)
 
-	assert.Equal(t, oidc.EncryptionAlgValuesSupported(), metadata.IDTokenEncryptionAlgValuesSupported)
+	assert.Equal(t, slices.DeleteFunc(oidc.EncryptionAlgValuesSupported(), func(alg string) bool { return alg == oidc.EncryptionAlgRSA15 }), metadata.IDTokenEncryptionAlgValuesSupported)
 	assert.Equal(t, oidc.EncryptionEncValuesSupported(), metadata.IDTokenEncryptionEncValuesSupported)
 
 	assert.NotContains(t, metadata.ClaimsSupported, oidc.ClaimAuthenticationContextClassReference)
@@ -112,6 +113,18 @@ func TestOpenIDConnectProviderMetadataOptions(t *testing.T) {
 				assert.NotContains(t, raw, "require_signed_request_object")
 				assert.NotContains(t, raw, "require_pushed_authorization_requests")
 				assert.Contains(t, raw["request_object_signing_alg_values_supported"], oidc.SigningAlgNone)
+				assert.NotContains(t, raw["id_token_encryption_alg_values_supported"], oidc.EncryptionAlgRSA15)
+				assert.NotContains(t, raw["request_object_encryption_alg_values_supported"], oidc.EncryptionAlgRSA15)
+			},
+		},
+		{
+			Name: "ShouldIncludeRSA15WhenEnabled",
+			Setup: func(config *schema.IdentityProvidersOpenIDConnect) {
+				config.EnableRSA15KeyManagement = true
+			},
+			Assert: func(t *testing.T, raw map[string]any) {
+				assert.Contains(t, raw["id_token_encryption_alg_values_supported"], oidc.EncryptionAlgRSA15)
+				assert.Contains(t, raw["request_object_encryption_alg_values_supported"], oidc.EncryptionAlgRSA15)
 			},
 		},
 		{

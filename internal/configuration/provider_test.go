@@ -1160,6 +1160,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 
 	require.Len(t, config.IdentityProviders.OIDC.Clients, 1)
 	assert.Equal(t, config.IdentityProviders.OIDC.Clients[0].ConsentMode, "explicit")
+	assert.True(t, config.IdentityProviders.OIDC.Clients[0].DeviceCodeVerificationURIComplete)
 	assert.Equal(t, "none", config.IdentityProviders.OIDC.Clients[0].UserinfoSignedResponseAlg)
 }
 

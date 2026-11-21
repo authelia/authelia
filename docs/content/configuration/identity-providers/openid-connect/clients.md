@@ -84,6 +84,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: 'S256'
         disable_refresh_token_rotation: false
+        device_code_verification_uri_complete: false
         authorization_signed_response_key_id: ''
         authorization_signed_response_alg: 'RS256'
         authorization_encrypted_response_key_id: ''
@@ -301,13 +302,17 @@ their redirect URIs are as follows:
 2. The redirect URIs are case-sensitive.
 3. The URI must include a scheme. Any scheme other than `http` or `https` is a private-use URI scheme which is only
    expected for a `native` [application_type](#application_type).
-4. The `http` scheme may only be used when the host is a loopback address such as `127.0.0.1` or `[::1]`, or is
-   `localhost` or a name ending in `.localhost`, as required by
-   [RFC9700 Section 2.6](https://datatracker.ietf.org/doc/html/rfc9700#section-2.6). This applies to both public and
-   confidential clients, and authorization requests using any other `http` redirect URI will be rejected. A warning is
-   logged at startup for each redirect URI which does not meet this requirement.
+4. The `http` scheme may only be used when the [application_type](#application_type) is `native` and the host is a
+   loopback address such as `127.0.0.1` or `[::1]`, or is `localhost` or a name ending in `.localhost`, as required by
+   [RFC9700 Section 2.6](https://datatracker.ietf.org/doc/html/rfc9700#section-2.6) and
+   [RFC8252 Section 7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3). Authorization requests using any
+   other `http` redirect URI will be rejected. A loopback `http` redirect URI on a client which is not `native` is a
+   configuration error, and a warning is logged at startup for each other `http` redirect URI.
 5. The port of a loopback redirect URI must match the registered port exactly unless the
    [application_type](#application_type) is `native`, in which case any port is permitted.
+6. The query must not include a parameter of the authorization response such as `code`, `state`, or `iss`, as required
+   by the [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1) draft, which is a configuration
+   error.
 
 ### request_uris
 
@@ -668,6 +673,20 @@ refresh token is used again, every token issued from the same authorization gran
 
 This option has no effect for [public](#public) clients, as RFC9700 requires the refresh tokens of public clients to be
 rotated unless they are sender-constrained, and a warning is logged at startup when it's configured for one.
+
+### device_code_verification_uri_complete
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option is generally discouraged as it makes it easier for an attacker to trick a user into approving a
+device they do not control.
+{{< /callout >}}
+
+Includes the `verification_uri_complete` in the [RFC8628] Device Authorization Response for this client. This value
+embeds the user code in the verification URI so the user does not have to enter it. This option has no effect when the
+provider level [enable_device_code_verification_uri_complete](provider.md#enable_device_code_verification_uri_complete)
+option is enabled, as it's then included for every client.
 
 ### authorization_signed_response_key_id
 
@@ -1628,6 +1647,7 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [RFC8037]: https://datatracker.ietf.org/doc/html/rfc8037
 [RFC6749 Section 2.1]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.1
 [PKCE]: https://datatracker.ietf.org/doc/html/rfc7636
+[RFC8628]: https://datatracker.ietf.org/doc/html/rfc8628
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
