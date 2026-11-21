@@ -385,23 +385,28 @@ func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []
 		return err
 	}
 
-	var table string
+	var (
+		table, name string
+		truncate    bool
+	)
 
 	switch cmd.Use {
 	case "otc":
-		table = "one_time_code"
+		table, name, truncate = "one_time_code", "otc", true
 	case "otp":
-		table = "totp_history"
+		table, name, truncate = "totp_history", "otp", true
 	case "rc":
-		table = "recovery_codes"
+		table, name, truncate = "recovery_codes", "rc", true
 	case "session":
-		table = "session"
+		table, name, truncate = "session", "session", true
+	case cmdUseStorageEncryptionRotateHMACExternalIdentityLink:
+		table, name, truncate = "user_external_identity_links", "external_identity_link", false
 	}
 
-	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, table, cmd.Use, force)
+	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, table, name, truncate, force)
 }
 
-func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store storage.Provider, table, name string, force bool) (err error) {
+func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store storage.Provider, table, name string, truncate, force bool) (err error) {
 	var version int
 	if version, err = store.SchemaVersion(ctx); err != nil {
 		return err
@@ -414,7 +419,13 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 	if !force {
 		var confirmed bool
 
-		if confirmed, err = termReadConfirmation(fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table), "ROTATE"); err != nil {
+		prompt := fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table)
+
+		if !truncate {
+			prompt = fmt.Sprintf("This will rotate the HMAC key, sign the '%s' table again, and delete any row whose signature is not valid, this is not reversible, type 'ROTATE' and press return to continue: ", table)
+		}
+
+		if confirmed, err = termReadConfirmation(prompt, "ROTATE"); err != nil {
 			return err
 		}
 
@@ -427,7 +438,11 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 		return err
 	}
 
-	_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and cleanly truncated the '%s' table.\n", name, table)
+	if truncate {
+		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and cleanly truncated the '%s' table.\n", name, table)
+	} else {
+		_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and signed the '%s' table again.\n", name, table)
+	}
 
 	return nil
 }
@@ -2195,6 +2210,146 @@ func runStorageUserIdentifiersAdd(ctx context.Context, w io.Writer, store storag
 	}
 
 	_, _ = fmt.Fprintf(w, "Added User Opaque Identifier:\n\tService: %s\n\tSector: %s\n\tUsername: %s\n\tIdentifier: %s\n\n", opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier)
+
+	return nil
+}
+
+// StorageLogsAuthPruneRunE is the RunE for the authelia storage logs auth prune command.
+func (ctx *CmdCtx) StorageLogsAuthPruneRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	var (
+		value     string
+		olderThan time.Duration
+		batchSize int
+		dryRun    bool
+	)
+
+	if value, err = cmd.Flags().GetString(cmdFlagLogsOlderThan); err != nil {
+		return err
+	}
+
+	if olderThan, err = utils.ParseDurationString(value); err != nil {
+		return fmt.Errorf("invalid duration: %w", err)
+	}
+
+	if batchSize, err = cmd.Flags().GetInt(cmdFlagLogsBatchSize); err != nil {
+		return err
+	}
+
+	if dryRun, err = cmd.Flags().GetBool(cmdFlagLogsDryRun); err != nil {
+		return err
+	}
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	return runStorageLogsAuthPrune(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, olderThan, batchSize, dryRun)
+}
+
+func runStorageLogsAuthPrune(ctx context.Context, w io.Writer, store storage.Provider, olderThan time.Duration, batchSize int, dryRun bool) (err error) {
+	if olderThan <= 0 {
+		return fmt.Errorf("duration must be positive, got: %v", olderThan)
+	}
+
+	if batchSize <= 0 {
+		return fmt.Errorf("batch size must be positive, got: %d", batchSize)
+	}
+
+	if dryRun {
+		return runStorageLogsAuthPruneDryRun(ctx, w, store, olderThan, batchSize)
+	}
+
+	_, _ = fmt.Fprintf(w, "Deleting logs older than %v...\n", olderThan)
+
+	results, err := store.PruneAuthenticationLogs(ctx, olderThan, batchSize)
+	if err != nil {
+		if results != nil && results.TotalDeleted > 0 {
+			_, _ = fmt.Fprintf(w, "Partially completed: deleted %d records in %d batches before error\n", results.TotalDeleted, results.TotalBatches)
+		}
+
+		return fmt.Errorf("pruning failed: %w", err)
+	}
+
+	if results.TotalDeleted == 0 {
+		_, _ = fmt.Fprintln(w, "No records found to delete.")
+
+		return nil
+	}
+
+	_, _ = fmt.Fprintf(w, "Successfully deleted %d records in %d batches.\n", results.TotalDeleted, results.TotalBatches)
+	_, _ = fmt.Fprintf(w, "Total duration: %.2fs\n", results.TotalTime.Seconds())
+	_, _ = fmt.Fprintf(w, "Average time per batch: %.2fs\n", results.AverageTime.Seconds())
+	_, _ = fmt.Fprintf(w, "Records per second: %d\n", results.RecordsPerSecond)
+
+	return nil
+}
+
+func runStorageLogsAuthPruneDryRun(ctx context.Context, w io.Writer, store storage.Provider, olderThan time.Duration, batchSize int) (err error) {
+	_, _ = fmt.Fprintf(w, "DRY RUN: Would delete logs older than %v...\n", olderThan)
+
+	stats, err := store.GetAuthenticationLogsPrunePreview(ctx, olderThan)
+	if err != nil {
+		return fmt.Errorf("failed to get preview: %w", err)
+	}
+
+	if stats.TotalCount == 0 {
+		_, _ = fmt.Fprintln(w, "No records found to delete.")
+
+		return nil
+	}
+
+	_, _ = fmt.Fprintf(w, "Would delete %d records in %d batches\n", stats.TotalCount, (stats.TotalCount+int64(batchSize)-1)/int64(batchSize))
+	_, _ = fmt.Fprintf(w, "Record ID range: %d to %d\n", stats.MinID, stats.MaxID)
+	_, _ = fmt.Fprintf(w, "Batch size: %d\n", batchSize)
+
+	return nil
+}
+
+// StorageLogsAuthStatsRunE is the RunE for the authelia storage logs auth stats command.
+func (ctx *CmdCtx) StorageLogsAuthStatsRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	return runStorageLogsAuthStats(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider)
+}
+
+func runStorageLogsAuthStats(ctx context.Context, w io.Writer, store storage.Provider) (err error) {
+	stats, err := store.GetAuthenticationLogsStats(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get authentication log statistics: %w", err)
+	}
+
+	_, _ = fmt.Fprintln(w, "Authentication Log Statistics:")
+	_, _ = fmt.Fprintf(w, "Total records: %d\n", stats.Total)
+
+	if stats.Total == 0 {
+		return nil
+	}
+
+	_, _ = fmt.Fprintf(w, "Successful logins: %d (%.1f%%)\n", stats.SuccessCount, float64(stats.SuccessCount)/float64(stats.Total)*100)
+	_, _ = fmt.Fprintf(w, "Failed logins: %d (%.1f%%)\n", stats.FailureCount, float64(stats.FailureCount)/float64(stats.Total)*100)
+	_, _ = fmt.Fprintf(w, "Banned attempts: %d (%.1f%%)\n", stats.BannedCount, float64(stats.BannedCount)/float64(stats.Total)*100)
+
+	if stats.Oldest.Valid {
+		_, _ = fmt.Fprintf(w, "Oldest record: %s\n", stats.Oldest.Time.Format(time.RFC3339))
+	}
+
+	if stats.Newest.Valid {
+		_, _ = fmt.Fprintf(w, "Newest record: %s\n", stats.Newest.Time.Format(time.RFC3339))
+	}
 
 	return nil
 }

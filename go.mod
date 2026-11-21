@@ -10,8 +10,8 @@ toolchain go1.27.4
 
 require (
 	authelia.com/provider/jose v0.2.1
-	authelia.com/provider/oauth2 v0.4.3
-	cel.dev/cel-go v0.33.2
+	authelia.com/provider/oauth2 v0.4.5
+	cel.dev/cel-go v0.33.4
 	github.com/asaskevich/govalidator/v12 v12.0.0
 	github.com/authelia/jsonschema v0.1.7
 	github.com/authelia/otp v1.0.4
@@ -22,7 +22,7 @@ require (
 	github.com/go-crypt/crypt v0.14.15
 	github.com/go-ldap/ldap/v3 v3.4.15
 	github.com/go-rod/rod v0.116.2
-	github.com/go-sql-driver/mysql v1.10.1
+	github.com/go-sql-driver/mysql v1.10.2
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/go-webauthn/webauthn v0.18.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -49,14 +49,15 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/tinylib/msgp v1.6.5
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.78.0
+	github.com/valyala/fasthttp v1.79.0
 	github.com/weppos/publicsuffix-go v0.50.3
 	github.com/wneessen/go-mail v0.8.2
 	github.com/ysmood/gson v0.7.3
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.6
 	golang.org/x/crypto v0.59.0
-	golang.org/x/net v0.62.0
+	golang.org/x/net v0.63.0
+	golang.org/x/oauth2 v0.38.0
 	golang.org/x/sync v0.25.0
 	golang.org/x/term v0.48.0
 	golang.org/x/text v0.44.0
@@ -85,7 +86,7 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.3 // indirect
-	github.com/klauspost/compress v1.20.3 // indirect
+	github.com/klauspost/compress v1.20.4 // indirect
 	github.com/knadh/koanf/maps v0.1.2 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect

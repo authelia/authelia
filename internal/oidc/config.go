@@ -9,6 +9,7 @@ import (
 	"crypto/sha512"
 	"hash"
 	"html/template"
+	"net"
 	"net/url"
 	"strings"
 	"time"
@@ -65,6 +66,11 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		RevokeRefreshTokensExplicit:                        true,
 		EnforceRevokeFlowRevokeRefreshTokensExplicitClient: true,
 		EnforceClientAssertionIssuerAudience:               !config.EnableClientAssertionLegacyAudience,
+		EnableRSA15KeyManagement:                           config.EnableRSA15KeyManagement,
+		AccessTokenURIQueryParameterEnabled:                config.EnableAccessTokenURIQueryParameter,
+		DisableSpecialUseAddressGuard:                      config.SpecialUseAddressGuard.Disable,
+		SpecialUseAddressGuardAllowedNetworks:              config.SpecialUseAddressGuard.AllowedNetworks,
+		RFC8628EnableVerificationURIComplete:               config.EnableDeviceCodeVerificationURIComplete,
 		ClientCredentialsFlowImplicitGrantRequested:        true,
 		Templates:                    templates,
 		DiscoverySignedResponseKeyID: config.DiscoverySignedResponseKeyID,
@@ -128,6 +134,22 @@ type Config struct {
 
 	RequireRequestObjectAudienceAndLifetime bool
 	RequestObjectMaximumLifetime            time.Duration
+
+	// EnableRSA15KeyManagement permits the RSA1_5 key management algorithm.
+	EnableRSA15KeyManagement bool
+
+	// AccessTokenURIQueryParameterEnabled permits the access token to be sent in the 'access_token' URI query
+	// parameter.
+	AccessTokenURIQueryParameterEnabled bool
+
+	// DisableSpecialUseAddressGuard permits fetches of client supplied locations to connect to special-use addresses.
+	DisableSpecialUseAddressGuard bool
+
+	// SpecialUseAddressGuardAllowedNetworks are the networks the special-use address guard permits connections to.
+	SpecialUseAddressGuardAllowedNetworks []*net.IPNet
+
+	// RFC8628EnableVerificationURIComplete includes the verification_uri_complete in device authorization responses.
+	RFC8628EnableVerificationURIComplete bool
 
 	BackChannelLogoutLifespan    time.Duration
 	BackChannelLogoutConcurrency int
@@ -350,11 +372,6 @@ func (c *Config) LoadHandlers(store *Store) {
 			Strategy: c.Strategy.Core,
 			Config:   c,
 		},
-		&rfc8628.UserAuthorizeHandler{
-			Storage:  store,
-			Strategy: c.Strategy.Core,
-			Config:   c,
-		},
 		&rfc8628.DeviceAuthorizeTokenEndpointHandler{
 			GenericCodeTokenEndpointHandler: oauth2.GenericCodeTokenEndpointHandler{
 				CodeTokenEndpointHandler: &rfc8628.DeviceCodeTokenHandler{
@@ -429,6 +446,11 @@ func (c *Config) LoadHandlers(store *Store) {
 			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
 				IDTokenStrategy: c.Strategy.OpenID,
 			},
+		},
+		&rfc8628.UserAuthorizeHandler{
+			Storage:  store,
+			Strategy: c.Strategy.Core,
+			Config:   c,
 		},
 
 		statelessJWT,
@@ -575,9 +597,11 @@ func (c *Config) GetJWTClockSkew(ctx context.Context) (skew time.Duration) {
 	}
 }
 
-// GetRedirectSecureChecker returns the redirect URL security validator.
+// GetRedirectSecureChecker returns nil so the redirect URL security is validated by
+// oauthelia2.IsRedirectURISecureForClient which only permits the 'http' scheme for native clients using a loopback
+// redirect URI.
 func (c *Config) GetRedirectSecureChecker(ctx context.Context) func(context.Context, *url.URL) (secure bool) {
-	return oauthelia2.IsRedirectURISecure
+	return nil
 }
 
 // GetOmitRedirectScopeParam must be set to true if the scope query param is to be omitted
@@ -1293,6 +1317,158 @@ func (c *Config) GetRFC7592ClientConfigurationEndpointHandlers(ctx context.Conte
 	return c.Handlers.RFC7592ClientConfigurationEndpoint
 }
 
+// GetRefreshTokenGracePeriod returns the period after a refresh token is used within which it may be used again.
+func (c *Config) GetRefreshTokenGracePeriod(ctx context.Context) (grace time.Duration) {
+	return 0
+}
+
+// GetAccessTokenURIQueryParameterEnabled returns true if the access token may be sent in the URI query.
+func (c *Config) GetAccessTokenURIQueryParameterEnabled(ctx context.Context) (enabled bool) {
+	return c.AccessTokenURIQueryParameterEnabled
+}
+
+// GetEnableRSA15KeyManagement returns true if the RSA1_5 key management algorithm is permitted.
+func (c *Config) GetEnableRSA15KeyManagement(ctx context.Context) (enable bool) {
+	return c.EnableRSA15KeyManagement
+}
+
+// GetDisableSpecialUseAddressGuard returns true if fetches of client supplied locations may connect to special-use
+// addresses.
+func (c *Config) GetDisableSpecialUseAddressGuard(ctx context.Context) (disable bool) {
+	return c.DisableSpecialUseAddressGuard
+}
+
+// GetSpecialUseAddressGuardAllowedNetworks returns the networks the special-use address guard permits.
+func (c *Config) GetSpecialUseAddressGuardAllowedNetworks(ctx context.Context) (networks []*net.IPNet) {
+	return c.SpecialUseAddressGuardAllowedNetworks
+}
+
+// GetClientJWKSFetcherStrategy returns the strategy used to fetch the 'jwks_uri' of a client.
+func (c *Config) GetClientJWKSFetcherStrategy(ctx context.Context, client any) (strategy jwt.JWKSFetcherStrategy) {
+	return oauthelia2.SpecialUseAddressGuardJWKSFetcherStrategy(ctx, c, c.GetJWKSFetcherStrategy(ctx))
+}
+
+// GetRFC8628VerificationURIComplete returns true if the verification_uri_complete is included in device
+// authorization responses.
+func (c *Config) GetRFC8628VerificationURIComplete(ctx context.Context) (enabled bool) {
+	return c.RFC8628EnableVerificationURIComplete
+}
+
+// GetRFC8628UserCodeSubjectBinding returns false as the storage does not bind a user code to the first subject who
+// presents it.
+func (c *Config) GetRFC8628UserCodeSubjectBinding(ctx context.Context) (enforce bool) {
+	return false
+}
+
+// GetCIBATokenDeliveryModes returns nil as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBATokenDeliveryModes(ctx context.Context) (modes []string) {
+	return nil
+}
+
+// GetCIBAAuthRequestLifespan returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBAAuthRequestLifespan(ctx context.Context) (lifespan time.Duration) {
+	return 0
+}
+
+// GetCIBARequestedExpiryMinimum returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBARequestedExpiryMinimum(ctx context.Context) (minimum time.Duration) {
+	return 0
+}
+
+// GetCIBARequestedExpiryMaximum returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBARequestedExpiryMaximum(ctx context.Context) (maximum time.Duration) {
+	return 0
+}
+
+// GetCIBAPollingInterval returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBAPollingInterval(ctx context.Context) (interval time.Duration) {
+	return 0
+}
+
+// GetCIBALongPollingTimeout returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBALongPollingTimeout(ctx context.Context) (timeout time.Duration) {
+	return 0
+}
+
+// GetCIBASlowDownLimit returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBASlowDownLimit(ctx context.Context) (limit int) {
+	return 0
+}
+
+// GetCIBAUserCodeSupported returns false as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBAUserCodeSupported(ctx context.Context) (supported bool) {
+	return false
+}
+
+// GetCIBARequestSigningAlgValues returns nil as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBARequestSigningAlgValues(ctx context.Context) (algs []string) {
+	return nil
+}
+
+// GetCIBARequireOpenIDScope returns true as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBARequireOpenIDScope(ctx context.Context) (require bool) {
+	return true
+}
+
+// GetCIBAIDTokenHintMaximumAge returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBAIDTokenHintMaximumAge(ctx context.Context) (age time.Duration) {
+	return 0
+}
+
+// GetCIBARequireBindingMessage returns true as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBARequireBindingMessage(ctx context.Context) (require bool) {
+	return true
+}
+
+// GetCIBAMaximumBindingMessageLength returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBAMaximumBindingMessageLength(ctx context.Context) (length int) {
+	return 0
+}
+
+// GetCIBARequireRequestContext returns false as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBARequireRequestContext(ctx context.Context) (require bool) {
+	return false
+}
+
+// GetCIBASignedRequestMaximumLifetime returns 0 as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBASignedRequestMaximumLifetime(ctx context.Context) (lifetime time.Duration) {
+	return 0
+}
+
+// GetCIBARequireSingleAudienceAssertion returns false as Client Initiated Backchannel Authentication is not
+// supported.
+func (c *Config) GetCIBARequireSingleAudienceAssertion(ctx context.Context) (require bool) {
+	return false
+}
+
+// GetCIBALoginHintTokenTypes returns nil as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetCIBALoginHintTokenTypes(ctx context.Context) (types []string) {
+	return nil
+}
+
+// GetBackChannelNotifier returns nil as Client Initiated Backchannel Authentication is not supported.
+func (c *Config) GetBackChannelNotifier(ctx context.Context) (notifier oauthelia2.BackChannelNotifier) {
+	return nil
+}
+
+// GetBackChannelAuthenticationEndpointHandlers returns nil as Client Initiated Backchannel Authentication is not
+// supported.
+func (c *Config) GetBackChannelAuthenticationEndpointHandlers(ctx context.Context) (handlers oauthelia2.BackChannelAuthenticationEndpointHandlers) {
+	return nil
+}
+
+// GetBackChannelAuthenticationEndpointBindingHandlers returns nil as Client Initiated Backchannel Authentication is not
+// supported.
+func (c *Config) GetBackChannelAuthenticationEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.BackChannelAuthenticationEndpointBindingHandlers) {
+	return nil
+}
+
+// GetBackChannelAuthenticationDecisionHandlers returns nil as Client Initiated Backchannel Authentication is not
+// supported.
+func (c *Config) GetBackChannelAuthenticationDecisionHandlers(ctx context.Context) (handlers oauthelia2.BackChannelAuthenticationDecisionHandlers) {
+	return nil
+}
+
 // GetContext returns the OpenID Connect 1.0 Context from the given context.
 func (c *Config) GetContext(ctx context.Context) (octx Context) {
 	var ok bool
@@ -1309,5 +1485,8 @@ func (c *Config) GetContext(ctx context.Context) (octx Context) {
 }
 
 var (
-	_ oauthelia2.Configurator = (*Config)(nil)
+	_ oauthelia2.Configurator                           = (*Config)(nil)
+	_ oauthelia2.RFC8628VerificationURICompleteProvider = (*Config)(nil)
+	_ oauthelia2.RFC8628UserCodeSubjectBindingProvider  = (*Config)(nil)
+	_ jwt.EnableRSA15KeyManagementProvider              = (*Config)(nil)
 )

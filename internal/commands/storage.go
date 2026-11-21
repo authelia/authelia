@@ -52,6 +52,7 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageEncryptionCmd(ctx),
 		newStorageUserCmd(ctx),
 		newStorageBansCmd(ctx),
+		newStorageLogsCmd(ctx),
 	)
 
 	return cmd
@@ -211,6 +212,7 @@ func newStorageEncryptRotateHMACCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageEncryptRotateHMACOTCCmd(ctx),
 		newStorageEncryptRotateHMACRecoveryCodeCmd(ctx),
 		newStorageEncryptRotateHMACSessionCmd(ctx),
+		newStorageEncryptRotateHMACExternalIdentityLinkCmd(ctx),
 	)
 
 	return cmd
@@ -991,6 +993,92 @@ func newStorageMigrateDownCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 	cmd.Flags().IntP(cmdFlagNameTarget, "t", 0, "sets the version to migrate to")
 	cmd.Flags().Bool(cmdFlagNameDestroyData, false, "confirms you want to destroy data with this migration")
+
+	return cmd
+}
+
+func newStorageLogsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               storageLogs,
+		Short:             cmdAutheliaStorageLogsShort,
+		Long:              cmdAutheliaStorageLogsLong,
+		Args:              cobra.NoArgs,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageLogsAuthCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageLogsAuthCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               storageLogsAuth,
+		Short:             cmdAutheliaStorageLogsAuthShort,
+		Long:              cmdAutheliaStorageLogsAuthLong,
+		Args:              cobra.NoArgs,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageLogsAuthPruneCmd(ctx),
+		newStorageLogsAuthStatsCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageLogsAuthPruneCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               storageLogsAuthPrune,
+		Short:             cmdAutheliaStorageLogsAuthPruneShort,
+		Long:              cmdAutheliaStorageLogsAuthPruneLong,
+		Example:           cmdAutheliaStorageLogsAuthPruneExample,
+		RunE:              ctx.StorageLogsAuthPruneRunE,
+		Args:              cobra.NoArgs,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String(cmdFlagLogsOlderThan, "", "Delete logs older than this duration (e.g., 90d, 6M, 1y)")
+	cmd.Flags().Int(cmdFlagLogsBatchSize, 20000, "Number of records to delete per batch (prevents long-running commands)")
+	cmd.Flags().Bool(cmdFlagLogsDryRun, false, "Show what would be deleted without actually deleting")
+
+	if err := cmd.MarkFlagRequired(cmdFlagLogsOlderThan); err != nil {
+		panic(err)
+	}
+
+	return cmd
+}
+
+func newStorageLogsAuthStatsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               storageLogsAuthStats,
+		Short:             cmdAutheliaStorageLogsAuthStatsShort,
+		Long:              cmdAutheliaStorageLogsAuthStatsLong,
+		Example:           cmdAutheliaStorageLogsAuthStatsExample,
+		RunE:              ctx.StorageLogsAuthStatsRunE,
+		Args:              cobra.NoArgs,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACExternalIdentityLinkCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseStorageEncryptionRotateHMACExternalIdentityLink,
+		Short:   cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
 
 	return cmd
 }

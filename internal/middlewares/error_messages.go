@@ -48,6 +48,11 @@ var (
 	ErrorMessageGroupAlreadyExists              = ErrorMessage{Code: "group_already_exists", Message: "Group already exists."}
 	ErrorMessageGroupNameRequired               = ErrorMessage{Code: "group_name_required", Message: "Group name is required."}
 	ErrorMessageGroupCreateFailed               = ErrorMessage{Code: "group_create_failed", Message: "Unable to create the group."}
+	ErrorMessageExternalIdentityLoginFailed     = ErrorMessage{Code: "external_identity_login_failed", Message: "Could not start the external login."}
+	ErrorMessageExternalIdentityLinkFailed      = ErrorMessage{Code: "external_identity_link_failed", Message: "Unable to link the external account."}
+	ErrorMessageExternalIdentityLinkNonePending = ErrorMessage{Code: "external_identity_link_none_pending", Message: "There is no external account awaiting a decision."}
+	ErrorMessageExternalIdentityLinkConflict    = ErrorMessage{Code: "external_identity_link_conflict", Message: "That external account is already linked."}
+	ErrorMessageExternalIdentityUnlinkFailed    = ErrorMessage{Code: "external_identity_unlink_failed", Message: "Unable to remove the external account link."}
 )
 
 // ErrorMessages is every ErrorMessage returned by the API.
@@ -88,4 +93,9 @@ var ErrorMessages = []ErrorMessage{
 	ErrorMessageGroupAlreadyExists,
 	ErrorMessageGroupNameRequired,
 	ErrorMessageGroupCreateFailed,
+	ErrorMessageExternalIdentityLoginFailed,
+	ErrorMessageExternalIdentityLinkFailed,
+	ErrorMessageExternalIdentityLinkNonePending,
+	ErrorMessageExternalIdentityLinkConflict,
+	ErrorMessageExternalIdentityUnlinkFailed,
 }

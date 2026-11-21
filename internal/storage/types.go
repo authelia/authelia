@@ -198,6 +198,32 @@ func (r EncryptionValidationTableResult) ResultDescriptor() string {
 	return "SUCCESS"
 }
 
+// AuthLogStats contains information about the authentication_logs table.
+type AuthLogStats struct {
+	Total        int64        `db:"total"`
+	SuccessCount int64        `db:"success_count"`
+	FailureCount int64        `db:"failure_count"`
+	BannedCount  int64        `db:"banned_count"`
+	Oldest       sql.NullTime `db:"-"`
+	Newest       sql.NullTime `db:"-"`
+}
+
+// DeleteAuthLogStats contains the count and ID range of authentication_logs records eligible for pruning.
+type DeleteAuthLogStats struct {
+	TotalCount int64 `db:"total"`
+	MinID      int64 `db:"min"`
+	MaxID      int64 `db:"max"`
+}
+
+// DeleteAuthLogResults contains the outcome and timing metrics of an authentication_logs prune operation.
+type DeleteAuthLogResults struct {
+	TotalBatches     int
+	TotalDeleted     int64
+	TotalTime        time.Duration
+	AverageTime      time.Duration
+	RecordsPerSecond int
+}
+
 // OAuth2SessionType represents the potential OAuth 2.0 session types.
 type OAuth2SessionType int
 

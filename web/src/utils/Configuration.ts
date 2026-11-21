@@ -35,6 +35,10 @@ export function getPasskeyLogin() {
     return getEmbeddedVariable("passkeylogin") === "true";
 }
 
+export function getExternalIdentityLogin() {
+    return getEmbeddedVariable("externalidentitylogin") === "true";
+}
+
 export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
 }

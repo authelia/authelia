@@ -49,6 +49,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		RequirePushedAuthorizationRequests:      config.RequirePushedAuthorizationRequests,
 		DisableRefreshTokenRotation:             config.DisableRefreshTokenRotation,
+		DeviceCodeVerificationURIComplete:       config.DeviceCodeVerificationURIComplete,
 		RequireSignedRequestObject:              config.RequireSignedRequestObject,
 		ClientCredentialsFlowAllowImplicitScope: false,
 		AllowMultipleAuthenticationMethods:      config.AllowMultipleAuthenticationMethods,
@@ -846,6 +847,12 @@ func (c *RegisteredClient) GetRefreshTokenMaximumLifespan() (lifespan time.Durat
 // oauthelia2.RefreshTokenRotationClient interface.
 func (c *RegisteredClient) GetDisableRefreshTokenRotation() (disable bool) {
 	return c.DisableRefreshTokenRotation
+}
+
+// GetRFC8628VerificationURIComplete returns true if the device authorization responses of this client include the
+// 'verification_uri_complete' member. This implements the oauthelia2.RFC8628VerificationURICompleteClient interface.
+func (c *RegisteredClient) GetRFC8628VerificationURIComplete() (enabled bool) {
+	return c.DeviceCodeVerificationURIComplete
 }
 
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback

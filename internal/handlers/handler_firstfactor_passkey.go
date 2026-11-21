@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/subtle"
 	"errors"
 	"fmt"
 
@@ -21,74 +22,88 @@ import (
 	iwebauthn "github.com/authelia/authelia/v4/internal/webauthn"
 )
 
-// FirstFactorPasskeyGET handler starts the passkey assertion ceremony.
-func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
-	var (
-		w           *webauthn.WebAuthn
-		userSession session.UserSession
-		err         error
-	)
-	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
+// FirstFactorPasskeyGET handler starts the passkey assertion ceremony. The conditionalMediation value determines
+// whether the ceremony is started with the conditional mediation requirement i.e. whether the browser should surface
+// the credentials via autofill rather than a modal prompt.
+func FirstFactorPasskeyGET(conditionalMediation bool) middlewares.RequestHandler {
+	mediation := protocol.MediationDefault
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
-
-		return
+	if conditionalMediation {
+		mediation = protocol.MediationConditional
 	}
 
-	if !userSession.IsAnonymous() {
-		ctx.Logger.WithError(errUserIsAlreadyAuthenticated).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
+	return func(ctx *middlewares.AutheliaCtx) {
+		var (
+			w           *webauthn.WebAuthn
+			userSession session.UserSession
+			err         error
+		)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+		if userSession, err = ctx.GetSession(); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
 
-		return
-	}
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-	if w, err = ctx.GetWebAuthnProvider(); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred provisioning the configuration")
+			return
+		}
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+		if !userSession.IsAnonymous() {
+			ctx.Logger.WithError(errUserIsAlreadyAuthenticated).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
 
-		return
-	}
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-	var opts []webauthn.LoginOption
+			return
+		}
 
-	var (
-		assertion *protocol.CredentialAssertion
-		data      session.WebAuthn
-	)
+		if w, err = ctx.GetWebAuthnProvider(); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred provisioning the configuration")
 
-	if assertion, data.SessionData, err = w.BeginDiscoverableLogin(opts...); err != nil {
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred starting the authentication session")
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			return
+		}
 
-		return
-	}
+		var (
+			opts      []webauthn.LoginOption
+			assertion *protocol.CredentialAssertion
+			data      session.WebAuthn
+		)
 
-	userSession.WebAuthn = &data
+		if assertion, data.SessionData, err = w.BeginDiscoverableMediatedLogin(mediation, opts...); err != nil {
+			ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred starting the authentication session")
 
-	if err = ctx.SaveSession(&userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionDataSave)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			return
+		}
 
-		return
-	}
+		if conditionalMediation {
+			userSession.WebAuthnConditional = &data
+		} else {
+			userSession.WebAuthn = &data
+		}
 
-	if err = ctx.SetJSONBody(assertion); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrRespBody)
+		if err = ctx.SaveSession(&userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionDataSave)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		return
+			return
+		}
+
+		if err = ctx.SetJSONBody(assertion); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrRespBody)
+
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
+
+			return
+		}
 	}
 }
 
@@ -144,7 +159,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	defer func() {
-		userSession.WebAuthn = nil
+		userSession.WebAuthn, userSession.WebAuthnConditional = nil, nil
 
 		if err = ctx.SaveSession(&userSession); err != nil {
 			ctx.GetLogger().WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
@@ -173,7 +188,9 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.WebAuthn == nil || userSession.WebAuthn.SessionData == nil {
+	data := passkeySessionData(&userSession, response)
+
+	if data == nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -195,7 +212,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if u, c, err = w.ValidatePasskeyLogin(handlerWebAuthnDiscoverableLogin(ctx, w.Config.RPID), *userSession.WebAuthn.SessionData, response); err != nil {
+	if u, c, err = w.ValidatePasskeyLogin(handlerWebAuthnDiscoverableLogin(ctx, w.Config.RPID), *data, response); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -353,4 +370,26 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	} else {
 		HandlePasskeyResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, details.Groups, userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) == authentication.TwoFactor)
 	}
+}
+
+func passkeySessionData(userSession *session.UserSession, response *protocol.ParsedCredentialAssertionData) *webauthn.SessionData {
+	var candidates []*webauthn.SessionData
+
+	for _, slot := range []*session.WebAuthn{userSession.WebAuthn, userSession.WebAuthnConditional} {
+		if slot != nil && slot.SessionData != nil {
+			candidates = append(candidates, slot.SessionData)
+		}
+	}
+
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	for _, candidate := range candidates {
+		if subtle.ConstantTimeCompare([]byte(candidate.Challenge), []byte(response.Response.CollectedClientData.Challenge)) == 1 {
+			return candidate
+		}
+	}
+
+	return candidates[0]
 }

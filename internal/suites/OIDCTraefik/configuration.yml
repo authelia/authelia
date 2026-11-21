@@ -77,6 +77,7 @@ webauthn:
 identity_providers:
   oidc:
     enable_client_debug_messages: true
+    enable_device_code_verification_uri_complete: true
     hmac_secret: 'IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm'
     jwks:
       - key: {{ secret "/pki/private.oidc.pem" | mindent 10 "|" | msquote }}

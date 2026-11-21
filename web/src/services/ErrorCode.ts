@@ -4,6 +4,11 @@
 
 export type ErrorCode =
     | "authentication_failed"
+    | "external_identity_link_conflict"
+    | "external_identity_link_failed"
+    | "external_identity_link_none_pending"
+    | "external_identity_login_failed"
+    | "external_identity_unlink_failed"
     | "group_already_exists"
     | "group_create_failed"
     | "group_name_required"
@@ -42,6 +47,11 @@ export type ErrorCode =
 
 export const ErrorCodeTranslationKeys: Record<ErrorCode, string> = {
     authentication_failed: "Authentication failed, check your credentials",
+    external_identity_link_conflict: "That external account is already linked",
+    external_identity_link_failed: "Unable to link the external account",
+    external_identity_link_none_pending: "There is no external account awaiting a decision",
+    external_identity_login_failed: "Could not start the external login",
+    external_identity_unlink_failed: "Unable to remove the external account link",
     group_already_exists: "Group already exists",
     group_create_failed: "Unable to create the group",
     group_name_required: "Group name is required",

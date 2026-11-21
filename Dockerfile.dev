@@ -16,7 +16,7 @@ ENV \
 COPY --link web ./
 
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-	wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/7c26e549143daf5cf072a38c428170ad8eccaf2d/install.sh && \
+	wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/febc5a15277bb53a4d92430e4bbebeccad4828fe/install.sh && \
     ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
 	pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm/store && \
 	pnpm coverage
@@ -50,7 +50,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:e92bd176400feab3077eb51cd523bb4aefb4c7f5cee8cca6b544241bbe39aaa2
+FROM authelia/base:latest@sha256:29bec2471904f715bb34a49dd8e755ebe1d49ae8c51a40205e375e0c611b896e
 
 WORKDIR /app
 

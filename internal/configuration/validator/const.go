@@ -19,6 +19,10 @@ const (
 	loopback = "127.0.0.1"
 )
 
+const (
+	envExternalIdentityOpenIDConnectAllowDuplicateIssuer = "X_AUTHELIA_DEV_EXTID_OPENID_CONNECT_ALLOW_DUPLICATE_ISSUER"
+)
+
 // Policy constants.
 const (
 	policyBypass    = "bypass"
@@ -53,7 +57,7 @@ const (
 const (
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
-	schemeSep   = "://"
+	schemeData  = "data"
 )
 
 // General fmt consts.
@@ -100,6 +104,38 @@ const (
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 	errFmtAuthBackendRegistrationCustomURLScheme = "authentication_backend: registration: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
+
+	errFmtExternalIdentityProvidersRequired         = "authentication_backend: external_identity: option 'providers' is required but it's not configured"
+	errFmtExternalIdentityProviderID                = "authentication_backend: external_identity: providers: provider #%d: option 'id' must match the pattern '%s' but it's configured as '%s'"
+	errFmtExternalIdentityProviderIDDuplicate       = "authentication_backend: external_identity: providers: provider '%s': option 'id' must be unique but it's configured multiple times"
+	errFmtExternalIdentityProviderTypeDuplicate     = "authentication_backend: external_identity: providers: option 'type' must only be '%s' for one provider but it's configured for the providers %s"
+	errFmtExternalIdentityProviderIssuerDuplicate   = "authentication_backend: external_identity: providers: option 'issuer' must be unique for 'openid_connect' providers but '%s' is configured for the providers %s"
+	errFmtExternalIdentityProviderType              = "authentication_backend: external_identity: providers: provider '%s': option 'type' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderOptionRequired    = "authentication_backend: external_identity: providers: provider '%s': option '%s' is required but it's not configured"
+	errFmtExternalIdentityProviderOptionUnsupported = "authentication_backend: external_identity: providers: provider '%s': option '%s' is not supported by the '%s' provider type but it's configured"
+	errFmtExternalIdentityProviderLogoURI           = "authentication_backend: external_identity: providers: provider '%s': option 'logo_uri' must have the 'https' scheme or be a 'data' URI with an image media type but it's configured as '%s'"
+	errFmtExternalIdentityProviderLogoURIParse      = "authentication_backend: external_identity: providers: provider '%s': option 'logo_uri' must be a valid URL but it could not be parsed: %w"
+	errFmtExternalIdentityProviderIssuerScheme      = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must have the 'https' scheme but it's configured as '%s'"
+	errFmtExternalIdentityProviderIssuerParse       = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must be a valid URL but it could not be parsed: %w"
+	errFmtExternalIdentityProviderIssuerHost        = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must be an absolute URL with a host but it's configured as '%s'"
+	errFmtExternalIdentityProviderIssuerQuery       = "authentication_backend: external_identity: providers: provider '%s': option 'issuer' must not have a query or fragment but it's configured as '%s'"
+	errFmtExternalIdentityProviderEndpointHost      = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' must be an absolute URL with a host but it's configured as '%s'"
+	errFmtExternalIdentityProviderAlg               = "authentication_backend: external_identity: providers: provider '%s': option 'id_token_signed_response_alg' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderUserInfoAlg       = "authentication_backend: external_identity: providers: provider '%s': option 'userinfo_signed_response_alg' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderAuthMethod        = "authentication_backend: external_identity: providers: provider '%s': option 'token_endpoint_auth_method' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderResponseMode      = "authentication_backend: external_identity: providers: provider '%s': option 'response_mode' must be one of %s but it's configured as '%s'"
+	errFmtExternalIdentityProviderPKCE              = "authentication_backend: external_identity: providers: provider '%s': pkce: option 'challenge_method' must be 'S256' but it's configured as '%s'"
+	errFmtExternalIdentityProviderEndpoint          = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' is required when discovery is disabled but it's not configured"
+	errFmtExternalIdentityProviderEndpointJWKS      = "authentication_backend: external_identity: providers: provider '%s': endpoints: option 'jwks' is required when discovery is disabled and no 'jwks' are configured but it's not configured"
+	errFmtExternalIdentityProviderEndpointPAR       = "authentication_backend: external_identity: providers: provider '%s': endpoints: option 'pushed_authorization_request' is required when 'require_pushed_authorization_requests' is enabled and discovery is disabled but it's not configured"
+	errFmtExternalIdentityProviderEndpointScheme    = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' must have the 'https' scheme but it's configured as '%s'"
+	errFmtExternalIdentityProviderEndpointParse     = "authentication_backend: external_identity: providers: provider '%s': endpoints: option '%s' must be a valid URL but it could not be parsed: %w"
+	errFmtExternalIdentityProviderSecretRequired    = "authentication_backend: external_identity: providers: provider '%s': option 'client_secret' is required when the 'token_endpoint_auth_method' is '%s' but it's not configured"
+	errFmtExternalIdentityProviderClaimsMapping     = "authentication_backend: external_identity: providers: provider '%s': claims_mapping: %w"
+	errFmtExternalIdentityProviderAMROverride       = "authentication_backend: external_identity: providers: provider '%s': authentication_methods_reference: option 'default' is required when 'override' is enabled but it's not configured"
+	errFmtExternalIdentityProviderAMRDefaultEmpty   = "authentication_backend: external_identity: providers: provider '%s': authentication_methods_reference: option 'default' must not contain empty values"
+	errFmtExternalIdentityProviderParamName         = "authentication_backend: external_identity: providers: provider '%s': authorization_parameters: parameter '%s' must match the pattern '%s'"
+	errFmtExternalIdentityProviderParamReserved     = "authentication_backend: external_identity: providers: provider '%s': authorization_parameters: parameter '%s' must not be configured as it's set by Authelia"
 
 	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"
@@ -214,6 +250,7 @@ const (
 	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
 	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: jwks: keys: must at least have one key supporting the '%s' algorithm but only has %s"
+	errFmtOIDCProviderPrivateKeysRSA15NotEnabled         = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' but the 'enable_rsa1_5_key_management' option is not enabled"
 	errFmtOIDCProviderSigAlgDeprecated                   = "identity_providers: oidc: option '%s' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderPrivateKeysSigAlgDeprecated        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderInvalidValue                       = "identity_providers: oidc: option " +
@@ -262,6 +299,12 @@ const (
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = errFmtOIDCClientRedirectURIHas +
 		"an invalid value: redirect uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientRedirectURILoopbackNotNative = errFmtOIDCClientRedirectURIHas +
+		"the redirect uri '%s' which uses the 'http' scheme with a loopback address or a 'localhost' name but this is " +
+		"only permitted when option 'application_type' is 'native' but it's configured as '%s', the 'https' scheme " +
+		"should be used instead"
+	errFmtOIDCClientRedirectURIAuthorizationResponseParameter = errFmtOIDCClientRedirectURIHas +
+		"an invalid value: redirect uri '%s' must not include the authorization response parameter '%s' in the query"
 	errFmtOIDCClientRedirectURIInsecure = errFmtOIDCClientRedirectURIHas +
 		"the redirect uri '%s' which uses the 'http' scheme with a host which is not a loopback address or a " +
 		"'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme " +
@@ -325,6 +368,8 @@ const (
 		"'%s' must not have empty values but an empty value was present at index %d"
 	errFmtOIDCClientInvalidValue = errFmtOIDCClientOption +
 		errFmtMustBeOneOf
+	errFmtOIDCClientRSA15NotEnabled = errFmtOIDCClientOption +
+		"'%s' is configured as '%s' but the 'enable_rsa1_5_key_management' option is not enabled"
 	errFmtOIDCClientInvalidLifespan = errFmtOIDCClientOption +
 		"'lifespan' must not be configured when no custom lifespans are configured but it's configured as '%s'"
 	errFmtOIDCClientInvalidEndpointAuthMethod = errFmtOIDCClientOption +
@@ -728,6 +773,29 @@ var (
 	validOIDCClientGrantTypesBearerAuthz    = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken, oidc.GrantTypeClientCredentials}
 )
 
+const (
+	externalIdentityTypeOpenIDConnect = "openid_connect"
+	externalIdentityTypeDiscord       = "discord"
+	externalIdentityTypePlex          = "plex"
+	externalIdentityTypeGitHub        = "github"
+)
+
+var (
+	validExternalIdentityTypes                 = []string{externalIdentityTypeOpenIDConnect, externalIdentityTypeDiscord, externalIdentityTypePlex, externalIdentityTypeGitHub}
+	validExternalIdentityAlgs                  = []string{"ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "RS256", "RS384", "RS512"}
+	validExternalIdentityAuthMethods           = []string{"client_secret_basic", "client_secret_post", "none"}
+	validExternalIdentityConfidentialMethods   = []string{"client_secret_basic", "client_secret_post"}
+	validExternalIdentityResponseModes         = []string{"query", "form_post"}
+	validExternalIdentityQueryResponseModes    = []string{"query"}
+	defaultExternalIdentityOpenIDConnectScopes = []string{"openid", "profile", "email"}
+	defaultExternalIdentityDiscordScopes       = []string{"identify", "email"}
+	defaultExternalIdentityGitHubScopes        = []string{"read:user", "user:email"}
+	reservedExternalIdentityAuthParams         = []string{
+		"client_assertion", "client_assertion_type", "client_id", "client_secret", "code_challenge", "code_challenge_method",
+		"nonce", "redirect_uri", "request", "request_uri", "response_mode", "response_type", "scope", "state", "ui_locales",
+	}
+)
+
 var (
 	reKeyReplacer             = regexp.MustCompile(`\[\d+]`)
 	reDomainCharacters        = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$`)
@@ -735,6 +803,10 @@ var (
 	reAuthzEndpointHeaderName = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$")
 	reOpenIDConnectKID        = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
 	reRFC3986Unreserved       = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
+
+	reExternalIdentityProviderID       = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,31}$`)
+	reExternalIdentityLogoURIDataImage = regexp.MustCompile(`(?i)^data:image/[a-z0-9][a-z0-9!#$&^_.+-]*(;[^,]*)?,`)
+	reExternalIdentityAuthParamName    = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 )
 
 const (
