@@ -293,7 +293,8 @@ func (ctx *AutheliaCtx) GetCookieConfigFromAutheliaURL(autheliaURL *url.URL) (co
 	return schema.SessionCookie{}
 }
 
-// IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
+// IsSafeRedirectionTargetURI returns true if the targetURI is secure, has a valid hostname, and is within the scope of
+// a cookie domain.
 func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
 	if targetURI == nil {
 		return false
@@ -322,7 +323,7 @@ func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provi
 	domain := ctx.GetCookieDomainFromTargetURI(targetURL)
 
 	if domain == "" {
-		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the url '%s'", targetURL)
+		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the url '%s'", targetURL.Redacted())
 	}
 
 	return ctx.GetCookieDomainSessionProvider(domain)
