@@ -7,6 +7,9 @@ package oidc_test
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -14,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/compose"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 
@@ -185,7 +190,7 @@ func TestConfig_Misc(t *testing.T) {
 	assert.False(t, config.OmitRedirectScopeParameter)
 	assert.False(t, config.GetOmitRedirectScopeParam(ctx))
 
-	assert.NotNil(t, config.GetRedirectSecureChecker(ctx))
+	assert.Nil(t, config.GetRedirectSecureChecker(ctx))
 	assert.NotNil(t, config.GetHTTPClient(ctx))
 
 	assert.Nil(t, config.Strategy.Scope)
@@ -324,6 +329,234 @@ func TestNewConfig(t *testing.T) {
 	config.LoadHandlers(nil)
 
 	assert.Len(t, config.Handlers.TokenIntrospection, 2)
+}
+
+func TestConfig_LoadHandlersOrder(t *testing.T) {
+	testCases := []struct {
+		name                         string
+		enableStatelessIntrospection bool
+	}{
+		{
+			"ShouldRegisterHandlersInValidOrder",
+			false,
+		},
+		{
+			"ShouldRegisterHandlersInValidOrderWithStatelessIntrospection",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := templates.New(templates.Config{})
+
+			require.NoError(t, err)
+
+			config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, oidc.NewIssuer(nil), tmpl)
+
+			config.JWTAccessToken.EnableStatelessIntrospection = tc.enableStatelessIntrospection
+
+			config.LoadHandlers(nil)
+
+			assert.NoError(t, compose.ValidateHandlerOrder(&oauthelia2.Config{
+				AuthorizeEndpointHandlers:              config.Handlers.AuthorizeEndpoint,
+				TokenEndpointHandlers:                  config.Handlers.TokenEndpoint,
+				TokenIntrospectionHandlers:             config.Handlers.TokenIntrospection,
+				RevocationHandlers:                     config.Handlers.Revocation,
+				PushedAuthorizeEndpointHandlers:        config.Handlers.PushedAuthorizeEndpoint,
+				RFC8628DeviceAuthorizeEndpointHandlers: config.Handlers.RFC8628DeviceAuthorizeEndpoint,
+				RFC8628UserAuthorizeEndpointHandlers:   config.Handlers.RFC8628UserAuthorizeEndpoint,
+				AuthorizeEndpointBindingHandlers:       config.Handlers.AuthorizeEndpointBinding,
+				TokenEndpointBindingHandlers:           config.Handlers.TokenEndpointBinding,
+			}))
+		})
+	}
+}
+
+func TestNewConfigSecurityOptions(t *testing.T) {
+	_, loopback, err := net.ParseCIDR("127.0.0.0/8")
+
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name     string
+		have     *schema.IdentityProvidersOpenIDConnect
+		expected func(t *testing.T, ctx context.Context, config *oidc.Config)
+	}{
+		{
+			"ShouldDefaultToSecureValues",
+			&schema.IdentityProvidersOpenIDConnect{},
+			func(t *testing.T, ctx context.Context, config *oidc.Config) {
+				assert.False(t, config.GetEnableRSA15KeyManagement(ctx))
+				assert.False(t, config.GetAccessTokenURIQueryParameterEnabled(ctx))
+				assert.False(t, config.GetRFC8628VerificationURIComplete(ctx))
+				assert.False(t, config.GetDisableSpecialUseAddressGuard(ctx))
+				assert.Nil(t, config.GetSpecialUseAddressGuardAllowedNetworks(ctx))
+				assert.False(t, config.GetRFC8628UserCodeSubjectBinding(ctx))
+				assert.Equal(t, time.Duration(0), config.GetRefreshTokenGracePeriod(ctx))
+			},
+		},
+		{
+			"ShouldMapEnabledValues",
+			&schema.IdentityProvidersOpenIDConnect{
+				EnableRSA15KeyManagement:                true,
+				EnableAccessTokenURIQueryParameter:      true,
+				EnableDeviceCodeVerificationURIComplete: true,
+				SpecialUseAddressGuard: schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{
+					Disable:         true,
+					AllowedNetworks: []*net.IPNet{loopback},
+				},
+			},
+			func(t *testing.T, ctx context.Context, config *oidc.Config) {
+				assert.True(t, config.GetEnableRSA15KeyManagement(ctx))
+				assert.True(t, config.GetAccessTokenURIQueryParameterEnabled(ctx))
+				assert.True(t, config.GetRFC8628VerificationURIComplete(ctx))
+				assert.True(t, config.GetDisableSpecialUseAddressGuard(ctx))
+				assert.Equal(t, []*net.IPNet{loopback}, config.GetSpecialUseAddressGuardAllowedNetworks(ctx))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := templates.New(templates.Config{})
+
+			require.NoError(t, err)
+
+			tc.expected(t, context.Background(), oidc.NewConfig(tc.have, oidc.NewIssuer(nil), tmpl))
+		})
+	}
+}
+
+func TestConfig_GetClientJWKSFetcherStrategy(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = rw.Write([]byte(`{"keys":[]}`))
+	}))
+
+	t.Cleanup(server.Close)
+
+	_, loopback, err := net.ParseCIDR("127.0.0.0/8")
+
+	require.NoError(t, err)
+
+	_, other, err := net.ParseCIDR("10.0.0.0/8")
+
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name  string
+		guard schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard
+		err   bool
+	}{
+		{
+			"ShouldRefuseLoopbackByDefault",
+			schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{},
+			true,
+		},
+		{
+			"ShouldRefuseLoopbackWhenNotAllowed",
+			schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{AllowedNetworks: []*net.IPNet{other}},
+			true,
+		},
+		{
+			"ShouldAllowLoopbackWhenAllowed",
+			schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{AllowedNetworks: []*net.IPNet{loopback}},
+			false,
+		},
+		{
+			"ShouldAllowLoopbackWhenDisabled",
+			schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{Disable: true},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := templates.New(templates.Config{})
+
+			require.NoError(t, err)
+
+			config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{SpecialUseAddressGuard: tc.guard}, oidc.NewIssuer(nil), tmpl)
+
+			ctx := context.Background()
+
+			jwks, err := config.GetClientJWKSFetcherStrategy(ctx, nil).Resolve(ctx, server.URL, true)
+
+			if tc.err {
+				assert.Error(t, err)
+				assert.Nil(t, jwks)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, jwks)
+				assert.Len(t, jwks.Keys, 0)
+			}
+		})
+	}
+}
+
+func TestConfig_ValidateRedirectURISecurity(t *testing.T) {
+	testCases := []struct {
+		name            string
+		applicationType string
+		public          bool
+		uri             string
+		err             string
+	}{
+		{
+			"ShouldAllowHTTPSWeb",
+			oidc.ApplicationTypeWeb,
+			false,
+			"https://app.example.com/callback",
+			"",
+		},
+		{
+			"ShouldAllowLoopbackNative",
+			oidc.ApplicationTypeNative,
+			true,
+			"http://127.0.0.1:8080/callback",
+			"",
+		},
+		{
+			"ShouldRejectLoopbackWebConfidential",
+			oidc.ApplicationTypeWeb,
+			false,
+			"http://127.0.0.1:8080/callback",
+			"Redirect URL is using an insecure protocol, http is only allowed for native clients using a loopback redirect URI, for example: http://127.0.0.1:8080/callback.",
+		},
+		{
+			"ShouldRejectLocalhostWebPublic",
+			oidc.ApplicationTypeWeb,
+			true,
+			"http://localhost:8080/callback",
+			"Redirect URL is using an insecure protocol, http is only allowed for native clients using a loopback redirect URI, for example: http://127.0.0.1:8080/callback.",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := templates.New(templates.Config{})
+
+			require.NoError(t, err)
+
+			config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, oidc.NewIssuer(nil), tmpl)
+
+			uri, err := url.Parse(tc.uri)
+
+			require.NoError(t, err)
+
+			client := &oidc.RegisteredClient{ID: "test", ApplicationType: tc.applicationType, Public: tc.public}
+
+			err = oauthelia2.ValidateRedirectURISecurity(context.Background(), config, client, uri)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, "invalid_request")
+				assert.Equal(t, tc.err, oauthelia2.ErrorToRFC6749Error(err).HintField)
+			}
+		})
+	}
 }
 
 func TestConfig_GetIssuer(t *testing.T) {

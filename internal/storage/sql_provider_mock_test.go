@@ -7,6 +7,7 @@ package storage_test
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"net"
 	"testing"
@@ -3004,6 +3005,111 @@ func TestSQLProviderRecoveryCodeErrors(t *testing.T) {
 			} else {
 				assert.EqualError(t, err, tc.expectErr)
 			}
+		})
+	}
+}
+
+func TestSQLProviderAuthenticationLogsUseContextConnection(t *testing.T) {
+	testCases := []struct {
+		name   string
+		runner func(t *testing.T, ctx context.Context, tx *mocks.MockSQLXTx, p *storage.SQLProvider)
+	}{
+		{
+			name: "ShouldGetStatsUsingTransaction",
+			runner: func(t *testing.T, ctx context.Context, tx *mocks.MockSQLXTx, p *storage.SQLProvider) {
+				gomock.InOrder(
+					tx.EXPECT().GetContext(ctx, gomock.Any(), gomock.Any()).Return(nil),
+					tx.EXPECT().GetContext(ctx, gomock.Any(), gomock.Any()).Return(sql.ErrNoRows),
+					tx.EXPECT().GetContext(ctx, gomock.Any(), gomock.Any()).Return(sql.ErrNoRows),
+				)
+
+				stats, err := p.GetAuthenticationLogsStats(ctx)
+
+				require.NoError(t, err)
+				assert.Equal(t, &storage.AuthLogStats{}, stats)
+			},
+		},
+		{
+			name: "ShouldErrGetStatsOnTimeError",
+			runner: func(t *testing.T, ctx context.Context, tx *mocks.MockSQLXTx, p *storage.SQLProvider) {
+				gomock.InOrder(
+					tx.EXPECT().GetContext(ctx, gomock.Any(), gomock.Any()).Return(nil),
+					tx.EXPECT().GetContext(ctx, gomock.Any(), gomock.Any()).Return(errors.New("bad conn")),
+				)
+
+				stats, err := p.GetAuthenticationLogsStats(ctx)
+
+				assert.Nil(t, stats)
+				assert.EqualError(t, err, "error retrieving oldest record time for table 'authentication_logs': bad conn")
+			},
+		},
+		{
+			name: "ShouldGetPreviewUsingTransaction",
+			runner: func(t *testing.T, ctx context.Context, tx *mocks.MockSQLXTx, p *storage.SQLProvider) {
+				tx.EXPECT().GetContext(ctx, gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
+				stats, err := p.GetAuthenticationLogsPrunePreview(ctx, time.Hour)
+
+				require.NoError(t, err)
+				assert.Equal(t, &storage.DeleteAuthLogStats{}, stats)
+			},
+		},
+		{
+			name: "ShouldPruneUsingTransaction",
+			runner: func(t *testing.T, ctx context.Context, tx *mocks.MockSQLXTx, p *storage.SQLProvider) {
+				gomock.InOrder(
+					tx.EXPECT().ExecContext(ctx, gomock.Any(), gomock.Any(), 2).Return(driver.RowsAffected(2), nil),
+					tx.EXPECT().ExecContext(ctx, gomock.Any(), gomock.Any(), 2).Return(driver.RowsAffected(1), nil),
+				)
+
+				results, err := p.PruneAuthenticationLogs(ctx, time.Hour, 2)
+
+				require.NoError(t, err)
+				assert.Equal(t, int64(3), results.TotalDeleted)
+				assert.Equal(t, 2, results.TotalBatches)
+			},
+		},
+		{
+			name: "ShouldReturnPartialResultsOnExecError",
+			runner: func(t *testing.T, ctx context.Context, tx *mocks.MockSQLXTx, p *storage.SQLProvider) {
+				gomock.InOrder(
+					tx.EXPECT().ExecContext(ctx, gomock.Any(), gomock.Any(), 2).Return(driver.RowsAffected(2), nil),
+					tx.EXPECT().ExecContext(ctx, gomock.Any(), gomock.Any(), 2).Return(nil, errors.New("bad conn")),
+				)
+
+				results, err := p.PruneAuthenticationLogs(ctx, time.Hour, 2)
+
+				assert.EqualError(t, err, "error deleting batch 2 from table 'authentication_logs': bad conn")
+				require.NotNil(t, results)
+				assert.Equal(t, int64(2), results.TotalDeleted)
+				assert.Equal(t, 1, results.TotalBatches)
+			},
+		},
+		{
+			name: "ShouldErrOnRowsAffectedError",
+			runner: func(t *testing.T, ctx context.Context, tx *mocks.MockSQLXTx, p *storage.SQLProvider) {
+				tx.EXPECT().ExecContext(ctx, gomock.Any(), gomock.Any(), 2).Return(driver.ResultNoRows, nil)
+
+				results, err := p.PruneAuthenticationLogs(ctx, time.Hour, 2)
+
+				assert.EqualError(t, err, "error retrieving rows affected by batch 1 from table 'authentication_logs': no RowsAffected available after DDL statement")
+				require.NotNil(t, results)
+				assert.Equal(t, int64(0), results.TotalDeleted)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			db := mocks.NewMockSQLXDB(ctrl)
+			tx := mocks.NewMockSQLXTx(ctrl)
+			p := storage.NewSQLProviderForTesting(db)
+
+			ctx := context.WithValue(context.Background(), storage.CtxKeyTransaction, storage.SQLXTx(tx))
+
+			tc.runner(t, ctx, tx, p)
 		})
 	}
 }

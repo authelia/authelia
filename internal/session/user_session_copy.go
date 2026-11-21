@@ -24,6 +24,14 @@ func (s UserSession) deepCopy() (session UserSession) {
 		session.TOTP = new(*s.TOTP)
 	}
 
+	if s.ExternalIdentity != nil {
+		session.ExternalIdentity = new(*s.ExternalIdentity)
+	}
+
+	if s.ExternalIdentityPending != nil {
+		session.ExternalIdentityPending = new(*s.ExternalIdentityPending)
+	}
+
 	return session
 }
 

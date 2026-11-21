@@ -40,6 +40,7 @@ export default {
                 "go",
                 "golangci-lint",
                 "handlers",
+                "identity",
                 "lefthook",
                 "logging",
                 "metrics",

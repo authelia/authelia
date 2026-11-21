@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { act, render } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 
 import { useAutheliaState } from "@hooks/State";
@@ -25,6 +25,7 @@ vi.mock("@hooks/RouterNavigate", () => ({
 vi.mock("@constants/Routes", () => ({
     IndexRoute: "/",
     SecuritySubRoute: "/security",
+    SettingsExternalIdentitySubRoute: "/external-identity",
     SettingsRoute: "/settings",
     SettingsTwoFactorAuthenticationSubRoute: "/two-factor-authentication",
 }));
@@ -45,8 +46,17 @@ vi.mock("@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView", (
     default: () => <div data-testid="2fa-view" />,
 }));
 
+vi.mock("@views/Settings/ExternalIdentity/ExternalIdentityView", () => ({
+    default: () => <div data-testid="openid-connect-view" />,
+}));
+
 beforeEach(() => {
     mockNavigate.mockReset();
+    document.body.dataset.externalidentitylogin = "false";
+});
+
+afterEach(() => {
+    document.body.dataset.externalidentitylogin = "false";
 });
 
 afterEach(() => {
@@ -117,4 +127,44 @@ it("authenticated state does not call navigate", async () => {
         );
     });
     expect(mockNavigate).not.toHaveBeenCalled();
+});
+
+it("does not register the linked accounts route when no provider is configured", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    await act(async () => {
+        render(
+            <MemoryRouter initialEntries={["/external-identity"]}>
+                <SettingsRouter />
+            </MemoryRouter>,
+        );
+    });
+
+    expect(screen.queryByTestId("openid-connect-view")).not.toBeInTheDocument();
+});
+
+it("registers the linked accounts route when a provider is configured", async () => {
+    document.body.dataset.externalidentitylogin = "true";
+
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    await act(async () => {
+        render(
+            <MemoryRouter initialEntries={["/external-identity"]}>
+                <SettingsRouter />
+            </MemoryRouter>,
+        );
+    });
+
+    expect(screen.getByTestId("openid-connect-view")).toBeInTheDocument();
 });

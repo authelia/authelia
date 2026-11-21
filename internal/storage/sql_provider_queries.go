@@ -348,6 +348,50 @@ const (
 )
 
 const (
+	queryFmtSelectExternalIdentityLinkBySubject = `
+		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
+		FROM %s
+		WHERE type = ? AND issuer = ? AND subject = ?;`
+
+	queryFmtSelectExternalIdentityLinksByUsername = `
+		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
+		FROM %s
+		WHERE username = ?
+		ORDER BY created_at, id;`
+
+	queryFmtSelectExternalIdentityLinkByID = `
+		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
+		FROM %s
+		WHERE id = ?;`
+
+	queryFmtSelectExternalIdentityLinks = `
+		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
+		FROM %s;`
+
+	queryFmtInsertExternalIdentityLink = `
+		INSERT INTO %s (created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateExternalIdentityLinkSignature = `
+		UPDATE %s
+		SET signature = ?
+		WHERE id = ?;`
+
+	queryFmtDeleteExternalIdentityLinkByID = `
+		DELETE FROM %s
+		WHERE id = ?;`
+
+	queryFmtUpdateExternalIdentityLinkSignIn = `
+		UPDATE %s
+		SET last_used_at = ?
+		WHERE id = ?;`
+
+	queryFmtDeleteExternalIdentityLinkByUsernameAndID = `
+		DELETE FROM %s
+		WHERE username = ? AND id = ?;`
+)
+
+const (
 	queryFmtUpsertDuoDevice = `
 		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`
@@ -945,4 +989,48 @@ const (
 	queryFmtSelectUserOpaqueIdentifiers = `
 		SELECT id, service, sector_id, username, identifier
 		FROM %s;`
+)
+
+const (
+	queryFmtSelectAuthenticationLogsStats = `
+		SELECT
+		COUNT(*) AS total,
+		COALESCE(SUM(CASE WHEN successful = true THEN 1 ELSE 0 END), 0) AS success_count,
+		COALESCE(SUM(CASE WHEN successful = false THEN 1 ELSE 0 END), 0) AS failure_count,
+		COALESCE(SUM(CASE WHEN banned = true THEN 1 ELSE 0 END), 0) AS banned_count
+		FROM %s;`
+
+	queryFmtSelectAuthenticationLogsOldestTime = `
+		SELECT time
+		FROM %s
+		ORDER BY time ASC
+		LIMIT 1;`
+
+	queryFmtSelectAuthenticationLogsNewestTime = `
+		SELECT time
+		FROM %s
+		ORDER BY time DESC
+		LIMIT 1;`
+
+	queryFmtSelectTotalMinMaxAuthenticationLogs = `
+		SELECT
+		COUNT(*) AS total,
+		COALESCE(MIN(id), 0) AS min,
+		COALESCE(MAX(id), 0) AS max
+		FROM %s
+		WHERE time < ?;`
+
+	// The nested derived table is required by MySQL which does not permit LIMIT directly within an IN subquery, nor
+	// a subquery referencing the table being deleted from unless it is materialized.
+	queryFmtDeleteAuthenticationLogsBatch = `
+		DELETE FROM %s
+		WHERE id IN (
+			SELECT id FROM (
+				SELECT id
+				FROM %s
+				WHERE time < ?
+				ORDER BY id
+				LIMIT ?
+			) AS batch
+		);`
 )

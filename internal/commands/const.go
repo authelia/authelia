@@ -233,6 +233,15 @@ Every user is signed out by this rotation as the session cookies they hold no lo
 	cmdAutheliaStorageEncryptionRotateHMACSessionExample = `authelia storage encryption rotate hmac session --config config.yml
 authelia storage encryption rotate hmac session --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkShort = "Rotate the external identity link HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkLong = `Rotate the external identity link HMAC key.
+
+This subcommand allows rotation of the HMAC key used to sign external identity links. In addition it signs every link in the 'user_external_identity_links' table again with the new key, deleting any link whose signature is not valid for the current key.`
+
+	cmdAutheliaStorageEncryptionRotateHMACExternalIdentityLinkExample = `authelia storage encryption rotate hmac external-identity-link --config config.yml
+authelia storage encryption rotate hmac external-identity-link --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 
 	cmdAutheliaStorageBansLong = `Manages user and ip bans.
@@ -574,6 +583,32 @@ schema version of the database.`
 authelia storage migrate down --target 20 --config config.yml
 authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageLogsShort = "Manage various types of logs"
+
+	cmdAutheliaStorageLogsLong = "Commands for managing different types of logs stored in the database"
+
+	cmdAutheliaStorageLogsAuthShort = "Manage authentication logs"
+
+	cmdAutheliaStorageLogsAuthLong = "Commands for managing authentication logs including pruning old entries and viewing statistics"
+
+	cmdAutheliaStorageLogsAuthStatsShort = "Show authentication logs statistics"
+
+	cmdAutheliaStorageLogsAuthStatsLong = "Display statistics about the authentication logs table including success/failure rates and record counts."
+
+	cmdAutheliaStorageLogsAuthStatsExample = `authelia storage logs auth stats`
+
+	cmdAutheliaStorageLogsAuthPruneShort = "Prune old authentication logs"
+
+	cmdAutheliaStorageLogsAuthPruneLong = `Prune authentication logs based on age criteria.
+
+This command helps manage the authentication_logs table which grows indefinitely.
+Use this to remove authentication records older than a specified period to
+prevent excessive database growth and improve performance.`
+
+	cmdAutheliaStorageLogsAuthPruneExample = `authelia storage logs auth prune --older-than 90d
+authelia storage logs auth prune --older-than 6M --batch-size 50000
+authelia storage logs auth prune --older-than 1y --dry-run`
+
 	cmdAutheliaConfigShort = "Perform config related actions"
 
 	cmdAutheliaConfigLong = `Perform config related actions.
@@ -795,6 +830,17 @@ const (
 )
 
 const (
+	storageLogs          = "logs"
+	storageLogsAuth      = "auth"
+	storageLogsAuthPrune = "prune"
+	storageLogsAuthStats = "stats"
+
+	cmdFlagLogsOlderThan = "older-than"
+	cmdFlagLogsBatchSize = "batch-size"
+	cmdFlagLogsDryRun    = "dry-run"
+)
+
+const (
 	cmdFlagNameDirectory       = "directory"
 	cmdFlagNameModeDirectories = "mode-dirs"
 
@@ -915,6 +961,8 @@ const (
 )
 
 const (
+	cmdUseStorageEncryptionRotateHMACExternalIdentityLink = "external-identity-link"
+
 	cmdUseHash          = "hash"
 	cmdUseHashArgon2    = "argon2"
 	cmdUseHashSHA2Crypt = "sha2crypt"

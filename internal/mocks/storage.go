@@ -307,6 +307,20 @@ func (mr *MockStorageMockRecorder) DeleteCachedData(ctx, name any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCachedData", reflect.TypeOf((*MockStorage)(nil).DeleteCachedData), ctx, name)
 }
 
+// DeleteExternalIdentityLink mocks base method.
+func (m *MockStorage) DeleteExternalIdentityLink(ctx context.Context, username string, id int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExternalIdentityLink", ctx, username, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExternalIdentityLink indicates an expected call of DeleteExternalIdentityLink.
+func (mr *MockStorageMockRecorder) DeleteExternalIdentityLink(ctx, username, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExternalIdentityLink", reflect.TypeOf((*MockStorage)(nil).DeleteExternalIdentityLink), ctx, username, id)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username string) error {
 	m.ctrl.T.Helper()
@@ -405,6 +419,36 @@ func (m *MockStorage) FindIdentityVerification(ctx context.Context, jti string) 
 func (mr *MockStorageMockRecorder) FindIdentityVerification(ctx, jti any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockStorage)(nil).FindIdentityVerification), ctx, jti)
+}
+
+// GetAuthenticationLogsPrunePreview mocks base method.
+func (m *MockStorage) GetAuthenticationLogsPrunePreview(ctx context.Context, cutoffDuration time.Duration) (*storage.DeleteAuthLogStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthenticationLogsPrunePreview", ctx, cutoffDuration)
+	ret0, _ := ret[0].(*storage.DeleteAuthLogStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAuthenticationLogsPrunePreview indicates an expected call of GetAuthenticationLogsPrunePreview.
+func (mr *MockStorageMockRecorder) GetAuthenticationLogsPrunePreview(ctx, cutoffDuration any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthenticationLogsPrunePreview", reflect.TypeOf((*MockStorage)(nil).GetAuthenticationLogsPrunePreview), ctx, cutoffDuration)
+}
+
+// GetAuthenticationLogsStats mocks base method.
+func (m *MockStorage) GetAuthenticationLogsStats(ctx context.Context) (*storage.AuthLogStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthenticationLogsStats", ctx)
+	ret0, _ := ret[0].(*storage.AuthLogStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAuthenticationLogsStats indicates an expected call of GetAuthenticationLogsStats.
+func (mr *MockStorageMockRecorder) GetAuthenticationLogsStats(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthenticationLogsStats", reflect.TypeOf((*MockStorage)(nil).GetAuthenticationLogsStats), ctx)
 }
 
 // LoadAllUserInfo mocks base method.
@@ -555,6 +599,51 @@ func (m *MockStorage) LoadCachedData(ctx context.Context, name string) (*model.C
 func (mr *MockStorageMockRecorder) LoadCachedData(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadCachedData", reflect.TypeOf((*MockStorage)(nil).LoadCachedData), ctx, name)
+}
+
+// LoadExternalIdentityLinkByID mocks base method.
+func (m *MockStorage) LoadExternalIdentityLinkByID(ctx context.Context, id int) (*model.ExternalIdentityLink, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadExternalIdentityLinkByID", ctx, id)
+	ret0, _ := ret[0].(*model.ExternalIdentityLink)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadExternalIdentityLinkByID indicates an expected call of LoadExternalIdentityLinkByID.
+func (mr *MockStorageMockRecorder) LoadExternalIdentityLinkByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadExternalIdentityLinkByID", reflect.TypeOf((*MockStorage)(nil).LoadExternalIdentityLinkByID), ctx, id)
+}
+
+// LoadExternalIdentityLinkBySubject mocks base method.
+func (m *MockStorage) LoadExternalIdentityLinkBySubject(ctx context.Context, providerType, issuer, subject string) (*model.ExternalIdentityLink, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadExternalIdentityLinkBySubject", ctx, providerType, issuer, subject)
+	ret0, _ := ret[0].(*model.ExternalIdentityLink)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadExternalIdentityLinkBySubject indicates an expected call of LoadExternalIdentityLinkBySubject.
+func (mr *MockStorageMockRecorder) LoadExternalIdentityLinkBySubject(ctx, providerType, issuer, subject any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadExternalIdentityLinkBySubject", reflect.TypeOf((*MockStorage)(nil).LoadExternalIdentityLinkBySubject), ctx, providerType, issuer, subject)
+}
+
+// LoadExternalIdentityLinksByUsername mocks base method.
+func (m *MockStorage) LoadExternalIdentityLinksByUsername(ctx context.Context, username string) ([]model.ExternalIdentityLink, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadExternalIdentityLinksByUsername", ctx, username)
+	ret0, _ := ret[0].([]model.ExternalIdentityLink)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadExternalIdentityLinksByUsername indicates an expected call of LoadExternalIdentityLinksByUsername.
+func (mr *MockStorageMockRecorder) LoadExternalIdentityLinksByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadExternalIdentityLinksByUsername", reflect.TypeOf((*MockStorage)(nil).LoadExternalIdentityLinksByUsername), ctx, username)
 }
 
 // LoadHMACKey mocks base method.
@@ -1066,6 +1155,21 @@ func (mr *MockStorageMockRecorder) LoadWebAuthnUserByUserID(ctx, rpid, userID an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUserByUserID", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUserByUserID), ctx, rpid, userID)
 }
 
+// PruneAuthenticationLogs mocks base method.
+func (m *MockStorage) PruneAuthenticationLogs(ctx context.Context, cutoffDuration time.Duration, batchSize int) (*storage.DeleteAuthLogResults, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PruneAuthenticationLogs", ctx, cutoffDuration, batchSize)
+	ret0, _ := ret[0].(*storage.DeleteAuthLogResults)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PruneAuthenticationLogs indicates an expected call of PruneAuthenticationLogs.
+func (mr *MockStorageMockRecorder) PruneAuthenticationLogs(ctx, cutoffDuration, batchSize any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PruneAuthenticationLogs", reflect.TypeOf((*MockStorage)(nil).PruneAuthenticationLogs), ctx, cutoffDuration, batchSize)
+}
+
 // ReplaceRecoveryCodesByUsername mocks base method.
 func (m *MockStorage) ReplaceRecoveryCodesByUsername(ctx context.Context, username string, codes []*model.RecoveryCode, ip model.NullIP) error {
 	m.ctrl.T.Helper()
@@ -1246,6 +1350,20 @@ func (m *MockStorage) SaveCachedData(ctx context.Context, data model.CachedData)
 func (mr *MockStorageMockRecorder) SaveCachedData(ctx, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveCachedData", reflect.TypeOf((*MockStorage)(nil).SaveCachedData), ctx, data)
+}
+
+// SaveExternalIdentityLink mocks base method.
+func (m *MockStorage) SaveExternalIdentityLink(ctx context.Context, link model.ExternalIdentityLink) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveExternalIdentityLink", ctx, link)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveExternalIdentityLink indicates an expected call of SaveExternalIdentityLink.
+func (mr *MockStorageMockRecorder) SaveExternalIdentityLink(ctx, link any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveExternalIdentityLink", reflect.TypeOf((*MockStorage)(nil).SaveExternalIdentityLink), ctx, link)
 }
 
 // SaveIdentityVerification mocks base method.
@@ -1804,6 +1922,20 @@ func (m *MockStorage) StartupCheck() error {
 func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
+}
+
+// UpdateExternalIdentityLinkSignIn mocks base method.
+func (m *MockStorage) UpdateExternalIdentityLinkSignIn(ctx context.Context, id int, lastUsedAt time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateExternalIdentityLinkSignIn", ctx, id, lastUsedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateExternalIdentityLinkSignIn indicates an expected call of UpdateExternalIdentityLinkSignIn.
+func (mr *MockStorageMockRecorder) UpdateExternalIdentityLinkSignIn(ctx, id, lastUsedAt any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExternalIdentityLinkSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateExternalIdentityLinkSignIn), ctx, id, lastUsedAt)
 }
 
 // UpdateOAuth2DeviceCodeSession mocks base method.

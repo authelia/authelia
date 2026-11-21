@@ -32,6 +32,13 @@ var (
 	// consumed or revoked.
 	ErrRecoveryCodeNotActive = errors.New("recovery code is not active")
 
+	// ErrNoExternalIdentityLink error thrown when no external identity link has been found in the database.
+	ErrNoExternalIdentityLink = errors.New("no external identity link found")
+
+	// ErrExternalIdentityLinkSignatureInvalid error thrown when an external identity link has been found in the database
+	// but its signature is not valid, which indicates the link was not written by Authelia with the current key.
+	ErrExternalIdentityLinkSignatureInvalid = errors.New("the external identity link signature is not valid")
+
 	// ErrNoAvailableMigrations is returned when no available migrations can be found.
 	ErrNoAvailableMigrations = errors.New("no available migrations")
 

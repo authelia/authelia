@@ -492,7 +492,7 @@ func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Tim
 			age = 0
 		}
 
-		return age == 0 || authenticated.IsZero() || requested.IsZero() || authenticated.Add(time.Duration(age)*time.Second).Before(requested)
+		return authenticated.IsZero() || requested.IsZero() || authenticated.Add(time.Duration(age)*time.Second).Before(requested)
 	}
 
 	return false

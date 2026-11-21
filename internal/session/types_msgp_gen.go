@@ -455,6 +455,781 @@ func (z *Elevations) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
+func (z *ExternalIdentityFlow) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "p":
+			z.Provider, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Provider")
+				return
+			}
+		case "s":
+			z.State, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "State")
+				return
+			}
+		case "n":
+			z.Nonce, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Nonce")
+				return
+			}
+		case "cv":
+			z.CodeVerifier, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "CodeVerifier")
+				return
+			}
+		case "h":
+			z.Handle, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Handle")
+				return
+			}
+		case "l":
+			z.Language, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Language")
+				return
+			}
+		case "t":
+			z.TargetURL, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "TargetURL")
+				return
+			}
+		case "m":
+			z.RequestMethod, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "RequestMethod")
+				return
+			}
+		case "r":
+			z.KeepMeLoggedIn, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "KeepMeLoggedIn")
+				return
+			}
+		case "exp":
+			z.Expires, err = dc.ReadTime()
+			if err != nil {
+				err = msgp.WrapError(err, "Expires")
+				return
+			}
+		case "fid":
+			z.FlowID, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "FlowID")
+				return
+			}
+		case "f":
+			z.Flow, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Flow")
+				return
+			}
+		case "sf":
+			z.SubFlow, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "SubFlow")
+				return
+			}
+		case "uc":
+			z.UserCode, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "UserCode")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *ExternalIdentityFlow) EncodeMsg(en *msgp.Writer) (err error) {
+	// check for omitted fields
+	zb0001Len := uint32(14)
+	var zb0001Mask uint16 /* 14 bits */
+	_ = zb0001Mask
+	if z.FlowID == "" {
+		zb0001Len--
+		zb0001Mask |= 0x400
+	}
+	if z.Flow == "" {
+		zb0001Len--
+		zb0001Mask |= 0x800
+	}
+	if z.SubFlow == "" {
+		zb0001Len--
+		zb0001Mask |= 0x1000
+	}
+	if z.UserCode == "" {
+		zb0001Len--
+		zb0001Mask |= 0x2000
+	}
+	// variable map header, size zb0001Len
+	err = en.Append(0x80 | uint8(zb0001Len))
+	if err != nil {
+		return
+	}
+
+	// skip if no fields are to be emitted
+	if zb0001Len != 0 {
+		// write "p"
+		err = en.Append(0xa1, 0x70)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Provider)
+		if err != nil {
+			err = msgp.WrapError(err, "Provider")
+			return
+		}
+		// write "s"
+		err = en.Append(0xa1, 0x73)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.State)
+		if err != nil {
+			err = msgp.WrapError(err, "State")
+			return
+		}
+		// write "n"
+		err = en.Append(0xa1, 0x6e)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Nonce)
+		if err != nil {
+			err = msgp.WrapError(err, "Nonce")
+			return
+		}
+		// write "cv"
+		err = en.Append(0xa2, 0x63, 0x76)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.CodeVerifier)
+		if err != nil {
+			err = msgp.WrapError(err, "CodeVerifier")
+			return
+		}
+		// write "h"
+		err = en.Append(0xa1, 0x68)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Handle)
+		if err != nil {
+			err = msgp.WrapError(err, "Handle")
+			return
+		}
+		// write "l"
+		err = en.Append(0xa1, 0x6c)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Language)
+		if err != nil {
+			err = msgp.WrapError(err, "Language")
+			return
+		}
+		// write "t"
+		err = en.Append(0xa1, 0x74)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.TargetURL)
+		if err != nil {
+			err = msgp.WrapError(err, "TargetURL")
+			return
+		}
+		// write "m"
+		err = en.Append(0xa1, 0x6d)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.RequestMethod)
+		if err != nil {
+			err = msgp.WrapError(err, "RequestMethod")
+			return
+		}
+		// write "r"
+		err = en.Append(0xa1, 0x72)
+		if err != nil {
+			return
+		}
+		err = en.WriteBool(z.KeepMeLoggedIn)
+		if err != nil {
+			err = msgp.WrapError(err, "KeepMeLoggedIn")
+			return
+		}
+		// write "exp"
+		err = en.Append(0xa3, 0x65, 0x78, 0x70)
+		if err != nil {
+			return
+		}
+		err = en.WriteTime(z.Expires)
+		if err != nil {
+			err = msgp.WrapError(err, "Expires")
+			return
+		}
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
+			// write "fid"
+			err = en.Append(0xa3, 0x66, 0x69, 0x64)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.FlowID)
+			if err != nil {
+				err = msgp.WrapError(err, "FlowID")
+				return
+			}
+		}
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
+			// write "f"
+			err = en.Append(0xa1, 0x66)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.Flow)
+			if err != nil {
+				err = msgp.WrapError(err, "Flow")
+				return
+			}
+		}
+		if (zb0001Mask & 0x1000) == 0 { // if not omitted
+			// write "sf"
+			err = en.Append(0xa2, 0x73, 0x66)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.SubFlow)
+			if err != nil {
+				err = msgp.WrapError(err, "SubFlow")
+				return
+			}
+		}
+		if (zb0001Mask & 0x2000) == 0 { // if not omitted
+			// write "uc"
+			err = en.Append(0xa2, 0x75, 0x63)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.UserCode)
+			if err != nil {
+				err = msgp.WrapError(err, "UserCode")
+				return
+			}
+		}
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *ExternalIdentityFlow) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// check for omitted fields
+	zb0001Len := uint32(14)
+	var zb0001Mask uint16 /* 14 bits */
+	_ = zb0001Mask
+	if z.FlowID == "" {
+		zb0001Len--
+		zb0001Mask |= 0x400
+	}
+	if z.Flow == "" {
+		zb0001Len--
+		zb0001Mask |= 0x800
+	}
+	if z.SubFlow == "" {
+		zb0001Len--
+		zb0001Mask |= 0x1000
+	}
+	if z.UserCode == "" {
+		zb0001Len--
+		zb0001Mask |= 0x2000
+	}
+	// variable map header, size zb0001Len
+	o = append(o, 0x80|uint8(zb0001Len))
+
+	// skip if no fields are to be emitted
+	if zb0001Len != 0 {
+		// string "p"
+		o = append(o, 0xa1, 0x70)
+		o = msgp.AppendString(o, z.Provider)
+		// string "s"
+		o = append(o, 0xa1, 0x73)
+		o = msgp.AppendString(o, z.State)
+		// string "n"
+		o = append(o, 0xa1, 0x6e)
+		o = msgp.AppendString(o, z.Nonce)
+		// string "cv"
+		o = append(o, 0xa2, 0x63, 0x76)
+		o = msgp.AppendString(o, z.CodeVerifier)
+		// string "h"
+		o = append(o, 0xa1, 0x68)
+		o = msgp.AppendString(o, z.Handle)
+		// string "l"
+		o = append(o, 0xa1, 0x6c)
+		o = msgp.AppendString(o, z.Language)
+		// string "t"
+		o = append(o, 0xa1, 0x74)
+		o = msgp.AppendString(o, z.TargetURL)
+		// string "m"
+		o = append(o, 0xa1, 0x6d)
+		o = msgp.AppendString(o, z.RequestMethod)
+		// string "r"
+		o = append(o, 0xa1, 0x72)
+		o = msgp.AppendBool(o, z.KeepMeLoggedIn)
+		// string "exp"
+		o = append(o, 0xa3, 0x65, 0x78, 0x70)
+		o = msgp.AppendTime(o, z.Expires)
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
+			// string "fid"
+			o = append(o, 0xa3, 0x66, 0x69, 0x64)
+			o = msgp.AppendString(o, z.FlowID)
+		}
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
+			// string "f"
+			o = append(o, 0xa1, 0x66)
+			o = msgp.AppendString(o, z.Flow)
+		}
+		if (zb0001Mask & 0x1000) == 0 { // if not omitted
+			// string "sf"
+			o = append(o, 0xa2, 0x73, 0x66)
+			o = msgp.AppendString(o, z.SubFlow)
+		}
+		if (zb0001Mask & 0x2000) == 0 { // if not omitted
+			// string "uc"
+			o = append(o, 0xa2, 0x75, 0x63)
+			o = msgp.AppendString(o, z.UserCode)
+		}
+	}
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *ExternalIdentityFlow) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "p":
+			z.Provider, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Provider")
+				return
+			}
+		case "s":
+			z.State, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "State")
+				return
+			}
+		case "n":
+			z.Nonce, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Nonce")
+				return
+			}
+		case "cv":
+			z.CodeVerifier, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "CodeVerifier")
+				return
+			}
+		case "h":
+			z.Handle, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Handle")
+				return
+			}
+		case "l":
+			z.Language, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Language")
+				return
+			}
+		case "t":
+			z.TargetURL, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "TargetURL")
+				return
+			}
+		case "m":
+			z.RequestMethod, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "RequestMethod")
+				return
+			}
+		case "r":
+			z.KeepMeLoggedIn, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "KeepMeLoggedIn")
+				return
+			}
+		case "exp":
+			z.Expires, bts, err = msgp.ReadTimeBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Expires")
+				return
+			}
+		case "fid":
+			z.FlowID, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "FlowID")
+				return
+			}
+		case "f":
+			z.Flow, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Flow")
+				return
+			}
+		case "sf":
+			z.SubFlow, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "SubFlow")
+				return
+			}
+		case "uc":
+			z.UserCode, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "UserCode")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *ExternalIdentityFlow) Msgsize() (s int) {
+	s = 1 + 2 + msgp.StringPrefixSize + len(z.Provider) + 2 + msgp.StringPrefixSize + len(z.State) + 2 + msgp.StringPrefixSize + len(z.Nonce) + 3 + msgp.StringPrefixSize + len(z.CodeVerifier) + 2 + msgp.StringPrefixSize + len(z.Handle) + 2 + msgp.StringPrefixSize + len(z.Language) + 2 + msgp.StringPrefixSize + len(z.TargetURL) + 2 + msgp.StringPrefixSize + len(z.RequestMethod) + 2 + msgp.BoolSize + 4 + msgp.TimeSize + 4 + msgp.StringPrefixSize + len(z.FlowID) + 2 + msgp.StringPrefixSize + len(z.Flow) + 3 + msgp.StringPrefixSize + len(z.SubFlow) + 3 + msgp.StringPrefixSize + len(z.UserCode)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *ExternalIdentityPending) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "p":
+			z.Provider, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Provider")
+				return
+			}
+		case "typ":
+			z.Type, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Type")
+				return
+			}
+		case "iss":
+			z.Issuer, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Issuer")
+				return
+			}
+		case "sub":
+			z.Subject, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Subject")
+				return
+			}
+		case "u":
+			z.RemoteUsername, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "RemoteUsername")
+				return
+			}
+		case "dn":
+			z.DisplayName, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "DisplayName")
+				return
+			}
+		case "e":
+			z.Email, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Email")
+				return
+			}
+		case "exp":
+			z.Expires, err = dc.ReadTime()
+			if err != nil {
+				err = msgp.WrapError(err, "Expires")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *ExternalIdentityPending) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 8
+	// write "p"
+	err = en.Append(0x88, 0xa1, 0x70)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Provider)
+	if err != nil {
+		err = msgp.WrapError(err, "Provider")
+		return
+	}
+	// write "typ"
+	err = en.Append(0xa3, 0x74, 0x79, 0x70)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Type)
+	if err != nil {
+		err = msgp.WrapError(err, "Type")
+		return
+	}
+	// write "iss"
+	err = en.Append(0xa3, 0x69, 0x73, 0x73)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Issuer)
+	if err != nil {
+		err = msgp.WrapError(err, "Issuer")
+		return
+	}
+	// write "sub"
+	err = en.Append(0xa3, 0x73, 0x75, 0x62)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Subject)
+	if err != nil {
+		err = msgp.WrapError(err, "Subject")
+		return
+	}
+	// write "u"
+	err = en.Append(0xa1, 0x75)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.RemoteUsername)
+	if err != nil {
+		err = msgp.WrapError(err, "RemoteUsername")
+		return
+	}
+	// write "dn"
+	err = en.Append(0xa2, 0x64, 0x6e)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.DisplayName)
+	if err != nil {
+		err = msgp.WrapError(err, "DisplayName")
+		return
+	}
+	// write "e"
+	err = en.Append(0xa1, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Email)
+	if err != nil {
+		err = msgp.WrapError(err, "Email")
+		return
+	}
+	// write "exp"
+	err = en.Append(0xa3, 0x65, 0x78, 0x70)
+	if err != nil {
+		return
+	}
+	err = en.WriteTime(z.Expires)
+	if err != nil {
+		err = msgp.WrapError(err, "Expires")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *ExternalIdentityPending) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 8
+	// string "p"
+	o = append(o, 0x88, 0xa1, 0x70)
+	o = msgp.AppendString(o, z.Provider)
+	// string "typ"
+	o = append(o, 0xa3, 0x74, 0x79, 0x70)
+	o = msgp.AppendString(o, z.Type)
+	// string "iss"
+	o = append(o, 0xa3, 0x69, 0x73, 0x73)
+	o = msgp.AppendString(o, z.Issuer)
+	// string "sub"
+	o = append(o, 0xa3, 0x73, 0x75, 0x62)
+	o = msgp.AppendString(o, z.Subject)
+	// string "u"
+	o = append(o, 0xa1, 0x75)
+	o = msgp.AppendString(o, z.RemoteUsername)
+	// string "dn"
+	o = append(o, 0xa2, 0x64, 0x6e)
+	o = msgp.AppendString(o, z.DisplayName)
+	// string "e"
+	o = append(o, 0xa1, 0x65)
+	o = msgp.AppendString(o, z.Email)
+	// string "exp"
+	o = append(o, 0xa3, 0x65, 0x78, 0x70)
+	o = msgp.AppendTime(o, z.Expires)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *ExternalIdentityPending) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "p":
+			z.Provider, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Provider")
+				return
+			}
+		case "typ":
+			z.Type, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Type")
+				return
+			}
+		case "iss":
+			z.Issuer, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Issuer")
+				return
+			}
+		case "sub":
+			z.Subject, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Subject")
+				return
+			}
+		case "u":
+			z.RemoteUsername, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "RemoteUsername")
+				return
+			}
+		case "dn":
+			z.DisplayName, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "DisplayName")
+				return
+			}
+		case "e":
+			z.Email, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Email")
+				return
+			}
+		case "exp":
+			z.Expires, bts, err = msgp.ReadTimeBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Expires")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *ExternalIdentityPending) Msgsize() (s int) {
+	s = 1 + 2 + msgp.StringPrefixSize + len(z.Provider) + 4 + msgp.StringPrefixSize + len(z.Type) + 4 + msgp.StringPrefixSize + len(z.Issuer) + 4 + msgp.StringPrefixSize + len(z.Subject) + 2 + msgp.StringPrefixSize + len(z.RemoteUsername) + 3 + msgp.StringPrefixSize + len(z.DisplayName) + 2 + msgp.StringPrefixSize + len(z.Email) + 4 + msgp.TimeSize
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
 func (z *MessagePackAMR) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
@@ -532,6 +1307,12 @@ func (z *MessagePackAMR) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "RecoveryCode")
 				return
 			}
+		case "fed":
+			z.FederatedIdentity, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "FederatedIdentity")
+				return
+			}
 		case "extra":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
@@ -565,12 +1346,12 @@ func (z *MessagePackAMR) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(11)
-	var zb0001Mask uint16 /* 11 bits */
+	zb0001Len := uint32(12)
+	var zb0001Mask uint16 /* 12 bits */
 	_ = zb0001Mask
 	if z.Extra == nil {
 		zb0001Len--
-		zb0001Mask |= 0x400
+		zb0001Mask |= 0x800
 	}
 	// variable map header, size zb0001Len
 	err = en.Append(0x80 | uint8(zb0001Len))
@@ -680,7 +1461,17 @@ func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "RecoveryCode")
 			return
 		}
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		// write "fed"
+		err = en.Append(0xa3, 0x66, 0x65, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteBool(z.FederatedIdentity)
+		if err != nil {
+			err = msgp.WrapError(err, "FederatedIdentity")
+			return
+		}
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
 			// write "extra"
 			err = en.Append(0xa5, 0x65, 0x78, 0x74, 0x72, 0x61)
 			if err != nil {
@@ -707,12 +1498,12 @@ func (z *MessagePackAMR) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *MessagePackAMR) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(11)
-	var zb0001Mask uint16 /* 11 bits */
+	zb0001Len := uint32(12)
+	var zb0001Mask uint16 /* 12 bits */
 	_ = zb0001Mask
 	if z.Extra == nil {
 		zb0001Len--
-		zb0001Mask |= 0x400
+		zb0001Mask |= 0x800
 	}
 	// variable map header, size zb0001Len
 	o = append(o, 0x80|uint8(zb0001Len))
@@ -749,7 +1540,10 @@ func (z *MessagePackAMR) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "rc"
 		o = append(o, 0xa2, 0x72, 0x63)
 		o = msgp.AppendBool(o, z.RecoveryCode)
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		// string "fed"
+		o = append(o, 0xa3, 0x66, 0x65, 0x64)
+		o = msgp.AppendBool(o, z.FederatedIdentity)
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
 			// string "extra"
 			o = append(o, 0xa5, 0x65, 0x78, 0x74, 0x72, 0x61)
 			o = msgp.AppendArrayHeader(o, uint32(len(z.Extra)))
@@ -839,6 +1633,12 @@ func (z *MessagePackAMR) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "RecoveryCode")
 				return
 			}
+		case "fed":
+			z.FederatedIdentity, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "FederatedIdentity")
+				return
+			}
 		case "extra":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
@@ -872,7 +1672,7 @@ func (z *MessagePackAMR) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *MessagePackAMR) Msgsize() (s int) {
-	s = 1 + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 6 + msgp.ArrayHeaderSize
+	s = 1 + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 4 + msgp.BoolSize + 4 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 3 + msgp.BoolSize + 4 + msgp.BoolSize + 6 + msgp.ArrayHeaderSize
 	for za0001 := range z.Extra {
 		s += msgp.StringPrefixSize + len(z.Extra[za0001])
 	}
@@ -1265,6 +2065,65 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "wac":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "WebAuthnConditional")
+					return
+				}
+				z.WebAuthnConditional = nil
+			} else {
+				if z.WebAuthnConditional == nil {
+					z.WebAuthnConditional = new(WebAuthn)
+				}
+				var zb0003 uint32
+				zb0003, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "WebAuthnConditional")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "WebAuthnConditional")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "SessionData":
+						if dc.IsNil() {
+							err = dc.ReadNil()
+							if err != nil {
+								err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+								return
+							}
+							z.WebAuthnConditional.SessionData = nil
+						} else {
+							if z.WebAuthnConditional.SessionData == nil {
+								z.WebAuthnConditional.SessionData = new(webauthn.SessionData)
+							}
+							err = z.WebAuthnConditional.SessionData.DecodeMsg(dc)
+							if err != nil {
+								err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+								return
+							}
+						}
+					case "desc":
+						z.WebAuthnConditional.Description, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "Description")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional")
+							return
+						}
+					}
+				}
+			}
 		case "otp":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -1313,6 +2172,42 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Elevations")
 				return
 			}
+		case "eid":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentity")
+					return
+				}
+				z.ExternalIdentity = nil
+			} else {
+				if z.ExternalIdentity == nil {
+					z.ExternalIdentity = new(ExternalIdentityFlow)
+				}
+				err = z.ExternalIdentity.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentity")
+					return
+				}
+			}
+		case "eidp":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentityPending")
+					return
+				}
+				z.ExternalIdentityPending = nil
+			} else {
+				if z.ExternalIdentityPending == nil {
+					z.ExternalIdentityPending = new(ExternalIdentityPending)
+				}
+				err = z.ExternalIdentityPending.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentityPending")
+					return
+				}
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -1327,8 +2222,8 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(13)
-	var zb0001Mask uint16 /* 13 bits */
+	zb0001Len := uint32(16)
+	var zb0001Mask uint16 /* 16 bits */
 	_ = zb0001Mask
 	if z.Username == "" {
 		zb0001Len--
@@ -1346,16 +2241,28 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 		zb0001Len--
 		zb0001Mask |= 0x100
 	}
-	if z.TOTP == nil {
+	if z.WebAuthnConditional == nil {
 		zb0001Len--
 		zb0001Mask |= 0x200
 	}
-	if z.PasswordResetUsername == nil {
+	if z.TOTP == nil {
 		zb0001Len--
 		zb0001Mask |= 0x400
 	}
+	if z.PasswordResetUsername == nil {
+		zb0001Len--
+		zb0001Mask |= 0x800
+	}
+	if z.ExternalIdentity == nil {
+		zb0001Len--
+		zb0001Mask |= 0x4000
+	}
+	if z.ExternalIdentityPending == nil {
+		zb0001Len--
+		zb0001Mask |= 0x8000
+	}
 	// variable map header, size zb0001Len
-	err = en.Append(0x80 | uint8(zb0001Len))
+	err = en.WriteMapHeader(zb0001Len)
 	if err != nil {
 		return
 	}
@@ -1509,6 +2416,66 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			}
 		}
 		if (zb0001Mask & 0x200) == 0 { // if not omitted
+			// write "wac"
+			err = en.Append(0xa3, 0x77, 0x61, 0x63)
+			if err != nil {
+				return
+			}
+			if z.WebAuthnConditional == nil {
+				err = en.WriteNil()
+				if err != nil {
+					return
+				}
+			} else {
+				// check for omitted fields
+				zb0003Len := uint32(2)
+				var zb0003Mask uint8 /* 2 bits */
+				_ = zb0003Mask
+				if z.WebAuthnConditional.Description == "" {
+					zb0003Len--
+					zb0003Mask |= 0x2
+				}
+				// variable map header, size zb0003Len
+				err = en.Append(0x80 | uint8(zb0003Len))
+				if err != nil {
+					return
+				}
+
+				// skip if no fields are to be emitted
+				if zb0003Len != 0 {
+					// write "SessionData"
+					err = en.Append(0xab, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61)
+					if err != nil {
+						return
+					}
+					if z.WebAuthnConditional.SessionData == nil {
+						err = en.WriteNil()
+						if err != nil {
+							return
+						}
+					} else {
+						err = z.WebAuthnConditional.SessionData.EncodeMsg(en)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+							return
+						}
+					}
+					if (zb0003Mask & 0x2) == 0 { // if not omitted
+						// write "desc"
+						err = en.Append(0xa4, 0x64, 0x65, 0x73, 0x63)
+						if err != nil {
+							return
+						}
+						err = en.WriteString(z.WebAuthnConditional.Description)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "Description")
+							return
+						}
+					}
+				}
+			}
+		}
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
 			// write "otp"
 			err = en.Append(0xa3, 0x6f, 0x74, 0x70)
 			if err != nil {
@@ -1527,7 +2494,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
 			// write "pru"
 			err = en.Append(0xa3, 0x70, 0x72, 0x75)
 			if err != nil {
@@ -1566,6 +2533,44 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "Elevations")
 			return
 		}
+		if (zb0001Mask & 0x4000) == 0 { // if not omitted
+			// write "eid"
+			err = en.Append(0xa3, 0x65, 0x69, 0x64)
+			if err != nil {
+				return
+			}
+			if z.ExternalIdentity == nil {
+				err = en.WriteNil()
+				if err != nil {
+					return
+				}
+			} else {
+				err = z.ExternalIdentity.EncodeMsg(en)
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentity")
+					return
+				}
+			}
+		}
+		if (zb0001Mask & 0x8000) == 0 { // if not omitted
+			// write "eidp"
+			err = en.Append(0xa4, 0x65, 0x69, 0x64, 0x70)
+			if err != nil {
+				return
+			}
+			if z.ExternalIdentityPending == nil {
+				err = en.WriteNil()
+				if err != nil {
+					return
+				}
+			} else {
+				err = z.ExternalIdentityPending.EncodeMsg(en)
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentityPending")
+					return
+				}
+			}
+		}
 	}
 	return
 }
@@ -1574,8 +2579,8 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(13)
-	var zb0001Mask uint16 /* 13 bits */
+	zb0001Len := uint32(16)
+	var zb0001Mask uint16 /* 16 bits */
 	_ = zb0001Mask
 	if z.Username == "" {
 		zb0001Len--
@@ -1593,16 +2598,28 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 		zb0001Len--
 		zb0001Mask |= 0x100
 	}
-	if z.TOTP == nil {
+	if z.WebAuthnConditional == nil {
 		zb0001Len--
 		zb0001Mask |= 0x200
 	}
-	if z.PasswordResetUsername == nil {
+	if z.TOTP == nil {
 		zb0001Len--
 		zb0001Mask |= 0x400
 	}
+	if z.PasswordResetUsername == nil {
+		zb0001Len--
+		zb0001Mask |= 0x800
+	}
+	if z.ExternalIdentity == nil {
+		zb0001Len--
+		zb0001Mask |= 0x4000
+	}
+	if z.ExternalIdentityPending == nil {
+		zb0001Len--
+		zb0001Mask |= 0x8000
+	}
 	// variable map header, size zb0001Len
-	o = append(o, 0x80|uint8(zb0001Len))
+	o = msgp.AppendMapHeader(o, zb0001Len)
 
 	// skip if no fields are to be emitted
 	if zb0001Len != 0 {
@@ -1679,6 +2696,44 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 			}
 		}
 		if (zb0001Mask & 0x200) == 0 { // if not omitted
+			// string "wac"
+			o = append(o, 0xa3, 0x77, 0x61, 0x63)
+			if z.WebAuthnConditional == nil {
+				o = msgp.AppendNil(o)
+			} else {
+				// check for omitted fields
+				zb0003Len := uint32(2)
+				var zb0003Mask uint8 /* 2 bits */
+				_ = zb0003Mask
+				if z.WebAuthnConditional.Description == "" {
+					zb0003Len--
+					zb0003Mask |= 0x2
+				}
+				// variable map header, size zb0003Len
+				o = append(o, 0x80|uint8(zb0003Len))
+
+				// skip if no fields are to be emitted
+				if zb0003Len != 0 {
+					// string "SessionData"
+					o = append(o, 0xab, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61)
+					if z.WebAuthnConditional.SessionData == nil {
+						o = msgp.AppendNil(o)
+					} else {
+						o, err = z.WebAuthnConditional.SessionData.MarshalMsg(o)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+							return
+						}
+					}
+					if (zb0003Mask & 0x2) == 0 { // if not omitted
+						// string "desc"
+						o = append(o, 0xa4, 0x64, 0x65, 0x73, 0x63)
+						o = msgp.AppendString(o, z.WebAuthnConditional.Description)
+					}
+				}
+			}
+		}
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
 			// string "otp"
 			o = append(o, 0xa3, 0x6f, 0x74, 0x70)
 			if z.TOTP == nil {
@@ -1691,7 +2746,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		if (zb0001Mask & 0x800) == 0 { // if not omitted
 			// string "pru"
 			o = append(o, 0xa3, 0x70, 0x72, 0x75)
 			if z.PasswordResetUsername == nil {
@@ -1709,6 +2764,32 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 		if err != nil {
 			err = msgp.WrapError(err, "Elevations")
 			return
+		}
+		if (zb0001Mask & 0x4000) == 0 { // if not omitted
+			// string "eid"
+			o = append(o, 0xa3, 0x65, 0x69, 0x64)
+			if z.ExternalIdentity == nil {
+				o = msgp.AppendNil(o)
+			} else {
+				o, err = z.ExternalIdentity.MarshalMsg(o)
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentity")
+					return
+				}
+			}
+		}
+		if (zb0001Mask & 0x8000) == 0 { // if not omitted
+			// string "eidp"
+			o = append(o, 0xa4, 0x65, 0x69, 0x64, 0x70)
+			if z.ExternalIdentityPending == nil {
+				o = msgp.AppendNil(o)
+			} else {
+				o, err = z.ExternalIdentityPending.MarshalMsg(o)
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentityPending")
+					return
+				}
+			}
 		}
 	}
 	return
@@ -1837,6 +2918,63 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "wac":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.WebAuthnConditional = nil
+			} else {
+				if z.WebAuthnConditional == nil {
+					z.WebAuthnConditional = new(WebAuthn)
+				}
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "WebAuthnConditional")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "WebAuthnConditional")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "SessionData":
+						if msgp.IsNil(bts) {
+							bts, err = msgp.ReadNilBytes(bts)
+							if err != nil {
+								return
+							}
+							z.WebAuthnConditional.SessionData = nil
+						} else {
+							if z.WebAuthnConditional.SessionData == nil {
+								z.WebAuthnConditional.SessionData = new(webauthn.SessionData)
+							}
+							bts, err = z.WebAuthnConditional.SessionData.UnmarshalMsg(bts)
+							if err != nil {
+								err = msgp.WrapError(err, "WebAuthnConditional", "SessionData")
+								return
+							}
+						}
+					case "desc":
+						z.WebAuthnConditional.Description, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional", "Description")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "WebAuthnConditional")
+							return
+						}
+					}
+				}
+			}
 		case "otp":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -1883,6 +3021,40 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "Elevations")
 				return
 			}
+		case "eid":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.ExternalIdentity = nil
+			} else {
+				if z.ExternalIdentity == nil {
+					z.ExternalIdentity = new(ExternalIdentityFlow)
+				}
+				bts, err = z.ExternalIdentity.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentity")
+					return
+				}
+			}
+		case "eidp":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.ExternalIdentityPending = nil
+			} else {
+				if z.ExternalIdentityPending == nil {
+					z.ExternalIdentityPending = new(ExternalIdentityPending)
+				}
+				bts, err = z.ExternalIdentityPending.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "ExternalIdentityPending")
+					return
+				}
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -1897,7 +3069,7 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserSession) Msgsize() (s int) {
-	s = 1 + 2 + msgp.StringPrefixSize + len(z.CookieDomain) + 2 + msgp.StringPrefixSize + len(z.PublicID) + 2 + msgp.StringPrefixSize + len(z.Username) + 2 + msgp.BoolSize + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + (*MessagePackAMR)(&z.AuthenticationMethodRefs).Msgsize() + 3
+	s = 3 + 2 + msgp.StringPrefixSize + len(z.CookieDomain) + 2 + msgp.StringPrefixSize + len(z.PublicID) + 2 + msgp.StringPrefixSize + len(z.Username) + 2 + msgp.BoolSize + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + (*MessagePackAMR)(&z.AuthenticationMethodRefs).Msgsize() + 3
 	if z.WebAuthn == nil {
 		s += msgp.NilSize
 	} else {
@@ -1908,6 +3080,18 @@ func (z *UserSession) Msgsize() (s int) {
 			s += z.WebAuthn.SessionData.Msgsize()
 		}
 		s += 5 + msgp.StringPrefixSize + len(z.WebAuthn.Description)
+	}
+	s += 4
+	if z.WebAuthnConditional == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 12
+		if z.WebAuthnConditional.SessionData == nil {
+			s += msgp.NilSize
+		} else {
+			s += z.WebAuthnConditional.SessionData.Msgsize()
+		}
+		s += 5 + msgp.StringPrefixSize + len(z.WebAuthnConditional.Description)
 	}
 	s += 4
 	if z.TOTP == nil {
@@ -1921,7 +3105,18 @@ func (z *UserSession) Msgsize() (s int) {
 	} else {
 		s += msgp.StringPrefixSize + len(*z.PasswordResetUsername)
 	}
-	s += 4 + msgp.TimeSize + 2 + z.Elevations.Msgsize()
+	s += 4 + msgp.TimeSize + 2 + z.Elevations.Msgsize() + 4
+	if z.ExternalIdentity == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.ExternalIdentity.Msgsize()
+	}
+	s += 5
+	if z.ExternalIdentityPending == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.ExternalIdentityPending.Msgsize()
+	}
 	return
 }
 
