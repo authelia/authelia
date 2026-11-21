@@ -67,6 +67,11 @@ type Strategy interface {
 	// GetConfig returns the session cookie configuration this Strategy was constructed with.
 	GetConfig() (config schema.SessionCookie)
 
+	// GetIssuer returns the issuer this Strategy keys its Repository entries by, which is the signature of the
+	// Authelia URL, falling back to the cookie domain when no Authelia URL is configured. Consumers which persist
+	// a reference to a session need it to resolve that reference later.
+	GetIssuer() (issuer string)
+
 	// New returns a session for the given username bound to the cookie domain of this Strategy. Naming the user at
 	// construction is the only supported way to give a session a username, as changing it on an existing session would
 	// hand the session of one user to another.
@@ -79,6 +84,11 @@ type Strategy interface {
 	// or the cookie doesn't resolve to a session which is still held by the Repository. An error is returned when the
 	// Repository fails, or when the session can't be opened or is bound to another cookie domain.
 	Get(ctx Context) (session *UserSession, err error)
+
+	// Exists returns true when the session with the public identifier is still held by the Repository. Unlike Get it
+	// always reads the Repository rather than the session retained for the request, so a session destroyed by a
+	// concurrent request is observed. An error is returned when the Repository fails.
+	Exists(ctx Context, pid string) (exists bool, err error)
 
 	// Save persists the session and delivers the session cookie to the user agent, generating the identifiers the
 	// session needs when it has none. The session is a pointer as the generated public identifier is written back to it,
@@ -118,7 +128,9 @@ type Repository interface {
 
 	// GetByPublicID returns the session record stored against the public identifier for the issuer. The record carries
 	// the identifier it is stored against, which the caller requires to open it and can't derive from the public
-	// identifier.
+	// identifier. As with Get, a nil record without an error means there is no such session or it has expired; a
+	// consumer using that to decide whether the session is definitively gone, such as the OpenID Connect session id
+	// garbage collector, depends on this being returned only when the backend genuinely has no record, never on error.
 	GetByPublicID(ctx context.Context, issuer string, pid string) (record Record, err error)
 
 	// GetIDsByUsername returns the identifiers of every session of the given username for the issuer, which allows the

@@ -383,6 +383,63 @@ type Provider interface {
 	SaveOAuth2RequestReplay(ctx context.Context, replay model.OAuth2RequestReplay) (err error)
 
 	/*
+		Implementation for OAuth2.0 Session ID's.
+	*/
+
+	// GetOrCreateOAuth2SessionID returns the session id mapping for the issuer, sector, and public identifier,
+	// creating it when absent.
+	GetOrCreateOAuth2SessionID(ctx context.Context, issuer, sectorID, publicID string) (record *model.OAuth2SessionID, err error)
+
+	// LoadOAuth2SessionIDBySessionID returns the session id mapping for the issuer and 'sid' claim value, returning
+	// a nil record and no error when there is no such mapping.
+	LoadOAuth2SessionIDBySessionID(ctx context.Context, issuer, sid string) (record *model.OAuth2SessionID, err error)
+
+	// LoadOAuth2SessionIDsOldest pages the session id mappings ordered by ascending id.
+	LoadOAuth2SessionIDsOldest(ctx context.Context, after, limit int) (records []model.OAuth2SessionID, err error)
+
+	// EndOAuth2Session ends every OpenID Connect session of the issuer and session public identifier, returning their
+	// session identifiers. Each ended session is recorded with a task of the kind model.OAuth2SessionLogoutTaskKindRevoke
+	// using the schedule, and its mappings are removed.
+	EndOAuth2Session(ctx context.Context, issuer, publicID string, schedule model.OAuth2SessionLogoutTaskSchedule) (sids []string, err error)
+
+	// IsOAuth2SessionEnded returns true if the OpenID Connect session with the session identifier has ended, reading
+	// the record with a shared lock within a transaction.
+	IsOAuth2SessionEnded(ctx context.Context, sid string) (ended bool, err error)
+
+	// SaveOAuth2SessionLogoutTask saves a logout task unless a task of the same kind for the same session and client exists.
+	SaveOAuth2SessionLogoutTask(ctx context.Context, task model.OAuth2SessionLogoutTask) (err error)
+
+	// LoadOAuth2SessionLogoutTasksDue returns the logout tasks whose next attempt is due at the time, earliest first.
+	LoadOAuth2SessionLogoutTasksDue(ctx context.Context, now time.Time, limit int) (tasks []model.OAuth2SessionLogoutTask, err error)
+
+	// ClaimOAuth2SessionLogoutTask claims the attempt of a logout task loaded with the number of attempts, returning false when
+	// another attempt claimed it first.
+	ClaimOAuth2SessionLogoutTask(ctx context.Context, id, attempts int, next time.Time) (claimed bool, err error)
+
+	// RescheduleOAuth2SessionLogoutTask schedules the next attempt of a claimed logout task, returning false when the claim
+	// was superseded.
+	RescheduleOAuth2SessionLogoutTask(ctx context.Context, id, attempts int, next time.Time) (rescheduled bool, err error)
+
+	// DeleteOAuth2SessionLogoutTask deletes a claimed logout task, returning false when the claim was superseded.
+	DeleteOAuth2SessionLogoutTask(ctx context.Context, id, attempts int) (deleted bool, err error)
+
+	// SaveOAuth2SessionLogout saves an OpenID Connect RP-Initiated Logout 1.0 request awaiting the confirmation of the
+	// End-User, removing every logout session which expired before it was created.
+	SaveOAuth2SessionLogout(ctx context.Context, session model.OAuth2SessionLogout) (err error)
+
+	// LoadOAuth2SessionLogout returns the logout session with the flow id, or a nil session without an error when there
+	// is no such session.
+	LoadOAuth2SessionLogout(ctx context.Context, flowID uuid.UUID) (session *model.OAuth2SessionLogout, err error)
+
+	// DeleteOAuth2SessionLogout deletes the logout session with the flow id, returning false when there was no such
+	// session, such as when another request consumed it.
+	DeleteOAuth2SessionLogout(ctx context.Context, flowID uuid.UUID) (deleted bool, err error)
+
+	// RevokeOAuth2RefreshTokenSessionsBySessionID revokes the online refresh token sessions issued with the 'sid' claim
+	// value, leaving those which were granted offline access.
+	RevokeOAuth2RefreshTokenSessionsBySessionID(ctx context.Context, sid string) (err error)
+
+	/*
 		Implementation for User Sessions.
 	*/
 

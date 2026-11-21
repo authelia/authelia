@@ -33,6 +33,7 @@ func TestOAuth2AuthorizationGETPushedAuthorizationRequest(t *testing.T) {
 		setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 		setupTestOIDCPARStore(t, mock)
 

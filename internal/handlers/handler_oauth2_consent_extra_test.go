@@ -490,6 +490,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		defer mock.Close()
 
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		mock.Ctx.Request.SetBodyString(body(userCode))
 
@@ -505,6 +506,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		defer mock.Close()
 
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSession(gomock.Any(), gomock.Any()).
@@ -524,6 +526,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		defer mock.Close()
 
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSession(gomock.Any(), gomock.Any()).
@@ -553,6 +556,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		var device *model.OAuth2DeviceCodeSession
 
@@ -810,6 +814,7 @@ func TestOAuth2ConsentPOSTSubflowDispatch(t *testing.T) {
 
 		setupTestOIDCConsent(t, mock, consent)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		mock.StorageMock.EXPECT().
 			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), true).
@@ -938,6 +943,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTCorruptSession(t *testing.T) 
 	setupTestOIDCProvider(t, mock, config)
 	setupTestOIDCDeviceCodeStore(t, mock)
 	setupTestOIDCSubjectStore(t, mock)
+	setupTestOIDCSessionIDStore(t, mock)
 
 	userCode := mustGetTestOIDCUserCode(t, mock)
 

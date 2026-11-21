@@ -1862,6 +1862,10 @@ session:
         ## Options are 'plain' and 'S256'.
         # pkce_challenge_method: 'S256'
 
+        ## Issues refresh tokens to grants without the 'offline_access' scope, which are revoked when the End-User's
+        ## session ends. Requires the 'refresh_token' grant type.
+        # allow_online_refresh_tokens: false
+
         ## Keeps the presented refresh token during the refresh token grant rather than issuing a new one. This makes
         ## refresh token reuse undetectable and has no effect for public clients.
         # disable_refresh_token_rotation: false

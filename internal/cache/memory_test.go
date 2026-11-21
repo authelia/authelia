@@ -5,6 +5,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -15,6 +16,33 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/session"
 )
+
+func TestMemoryShouldReturnNilWithoutErrorForAbsentSession(t *testing.T) {
+	provider := NewMemory()
+
+	record, err := provider.SessionGetByPublicID(context.Background(), "issuer", "absent")
+
+	assert.NoError(t, err)
+	assert.Nil(t, record)
+}
+
+func TestMemoryShouldReturnNilWithoutErrorForDeletedSession(t *testing.T) {
+	provider := NewMemory()
+
+	require.NoError(t, provider.SessionSave(context.Background(), "issuer", "id", "pid", "john", time.Hour, []byte("data")))
+
+	record, err := provider.SessionGetByPublicID(context.Background(), "issuer", "pid")
+
+	require.NoError(t, err)
+	require.NotNil(t, record)
+
+	require.NoError(t, provider.SessionDelete(context.Background(), "issuer", "id", "pid", "john"))
+
+	record, err = provider.SessionGetByPublicID(context.Background(), "issuer", "pid")
+
+	assert.NoError(t, err)
+	assert.Nil(t, record)
+}
 
 func TestMemory_SessionGetExpiry(t *testing.T) {
 	testCases := []struct {

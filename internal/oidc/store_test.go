@@ -569,7 +569,7 @@ func (s *StoreSuite) TestCreateSessions() {
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, RefreshTokenMode: "online", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
@@ -1337,4 +1337,339 @@ func (s *StoreSuite) TestSerializationFailureMappingShouldNotAffectOtherErrors()
 
 	assert.EqualError(s.T(), err, "deactivate error")
 	assert.NotErrorIs(s.T(), err, oauthelia2.ErrSerializationFailure)
+}
+
+func TestStoreShouldRefuseRequestsOfEndedSessions(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                       myclient,
+						Name:                     myclientname,
+						AuthorizationPolicy:      onefactor,
+						Scopes:                   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+						Secret:                   tOpenIDConnectPlainTextClientSecret,
+						AllowOnlineRefreshTokens: true,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	ended := uuid.Must(uuid.NewRandom()).String()
+	live := uuid.Must(uuid.NewRandom()).String()
+
+	now := time.Now()
+
+	require.NoError(t, provider.SaveOAuth2SessionLogoutTask(ctx, model.OAuth2SessionLogoutTaskSchedule{CreatedAt: now, NextAttemptAt: now, ExpiresAt: now.Add(time.Hour)}.RevokeTask(ended)))
+
+	subject, err := s.GetSubject(ctx, "", "john")
+	require.NoError(t, err)
+
+	newModeRequest := func(id, sid string, mode oauthelia2.RefreshTokenMode, scopes ...string) oauthelia2.Request {
+		session := oidc.NewSession()
+		session.Subject = subject.String()
+		session.ChallengeID = model.MustNullUUID(model.NewRandomNullUUID())
+		session.SetSessionID(sid)
+		session.SetRefreshTokenMode(mode)
+
+		return oauthelia2.Request{
+			ID:             id,
+			Client:         &oidc.RegisteredClient{ID: myclient},
+			RequestedScope: scopes,
+			GrantedScope:   scopes,
+			Session:        session,
+		}
+	}
+
+	newRequest := func(id, sid string, scopes ...string) oauthelia2.Request {
+		mode := oauthelia2.GetRefreshTokenModeForScopes([]string{oidc.ScopeOffline, oidc.ScopeOfflineAccess}, scopes)
+
+		return newModeRequest(id, sid, mode, scopes...)
+	}
+
+	mode := func(t *testing.T, signature string) string {
+		session, err := provider.LoadOAuth2Session(ctx, storage.OAuth2SessionTypeRefreshToken, signature)
+		require.NoError(t, err)
+
+		return session.RefreshTokenMode
+	}
+
+	testCases := []struct {
+		name     string
+		setup    func(t *testing.T, signature string)
+		load     func(ctx context.Context, signature string) (err error)
+		expected error
+	}{
+		{
+			name: "ShouldRefuseOnlineRefreshTokenOfEndedSession",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, ended, oidc.ScopeOpenID)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+			expected: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldRefuseRevokedOnlineRefreshTokenOfEndedSessionWithoutReuse",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, ended, oidc.ScopeOpenID)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+				require.NoError(t, provider.RevokeOAuth2RefreshTokenSessionsBySessionID(ctx, ended))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+			expected: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldRefuseOnlineRefreshTokenOfEndedSessionWithinTransaction",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, ended, oidc.ScopeOpenID)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				var tx context.Context
+
+				if tx, err = s.BeginTX(ctx); err != nil {
+					return err
+				}
+
+				defer func() {
+					_ = s.Rollback(tx)
+				}()
+
+				_, err = s.GetRefreshTokenSession(tx, signature, oidc.NewSession())
+
+				return err
+			},
+			expected: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldAllowOfflineRefreshTokenOfEndedSession",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, ended, oidc.ScopeOpenID, oidc.ScopeOfflineAccess)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+		},
+		{
+			name: "ShouldRefuseRefreshTokenRecordedOnlineWithOfflineScopesOfEndedSession",
+			setup: func(t *testing.T, signature string) {
+				request := newModeRequest(signature, ended, oauthelia2.RefreshTokenModeOnline, oidc.ScopeOpenID, oidc.ScopeOfflineAccess)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+				assert.Equal(t, "online", mode(t, signature))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+			expected: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldRefuseUnrecordedRefreshTokenOfEndedSession",
+			setup: func(t *testing.T, signature string) {
+				request := newModeRequest(signature, ended, oauthelia2.RefreshTokenModeNone, oidc.ScopeOpenID, oidc.ScopeOfflineAccess)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+				assert.Equal(t, "", mode(t, signature))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+			expected: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldRecordRefreshTokenOnlineWhenScopesAreOnline",
+			setup: func(t *testing.T, signature string) {
+				request := newModeRequest(signature, live, oauthelia2.RefreshTokenModeOffline, oidc.ScopeOpenID)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+				assert.Equal(t, "online", mode(t, signature))
+
+				request = newModeRequest(signature, live, oauthelia2.RefreshTokenModeOffline, oidc.ScopeOpenID)
+				require.NoError(t, s.UpdateRefreshTokenSession(ctx, signature, &request))
+				assert.Equal(t, "online", mode(t, signature))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+		},
+		{
+			name: "ShouldUpdateRecordedRefreshTokenMode",
+			setup: func(t *testing.T, signature string) {
+				request := newModeRequest(signature, live, oauthelia2.RefreshTokenModeOnline, oidc.ScopeOpenID, oidc.ScopeOfflineAccess)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+				assert.Equal(t, "online", mode(t, signature))
+
+				request = newModeRequest(signature, live, oauthelia2.RefreshTokenModeOffline, oidc.ScopeOpenID, oidc.ScopeOfflineAccess)
+				require.NoError(t, s.UpdateRefreshTokenSession(ctx, signature, &request))
+				assert.Equal(t, "offline", mode(t, signature))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+		},
+		{
+			name: "ShouldAllowOnlineRefreshTokenOfLiveSession",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, live, oidc.ScopeOpenID)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+		},
+		{
+			name: "ShouldAllowOnlineRefreshTokenWithoutSession",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, "", oidc.ScopeOpenID)
+				require.NoError(t, s.CreateRefreshTokenSession(ctx, signature, "", &request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetRefreshTokenSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+		},
+		{
+			name: "ShouldRefuseAuthorizeCodeOfEndedSessionWithOfflineAccess",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, ended, oidc.ScopeOpenID, oidc.ScopeOfflineAccess)
+				require.NoError(t, s.CreateAuthorizeCodeSession(ctx, signature, &request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetAuthorizeCodeSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+			expected: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldNotInvalidateAuthorizeCodeOfEndedSession",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, ended, oidc.ScopeOpenID)
+				require.NoError(t, s.CreateAuthorizeCodeSession(ctx, signature, &request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				return s.InvalidateAuthorizeCodeSession(ctx, signature)
+			},
+			expected: oauthelia2.ErrInvalidatedAuthorizeCode,
+		},
+		{
+			name: "ShouldReportInvalidatedAuthorizeCodeOfEndedSession",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, ended, oidc.ScopeOpenID)
+				require.NoError(t, s.CreateAuthorizeCodeSession(ctx, signature, &request))
+				require.NoError(t, provider.DeactivateOAuth2SessionByRequestID(ctx, storage.OAuth2SessionTypeAuthorizeCode, signature))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetAuthorizeCodeSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+			expected: oauthelia2.ErrInvalidatedAuthorizeCode,
+		},
+		{
+			name: "ShouldAllowAuthorizeCodeOfLiveSession",
+			setup: func(t *testing.T, signature string) {
+				request := newRequest(signature, live, oidc.ScopeOpenID)
+				require.NoError(t, s.CreateAuthorizeCodeSession(ctx, signature, &request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				if _, err = s.GetAuthorizeCodeSession(ctx, signature, oidc.NewSession()); err != nil {
+					return err
+				}
+
+				return s.InvalidateAuthorizeCodeSession(ctx, signature)
+			},
+		},
+		{
+			name: "ShouldRefuseDeviceCodeOfEndedSession",
+			setup: func(t *testing.T, signature string) {
+				request := &oauthelia2.DeviceAuthorizeRequest{Request: newRequest(signature, ended, oidc.ScopeOpenID), DeviceCodeSignature: signature, UserCodeSignature: "user-" + signature}
+				require.NoError(t, s.CreateDeviceCodeSession(ctx, signature, request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetDeviceCodeSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+			expected: oauthelia2.ErrNotFound,
+		},
+		{
+			name: "ShouldNotInvalidateDeviceCodeOfEndedSession",
+			setup: func(t *testing.T, signature string) {
+				request := &oauthelia2.DeviceAuthorizeRequest{Request: newRequest(signature, ended, oidc.ScopeOpenID), DeviceCodeSignature: signature, UserCodeSignature: "user-" + signature}
+				require.NoError(t, s.CreateDeviceCodeSession(ctx, signature, request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				return s.InvalidateDeviceCodeSession(ctx, signature)
+			},
+			expected: oauthelia2.ErrInvalidatedDeviceCode,
+		},
+		{
+			name: "ShouldAllowDeviceCodeOfLiveSession",
+			setup: func(t *testing.T, signature string) {
+				request := &oauthelia2.DeviceAuthorizeRequest{Request: newRequest(signature, live, oidc.ScopeOpenID), DeviceCodeSignature: signature, UserCodeSignature: "user-" + signature}
+				require.NoError(t, s.CreateDeviceCodeSession(ctx, signature, request))
+			},
+			load: func(ctx context.Context, signature string) (err error) {
+				_, err = s.GetDeviceCodeSession(ctx, signature, oidc.NewSession())
+
+				return err
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup(t, tc.name)
+			}
+
+			err := tc.load(ctx, tc.name)
+
+			if tc.expected == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, tc.expected)
+				assert.NotErrorIs(t, err, oauthelia2.ErrInactiveToken)
+			}
+		})
+	}
 }

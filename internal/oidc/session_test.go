@@ -5,6 +5,7 @@
 package oidc_test
 
 import (
+	"encoding/json"
 	"net/url"
 	"testing"
 	"time"
@@ -598,4 +599,174 @@ func TestSession_GetStorageSubject(t *testing.T) {
 			assert.Equal(t, tc.expected, tc.have.GetStorageSubject())
 		})
 	}
+}
+
+func TestSession_SetValuesSessionID(t *testing.T) {
+	testCases := []struct {
+		Name          string
+		Have          *oidc.Session
+		SessionID     string
+		Claim         bool
+		ExpectedID    string
+		ExpectedClaim string
+	}{
+		{
+			Name:          "ShouldSetTheClaimWhenRequested",
+			Have:          oidc.NewSession(),
+			SessionID:     "session-sid-value",
+			Claim:         true,
+			ExpectedID:    "session-sid-value",
+			ExpectedClaim: "session-sid-value",
+		},
+		{
+			Name:       "ShouldNotSetTheClaimWhenNotRequested",
+			Have:       oidc.NewSession(),
+			SessionID:  "session-sid-value",
+			ExpectedID: "session-sid-value",
+		},
+		{
+			Name:          "ShouldInitializeAnEmptySessionForTheClaim",
+			Have:          &oidc.Session{},
+			SessionID:     "session-sid-value",
+			Claim:         true,
+			ExpectedID:    "session-sid-value",
+			ExpectedClaim: "session-sid-value",
+		},
+		{
+			Name:          "ShouldInitializeAbsentClaimsForTheClaim",
+			Have:          &oidc.Session{DefaultSession: &openid.DefaultSession{}},
+			SessionID:     "session-sid-value",
+			Claim:         true,
+			ExpectedID:    "session-sid-value",
+			ExpectedClaim: "session-sid-value",
+		},
+		{
+			Name:  "ShouldIgnoreAnEmptySessionID",
+			Have:  oidc.NewSession(),
+			Claim: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			tc.Have.SetValuesSessionID(tc.SessionID, tc.Claim)
+
+			assert.Equal(t, tc.ExpectedID, tc.Have.GetSessionID())
+
+			if tc.Have.DefaultSession != nil && tc.Have.Claims != nil {
+				assert.Equal(t, tc.ExpectedClaim, tc.Have.Claims.SessionID)
+			} else {
+				assert.Empty(t, tc.ExpectedClaim)
+			}
+		})
+	}
+
+	t.Run("ShouldPreserveExistingClaims", func(t *testing.T) {
+		session := oidc.NewSession()
+
+		session.Claims.Subject = "john"
+		session.Claims.Extra["preferred_username"] = "john"
+		session.Headers.Extra["kid"] = "abc"
+
+		session.SetValuesSessionID("session-sid-value", true)
+
+		assert.Equal(t, "session-sid-value", session.Claims.SessionID)
+		assert.Equal(t, "john", session.Claims.Subject)
+		assert.Equal(t, "john", session.Claims.Extra["preferred_username"])
+		assert.Equal(t, "abc", session.Headers.Extra["kid"])
+	})
+}
+
+func TestSession_SetSessionID(t *testing.T) {
+	session := oidc.NewSession()
+
+	session.SetSessionID("session-sid-value")
+
+	assert.Equal(t, "session-sid-value", session.GetSessionID())
+	assert.Empty(t, session.Claims.SessionID)
+
+	var empty *oidc.Session
+
+	assert.NotPanics(t, func() { empty.SetSessionID("session-sid-value") })
+	assert.Empty(t, empty.GetSessionID())
+}
+
+func TestSession_SessionIDJSONRoundTrip(t *testing.T) {
+	testCases := []struct {
+		Name          string
+		Setup         func(session *oidc.Session)
+		ExpectedID    string
+		ExpectedField any
+		ExpectedClaim any
+	}{
+		{
+			Name:          "ShouldRoundTripTheSessionIDAndClaim",
+			Setup:         func(session *oidc.Session) { session.SetValuesSessionID("session-sid-value", true) },
+			ExpectedID:    "session-sid-value",
+			ExpectedField: "session-sid-value",
+			ExpectedClaim: "session-sid-value",
+		},
+		{
+			Name:          "ShouldRoundTripTheSessionIDWithoutTheClaim",
+			Setup:         func(session *oidc.Session) { session.SetValuesSessionID("session-sid-value", false) },
+			ExpectedID:    "session-sid-value",
+			ExpectedField: "session-sid-value",
+		},
+		{
+			Name:          "ShouldFallBackToTheClaimOfAPreviouslyStoredSession",
+			Setup:         func(session *oidc.Session) { session.Claims.SessionID = "session-sid-value" },
+			ExpectedID:    "session-sid-value",
+			ExpectedClaim: "session-sid-value",
+		},
+		{
+			Name: "ShouldOmitBothWhenUnset",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			session := oidc.NewSession()
+
+			if tc.Setup != nil {
+				tc.Setup(session)
+			}
+
+			data, err := json.Marshal(session)
+			require.NoError(t, err)
+
+			var raw map[string]any
+
+			require.NoError(t, json.Unmarshal(data, &raw))
+
+			idToken, ok := raw["id_token"].(map[string]any)
+			require.True(t, ok)
+
+			claims, ok := idToken["id_token_claims"].(map[string]any)
+			require.True(t, ok)
+
+			assert.Equal(t, tc.ExpectedField, raw["session_id"])
+			assert.Equal(t, tc.ExpectedClaim, claims["sid"])
+
+			restored := oidc.NewSession()
+
+			require.NoError(t, json.Unmarshal(data, restored))
+
+			assert.Equal(t, tc.ExpectedID, restored.GetSessionID())
+			assert.Equal(t, tc.ExpectedID, restored.Clone().(*oidc.Session).GetSessionID())
+		})
+	}
+}
+
+func TestNewSessionWithClientAndRequestedAt(t *testing.T) {
+	requestedAt := time.Unix(1700000000, 0)
+
+	session := oidc.NewSessionWithClientAndRequestedAt(&oidc.RegisteredClient{ID: "client-id"}, requestedAt)
+
+	assert.Equal(t, "client-id", session.ClientID)
+	assert.Equal(t, requestedAt.UTC(), session.RequestedAt)
+	assert.Empty(t, session.GetSessionID())
+
+	session = oidc.NewSessionWithClientAndRequestedAt(nil, requestedAt)
+
+	assert.Empty(t, session.ClientID)
 }

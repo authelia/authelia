@@ -6,6 +6,7 @@ package model
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -39,4 +40,70 @@ type UserOpaqueIdentifier struct {
 // UserOpaqueIdentifiersExport represents a UserOpaqueIdentifier export file.
 type UserOpaqueIdentifiersExport struct {
 	Identifiers []UserOpaqueIdentifier `yaml:"identifiers" toml:"identifiers" json:"identifiers" jsonschema:"title=Identifiers" jsonschema_description:"The list of opaque identifiers."`
+}
+
+// OAuth2SessionID is the mapping of an Authelia session's public identifier to the 'sid' claim issued to a sector.
+type OAuth2SessionID struct {
+	ID        int       `db:"id"`
+	Issuer    string    `db:"issuer"`
+	SectorID  string    `db:"sector_id"`
+	PublicID  string    `db:"public_id"`
+	SessionID uuid.UUID `db:"sid"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
+// OAuth2SessionLogout is a validated OpenID Connect RP-Initiated Logout 1.0 request awaiting the confirmation of the
+// End-User. It is identified by the flow id rather than kept in the session, as the request is made cross-site and the
+// session cookie isn't available when the session cookie has the SameSite attribute set to Strict, or for a POST.
+type OAuth2SessionLogout struct {
+	ID          int       `db:"id"`
+	FlowID      uuid.UUID `db:"flow_id"`
+	ClientID    string    `db:"client_id"`
+	Subject     string    `db:"subject"`
+	SessionID   string    `db:"sid"`
+	RedirectURI string    `db:"redirect_uri"`
+	State       string    `db:"state"`
+	CreatedAt   time.Time `db:"created_at"`
+	ExpiresAt   time.Time `db:"expires_at"`
+}
+
+const (
+	// OAuth2SessionLogoutTaskKindRevoke is the kind of OAuth2SessionLogoutTask which records that an OpenID Connect session has ended.
+	// While it exists the online refresh tokens of the session can't be used and its authorization codes and device
+	// codes can't be exchanged, and the online refresh tokens of the session are revoked when it's processed.
+	OAuth2SessionLogoutTaskKindRevoke = "revoke"
+)
+
+// OAuth2SessionLogoutTask is the follow up work required after an OpenID Connect session has ended, which is retried until it
+// succeeds or it expires.
+type OAuth2SessionLogoutTask struct {
+	ID            int       `db:"id"`
+	Kind          string    `db:"kind"`
+	SessionID     string    `db:"sid"`
+	ClientID      string    `db:"client_id"`
+	Subject       string    `db:"subject"`
+	IssuerURL     string    `db:"issuer_url"`
+	Attempts      int       `db:"attempts"`
+	NextAttemptAt time.Time `db:"next_attempt_at"`
+	CreatedAt     time.Time `db:"created_at"`
+	ExpiresAt     time.Time `db:"expires_at"`
+}
+
+// OAuth2SessionLogoutTaskSchedule is the schedule of the logout tasks created when an OpenID Connect session ends.
+type OAuth2SessionLogoutTaskSchedule struct {
+	CreatedAt     time.Time
+	NextAttemptAt time.Time
+	ExpiresAt     time.Time
+}
+
+// RevokeTask returns a new OAuth2SessionLogoutTask of the kind OAuth2SessionLogoutTaskKindRevoke for the session
+// identifier using this schedule.
+func (s OAuth2SessionLogoutTaskSchedule) RevokeTask(sid string) OAuth2SessionLogoutTask {
+	return OAuth2SessionLogoutTask{
+		Kind:          OAuth2SessionLogoutTaskKindRevoke,
+		SessionID:     sid,
+		NextAttemptAt: s.NextAttemptAt,
+		CreatedAt:     s.CreatedAt,
+		ExpiresAt:     s.ExpiresAt,
+	}
 }

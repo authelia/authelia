@@ -1706,7 +1706,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
-					"sig", "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					"sig", "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 				).Return(nil, errors.New("boom"))
 			},
@@ -1720,7 +1720,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
-					"sig", "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					"sig", "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), 9,
 				).Return(nil, errors.New("boom"))
 			},
@@ -1734,7 +1734,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
-					gomock.Any(), "req", gomock.Any(), "sig", gomock.Any(),
+					gomock.Any(), "req", gomock.Any(), gomock.Any(), "sig", gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(),
@@ -1752,7 +1752,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
-					gomock.Any(), "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), "req", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "sig",
@@ -1768,7 +1768,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), "sig",
