@@ -220,6 +220,9 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
 
+	provider.sqlDeleteOAuth2BlacklistedJTIExpired = provider.db.Rebind(provider.sqlDeleteOAuth2BlacklistedJTIExpired)
+	provider.sqlDeleteOAuth2RequestReplayExpired = provider.db.Rebind(provider.sqlDeleteOAuth2RequestReplayExpired)
+
 	provider.sqlUpsertOAuth2DPoPProof = provider.db.Rebind(provider.sqlUpsertOAuth2DPoPProof)
 	provider.sqlDeleteExpiredOAuth2DPoPProofs = provider.db.Rebind(provider.sqlDeleteExpiredOAuth2DPoPProofs)
 

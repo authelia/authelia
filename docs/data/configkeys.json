@@ -1150,6 +1150,56 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_SPECIAL_USE_ADDRESS_GUARD_DISABLE"
   },
   {
+    "path": "identity_providers.oidc.token_exchange.default_requested_token_type",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_DEFAULT_REQUESTED_TOKEN_TYPE"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.max_actor_chain_depth",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_MAX_ACTOR_CHAIN_DEPTH"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.token_types",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_TOKEN_TYPES"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.transaction_tokens.copy_request_parameters",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_TRANSACTION_TOKENS_COPY_REQUEST_PARAMETERS"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.transaction_tokens.issuer",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_TRANSACTION_TOKENS_ISSUER"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.transaction_tokens.lifespan",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_TRANSACTION_TOKENS_LIFESPAN"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.transaction_tokens.replacement.enabled",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_TRANSACTION_TOKENS_REPLACEMENT_ENABLED"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.transaction_tokens.replacement.max_chain_length",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_TRANSACTION_TOKENS_REPLACEMENT_MAX_CHAIN_LENGTH"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.transaction_tokens.signing_algorithm",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_TRANSACTION_TOKENS_SIGNING_ALGORITHM"
+  },
+  {
+    "path": "identity_providers.oidc.token_exchange.transaction_tokens.trust_domain",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_TOKEN_EXCHANGE_TRANSACTION_TOKENS_TRUST_DOMAIN"
+  },
+  {
     "path": "identity_validation.elevated_session.characters",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CHARACTERS"

@@ -220,6 +220,8 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
+	session.SetClaimAuthorizedActor(client.GetTokenExchangeMayAct())
+
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
 		session.Claims.Audience = append([]string{client.GetID()}, oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource())...)
 	}
