@@ -15,23 +15,13 @@
     body {
         @apply bg-background text-foreground;
         margin: 0;
-        font-family:
-            "Roboto",
-            "Helvetica",
-            "Arial",
-            sans-serif;
+        font-family: "Roboto", "Helvetica", "Arial", sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
 
     code {
-        font-family:
-            source-code-pro,
-            Menlo,
-            Monaco,
-            Consolas,
-            "Courier New",
-            monospace;
+        font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
     }
 
     input[type="number"]::-webkit-inner-spin-button,
@@ -42,21 +32,6 @@
 
     .hidden {
         display: none;
-    }
-}
-
-@theme {
-    --animate-scale-loader: scale-loader 0.6667s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
-
-    @keyframes scale-loader {
-        0%,
-        100% {
-            transform: scaleY(1);
-        }
-
-        50% {
-            transform: scaleY(0.4);
-        }
     }
 }
 
