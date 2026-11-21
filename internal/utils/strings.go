@@ -219,23 +219,43 @@ func StringJoinDelimitedEscaped(value []string, delimiter rune) string {
 // StringSplitDelimitedEscaped splits a string with a specified rune delimiter after unescaping any instance of that
 // string in the string slice that has been escaped. Used with StringJoinDelimitedEscaped.
 func StringSplitDelimitedEscaped(value string, delimiter rune) (out []string) {
-	var escape bool
-
-	split := strings.FieldsFunc(value, func(r rune) bool {
-		if r == '\\' {
-			escape = !escape
-		} else if escape && r != delimiter {
-			escape = false
-		}
-
-		return !escape && r == delimiter
-	})
-
-	for k, v := range split {
-		split[k] = strings.ReplaceAll(v, "\\"+string(delimiter), string(delimiter))
+	if value == "" {
+		return []string{}
 	}
 
-	return split
+	b := &strings.Builder{}
+
+	var escape bool
+
+	for _, r := range value {
+		switch {
+		case escape:
+			b.WriteRune('\\')
+			b.WriteRune(r)
+
+			escape = false
+		case r == '\\':
+			escape = true
+		case r == delimiter:
+			out = append(out, b.String())
+
+			b.Reset()
+		default:
+			b.WriteRune(r)
+		}
+	}
+
+	if escape {
+		b.WriteRune('\\')
+	}
+
+	out = append(out, b.String())
+
+	for k, v := range out {
+		out[k] = strings.ReplaceAll(v, "\\"+string(delimiter), string(delimiter))
+	}
+
+	return out
 }
 
 // JoinAndCanonicalizeHeaders join header strings by a given sep.
