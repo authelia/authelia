@@ -308,18 +308,18 @@ func (s *Store) UpdateRefreshTokenSession(ctx context.Context, signature string,
 
 // RotateRefreshToken deactivates the refresh token being exchanged and revokes the access token that was issued
 // alongside it, so a rotated pair cannot outlive the rotation. It returns the oauthelia2.ErrNotFound error when the
-// refresh token does not exist, and the oauthelia2.ErrInactiveToken error when it was already rotated, as this check
-// is what makes a refresh token single use.
+// refresh token does not exist, and the oauthelia2.ErrInactiveToken error when it was already rotated or its grace
+// period has ended, as this check is what makes a refresh token single use.
 // This implements a portion of oauth2.RefreshTokenStorage.
 func (s *Store) RotateRefreshToken(ctx context.Context, requestID string, signature string) (err error) {
-	var accessSignature string
+	var state *model.OAuth2RefreshTokenSessionState
 
-	if accessSignature, err = s.provider.LoadOAuth2RefreshTokenSessionAccessSignature(ctx, signature); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return oauthelia2.ErrNotFound
-		}
+	if state, err = s.loadRefreshTokenSessionState(ctx, signature); err != nil {
+		return err
+	}
 
-		return errStorage(err)
+	if state.IsGraceExpired(storeNow(ctx)) {
+		return oauthelia2.ErrInactiveToken
 	}
 
 	if err = s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeRefreshToken, signature); err != nil {
@@ -330,18 +330,45 @@ func (s *Store) RotateRefreshToken(ctx context.Context, requestID string, signat
 		return errStorage(err)
 	}
 
-	switch accessSignature {
-	case "":
-		if err = s.RevokeAccessToken(ctx, requestID); err != nil {
-			return err
-		}
-	default:
-		if err = s.provider.RevokeOAuth2Session(ctx, storage.OAuth2SessionTypeAccessToken, accessSignature); err != nil && !errors.Is(err, storage.ErrNoRowsAffected) {
+	if err = s.revokeRefreshTokenAccessToken(ctx, requestID, state.AccessSignature); err != nil {
+		return err
+	}
+
+	return s.RevokeRefreshToken(ctx, requestID)
+}
+
+// RotateRefreshTokenWithGracePeriod rotates the refresh token being exchanged as RotateRefreshToken does, except the
+// refresh token stays redeemable until the given deadline. The first rotation records the deadline and revokes the
+// access token issued alongside the refresh token; a later rotation before the recorded deadline succeeds without
+// replacing it. Only that access token is revoked, as every refresh token issued by a redemption within the grace
+// period shares the request ID. It returns the oauthelia2.ErrNotFound error when the refresh token does not exist, and
+// the oauthelia2.ErrInactiveToken error when it was deactivated, revoked, or its grace period has ended.
+// This implements oauth2.RefreshTokenGracePeriodStorage.
+func (s *Store) RotateRefreshTokenWithGracePeriod(ctx context.Context, requestID string, signature string, deadline time.Time) (err error) {
+	var state *model.OAuth2RefreshTokenSessionState
+
+	if state, err = s.loadRefreshTokenSessionState(ctx, signature); err != nil {
+		return err
+	}
+
+	if !state.GraceDeadline.Valid && state.Active && !state.Revoked {
+		switch err = s.provider.UpdateOAuth2RefreshTokenSessionGraceDeadline(ctx, signature, deadline); {
+		case err == nil:
+			return s.revokeRefreshTokenAccessToken(ctx, requestID, state.AccessSignature)
+		case errors.Is(err, storage.ErrNoRowsAffected):
+			if state, err = s.loadRefreshTokenSessionState(ctx, signature); err != nil {
+				return err
+			}
+		default:
 			return errStorage(err)
 		}
 	}
 
-	return s.RevokeRefreshToken(ctx, requestID)
+	if !state.Active || state.Revoked || !state.GraceDeadline.Valid || state.IsGraceExpired(storeNow(ctx)) {
+		return oauthelia2.ErrInactiveToken
+	}
+
+	return nil
 }
 
 // CreateClient is not implemented as this Authorization Server registers clients from its configuration rather than
@@ -631,6 +658,30 @@ func (s *Store) GetSubjectForTokenExchange(ctx context.Context, requester oauthe
 	return "", oauthelia2.ErrInvalidRequest.WithHintf("The token type '%s' is not supported by this authorization server.", TokenTypeJWT)
 }
 
+func (s *Store) loadRefreshTokenSessionState(ctx context.Context, signature string) (state *model.OAuth2RefreshTokenSessionState, err error) {
+	if state, err = s.provider.LoadOAuth2RefreshTokenSessionState(ctx, signature); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, oauthelia2.ErrNotFound
+		}
+
+		return nil, errStorage(err)
+	}
+
+	return state, nil
+}
+
+func (s *Store) revokeRefreshTokenAccessToken(ctx context.Context, requestID, accessSignature string) (err error) {
+	if accessSignature == "" {
+		return s.RevokeAccessToken(ctx, requestID)
+	}
+
+	if err = s.provider.RevokeOAuth2Session(ctx, storage.OAuth2SessionTypeAccessToken, accessSignature); err != nil && !errors.Is(err, storage.ErrNoRowsAffected) {
+		return errStorage(err)
+	}
+
+	return nil
+}
+
 func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session oauthelia2.Session) (r oauthelia2.Requester, err error) {
 	var (
 		sessionModel *model.OAuth2Session
@@ -652,7 +703,7 @@ func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storag
 
 	restoreClaimsRequest(r)
 
-	if !sessionModel.Active || sessionModel.Revoked {
+	if !sessionModel.Active || sessionModel.Revoked || (sessionModel.GraceDeadline.Valid && !storeNow(ctx).Before(sessionModel.GraceDeadline.Time)) {
 		switch sessionType {
 		case storage.OAuth2SessionTypeAuthorizeCode:
 			return r, oauthelia2.ErrInvalidatedAuthorizeCode
@@ -672,6 +723,14 @@ func (s *Store) saveSession(ctx context.Context, sessionType storage.OAuth2Sessi
 	}
 
 	return errStorage(s.provider.SaveOAuth2Session(ctx, sessionType, *session))
+}
+
+func storeNow(ctx context.Context) time.Time {
+	if c, ok := ctx.(clockContext); ok {
+		return c.GetClock().Now()
+	}
+
+	return time.Now()
 }
 
 func restoreClaimsRequest(requester oauthelia2.Requester) {
@@ -727,14 +786,15 @@ func errStorage(err error) (e error) {
 }
 
 var (
-	_ oauthelia2.PARStorage              = (*Store)(nil)
-	_ oauthelia2.ClientManager           = (*Store)(nil)
-	_ ostorage.Transactional             = (*Store)(nil)
-	_ oauth2.AuthorizeCodeStorage        = (*Store)(nil)
-	_ oauth2.TokenRevocationStorage      = (*Store)(nil)
-	_ openid.OpenIDConnectRequestStorage = (*Store)(nil)
-	_ rfc8628.Storage                    = (*Store)(nil)
-	_ rfc8628.DecisionStorage            = (*Store)(nil)
-	_ pkce.Storage                       = (*Store)(nil)
-	_ rfc9449.Storage                    = (*Store)(nil)
+	_ oauthelia2.PARStorage                 = (*Store)(nil)
+	_ oauthelia2.ClientManager              = (*Store)(nil)
+	_ ostorage.Transactional                = (*Store)(nil)
+	_ oauth2.AuthorizeCodeStorage           = (*Store)(nil)
+	_ oauth2.TokenRevocationStorage         = (*Store)(nil)
+	_ oauth2.RefreshTokenGracePeriodStorage = (*Store)(nil)
+	_ openid.OpenIDConnectRequestStorage    = (*Store)(nil)
+	_ rfc8628.Storage                       = (*Store)(nil)
+	_ rfc8628.DecisionStorage               = (*Store)(nil)
+	_ pkce.Storage                          = (*Store)(nil)
+	_ rfc9449.Storage                       = (*Store)(nil)
 )

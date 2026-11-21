@@ -1140,6 +1140,11 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN"
   },
   {
+    "path": "identity_providers.oidc.lifespans.refresh_token_grace_period",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN_GRACE_PERIOD"
+  },
+  {
     "path": "identity_providers.oidc.lifespans.refresh_token_maximum",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN_MAXIMUM"

@@ -681,14 +681,6 @@ const (
 		FROM %s
 		WHERE signature = ? AND revoked = FALSE;`
 
-	queryFmtSelectOAuth2SessionIncludingRevoked = `
-		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
-		requested_scopes, granted_scopes, requested_audience, granted_audience,
-		requested_resource, granted_resource,
-		active, revoked, form_data, session_data
-		FROM %s
-		WHERE signature = ?;`
-
 	queryFmtInsertOAuth2Session = `
 		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at,
 		requested_scopes, granted_scopes, requested_audience, granted_audience,
@@ -704,10 +696,31 @@ const (
 		active, revoked, form_data, session_data, access_signature)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtSelectOAuth2RefreshTokenSessionAccessSignature = `
-		SELECT access_signature
+	//nolint:gosec // Not a Credential.
+	queryFmtSelectOAuth2RefreshTokenSession = `
+		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
+		requested_resource, granted_resource,
+		active, revoked, grace_deadline, form_data, session_data
 		FROM %s
 		WHERE signature = ?;`
+
+	queryFmtSelectOAuth2RefreshTokenSessionState = `
+		SELECT access_signature, active, revoked, grace_deadline
+		FROM %s
+		WHERE signature = ?;`
+
+	queryFmtSelectOAuth2RefreshTokenSessionStateForUpdate = `
+		SELECT access_signature, active, revoked, grace_deadline
+		FROM %s
+		WHERE signature = ?
+		FOR UPDATE;`
+
+	//nolint:gosec // Not a Credential.
+	queryFmtUpdateOAuth2RefreshTokenSessionGraceDeadline = `
+		UPDATE %s
+		SET grace_deadline = ?
+		WHERE signature = ? AND active = TRUE AND revoked = FALSE AND grace_deadline IS NULL;`
 
 	queryFmtRevokeOAuth2Session = `
 		UPDATE %s

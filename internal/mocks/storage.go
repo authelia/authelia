@@ -752,19 +752,19 @@ func (mr *MockStorageMockRecorder) LoadOAuth2PushedAuthorizationSession(ctx, sig
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2PushedAuthorizationSession), ctx, signature)
 }
 
-// LoadOAuth2RefreshTokenSessionAccessSignature mocks base method.
-func (m *MockStorage) LoadOAuth2RefreshTokenSessionAccessSignature(ctx context.Context, signature string) (string, error) {
+// LoadOAuth2RefreshTokenSessionState mocks base method.
+func (m *MockStorage) LoadOAuth2RefreshTokenSessionState(ctx context.Context, signature string) (*model.OAuth2RefreshTokenSessionState, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOAuth2RefreshTokenSessionAccessSignature", ctx, signature)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "LoadOAuth2RefreshTokenSessionState", ctx, signature)
+	ret0, _ := ret[0].(*model.OAuth2RefreshTokenSessionState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadOAuth2RefreshTokenSessionAccessSignature indicates an expected call of LoadOAuth2RefreshTokenSessionAccessSignature.
-func (mr *MockStorageMockRecorder) LoadOAuth2RefreshTokenSessionAccessSignature(ctx, signature any) *gomock.Call {
+// LoadOAuth2RefreshTokenSessionState indicates an expected call of LoadOAuth2RefreshTokenSessionState.
+func (mr *MockStorageMockRecorder) LoadOAuth2RefreshTokenSessionState(ctx, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2RefreshTokenSessionAccessSignature", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2RefreshTokenSessionAccessSignature), ctx, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2RefreshTokenSessionState", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2RefreshTokenSessionState), ctx, signature)
 }
 
 // LoadOAuth2Session mocks base method.
@@ -1977,6 +1977,20 @@ func (m *MockStorage) UpdateOAuth2PushedAuthorizationSession(ctx context.Context
 func (mr *MockStorageMockRecorder) UpdateOAuth2PushedAuthorizationSession(ctx, par any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2PushedAuthorizationSession), ctx, par)
+}
+
+// UpdateOAuth2RefreshTokenSessionGraceDeadline mocks base method.
+func (m *MockStorage) UpdateOAuth2RefreshTokenSessionGraceDeadline(ctx context.Context, signature string, deadline time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOAuth2RefreshTokenSessionGraceDeadline", ctx, signature, deadline)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOAuth2RefreshTokenSessionGraceDeadline indicates an expected call of UpdateOAuth2RefreshTokenSessionGraceDeadline.
+func (mr *MockStorageMockRecorder) UpdateOAuth2RefreshTokenSessionGraceDeadline(ctx, signature, deadline any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2RefreshTokenSessionGraceDeadline", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2RefreshTokenSessionGraceDeadline), ctx, signature, deadline)
 }
 
 // UpdateOAuth2RefreshTokenSessionRequest mocks base method.

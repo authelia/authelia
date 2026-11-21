@@ -6,8 +6,10 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -143,6 +145,64 @@ func TestSchemaMigrateRemovesDuplicateDeviceCodeSessions(t *testing.T) {
 			require.NoError(t, provider.db.GetContext(ctx, &count, "SELECT COUNT(*) FROM oauth2_device_code_session WHERE id = ?;", tc.id))
 
 			assert.Equal(t, tc.expected, count == 1)
+		})
+	}
+}
+
+func TestSchemaMigrateDownDeactivatesRefreshTokensInGracePeriod(t *testing.T) {
+	testCases := []struct {
+		name      string
+		signature string
+		expected  bool
+	}{
+		{"ShouldDeactivateWhenGraceDeadlineHasNotPassed", "rt_future", false},
+		{"ShouldDeactivateWhenGraceDeadlineHasPassed", "rt_past", false},
+		{"ShouldNotDeactivateWithoutGraceDeadline", "rt_none", true},
+	}
+
+	config := &schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local:         &schema.StorageLocal{Path: filepath.Join(t.TempDir(), "db.sqlite3")},
+		},
+	}
+
+	ctx := context.Background()
+
+	provider, err := NewSQLiteProvider(config)
+
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = provider.Close()
+	})
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, 37))
+
+	now := time.Now().UTC()
+
+	for _, seed := range []struct {
+		signature string
+		deadline  sql.NullTime
+	}{
+		{"rt_future", sql.NullTime{Time: now.Add(time.Hour), Valid: true}},
+		{"rt_past", sql.NullTime{Time: now.Add(-time.Hour), Valid: true}},
+		{"rt_none", sql.NullTime{}},
+	} {
+		_, err = provider.db.ExecContext(ctx, `INSERT INTO oauth2_refresh_token_session (challenge_id, request_id, client_id, signature, subject, requested_scopes, granted_scopes, active, revoked, form_data, session_data, grace_deadline) VALUES ('c', 'r', 'app', ?, 's', '', '', TRUE, FALSE, '', '', ?);`, seed.signature, seed.deadline)
+
+		require.NoError(t, err)
+	}
+
+	require.NoError(t, provider.SchemaMigrate(ctx, false, 36))
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var actual bool
+
+			require.NoError(t, provider.db.GetContext(ctx, &actual, "SELECT active FROM oauth2_refresh_token_session WHERE signature = ?;", tc.signature))
+
+			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }

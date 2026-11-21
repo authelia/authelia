@@ -536,11 +536,19 @@ func validateOIDCLifespans(config *schema.Configuration, validator *schema.Struc
 		validator.Push(fmt.Errorf(errFmtOIDCProviderLifespansRefreshTokenMaximumNegative, config.IdentityProviders.OIDC.Lifespans.RefreshTokenMaximum))
 	}
 
+	if config.IdentityProviders.OIDC.Lifespans.RefreshTokenGracePeriod < 0 || config.IdentityProviders.OIDC.Lifespans.RefreshTokenGracePeriod > oidcRefreshTokenGracePeriodMaximum {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderLifespansRefreshTokenGracePeriodRange, oidcRefreshTokenGracePeriodMaximum, config.IdentityProviders.OIDC.Lifespans.RefreshTokenGracePeriod))
+	}
+
 	for name, lifespan := range config.IdentityProviders.OIDC.Lifespans.Custom {
 		config.IdentityProviders.OIDC.Discovery.Lifespans = append(config.IdentityProviders.OIDC.Discovery.Lifespans, name)
 
 		if lifespan.RefreshTokenMaximum < 0 {
 			validator.Push(fmt.Errorf(errFmtOIDCProviderLifespansCustomRefreshTokenMaximumNegative, name, lifespan.RefreshTokenMaximum))
+		}
+
+		if lifespan.RefreshTokenGracePeriod < 0 || lifespan.RefreshTokenGracePeriod > oidcRefreshTokenGracePeriodMaximum {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderLifespansCustomRefreshTokenGracePeriodRange, name, oidcRefreshTokenGracePeriodMaximum, lifespan.RefreshTokenGracePeriod))
 		}
 	}
 }

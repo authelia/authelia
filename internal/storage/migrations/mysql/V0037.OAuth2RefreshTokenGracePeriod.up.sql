@@ -1,0 +1,7 @@
+ALTER TABLE oauth2_refresh_token_session ADD COLUMN grace_deadline TIMESTAMP NULL DEFAULT NULL;
+
+CREATE INDEX oauth2_access_token_session_signature_idx ON oauth2_access_token_session (signature(255));
+CREATE INDEX oauth2_refresh_token_session_signature_idx ON oauth2_refresh_token_session (signature);
+CREATE INDEX oauth2_authorization_code_session_signature_idx ON oauth2_authorization_code_session (signature);
+CREATE INDEX oauth2_openid_connect_session_signature_idx ON oauth2_openid_connect_session (signature);
+CREATE INDEX oauth2_pkce_request_session_signature_idx ON oauth2_pkce_request_session (signature);

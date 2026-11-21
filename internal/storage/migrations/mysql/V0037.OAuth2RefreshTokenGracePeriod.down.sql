@@ -1,0 +1,9 @@
+DROP INDEX oauth2_access_token_session_signature_idx ON oauth2_access_token_session;
+DROP INDEX oauth2_refresh_token_session_signature_idx ON oauth2_refresh_token_session;
+DROP INDEX oauth2_authorization_code_session_signature_idx ON oauth2_authorization_code_session;
+DROP INDEX oauth2_openid_connect_session_signature_idx ON oauth2_openid_connect_session;
+DROP INDEX oauth2_pkce_request_session_signature_idx ON oauth2_pkce_request_session;
+
+UPDATE oauth2_refresh_token_session SET active = FALSE WHERE grace_deadline IS NOT NULL;
+
+ALTER TABLE oauth2_refresh_token_session DROP COLUMN grace_deadline;

@@ -647,8 +647,22 @@ type OAuth2Session struct {
 	GrantedResource   StringSlicePipeDelimited `db:"granted_resource"`
 	Active            bool                     `db:"active"`
 	Revoked           bool                     `db:"revoked"`
+	GraceDeadline     sql.NullTime             `db:"grace_deadline"`
 	Form              string                   `db:"form_data"`
 	Session           []byte                   `db:"session_data"`
+}
+
+// OAuth2RefreshTokenSessionState is the state of a refresh token session which decides whether it may be rotated.
+type OAuth2RefreshTokenSessionState struct {
+	AccessSignature string       `db:"access_signature"`
+	Active          bool         `db:"active"`
+	Revoked         bool         `db:"revoked"`
+	GraceDeadline   sql.NullTime `db:"grace_deadline"`
+}
+
+// IsGraceExpired returns true if a grace period deadline is recorded and has passed at the given time.
+func (s *OAuth2RefreshTokenSessionState) IsGraceExpired(now time.Time) bool {
+	return s.GraceDeadline.Valid && !now.Before(s.GraceDeadline.Time)
 }
 
 // SetSubject implements an interface required for RFC7523.
