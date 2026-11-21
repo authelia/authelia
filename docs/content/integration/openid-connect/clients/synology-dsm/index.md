@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Synology DSM"
-description: "Integrating Synology DSM with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Synology DSM with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -32,7 +36,7 @@ seo:
 ### Specific Notes
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-[Synology DSM](https://www.synology.com/en-global/dsm) does not support automatically creating users via [OpenID Connect 1.0](../../openid-connect/introduction.md). It is therefore
+[Synology DSM](https://www.synology.com/en-global/dsm) does not support automatically creating users via [OpenID Connect 1.0](../../introduction.md). It is therefore
 recommended that you ensure Authelia and [Synology DSM](https://www.synology.com/en-global/dsm) share an LDAP server (for DSM v7.1).
 With DSM v7.2+ you have the possibility to also use local DSM accounts (see `Account type` below) and do not need to set
 up a shared LDAP.
@@ -42,10 +46,10 @@ up a shared LDAP.
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `synology-dsm`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `synology-dsm`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -55,7 +59,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Synology DSM] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Synology DSM] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -68,6 +72,7 @@ identity_providers:
         client_name: 'Synology DSM'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -97,19 +102,19 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provi
 
 1. Go to DSM.
 2. Go to `Control Panel`.
-3. Go To `Domain/LDAP`.
+3. Go to `Domain/LDAP`.
 4. Go to `SSO Client`.
 5. Check the `Enable OpenID Connect SSO service` checkbox in the `OpenID Connect SSO Service` section.
 6. Configure the following options:
-  - Profile: `OIDC`
-  - Account type: `Domain/LDAP/local`
-  - Name: `Authelia`
-  - Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-  - Application ID: `synology-dsm`
-  - Application Key: `insecure_secret`
-  - Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Authorization Scope: `openid profile groups email`
-  - Username Claim: `preferred_username`
+   - Profile: `OIDC`
+   - Account type: `Domain/LDAP/local`
+   - Name: `Authelia`
+   - Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+   - Application ID: `synology-dsm`
+   - Application Key: `insecure_secret`
+   - Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Authorization Scope: `openid profile groups email`
+   - Username Claim: `preferred_username`
 7. Save the settings.
 
 {{< figure src="client.png" alt="Synology" width="736" >}}

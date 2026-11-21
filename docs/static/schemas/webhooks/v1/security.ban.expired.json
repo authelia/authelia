@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/security.ban.expired.json",
+  "properties": {
+    "username": {
+      "type": "string",
+      "title": "Username",
+      "description": "The username the occurrence concerns."
+    },
+    "display_name": {
+      "type": "string",
+      "title": "Display Name",
+      "description": "The display name recorded in the authentication backend."
+    },
+    "emails": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "title": "Emails",
+      "description": "The email addresses recorded in the authentication backend."
+    },
+    "remote_ip": {
+      "type": "string",
+      "title": "Remote IP",
+      "description": "The client address which caused the occurrence."
+    },
+    "target": {
+      "type": "string",
+      "title": "Target",
+      "description": "The banned value, a username or an IP address."
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "user",
+        "ip"
+      ],
+      "title": "Target Type"
+    },
+    "expires": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Expires",
+      "description": "When the ban expires. Present on applied only."
+    }
+  },
+  "type": "object",
+  "required": [
+    "username",
+    "target",
+    "target_type"
+  ],
+  "description": "DataBan is the payload for the security.ban.* events."
+}

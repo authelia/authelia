@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -54,7 +58,6 @@ func TestAllSpecificErrorKeys(t *testing.T) {
 
 	var uniqueValues []string
 
-	// Setup configKeys and uniqueValues expected.
 	for key, value := range specificErrorKeys {
 		configKeys = append(configKeys, key)
 

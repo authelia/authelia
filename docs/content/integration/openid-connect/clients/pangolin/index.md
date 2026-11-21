@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Pangolin"
-description: "Integrating Pangolin with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Pangolin with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-05-07T10:26:55+10:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Pangolin]
   - [v1.14.1](https://github.com/fosrl/pangolin/releases/tag/1.14.1)
 
@@ -33,9 +37,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `pangolin`
-- __Client Secret:__ `insecure_secret`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `pangolin`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Pangolin] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Pangolin] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -58,6 +62,7 @@ identity_providers:
         client_name: 'Pangolin'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -94,7 +99,7 @@ Unless you have a Pangolin license, you will need to manually create the user in
 To configure [Pangolin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 instructions:
 
-1. Visit your [Pangolin Web GUI]
+1. Visit your [Pangolin] Web GUI
 2. Visit `Server Admin`
 3. Visit `Identity Providers`
 4. Select `Add Identity Provider`

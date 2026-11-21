@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Pull Request"
-description: "Authelia Development Pull Request Guidelines"
+description: "Authelia development pull request guidelines covering the squash merge policy, force push restrictions, maintainer review process, and acceptance requirements."
 summary: "This section covers the pull request guidelines."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -21,8 +25,8 @@ processing merges into the [master] branch.
 
 ## Overview
 
-* Ensure the `Allow edits by maintainers` checkbox is checked due to our [Squash Merge](#squash-merge) policy
-* Ensure you avoid a [force push](#force-push) excluding the specific exceptions listed in the
+- Ensure the `Allow edits by maintainers` checkbox is checked due to our [Squash Merge](#squash-merge) policy
+- Ensure you avoid a [force push](#force-push) excluding the specific exceptions listed in the
   [force push section](#force-push)
 
 ## Squash Merge

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Gitea"
-description: "Integrating Gitea with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Gitea with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -23,9 +27,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
+  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
 - [Gitea]
-  - [v1.25.1](https://github.com/go-gitea/gitea/releases/tag/v1.25.1)
+  - [v1.27.3](https://github.com/go-gitea/gitea/releases/tag/v1.27.3)
 
 {{% oidc-common %}}
 
@@ -33,14 +37,14 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `gitea`
-- __Client Secret:__ `insecure_secret`
-- __Authentication Name (Gitea):__ `authelia`:
-    - This option determines the redirect URI in the format of
-      `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
-      This means if you change this value you need to update the redirect URI.
+- **Application Root URL:** `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `gitea`
+- **Client Secret:** `insecure_secret`
+- **Authentication Name (Gitea):** `authelia`
+  - This option determines the redirect URI in the format of
+    `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
+    This means if you change this value you need to update the redirect URI.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Gitea] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Gitea] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -63,6 +67,7 @@ identity_providers:
         client_name: 'Gitea'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -72,6 +77,7 @@ identity_providers:
           - 'openid'
           - 'email'
           - 'profile'
+          ## - 'groups' # add this line to enable group mapping
         response_types:
           - 'code'
         grant_types:
@@ -99,6 +105,11 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
    - Client ID (Key): `gitea`
    - Client Secret: `insecure_secret`
    - OpenID Connect Auto Discovery URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+6. For group mapping, configure the following options:
+   - Additional Scopes: groups
+   - Claim name providing group names for this source. (Optional): groups
+   - Group Claim value for administrator users. (Optional; requires claim name above)
+   - Group Claim value for restricted users. (Optional; requires claim name above)
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
@@ -111,17 +122,15 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
 1. Run `gitea migrate`.
 2. Run `gitea admin auth add-oauth --provider=openidConnect --name=authelia --key=gitea --secret=insecure_secret --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --scopes='openid email profile'`
 
-
 ### Automatic User Creation
 
-To configure [Gitea] to perform automatic user creation for the `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` domain via [OpenID Connect 1.0]:
+To configure [Gitea] to perform automatic user creation for users who log in via [OpenID Connect 1.0]:
 
 1. Edit the following values in the [Gitea] `app.ini`:
+
 ```ini
-[openid]
-ENABLE_OPENID_SIGNIN = false
-ENABLE_OPENID_SIGNUP = true
-WHITELISTED_URIS     = {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+[oauth2_client]
+ENABLE_AUTO_REGISTRATION = true
 
 [service]
 DISABLE_REGISTRATION                          = false
@@ -132,11 +141,11 @@ SHOW_REGISTRATION_BUTTON                      = false
 ## See Also
 
 - [Gitea]
-  - [Config Cheat Sheet](https://docs.gitea.io/en-us/config-cheat-sheet)
-    - [OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
-    - [Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
+  - [Config Cheat Sheet](https://docs.gitea.com/administration/config-cheat-sheet/)
+    - [OpenID](https://docs.gitea.com/administration/config-cheat-sheet/#openid-openid)
+    - [Service](https://docs.gitea.com/administration/config-cheat-sheet/#service-service)
 
 [Authelia]: https://www.authelia.com
-[Gitea]: https://gitea.io/
+[Gitea]: https://about.gitea.com/
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

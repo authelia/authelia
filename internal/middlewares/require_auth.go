@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -33,7 +37,19 @@ func RequireAdminUser(next RequestHandler) RequestHandler {
 			return
 		}
 
-		if !slices.Contains(s.Groups, adminGroup) || s.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) < authentication.OneFactor {
+		if s.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) < authentication.OneFactor {
+			ctx.ReplyForbidden()
+			return
+		}
+
+		var details *authentication.UserDetails
+
+		if details, err = ctx.GetUserProvider().GetDetailsCached(s.Username); err != nil || details == nil {
+			ctx.ReplyForbidden()
+			return
+		}
+
+		if !slices.Contains(details.Groups, adminGroup) {
 			ctx.ReplyForbidden()
 			return
 		}
@@ -143,7 +159,7 @@ func handleRequireElevatedShouldDoNextValidate(ctx *AutheliaCtx, userSession *se
 	if invalid {
 		userSession.Elevations.User = nil
 
-		if err = ctx.SaveSession(*userSession); err != nil {
+		if err = ctx.SaveSession(userSession); err != nil {
 			ctx.Logger.WithError(err).Error("Error occurred trying to save the user session after a policy constraint violation occurred.")
 		}
 

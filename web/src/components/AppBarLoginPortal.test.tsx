@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { render, screen } from "@testing-library/react";
 
 import AppBarItemAccountSettings from "@components/AppBarItemAccountSettings";
@@ -17,10 +21,12 @@ vi.mock("@components/AppBarItemAccountSettings", () => ({
 const mockUserInfo = {
     display_name: "john",
     emails: ["john@example.com"],
+    groups: [],
     has_duo: false,
     has_totp: false,
     has_webauthn: false,
     method: 1,
+    username: "john",
 };
 
 const mockLanguages = [{ display: "English", fallbacks: [], locale: "en", namespaces: [] }];

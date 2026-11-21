@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -31,7 +35,7 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		return
 	}
 
-	session := oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())
+	session := oidc.NewSessionWithIssuerAndRequestedAt(ctx, issuer, ctx.GetClock().Now())
 
 	if requester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(ctx, req, session); err != nil {
 		ctx.GetLogger().Errorf("Access Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))

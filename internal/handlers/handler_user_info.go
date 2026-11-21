@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/valyala/fasthttp"
@@ -34,15 +37,28 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	if _, err = ctx.Providers.StorageProvider.LoadPreferred2FAMethod(ctx, userSession.Username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, ""); err != nil {
-				ctx.Error(fmt.Errorf("unable to load user information: error occurred trying to save the users preferred 2FA method: %w", err), messageOperationFailed)
+				ctx.GetLogger().WithError(err).Error("Error occurred saving the user preferred second factor method while loading the user information")
+				ctx.SetJSONError(messageOperationFailed)
 			}
 		} else {
-			ctx.Error(fmt.Errorf("unable to load user information: error occurred trying to lookup the users preferred 2FA method: %w", err), messageOperationFailed)
+			ctx.GetLogger().WithError(err).Error("Error occurred looking up the user preferred second factor method while loading the user information")
+			ctx.SetJSONError(messageOperationFailed)
 		}
 	}
 
 	if userInfo, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username); err != nil {
-		ctx.Error(fmt.Errorf("unable to load user information: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred loading the user information")
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
+
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
@@ -52,7 +68,9 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 
 	if changed = userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods(), ctx.Configuration.Default2FAMethod); changed {
 		if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, userInfo.Method); err != nil {
-			ctx.Error(fmt.Errorf("unable to save user two factor method: %w", err), messageOperationFailed)
+			ctx.GetLogger().WithError(err).Error("Error occurred saving the user preferred second factor method")
+			ctx.SetJSONError(messageOperationFailed)
+
 			return
 		}
 	}
@@ -69,13 +87,32 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		userInfo.HasDuo = false
 	}
 
-	userInfo.DisplayName = userSession.DisplayName
-	userInfo.Emails = userSession.Emails
+	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
+
+	userInfo.DisplayName = details.DisplayName
+	userInfo.Emails = details.Emails
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred trying to set user info response in body")
 	}
+}
+
+func populateRecoveryCodesUserInfo(ctx *middlewares.AutheliaCtx, username string, info *model.UserInfo) {
+	if ctx.Configuration.RecoveryCodes.Disable {
+		return
+	}
+
+	count, err := ctx.Providers.StorageProvider.CountUnusedRecoveryCodesByUsername(ctx, username)
+	if err != nil {
+		// The flags are purely informational so a count failure leaves them false rather than failing the request.
+		ctx.Logger.WithError(err).Errorf("Error counting unused recovery codes for user '%s'", username)
+
+		return
+	}
+
+	info.HasRecoveryCodes = count > 0
+	info.LowRecoveryCodes = count > 0 && count <= 2
 }
 
 // UserInfoGET get the info related to the user identified by the session.
@@ -95,16 +132,28 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 
 	userInfo, err := ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
 	if err != nil {
-		ctx.Error(fmt.Errorf("unable to load user information: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred loading the user information")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
-	userInfo.Username = userSession.Username
-	userInfo.DisplayName = userSession.DisplayName
-	userInfo.Groups = userSession.Groups
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetailsCached(userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
 
-	// it should be noted that UserInfo only contains info from the database and session and NOT any info from the authn_backend (email/groups).
-	for _, email := range userSession.Emails {
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
+
+	userInfo.Username = userSession.Username
+	userInfo.DisplayName = details.DisplayName
+	userInfo.Groups = details.Groups
+
+	for _, email := range details.Emails {
 		userInfo.Emails = append(userInfo.Emails, redactEmail(email))
 	}
 
@@ -114,6 +163,7 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
+// GetUserGET gets the info related to a specific user.
 func GetUserGET(ctx *middlewares.AutheliaCtx) {
 	usernameRaw := ctx.UserValue("username")
 	if usernameRaw == nil {
@@ -135,22 +185,29 @@ func GetUserGET(ctx *middlewares.AutheliaCtx) {
 
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
+			ctx.SetJSONError(messageUserNotFound)
+
 			return
 		}
+
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	userInfo, err = ctx.Providers.StorageProvider.LoadUserMetadataByUsername(ctx, username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			ctx.SetStatusCode(fasthttp.StatusNotFound)
+		if !errors.Is(err, sql.ErrNoRows) {
+			ctx.Logger.WithError(err).Errorf("Unable to load user metadata for user '%s'", username)
+
+			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+			ctx.SetJSONError(messageOperationFailed)
+
 			return
 		}
 
-		ctx.Logger.Error(fmt.Errorf("unable to load user attributes: %w", err), messageOperationFailed)
-
-		return
+		userInfo = model.UserInfo{Username: username}
 	}
 
 	userDetails = MergeUserDetailsWithInfo(userDetails, userInfo)
@@ -177,7 +234,10 @@ func AllUsersInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if userInfo, err = ctx.Providers.StorageProvider.LoadAllUserInfoAndMetadata(ctx); err != nil {
-		ctx.Error(fmt.Errorf("unable to load user attributes: %w", err), messageOperationFailed)
+		ctx.Logger.WithError(err).Errorf("unable to load user attributes")
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
@@ -198,27 +258,32 @@ func MethodPreferencePOST(ctx *middlewares.AutheliaCtx) {
 		err         error
 	)
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
-
-		ctx.Error(err, messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred retrieving user session")
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
-		ctx.Error(err, messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred parsing the second factor method preference request body")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
 	if !utils.IsStringInSlice(bodyJSON.Method, ctx.AvailableSecondFactorMethods()) {
-		ctx.Error(fmt.Errorf("unknown or unavailable method '%s', it should be one of %s", bodyJSON.Method, strings.Join(ctx.AvailableSecondFactorMethods(), ", ")), messageOperationFailed)
+		ctx.GetLogger().Errorf("Error occurred setting the second factor method preference as the method '%s' is unknown or unavailable, it should be one of %s", bodyJSON.Method, strings.Join(ctx.AvailableSecondFactorMethods(), ", "))
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
 	ctx.Logger.Debugf("Save new preferred 2FA method of user %s to %s", userSession.Username, bodyJSON.Method)
 
 	if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, bodyJSON.Method); err != nil {
-		ctx.Error(fmt.Errorf("unable to save new preferred 2FA method: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred saving the new preferred second factor method")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 

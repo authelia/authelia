@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package logging
 
 import (
@@ -7,6 +11,7 @@ import (
 	"time"
 )
 
+// NewFile returns a new *File for the log file with the given name.
 func NewFile(name string) *File {
 	return &File{
 		mu:   sync.Mutex{},
@@ -14,6 +19,7 @@ func NewFile(name string) *File {
 	}
 }
 
+// File is a log file which can be reopened, primarily to facilitate log rotation.
 type File struct {
 	mu   sync.Mutex
 	file *os.File
@@ -41,6 +47,7 @@ func (f *File) Open() (err error) {
 	return nil
 }
 
+// Reopen closes and reopens the underlying log file.
 func (f *File) Reopen() (err error) {
 	f.mu.Lock()
 

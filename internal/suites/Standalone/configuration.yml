@@ -1,13 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 certificates_directory: '/certs/'
 theme: 'auto'
 
 server:
   address: 'tcp://:9091'
+  timeouts:
+    read: '30s'
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
   endpoints:
+    health:
+      verbose: true
+      providers:
+        - 'storage'
+        - 'cache'
+        - 'user'
+      cache: '0'
+    authz:
+      legacy:
+        implementation: 'Legacy'
+      auth-request:
+        implementation: 'AuthRequest'
+      ext-authz:
+        implementation: 'ExtAuthz'
+      forward-auth:
+        implementation: 'ForwardAuth'
+      forward-auth-no-redirect:
+        implementation: 'ForwardAuth'
+        disable_access_denied_redirect: true
+      forward-auth-attributes:
+        implementation: 'ForwardAuth'
+        headers:
+          Remote-User:
+            user_attribute: 'username'
+          Remote-Groups:
+            user_attribute: 'groups'
+          Remote-Given-Name:
+            user_attribute: 'given_name'
+          Remote-Employee-Id:
+            user_attribute: 'employee_id'
+          Remote-Is-Admin:
+            user_attribute: 'is_admin'
     rate_limits:
       reset_password_start:
         buckets:
@@ -93,7 +131,7 @@ authentication_backend:
         value_type: 'string'
       employee_id:
         multi_valued: false
-        value_type: 'string'
+        value_type: 'integer'
       employee_number:
         multi_valued: false
         value_type: 'integer'
@@ -104,6 +142,10 @@ authentication_backend:
         multi_valued: true
         value_type: 'string'
 
+definitions:
+  user_attributes:
+    is_admin:
+      expression: '"admins" in groups'
 
 totp:
   issuer: 'example.com'

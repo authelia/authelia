@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Rocket.Chat"
-description: "Integrating Rocket.Chat with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Rocket.Chat with the Authelia OpenID Connect 1.0 Provider including configuration examples, tested versions, and available option info."
 summary: ""
 date: 2024-09-28T23:18:03+10:00
 draft: false
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://rocket-chat.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `rocket-chat`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://rocket-chat.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `rocket-chat`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Rocket.Chat] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Rocket.Chat] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'Rocket.Chat'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -115,11 +120,11 @@ To configure [Rocket.Chat] to utilize Authelia as an [OpenID Connect 1.0] Provid
 
 ### Group Mapping
 
-[Rocket.Chat] has a means of mapping identity provider groups or roles to internal roles. For this option to take effect
-you must enable the `Map Roles/Groups to channels` option and fill in the `OAuth Group Channel Map` field with a JSON
+[Rocket.Chat] has a means of mapping identity provider groups or roles to rooms. For this option to take effect you
+must enable the `Map Roles/Groups to channels` option and fill in the `OAuth Group Channel Map` field with a JSON
 object. The key for this object is the Authelia group name, and the value is a JSON array of [Rocket.Chat] room names.
 
-The following example shows matching the Authelia group `admins` to the groups `administration` and `moderators`, and
+The following example shows matching the Authelia group `admins` to the rooms `administration` and `moderators`, and
 the `users` group to the `community` room.
 
 ```json
@@ -127,7 +132,6 @@ the `users` group to the `community` room.
   "admins": ["administration", "moderators"],
   "users": ["community"]
 }
-
 ```
 
 ## See Also

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "HedgeDoc"
-description: "Integrating HedgeDoc with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating HedgeDoc with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-04-13T13:46:05+10:00
 draft: false
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://hedgedoc.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `hedgedoc`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://hedgedoc.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `hedgedoc`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [HedgeDoc] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [HedgeDoc] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'HedgeDoc'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -83,8 +88,8 @@ identity_providers:
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 This configuration assumes [HedgeDoc](https://hedgedoc.org/) users are part of the `hedgedoc-users` group. Depending on
 your specific group configuration, you will have to adapt the `CMD_OAUTH2_ACCESS_ROLE` variable. Alternatively you may
-elect to create a new authorization policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the
-[client authorization policy](../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+elect to create a new authorization policy in [provider authorization policies](../../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the
+[client authorization policy](../../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
 To configure [HedgeDoc] there is one method, using the [Environment Variables](#environment-variables).
@@ -129,6 +134,7 @@ services:
       CMD_OAUTH2_ROLES_CLAIM: 'groups'
       CMD_OAUTH2_ACCESS_ROLE: 'hedgedoc-users'
 ```
+
 ## See Also
 
 - [HedgeDoc OAuth2 Login Documentation](https://docs.hedgedoc.org/configuration/#oauth2-login)

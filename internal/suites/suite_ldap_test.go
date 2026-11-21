@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -42,6 +46,10 @@ func (s *LDAPSuite) TestChangePasswordScenario() {
 
 func (s *LDAPSuite) TestUserManagementOpenLDAPScenario() {
 	suite.Run(s.T(), NewUserManagementOpenLDAPScenario())
+}
+
+func (s *LDAPSuite) TestUserManagementUIScenario() {
+	suite.Run(s.T(), NewUserManagementUIScenario())
 }
 
 func TestLDAPSuite(t *testing.T) {

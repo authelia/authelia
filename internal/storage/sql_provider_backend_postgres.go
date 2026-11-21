@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -38,16 +42,18 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryPostgreSelectExistingTables
 
-	// Specific alterations to this provider.
 	// PostgreSQL doesn't have a UPSERT statement but has an ON CONFLICT operation instead.
 	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
 	provider.sqlSelectUserInfo = provider.db.Rebind(provider.sqlSelectUserInfo)
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValuePostgreSQL, tableEncryption)
-	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2RequestReplay = fmt.Sprintf(queryFmtInsertOAuth2RequestReplayPostgreSQL, tableOAuth2RequestReplay)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
+	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionPostgreSQL, tableSession)
+	provider.sqlLockRecoveryCodesByUsername = fmt.Sprintf(queryFmtLockRecoveryCodesByUsernamePostgreSQL, tableRecoveryCodesLock)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
@@ -71,6 +77,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOneTimeCodeBySignature = provider.db.Rebind(provider.sqlSelectOneTimeCodeBySignature)
 	provider.sqlSelectOneTimeCodeByID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByID)
 	provider.sqlSelectOneTimeCodeByPublicID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByPublicID)
+
+	provider.sqlInsertRecoveryCode = provider.db.Rebind(provider.sqlInsertRecoveryCode)
+	provider.sqlSelectRecoveryCodeBySignatureAndUsername = provider.db.Rebind(provider.sqlSelectRecoveryCodeBySignatureAndUsername)
+	provider.sqlSelectRecoveryCodesByUsername = provider.db.Rebind(provider.sqlSelectRecoveryCodesByUsername)
+	provider.sqlConsumeRecoveryCode = provider.db.Rebind(provider.sqlConsumeRecoveryCode)
+	provider.sqlRevokeRecoveryCodesByUsername = provider.db.Rebind(provider.sqlRevokeRecoveryCodesByUsername)
+	provider.sqlCountUnusedRecoveryCodesByUsername = provider.db.Rebind(provider.sqlCountUnusedRecoveryCodesByUsername)
 
 	provider.sqlSelectTOTPConfig = provider.db.Rebind(provider.sqlSelectTOTPConfig)
 	provider.sqlUpdateTOTPConfigRecordSignIn = provider.db.Rebind(provider.sqlUpdateTOTPConfigRecordSignIn)
@@ -102,6 +115,11 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlInsertAuthenticationAttempt = provider.db.Rebind(provider.sqlInsertAuthenticationAttempt)
 	provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername)
 	provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP)
+	provider.sqlSelectAuthenticationLogsStats = provider.db.Rebind(provider.sqlSelectAuthenticationLogsStats)
+	provider.sqlSelectAuthenticationLogsOldestTime = provider.db.Rebind(provider.sqlSelectAuthenticationLogsOldestTime)
+	provider.sqlSelectAuthenticationLogsNewestTime = provider.db.Rebind(provider.sqlSelectAuthenticationLogsNewestTime)
+	provider.sqlSelectTotalMinMaxAuthenticationLogs = provider.db.Rebind(provider.sqlSelectTotalMinMaxAuthenticationLogs)
+	provider.sqlDeleteAuthenticationLogsBatch = provider.db.Rebind(provider.sqlDeleteAuthenticationLogsBatch)
 
 	provider.sqlInsertBannedUser = provider.db.Rebind(provider.sqlInsertBannedUser)
 	provider.sqlSelectBannedUser = provider.db.Rebind(provider.sqlSelectBannedUser)
@@ -117,13 +135,30 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectBannedIPLastTime = provider.db.Rebind(provider.sqlSelectBannedIPLastTime)
 	provider.sqlRevokeBannedIP = provider.db.Rebind(provider.sqlRevokeBannedIP)
 
+	provider.sqlInsertExternalIdentityLink = provider.db.Rebind(provider.sqlInsertExternalIdentityLink)
+	provider.sqlSelectExternalIdentityLinkBySubject = provider.db.Rebind(provider.sqlSelectExternalIdentityLinkBySubject)
+	provider.sqlSelectExternalIdentityLinksByUsername = provider.db.Rebind(provider.sqlSelectExternalIdentityLinksByUsername)
+	provider.sqlSelectExternalIdentityLinkByID = provider.db.Rebind(provider.sqlSelectExternalIdentityLinkByID)
+	provider.sqlUpdateExternalIdentityLinkSignIn = provider.db.Rebind(provider.sqlUpdateExternalIdentityLinkSignIn)
+	provider.sqlDeleteExternalIdentityLinkByUsernameAndID = provider.db.Rebind(provider.sqlDeleteExternalIdentityLinkByUsernameAndID)
+
 	provider.sqlSelectCachedData = provider.db.Rebind(provider.sqlSelectCachedData)
 	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)
+
+	provider.sqlSelectSession = provider.db.Rebind(provider.sqlSelectSession)
+	provider.sqlSelectSessionByPublicID = provider.db.Rebind(provider.sqlSelectSessionByPublicID)
+	provider.sqlSelectSessionSignatureByPublicID = provider.db.Rebind(provider.sqlSelectSessionSignatureByPublicID)
+	provider.sqlSelectSessionSignaturesByUsername = provider.db.Rebind(provider.sqlSelectSessionSignaturesByUsername)
+	provider.sqlUpdateSessionData = provider.db.Rebind(provider.sqlUpdateSessionData)
+	provider.sqlUpdateSessionSignature = provider.db.Rebind(provider.sqlUpdateSessionSignature)
+	provider.sqlUpdateSessionDestroyed = provider.db.Rebind(provider.sqlUpdateSessionDestroyed)
+	provider.sqlDeleteSessionExpired = provider.db.Rebind(provider.sqlDeleteSessionExpired)
 
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
 	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)
 	provider.sqlSelectLatestMigration = provider.db.Rebind(provider.sqlSelectLatestMigration)
 
+	provider.sqlInsertEncryptionValue = provider.db.Rebind(provider.sqlInsertEncryptionValue)
 	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
 
 	provider.sqlSelectOAuth2ConsentPreConfigurations = provider.db.Rebind(provider.sqlSelectOAuth2ConsentPreConfigurations)
@@ -152,6 +187,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSession)
 	provider.sqlUpdateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSession)
 	provider.sqlUpdateOAuth2DeviceCodeSessionData = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSessionData)
+	provider.sqlDecideOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDecideOAuth2DeviceCodeSession)
 	provider.sqlDeactivateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDeactivateOAuth2DeviceCodeSession)
 	provider.sqlSelectOAuth2DeviceCodeSessionByUserCode = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSessionByUserCode)
 
@@ -180,17 +216,22 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeactivateOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSession)
 	provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID)
 	provider.sqlSelectOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSession)
+	provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSessionAccessSignature)
+	provider.sqlUpdateOAuth2RefreshTokenSessionRequest = provider.db.Rebind(provider.sqlUpdateOAuth2RefreshTokenSessionRequest)
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
 
 	provider.sqlInsertUserMetadata = provider.db.Rebind(provider.sqlInsertUserMetadata)
 	provider.sqlInsertNewUserMetadata = provider.db.Rebind(provider.sqlInsertNewUserMetadata)
 	provider.sqlInsertExistingUserAtLoginMetadata = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginMetadata)
+	provider.sqlInsertExistingUserAtPasswordChangeMetadata = provider.db.Rebind(provider.sqlInsertExistingUserAtPasswordChangeMetadata)
+	provider.sqlSelectUserMetadata = provider.db.Rebind(provider.sqlSelectUserMetadata)
+	provider.sqlSelectMultipleUserMetadataByUsername = provider.db.Rebind(provider.sqlSelectMultipleUserMetadataByUsername)
 	provider.sqlSelectUserMetadataByUsername = provider.db.Rebind(provider.sqlSelectUserMetadataByUsername)
-	provider.sqlUpdateUserRecordSignInByUsername = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginMetadata)
+	provider.sqlSelectAllUserInfoAndMetadata = provider.db.Rebind(provider.sqlSelectAllUserInfoAndMetadata)
 	provider.sqlDeleteUserMetadataByUsername = provider.db.Rebind(provider.sqlDeleteUserMetadataByUsername)
 	provider.sqlUpdateUserRecordPasswordChangedAtByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordPasswordChangedAtByUsername)
-	provider.sqlUpdateUserRecordRequirePasswordChangedByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordRequirePasswordChangedByUsername)
+	provider.sqlUpdateUserRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordSignInByUsername)
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 
@@ -292,11 +333,13 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 	default:
 		var caCertPool *x509.CertPool
 
-		switch ca {
-		case nil:
-			caCertPool = globalCACertPool
-		default:
-			caCertPool = globalCACertPool
+		if globalCACertPool == nil {
+			caCertPool = x509.NewCertPool()
+		} else {
+			caCertPool = globalCACertPool.Clone()
+		}
+
+		if ca != nil {
 			caCertPool.AddCert(ca)
 		}
 
@@ -312,7 +355,10 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyPeerCertificateFunc(tlsConfig)
 		case config.SSL.Mode == "verify-full":
 			tlsConfig.InsecureSkipVerify = false
-			tlsConfig.ServerName = config.Address.Hostname()
+
+			if config.Address != nil {
+				tlsConfig.ServerName = config.Address.Hostname()
+			}
 		}
 	}
 

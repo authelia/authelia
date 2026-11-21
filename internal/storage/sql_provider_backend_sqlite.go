@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/mattn/go-sqlite3"
 
@@ -18,7 +23,7 @@ type SQLiteProvider struct {
 func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider, err error) {
 	var p SQLProvider
 
-	if p, err = NewSQLProvider(config, providerSQLite, "sqlite3e", config.Storage.Local.Path); err != nil {
+	if p, err = NewSQLProvider(config, providerSQLite, "sqlite3e", fmt.Sprintf(dsnFmtSQLite, config.Storage.Local.Path)); err != nil {
 		return nil, err
 	}
 
@@ -28,6 +33,11 @@ func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider, 
 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = querySQLiteSelectExistingTables
+
+	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionSQLite, tableSession)
+	provider.sqlInsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtInsertOAuth2BlacklistedJTISQLite, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2RequestReplay = fmt.Sprintf(queryFmtInsertOAuth2RequestReplaySQLite, tableOAuth2RequestReplay)
+	provider.sqlLockRecoveryCodesByUsername = fmt.Sprintf(queryFmtLockRecoveryCodesByUsernameSQLite, tableRecoveryCodesLock)
 
 	return provider, nil
 }

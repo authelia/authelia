@@ -1,12 +1,18 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -47,8 +53,7 @@ func (s *StandaloneWebDriverSuite) TearDownSuite() {
 }
 
 func (s *StandaloneWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *StandaloneWebDriverSuite) TearDownTest() {
@@ -70,7 +75,6 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
 }
@@ -87,16 +91,16 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 		page2.MustClose()
 	}()
 
-	// Open second tab with secret page.
-	page2.MustWaitStable()
+	// The second tab has to have arrived at the portal before the first one logs in, since what this test
+	// asserts is that the login on the first tab redirects it. Waiting for the page it is expected to be
+	// showing says that; waiting for it to stop changing does not distinguish it from one still in flight.
+	s.verifyIsFirstFactorPage(s.T(), page2.Context(ctx))
 
-	// Switch to first, visit the login page and wait for redirection to secret page with secret displayed.
 	s.MustActivate()
 	s.verifyIsHome(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
-	// Switch to second tab and wait for redirection to secret page with secret displayed.
 	page2.MustActivate()
 	s.verifySecretAuthorized(s.T(), page2.Context(ctx))
 }
@@ -115,7 +119,6 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.com:8080", GetLoginBaseURL(BaseDomain)))
 
 	_, err := s.ElementR("h1", "Public resource")
@@ -137,7 +140,6 @@ func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUser
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL(BaseDomain)))
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct")
 }
@@ -159,21 +161,15 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 
 	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
 
-	// Login one factor.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
-	// Check the user is asked to register a new device.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 
-	// Then register the TOTP factor.
 	s.doOpenSettingsAndRegisterTOTP(s.T(), s.Context(ctx), username)
-	// And logout.
 	s.doLogout(s.T(), s.Context(ctx))
 
-	// Login one factor again.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
-	// now the user should be asked to perform 2FA.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
 }
 
@@ -213,6 +209,43 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	res, err = client.Do(req)
 	s.Assert().NoError(err)
 	s.Assert().Equal(fasthttp.StatusOK, res.StatusCode)
+}
+
+func (s *StandaloneSuite) TestShouldRespectAccessDeniedRedirectOptOut() {
+	testCases := []struct {
+		name     string
+		endpoint string
+		expected int
+	}{
+		{"ShouldRedirectToTheAccessDeniedPage", "forward-auth", fasthttp.StatusFound},
+		{"ShouldRespondForbiddenWhenDisabled", "forward-auth-no-redirect", fasthttp.StatusForbidden},
+	}
+
+	client := NewHTTPClient()
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/authz/%s?authelia_url=%s", AutheliaBaseURL, tc.endpoint, url.QueryEscape(GetLoginBaseURL(BaseDomain))), nil)
+			s.Require().NoError(err)
+
+			req.Header.Set("X-Forwarded-Method", fasthttp.MethodGet)
+			req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+			req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("deny.%s", BaseDomain))
+			req.Header.Set("X-Forwarded-URI", "/secret.html")
+			req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
+
+			res, err := client.Do(req)
+			s.Require().NoError(err)
+
+			s.Assert().Equal(tc.expected, res.StatusCode)
+
+			if tc.expected == fasthttp.StatusFound {
+				s.Assert().Contains(res.Header.Get(fasthttp.HeaderLocation), "/error?ec=forbidden")
+			} else {
+				s.Assert().Equal("", res.Header.Get(fasthttp.HeaderLocation))
+			}
+		})
+	}
 }
 
 func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
@@ -301,6 +334,123 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 }
 
+func (s *StandaloneSuite) doAuthzBasicRequest(endpoint, username, password string) *http.Response {
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/authz/%s", AutheliaBaseURL, endpoint), nil)
+	s.Require().NoError(err)
+
+	req.Header.Set("X-Forwarded-Method", fasthttp.MethodGet)
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("singlefactor.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-URI", "/")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
+
+	if username != "" {
+		req.SetBasicAuth(username, password)
+	}
+
+	res, err := NewHTTPClient().Do(req)
+	s.Require().NoError(err)
+
+	s.T().Cleanup(func() {
+		_ = res.Body.Close()
+	})
+
+	return res
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithDefaultAuthzHeaders() {
+	res := s.doAuthzBasicRequest("forward-auth", "john", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("john", res.Header.Get("Remote-User"))
+	s.Assert().ElementsMatch([]string{"admins", "dev", "authelia-admin"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
+	s.Assert().Equal("John Doe", res.Header.Get("Remote-Name"))
+	s.Assert().Equal("john.doe@authelia.com", res.Header.Get("Remote-Email"))
+
+	s.Assert().Empty(res.Header.Values("Remote-Given-Name"))
+	s.Assert().Empty(res.Header.Values("Remote-Employee-Id"))
+	s.Assert().Empty(res.Header.Values("Remote-Is-Admin"))
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeaders() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "john", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("john", res.Header.Get("Remote-User"))
+	s.Assert().ElementsMatch([]string{"admins", "dev", "authelia-admin"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
+	s.Assert().Equal("John", res.Header.Get("Remote-Given-Name"))
+	s.Assert().Equal("1001", res.Header.Get("Remote-Employee-Id"))
+	s.Assert().Equal("true", res.Header.Get("Remote-Is-Admin"))
+
+	s.Assert().Empty(res.Header.Values("Remote-Name"))
+	s.Assert().Empty(res.Header.Values("Remote-Email"))
+}
+
+func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeadersForUserWithoutAttributes() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "harry", "password")
+
+	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	s.Assert().Equal("harry", res.Header.Get("Remote-User"))
+	s.Assert().Equal("", res.Header.Get("Remote-Groups"))
+	s.Assert().Equal("", res.Header.Get("Remote-Given-Name"))
+	s.Assert().Equal("", res.Header.Get("Remote-Employee-Id"))
+	s.Assert().Equal("false", res.Header.Get("Remote-Is-Admin"))
+}
+
+func (s *StandaloneSuite) TestShouldNotRespondWithConfiguredAuthzHeadersWhenUnauthenticated() {
+	res := s.doAuthzBasicRequest("forward-auth-attributes", "", "")
+
+	s.Assert().Equal(fasthttp.StatusFound, res.StatusCode)
+
+	for _, header := range []string{"Remote-User", "Remote-Groups", "Remote-Given-Name", "Remote-Employee-Id", "Remote-Is-Admin"} {
+		s.Assert().Empty(res.Header.Values(header), header)
+	}
+}
+
+func (s *StandaloneSuite) TestShouldServeVerboseHealthCheck() {
+	client := NewHTTPClient()
+
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/health/verbose", LoginBaseURL), nil)
+	s.Require().NoError(err)
+
+	res, err := client.Do(req)
+	s.Require().NoError(err)
+
+	defer res.Body.Close()
+
+	s.Assert().Equal(fasthttp.StatusOK, res.StatusCode)
+
+	body, err := io.ReadAll(res.Body)
+	s.Require().NoError(err)
+
+	health := struct {
+		Status    string `json:"status"`
+		Cached    bool   `json:"cached"`
+		Providers map[string]struct {
+			Status string `json:"status"`
+			Took   string `json:"took"`
+			Error  string `json:"error"`
+		} `json:"providers"`
+	}{}
+
+	s.Require().NoError(json.Unmarshal(body, &health))
+
+	s.Assert().Equal("ok", health.Status)
+
+	// the suite configures these three, and each must have genuinely been probed.
+	for _, name := range []string{"storage", "cache", "user"} {
+		s.Require().Contains(health.Providers, name)
+		s.Assert().Equal("ok", health.Providers[name].Status)
+		s.Assert().NotEmpty(health.Providers[name].Took)
+
+		// detailed is not enabled, so no provider message may be disclosed.
+		s.Assert().Empty(health.Providers[name].Error)
+	}
+}
+
 func (s *StandaloneSuite) TestShouldRecordMetrics() {
 	client := NewHTTPClient()
 
@@ -333,6 +483,10 @@ func (s *StandaloneSuite) TestStandaloneWebDriverScenario() {
 
 func (s *StandaloneSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
+}
+
+func (s *StandaloneSuite) TestAccessDeniedScenario() {
+	suite.Run(s.T(), NewAccessDeniedScenario())
 }
 
 func (s *StandaloneSuite) Test2FATOTPScenario() {

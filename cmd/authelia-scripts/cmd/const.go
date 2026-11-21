@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package cmd
 
 // OutputDir the output directory where the built version of Authelia is located.
@@ -23,6 +27,8 @@ const (
 	stringFalse  = "false"
 	webDirectory = "web"
 )
+
+const testResultsFileFmt = "test-results-%s.json"
 
 const (
 	pathPNPMModule = "/web/node_modules/.modules.yaml"
@@ -149,6 +155,17 @@ Suites can be listed with the authelia-scripts suites list command.`
 Suites can be listed with the authelia-scripts suites list command.`
 
 	cmdSuitesTeardownExample = `authelia-scripts suites setup Standalone`
+
+	cmdSuitesSlotShort = "Show the suite slot allocated to this working tree"
+
+	cmdSuitesSlotLong = `Show the suite slot allocated to this working tree, allocating one if it does not have it yet.
+
+The slot is the number bootstrap.sh derives the compose project, the network subnet, the debug ports and the temporary
+directory from, so that several working trees on one machine can run suites at the same time without colliding.`
+
+	cmdSuitesSlotExample = `authelia-scripts suites slot
+authelia-scripts suites slot --list
+authelia-scripts suites slot --release`
 
 	cmdSuitesExternalShort = "Commands related to external suites management"
 

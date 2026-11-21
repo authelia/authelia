@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 // FormatBool converts a bool into a "yes"/"no" string suitable for CLI display.

@@ -1,23 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:25-alpine@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4 AS builder-frontend
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS builder-frontend
 
 WORKDIR /node/src/app
 
-COPY --link .local /root/.local
+ENV \
+    SHELL="/bin/sh" \
+    PNPM_HOME="/usr/local"
+
 COPY --link web ./
 
-# Install the dependencies and build
-RUN \
-	yarn global add pnpm && \
-	pnpm install --frozen-lockfile --ignore-scripts && \
-	pnpm coverage
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+	wget -qO /tmp/pnpm-install.sh https://raw.githubusercontent.com/pnpm/get.pnpm.io/febc5a15277bb53a4d92430e4bbebeccad4828fe/install.sh && \
+    ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
+    pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm/store && \
+    pnpm coverage
 
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.26.5-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651 AS builder-backend
+FROM golang:1.27.4-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -43,7 +50,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:abbcf627d8363a47de7e6dd50eac1492b16c52936ad6160388907e24835290fe
+FROM authelia/base:latest@sha256:29bec2471904f715bb34a49dd8e755ebe1d49ae8c51a40205e375e0c611b896e
 
 WORKDIR /app
 

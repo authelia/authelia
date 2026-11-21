@@ -1,10 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -144,6 +150,350 @@ func TestSQLProviderUserOpaqueIdentifier(t *testing.T) {
 	})
 }
 
+func TestSQLProviderExternalIdentityLinks(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	var linkID int
+
+	t.Run("ShouldSaveAndLoadLinkBySubject", func(t *testing.T) {
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt:      time.Now().Truncate(time.Second),
+			Type:           "openid_connect",
+			Provider:       "example",
+			Issuer:         "https://op.example.com",
+			Subject:        "abc123",
+			Username:       "john",
+			RemoteUsername: sql.NullString{Valid: true, String: "john@op"},
+			Email:          sql.NullString{Valid: true, String: "john@op.example.com"},
+		}))
+
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "abc123")
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, "john", loaded.Username)
+		assert.Equal(t, "example", loaded.Provider)
+		assert.Equal(t, "https://op.example.com", loaded.Issuer)
+		assert.Equal(t, "abc123", loaded.Subject)
+		assert.Equal(t, "openid_connect", loaded.Type)
+		assert.True(t, loaded.RemoteUsername.Valid)
+		assert.Equal(t, "john@op", loaded.RemoteUsername.String)
+		assert.True(t, loaded.Email.Valid)
+		assert.Equal(t, "john@op.example.com", loaded.Email.String)
+		assert.False(t, loaded.LastUsedAt.Valid)
+
+		linkID = loaded.ID
+	})
+
+	t.Run("ShouldRejectDuplicateIssuerSubject", func(t *testing.T) {
+		err := provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "other",
+			Issuer:    "https://op.example.com",
+			Subject:   "abc123",
+			Username:  "jane",
+		})
+
+		require.EqualError(t, err, "error inserting external identity link for user 'jane': UNIQUE constraint failed: user_external_identity_links.type, user_external_identity_links.issuer, user_external_identity_links.subject")
+	})
+
+	t.Run("ShouldDistinguishIssuersSharingLongPrefix", func(t *testing.T) {
+		prefix := "https://op.example.com/" + strings.Repeat("a", 191)
+
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "prefix1",
+			Issuer:    prefix + "/one",
+			Subject:   "prefixed",
+			Username:  "prefix",
+		}))
+
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "prefix2",
+			Issuer:    prefix + "/two",
+			Subject:   "prefixed",
+			Username:  "prefix",
+		}))
+
+		for name, issuer := range map[string]string{"prefix1": prefix + "/one", "prefix2": prefix + "/two"} {
+			loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", issuer, "prefixed")
+
+			require.NoError(t, err)
+			assert.Equal(t, name, loaded.Provider)
+			assert.Equal(t, issuer, loaded.Issuer)
+		}
+	})
+
+	t.Run("ShouldRejectDuplicateUsernameProvider", func(t *testing.T) {
+		err := provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "example",
+			Issuer:    "https://op2.example.com",
+			Subject:   "def456",
+			Username:  "john",
+		})
+
+		require.EqualError(t, err, "error inserting external identity link for user 'john': UNIQUE constraint failed: user_external_identity_links.username, user_external_identity_links.provider")
+	})
+
+	t.Run("ShouldTreatSubjectsAsCaseSensitive", func(t *testing.T) {
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "cased",
+			Issuer:    "https://op.example.com",
+			Subject:   "ABC123",
+			Username:  "mary",
+		}))
+
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "ABC123")
+
+		require.NoError(t, err)
+		assert.Equal(t, "mary", loaded.Username)
+
+		loaded, err = provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "abc123")
+
+		require.NoError(t, err)
+		assert.Equal(t, "john", loaded.Username)
+
+		_, err = provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://OP.example.com", "abc123")
+
+		assert.ErrorIs(t, err, ErrNoExternalIdentityLink)
+	})
+
+	t.Run("ShouldLoadLinkByID", func(t *testing.T) {
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, "john", loaded.Username)
+		assert.Equal(t, linkID, loaded.ID)
+	})
+
+	t.Run("ShouldSaveAndLoadLinksByUsername", func(t *testing.T) {
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "other",
+			Issuer:    "https://op3.example.com",
+			Subject:   "ghi789",
+			Username:  "john",
+		}))
+
+		links, err := provider.LoadExternalIdentityLinksByUsername(ctx, "john")
+
+		require.NoError(t, err)
+		require.Len(t, links, 2)
+		assert.Equal(t, "example", links[0].Provider)
+		assert.Equal(t, "other", links[1].Provider)
+		assert.True(t, links[0].SignatureValid)
+		assert.True(t, links[1].SignatureValid)
+	})
+
+	t.Run("ShouldReturnEmptyForUnknownUsername", func(t *testing.T) {
+		links, err := provider.LoadExternalIdentityLinksByUsername(ctx, "nobody")
+
+		require.NoError(t, err)
+		assert.Empty(t, links)
+	})
+
+	t.Run("ShouldUpdateSignIn", func(t *testing.T) {
+		now := time.Now().Truncate(time.Second)
+
+		require.NoError(t, provider.UpdateExternalIdentityLinkSignIn(ctx, linkID, now))
+
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.True(t, loaded.LastUsedAt.Valid)
+		assert.WithinDuration(t, now, loaded.LastUsedAt.Time, time.Second)
+	})
+
+	t.Run("ShouldReturnErrNoExternalIdentityLinkWhenSubjectAbsent", func(t *testing.T) {
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "missing")
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no external identity link found")
+	})
+
+	t.Run("ShouldReturnErrNoExternalIdentityLinkWhenTypeDiffers", func(t *testing.T) {
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "discord", "https://op.example.com", "abc123")
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no external identity link found")
+	})
+
+	t.Run("ShouldAllowTheSameIssuerAndSubjectForADifferentType", func(t *testing.T) {
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "plex",
+			Provider:  "plex",
+			Issuer:    "https://op.example.com",
+			Subject:   "abc123",
+			Username:  "jane",
+		}))
+
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "plex", "https://op.example.com", "abc123")
+
+		require.NoError(t, err)
+		assert.Equal(t, "jane", loaded.Username)
+		assert.Equal(t, "plex", loaded.Type)
+	})
+
+	t.Run("ShouldReturnErrNoExternalIdentityLinkWhenIDAbsent", func(t *testing.T) {
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, 999999)
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no external identity link found")
+	})
+
+	t.Run("ShouldNotDeleteLinkForWrongUsername", func(t *testing.T) {
+		require.NoError(t, provider.DeleteExternalIdentityLink(ctx, "jane", linkID))
+
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+	})
+
+	t.Run("ShouldDeleteLinkScopedToUser", func(t *testing.T) {
+		require.NoError(t, provider.DeleteExternalIdentityLink(ctx, "john", linkID))
+
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, linkID)
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no external identity link found")
+	})
+}
+
+func TestSQLProviderExternalIdentityLinkSignature(t *testing.T) {
+	testCases := []struct {
+		name   string
+		column string
+		value  string
+	}{
+		{"ShouldRejectTamperedType", "type", "discord"},
+		{"ShouldRejectTamperedProvider", "provider", "other"},
+		{"ShouldRejectTamperedIssuer", "issuer", "https://evil.example.com"},
+		{"ShouldRejectTamperedSubject", "subject", "evil"},
+		{"ShouldRejectTamperedUsername", "username", "admin"},
+		{"ShouldRejectTamperedSignature", "signature", strings.Repeat("0", 128)},
+		{"ShouldRejectEmptySignature", "signature", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProvider(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+				CreatedAt: time.Now().Truncate(time.Second),
+				Type:      "openid_connect",
+				Provider:  "example",
+				Issuer:    "https://op.example.com",
+				Subject:   "abc123",
+				Username:  "john",
+			}))
+
+			loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "abc123")
+			require.NoError(t, err)
+			require.Len(t, loaded.Signature, 128)
+
+			_, err = provider.db.ExecContext(ctx, fmt.Sprintf("UPDATE user_external_identity_links SET %s = ? WHERE id = ?;", tc.column), tc.value, loaded.ID)
+			require.NoError(t, err)
+
+			providerType, issuer, subject, username := "openid_connect", "https://op.example.com", "abc123", "john"
+
+			switch tc.column {
+			case "type":
+				providerType = tc.value
+			case "issuer":
+				issuer = tc.value
+			case "subject":
+				subject = tc.value
+			case "username":
+				username = tc.value
+			}
+
+			link, err := provider.LoadExternalIdentityLinkBySubject(ctx, providerType, issuer, subject)
+			assert.Nil(t, link)
+			assert.ErrorIs(t, err, ErrExternalIdentityLinkSignatureInvalid)
+
+			link, err = provider.LoadExternalIdentityLinkByID(ctx, loaded.ID)
+			assert.Nil(t, link)
+			assert.ErrorIs(t, err, ErrExternalIdentityLinkSignatureInvalid)
+
+			links, err := provider.LoadExternalIdentityLinksByUsername(ctx, username)
+			require.NoError(t, err)
+			require.Len(t, links, 1)
+			assert.Equal(t, loaded.ID, links[0].ID)
+			assert.False(t, links[0].SignatureValid)
+		})
+	}
+
+	t.Run("ShouldNotProduceTheSameSignatureForShiftedValues", func(t *testing.T) {
+		key := []byte("key")
+
+		a := externalIdentityLinkSignature(key, &model.ExternalIdentityLink{Provider: "example", Issuer: "https://op.example.com/a", Subject: "b", Username: "john"})
+		b := externalIdentityLinkSignature(key, &model.ExternalIdentityLink{Provider: "example", Issuer: "https://op.example.com/", Subject: "ab", Username: "john"})
+
+		assert.NotEqual(t, a, b)
+	})
+
+	t.Run("ShouldRotateKeySigningValidLinksAndDeletingInvalidLinks", func(t *testing.T) {
+		provider := newTestSQLiteProvider(t)
+		require.NoError(t, provider.StartupCheck())
+
+		ctx := context.Background()
+
+		for _, subject := range []string{"valid", "invalid"} {
+			require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+				CreatedAt: time.Now().Truncate(time.Second),
+				Type:      "openid_connect",
+				Provider:  subject,
+				Issuer:    "https://op.example.com",
+				Subject:   subject,
+				Username:  "john",
+			}))
+		}
+
+		_, err := provider.db.ExecContext(ctx, "UPDATE user_external_identity_links SET username = ? WHERE subject = ?;", "admin", "invalid")
+		require.NoError(t, err)
+
+		before, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "valid")
+		require.NoError(t, err)
+
+		previous := provider.keys.externalIdentityLinkHMAC
+
+		require.NoError(t, provider.SchemaEncryptionRotateHMACKey(ctx, "external_identity_link"))
+
+		assert.NotEqual(t, previous, provider.keys.externalIdentityLinkHMAC)
+
+		after, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "valid")
+		require.NoError(t, err)
+		assert.Equal(t, before.ID, after.ID)
+		assert.NotEqual(t, before.Signature, after.Signature)
+
+		_, err = provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "invalid")
+		assert.ErrorIs(t, err, ErrNoExternalIdentityLink)
+
+		key, err := provider.getHMACExternalIdentityLink(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, provider.keys.externalIdentityLinkHMAC, key)
+	})
+}
+
 func TestSQLProviderTOTPConfiguration(t *testing.T) {
 	provider := newTestSQLiteProvider(t)
 	require.NoError(t, provider.StartupCheck())
@@ -251,6 +601,41 @@ func TestSQLProviderTransactions(t *testing.T) {
 		require.NoError(t, err)
 
 		require.NoError(t, provider.Rollback(ctx))
+	})
+
+	t.Run("ShouldRollbackDiscardWrites", func(t *testing.T) {
+		ctx, err := provider.BeginTX(context.Background())
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{
+			ClientID:  "client",
+			Signature: "tx-rollback-jti",
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+		}))
+
+		require.NoError(t, provider.Rollback(ctx))
+
+		_, err = provider.LoadOAuth2BlacklistedJTI(context.Background(), "client", "tx-rollback-jti")
+
+		assert.EqualError(t, err, "error selecting oauth2 blacklisted JTI with signature 'tx-rollback-jti' for client 'client': sql: no rows in result set")
+	})
+
+	t.Run("ShouldCommitPersistWrites", func(t *testing.T) {
+		ctx, err := provider.BeginTX(context.Background())
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{
+			ClientID:  "client",
+			Signature: "tx-commit-jti",
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+		}))
+
+		require.NoError(t, provider.Commit(ctx))
+
+		jti, err := provider.LoadOAuth2BlacklistedJTI(context.Background(), "client", "tx-commit-jti")
+
+		require.NoError(t, err)
+		assert.Equal(t, "tx-commit-jti", jti.Signature)
 	})
 }
 
@@ -368,6 +753,55 @@ func TestSQLProviderWebAuthn(t *testing.T) {
 	})
 }
 
+func TestUpdateWebAuthnCredentialSignInRebindsCiphertext(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	credential := model.WebAuthnCredential{
+		CreatedAt:       time.Now().Truncate(time.Second),
+		RPID:            "",
+		Username:        "john",
+		Description:     "rebind",
+		KID:             model.NewBase64([]byte("kid-rebind")),
+		AttestationType: "packed",
+		Attachment:      "cross-platform",
+		PublicKey:       []byte("fake-public-key"),
+	}
+
+	require.NoError(t, provider.SaveWebAuthnCredential(ctx, credential))
+
+	credentials, err := provider.LoadWebAuthnCredentialsByUsername(ctx, "", "john")
+
+	require.NoError(t, err)
+	require.Len(t, credentials, 1)
+
+	stored := credentials[0]
+
+	var before []byte
+
+	require.NoError(t, provider.db.GetContext(ctx, &before, fmt.Sprintf("SELECT public_key FROM %s WHERE id = ?", tableWebAuthnCredentials), stored.ID))
+
+	stored.RPID = "example.com"
+	stored.SignCount = 42
+
+	require.NoError(t, provider.UpdateWebAuthnCredentialSignIn(ctx, stored))
+
+	var after []byte
+
+	require.NoError(t, provider.db.GetContext(ctx, &after, fmt.Sprintf("SELECT public_key FROM %s WHERE id = ?", tableWebAuthnCredentials), stored.ID))
+
+	assert.NotEqual(t, before, after)
+
+	reloaded, err := provider.LoadWebAuthnCredentialByID(ctx, stored.ID)
+
+	require.NoError(t, err)
+	assert.Equal(t, "example.com", reloaded.RPID)
+	assert.Equal(t, uint32(42), reloaded.SignCount)
+	assert.Equal(t, []byte("fake-public-key"), reloaded.PublicKey)
+}
+
 func TestSQLProviderIdentityVerification(t *testing.T) {
 	provider := newTestSQLiteProvider(t)
 	require.NoError(t, provider.StartupCheck())
@@ -421,6 +855,49 @@ func TestSQLProviderIdentityVerification(t *testing.T) {
 		require.NoError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}))
 	})
 
+	t.Run("ShouldNotConsumeVerificationTwice", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NewNullIP(net.ParseIP("127.0.0.1"))))
+		require.EqualError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NewNullIP(net.ParseIP("127.0.0.1"))), "no rows affected")
+	})
+
+	t.Run("ShouldNotConsumeVerificationTwiceWithNullIP", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}))
+		require.EqualError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}), "no rows affected")
+	})
+
+	t.Run("ShouldNotConsumeNonExistentVerification", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		require.EqualError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}), "no rows affected")
+	})
+
 	t.Run("ShouldRevokeVerification", func(t *testing.T) {
 		jti, err := uuid.NewRandom()
 		require.NoError(t, err)
@@ -436,6 +913,67 @@ func TestSQLProviderIdentityVerification(t *testing.T) {
 
 		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
 		require.NoError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}))
+	})
+
+	t.Run("ShouldNotRevokeVerificationTwice", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NewNullIP(net.ParseIP("127.0.0.1"))))
+		require.EqualError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NewNullIP(net.ParseIP("127.0.0.1"))), "no rows affected")
+	})
+
+	t.Run("ShouldNotRevokeVerificationTwiceWithNullIP", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}))
+		require.EqualError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}), "no rows affected")
+	})
+
+	t.Run("ShouldNotRevokeNonExistentVerification", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		require.EqualError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}), "no rows affected")
+	})
+
+	t.Run("ShouldConsumeRevokedVerification", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}))
+		require.NoError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}))
 	})
 }
 
@@ -599,7 +1137,18 @@ func TestSQLProviderOAuth2ConsentSession(t *testing.T) {
 		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
 		require.NoError(t, err)
 
+		loaded.GrantedScopes = model.StringSlicePipeDelimited{"openid", "profile"}
+		loaded.GrantedAudience = model.StringSlicePipeDelimited{"aud-a"}
+		loaded.GrantedResource = model.StringSlicePipeDelimited{"https://api.example.com"}
+
 		require.NoError(t, provider.SaveOAuth2ConsentSessionResponse(ctx, loaded, true))
+
+		reloaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
+		require.NoError(t, err)
+		require.NotNil(t, reloaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"openid", "profile"}, reloaded.GrantedScopes)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, reloaded.GrantedAudience)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, reloaded.GrantedResource)
 	})
 
 	t.Run("ShouldSaveConsentGranted", func(t *testing.T) {
@@ -778,31 +1327,176 @@ func TestSQLProviderOAuth2PARContext(t *testing.T) {
 }
 
 func TestSQLProviderOAuth2BlacklistedJTI(t *testing.T) {
-	provider := newTestSQLiteProviderWithEncryption(t)
-	require.NoError(t, provider.StartupCheck())
+	testCases := []struct {
+		Name     string
+		Existing []model.OAuth2BlacklistedJTI
+		Save     model.OAuth2BlacklistedJTI
+		Err      string
+	}{
+		{
+			Name: "ShouldSave",
+			Save: model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)},
+		},
+		{
+			Name:     "ShouldRefuseKnown",
+			Existing: []model.OAuth2BlacklistedJTI{{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)}},
+			Save:     model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(2 * time.Hour).Truncate(time.Second)},
+			Err:      "error inserting oauth2 blacklisted JTI with signature 'jti-sig' for client 'client-a': no rows affected",
+		},
+		{
+			Name:     "ShouldReplaceExpired",
+			Existing: []model.OAuth2BlacklistedJTI{{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(-time.Hour).Truncate(time.Second)}},
+			Save:     model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)},
+		},
+		{
+			Name:     "ShouldRefuseKnownInAnotherTimeZone",
+			Existing: []model.OAuth2BlacklistedJTI{{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second).In(time.FixedZone("UTC-12", -12*60*60))}},
+			Save:     model.OAuth2BlacklistedJTI{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(2 * time.Hour).Truncate(time.Second)},
+			Err:      "error inserting oauth2 blacklisted JTI with signature 'jti-sig' for client 'client-a': no rows affected",
+		},
+		{
+			Name:     "ShouldScopeToClient",
+			Existing: []model.OAuth2BlacklistedJTI{{ClientID: "client-a", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)}},
+			Save:     model.OAuth2BlacklistedJTI{ClientID: "client-b", Signature: "jti-sig", ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second)},
+		},
+	}
 
-	ctx := context.Background()
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
 
-	t.Run("ShouldSaveAndLoad", func(t *testing.T) {
-		jti := model.OAuth2BlacklistedJTI{
-			Signature: "jti-sig-123",
-			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
-		}
+			ctx := context.Background()
 
-		require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, jti))
+			for _, existing := range tc.Existing {
+				require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, existing))
+			}
 
-		loaded, err := provider.LoadOAuth2BlacklistedJTI(ctx, "jti-sig-123")
+			err := provider.SaveOAuth2BlacklistedJTI(ctx, tc.Save)
 
-		require.NoError(t, err)
-		require.NotNil(t, loaded)
-		assert.Equal(t, "jti-sig-123", loaded.Signature)
-	})
+			if tc.Err != "" {
+				assert.EqualError(t, err, tc.Err)
+
+				return
+			}
+
+			require.NoError(t, err)
+
+			loaded, err := provider.LoadOAuth2BlacklistedJTI(ctx, tc.Save.ClientID, tc.Save.Signature)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Save.ClientID, loaded.ClientID)
+			assert.Equal(t, tc.Save.Signature, loaded.Signature)
+			assert.True(t, tc.Save.ExpiresAt.Equal(loaded.ExpiresAt))
+		})
+	}
 
 	t.Run("ShouldReturnErrForUnknown", func(t *testing.T) {
-		_, err := provider.LoadOAuth2BlacklistedJTI(ctx, "unknown")
+		provider := newTestSQLiteProviderWithEncryption(t)
+		require.NoError(t, provider.StartupCheck())
 
-		assert.Error(t, err)
+		_, err := provider.LoadOAuth2BlacklistedJTI(context.Background(), "client", "unknown")
+
+		assert.EqualError(t, err, "error selecting oauth2 blacklisted JTI with signature 'unknown' for client 'client': sql: no rows in result set")
 	})
+}
+
+func TestSQLProviderOAuth2RequestReplay(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Existing []model.OAuth2RequestReplay
+		Save     model.OAuth2RequestReplay
+		Err      string
+	}{
+		{
+			Name: "ShouldSave",
+			Save: model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+		},
+		{
+			Name:     "ShouldRefuseKnown",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+			Err:      "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client-a': no rows affected",
+		},
+		{
+			Name:     "ShouldReplaceExpired",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(-time.Hour)}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+		},
+		{
+			Name:     "ShouldScopeToClient",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-b", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+		},
+		{
+			Name:     "ShouldRefuseKnownInAnotherTimeZone",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour).In(time.FixedZone("UTC-12", -12*60*60))}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour).UTC()},
+			Err:      "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client-a': no rows affected",
+		},
+		{
+			Name:     "ShouldScopeToType",
+			Existing: []model.OAuth2RequestReplay{{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)}},
+			Save:     model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypeOpenIDConnectNonce, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			for _, existing := range tc.Existing {
+				require.NoError(t, provider.SaveOAuth2RequestReplay(ctx, existing))
+			}
+
+			err := provider.SaveOAuth2RequestReplay(ctx, tc.Save)
+
+			if tc.Err != "" {
+				assert.EqualError(t, err, tc.Err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestSQLProviderOAuth2RequestReplayLegacyTimeZone(t *testing.T) {
+	testCases := []struct {
+		name     string
+		offset   int
+		expires  time.Duration
+		expected string
+	}{
+		{"ShouldRefuseUnexpiredWithNegativeOffset", -12 * 60 * 60, time.Hour, "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client-a': no rows affected"},
+		{"ShouldRefuseUnexpiredWithPositiveOffset", 14 * 60 * 60, time.Hour, "error inserting oauth2 request replay of type 'pkce_challenge' with signature 'sig' for client 'client-a': no rows affected"},
+		{"ShouldReplaceExpiredWithNegativeOffset", -12 * 60 * 60, -time.Hour, ""},
+		{"ShouldReplaceExpiredWithPositiveOffset", 14 * 60 * 60, -time.Hour, ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			legacy := time.Now().Add(tc.expires).In(time.FixedZone("legacy", tc.offset)).Format("2006-01-02 15:04:05.999999999-07:00")
+
+			_, err := provider.db.ExecContext(ctx, "INSERT INTO oauth2_request_replay (type, client_id, signature, expires_at) VALUES (?, ?, ?, ?)", model.OAuth2RequestReplayTypePKCEChallenge, "client-a", "sig", legacy)
+			require.NoError(t, err)
+
+			err = provider.SaveOAuth2RequestReplay(ctx, model.OAuth2RequestReplay{Type: model.OAuth2RequestReplayTypePKCEChallenge, ClientID: "client-a", Signature: "sig", ExpiresAt: time.Now().Add(time.Hour)})
+
+			if tc.expected == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.expected)
+			}
+		})
+	}
 }
 
 func TestSQLProviderBannedUser(t *testing.T) {
@@ -1169,14 +1863,15 @@ func TestSQLProviderUpdateOAuth2DeviceCodeSession(t *testing.T) {
 
 func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 	testCases := []struct {
-		name        string
-		sessionType OAuth2SessionType
+		name         string
+		sessionType  OAuth2SessionType
+		loadsRevoked bool
 	}{
-		{"ShouldHandleAccessToken", OAuth2SessionTypeAccessToken},
-		{"ShouldHandleRefreshToken", OAuth2SessionTypeRefreshToken},
-		{"ShouldHandleAuthorizeCode", OAuth2SessionTypeAuthorizeCode},
-		{"ShouldHandleOpenIDConnect", OAuth2SessionTypeOpenIDConnect},
-		{"ShouldHandlePKCEChallenge", OAuth2SessionTypePKCEChallenge},
+		{"ShouldHandleAccessToken", OAuth2SessionTypeAccessToken, false},
+		{"ShouldHandleRefreshToken", OAuth2SessionTypeRefreshToken, true},
+		{"ShouldHandleAuthorizeCode", OAuth2SessionTypeAuthorizeCode, false},
+		{"ShouldHandleOpenIDConnect", OAuth2SessionTypeOpenIDConnect, false},
+		{"ShouldHandlePKCEChallenge", OAuth2SessionTypePKCEChallenge, false},
 	}
 
 	for _, tc := range testCases {
@@ -1213,18 +1908,239 @@ func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 			loaded, err = provider.LoadOAuth2Session(ctx, tc.sessionType, sig.String())
 			require.NoError(t, err)
 			assert.False(t, loaded.Active)
+
+			require.NoError(t, provider.RevokeOAuth2Session(ctx, tc.sessionType, sig.String()))
+			assert.ErrorIs(t, provider.RevokeOAuth2Session(ctx, tc.sessionType, sig.String()), ErrNoRowsAffected)
+
+			loaded, err = provider.LoadOAuth2Session(ctx, tc.sessionType, sig.String())
+
+			if tc.loadsRevoked {
+				require.NoError(t, err)
+				assert.True(t, loaded.Revoked)
+			} else {
+				assert.ErrorIs(t, err, sql.ErrNoRows)
+			}
 		})
 	}
 }
 
+func TestSQLProviderOAuth2ResourceColumns(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	testCases := []struct {
+		Name   string
+		table  string
+		column string
+	}{
+		{"ShouldHaveAccessTokenSessionRequestedResource", "oauth2_access_token_session", "requested_resource"},
+		{"ShouldHaveAccessTokenSessionGrantedResource", "oauth2_access_token_session", "granted_resource"},
+		{"ShouldHaveAuthorizationCodeSessionRequestedResource", "oauth2_authorization_code_session", "requested_resource"},
+		{"ShouldHaveAuthorizationCodeSessionGrantedResource", "oauth2_authorization_code_session", "granted_resource"},
+		{"ShouldHaveOpenIDConnectSessionRequestedResource", "oauth2_openid_connect_session", "requested_resource"},
+		{"ShouldHaveOpenIDConnectSessionGrantedResource", "oauth2_openid_connect_session", "granted_resource"},
+		{"ShouldHavePKCERequestSessionRequestedResource", "oauth2_pkce_request_session", "requested_resource"},
+		{"ShouldHavePKCERequestSessionGrantedResource", "oauth2_pkce_request_session", "granted_resource"},
+		{"ShouldHaveRefreshTokenSessionRequestedResource", "oauth2_refresh_token_session", "requested_resource"},
+		{"ShouldHaveRefreshTokenSessionGrantedResource", "oauth2_refresh_token_session", "granted_resource"},
+		{"ShouldHaveDeviceCodeSessionRequestedResource", "oauth2_device_code_session", "requested_resource"},
+		{"ShouldHaveDeviceCodeSessionGrantedResource", "oauth2_device_code_session", "granted_resource"},
+		{"ShouldHaveConsentSessionRequestedResource", "oauth2_consent_session", "requested_resource"},
+		{"ShouldHaveConsentSessionGrantedResource", "oauth2_consent_session", "granted_resource"},
+		{"ShouldHaveParContextResource", "oauth2_par_context", "resource"},
+		{"ShouldHaveConsentPreConfigurationResource", "oauth2_consent_preconfiguration", "resource"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var n int
+
+			err := provider.db.GetContext(ctx, &n, "SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?", tc.table, tc.column)
+
+			require.NoError(t, err)
+			assert.Equal(t, 1, n)
+		})
+	}
+}
+
+func TestSQLProviderOAuth2ResourceRoundTrip(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	t.Run("ShouldRoundTripConsentSessionResource", func(t *testing.T) {
+		challenge, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		subject, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveUserOpaqueIdentifier(ctx, model.UserOpaqueIdentifier{
+			Service:    "openid",
+			SectorID:   "example.com",
+			Username:   "resource-consent",
+			Identifier: subject,
+		}))
+
+		consent := model.OAuth2ConsentSession{
+			ChallengeID:       challenge,
+			ClientID:          "test-client",
+			Subject:           uuid.NullUUID{UUID: subject, Valid: true},
+			RequestedAt:       time.Unix(1700000000, 0),
+			ExpiresAt:         time.Unix(1700003600, 0),
+			Form:              "",
+			RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+			GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+			RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+			GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+			RequestedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			GrantedResource:   model.StringSlicePipeDelimited{"https://api.example.com"},
+		}
+
+		require.NoError(t, provider.SaveOAuth2ConsentSession(ctx, &consent))
+
+		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challenge)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.RequestedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.GrantedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.RequestedAudience)
+	})
+
+	t.Run("ShouldRoundTripOAuth2SessionResource", func(t *testing.T) {
+		sig, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		session := model.OAuth2Session{
+			ChallengeID:       model.MustNullUUID(model.NewRandomNullUUID()),
+			RequestID:         "req-" + sig.String(),
+			ClientID:          "test-client",
+			Signature:         sig.String(),
+			Subject:           sql.NullString{Valid: true, String: "john"},
+			Active:            true,
+			RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+			GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+			RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+			GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+			RequestedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			GrantedResource:   model.StringSlicePipeDelimited{"https://api.example.com"},
+			Session:           []byte("{}"),
+		}
+
+		require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, session))
+
+		loaded, err := provider.LoadOAuth2Session(ctx, OAuth2SessionTypeAccessToken, sig.String())
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.RequestedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.GrantedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.RequestedAudience)
+	})
+
+	t.Run("ShouldRoundTripDeviceCodeSessionResource", func(t *testing.T) {
+		session := &model.OAuth2DeviceCodeSession{
+			Signature:         "dev-resource-sig",
+			RequestID:         "dev-resource-req",
+			ClientID:          "test-client",
+			UserCodeSignature: "dev-resource-user-code",
+			Active:            true,
+			RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+			GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+			RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+			GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+			RequestedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			GrantedResource:   model.StringSlicePipeDelimited{"https://api.example.com"},
+			Session:           []byte("{}"),
+			RequestedAt:       time.Unix(1700000000, 0),
+		}
+
+		require.NoError(t, provider.SaveOAuth2DeviceCodeSession(ctx, session))
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, "dev-resource-sig")
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.RequestedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.GrantedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.RequestedAudience)
+	})
+
+	t.Run("ShouldRoundTripPushedAuthorizationSessionResource", func(t *testing.T) {
+		par := model.OAuth2PushedAuthorizationSession{
+			Signature:   "par-resource-sig",
+			RequestID:   "par-resource-req",
+			ClientID:    "test-client",
+			RequestedAt: time.Unix(1700000000, 0),
+			Audience:    model.StringSlicePipeDelimited{"aud-a"},
+			Resource:    model.StringSlicePipeDelimited{"https://api.example.com"},
+			Session:     []byte("{}"),
+		}
+
+		require.NoError(t, provider.SaveOAuth2PushedAuthorizationSession(ctx, par))
+
+		loaded, err := provider.LoadOAuth2PushedAuthorizationSession(ctx, "par-resource-sig")
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.Resource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.Audience)
+	})
+
+	t.Run("ShouldRoundTripConsentPreConfigResource", func(t *testing.T) {
+		subject, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		config := model.OAuth2ConsentPreConfig{
+			ClientID:  "test-client-resource",
+			Subject:   subject,
+			CreatedAt: time.Unix(1700000000, 0),
+			Scopes:    model.StringSlicePipeDelimited{"openid"},
+			Audience:  model.StringSlicePipeDelimited{"aud-a"},
+			Resource:  model.StringSlicePipeDelimited{"https://api.example.com"},
+		}
+
+		id, err := provider.SaveOAuth2ConsentPreConfiguration(ctx, config)
+
+		require.NoError(t, err)
+		assert.Greater(t, id, int64(0))
+
+		rows, err := provider.LoadOAuth2ConsentPreConfigurations(ctx, "test-client-resource", subject, time.Unix(1700000000, 0))
+
+		require.NoError(t, err)
+		require.NotNil(t, rows)
+
+		defer rows.Close()
+
+		require.True(t, rows.Next())
+
+		loaded, err := rows.Get()
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.Resource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.Audience)
+	})
+}
+
 func newTestSQLiteProvider(t *testing.T) *SQLiteProvider {
+	t.Helper()
+
+	return newTestSQLiteProviderAtPath(t, filepath.Join(t.TempDir(), "db.sqlite3"))
+}
+
+func newTestSQLiteProviderAtPath(t *testing.T, path string) *SQLiteProvider {
 	t.Helper()
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
-				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+				Path: path,
 			},
 		},
 	}

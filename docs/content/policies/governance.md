@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Governance Policy"
 description: "The Authelia Governance Policy which describes how the Authelia project is governed."
 summary: ""
@@ -53,7 +57,7 @@ The table only describes the default sensitive resources the role has access to,
 stage there may be in the future.
 
 | Sensitive Resource                         | Maintainers | Core Team |
-|:-------------------------------------------|:-----------:|:---------:|
+| :----------------------------------------- | :---------: | :-------: |
 | Repository write access (commit and merge) |      Y      |     Y     |
 | CI/CD pipeline unblock/approval            |      Y      |     Y     |
 | CI/CD pipeline secrets                     |             |     Y     |

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -69,6 +73,10 @@ func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 		ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", requestID, responder.GetTokenUse(), responder.IsActive(), requester.GetRequestedAt().String(), requester.GetID(), requester.GetClient().GetID())
 	} else {
 		ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t)", requestID, responder.GetTokenUse(), responder.IsActive())
+	}
+
+	if responder.IsActive() {
+		ctx.SetUserValue(middlewares.UserValueRateLimitExempt, true)
 	}
 
 	ctx.Providers.OpenIDConnect.WriteIntrospectionResponse(ctx, rw, responder)

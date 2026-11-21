@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -52,7 +56,9 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(oauth2.SetSkipStatelessIntrospection(r.Context()), oauthelia2.AccessTokenFromRequest(r), oauthelia2.AccessToken, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
+	token := oauthelia2.AccessTokenFromRequest(r, oauthelia2.WithAccessTokenURIQueryParameter(ctx.Providers.OpenIDConnect.GetAccessTokenURIQueryParameterEnabled(ctx)))
+
+	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(oauth2.SetSkipStatelessIntrospection(r.Context()), token, oauthelia2.AccessToken, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
 		ctx.GetLogger().Errorf("User Info Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		if rfc := oauthelia2.ErrorToRFC6749Error(err); rfc.StatusCode() == http.StatusUnauthorized {
@@ -140,16 +146,16 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	var detailer oidc.UserDetailer
 
 	if detailer, err = oidc.UserDetailerFromClaims(ctx, original); err != nil {
+		if userinfo {
+			ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
+		}
+
 		if err = client.GetClaimsStrategy().HydrateClientCredentialsUserInfoClaims(ctx, client, original, claims); err != nil {
 			ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error populating claims for the client credentials flow", requestID, client.GetID())
 
 			errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError.WithDebugf("Error occurred populating claims for the client credentials flow: %v.", err))
 
 			return
-		}
-
-		if userinfo {
-			ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
 		}
 	} else if err = client.GetClaimsStrategy().HydrateUserInfoClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), claimsGranted, requests, detailer, requested, ctx.GetClock().Now(), original, claims); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error populating claims for the standard flow", requestID, client.GetID())

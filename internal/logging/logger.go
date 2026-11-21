@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package logging
 
 import (
@@ -5,7 +9,6 @@ import (
 	"io"
 	"os"
 
-	logrus_stack "github.com/Gurpartap/logrus-stack"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -40,7 +43,7 @@ func initializeStackTracer(config schema.Log) {
 
 	// Ensure the stack trace hook is only initialized once.
 	stacktrace.Do(func() {
-		logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
+		logrus.AddHook(stackHook{CallerLevels: callerLevels, StackLevels: stackLevels})
 	})
 }
 
@@ -50,33 +53,46 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 	switch config.Format {
 	case FormatJSON:
-		logrus.SetFormatter(&logrus.JSONFormatter{})
+		logrus.SetFormatter(&logrus.JSONFormatter{DisableTimestamp: config.DisableTimestamp})
 	default:
-		logrus.SetFormatter(&logrus.TextFormatter{})
+		logrus.SetFormatter(&logrus.TextFormatter{DisableTimestamp: config.DisableTimestamp})
 	}
 
 	var writers []io.Writer
 
-	switch {
-	case config.FilePath != "":
-		lf = NewFile(config.FilePath)
-
-		if err = lf.Open(); err != nil {
+	if logFile != nil {
+		if err = logFile.Close(); err != nil {
 			return err
 		}
 
-		if config.Format != FormatJSON {
-			logrus.SetFormatter(&logrus.TextFormatter{
-				DisableColors: true,
-				FullTimestamp: true,
-			})
-		}
+		logFile = nil
+	}
 
-		writers = []io.Writer{lf}
+	switch {
+	case config.FilePath != "":
+		writers = []io.Writer{}
 
 		if config.KeepStdout {
 			writers = append(writers, os.Stdout)
 		}
+
+		file := NewFile(config.FilePath)
+
+		if err = file.Open(); err != nil {
+			return err
+		}
+
+		logFile = file
+
+		if config.Format != FormatJSON {
+			logrus.SetFormatter(&logrus.TextFormatter{
+				DisableColors:    true,
+				FullTimestamp:    true,
+				DisableTimestamp: config.DisableTimestamp,
+			})
+		}
+
+		writers = append(writers, logFile)
 	default:
 		writers = []io.Writer{os.Stdout}
 	}
@@ -88,11 +104,11 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 // Reopen handles safely reopening the log file.
 func Reopen() (err error) {
-	if lf == nil {
+	if logFile == nil {
 		return fmt.Errorf("error reopening log file: file is not configured or open")
 	}
 
-	return lf.Reopen()
+	return logFile.Reopen()
 }
 
 func setLevelStr(level string, log bool) {

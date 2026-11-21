@@ -1,8 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-crypt/crypt/algorithm"
 
@@ -10,10 +16,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// FileUserManagement is the UserManagementProvider implementation for the file authentication backend.
 type FileUserManagement struct {
 	provider *FileUserProvider
 }
 
+// GetRequiredAttributes returns the attributes required to create a user.
 func (f *FileUserManagement) GetRequiredAttributes() []string {
 	requiredFieldNames := GetBaseRequiredAttributesForImplementation(schema.FileImplementation)
 
@@ -24,6 +32,7 @@ func (f *FileUserManagement) GetRequiredAttributes() []string {
 	return requiredFieldNames
 }
 
+// GetSupportedAttributes returns the attributes supported for user creation and update.
 func (f *FileUserManagement) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
 	blocklist := map[string]bool{
 		"group_member":       true,
@@ -194,11 +203,16 @@ func (f *FileUserManagement) ValidatePartialUpdate(userData *UserDetailsExtended
 	return nil
 }
 
+// UpdateUserWithMask updates the fields of a user identified by updateMask.
+//
 //nolint:gocyclo
 func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) error {
 	if userData == nil || userData.UserDetails == nil {
 		return fmt.Errorf("userData and userData.UserDetails cannot be nil")
 	}
+
+	f.provider.mutex.Lock()
+	defer f.provider.mutex.Unlock()
 
 	existingDetails, err := f.provider.database.GetUserDetails(username)
 	if err != nil {
@@ -210,6 +224,19 @@ func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserD
 	}
 
 	updatedDetails := existingDetails
+
+	if existingDetails.Address != nil {
+		address := *existingDetails.Address
+		updatedDetails.Address = &address
+	}
+
+	if existingDetails.Extra != nil {
+		updatedDetails.Extra = make(map[string]any, len(existingDetails.Extra))
+
+		for k, v := range existingDetails.Extra {
+			updatedDetails.Extra[k] = v
+		}
+	}
 
 	for _, field := range updateMask {
 		switch {
@@ -254,29 +281,35 @@ func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserD
 		case strings.HasPrefix(field, PrefixAttributeExtra):
 			extraField := strings.TrimPrefix(field, PrefixAttributeExtra)
 
-			if userData.Extra != nil {
-				if value, exists := userData.Extra[extraField]; exists {
-					// Skip empty strings.
-					if strValue, ok := value.(string); ok && strValue == "" {
-						// Remove the field if it's an empty string.
-						if updatedDetails.Extra != nil {
-							delete(updatedDetails.Extra, extraField)
-						}
-					} else {
-						if updatedDetails.Extra == nil {
-							updatedDetails.Extra = make(map[string]any)
-						}
-
-						// Convert the value to the proper type based on configuration.
-						convertedValue, err := f.convertExtraAttributeValue(extraField, value)
-						if err != nil {
-							return fmt.Errorf("failed to convert extra attribute '%s' for user '%s': %w", extraField, username, err)
-						}
-
-						updatedDetails.Extra[extraField] = convertedValue
-					}
-				}
+			if userData.Extra == nil {
+				continue
 			}
+
+			value, exists := userData.Extra[extraField]
+			if !exists {
+				continue
+			}
+
+			strValue, ok := value.(string)
+			if !ok || strValue != "" {
+				if updatedDetails.Extra == nil {
+					updatedDetails.Extra = make(map[string]any)
+				}
+
+				convertedValue, err := f.convertExtraAttributeValue(extraField, value)
+				if err != nil {
+					return fmt.Errorf("failed to convert extra attribute '%s' for user '%s': %w", extraField, username, err)
+				}
+
+				updatedDetails.Extra[extraField] = convertedValue
+
+				continue
+			}
+
+			if updatedDetails.Extra != nil {
+				delete(updatedDetails.Extra, extraField)
+			}
+
 		case field == AttributeAddress:
 			if userData.Address != nil {
 				if updatedDetails.Address == nil {
@@ -312,12 +345,9 @@ func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserD
 		}
 	}
 
-	// Save updated details.
 	f.provider.database.SetUserDetails(username, &updatedDetails)
 
-	f.provider.mutex.Lock()
-	f.provider.setTimeoutReload(f.provider.timeoutReload)
-	f.provider.mutex.Unlock()
+	f.provider.setTimeoutReload(time.Now())
 
 	if err := f.provider.database.Save(); err != nil {
 		return fmt.Errorf("unable to save user '%s': %w", username, err)
@@ -326,10 +356,17 @@ func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserD
 	return nil
 }
 
+// AddUser creates a new user.
+//
 //nolint:gocyclo
 func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) {
 	if userData == nil || userData.UserDetails == nil {
 		return fmt.Errorf("userData and userData.UserDetails cannot be nil")
+	}
+
+	_, err = f.provider.GetDetails(userData.Username)
+	if !errors.Is(err, ErrUserNotFound) {
+		return ErrUserExists
 	}
 
 	if err = f.ValidateUserData(userData); err != nil {
@@ -389,7 +426,6 @@ func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) 
 		Disabled:       false,
 	}
 
-	// Add address if provided.
 	if userData.Address != nil {
 		details.Address = &FileUserDatabaseUserDetailsAddressModel{
 			StreetAddress: userData.Address.StreetAddress,
@@ -411,7 +447,6 @@ func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) 
 					details.Extra = make(map[string]any)
 				}
 
-				// Convert the value to the proper type based on configuration.
 				convertedValue, err := f.convertExtraAttributeValue(key, value)
 				if err != nil {
 					return fmt.Errorf("failed to convert extra attribute '%s' for user '%s': %w", key, userData.Username, err)
@@ -422,11 +457,12 @@ func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) 
 		}
 	}
 
+	f.provider.mutex.Lock()
+	defer f.provider.mutex.Unlock()
+
 	f.provider.database.SetUserDetails(details.Username, &details)
 
-	f.provider.mutex.Lock()
-	f.provider.setTimeoutReload(f.provider.timeoutReload)
-	f.provider.mutex.Unlock()
+	f.provider.setTimeoutReload(time.Now())
 
 	if err = f.provider.database.Save(); err != nil {
 		return fmt.Errorf("failed to save user '%s': %w", userData.Username, err)
@@ -435,18 +471,19 @@ func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) 
 	return nil
 }
 
+// DeleteUser deletes a user.
 func (f *FileUserManagement) DeleteUser(username string) (err error) {
-	// Check if user exists.
 	_, err = f.provider.database.GetUserDetails(username)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve user for deletion of user '%s': %w", username, err)
 	}
 
+	f.provider.mutex.Lock()
+	defer f.provider.mutex.Unlock()
+
 	f.provider.database.DeleteUserDetails(username)
 
-	f.provider.mutex.Lock()
-	f.provider.setTimeoutReload(f.provider.timeoutReload)
-	f.provider.mutex.Unlock()
+	f.provider.setTimeoutReload(time.Now())
 
 	if err = f.provider.database.Save(); err != nil {
 		return fmt.Errorf("unable to delete user '%s': %w", username, err)

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 <!doctype html>
 <html lang="{{ .Language }}">
     <head>
@@ -18,9 +24,13 @@
         data-privacypolicyurl="%VITE_PRIVACY_POLICY_URL%"
         data-privacypolicyaccept="%VITE_PRIVACY_POLICY_ACCEPT%"
         data-passkeylogin="%VITE_PASSKEY_LOGIN%"
+        data-externalidentitylogin="%VITE_EXTERNAL_IDENTITY_LOGIN%"
         data-rememberme="%VITE_REMEMBER_ME%"
         data-resetpassword="%VITE_RESET_PASSWORD%"
         data-resetpasswordcustomurl="%VITE_RESET_PASSWORD_CUSTOM_URL%"
+        data-totpappapplestore="%VITE_TOTP_APP_APPLE_STORE%"
+        data-totpappgoogleplay="%VITE_TOTP_APP_GOOGLE_PLAY%"
+        data-registrationurl="%VITE_REGISTRATION_URL%"
         data-theme="%VITE_THEME%"
     >
         <noscript>You need to enable JavaScript to run this app.</noscript>

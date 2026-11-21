@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 export default {
     bracketSameLine: false,
     bracketSpacing: true,
     overrides: [
         {
-            files: ["package.json"],
+            files: ["components.json", "package.json"],
             options: {
                 tabWidth: 2,
             },

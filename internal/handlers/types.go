@@ -1,9 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -19,14 +24,66 @@ import (
 // MethodList is the list of available methods.
 type MethodList = []string
 
-// configurationBody the content returned by the configuration endpoint.
+type bodyGETExternalIdentityProviders struct {
+	Providers []bodyExternalIdentityProvider `json:"providers"`
+}
+
+type bodyExternalIdentityProvider struct {
+	ID      string `json:"id"`
+	Type    string `json:"type"`
+	Name    string `json:"name"`
+	LogoURI string `json:"logo_uri,omitempty"`
+}
+
+type bodyPOSTExternalIdentityStart struct {
+	TargetURL      string `json:"targetURL"`
+	RequestMethod  string `json:"requestMethod"`
+	KeepMeLoggedIn bool   `json:"keepMeLoggedIn"`
+	Language       string `json:"language"`
+	FlowID         string `json:"flowID"`
+	Flow           string `json:"flow"`
+	SubFlow        string `json:"subflow"`
+	UserCode       string `json:"userCode"`
+}
+
+type bodyPOSTExternalIdentityStartResponse struct {
+	AuthorizationURL string `json:"authorization_url"`
+}
+
+type bodyGETExternalIdentityLinks struct {
+	Links   []bodyExternalIdentityLink   `json:"links"`
+	Pending *bodyExternalIdentityPending `json:"pending,omitempty"`
+}
+
+type bodyExternalIdentityLink struct {
+	ID             int        `json:"id"`
+	CreatedAt      time.Time  `json:"created_at"`
+	LastUsedAt     *time.Time `json:"last_used_at,omitempty"`
+	Provider       string     `json:"provider"`
+	ProviderName   string     `json:"provider_name"`
+	Issuer         string     `json:"issuer"`
+	Subject        string     `json:"subject"`
+	RemoteUsername string     `json:"remote_username,omitempty"`
+	Invalid        bool       `json:"invalid,omitempty"`
+}
+
+type bodyExternalIdentityPending struct {
+	Provider       string `json:"provider"`
+	ProviderName   string `json:"provider_name"`
+	Issuer         string `json:"issuer"`
+	Subject        string `json:"subject"`
+	RemoteUsername string `json:"remote_username,omitempty"`
+	DisplayName    string `json:"display_name,omitempty"`
+	Email          string `json:"email,omitempty"`
+}
+
 type configurationBody struct {
 	AvailableMethods       MethodList `json:"available_methods"`
 	PasswordChangeDisabled bool       `json:"password_change_disabled"`
 	PasswordResetDisabled  bool       `json:"password_reset_disabled"`
+	RecoveryCodesDisabled  bool       `json:"recovery_codes_disabled"`
 }
 
-// bodySignTOTPRequest is the  model of the request body of TOTP 2FA authentication endpoint.
 type bodySignTOTPRequest struct {
 	Token     string `json:"token" valid:"required"`
 	TargetURL string `json:"targetURL"`
@@ -46,7 +103,15 @@ type bodyRegisterFinishTOTP struct {
 	Token string `json:"token" valid:"required"`
 }
 
-// bodySignWebAuthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
+type bodySignRecoveryCodeRequest struct {
+	Code      string `json:"code" valid:"required"`
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
+}
+
 type bodySignWebAuthnRequest struct {
 	TargetURL string `json:"targetURL"`
 	FlowID    string `json:"flowID"`
@@ -57,7 +122,6 @@ type bodySignWebAuthnRequest struct {
 	Response json.RawMessage `json:"response"`
 }
 
-// bodySignPasskeyRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
 type bodySignPasskeyRequest struct {
 	TargetURL      string `json:"targetURL"`
 	RequestMethod  string `json:"requestMethod"`
@@ -70,7 +134,6 @@ type bodySignPasskeyRequest struct {
 	Response json.RawMessage `json:"response"`
 }
 
-// bodyGETUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
 type bodyGETUserSessionElevate struct {
 	RequireSecondFactor bool `json:"require_second_factor"`
 	SkipSecondFactor    bool `json:"skip_second_factor"`
@@ -80,12 +143,10 @@ type bodyGETUserSessionElevate struct {
 	Expires             int  `json:"expires"`
 }
 
-// bodyPOSTUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
 type bodyPOSTUserSessionElevate struct {
 	DeleteID string `json:"delete_id"`
 }
 
-// bodyPUTUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
 type bodyPUTUserSessionElevate struct {
 	OneTimeCode string `json:"otc"`
 }
@@ -98,7 +159,6 @@ type bodyEditWebAuthnCredentialRequest struct {
 	Description string `json:"description"`
 }
 
-// bodySignDuoRequest is the model of the request body of Duo 2FA authentication endpoint.
 type bodySignDuoRequest struct {
 	TargetURL string `json:"targetURL"`
 	Passcode  string `json:"passcode"`
@@ -108,12 +168,10 @@ type bodySignDuoRequest struct {
 	UserCode  string `json:"userCode"`
 }
 
-// bodyPreferred2FAMethod the selected 2FA method.
 type bodyPreferred2FAMethod struct {
 	Method string `json:"method" valid:"required"`
 }
 
-// bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodyFirstFactorRequest struct {
 	Username       string `json:"username" valid:"required"`
 	Password       string `json:"password" valid:"required"`
@@ -126,7 +184,6 @@ type bodyFirstFactorRequest struct {
 	UserCode       string `json:"userCode"`
 }
 
-// bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodySecondFactorPasswordRequest struct {
 	Password  string `json:"password" valid:"required"`
 	TargetURL string `json:"targetURL"`
@@ -136,7 +193,6 @@ type bodySecondFactorPasswordRequest struct {
 	UserCode  string `json:"userCode"`
 }
 
-// bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodyFirstFactorReauthenticateRequest struct {
 	Password      string `json:"password" valid:"required"`
 	TargetURL     string `json:"targetURL"`
@@ -147,8 +203,6 @@ type bodyFirstFactorReauthenticateRequest struct {
 	UserCode      string `json:"userCode"`
 }
 
-// checkURIWithinDomainRequestBody represents the JSON body received by the endpoint checking if an URI is within
-// the configured domain.
 type checkURIWithinDomainRequestBody struct {
 	URI string `json:"uri"`
 }
@@ -157,8 +211,6 @@ type checkURIWithinDomainResponseBody struct {
 	OK bool `json:"ok"`
 }
 
-// redirectResponse represent the response sent by the first factor endpoint
-// when a redirection URL has been provided.
 type redirectResponse struct {
 	Redirect string `json:"redirect"`
 }
@@ -207,12 +259,10 @@ type StateResponse struct {
 	DefaultRedirectionURL string               `json:"default_redirection_url,omitempty"`
 }
 
-// resetPasswordStep1RequestBody model of the reset password (step1) request body.
 type resetPasswordStep1RequestBody struct {
 	Username string `json:"username"`
 }
 
-// resetPasswordStep2RequestBody model of the reset password (step2) request body.
 type resetPasswordStep2RequestBody struct {
 	Password string `json:"password"`
 }
@@ -221,7 +271,6 @@ type bodyRequestPasswordResetDELETE struct {
 	Token string `json:"token"`
 }
 
-// changePasswordRequestBody model of the change password request body.
 type changePasswordRequestBody struct {
 	Username    string `json:"username"`
 	OldPassword string `json:"old_password"`
@@ -242,6 +291,6 @@ type PasswordPolicyBody struct {
 
 type handlerAuthorizationConsent func(
 	ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, details *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)

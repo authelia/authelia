@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
@@ -11,10 +15,15 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+const activeDirectoryGroupObjectClassFilter = "(objectClass=group)"
+
+// ActiveDirectoryUserManagement is the UserManagementProvider implementation for the Active Directory LDAP implementation.
 type ActiveDirectoryUserManagement struct {
 	provider *LDAPUserProvider
 }
 
+// AddUser creates a new user.
+//
 //nolint:gocyclo
 func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (err error) {
 	if userData == nil || userData.UserDetails == nil {
@@ -40,15 +49,31 @@ func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (
 		}
 	}()
 
-	userDN := fmt.Sprintf("cn=%s,%s", ldap.EscapeFilter(userData.CommonName), a.provider.usersBaseDN)
+	var userDN string
+
+	if userDN, err = a.provider.BuildUserDN(userData); err != nil {
+		return fmt.Errorf("unable to build DN for user '%s': %w", userData.Username, err)
+	}
+
+	var dn *ldap.DN
+
+	if dn, err = ldap.ParseDN(userDN); err != nil {
+		return fmt.Errorf("unable to parse DN for user '%s': %w", userData.Username, err)
+	}
+
+	if len(dn.RDNs) > 0 && len(dn.RDNs[0].Attributes) > 0 {
+		if rdn := dn.RDNs[0].Attributes[0]; strings.EqualFold(rdn.Type, ldapAttrCommonName) {
+			userData.CommonName = rdn.Value
+		}
+	}
 
 	addRequest := ldap.NewAddRequest(userDN, nil)
 
 	addRequest.Attribute(ldapAttrObjectClass, a.GetDefaultUserObjectClasses())
 
-	addRequest.Attribute(ldapAttrCommonName, []string{userData.CommonName})
-	addRequest.Attribute(a.provider.config.Attributes.Username, []string{userData.Username})
-	addRequest.Attribute(a.provider.config.Attributes.FamilyName, []string{userData.FamilyName})
+	a.addAttributeIfPresent(addRequest, ldapAttrCommonName, userData.CommonName)
+	a.addAttributeIfPresent(addRequest, a.provider.config.Attributes.Username, userData.Username)
+	a.addAttributeIfPresent(addRequest, a.provider.config.Attributes.FamilyName, userData.FamilyName)
 
 	var pwdEncoded string
 	if pwdEncoded, err = encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", userData.Password)); err != nil {
@@ -136,14 +161,8 @@ func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (
 	return nil
 }
 
-func (a *ActiveDirectoryUserManagement) ModifyUser(username string, userData *UserDetailsExtended) error {
-	return nil
-}
-
-func (a *ActiveDirectoryUserManagement) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
-	panic("implement me")
-}
-
+// UpdateUserWithMask updates the fields of a user identified by updateMask.
+//
 //nolint:gocyclo
 func (a *ActiveDirectoryUserManagement) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) error {
 	if userData == nil || userData.UserDetails == nil {
@@ -262,9 +281,10 @@ func (a *ActiveDirectoryUserManagement) UpdateUserWithMask(username string, user
 	if err = a.provider.modify(client, modifyRequest); err != nil {
 		if errorCode := getLDAPResultCode(err); errorCode != -1 {
 			switch errorCode {
-			case ldap.LDAPResultNoSuchAttribute,
-				ldap.LDAPResultNoSuchObject:
+			case ldap.LDAPResultNoSuchAttribute:
 				return nil
+			case ldap.LDAPResultNoSuchObject:
+				return fmt.Errorf("unable to update user '%s': %w", username, ErrUserNotFound)
 			case ldap.LDAPResultInvalidAttributeSyntax:
 				return fmt.Errorf("invalid attribute syntax: %v", err)
 			}
@@ -276,6 +296,7 @@ func (a *ActiveDirectoryUserManagement) UpdateUserWithMask(username string, user
 	return nil
 }
 
+// DeleteUser deletes a user.
 func (a *ActiveDirectoryUserManagement) DeleteUser(username string) (err error) {
 	var client LDAPExtendedClient
 	if client, err = a.provider.factory.GetClient(); err != nil {
@@ -370,16 +391,14 @@ func (a *ActiveDirectoryUserManagement) DeleteGroup(groupName string) error {
 		}
 	}()
 
-	groupDN := fmt.Sprintf("%s=%s,%s", a.provider.config.Attributes.GroupName, ldap.EscapeFilter(groupName), a.provider.groupsBaseDN)
-
-	exists, err := a.groupExists(client, groupName)
+	groupDN, err := a.provider.getGroupDN(client, groupName, activeDirectoryGroupObjectClassFilter)
 	if err != nil {
-		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
-	}
+		if errors.Is(err, ErrGroupNotFound) {
+			a.provider.log.Debugf("Group '%s' doesn't exist, nothing to delete", groupName)
+			return ErrGroupNotFound
+		}
 
-	if !exists {
-		a.provider.log.Debugf("Group '%s' doesn't exist, nothing to delete", groupName)
-		return ErrGroupNotFound
+		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
 	}
 
 	deleteRequest := ldap.NewDelRequest(groupDN, nil)
@@ -416,7 +435,7 @@ func (a *ActiveDirectoryUserManagement) ListGroups() ([]string, error) {
 		0,
 		0,
 		false,
-		"(objectClass=group)",
+		activeDirectoryGroupObjectClassFilter,
 		[]string{a.provider.config.Attributes.GroupName},
 		nil,
 	)
@@ -542,6 +561,8 @@ func (a *ActiveDirectoryUserManagement) normalizeExtraAttributes(value interface
 	}
 }
 
+// UpdateUserGroups updates the group memberships for a user.
+//
 //nolint:gocyclo
 func (a *ActiveDirectoryUserManagement) UpdateUserGroups(username string, groups []string) error {
 	if username == "" {
@@ -636,10 +657,10 @@ func (a *ActiveDirectoryUserManagement) UpdateUserGroups(username string, groups
 
 // addUserToGroup adds a user to a group.
 func (a *ActiveDirectoryUserManagement) addUserToGroup(client LDAPExtendedClient, groupName, userDN string) error {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		a.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		a.provider.groupsBaseDN)
+	groupDN, err := a.provider.getGroupDN(client, groupName, activeDirectoryGroupObjectClassFilter)
+	if err != nil {
+		return fmt.Errorf("failed to find group '%s': %w", groupName, err)
+	}
 
 	modifyRequest := ldap.NewModifyRequest(groupDN, nil)
 	modifyRequest.Add(a.provider.config.Attributes.GroupMember, []string{userDN})
@@ -653,19 +674,14 @@ func (a *ActiveDirectoryUserManagement) addUserToGroup(client LDAPExtendedClient
 
 // removeUserFromGroup removes a user from a group.
 func (a *ActiveDirectoryUserManagement) removeUserFromGroup(client LDAPExtendedClient, userDN, groupName string) error {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		a.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		a.provider.groupsBaseDN)
-
-	exists, err := a.groupExists(client, groupName)
+	groupDN, err := a.provider.getGroupDN(client, groupName, activeDirectoryGroupObjectClassFilter)
 	if err != nil {
-		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
-	}
+		if errors.Is(err, ErrGroupNotFound) {
+			a.provider.log.Debugf("Group '%s' doesn't exist, nothing to remove", groupName)
+			return nil
+		}
 
-	if !exists {
-		a.provider.log.Debugf("Group '%s' doesn't exist, nothing to remove", groupName)
-		return nil
+		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
 	}
 
 	isMember, err := a.isUserMemberOfGroup(client, userDN, groupDN)
@@ -745,40 +761,25 @@ func (a *ActiveDirectoryUserManagement) isUserMemberOfGroup(client LDAPExtendedC
 
 // groupExists checks if a group exists in Active Directory.
 func (a *ActiveDirectoryUserManagement) groupExists(client LDAPExtendedClient, groupName string) (bool, error) {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		a.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		a.provider.groupsBaseDN)
-
-	searchRequest := ldap.NewSearchRequest(
-		groupDN,
-		ldap.ScopeBaseObject,
-		ldap.NeverDerefAliases,
-		1, 0, false,
-		"(objectClass=group)",
-		[]string{"dn"},
-		nil,
-	)
-
-	searchResult, err := client.Search(searchRequest)
-	if err != nil {
-		var ldapErr *ldap.Error
-		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
+	if _, err := a.provider.getGroupDN(client, groupName, activeDirectoryGroupObjectClassFilter); err != nil {
+		if errors.Is(err, ErrGroupNotFound) {
 			return false, nil
 		}
 
 		return false, err
 	}
 
-	return len(searchResult.Entries) > 0, nil
+	return true, nil
 }
 
+// GetRequiredAttributes returns the attributes required to create a user.
 func (a *ActiveDirectoryUserManagement) GetRequiredAttributes() []string {
 	requiredFieldNames := GetBaseRequiredAttributesForImplementation(schema.LDAPImplementationActiveDirectory)
 
 	return append(requiredFieldNames, a.provider.config.UserManagement.RequiredAttributes...)
 }
 
+// GetSupportedAttributes returns the attributes supported for user creation and update.
 func (a *ActiveDirectoryUserManagement) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
 	blocklist := map[string]bool{
 		"group_member":       true,
@@ -847,6 +848,7 @@ func (a *ActiveDirectoryUserManagement) GetDefaultGroupObjectClasses() []string 
 	return a.provider.config.UserManagement.GroupObjectClasses
 }
 
+// ValidateUserData validates the userDetails struct contains all the required fields for new users.
 func (a *ActiveDirectoryUserManagement) ValidateUserData(userData *UserDetailsExtended) error {
 	if userData == nil {
 		return fmt.Errorf("user data cannot be nil")
@@ -945,6 +947,7 @@ func (a *ActiveDirectoryUserManagement) buildAttributeValueMap(userData *UserDet
 	return values
 }
 
+// ValidatePartialUpdate validates data for partial updates (PATCH with field mask).
 func (a *ActiveDirectoryUserManagement) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
 	if userData == nil {
 		return fmt.Errorf("user data cannot be nil")

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Secrets"
-description: "Using the Secrets Configuration Method."
+description: "Configuring Authelia using the secrets method to securely provide passwords and other sensitive values via file references and environment variable pointers."
 summary: "Authelia allows providing configuration via secrets method. This section describes how to implement this."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -18,7 +22,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-Configuration of *Authelia* requires several secrets and passwords. Even if they can be set in the configuration file or
+Configuration of _Authelia_ requires several secrets and passwords. Even if they can be set in the configuration file or
 standard environment variables, the recommended way to set secrets is to use this configuration method as described below.
 
 See the [security](#security) section for more information.
@@ -56,7 +60,7 @@ For more information on [File Filters](files.md#file-filters) including how to e
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 While this method is the third layer of the layered configuration model as described by the
-[introduction](introduction.md#layers), this layer is special in as much as *Authelia* will not start if you define
+[introduction](introduction.md#layers), this layer is special in as much as _Authelia_ will not start if you define
 a secret as well as any other configuration method.
 {{< /callout >}}
 
@@ -70,7 +74,7 @@ configuration in a logically secure way.
 
 ## Environment variables
 
-A secret value can be loaded by *Authelia* when the configuration key ends with one of the following words: `key`,
+A secret value can be loaded by _Authelia_ when the configuration key ends with one of the following words: `key`,
 `secret`, `password`, `token` or `certificate_chain`.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
@@ -82,12 +86,12 @@ the OpenID Connect 1.0 Provider, the cookies section of in session, and the auth
 
 If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. The value
 of these environment variables must be the path of a file that is readable by the Authelia process, if they are not,
-*Authelia* will fail to load. Authelia will automatically remove the newlines from the end of the files contents.
+_Authelia_ will fail to load. Authelia will automatically remove the newlines from the end of the files contents.
 
 For instance the LDAP password can be defined in the configuration
-at the path __authentication_backend.ldap.password__, so this password
+at the path **authentication_backend.ldap.password**, so this password
 could alternatively be set using the environment variable called
-__AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE__.
+**AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
 
 Here is the list of the environment variables which are considered secrets and can be defined. Please note that only
 secrets can be loaded into the configuration if they end with one of the suffixes above, you can set the value of any
@@ -99,10 +103,16 @@ other configuration using the environment but instead of loading a file the valu
 [duo_api.integration_key]: ../second-factor/duo.md#integration_key
 [duo_api.secret_key]: ../second-factor/duo.md#secret_key
 [session.secret]: ../session/introduction.md#secret
-[session.redis.password]: ../session/redis.md#password
-[session.redis.tls.certificate_chain]: ../session/redis.md#tls
-[session.redis.tls.private_key]: ../session/redis.md#tls
-[session.redis.high_availability.sentinel_password]: ../session/redis.md#sentinel_password
+[cache.redis.password]: ../cache/redis.md#password
+[cache.redis.tls.certificate_chain]: ../cache/redis.md#tls
+[cache.redis.tls.private_key]: ../cache/redis.md#tls
+[cache.redis_sentinel.password]: ../cache/redis-sentinel.md#password
+[cache.redis_sentinel.sentinel_password]: ../cache/redis-sentinel.md#sentinel_password
+[cache.redis_sentinel.tls.certificate_chain]: ../cache/redis-sentinel.md#tls
+[cache.redis_sentinel.tls.private_key]: ../cache/redis-sentinel.md#tls
+[cache.redis_cluster.password]: ../cache/redis-cluster.md#password
+[cache.redis_cluster.tls.certificate_chain]: ../cache/redis-cluster.md#tls
+[cache.redis_cluster.tls.private_key]: ../cache/redis-cluster.md#tls
 [storage.encryption_key]: ../storage/introduction.md#encryption_key
 [storage.mysql.password]: ../storage/mysql.md#password
 [storage.mysql.tls.certificate_chain]: ../storage/mysql.md#tls

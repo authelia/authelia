@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -31,16 +35,21 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.ParseBody(body); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred parsing reset password delete body")
-
-		ctx.Error(err, messageOperationFailed)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if issuerURL, err = ctx.IssuerURL(); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred determining the issuer")
+		ctx.SetJSONError(messageOperationFailed)
 
-		ctx.Error(err, messageOperationFailed)
+		return
+	}
+
+	if err = ctx.RegenerateSession(); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
@@ -50,8 +59,9 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 			return []byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret), nil
 		},
 		jwt.WithIssuedAt(),
-		jwt.WithIssuer(issuerURL.String()),
 		jwt.WithStrictDecoding(),
+		jwt.WithIssuer(issuerURL.String()),
+		jwt.WithValidMethods([]string{ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm}),
 		ctx.GetClock().GetJWTWithTimeFuncOption(),
 	)
 
@@ -139,7 +149,16 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		err         error
 	)
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Error(fmt.Errorf("error occurred retrieving session for user: %w", err), messageUnableToResetPassword)
+		ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
+		ctx.SetJSONError(messageUnableToResetPassword)
+
+		return
+	}
+
+	if err = ctx.RegenerateSession(); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+		ctx.SetJSONError(messageUnableToResetPassword)
+
 		return
 	}
 
@@ -147,7 +166,9 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	// otherwise PasswordReset would not be set to true. We can improve the security of this check by making the
 	// request expire at some point because here it only expires when the cookie expires.
 	if userSession.PasswordResetUsername == nil {
-		ctx.Error(fmt.Errorf("no identity verification process has been initiated"), messageUnableToResetPassword)
+		ctx.GetLogger().Error("Error occurred resetting the password as no identity verification process has been initiated")
+		ctx.SetJSONError(messageUnableToResetPassword)
+
 		return
 	}
 
@@ -156,12 +177,18 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	var requestBody resetPasswordStep2RequestBody
 
 	if err = ctx.ParseBody(&requestBody); err != nil {
-		ctx.Error(err, messageUnableToResetPassword)
+		ctx.GetLogger().WithError(err).Error("Error occurred parsing the reset password request body")
+		ctx.SetJSONError(messageUnableToResetPassword)
+
 		return
 	}
 
 	if err = ctx.Providers.PasswordPolicy.Check(requestBody.Password); err != nil {
-		ctx.Error(err, messagePasswordWeak)
+		ctx.GetLogger().WithError(err).Error("Error occurred checking the new password against the password policy")
+		ctx.SetJSONError(messagePasswordWeak)
+
+		ctxLogEventPasswordResetFailure(ctx, username, eventEmailReasonPasswordPolicy)
+
 		return
 	}
 
@@ -169,25 +196,29 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		switch {
 		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes),
 			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
-			ctx.Error(err, ldapPasswordComplexityCode)
+			ctx.GetLogger().WithError(err).Error("Error occurred updating the user password as it does not meet the complexity requirements of the backend")
+			ctx.SetJSONError(messagePasswordBackendComplexity)
 		default:
-			ctx.Error(err, messageUnableToResetPassword)
+			ctx.GetLogger().WithError(err).Error("Error occurred updating the user password")
+			ctx.SetJSONError(messageUnableToResetPassword)
 		}
+
+		ctxLogEventPasswordResetFailure(ctx, username, passwordResetFailureReason(err))
 
 		return
 	}
 
 	ctx.GetLogger().Debugf("Password of user %s has been reset", username)
 
-	// Reset the request.
 	userSession.PasswordResetUsername = nil
 
-	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Error(fmt.Errorf("unable to update password reset state: %w", err), messageOperationFailed)
+	if err = ctx.SaveSession(&userSession); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred saving the session while updating the password reset state")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
-	// Send Notification.
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
 		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details")
@@ -219,10 +250,6 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	ctx.GetLogger().Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
 		username, addresses[0].String())
-
-	if err = ctx.Providers.StorageProvider.UpdatePasswordChangedDateByUsername(ctx, userInfo.Username); err != nil {
-		ctx.Logger.Error(err)
-	}
 
 	if err = ctx.Providers.StorageProvider.UpdatePasswordChangedDateByUsername(ctx, userInfo.Username); err != nil {
 		ctx.Logger.Error(err)
@@ -281,15 +308,15 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 	ctx.ReplyOK()
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Unable to get session to clear password reset flag in session for user '%s'", userSession.Username)
+		ctx.GetLogger().WithError(err).Errorf("Unable to get session to enable password reset in session for user '%s'", userSession.Username)
 
 		return
 	}
 
 	userSession.PasswordResetUsername = &username
 
-	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Unable to clear password reset flag in session for user '%s'", userSession.Username)
+	if err = ctx.SaveSession(&userSession); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Unable to enable password reset in session for user '%s'", userSession.Username)
 	}
 }
 

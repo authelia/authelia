@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
@@ -127,8 +131,13 @@ var (
 	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
 	ErrUserNotFound = errors.New("user not found")
 
+	// ErrUserExists is returned when attempting to create a user that already exists in the authentication backend.
+	ErrUserExists = errors.New("user already exists")
+
+	// ErrGroupNotFound indicates the group wasn't found in the authentication backend.
 	ErrGroupNotFound = errors.New("group not found")
 
+	// ErrGroupExists is returned when attempting to create a group that already exists in the authentication backend.
 	ErrGroupExists = errors.New("group already exists")
 
 	// ErrWatcherNoContent is returned when the file is empty.
@@ -137,11 +146,13 @@ var (
 	// ErrWatcherCooldown is returned when the file watcher is on cooldown.
 	ErrWatcherCooldown = errors.New("watcher on cooldown")
 
+	// ErrOperationFailed is returned when an operation against the user provider fails.
 	ErrOperationFailed = errors.New("operation failed")
 
 	// ErrIncorrectPassword is returned when the password provided is incorrect.
 	ErrIncorrectPassword = errors.New("incorrect password")
 
+	// ErrPasswordWeak is returned when the password provided does not meet the password policy requirements.
 	ErrPasswordWeak = errors.New("your supplied password does not meet the password policy requirements")
 
 	// ErrPasswordReuse is returned when the new password is the same as the existing password.
@@ -150,15 +161,28 @@ var (
 	// ErrEmptyInput is returned when an empty string or nil value is used to set a value.
 	ErrEmptyInput = errors.New("empty input is not valid")
 
+	// ErrPasswordEmpty is returned when the password provided is blank.
 	ErrPasswordEmpty = errors.New("your password cannot be blank")
 
+	// ErrAuthenticationFailed is returned when authentication of a user fails.
 	ErrAuthenticationFailed = errors.New("authentication failed")
 
+	// ErrLDAPHealthCheckFailedEntryCount is returned when the RootDSE search performed during the LDAP health check returns an unexpected number of entries.
 	ErrLDAPHealthCheckFailedEntryCount = errors.New("incorrect number entries found when performing RootDSE search")
+
+	// ErrPoolClosed is returned by acquisition attempts made against a pool which is closing or closed.
+	ErrPoolClosed = NewPoolCtxErr(errors.New("error acquiring client: the pool is closed"))
+
+	// ErrPoolClosedInitialize is returned when a pool is initialized after it has been closed, which is unsupported as
+	// the clients it dialed would never be usable.
+	ErrPoolClosedInitialize = NewPoolCtxErr(errors.New("error initializing client pool: the pool is closed"))
 )
 
 var (
-	ErrUsernameIsRequired   = errors.New("username is required")
+	// ErrUsernameIsRequired is returned when a username is required but was not provided.
+	ErrUsernameIsRequired = errors.New("username is required")
+
+	// ErrFamilyNameIsRequired is returned when a family name is required but was not provided.
 	ErrFamilyNameIsRequired = errors.New("family name is required")
 )
 
@@ -168,6 +192,7 @@ var (
 	encodingUTF16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
 )
 
+// Attribute value type strings.
 const (
 	ValueTypeString  = "string"
 	ValueTypeInteger = "integer"
@@ -243,6 +268,7 @@ const (
 	PrefixAttributeAddress = "address."
 )
 
+// AttributeMetadataMap maps user management attribute names to their metadata.
 var AttributeMetadataMap = map[string]UserManagementAttributeMetadata{
 	AttributeUsername:             {Type: Text, Multiple: false, Label: "Username"},
 	AttributeGroups:               {Type: Groups, Multiple: true, Label: "Groups"},

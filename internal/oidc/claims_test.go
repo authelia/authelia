@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
@@ -453,6 +457,79 @@ func TestNewClaimRequestsMatcher(t *testing.T) {
 	}
 }
 
+func TestNewClaimRequestsFromRequester(t *testing.T) {
+	parsed := &oauthelia2.ClaimsRequest{
+		IDToken: map[string]*oauthelia2.ClaimRequest{
+			oidc.ClaimEmail:   {Essential: true},
+			oidc.ClaimSubject: {Value: "abc"},
+			oidc.ClaimGroups:  nil,
+		},
+		UserInfo: map[string]*oauthelia2.ClaimRequest{
+			oidc.ClaimFullName: {Values: []any{"a", "b"}},
+		},
+	}
+
+	expected := &oidc.ClaimsRequests{
+		IDToken: map[string]*oidc.ClaimRequest{
+			oidc.ClaimEmail:   {Essential: true},
+			oidc.ClaimSubject: {Value: "abc"},
+			oidc.ClaimGroups:  nil,
+		},
+		UserInfo: map[string]*oidc.ClaimRequest{
+			oidc.ClaimFullName: {Values: []any{"a", "b"}},
+		},
+	}
+
+	testCases := []struct {
+		name      string
+		requester oauthelia2.Requester
+		expected  *oidc.ClaimsRequests
+		err       string
+	}{
+		{
+			"ShouldUseParsedClaims",
+			&oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{Claims: parsed, Form: url.Values{oidc.FormParameterClaims: []string{`{"id_token":{"name":null}}`}}}},
+			expected,
+			"",
+		},
+		{
+			"ShouldParseForm",
+			&oauthelia2.Request{Form: url.Values{oidc.FormParameterClaims: []string{`{"id_token":{"email":{"essential":true},"sub":{"value":"abc"},"groups":null},"userinfo":{"name":{"values":["a","b"]}}}`}}},
+			expected,
+			"",
+		},
+		{
+			"ShouldReturnNilWithoutClaims",
+			&oauthelia2.Request{Form: url.Values{}},
+			nil,
+			"",
+		},
+		{
+			"ShouldErrorOnRepeatedParameter",
+			&oauthelia2.Request{Form: url.Values{oidc.FormParameterClaims: []string{`{}`, `{}`}}},
+			nil,
+			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The 'claims' parameter must not be included more than once.",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := oidc.NewClaimRequestsFromRequester(tc.requester)
+
+			if tc.err != "" {
+				assert.EqualError(t, oauthelia2.ErrorToDebugRFC6749Error(err), tc.err)
+				assert.Nil(t, actual)
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expected.ToClaimsRequest(), oidc.NewClaimRequestsFromClaimsRequest(tc.expected.ToClaimsRequest()).ToClaimsRequest())
+		})
+	}
+}
+
 func TestNewClaimRequests(t *testing.T) {
 	testCases := []struct {
 		name              string
@@ -690,7 +767,7 @@ func TestNewClaimRequests(t *testing.T) {
 		{
 			"ShouldNotParse",
 			`{"iaaa"}}}`,
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The OAuth 2.0 client included a malformed 'claims' parameter in the authorization request. Error occurred attempting to parse the 'claims' parameter: invalid character '}' after object key.",
+			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The 'claims' parameter must be a JSON object. invalid character '}' after object key",
 			false,
 			"",
 			nil,
@@ -1594,6 +1671,7 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 		expected         bool
 		expectedScope    oauthelia2.Arguments
 		expectedAudience oauthelia2.Arguments
+		expectedResource oauthelia2.Arguments
 	}{
 		{
 			"ShouldGrant",
@@ -1601,10 +1679,12 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 			&model.OAuth2ConsentSession{
 				GrantedScopes:   []string{"abc"},
 				GrantedAudience: []string{"ad"},
+				GrantedResource: []string{"https://api.example.com"},
 			},
 			true,
 			[]string{"abc"},
 			[]string{"ad"},
+			[]string{"https://api.example.com"},
 		},
 		{
 			"ShouldNotGrant",
@@ -1612,8 +1692,10 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 			&model.OAuth2ConsentSession{
 				GrantedScopes:   []string{},
 				GrantedAudience: []string{},
+				GrantedResource: []string{},
 			},
 			true,
+			nil,
 			nil,
 			nil,
 		},
@@ -1624,6 +1706,7 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 			true,
 			nil,
 			nil,
+			nil,
 		},
 		{
 			"ShouldNotGrantNilRequest",
@@ -1631,8 +1714,10 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 			&model.OAuth2ConsentSession{
 				GrantedScopes:   []string{},
 				GrantedAudience: []string{},
+				GrantedResource: []string{},
 			},
 			false,
+			nil,
 			nil,
 			nil,
 		},
@@ -1646,6 +1731,7 @@ func TestGrantScopeAudienceConsent(t *testing.T) {
 				require.NotNil(t, tc.ar)
 				assert.Equal(t, tc.expectedScope, tc.ar.GetGrantedScopes())
 				assert.Equal(t, tc.expectedAudience, tc.ar.GetGrantedAudience())
+				assert.Equal(t, tc.expectedResource, tc.ar.GetGrantedResource())
 			} else {
 				assert.Nil(t, tc.ar)
 			}

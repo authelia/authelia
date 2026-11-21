@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -15,17 +19,23 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
+// MintTokenAndSendPasswordResetEmail mints an identity verification token and emails it to the user.
 func MintTokenAndSendPasswordResetEmail(ctx *AutheliaCtx, args IdentityVerificationStartArgs, identity *session.Identity) (success bool, err error) {
 	jti, err := uuid.NewRandom()
 	if err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred generating UUIDv4 jti for identity verification")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return false, err
 	}
 
 	var issuerURL *url.URL
 
 	if issuerURL, err = ctx.IssuerURL(); err != nil {
-		ctx.Error(err, messageOperationFailed)
-		return
+		ctx.GetLogger().WithError(err).Error("Error occurred determining issuer for identity verification")
+		ctx.SetJSONError(messageOperationFailed)
+
+		return false, err
 	}
 
 	verification := model.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP(), ctx.Configuration.IdentityValidation.ResetPassword.JWTExpiration)
@@ -50,10 +60,16 @@ func MintTokenAndSendPasswordResetEmail(ctx *AutheliaCtx, args IdentityVerificat
 
 	signedToken, err := token.SignedString([]byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
 	if err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred signing the identity verification token")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return false, err
 	}
 
 	if err = ctx.Providers.StorageProvider.SaveIdentityVerification(ctx, verification); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred saving the identity verification")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return false, err
 	}
 
@@ -100,6 +116,9 @@ func MintTokenAndSendPasswordResetEmail(ctx *AutheliaCtx, args IdentityVerificat
 		identity.Username, identity.Email)
 
 	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred sending the identity verification email")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return false, err
 	}
 
@@ -113,6 +132,13 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delay
 	}
 
 	return func(ctx *AutheliaCtx) {
+		if err := ctx.RegenerateSession(); err != nil {
+			ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+
 		requestTime := time.Now()
 		success := false
 
@@ -131,7 +157,6 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delay
 
 		success, err = MintTokenAndSendPasswordResetEmail(ctx, args, identity)
 		if err != nil {
-			ctx.Logger.Error(err)
 			ctx.ReplyOK()
 
 			return
@@ -159,12 +184,16 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 
 		err := json.Unmarshal(b, &finishBody)
 		if err != nil {
-			ctx.Error(err, messageOperationFailed)
+			ctx.GetLogger().WithError(err).Error("Error occurred parsing the identity verification request")
+			ctx.SetJSONError(messageOperationFailed)
+
 			return
 		}
 
 		if finishBody.Token == "" {
-			ctx.Error(fmt.Errorf("no token provided"), messageOperationFailed)
+			ctx.GetLogger().Error("No token was provided for identity verification")
+			ctx.SetJSONError(messageOperationFailed)
+
 			return
 		}
 
@@ -172,8 +201,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 
 		if issuerURL, err = ctx.IssuerURL(); err != nil {
 			ctx.GetLogger().WithError(err).Error("Error occurred determining the issuer")
-
-			ctx.Error(err, messageOperationFailed)
+			ctx.SetJSONError(messageOperationFailed)
 
 			return
 		}
@@ -183,8 +211,9 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 				return []byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret), nil
 			},
 			jwt.WithIssuedAt(),
-			jwt.WithIssuer(issuerURL.String()),
 			jwt.WithStrictDecoding(),
+			jwt.WithIssuer(issuerURL.String()),
+			jwt.WithValidMethods([]string{ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm}),
 			ctx.GetClock().GetJWTWithTimeFuncOption(),
 		)
 
@@ -259,6 +288,13 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 
 		if args.IsTokenUserValidFunc != nil && !args.IsTokenUserValidFunc(ctx, claims.Username) {
 			ctx.GetLogger().Errorf("Error occurred handling the identity verification token, the user is not allowed to use this token")
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+
+		if err = ctx.RegenerateSession(); err != nil {
+			ctx.GetLogger().WithError(err).Error("Unable to regenerate session during identity verification")
 			ctx.SetJSONError(messageOperationFailed)
 
 			return

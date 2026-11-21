@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Incus"
-description: "Integrating Incus with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Incus with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-08-13T18:39:00+10:00
 draft: false
@@ -33,17 +37,19 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://incus.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `incus`
+- **Application Root URL:** `https://incus.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `incus`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
+## Configuration
+
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Incus]
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Incus]
 which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -55,11 +61,12 @@ identity_providers:
       - client_id: 'incus'
         client_name: 'Incus'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://incus.{{< sitevar name="domain" nojs="example.com" >}}/iodc/callback'
+          - 'https://incus.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
         audience:
           - 'https://incus.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
@@ -70,12 +77,16 @@ identity_providers:
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
+          - 'urn:ietf:params:oauth:grant-type:device_code'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
 ```
 
-## Application
+The `urn:ietf:params:oauth:grant-type:device_code` grant type is required for the [Incus] command line client
+(i.e. `incus remote add`) which authenticates using the Device Authorization Grant.
+
+### Application
 
 To configure [Incus] there is one method, using the [CLI](#cli).
 

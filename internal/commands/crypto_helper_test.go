@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -117,7 +121,7 @@ func TestCryptoGetSANsFromCmd(t *testing.T) {
 
 		_, _, err := cryptoGetSANsFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: sans")
+		assert.EqualError(t, err, "flag \"sans\" does not exist")
 	})
 }
 
@@ -186,7 +190,7 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 
 		_, err := cryptoGetSubjectFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: common-name")
+		assert.EqualError(t, err, "flag \"common-name\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenOrganizationFlagNotDefined", func(t *testing.T) {
@@ -195,7 +199,7 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 
 		_, err := cryptoGetSubjectFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: organization")
+		assert.EqualError(t, err, "flag \"organization\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenOrganizationalUnitFlagNotDefined", func(t *testing.T) {
@@ -205,7 +209,7 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 
 		_, err := cryptoGetSubjectFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: organizational-unit")
+		assert.EqualError(t, err, "flag \"organizational-unit\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenCountryFlagNotDefined", func(t *testing.T) {
@@ -216,7 +220,7 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 
 		_, err := cryptoGetSubjectFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: country")
+		assert.EqualError(t, err, "flag \"country\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenLocalityFlagNotDefined", func(t *testing.T) {
@@ -228,7 +232,7 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 
 		_, err := cryptoGetSubjectFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: locality")
+		assert.EqualError(t, err, "flag \"locality\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenProvinceFlagNotDefined", func(t *testing.T) {
@@ -241,7 +245,7 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 
 		_, err := cryptoGetSubjectFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: province")
+		assert.EqualError(t, err, "flag \"province\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenStreetAddressFlagNotDefined", func(t *testing.T) {
@@ -255,7 +259,7 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 
 		_, err := cryptoGetSubjectFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: street-address")
+		assert.EqualError(t, err, "flag \"street-address\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenPostcodeFlagNotDefined", func(t *testing.T) {
@@ -270,7 +274,7 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 
 		_, err := cryptoGetSubjectFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: postcode")
+		assert.EqualError(t, err, "flag \"postcode\" does not exist")
 	})
 }
 
@@ -450,7 +454,7 @@ func TestCryptoGetWritePathsFromCmd(t *testing.T) {
 
 		_, _, _, err := cryptoGetWritePathsFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: directory")
+		assert.EqualError(t, err, "flag \"directory\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenPrivateKeyFlagNotDefined", func(t *testing.T) {
@@ -465,7 +469,7 @@ func TestCryptoGetWritePathsFromCmd(t *testing.T) {
 
 		_, _, _, err := cryptoGetWritePathsFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: file.private-key")
+		assert.EqualError(t, err, "flag \"file.private-key\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenPublicKeyFlagNotDefined", func(t *testing.T) {
@@ -481,7 +485,7 @@ func TestCryptoGetWritePathsFromCmd(t *testing.T) {
 
 		_, _, _, err := cryptoGetWritePathsFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: file.certificate")
+		assert.EqualError(t, err, "flag \"file.certificate\" does not exist")
 	})
 }
 
@@ -536,16 +540,49 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 			},
 		},
 		{
+			"ShouldGenerateMLDSA44Key",
+			cmdUseMLDSA,
+			map[string]string{cmdFlagNameParameters: "ML-DSA-44"},
+			"",
+			func(t *testing.T, key any) {
+				parameters, ok := utils.MLDSAParameterSetFromKey(key)
+				assert.True(t, ok)
+				assert.Equal(t, utils.KeyMLDSAParameters44, parameters)
+			},
+		},
+		{
+			"ShouldGenerateMLDSA87KeyFromBareLevel",
+			cmdUseMLDSA,
+			map[string]string{cmdFlagNameParameters: "87"},
+			"",
+			func(t *testing.T, key any) {
+				parameters, ok := utils.MLDSAParameterSetFromKey(key)
+				assert.True(t, ok)
+				assert.Equal(t, utils.KeyMLDSAParameters87, parameters)
+			},
+		},
+		{
 			"ShouldErrECDSAInvalidCurve",
 			cmdUseECDSA,
 			map[string]string{cmdFlagNameCurve: "P999"},
 			"invalid curve 'P999' was specified",
 			nil,
 		},
+		{
+			"ShouldErrMLDSAInvalidParameters",
+			cmdUseMLDSA,
+			map[string]string{cmdFlagNameParameters: "ML-DSA-99"},
+			"invalid parameters 'ML-DSA-99' were specified: parameters must be 'ML-DSA-44', 'ML-DSA-65', or 'ML-DSA-87'",
+			nil,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.parentUse == cmdUseMLDSA && len(utils.MLDSAParameterSets()) == 0 {
+				t.Skip("ML-DSA requires this binary to be built with Go 1.27 or later")
+			}
+
 			cmdCtx := NewCmdCtx()
 
 			parent := &cobra.Command{Use: tc.parentUse}
@@ -560,6 +597,8 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 				cmdFlagsCryptoPrivateKeyECDSA(cmd)
 			case cmdUseEd25519:
 				cmdFlagsCryptoPrivateKeyEd25519(cmd)
+			case cmdUseMLDSA:
+				cmdFlagsCryptoPrivateKeyMLDSA(cmd)
 			}
 
 			for k, v := range tc.flags {
@@ -588,7 +627,7 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 
 		_, err := cmdCtx.cryptoGenPrivateKeyFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: bits")
+		assert.EqualError(t, err, "flag \"bits\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenECDSACurveFlagNotDefined", func(t *testing.T) {
@@ -601,7 +640,20 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 
 		_, err := cmdCtx.cryptoGenPrivateKeyFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: curve")
+		assert.EqualError(t, err, "flag \"curve\" does not exist")
+	})
+
+	t.Run("ShouldErrWhenMLDSAParametersFlagNotDefined", func(t *testing.T) {
+		cmdCtx := NewCmdCtx()
+
+		parent := &cobra.Command{Use: cmdUseMLDSA}
+		cmd := &cobra.Command{Use: "generate"}
+
+		parent.AddCommand(cmd)
+
+		_, err := cmdCtx.cryptoGenPrivateKeyFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag \"parameters\" does not exist")
 	})
 }
 
@@ -679,7 +731,7 @@ func TestCryptoCertificateValidityFromCmd(t *testing.T) {
 
 		_, _, err := cryptoCertificateValidityFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: duration")
+		assert.EqualError(t, err, "flag \"duration\" does not exist")
 	})
 }
 
@@ -762,7 +814,7 @@ func TestCryptoGetCertificateFromCmd(t *testing.T) {
 
 		_, err := cmdCtx.cryptoGetCertificateFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: ca")
+		assert.EqualError(t, err, "flag \"ca\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenExtendedUsageFlagNotDefined", func(t *testing.T) {
@@ -779,7 +831,7 @@ func TestCryptoGetCertificateFromCmd(t *testing.T) {
 
 		_, err := cmdCtx.cryptoGetCertificateFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: extended-usage")
+		assert.EqualError(t, err, "flag \"extended-usage\" does not exist")
 	})
 }
 
@@ -836,7 +888,7 @@ func TestCryptoGetCSRFromCmd(t *testing.T) {
 
 		_, err := cryptoGetCSRFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: common-name")
+		assert.EqualError(t, err, "flag \"common-name\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenSANsFlagNotDefinedInCSR", func(t *testing.T) {
@@ -857,7 +909,7 @@ func TestCryptoGetCSRFromCmd(t *testing.T) {
 
 		_, err := cryptoGetCSRFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: sans")
+		assert.EqualError(t, err, "flag \"sans\" does not exist")
 	})
 }
 
@@ -1002,7 +1054,7 @@ func TestCryptoGetCAFromCmd(t *testing.T) {
 
 		_, _, err := cryptoGetCAFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: file.ca-private-key")
+		assert.EqualError(t, err, "flag \"file.ca-private-key\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenFileCACertificateFlagNotDefined", func(t *testing.T) {
@@ -1014,7 +1066,7 @@ func TestCryptoGetCAFromCmd(t *testing.T) {
 
 		_, _, err := cryptoGetCAFromCmd(cmd)
 
-		assert.EqualError(t, err, "flag accessed but not defined: file.ca-certificate")
+		assert.EqualError(t, err, "flag \"file.ca-certificate\" does not exist")
 	})
 }
 
@@ -1109,7 +1161,7 @@ func TestCryptoGenerateCertificateBundlesFromCmd(t *testing.T) {
 
 		err := cryptoGenerateCertificateBundlesFromCmd(cmd, "", nil, nil, nil)
 
-		assert.EqualError(t, err, "flag accessed but not defined: bundles")
+		assert.EqualError(t, err, "flag \"bundles\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenChainFileFlagNotDefined", func(t *testing.T) {
@@ -1120,7 +1172,7 @@ func TestCryptoGenerateCertificateBundlesFromCmd(t *testing.T) {
 
 		err := cryptoGenerateCertificateBundlesFromCmd(cmd, "", nil, nil, nil)
 
-		assert.EqualError(t, err, "flag accessed but not defined: file.bundle.chain")
+		assert.EqualError(t, err, "flag \"file.bundle.chain\" does not exist")
 	})
 
 	t.Run("ShouldErrWhenPrivChainFileFlagNotDefined", func(t *testing.T) {
@@ -1131,7 +1183,7 @@ func TestCryptoGenerateCertificateBundlesFromCmd(t *testing.T) {
 
 		err := cryptoGenerateCertificateBundlesFromCmd(cmd, "", nil, nil, nil)
 
-		assert.EqualError(t, err, "flag accessed but not defined: file.bundle.priv-chain")
+		assert.EqualError(t, err, "flag \"file.bundle.priv-chain\" does not exist")
 	})
 }
 

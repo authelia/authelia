@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set -u
 
+# shellcheck source=/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/libs/common.sh"
+
+CONTEXT=""
 DIRECTORY="unset"
 GROUP="unset"
 PREFIX="authelia/"
-TAG="unset"
+CREATED=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+SOURCE="https://github.com/authelia/authelia"
 
-if [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
-  TAG="renovate"
-elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-  TAG="${BUILDKITE_BRANCH}"
-elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-  TAG="PR${BUILDKITE_PULL_REQUEST}"
-elif [[ "${BUILDKITE_BRANCH}" == "master" ]] && [[ "${BUILDKITE_PULL_REQUEST}" == "false" ]]; then
-  TAG="latest"
-fi
+resolve_tag_suffix
+TAG="${TAG_SUFFIX:-unset}"
 
 if [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-duo" ]]; then
   DIRECTORY="internal/suites/example/compose/duo-api"
@@ -25,14 +28,30 @@ elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-haproxy" ]]; then
 elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-samba" ]]; then
   DIRECTORY="internal/suites/example/compose/samba"
   GROUP="samba-deployments"
+elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-oidcconformance" ]]; then
+  CONTEXT="internal/suites"
+  DIRECTORY="internal/suites/example/compose/oidc-conformance"
+  GROUP="oidcconformance-deployments"
 fi
+
+REVISION=$(git log -1 --format=%H -- "${DIRECTORY}")
 
 cat << EOF
 steps:
   - label: ":docker: Build and Deploy"
     commands:
-      - "cd ${DIRECTORY}"
-      - "docker build --tag ${PREFIX}${BUILDKITE_PIPELINE_NAME}:${TAG} --platform linux/amd64,linux/arm64 --provenance mode=max,reproducible=true --sbom true --builder buildx --pull --push ."
+      - "docker build \
+        --file ${DIRECTORY}/Dockerfile \
+        --tag ${PREFIX}${BUILDKITE_PIPELINE_NAME}:${TAG} \
+        --label org.opencontainers.image.created=${CREATED} \
+        --label org.opencontainers.image.revision=${REVISION} \
+        --label org.opencontainers.image.source=${SOURCE} \
+        --label com.authelia.ci.build-url=${BUILDKITE_BUILD_URL} \
+        --platform linux/amd64,linux/arm64 \
+        --provenance mode=max,reproducible=true \
+        --sbom true \
+        --builder buildx \
+        --pull --push ${CONTEXT:-${DIRECTORY}}"
     concurrency: 1
     concurrency_group: "${GROUP}"
     agents:

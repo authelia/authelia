@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "ezBookkeeping"
-description: "Integrating ezBookkeeping with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating ezBookkeeping with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-10-25T13:41:05+08:00
 draft: false
@@ -32,10 +36,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `ezbookkeeping`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `ezbookkeeping`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [ezbookkeeping] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [ezbookkeeping] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -58,6 +62,7 @@ identity_providers:
         client_name: 'ezBookkeeping'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -126,16 +131,16 @@ EBK_AUTH_OIDC_CUSTOM_DISPLAY_NAME=Authelia
 services:
   ezbookkeeping:
     environment:
-      EBK_SERVER_DOMAIN=ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}
-      EBK_SERVER_ROOT_URL=https://ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}/
-      EBK_AUTH_ENABLE_OAUTH2_AUTH=true
-      EBK_AUTH_OAUTH2_PROVIDER=oidc
-      EBK_AUTH_OAUTH2_CLIENT_ID=ezbookkeeping
-      EBK_AUTH_OAUTH2_CLIENT_SECRET=insecure_secret
-      EBK_AUTH_OAUTH2_USE_PKCE=true
-      EBK_AUTH_OIDC_PROVIDER_BASE_URL='https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
-      EBK_AUTH_ENABLE_OIDC_DISPLAY_NAME=true
-      EBK_AUTH_OIDC_CUSTOM_DISPLAY_NAME=Authelia
+      EBK_SERVER_DOMAIN: 'ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}'
+      EBK_SERVER_ROOT_URL: 'https://ezbookkeeping.{{< sitevar name="domain" nojs="example.com" >}}/'
+      EBK_AUTH_ENABLE_OAUTH2_AUTH: 'true'
+      EBK_AUTH_OAUTH2_PROVIDER: 'oidc'
+      EBK_AUTH_OAUTH2_CLIENT_ID: 'ezbookkeeping'
+      EBK_AUTH_OAUTH2_CLIENT_SECRET: 'insecure_secret'
+      EBK_AUTH_OAUTH2_USE_PKCE: 'true'
+      EBK_AUTH_OIDC_PROVIDER_BASE_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      EBK_AUTH_ENABLE_OIDC_DISPLAY_NAME: 'true'
+      EBK_AUTH_OIDC_CUSTOM_DISPLAY_NAME: 'Authelia'
 ```
 
 ## See Also

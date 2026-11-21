@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useCallback } from "react";
 
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { LogoutRoute as SignOutRoute } from "@constants/Routes";
 import { RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useEffect, useState } from "react";
 
 interface PersistentStorage {
@@ -37,6 +41,8 @@ class MockStorage implements PersistentStorage {
 }
 
 const persistentStorage = globalThis?.localStorage ? new LocalStorage() : new MockStorage();
+
+export { persistentStorage };
 
 export function usePersistentStorageValue<T>(key: string, initialValue?: T) {
     const [value, setValue] = useState<T>(() => {

@@ -1,22 +1,31 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/asaskevich/govalidator/v12"
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
+	"github.com/pelletier/go-toml/v2"
 	"go.yaml.in/yaml/v4"
 	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// FileUserProviderDatabase is the interface implemented by the file user provider databases.
 type FileUserProviderDatabase interface {
 	Save() (err error)
 	Load() (err error)
@@ -48,21 +57,18 @@ type FileUserDatabase struct {
 	Users map[string]FileUserDatabaseUserDetails `json:"users" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users."`
 
 	Path    string            `json:"-"`
+	Schema  string            `json:"-"`
 	Emails  map[string]string `json:"-"`
 	Aliases map[string]string `json:"-"`
 
 	SearchEmail bool `json:"-"`
 	SearchCI    bool `json:"-"`
 
-	Extra map[string]expression.ExtraAttribute
+	Extra map[string]expression.ExtraAttribute `json:"-"`
 }
 
 // Save the database to disk.
 func (m *FileUserDatabase) Save() (err error) {
-	m.RLock()
-
-	defer m.RUnlock()
-
 	if err = m.ToDatabaseModel().Write(m.Path); err != nil {
 		return err
 	}
@@ -91,6 +97,8 @@ func (m *FileUserDatabase) Load() (err error) {
 
 // LoadAliases performs the loading of alias information from the database.
 func (m *FileUserDatabase) LoadAliases() (err error) {
+	m.Emails, m.Aliases = make(map[string]string, len(m.Users)), make(map[string]string, len(m.Users))
+
 	if m.SearchEmail || m.SearchCI {
 		for k, user := range m.Users {
 			if m.SearchEmail && user.Email != "" {
@@ -173,13 +181,21 @@ func (m *FileUserDatabase) GetUserDetails(username string) (user FileUserDatabas
 
 	if m.SearchEmail {
 		if key, ok := m.Emails[u]; ok {
-			return m.Users[key], nil
+			if user, ok = m.Users[key]; ok {
+				return user, nil
+			}
+
+			return FileUserDatabaseUserDetails{}, ErrUserNotFound
 		}
 	}
 
 	if m.SearchCI {
 		if key, ok := m.Aliases[u]; ok {
-			return m.Users[key], nil
+			if user, ok = m.Users[key]; ok {
+				return user, nil
+			}
+
+			return FileUserDatabaseUserDetails{}, ErrUserNotFound
 		}
 	}
 
@@ -190,6 +206,7 @@ func (m *FileUserDatabase) GetUserDetails(username string) (user FileUserDatabas
 	return user, ErrUserNotFound
 }
 
+// GetAllUsers returns a copy of the map of all users keyed by username.
 func (m *FileUserDatabase) GetAllUsers() map[string]FileUserDatabaseUserDetails {
 	m.RLock()
 
@@ -238,9 +255,9 @@ func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserData
 
 	m.Lock()
 
-	m.Users[username] = *details
+	defer m.Unlock()
 
-	m.Unlock()
+	m.setUserDetails(username, details)
 }
 
 // AddUserDetails adds the FileUserDatabaseUserDetails for a given user.
@@ -251,9 +268,28 @@ func (m *FileUserDatabase) AddUserDetails(username string, details *FileUserData
 
 	m.Lock()
 
-	m.Users[username] = *details
+	defer m.Unlock()
 
-	m.Unlock()
+	m.setUserDetails(username, details)
+}
+
+// setUserDetails updates the user record along with the Emails and Aliases indexes. Callers must hold the write lock.
+func (m *FileUserDatabase) setUserDetails(username string, details *FileUserDatabaseUserDetails) {
+	if m.SearchEmail {
+		if existing, ok := m.Users[username]; ok && existing.Email != "" {
+			delete(m.Emails, strings.ToLower(existing.Email))
+		}
+
+		if details.Email != "" {
+			m.Emails[strings.ToLower(details.Email)] = username
+		}
+	}
+
+	if m.SearchCI {
+		m.Aliases[strings.ToLower(username)] = username
+	}
+
+	m.Users[username] = *details
 }
 
 // DeleteUserDetails deletes a user from the database.
@@ -261,10 +297,11 @@ func (m *FileUserDatabase) DeleteUserDetails(username string) {
 	m.Lock()
 	defer m.Unlock()
 
+	email := strings.ToLower(m.Users[username].Email)
+
 	delete(m.Users, username)
 
 	if m.SearchEmail {
-		email := strings.ToLower(m.Users[username].Email)
 		delete(m.Emails, email)
 	}
 
@@ -282,11 +319,13 @@ func (m *FileUserDatabase) ToDatabaseModel() (model *FileDatabaseModel) {
 
 	m.RLock()
 
+	defer m.RUnlock()
+
+	model.Schema = m.Schema
+
 	for user, details := range m.Users {
 		model.Users[user] = details.ToUserDetailsModel()
 	}
-
-	m.RUnlock()
 
 	return model
 }
@@ -318,12 +357,13 @@ type FileUserDatabaseUserDetails struct {
 	Extra map[string]any `json:"extra,omitempty" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
 }
 
+// FileUserDatabaseUserDetailsAddressModel represents the address of a user in the file user database.
 type FileUserDatabaseUserDetailsAddressModel struct {
-	StreetAddress string `yaml:"street_address,omitempty" json:"street_address,omitempty" jsonschema:"title=Street Address" jsonschema_description:"The street address for the user."`
-	Locality      string `yaml:"locality,omitempty" json:"locality,omitempty" jsonschema:"title=Locality" jsonschema_description:"The locality for the user."`
-	Region        string `yaml:"region,omitempty" json:"region,omitempty" jsonschema:"title=Region" jsonschema_description:"The region for the user."`
-	PostalCode    string `yaml:"postal_code,omitempty" json:"postal_code,omitempty" jsonschema:"title=Postal Code" jsonschema_description:"The postal code or postcode for the user."`
-	Country       string `yaml:"country,omitempty" json:"country,omitempty" jsonschema:"title=Country" jsonschema_description:"The country for the user."`
+	StreetAddress string `yaml:"street_address,omitempty" toml:"street_address,omitempty" json:"street_address,omitempty" jsonschema:"title=Street Address" jsonschema_description:"The street address for the user."`
+	Locality      string `yaml:"locality,omitempty" toml:"locality,omitempty" json:"locality,omitempty" jsonschema:"title=Locality" jsonschema_description:"The locality for the user."`
+	Region        string `yaml:"region,omitempty" toml:"region,omitempty" json:"region,omitempty" jsonschema:"title=Region" jsonschema_description:"The region for the user."`
+	PostalCode    string `yaml:"postal_code,omitempty" toml:"postal_code,omitempty" json:"postal_code,omitempty" jsonschema:"title=Postal Code" jsonschema_description:"The postal code or postcode for the user."`
+	Country       string `yaml:"country,omitempty" toml:"country,omitempty" json:"country,omitempty" jsonschema:"title=Country" jsonschema_description:"The country for the user."`
 }
 
 // ToUserDetails converts FileUserDatabaseUserDetails into a *UserDetails.
@@ -379,6 +419,7 @@ func (m FileUserDatabaseUserDetails) ToExtendedUserDetails() (details *UserDetai
 func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUserDetailsModel) {
 	model = FileDatabaseUserDetailsModel{
 		Password:       m.Password.Encode(),
+		Disabled:       m.Disabled,
 		DisplayName:    m.DisplayName,
 		GivenName:      m.GivenName,
 		MiddleName:     m.MiddleName,
@@ -416,7 +457,10 @@ func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUse
 
 // FileDatabaseModel is the model of the users file database.
 type FileDatabaseModel struct {
-	Users map[string]FileDatabaseUserDetailsModel `yaml:"users" json:"users" valid:"required" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users."`
+	// Schema is the JSON Schema reference which is only relevant to the JSON format and is retained when saving.
+	Schema string `yaml:"-" toml:"-" json:"$schema,omitempty"`
+
+	Users map[string]FileDatabaseUserDetailsModel `yaml:"users" toml:"users" json:"users" valid:"required" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users."`
 }
 
 // ReadToFileUserDatabase reads the FileDatabaseModel into a FileUserDatabase.
@@ -438,6 +482,7 @@ func (m *FileDatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase, extra m
 	}
 
 	db.Users = users
+	db.Schema = m.Schema
 
 	return nil
 }
@@ -457,8 +502,19 @@ func (m *FileDatabaseModel) Read(filePath string) (err error) {
 		return ErrWatcherNoContent
 	}
 
-	if err = yaml.Unmarshal(content, m); err != nil {
-		return fmt.Errorf("could not parse the YAML database: %w", err)
+	switch filepath.Ext(filePath) {
+	case utils.ExtTOML:
+		if err = toml.Unmarshal(content, m); err != nil {
+			return fmt.Errorf("could not parse the TOML database: %w", err)
+		}
+	case utils.ExtJSON:
+		if err = json.Unmarshal(content, m); err != nil {
+			return fmt.Errorf("could not parse the JSON database: %w", err)
+		}
+	default:
+		if err = yaml.Unmarshal(content, m); err != nil {
+			return fmt.Errorf("could not parse the YAML database: %w", err)
+		}
 	}
 
 	if ok, err = govalidator.ValidateStruct(m); err != nil {
@@ -478,8 +534,19 @@ func (m *FileDatabaseModel) Write(fileName string) (err error) {
 		data []byte
 	)
 
-	if data, err = yaml.Marshal(m); err != nil {
-		return err
+	switch filepath.Ext(fileName) {
+	case utils.ExtTOML:
+		if data, err = toml.Marshal(m); err != nil {
+			return fmt.Errorf("could not marshal the TOML database: %w", err)
+		}
+	case utils.ExtJSON:
+		if data, err = json.MarshalIndent(m, "", "  "); err != nil {
+			return fmt.Errorf("could not marshal the JSON database: %w", err)
+		}
+	default:
+		if data, err = yaml.Marshal(m); err != nil {
+			return fmt.Errorf("could not marshal the YAML database: %w", err)
+		}
 	}
 
 	return os.WriteFile(fileName, data, fileAuthenticationMode)
@@ -487,30 +554,32 @@ func (m *FileDatabaseModel) Write(fileName string) (err error) {
 
 // FileDatabaseUserDetailsModel is the model of user details in the file database.
 type FileDatabaseUserDetailsModel struct {
-	Password       string   `yaml:"password" valid:"required"`
-	DisplayName    string   `yaml:"displayname" valid:"required"`
-	Email          string   `yaml:"email"`
-	Groups         []string `yaml:"groups"`
-	GivenName      string   `yaml:"given_name,omitempty"`
-	MiddleName     string   `yaml:"middle_name,omitempty"`
-	FamilyName     string   `yaml:"family_name,omitempty"`
-	Nickname       string   `yaml:"nickname,omitempty"`
-	Gender         string   `yaml:"gender,omitempty"`
-	Birthdate      string   `yaml:"birthdate,omitempty"`
-	Website        string   `yaml:"website,omitempty"`
-	Profile        string   `yaml:"profile,omitempty"`
-	Picture        string   `yaml:"picture,omitempty"`
-	ZoneInfo       string   `yaml:"zoneinfo,omitempty"`
-	Locale         string   `yaml:"locale,omitempty"`
-	PhoneNumber    string   `yaml:"phone_number,omitempty"`
-	PhoneExtension string   `yaml:"phone_extension,omitempty"`
-	Disabled       bool     `yaml:"disabled,omitempty"`
+	Password       string   `yaml:"password" toml:"password" json:"password" valid:"required"`
+	DisplayName    string   `yaml:"displayname" toml:"displayname" json:"displayname" valid:"required"`
+	Email          string   `yaml:"email,omitempty" toml:"email,omitempty" json:"email,omitempty"`
+	Groups         []string `yaml:"groups,omitempty" toml:"groups,omitempty" json:"groups,omitempty"`
+	GivenName      string   `yaml:"given_name,omitempty" toml:"given_name,omitempty" json:"given_name,omitempty"`
+	MiddleName     string   `yaml:"middle_name,omitempty" toml:"middle_name,omitempty" json:"middle_name,omitempty"`
+	FamilyName     string   `yaml:"family_name,omitempty" toml:"family_name,omitempty" json:"family_name,omitempty"`
+	Nickname       string   `yaml:"nickname,omitempty" toml:"nickname,omitempty" json:"nickname,omitempty"`
+	Gender         string   `yaml:"gender,omitempty" toml:"gender,omitempty" json:"gender,omitempty"`
+	Birthdate      string   `yaml:"birthdate,omitempty" toml:"birthdate,omitempty" json:"birthdate,omitempty"`
+	Website        string   `yaml:"website,omitempty" toml:"website,omitempty" json:"website,omitempty"`
+	Profile        string   `yaml:"profile,omitempty" toml:"profile,omitempty" json:"profile,omitempty"`
+	Picture        string   `yaml:"picture,omitempty" toml:"picture,omitempty" json:"picture,omitempty"`
+	ZoneInfo       string   `yaml:"zoneinfo,omitempty" toml:"zoneinfo,omitempty" json:"zoneinfo,omitempty"`
+	Locale         string   `yaml:"locale,omitempty" toml:"locale,omitempty" json:"locale,omitempty"`
+	PhoneNumber    string   `yaml:"phone_number,omitempty" toml:"phone_number,omitempty" json:"phone_number,omitempty"`
+	PhoneExtension string   `yaml:"phone_extension,omitempty" toml:"phone_extension,omitempty" json:"phone_extension,omitempty"`
+	Disabled       bool     `yaml:"disabled,omitempty" toml:"disabled,omitempty" json:"disabled,omitempty"`
 
-	Address *FileUserDatabaseUserDetailsAddressModel `yaml:"address,omitempty"`
+	Address *FileUserDatabaseUserDetailsAddressModel `yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty"`
 
-	Extra map[string]any `yaml:"extra,omitempty"`
+	Extra map[string]any `yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty"`
 }
 
+// ValidateExtra returns an error if any extra attribute of this user does not match its definition.
+//
 //nolint:gocyclo
 func (m FileDatabaseUserDetailsModel) ValidateExtra(username string, extra map[string]expression.ExtraAttribute) (err error) {
 	for name, value := range m.Extra {
@@ -565,6 +634,8 @@ func (m FileDatabaseUserDetailsModel) ValidateExtra(username string, extra map[s
 			default:
 				return fmt.Errorf("error occurred validating extra attributes for user '%s': attribute '%s' has the unknown item type '%T'", username, name, v)
 			}
+
+			return fmt.Errorf("error occurred validating extra attributes for user '%s': attribute '%s' has the known item type '%T' but '[]%s' is the expected type", username, name, v, vt)
 		}
 	}
 

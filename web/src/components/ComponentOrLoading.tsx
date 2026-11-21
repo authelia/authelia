@@ -1,6 +1,8 @@
-import { Fragment, ReactNode } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
-import { Box } from "@mui/material";
+import { Fragment, ReactNode } from "react";
 
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
@@ -13,9 +15,9 @@ export interface Props {
 const ComponentOrLoading = function (props: Props) {
     return (
         <Fragment>
-            <Box className={props.ready ? "hidden" : ""}>
+            <div className={props.ready ? "hidden" : ""}>
                 <LoadingPage />
-            </Box>
+            </div>
             {props.ready ? props.children : null}
         </Fragment>
     );

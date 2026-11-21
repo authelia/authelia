@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "HumHub"
-description: "Integrating HumHub with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating HumHub with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-03-30T07:14:05+11:00
 draft: false
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://humhub.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `humhub`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://humhub.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `humhub`
+- **Client Secret:** `insecure_secret`
 - The [HumHub] instance you're using was built using the [OIDC Connector](https://github.com/Worteks/humhub-auth-oidc).
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -47,7 +51,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [HumHub] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [HumHub] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -60,6 +64,7 @@ identity_providers:
         client_name: 'HumHub'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -120,7 +125,7 @@ return [
 
 ## See Also
 
- - [HumHub OpenID Connect Repository](https://github.com/Worteks/humhub-auth-oidc?tab=readme-ov-file)
+- [HumHub OpenID Connect Repository](https://github.com/Worteks/humhub-auth-oidc?tab=readme-ov-file)
 
 [Authelia]: https://www.authelia.com
 [HumHub]: https://www.humhub.com

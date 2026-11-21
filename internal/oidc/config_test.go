@@ -1,8 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -10,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/compose"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 
@@ -43,19 +52,19 @@ func TestConfig_PKCE(t *testing.T) {
 	config := &oidc.Config{}
 
 	assert.False(t, config.GetEnforcePKCE(ctx))
-	assert.False(t, config.GetEnforcePKCEForPublicClients(ctx))
+	assert.True(t, config.GetAllowPublicClientsWithoutPKCE(ctx))
 
 	config.ProofKeyCodeExchange.Enforce = true
 	assert.True(t, config.GetEnforcePKCE(ctx))
-	assert.True(t, config.GetEnforcePKCEForPublicClients(ctx))
+	assert.False(t, config.GetAllowPublicClientsWithoutPKCE(ctx))
 
 	config.ProofKeyCodeExchange.Enforce = false
 
-	assert.False(t, config.GetEnforcePKCEForPublicClients(ctx))
+	assert.True(t, config.GetAllowPublicClientsWithoutPKCE(ctx))
 
 	config.ProofKeyCodeExchange.EnforcePublicClients = true
 
-	assert.True(t, config.GetEnforcePKCEForPublicClients(ctx))
+	assert.False(t, config.GetAllowPublicClientsWithoutPKCE(ctx))
 
 	assert.False(t, config.GetEnablePKCEPlainChallengeMethod(ctx))
 	config.ProofKeyCodeExchange.AllowPlainChallengeMethod = true
@@ -107,9 +116,33 @@ func TestConfig_Durations(t *testing.T) {
 	assert.Equal(t, time.Hour*24*30, config.GetRefreshTokenLifespan(ctx))
 	assert.Equal(t, time.Hour*24*30, config.Lifespans.RefreshToken)
 
+	assert.Equal(t, time.Duration(0), config.GetRefreshTokenMaximumLifespan(ctx))
+
+	config.Lifespans.RefreshTokenMaximum = time.Hour * 24 * 90
+	assert.Equal(t, time.Hour*24*90, config.GetRefreshTokenMaximumLifespan(ctx))
+
 	assert.Equal(t, time.Duration(0), config.Lifespans.AuthorizeCode)
 	assert.Equal(t, time.Minute*15, config.GetAuthorizeCodeLifespan(ctx))
 	assert.Equal(t, time.Minute*15, config.Lifespans.AuthorizeCode)
+
+	assert.Equal(t, time.Second*10, config.GetJWTClockSkew(ctx))
+
+	config.JWTClockSkew = time.Second * 30
+	assert.Equal(t, time.Second*30, config.GetJWTClockSkew(ctx))
+
+	config.JWTClockSkew = time.Hour
+	assert.Equal(t, time.Minute, config.GetJWTClockSkew(ctx))
+
+	config.JWTClockSkew = -1
+	assert.Equal(t, time.Duration(0), config.GetJWTClockSkew(ctx))
+
+	assert.Equal(t, time.Hour, config.GetRequestObjectMaximumLifetime(ctx))
+
+	config.RequestObjectMaximumLifetime = time.Minute * 30
+	assert.Equal(t, time.Minute*30, config.GetRequestObjectMaximumLifetime(ctx))
+
+	config.RequestObjectMaximumLifetime = -1
+	assert.Equal(t, time.Duration(0), config.GetRequestObjectMaximumLifetime(ctx))
 }
 
 func TestConfig_GetTokenEntropy(t *testing.T) {
@@ -130,11 +163,21 @@ func TestConfig_Misc(t *testing.T) {
 	assert.False(t, config.DisableRefreshTokenValidation)
 	assert.False(t, config.GetDisableRefreshTokenValidation(ctx))
 
-	assert.Equal(t, "", config.Issuers.AccessToken)
-	assert.Equal(t, "", config.GetAccessTokenIssuer(ctx))
+	assert.False(t, config.GetDisableRefreshTokenRotation(ctx))
 
-	assert.Equal(t, "", config.Issuers.IDToken)
-	assert.Equal(t, "", config.GetIDTokenIssuer(ctx))
+	config.DisableRefreshTokenRotation = true
+	assert.True(t, config.GetDisableRefreshTokenRotation(ctx))
+
+	assert.Equal(t, time.Duration(0), config.GetRefreshTokenMaximumLifespan(ctx))
+	assert.False(t, config.GetDisableRefreshTokenExpirationParameters(ctx))
+
+	assert.False(t, config.GetRequireRequestObjectAudienceAndLifetime(ctx))
+
+	config.RequireRequestObjectAudienceAndLifetime = true
+	assert.True(t, config.GetRequireRequestObjectAudienceAndLifetime(ctx))
+
+	assert.Equal(t, "", config.Issuer)
+	assert.Equal(t, "", config.GetIssuer(ctx))
 
 	assert.Equal(t, jwt.JWTScopeFieldUnset, config.JWTScopeField)
 	assert.Equal(t, jwt.JWTScopeFieldList, config.GetJWTScopeField(ctx))
@@ -147,7 +190,7 @@ func TestConfig_Misc(t *testing.T) {
 	assert.False(t, config.OmitRedirectScopeParameter)
 	assert.False(t, config.GetOmitRedirectScopeParam(ctx))
 
-	assert.NotNil(t, config.GetRedirectSecureChecker(ctx))
+	assert.Nil(t, config.GetRedirectSecureChecker(ctx))
 	assert.NotNil(t, config.GetHTTPClient(ctx))
 
 	assert.Nil(t, config.Strategy.Scope)
@@ -235,9 +278,29 @@ func TestConfig_PAR(t *testing.T) {
 
 	assert.True(t, config.GetRequirePushedAuthorizationRequests(ctx))
 
+	assert.False(t, config.GetRequireRedirectURIPushedAuthorizationRequests(ctx))
+
+	config.PAR.RequireRedirectURI = true
+
+	assert.True(t, config.GetRequireRedirectURIPushedAuthorizationRequests(ctx))
+
 	assert.Equal(t, time.Duration(0), config.PAR.ContextLifespan)
 	assert.Equal(t, time.Minute*5, config.GetPushedAuthorizeContextLifespan(ctx))
 	assert.Equal(t, time.Minute*5, config.PAR.ContextLifespan)
+}
+
+func TestConfig_RequireSignedRequestObject(t *testing.T) {
+	ctx := context.Background()
+
+	config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, nil, nil)
+
+	assert.False(t, config.GetRequireSignedRequestObject(ctx))
+	assert.False(t, config.GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ctx))
+
+	config = oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{RequireSignedRequestObject: true}, nil, nil)
+
+	assert.True(t, config.GetRequireSignedRequestObject(ctx))
+	assert.False(t, config.GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ctx))
 }
 
 func TestNewConfig(t *testing.T) {
@@ -268,17 +331,244 @@ func TestNewConfig(t *testing.T) {
 	assert.Len(t, config.Handlers.TokenIntrospection, 2)
 }
 
-//nolint:gosec // Test Credentials.
-func TestConfig_GetIssuerFuncs(t *testing.T) {
+func TestConfig_LoadHandlersOrder(t *testing.T) {
 	testCases := []struct {
-		name                                                                        string
-		have                                                                        oidc.IssuersConfig
-		ctx                                                                         context.Context
-		expectIntrospection, expectIDToken, expectAccessToken, expectAS, expectJARM string
+		name                         string
+		enableStatelessIntrospection bool
 	}{
 		{
-			"ShouldReturnCtxValues",
-			oidc.IssuersConfig{},
+			"ShouldRegisterHandlersInValidOrder",
+			false,
+		},
+		{
+			"ShouldRegisterHandlersInValidOrderWithStatelessIntrospection",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := templates.New(templates.Config{})
+
+			require.NoError(t, err)
+
+			config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, oidc.NewIssuer(nil), tmpl)
+
+			config.JWTAccessToken.EnableStatelessIntrospection = tc.enableStatelessIntrospection
+
+			config.LoadHandlers(nil)
+
+			assert.NoError(t, compose.ValidateHandlerOrder(&oauthelia2.Config{
+				AuthorizeEndpointHandlers:              config.Handlers.AuthorizeEndpoint,
+				TokenEndpointHandlers:                  config.Handlers.TokenEndpoint,
+				TokenIntrospectionHandlers:             config.Handlers.TokenIntrospection,
+				RevocationHandlers:                     config.Handlers.Revocation,
+				PushedAuthorizeEndpointHandlers:        config.Handlers.PushedAuthorizeEndpoint,
+				RFC8628DeviceAuthorizeEndpointHandlers: config.Handlers.RFC8628DeviceAuthorizeEndpoint,
+				RFC8628UserAuthorizeEndpointHandlers:   config.Handlers.RFC8628UserAuthorizeEndpoint,
+				AuthorizeEndpointBindingHandlers:       config.Handlers.AuthorizeEndpointBinding,
+				TokenEndpointBindingHandlers:           config.Handlers.TokenEndpointBinding,
+			}))
+		})
+	}
+}
+
+func TestNewConfigSecurityOptions(t *testing.T) {
+	_, loopback, err := net.ParseCIDR("127.0.0.0/8")
+
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name     string
+		have     *schema.IdentityProvidersOpenIDConnect
+		expected func(t *testing.T, ctx context.Context, config *oidc.Config)
+	}{
+		{
+			"ShouldDefaultToSecureValues",
+			&schema.IdentityProvidersOpenIDConnect{},
+			func(t *testing.T, ctx context.Context, config *oidc.Config) {
+				assert.False(t, config.GetEnableRSA15KeyManagement(ctx))
+				assert.False(t, config.GetAccessTokenURIQueryParameterEnabled(ctx))
+				assert.False(t, config.GetRFC8628VerificationURIComplete(ctx))
+				assert.False(t, config.GetDisableSpecialUseAddressGuard(ctx))
+				assert.Nil(t, config.GetSpecialUseAddressGuardAllowedNetworks(ctx))
+				assert.False(t, config.GetRFC8628UserCodeSubjectBinding(ctx))
+				assert.Equal(t, time.Duration(0), config.GetRefreshTokenGracePeriod(ctx))
+			},
+		},
+		{
+			"ShouldMapEnabledValues",
+			&schema.IdentityProvidersOpenIDConnect{
+				EnableRSA15KeyManagement:                true,
+				EnableAccessTokenURIQueryParameter:      true,
+				EnableDeviceCodeVerificationURIComplete: true,
+				SpecialUseAddressGuard: schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{
+					Disable:         true,
+					AllowedNetworks: []*net.IPNet{loopback},
+				},
+			},
+			func(t *testing.T, ctx context.Context, config *oidc.Config) {
+				assert.True(t, config.GetEnableRSA15KeyManagement(ctx))
+				assert.True(t, config.GetAccessTokenURIQueryParameterEnabled(ctx))
+				assert.True(t, config.GetRFC8628VerificationURIComplete(ctx))
+				assert.True(t, config.GetDisableSpecialUseAddressGuard(ctx))
+				assert.Equal(t, []*net.IPNet{loopback}, config.GetSpecialUseAddressGuardAllowedNetworks(ctx))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := templates.New(templates.Config{})
+
+			require.NoError(t, err)
+
+			tc.expected(t, context.Background(), oidc.NewConfig(tc.have, oidc.NewIssuer(nil), tmpl))
+		})
+	}
+}
+
+func TestConfig_GetClientJWKSFetcherStrategy(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = rw.Write([]byte(`{"keys":[]}`))
+	}))
+
+	t.Cleanup(server.Close)
+
+	_, loopback, err := net.ParseCIDR("127.0.0.0/8")
+
+	require.NoError(t, err)
+
+	_, other, err := net.ParseCIDR("10.0.0.0/8")
+
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name  string
+		guard schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard
+		err   bool
+	}{
+		{
+			"ShouldRefuseLoopbackByDefault",
+			schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{},
+			true,
+		},
+		{
+			"ShouldRefuseLoopbackWhenNotAllowed",
+			schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{AllowedNetworks: []*net.IPNet{other}},
+			true,
+		},
+		{
+			"ShouldAllowLoopbackWhenAllowed",
+			schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{AllowedNetworks: []*net.IPNet{loopback}},
+			false,
+		},
+		{
+			"ShouldAllowLoopbackWhenDisabled",
+			schema.IdentityProvidersOpenIDConnectSpecialUseAddressGuard{Disable: true},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := templates.New(templates.Config{})
+
+			require.NoError(t, err)
+
+			config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{SpecialUseAddressGuard: tc.guard}, oidc.NewIssuer(nil), tmpl)
+
+			ctx := context.Background()
+
+			jwks, err := config.GetClientJWKSFetcherStrategy(ctx, nil).Resolve(ctx, server.URL, true)
+
+			if tc.err {
+				assert.Error(t, err)
+				assert.Nil(t, jwks)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, jwks)
+				assert.Len(t, jwks.Keys, 0)
+			}
+		})
+	}
+}
+
+func TestConfig_ValidateRedirectURISecurity(t *testing.T) {
+	testCases := []struct {
+		name            string
+		applicationType string
+		public          bool
+		uri             string
+		err             string
+	}{
+		{
+			"ShouldAllowHTTPSWeb",
+			oidc.ApplicationTypeWeb,
+			false,
+			"https://app.example.com/callback",
+			"",
+		},
+		{
+			"ShouldAllowLoopbackNative",
+			oidc.ApplicationTypeNative,
+			true,
+			"http://127.0.0.1:8080/callback",
+			"",
+		},
+		{
+			"ShouldRejectLoopbackWebConfidential",
+			oidc.ApplicationTypeWeb,
+			false,
+			"http://127.0.0.1:8080/callback",
+			"Redirect URL is using an insecure protocol, http is only allowed for native clients using a loopback redirect URI, for example: http://127.0.0.1:8080/callback.",
+		},
+		{
+			"ShouldRejectLocalhostWebPublic",
+			oidc.ApplicationTypeWeb,
+			true,
+			"http://localhost:8080/callback",
+			"Redirect URL is using an insecure protocol, http is only allowed for native clients using a loopback redirect URI, for example: http://127.0.0.1:8080/callback.",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := templates.New(templates.Config{})
+
+			require.NoError(t, err)
+
+			config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{}, oidc.NewIssuer(nil), tmpl)
+
+			uri, err := url.Parse(tc.uri)
+
+			require.NoError(t, err)
+
+			client := &oidc.RegisteredClient{ID: "test", ApplicationType: tc.applicationType, Public: tc.public}
+
+			err = oauthelia2.ValidateRedirectURISecurity(context.Background(), config, client, uri)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, "invalid_request")
+				assert.Equal(t, tc.err, oauthelia2.ErrorToRFC6749Error(err).HintField)
+			}
+		})
+	}
+}
+
+func TestConfig_GetIssuer(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		ctx      context.Context
+		expected string
+	}{
+		{
+			"ShouldReturnCtxValue",
+			"",
 			&TestContext{
 				Context: context.Background(),
 				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
@@ -286,16 +576,10 @@ func TestConfig_GetIssuerFuncs(t *testing.T) {
 				},
 			},
 			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
 		},
 		{
-			"ShouldNotReturnDefaultValues",
-			oidc.IssuersConfig{
-				IDToken: "https://example.com/id-issuer",
-			},
+			"ShouldNotReturnFallbackValue",
+			"https://example.com/fallback-issuer",
 			&TestContext{
 				Context: context.Background(),
 				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
@@ -303,42 +587,24 @@ func TestConfig_GetIssuerFuncs(t *testing.T) {
 				},
 			},
 			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
-			"https://example.com/issuer",
 		},
 		{
-			"ShouldReturnDefaultValues",
-			oidc.IssuersConfig{
-				IDToken:                                 "https://example.com/id-issuer",
-				AccessToken:                             "https://example.com/at-issuer",
-				Introspection:                           "https://example.com/i-issuer",
-				JWTSecuredResponseMode:                  "https://example.com/jarm-issuer",
-				AuthorizationServerIssuerIdentification: "https://example.com/as-issuer",
-			},
+			"ShouldReturnFallbackValue",
+			"https://example.com/fallback-issuer",
 			context.Background(),
-			"https://example.com/i-issuer",
-			"https://example.com/id-issuer",
-			"https://example.com/at-issuer",
-			"https://example.com/as-issuer",
-			"https://example.com/jarm-issuer",
+			"https://example.com/fallback-issuer",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			config := &oidc.Config{
-				Issuers: tc.have,
+				Issuer: tc.have,
 			}
 
 			ctx := context.WithValue(tc.ctx, 0, 1) //nolint:staticcheck // This value is used to demonstrate a functionality not used for an actual value.
 
-			assert.Equal(t, tc.expectIntrospection, config.GetIntrospectionIssuer(ctx))
-			assert.Equal(t, tc.expectIDToken, config.GetIDTokenIssuer(ctx))
-			assert.Equal(t, tc.expectAccessToken, config.GetAccessTokenIssuer(ctx))
-			assert.Equal(t, tc.expectAS, config.GetAuthorizationServerIdentificationIssuer(ctx))
-			assert.Equal(t, tc.expectJARM, config.GetJWTSecuredAuthorizeResponseModeIssuer(ctx))
+			assert.Equal(t, tc.expected, config.GetIssuer(ctx))
 		})
 	}
 }

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "WebAuthn"
-description: "A reference guide on various WebAuthn features and topics"
+description: "A reference guide on the Authelia WebAuthn implementation including recommended configurations for passkeys, metadata status values, and device filtering."
 summary: "This section contains reference documentation for Authelia's WebAuthn implementation and capabilities."
 date: 2025-02-23T16:08:49+11:00
 draft: false
@@ -45,7 +49,7 @@ Some areas of the configuration allow filtering devices based on the metadata st
 status values.
 
 |             Value              |                                                                                                                                                                                                                Description                                                                                                                                                                                                                |
-|:------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 |      `NOT_FIDO_CERTIFIED`      |                                                                                                                                                                                                 This authenticator is not FIDO certified.                                                                                                                                                                                                 |
 |        `FIDO_CERTIFIED`        |                                                                                                                                              This authenticator has passed FIDO functional certification. This certification scheme is phased out and will be replaced by FIDO_CERTIFIED_L1.                                                                                                                                              |
 |      `FIDO_CERTIFIED_L1`       |                                                                                                                                                   The authenticator has passed FIDO Authenticator certification at level 1. This level is the more strict successor of FIDO_CERTIFIED.                                                                                                                                                    |

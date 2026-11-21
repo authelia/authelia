@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package commands
 
 import (
@@ -44,7 +48,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			username: true,
 			groups:   true,
 			ip:       true,
-			err:      "flag accessed but not defined: url",
+			err:      "flag \"url\" does not exist",
 		},
 		{
 			name:     "ShouldErrorOnInvalidURLFlag",
@@ -54,7 +58,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			username: true,
 			groups:   true,
 			ip:       true,
-			err:      "parse \"http://%@#(*$@()#*&$invalid\": invalid character \"#\" in host name",
+			err:      "error occurred parsing object url: parse \"http://%@#(*$@()#*&$invalid\": invalid character \"#\" in host name",
 		},
 		{
 			name:     "ShouldErrorOnMissingMethodFlag",
@@ -62,7 +66,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			username: true,
 			groups:   true,
 			ip:       true,
-			err:      "flag accessed but not defined: method",
+			err:      "flag \"method\" does not exist",
 		},
 		{
 			name:   "ShouldErrorOnMissingUsernameFlag",
@@ -70,7 +74,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			method: true,
 			groups: true,
 			ip:     true,
-			err:    "flag accessed but not defined: username",
+			err:    "flag \"username\" does not exist",
 		},
 		{
 			name:     "ShouldErrorOnMissingGroupsFlag",
@@ -78,7 +82,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			method:   true,
 			username: true,
 			ip:       true,
-			err:      "flag accessed but not defined: groups",
+			err:      "flag \"groups\" does not exist",
 		},
 		{
 			name:     "ShouldErrorOnMissingIPFlag",
@@ -86,7 +90,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			method:   true,
 			username: true,
 			groups:   true,
-			err:      "flag accessed but not defined: ip",
+			err:      "flag \"ip\" does not exist",
 		},
 		{
 			name:     "ShouldNotErrorWithAllFlagsSet",
@@ -332,10 +336,9 @@ func TestAccessControlCheckRunE(t *testing.T) {
 }
 
 func TestAccessControlCheckWriteOutput(t *testing.T) {
-	u, err := url.ParseRequestURI("https://example.com/path?query=1")
+	object, err := authorization.NewObjectMethodURL([]byte(fasthttp.MethodGet), []byte("https://example.com/path?query=1"))
 	require.NoError(t, err)
 
-	object := authorization.NewObject(u, fasthttp.MethodGet)
 	subject := authorization.Subject{
 		Username: "alice",
 		Groups:   []string{"grp1", "grp2"},
@@ -496,8 +499,7 @@ func TestAccessControlCheckWriteOutput(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
 
-			err := runAccessControlCheck(&buf, object, subject, tc.results, tc.defaultPolicy, tc.verbose)
-			assert.NoError(t, err)
+			assert.NoError(t, runAccessControlCheck(&buf, *object, subject, tc.results, tc.defaultPolicy, tc.verbose))
 
 			out := buf.String()
 

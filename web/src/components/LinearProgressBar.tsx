@@ -1,22 +1,23 @@
-import { LinearProgress } from "@mui/material";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { cn } from "cn";
+
+import { Progress } from "@components/UI/Progress";
 
 export interface Props {
     value: number;
     height?: number | string;
+    className?: string;
 }
 
 const LinearProgressBar = function (props: Props) {
     return (
-        <LinearProgress
-            variant="determinate"
+        <Progress
             value={props.value}
-            sx={{
-                "& .MuiLinearProgress-determinate": {
-                    transition: "transform .2s linear",
-                },
-                height: props.height ? props.height : (theme) => theme.spacing(),
-                marginTop: (theme) => theme.spacing(),
-            }}
+            className={cn("mt-2 transition-transform duration-200 ease-linear", props.className)}
+            style={{ height: props.height ?? 8 }}
         />
     );
 };

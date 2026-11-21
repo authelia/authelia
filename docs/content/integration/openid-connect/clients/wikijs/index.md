@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Wiki.js"
-description: "Integrating Wiki.js with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Wiki.js with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-04-18T15:25:09+10:00
 draft: false
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://wiki.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `Wiki.js`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://wiki.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `wikijs`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Wiki.js] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Wiki.js] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -59,11 +63,12 @@ identity_providers:
         client_name: 'Wiki'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://wikijs.{{< sitevar name="domain" nojs="example.com" >}}/login/<UUID>/callback'  # Note this must be copied during step 7 of the Application configuration.
+          - 'https://wiki.{{< sitevar name="domain" nojs="example.com" >}}/login/<UUID>/callback'  # Note this must be copied during step 7 of the Application configuration.
         scopes:
           - 'openid'
           - 'profile'

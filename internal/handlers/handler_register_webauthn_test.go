@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -9,7 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -23,6 +30,13 @@ import (
 )
 
 func TestWebAuthnRegistrationPUT(t *testing.T) {
+	decode := func(in string) []byte {
+		value, err := base64.StdEncoding.DecodeString(in)
+		require.NoError(t, err)
+
+		return value
+	}
+
 	testCases := []struct {
 		name           string
 		config         *schema.WebAuthn
@@ -44,22 +58,51 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: "ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: string(decode("ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
 						Return(nil, nil),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"rp":\{"name":"Authelia","id":"example.com"},"user":\{"name":"john","displayName":"john","id":"Wnl0bEpsVnVXemRnTjJCeFR5SThVeTl1UzJ4cEpTZHNUMlpzSlVBNVVFQnZlMWMyTkVOQ0tETlNXV3BoYUdWQ0pFaGxRM3dwWVQ5SFFHQndJaTh6UUE9PQ"},"challenge":"[a-zA-Z0-9/_-]+","pubKeyCredParams":\[\{"type":"public-key","alg":-?\d+}(,{"type":"public-key","alg":-?\d+})*],"timeout":\d+,"authenticatorSelection":\{},"attestation":"indirect","extensions":{"credProps":true}}}}$`),
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"rp":\{"name":"Authelia","id":"example.com"},"user":\{"name":"john","displayName":"john","id":"ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA"},"challenge":"[a-zA-Z0-9/_-]+","pubKeyCredParams":\[\{"type":"public-key","alg":-48},\{"type":"public-key","alg":-49},\{"type":"public-key","alg":-50},\{"type":"public-key","alg":-8},\{"type":"public-key","alg":-7},\{"type":"public-key","alg":-257},\{"type":"public-key","alg":-35},\{"type":"public-key","alg":-36},\{"type":"public-key","alg":-258},\{"type":"public-key","alg":-259},\{"type":"public-key","alg":-37},\{"type":"public-key","alg":-38},\{"type":"public-key","alg":-39}],"timeout":\d+,"attestation":"indirect","extensions":{"credProps":true}}}}$`),
 			fasthttp.StatusOK,
 			nil,
+		},
+		{
+			"ShouldHandleUserDetailsError",
+			&schema.DefaultWebAuthnConfiguration,
+			`{"description":"test"}`,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.UserProviderMock.
+					EXPECT().
+					GetDetailsCached(testUsername).
+					Return(nil, fmt.Errorf("failed to lookup user"))
+			},
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}$`),
+			fasthttp.StatusBadRequest,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred loading user details", "failed to lookup user")
+			},
 		},
 		{
 			"ShouldErrorOnInvalidOrigin",
@@ -73,12 +116,12 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}$`),
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK://haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK/\": invalid URI for request")
@@ -89,7 +132,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 			&schema.DefaultWebAuthnConfiguration,
 			`{"description":"test"}`,
 			nil,
-			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge", "user is anonymous")
@@ -102,7 +145,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
@@ -120,9 +163,9 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}$`),
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error parsing the request body", "invalid character 'e' in literal true (expecting 'r')")
@@ -140,9 +183,9 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}$`),
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred validating the description chosen by the user", "description has a length of 72 but must be between 1 and 64")
@@ -160,20 +203,24 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: "ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: string(decode("ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
 						Return(nil, fmt.Errorf("database closed")),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "database closed")
@@ -191,16 +238,20 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
 						Return(nil, fmt.Errorf("no user x")),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "no user x")
@@ -218,20 +269,24 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: "ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: string(decode("ZytlJlVuWzdgN2BxTyI8Uy9uS2xpJSdsT2ZsJUA5UEBve1c2NENCKDNSWWphaGVCJEhlQ3wpYT9HQGBwIi8zQA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
 						Return([]model.WebAuthnCredential{{Description: "test"}}, nil),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"KO","message":"Another one of your security keys is already registered with that display name."}$`),
+			regexp.MustCompile(`^\{"status":"KO","code":"webauthn_duplicate_name","message":"Another one of your security keys is already registered with that display name."}$`),
 			fasthttp.StatusConflict,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred validating the description chosen by the user", "the description 'test' already exists for the user")
@@ -292,7 +347,7 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -308,7 +363,7 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 			"ShouldErrorAnonymous",
 			&schema.DefaultWebAuthnConfiguration,
 			nil,
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting a WebAuthn registration challenge", "user is anonymous")
@@ -320,7 +375,7 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
 			},
-			`{"status":"KO","message":"Operation failed."}`,
+			`{"status":"KO","code":"operation_failed","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting a WebAuthn registration challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
@@ -355,6 +410,22 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 }
 
 func TestWebAuthnRegistrationPOST(t *testing.T) {
+	parameters := []protocol.CredentialParameter{
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgMLDSA44},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgMLDSA65},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgMLDSA87},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgEdDSA},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgES256},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgRS256},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgES384},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgES512},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgRS384},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgRS512},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgPS256},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgPS384},
+		{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgPS512},
+	}
+
 	decode := func(in string) []byte {
 		value, err := base64.StdEncoding.DecodeString(in)
 		require.NoError(t, err)
@@ -398,13 +469,18 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
-						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -419,7 +495,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.
 						EXPECT().
@@ -455,13 +531,18 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
-						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -476,7 +557,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 					mock.NotifierMock.
 						EXPECT().
@@ -514,13 +595,18 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
-						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -535,7 +621,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Return(nil),
 					mock.UserProviderMock.
 						EXPECT().
-						GetDetails(testUsername).
+						GetDetailsCached(testUsername).
 						Return(nil, fmt.Errorf("failed conn")),
 				)
 			},
@@ -569,13 +655,18 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
-						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -591,7 +682,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				)
 			},
 			`{"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"attestationObject":"o2NmbXRmcGFja2VkZ2F0dFN0bXSjY2FsZyZjc2lnWEcwRQIhAI505i2XKRL3xsFcSNRz6crTg7_AIpJIsVOjuv8MKW6jAiBJCrqGIc9kKSgS1x54lq53SWUpVNXmlakZfp5NIXrJcmN4NWOBWQHeMIIB2jCCAX2gAwIBAgIBATANBgkqhkiG9w0BAQsFADBgMQswCQYDVQQGEwJVUzERMA8GA1UECgwIQ2hyb21pdW0xIjAgBgNVBAsMGUF1dGhlbnRpY2F0b3IgQXR0ZXN0YXRpb24xGjAYBgNVBAMMEUJhdGNoIENlcnRpZmljYXRlMB4XDTE3MDcxNDAyNDAwMFoXDTQzMTEyMTA4MDAzOVowYDELMAkGA1UEBhMCVVMxETAPBgNVBAoMCENocm9taXVtMSIwIAYDVQQLDBlBdXRoZW50aWNhdG9yIEF0dGVzdGF0aW9uMRowGAYDVQQDDBFCYXRjaCBDZXJ0aWZpY2F0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABI1hfmXJUI5kvMVnOsgqZ5naPBRGaCwljEY__99Y39L6Pmw3i1PXlcSk3_tBme3Xhi8jq68CA7S4kRugVpmU4QGjJTAjMAwGA1UdEwEB_wQCMAAwEwYLKwYBBAGC5RwCAQEEBAMCBSAwDQYJKoZIhvcNAQELBQADSAAwRQIgI4PXvgxbCt2L3tk_p22e3QmDCw0ZOPJ6dIJcp2LoTRACIQDqhWGzBtSCdnTiGq2CjhApHJxER1tBy9vRbRaioTz-ZGhhdXRoRGF0YVikDGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiYXFfQVhkdnNETXNLV18xYVkzMVhRaFUxN1pNZzFpMFRLMDEzRHd1a0IyVSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","transports":["usb"],"publicKeyAlgorithm":-7,"publicKey":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuBHGqg5RF-1k2nt6MEw4lBdvrfVD77Dlx83VLu9b3rerjXRKRLRRQlF_USnsrSYHCSKAp2UzGVTvZAp8daWysw","authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM"},"type":"public-key","clientExtensionResults":{"credProps":{"rk":false}},"authenticatorAttachment":"cross-platform"}`,
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -623,9 +714,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -637,7 +732,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				)
 			},
 			`{"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"attestationObject":"o2NmbXRmcGFja2VkZ2F0dFN0bXSjY2FsZyZjc2lnWEcwRQIhAI505i2XKRL3xsFcSNRz6crTg7_AIpJIsVOjuv8MKW6jAiBJCrqGIc9kKSgS1x54lq53SWUpVNXmlakZfp5NIXrJcmN4NWOBWQHeMIIB2jCCAX2gAwIBAgIBATANBgkqhkiG9w0BAQsFADBgMQswCQYDVQQGEwJVUzERMA8GA1UECgwIQ2hyb21pdW0xIjAgBgNVBAsMGUF1dGhlbnRpY2F0b3IgQXR0ZXN0YXRpb24xGjAYBgNVBAMMEUJhdGNoIENlcnRpZmljYXRlMB4XDTE3MDcxNDAyNDAwMFoXDTQzMTEyMTA4MDAzOVowYDELMAkGA1UEBhMCVVMxETAPBgNVBAoMCENocm9taXVtMSIwIAYDVQQLDBlBdXRoZW50aWNhdG9yIEF0dGVzdGF0aW9uMRowGAYDVQQDDBFCYXRjaCBDZXJ0aWZpY2F0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABI1hfmXJUI5kvMVnOsgqZ5naPBRGaCwljEY__99Y39L6Pmw3i1PXlcSk3_tBme3Xhi8jq68CA7S4kRugVpmU4QGjJTAjMAwGA1UdEwEB_wQCMAAwEwYLKwYBBAGC5RwCAQEEBAMCBSAwDQYJKoZIhvcNAQELBQADSAAwRQIgI4PXvgxbCt2L3tk_p22e3QmDCw0ZOPJ6dIJcp2LoTRACIQDqhWGzBtSCdnTiGq2CjhApHJxER1tBy9vRbRaioTz-ZGhhdXRoRGF0YVikDGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiYXFfQVhkdnNETXNLV18xYVkzMVhRaFUxN1pNZzFpMFRLMDEzRHd1a0IyVSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","transports":["usb"],"publicKeyAlgorithm":-7,"publicKey":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuBHGqg5RF-1k2nt6MEw4lBdvrfVD77Dlx83VLu9b3rerjXRKRLRRQlF_USnsrSYHCSKAp2UzGVTvZAp8daWysw","authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM"},"type":"public-key","clientExtensionResults":{"credProps":{"rk":false}},"authenticatorAttachment":"cross-platform"}`,
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -669,9 +764,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -679,7 +778,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				)
 			},
 			`{"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"attestationObject":"o2NmbXRmcGFja2VkZ2F0dFN0bXSjY2FsZyZjc2lnWEcwRQIhAI505i2XKRL3xsFcSNRz6crTg7_AIpJIsVOjuv8MKW6jAiBJCrqGIc9kKSgS1x54lq53SWUpVNXmlakZfp5NIXrJcmN4NWOBWQHeMIIB2jCCAX2gAwIBAgIBATANBgkqhkiG9w0BAQsFADBgMQswCQYDVQQGEwJVUzERMA8GA1UECgwIQ2hyb21pdW0xIjAgBgNVBAsMGUF1dGhlbnRpY2F0b3IgQXR0ZXN0YXRpb24xGjAYBgNVBAMMEUJhdGNoIENlcnRpZmljYXRlMB4XDTE3MDcxNDAyNDAwMFoXDTQzMTEyMTA4MDAzOVowYDELMAkGA1UEBhMCVVMxETAPBgNVBAoMCENocm9taXVtMSIwIAYDVQQLDBlBdXRoZW50aWNhdG9yIEF0dGVzdGF0aW9uMRowGAYDVQQDDBFCYXRjaCBDZXJ0aWZpY2F0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABI1hfmXJUI5kvMVnOsgqZ5naPBRGaCwljEY__99Y39L6Pmw3i1PXlcSk3_tBme3Xhi8jq68CA7S4kRugVpmU4QGjJTAjMAwGA1UdEwEB_wQCMAAwEwYLKwYBBAGC5RwCAQEEBAMCBSAwDQYJKoZIhvcNAQELBQADSAAwRQIgI4PXvgxbCt2L3tk_p22e3QmDCw0ZOPJ6dIJcp2LoTRACIQDqhWGzBtSCdnTiGq2CjhApHJxER1tBy9vRbRaioTz-ZGhhdXRoRGF0YVikDGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiYXFfQVhkdnNETXNLV18xYVkzMVhRaFUxN1pNZzFpMFRLMDEzRHd1a0IyVSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","transports":["usb"],"publicKeyAlgorithm":-7,"publicKey":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuBHGqg5RF-1k2nt6MEw4lBdvrfVD77Dlx83VLu9b3rerjXRKRLRRQlF_USnsrSYHCSKAp2UzGVTvZAp8daWysw","authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM"},"type":"public-key","clientExtensionResults":{"credProps":{"rk":false}},"authenticatorAttachment":"cross-platform"}`,
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -689,6 +788,40 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				assert.Nil(t, us.WebAuthn)
 
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "not enough cowbell")
+			},
+		},
+		{
+			"ShouldHandleUserDetailsError",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.WebAuthn = &session.WebAuthn{
+					Description: "test",
+					SessionData: &webauthn.SessionData{
+						Challenge:        "aq_AXdvsDMsKW_1aY31XQhU17ZMg1i0TK013DwukB2U",
+						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.UserProviderMock.
+					EXPECT().
+					GetDetailsCached(testUsername).
+					Return(nil, fmt.Errorf("failed to lookup user"))
+			},
+			dataPOSTGood,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
+			fasthttp.StatusBadRequest,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred loading user details", "failed to lookup user")
 			},
 		},
 		{
@@ -702,10 +835,10 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			dataPOSTGood,
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -737,10 +870,10 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			strings.Replace(dataPOSTGood, `{"id":"rwOw`, `{"id":wOw`, 1),
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -772,12 +905,12 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "---123=123=1")
 			},
 			dataPOSTGood,
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -794,7 +927,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 			&schema.DefaultWebAuthnConfiguration,
 			nil,
 			`{"id":wOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"attestationObject":"o2NmbXRmcGFja2VkZ2F0dFN0bXSjY2FsZyZjc2lnWEcwRQIhAI505i2XKRL3xsFcSNRz6crTg7_AIpJIsVOjuv8MKW6jAiBJCrqGIc9kKSgS1x54lq53SWUpVNXmlakZfp5NIXrJcmN4NWOBWQHeMIIB2jCCAX2gAwIBAgIBATANBgkqhkiG9w0BAQsFADBgMQswCQYDVQQGEwJVUzERMA8GA1UECgwIQ2hyb21pdW0xIjAgBgNVBAsMGUF1dGhlbnRpY2F0b3IgQXR0ZXN0YXRpb24xGjAYBgNVBAMMEUJhdGNoIENlcnRpZmljYXRlMB4XDTE3MDcxNDAyNDAwMFoXDTQzMTEyMTA4MDAzOVowYDELMAkGA1UEBhMCVVMxETAPBgNVBAoMCENocm9taXVtMSIwIAYDVQQLDBlBdXRoZW50aWNhdG9yIEF0dGVzdGF0aW9uMRowGAYDVQQDDBFCYXRjaCBDZXJ0aWZpY2F0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABI1hfmXJUI5kvMVnOsgqZ5naPBRGaCwljEY__99Y39L6Pmw3i1PXlcSk3_tBme3Xhi8jq68CA7S4kRugVpmU4QGjJTAjMAwGA1UdEwEB_wQCMAAwEwYLKwYBBAGC5RwCAQEEBAMCBSAwDQYJKoZIhvcNAQELBQADSAAwRQIgI4PXvgxbCt2L3tk_p22e3QmDCw0ZOPJ6dIJcp2LoTRACIQDqhWGzBtSCdnTiGq2CjhApHJxER1tBy9vRbRaioTz-ZGhhdXRoRGF0YVikDGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiYXFfQVhkdnNETXNLV18xYVkzMVhRaFUxN1pNZzFpMFRLMDEzRHd1a0IyVSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","transports":["usb"],"publicKeyAlgorithm":-7,"publicKey":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuBHGqg5RF-1k2nt6MEw4lBdvrfVD77Dlx83VLu9b3rerjXRKRLRRQlF_USnsrSYHCSKAp2UzGVTvZAp8daWysw","authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM"},"type":"public-key","clientExtensionResults":{"credProps":{"rk":false}},"authenticatorAttachment":"cross-platform"}`,
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -813,7 +946,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 			},
 			`{"id":wOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"attestationObject":"o2NmbXRmcGFja2VkZ2F0dFN0bXSjY2FsZyZjc2lnWEcwRQIhAI505i2XKRL3xsFcSNRz6crTg7_AIpJIsVOjuv8MKW6jAiBJCrqGIc9kKSgS1x54lq53SWUpVNXmlakZfp5NIXrJcmN4NWOBWQHeMIIB2jCCAX2gAwIBAgIBATANBgkqhkiG9w0BAQsFADBgMQswCQYDVQQGEwJVUzERMA8GA1UECgwIQ2hyb21pdW0xIjAgBgNVBAsMGUF1dGhlbnRpY2F0b3IgQXR0ZXN0YXRpb24xGjAYBgNVBAMMEUJhdGNoIENlcnRpZmljYXRlMB4XDTE3MDcxNDAyNDAwMFoXDTQzMTEyMTA4MDAzOVowYDELMAkGA1UEBhMCVVMxETAPBgNVBAoMCENocm9taXVtMSIwIAYDVQQLDBlBdXRoZW50aWNhdG9yIEF0dGVzdGF0aW9uMRowGAYDVQQDDBFCYXRjaCBDZXJ0aWZpY2F0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABI1hfmXJUI5kvMVnOsgqZ5naPBRGaCwljEY__99Y39L6Pmw3i1PXlcSk3_tBme3Xhi8jq68CA7S4kRugVpmU4QGjJTAjMAwGA1UdEwEB_wQCMAAwEwYLKwYBBAGC5RwCAQEEBAMCBSAwDQYJKoZIhvcNAQELBQADSAAwRQIgI4PXvgxbCt2L3tk_p22e3QmDCw0ZOPJ6dIJcp2LoTRACIQDqhWGzBtSCdnTiGq2CjhApHJxER1tBy9vRbRaioTz-ZGhhdXRoRGF0YVikDGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiYXFfQVhkdnNETXNLV18xYVkzMVhRaFUxN1pNZzFpMFRLMDEzRHd1a0IyVSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","transports":["usb"],"publicKeyAlgorithm":-7,"publicKey":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuBHGqg5RF-1k2nt6MEw4lBdvrfVD77Dlx83VLu9b3rerjXRKRLRRQlF_USnsrSYHCSKAp2UzGVTvZAp8daWysw","authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtxFAAAAAQECAwQFBgcIAQIDBAUGBwgAIK8DsFfFgodYaxNDOpr2qERqRh4naiuiJYZAydsREYT1pQECAyYgASFYILgRxqoOURftZNp7ejBMOJQXb631Q--w5cfN1S7vW963Ilggq410SkS0UUJRf1Ep7K0mBwkigKdlMxlU72QKfHWlsrM"},"type":"public-key","clientExtensionResults":{"credProps":{"rk":false}},"authenticatorAttachment":"cross-platform"}`,
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
@@ -839,9 +972,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "example.com", testUsername).
@@ -855,7 +992,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
 			},
 			dataPOSTBadRPIDHash,
-			`{"status":"KO","message":"Unable to register your security key."}`,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -864,7 +1001,55 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response (verification_error): RP Hash mismatch. Expected 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc and Received a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response (verification_error): RP Hash mismatch. Expected a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947 and Received 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc")
+			},
+		},
+		{
+			"ShouldHandleCredentialFilteringError",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.WebAuthn.Filtering.ProhibitedAAGUIDs = []uuid.UUID{uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708"))}
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.WebAuthn = &session.WebAuthn{
+					Description: "test",
+					SessionData: &webauthn.SessionData{
+						Challenge:        "aq_AXdvsDMsKW_1aY31XQhU17ZMg1i0TK013DwukB2U",
+						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsCached(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
+						Return(nil, nil),
+				)
+			},
+			dataPOSTGood,
+			`{"status":"KO","code":"webauthn_register_failed","message":"Unable to register your security key."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred processing the credential filtering", "error checking webauthn credential: filters have been configured which prohibit the AAGUID '01020304-0506-0708-0102-030405060708' from registration")
 			},
 		},
 	}

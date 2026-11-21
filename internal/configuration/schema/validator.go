@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 // ErrorContainer represents a container where we can add errors and retrieve them.

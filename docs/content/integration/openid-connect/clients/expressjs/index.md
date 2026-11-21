@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Express.js"
-description: "Integrating Express.js with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Express.js with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2024-04-18T11:00:43+10:00
 draft: false
@@ -32,10 +36,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://express.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `expressjs-example`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://express.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `expressjs-example`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -44,13 +48,13 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-This is a developer guide which can be used to create your open application. It's worth noting that some applications
+This is a developer guide which can be used to create your own application. It's worth noting that some applications
 may also use the associated libraries so the configurations may be adaptable to those applications.
 {{< /callout >}}
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Express.js] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Express.js] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -63,6 +67,7 @@ identity_providers:
         client_name: 'Express.js App'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -136,7 +141,7 @@ app.get('/', requiresAuth(), (req, res) => {
         refreshToken: req.oidc.refreshToken,
         idToken: req.oidc.idToken,
         claims: {
-          id_token: req.oidc.idToken,
+          id_token: req.oidc.idTokenClaims,
           userinfo: userInfo,
         },
         scopes: req.oidc.scope,

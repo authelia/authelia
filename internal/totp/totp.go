@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package totp
 
 import (
@@ -31,6 +35,7 @@ func NewTimeBasedProvider(config schema.TOTP) (provider *TimeBased) {
 	return provider
 }
 
+// NewTOTPOptionsFromSchema returns the *model.TOTPOptions for the given TOTP configuration.
 func NewTOTPOptionsFromSchema(config schema.TOTP) *model.TOTPOptions {
 	return &model.TOTPOptions{
 		Algorithm:  config.DefaultAlgorithm,

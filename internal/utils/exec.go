@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -124,10 +128,19 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 
 // RunCommandWithTimeout run a command with timeout.
 func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
-	// Start a process.
+	// Killing only the command leaves whatever it started running past the timeout, such as the binary a `go run`
+	// builds, so the command gets a process group of its own and the whole group is killed.
+	setProcessGroup(cmd)
+
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}
+
+	// A process group of its own no longer receives the terminal's interrupt, so it is forwarded.
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+
+	defer signal.Stop(signals)
 
 	// Wait for the process to finish or kill it after a timeout (whichever happens first).
 	done := make(chan error, 1)
@@ -136,17 +149,23 @@ func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 		done <- cmd.Wait()
 	}()
 
-	select {
-	case <-time.After(timeout):
-		fmt.Printf("Timeout of %ds reached... Killing process...\n", int64(timeout/time.Second)) //nolint:forbidigo
+	expired := time.After(timeout)
 
-		if err := cmd.Process.Kill(); err != nil {
+	for {
+		select {
+		case sig := <-signals:
+			_ = signalProcessGroup(cmd, sig.(syscall.Signal))
+		case <-expired:
+			fmt.Printf("Timeout of %ds reached... Killing process...\n", int64(timeout/time.Second)) //nolint:forbidigo
+
+			if err := signalProcessGroup(cmd, syscall.SIGKILL); err != nil {
+				return err
+			}
+
+			return ErrTimeoutReached
+		case err := <-done:
 			return err
 		}
-
-		return ErrTimeoutReached
-	case err := <-done:
-		return err
 	}
 }
 

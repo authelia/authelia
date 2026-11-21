@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Argo CD"
-description: "Integrating Argo CD with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Argo CD with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -33,11 +37,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `argocd`
-- __Client Secret:__ `insecure_secret`
-- __CLI Client ID:__ `argocd-cli`
+- **Application Root URL:** `https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `argocd`
+- **Client Secret:** `insecure_secret`
+- **CLI Client ID:** `argocd-cli`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,7 +51,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Argo CD] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Argo CD] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -60,6 +64,7 @@ identity_providers:
         client_name: 'Argo CD'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -79,6 +84,7 @@ identity_providers:
       - client_id: 'argocd-cli'
         client_name: 'Argo CD (CLI)'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

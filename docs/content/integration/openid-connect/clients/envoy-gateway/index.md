@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Envoy Gateway"
-description: "Integrating Envoy Gateway with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Envoy Gateway with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-06-13T14:12:09+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Envoy Gateway]
   - [v1.4.1](https://github.com/envoyproxy/gateway/releases/tag/v1.4.1)
 
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://envoy.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `envoy`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://envoy.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `envoy`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Envoy Gateway] which will operate with the application example:
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Envoy Gateway] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
@@ -58,11 +62,13 @@ identity_providers:
         client_name: 'Envoy Gateway'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
           - 'https://envoy.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
+          - 'https://envoy-oidc.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
         scopes:
           - 'openid'
           - 'offline_access'
@@ -85,9 +91,10 @@ To configure [Envoy Gateway] there is one method, using the [Configuration File]
 {{< callout context="caution" title="Important Notes" icon="outline/alert-triangle" >}}
 Because this setup stores the ID Token and Access Token in session cookies, it is strongly recommended that all of the
 following are true:
-  - Each application has an individual Security Policy applied.
-  - Each Security Policy has a specific domain configured that is a complete match for the protected application.
-{{< /callout >}}
+
+- Each application has an individual Security Policy applied.
+- Each Security Policy has a specific domain configured that is a complete match for the protected application.
+  {{< /callout >}}
 
 ##### Apply to a HTTPRoute
 
@@ -98,10 +105,10 @@ following instructions:
    - `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
 2. Apply the below manifests for the example application.
 
-The following example [HTTPRoute] is a example real application just for the purposes of showcasing this. The important
+The following example [HTTPRoute] is an example application used only to showcase this. The important
 factors are the `name` value being `envoy`.
 
-```yaml {title="httproute.yaml
+```yaml {title="httproute.yaml"}
 ---
 apiVersion: 'gateway.networking.k8s.io/v1'
 kind: 'HTTPRoute'
@@ -164,12 +171,14 @@ To configure [Envoy Gateway] to utilize Authelia as an [OpenID Connect 1.0] Prov
 following instructions:
 
 1. Use `kubectl` to create the secret:
-  - `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
+
+- `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
+
 2. Apply the below manifests for the `eg` [Gateway].
 
 The following example [HTTPRoute] is a fake application just for the redirection behavior.
 
-```yaml {title="httproute.yaml
+```yaml {title="httproute.yaml"}
 ---
 apiVersion: 'gateway.networking.k8s.io/v1'
 kind: 'HTTPRoute'

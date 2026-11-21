@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "GitLab"
-description: "Integrating GitLab with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating GitLab with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `gitlab`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `gitlab`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,12 +51,12 @@ Some of the values presented in this guide can automatically be replaced with do
 ### Authelia
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-This configuration assumes you've configured the `client_auth_method` in [GitLab](https://about.gitlab.com/) as per below. If you
-have not done this, the default in [GitLab](https://about.gitlab.com/) will require the `token_endpoint_auth_method` changes to
-`client_secret_post`.
+This configuration assumes the `client_auth_method` in [GitLab](https://about.gitlab.com/) is `basic` as per below, which
+is also the default. If you change it to another value such as `query`, the `token_endpoint_auth_method` must be
+changed to match, for example `client_secret_post`.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [GitLab] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [GitLab] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -65,6 +69,7 @@ identity_providers:
         client_name: 'GitLab'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'

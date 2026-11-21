@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import eslintReact from "@eslint-react/eslint-plugin";
 import limegrassImportAlias from "@limegrass/eslint-plugin-import-alias";
 import tsEslintPlugin from "@typescript-eslint/eslint-plugin";
@@ -87,6 +91,6 @@ export default [
     prettierPluginRecommended,
 
     {
-        ignores: [".pnpm-store", "build", "coverage", "html", "!**/.*.js"],
+        ignores: [".pnpm-store", ".vitest", "build", "coverage", "html", "!**/.*.js"],
     },
 ];

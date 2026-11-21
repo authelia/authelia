@@ -1,17 +1,23 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import { Box, Button } from "@mui/material";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import SuccessIcon from "@components/SuccessIcon";
+import { Button } from "@components/UI/Button";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
+import { useRateLimit } from "@hooks/RateLimit";
 import {
     DuoDevicePostRequest,
     completeDuoDeviceSelectionProcess,
@@ -19,6 +25,7 @@ import {
     getPreferredDuoDevice,
     initiateDuoDeviceSelectionProcess,
 } from "@services/PushNotification";
+import { RateLimitedError } from "@services/RateLimit";
 import { AuthenticationLevel } from "@services/State";
 import DeviceSelectionContainer, {
     SelectableDevice,
@@ -62,18 +69,13 @@ const PushNotificationMethod = function (props: Props) {
     const [preferredDevice, setPreferredDevice] = useState<{ device?: string; method?: string }>({});
 
     const { onSignInError, onSignInSuccess } = props;
-    const signInInitiatedRef = useRef(false);
     const stateRef = useRef<null | State>(null);
 
-    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
-    const timeoutSuccessRef = useRef<NodeJS.Timeout | null>(null);
+    const { secondsRemaining, trigger: triggerRateLimit } = useRateLimit(() => setState(State.Failure));
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     useEffect(() => {
         return () => {
-            if (timeoutRateLimitRef.current !== null) {
-                clearTimeout(timeoutRateLimitRef.current);
-                timeoutRateLimitRef.current = null;
-            }
             if (timeoutSuccessRef.current !== null) {
                 clearTimeout(timeoutSuccessRef.current);
                 timeoutSuccessRef.current = null;
@@ -117,20 +119,13 @@ const PushNotificationMethod = function (props: Props) {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimitRef.current) {
-                clearTimeout(timeoutRateLimitRef.current);
-            }
-
             setState(State.RateLimited);
 
             onSignInError(new Error(translate("You have made too many requests")));
 
-            timeoutRateLimitRef.current = setTimeout(() => {
-                setState(State.Failure);
-                timeoutRateLimitRef.current = null;
-            }, retryAfter * 1000);
+            triggerRateLimit(retryAfter);
         },
-        [onSignInError, translate],
+        [onSignInError, translate, triggerRateLimit],
     );
 
     const handleFetchDuoDevices = useCallback(async () => {
@@ -183,24 +178,17 @@ const PushNotificationMethod = function (props: Props) {
                 getSignal(),
             );
             if (!res) {
-                throw new Error(translate("There was an issue completing sign in process"));
-            }
-            if (res.limited) {
-                handleRateLimited(res.retryAfter);
-                return;
-            }
-            if (!res.data) {
                 handleSuccess(undefined);
                 return;
             }
-            switch (res.data.result) {
+            switch (res.result) {
                 case "auth":
-                    setDevices(processDevices(res.data.devices));
+                    setDevices(processDevices(res.devices));
                     setState(State.Selection);
                     break;
                 case "enroll":
                     onSignInError(new Error(translate("No compatible device found")));
-                    if (res.data.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.data.enroll_url);
+                    if (res.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.enroll_url);
                     setState(State.Enroll);
                     break;
                 case "deny":
@@ -208,10 +196,14 @@ const PushNotificationMethod = function (props: Props) {
                     setState(State.Failure);
                     break;
                 default:
-                    handleSuccess(res.data.redirect);
+                    handleSuccess(res.redirect);
             }
         } catch (err) {
             if (axios.isCancel(err)) return;
+            if (err instanceof RateLimitedError) {
+                handleRateLimited(err.retryAfter);
+                return;
+            }
             console.error(err);
             onSignInError(new Error(translate("There was an issue completing sign in process")));
             setState(State.Failure);
@@ -277,12 +269,21 @@ const PushNotificationMethod = function (props: Props) {
         [updateDuoDevice, preferredDevice, handleSignIn, setPreferredDevice, props.authenticationLevel],
     );
 
+    const handleSignInRef = useRef(handleSignIn);
+
     useEffect(() => {
-        if (props.authenticationLevel < AuthenticationLevel.TwoFactor && !signInInitiatedRef.current) {
-            signInInitiatedRef.current = true;
-            handleSignIn();
+        handleSignInRef.current = handleSignIn;
+    }, [handleSignIn]);
+
+    const shouldSignIn = props.authenticationLevel < AuthenticationLevel.TwoFactor;
+
+    useEffect(() => {
+        if (!shouldSignIn) {
+            return;
         }
-    }, [props.authenticationLevel, handleSignIn]);
+
+        handleSignInRef.current();
+    }, [shouldSignIn]);
 
     if (state === State.Selection)
         return (
@@ -323,12 +324,13 @@ const PushNotificationMethod = function (props: Props) {
             onSelectClick={handleFetchDuoDevices}
             onRegisterClick={() => window.open(enrollUrl, "_blank", "noopener,noreferrer")}
         >
-            <Box sx={{ display: "inline-block", height: "64px", width: "64px" }}>{icon}</Box>
-            <Box className={state === State.Failure ? "" : "hidden"}>
-                <Button color="secondary" onClick={handleSignIn}>
+            <div className="flex w-full justify-center">{icon}</div>
+            <RateLimitCountdown secondsRemaining={secondsRemaining} />
+            <div className={state === State.Failure ? "" : "hidden"}>
+                <Button variant={"ghost"} color={"secondary"} onClick={handleSignIn}>
                     {translate("Retry")}
                 </Button>
-            </Box>
+            </div>
         </MethodContainer>
     );
 };

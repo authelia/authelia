@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package session
 
 import (
@@ -19,12 +23,11 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetOneFactorPassword",
 			func(session *UserSession) {
-				session.SetOneFactorPassword(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
 			},
 			&UserSession{
 				Username:                  "john",
-				Groups:                    []string{"abc", "123"},
-				Emails:                    []string{"john@example.com"},
 				KeepMeLoggedIn:            true,
 				LastActivity:              10000,
 				FirstFactorAuthnTimestamp: 10000,
@@ -37,12 +40,11 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetOneFactorPasskey",
 			func(session *UserSession) {
-				session.SetOneFactorPasskey(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true, true, true, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPasskey(time.Unix(10000, 0), true, true, true, true)
 			},
 			&UserSession{
 				Username:                  "john",
-				Groups:                    []string{"abc", "123"},
-				Emails:                    []string{"john@example.com"},
 				KeepMeLoggedIn:            true,
 				LastActivity:              10000,
 				FirstFactorAuthnTimestamp: 10000,
@@ -57,13 +59,12 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetTwoFactorPassword",
 			func(session *UserSession) {
-				session.SetOneFactorPasskey(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true, true, true, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPasskey(time.Unix(10000, 0), true, true, true, true)
 				session.SetTwoFactorPassword(time.Unix(20000, 0))
 			},
 			&UserSession{
 				Username:                   "john",
-				Groups:                     []string{"abc", "123"},
-				Emails:                     []string{"john@example.com"},
 				KeepMeLoggedIn:             true,
 				LastActivity:               20000,
 				FirstFactorAuthnTimestamp:  10000,
@@ -79,15 +80,49 @@ func TestUserSession_SetFactors(t *testing.T) {
 			},
 		},
 		{
+			"ShouldSetOneFactorExternalIdentityWithOnlyTheFederatedIdentityReference",
+			func(session *UserSession) {
+				*session = NewUserSession("john")
+				session.SetOneFactorExternalIdentity(time.Unix(10000, 0), true)
+			},
+			&UserSession{
+				Username:                  "john",
+				KeepMeLoggedIn:            true,
+				LastActivity:              10000,
+				FirstFactorAuthnTimestamp: 10000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					FederatedIdentity: true,
+				},
+			},
+		},
+		{
+			"ShouldSetOneFactorExternalIdentityAndMergeTrustedAuthenticationMethodReferences",
+			func(session *UserSession) {
+				*session = NewUserSession("john")
+				session.SetOneFactorExternalIdentity(time.Unix(10000, 0), true)
+				session.AuthenticationMethodRefs = session.AuthenticationMethodRefs.Merge(authorization.NewAuthenticationMethodsReferencesFromClaim([]string{"pwd", "otp"}))
+			},
+			&UserSession{
+				Username:                  "john",
+				KeepMeLoggedIn:            true,
+				LastActivity:              10000,
+				FirstFactorAuthnTimestamp: 10000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					FederatedIdentity:   true,
+					UsernameAndPassword: true,
+					TOTP:                true,
+				},
+			},
+		},
+		{
 			"ShouldSetOneFactorPasswordAndTwoFactorDuo",
 			func(session *UserSession) {
-				session.SetOneFactorPassword(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
 				session.SetTwoFactorDuo(time.Unix(20000, 0))
 			},
 			&UserSession{
 				Username:                   "john",
-				Groups:                     []string{"abc", "123"},
-				Emails:                     []string{"john@example.com"},
 				KeepMeLoggedIn:             true,
 				LastActivity:               20000,
 				FirstFactorAuthnTimestamp:  10000,
@@ -96,6 +131,25 @@ func TestUserSession_SetFactors(t *testing.T) {
 					KnowledgeBasedAuthentication: true,
 					UsernameAndPassword:          true,
 					Duo:                          true,
+				},
+			},
+		},
+		{
+			"ShouldSetOneFactorPasswordAndTwoFactorRecoveryCode",
+			func(session *UserSession) {
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), false)
+				session.SetTwoFactorRecoveryCode(time.Unix(20000, 0))
+			},
+			&UserSession{
+				Username:                   "john",
+				LastActivity:               20000,
+				FirstFactorAuthnTimestamp:  10000,
+				SecondFactorAuthnTimestamp: 20000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					KnowledgeBasedAuthentication: true,
+					UsernameAndPassword:          true,
+					RecoveryCode:                 true,
 				},
 			},
 		},
@@ -110,6 +164,144 @@ func TestUserSession_SetFactors(t *testing.T) {
 			assert.Equal(t, tc.expect, session)
 		})
 	}
+}
+
+func TestUserSession_SetOneFactorExternalIdentityAuthenticationLevel(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Claim    []string
+		Trust    bool
+		Expected authentication.Level
+	}{
+		{
+			Name:     "ShouldBeOneFactorWithoutTrustedAuthenticationMethodReferences",
+			Claim:    []string{"pwd"},
+			Trust:    false,
+			Expected: authentication.OneFactor,
+		},
+		{
+			Name:     "ShouldBeOneFactorWithTrustedKnowledgeFactor",
+			Claim:    []string{"pwd"},
+			Trust:    true,
+			Expected: authentication.OneFactor,
+		},
+		{
+			Name:     "ShouldBeTwoFactorWithTrustedKnowledgeAndPossessionFactors",
+			Claim:    []string{"pwd", "otp"},
+			Trust:    true,
+			Expected: authentication.TwoFactor,
+		},
+		{
+			Name:     "ShouldBeOneFactorWithTrustedButUnmappedAuthenticationMethodReferences",
+			Claim:    []string{"face"},
+			Trust:    true,
+			Expected: authentication.OneFactor,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			s := new(NewUserSession("john"))
+
+			s.SetOneFactorExternalIdentity(time.Unix(10000, 0), false)
+
+			if tc.Trust {
+				s.AuthenticationMethodRefs = s.AuthenticationMethodRefs.Merge(authorization.NewAuthenticationMethodsReferencesFromClaim(tc.Claim))
+			}
+
+			assert.Equal(t, tc.Expected, s.AuthenticationLevel(false))
+			assert.False(t, s.IsAnonymous())
+		})
+	}
+}
+
+func TestUserSession_FederatedIdentitySecondFactor(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Setup    func(s *UserSession)
+		Second   func(s *UserSession)
+		Expected authentication.Level
+		RFC8176  []string
+	}{
+		{
+			Name:     "ShouldBeOneFactorWithFederatedIdentityAlone",
+			Setup:    nil,
+			Second:   nil,
+			Expected: authentication.OneFactor,
+			RFC8176:  nil,
+		},
+		{
+			Name:     "ShouldBeTwoFactorWithFederatedIdentityAndTOTP",
+			Setup:    nil,
+			Second:   func(s *UserSession) { s.SetTwoFactorTOTP(time.Unix(20000, 0)) },
+			Expected: authentication.TwoFactor,
+			RFC8176:  []string{"otp"},
+		},
+		{
+			Name:     "ShouldBeTwoFactorWithFederatedIdentityAndDuo",
+			Setup:    nil,
+			Second:   func(s *UserSession) { s.SetTwoFactorDuo(time.Unix(20000, 0)) },
+			Expected: authentication.TwoFactor,
+			RFC8176:  []string{"sms"},
+		},
+		{
+			Name:     "ShouldBeTwoFactorWithFederatedIdentityAndWebAuthn",
+			Setup:    nil,
+			Second:   func(s *UserSession) { s.SetTwoFactorWebAuthn(time.Unix(20000, 0), true, true, false) },
+			Expected: authentication.TwoFactor,
+			RFC8176:  []string{"pop", "hwk", "user"},
+		},
+		{
+			Name:     "ShouldRemainOneFactorWithFederatedIdentityAndAKnowledgeFactor",
+			Setup:    nil,
+			Second:   func(s *UserSession) { s.SetTwoFactorPassword(time.Unix(20000, 0)) },
+			Expected: authentication.OneFactor,
+			RFC8176:  []string{"pwd", "kba"},
+		},
+		{
+			Name: "ShouldBeTwoFactorWithPasswordAndTOTP",
+			Setup: func(s *UserSession) {
+				s.SetOneFactorPassword(time.Unix(10000, 0), false)
+			},
+			Second:   func(s *UserSession) { s.SetTwoFactorTOTP(time.Unix(20000, 0)) },
+			Expected: authentication.TwoFactor,
+			RFC8176:  []string{"pwd", "kba", "otp", "mfa"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			s := new(NewUserSession("john"))
+
+			if tc.Setup != nil {
+				tc.Setup(s)
+			} else {
+				s.SetOneFactorExternalIdentity(time.Unix(10000, 0), false)
+			}
+
+			if tc.Second != nil {
+				tc.Second(s)
+			}
+
+			assert.Equal(t, tc.Expected, s.AuthenticationLevel(false))
+			assert.Equal(t, tc.RFC8176, s.AuthenticationMethodRefs.MarshalRFC8176())
+		})
+	}
+}
+
+func TestUserSession_FederatedIdentityIsNotAFactor(t *testing.T) {
+	s := new(NewUserSession("john"))
+
+	s.SetOneFactorExternalIdentity(time.Unix(10000, 0), false)
+
+	assert.True(t, s.AuthenticationMethodRefs.FederatedIdentity)
+	assert.False(t, s.AuthenticationMethodRefs.FactorKnowledge())
+	assert.False(t, s.AuthenticationMethodRefs.FactorPossession())
+	assert.False(t, s.AuthenticationMethodRefs.MultiFactorAuthentication())
+	assert.Empty(t, s.AuthenticationMethodRefs.MarshalRFC8176())
+	assert.Equal(t, authentication.OneFactor, s.AuthenticationLevel(false))
+	assert.Equal(t, authentication.OneFactor, s.AuthenticationLevel(true))
+	assert.False(t, s.IsAnonymous())
 }
 
 func TestUserSession_AuthenticationLevel(t *testing.T) {
@@ -263,34 +455,5 @@ func TestUserSession_SetTwoFactorWebAuthn(t *testing.T) {
 func TestUserSession_Misc(t *testing.T) {
 	session := &UserSession{}
 
-	assert.Equal(t, Identity{}, session.Identity())
-	assert.Equal(t, "", session.GetUsername())
-	assert.Equal(t, "", session.GetDisplayName())
-	assert.Nil(t, session.GetGroups())
-	assert.Nil(t, session.GetEmails())
 	assert.True(t, session.IsAnonymous())
-
-	session.Username = "abc"
-
-	assert.Equal(t, Identity{Username: "abc"}, session.Identity())
-	assert.Equal(t, "abc", session.GetUsername())
-
-	session.DisplayName = "A B C"
-
-	assert.Equal(t, Identity{Username: "abc", DisplayName: "A B C"}, session.Identity())
-	assert.Equal(t, "abc", session.GetUsername())
-	assert.Equal(t, "A B C", session.GetDisplayName())
-
-	session.Emails = []string{"abc@example.com", "xyz@example.com"}
-
-	assert.Equal(t, Identity{Username: "abc", DisplayName: "A B C", Email: "abc@example.com"}, session.Identity())
-	assert.Equal(t, "abc", session.GetUsername())
-	assert.Equal(t, "A B C", session.GetDisplayName())
-	assert.Equal(t, []string{"abc@example.com", "xyz@example.com"}, session.GetEmails())
-
-	session.Groups = []string{"agroup", "bgroup"}
-	assert.Equal(t, "abc", session.GetUsername())
-	assert.Equal(t, "A B C", session.GetDisplayName())
-	assert.Equal(t, []string{"abc@example.com", "xyz@example.com"}, session.GetEmails())
-	assert.Equal(t, []string{"agroup", "bgroup"}, session.GetGroups())
 }

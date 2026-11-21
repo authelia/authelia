@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import SettingsLayout from "@layouts/SettingsLayout";
@@ -15,16 +19,47 @@ vi.mock("@constants/constants", () => ({
 vi.mock("@constants/Routes", () => ({
     IndexRoute: "/",
     SecuritySubRoute: "/security",
+    SettingsExternalIdentitySubRoute: "/external-identity",
+    SettingsGroupManagementSubRoute: "/groups",
     SettingsRoute: "/settings",
     SettingsTwoFactorAuthenticationSubRoute: "/two-factor-authentication",
+    SettingsUserManagementSubRoute: "/users",
 }));
 
 vi.mock("@hooks/RouterNavigate", () => ({
     useRouterNavigate: () => mockNavigate,
 }));
 
+const mocks = vi.hoisted(() => ({
+    adminConfig: undefined as any,
+    adminConfigError: undefined as Error | undefined,
+    fetchAdminConfig: vi.fn(),
+    fetchUserInfo: vi.fn(),
+    userInfo: undefined as any,
+    userInfoError: undefined as Error | undefined,
+}));
+
+vi.mock("@hooks/UserInfo", () => ({
+    useUserInfoGET: () => [mocks.userInfo, mocks.fetchUserInfo, false, mocks.userInfoError],
+}));
+
+vi.mock("@hooks/UserManagement", () => ({
+    useAdminConfigurationGET: () => [mocks.adminConfig, mocks.fetchAdminConfig, false, mocks.adminConfigError],
+}));
+
 beforeEach(() => {
     mockNavigate.mockReset();
+    mocks.adminConfig = undefined;
+    mocks.adminConfigError = undefined;
+    mocks.userInfo = undefined;
+    mocks.userInfoError = undefined;
+    mocks.fetchAdminConfig.mockReset();
+    mocks.fetchUserInfo.mockReset();
+    document.body.dataset.externalidentitylogin = "false";
+});
+
+afterEach(() => {
+    document.body.dataset.externalidentitylogin = "false";
 });
 
 it("renders with settings title and menu button", async () => {
@@ -48,15 +83,19 @@ it("renders children", async () => {
     expect(screen.getByTestId("child")).toBeInTheDocument();
 });
 
-it("renders navigation items in drawer", async () => {
+it("renders navigation items", async () => {
     await act(async () => {
         render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
     });
 
     expect(screen.getByText("Overview")).toBeInTheDocument();
     expect(screen.getByText("Security")).toBeInTheDocument();
     expect(screen.getByText("Two-Factor Authentication")).toBeInTheDocument();
-    expect(screen.getByText("Close")).toBeInTheDocument();
+    expect(screen.getAllByText("Close").length).toBeGreaterThanOrEqual(1);
 });
 
 it("sets the document title", async () => {
@@ -67,21 +106,13 @@ it("sets the document title", async () => {
     expect(document.title).toContain("Settings");
 });
 
-it("opens drawer when menu button is clicked", async () => {
+it("navigates when a nav item is clicked", async () => {
     await act(async () => {
         render(<SettingsLayout />);
     });
 
     await act(async () => {
         fireEvent.click(screen.getByLabelText("open drawer"));
-    });
-
-    expect(screen.getByRole("presentation")).toBeInTheDocument();
-});
-
-it("navigates when a nav item is clicked", async () => {
-    await act(async () => {
-        render(<SettingsLayout />);
     });
 
     await act(async () => {
@@ -103,6 +134,10 @@ it("does not navigate when the selected nav item is clicked", async () => {
     });
 
     await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    await act(async () => {
         fireEvent.click(screen.getByText("Overview"));
     });
 
@@ -115,26 +150,37 @@ it("does not navigate when the selected nav item is clicked", async () => {
     });
 });
 
-it("does not close drawer on Tab keydown event", async () => {
-    await act(async () => {
-        render(<SettingsLayout />);
-    });
+const adminConfig = {
+    admin_group: "admins",
+    allow_admins_to_add_admins: false,
+    enabled: true,
+    group_management_enabled: true,
+};
 
-    await act(async () => {
-        fireEvent.click(screen.getByLabelText("open drawer"));
-    });
-
-    const drawerContent = screen.getByText("Overview").closest("[role='presentation']")!;
-
-    await act(async () => {
-        const event = new KeyboardEvent("keydown", { bubbles: true, key: "Tab" });
-        drawerContent.dispatchEvent(event);
-    });
-
-    expect(screen.getByRole("presentation")).toBeInTheDocument();
+const userInfo = (groups: string[]) => ({
+    display_name: "John",
+    emails: [],
+    groups,
+    has_duo: false,
+    has_totp: false,
+    has_webauthn: false,
+    method: 1,
+    username: "john",
 });
 
-it("does not close drawer on Shift keydown event", async () => {
+it("fetches the user info and the admin configuration on mount", async () => {
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    expect(mocks.fetchUserInfo).toHaveBeenCalledOnce();
+    expect(mocks.fetchAdminConfig).toHaveBeenCalledOnce();
+});
+
+it("shows the user and group management items to an admin", async () => {
+    mocks.adminConfig = adminConfig;
+    mocks.userInfo = userInfo(["admins", "dev"]);
+
     await act(async () => {
         render(<SettingsLayout />);
     });
@@ -143,12 +189,156 @@ it("does not close drawer on Shift keydown event", async () => {
         fireEvent.click(screen.getByLabelText("open drawer"));
     });
 
-    const drawerContent = screen.getByText("Overview").closest("[role='presentation']")!;
+    expect(screen.getByText("User Management")).toBeInTheDocument();
+    expect(screen.getByText("Group Management")).toBeInTheDocument();
+    expect(document.getElementById("settings-menu-users")).toBeInTheDocument();
+    expect(document.getElementById("settings-menu-groups")).toBeInTheDocument();
+});
+
+it("hides the management items from a user who is not in the admin group", async () => {
+    mocks.adminConfig = adminConfig;
+    mocks.userInfo = userInfo(["dev"]);
 
     await act(async () => {
-        const event = new KeyboardEvent("keydown", { bubbles: true, key: "Shift" });
-        drawerContent.dispatchEvent(event);
+        render(<SettingsLayout />);
     });
 
-    expect(screen.getByRole("presentation")).toBeInTheDocument();
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.queryByText("User Management")).not.toBeInTheDocument();
+    expect(screen.queryByText("Group Management")).not.toBeInTheDocument();
+    expect(screen.getByText("Security")).toBeInTheDocument();
+});
+
+it("hides the management items when administration is disabled", async () => {
+    mocks.adminConfig = { ...adminConfig, enabled: false };
+    mocks.userInfo = userInfo(["admins"]);
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.queryByText("User Management")).not.toBeInTheDocument();
+    expect(screen.queryByText("Group Management")).not.toBeInTheDocument();
+});
+
+it("hides only the group management item when group management is disabled", async () => {
+    mocks.adminConfig = { ...adminConfig, group_management_enabled: false };
+    mocks.userInfo = userInfo(["admins"]);
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.getByText("User Management")).toBeInTheDocument();
+    expect(screen.queryByText("Group Management")).not.toBeInTheDocument();
+});
+
+it("hides the management items while the admin configuration is not loaded", async () => {
+    mocks.adminConfig = undefined;
+    mocks.userInfo = userInfo(["admins"]);
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.queryByText("User Management")).not.toBeInTheDocument();
+});
+
+it("hides the management items when either fetch fails", async () => {
+    mocks.adminConfig = adminConfig;
+    mocks.userInfo = userInfo(["admins"]);
+    mocks.userInfoError = new Error("boom");
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.queryByText("User Management")).not.toBeInTheDocument();
+
+    mocks.userInfoError = undefined;
+    mocks.adminConfigError = new Error("boom");
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getAllByLabelText("open drawer")[1]);
+    });
+
+    expect(screen.queryByText("User Management")).not.toBeInTheDocument();
+});
+
+it("navigates to the user management route when its item is clicked", async () => {
+    mocks.adminConfig = adminConfig;
+    mocks.userInfo = userInfo(["admins"]);
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByText("User Management"));
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith("/settings/users");
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByText("Group Management"));
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith("/settings/groups");
+});
+
+it("does not render the linked accounts nav item when no provider is configured", async () => {
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.queryByText("Linked Accounts")).not.toBeInTheDocument();
+});
+
+it("renders the linked accounts nav item when a provider is configured", async () => {
+    document.body.dataset.externalidentitylogin = "true";
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.getByText("Linked Accounts")).toBeInTheDocument();
 });

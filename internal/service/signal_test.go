@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -18,10 +22,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// mockServiceCtx implements ServiceCtx for testing.
 type mockServiceCtx struct {
 	ctx       context.Context
 	config    *schema.Configuration
+	cpaths    []string
 	logger    *logrus.Entry
 	providers middlewares.Providers
 }
@@ -36,6 +40,10 @@ func (m *mockServiceCtx) GetProviders() middlewares.Providers {
 
 func (m *mockServiceCtx) GetConfiguration() *schema.Configuration {
 	return m.config
+}
+
+func (m *mockServiceCtx) GetConfigurationPaths() []string {
+	return m.cpaths
 }
 
 func (m *mockServiceCtx) Deadline() (deadline time.Time, ok bool) {
@@ -92,9 +100,9 @@ func TestSignalService_Run(t *testing.T) {
 			logger.SetLevel(logrus.TraceLevel)
 
 			actionCalled := false
-			action := func() error {
+			action := func() (bubble bool, err error) {
 				actionCalled = true
-				return tc.actionError
+				return false, tc.actionError
 			}
 
 			service := &Signal{
@@ -230,7 +238,7 @@ func TestLogReopenFiles(t *testing.T) {
 	p, err := os.FindProcess(os.Getpid())
 	require.NoError(t, err)
 
-	err = p.Signal(syscall.SIGHUP)
+	err = p.Signal(syscall.SIGUSR1)
 	require.NoError(t, err)
 
 	time.Sleep(100 * time.Millisecond)
@@ -245,9 +253,119 @@ func TestLogReopenFiles(t *testing.T) {
 	assert.Equal(t, 2, len(entries))
 }
 
+func TestSignalRunShouldNotReturnStaleActionError(t *testing.T) {
+	called := make(chan struct{}, 1)
+
+	service := &Signal{
+		name:    "test",
+		signals: []os.Signal{syscall.SIGHUP},
+		action: func() (bubble bool, err error) {
+			called <- struct{}{}
+
+			return false, errors.New("action failed")
+		},
+		log:    logrus.New().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
+		notify: make(chan os.Signal, 1),
+		quit:   make(chan struct{}),
+	}
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		errCh <- service.Run()
+	}()
+
+	service.notify <- syscall.SIGHUP
+
+	select {
+	case <-called:
+	case <-time.After(time.Second):
+		t.Fatal("action was not executed within timeout")
+	}
+
+	service.Shutdown()
+
+	select {
+	case err := <-errCh:
+		assert.NoError(t, err)
+	case <-time.After(time.Second):
+		t.Fatal("service did not shut down within timeout")
+	}
+}
+
+func TestSignalShutdownShouldNotBlock(t *testing.T) {
+	testCases := []struct {
+		name string
+		run  bool
+		n    int
+	}{
+		{
+			name: "ShouldNotBlockWhenRunning",
+			run:  true,
+			n:    1,
+		},
+		{
+			name: "ShouldNotBlockWhenNotRunning",
+			run:  false,
+			n:    1,
+		},
+		{
+			name: "ShouldNotBlockWhenCalledMultipleTimes",
+			run:  true,
+			n:    3,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			service := &Signal{
+				name:    "test",
+				signals: []os.Signal{syscall.SIGHUP},
+				action:  func() (bubble bool, err error) { return false, nil },
+				log:     logrus.New().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
+				notify:  make(chan os.Signal, 1),
+				quit:    make(chan struct{}),
+			}
+
+			errCh := make(chan error, 1)
+
+			if tc.run {
+				go func() {
+					errCh <- service.Run()
+				}()
+			}
+
+			done := make(chan struct{})
+
+			go func() {
+				for i := 0; i < tc.n; i++ {
+					service.Shutdown()
+				}
+
+				close(done)
+			}()
+
+			select {
+			case <-done:
+			case <-time.After(time.Second):
+				t.Fatal("shutdown did not return within timeout")
+			}
+
+			if tc.run {
+				select {
+				case err := <-errCh:
+					assert.NoError(t, err)
+				case <-time.After(time.Second):
+					t.Fatal("service did not shut down within timeout")
+				}
+			}
+		})
+	}
+}
+
 func TestSignalService_Shutdown(t *testing.T) {
 	logger := logrus.New()
-	action := func() error { return nil }
+	action := func() (bubble bool, err error) { return false, nil }
 	service := &Signal{
 		name:    "test",
 		signals: []os.Signal{syscall.SIGHUP},
@@ -274,4 +392,40 @@ func TestSignalService_Shutdown(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("service did not shut down within timeout")
 	}
+}
+
+func TestProvisionApplicationReloadSignal(t *testing.T) {
+	ctx := newMockServiceCtx()
+
+	service, err := ProvisionApplicationReloadSignal(ctx)
+
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	assert.Equal(t, "application-reload", service.ServiceName())
+	assert.Equal(t, "signal", service.ServiceType())
+	assert.NotNil(t, service.Log())
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		errCh <- service.Run()
+	}()
+
+	// Give the service a moment to start.
+	time.Sleep(100 * time.Millisecond)
+
+	p, err := os.FindProcess(os.Getpid())
+	require.NoError(t, err)
+
+	require.NoError(t, p.Signal(syscall.SIGHUP))
+
+	select {
+	case err = <-errCh:
+		assert.ErrorIs(t, err, ErrApplicationReload)
+	case <-time.After(time.Second * 5):
+		t.Fatal("service did not return the reload error within timeout")
+	}
+
+	service.Shutdown()
 }

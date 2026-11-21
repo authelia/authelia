@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -80,8 +84,8 @@ func standardizeQuantityAndUnits(qty int, unit string) (output string, err error
 	return "", fmt.Errorf("the unit '%s' is not valid", unit)
 }
 
-// ParseDurationString standardizes a duration string with StandardizeDurationString then uses time.ParseDuration to
-// convert it into a time.Duration.
+// ParseDurationString standardizes a duration string with StandardizeDurationString then uses [time.ParseDuration] to
+// convert it into a [time.Duration].
 func ParseDurationString(input string) (duration time.Duration, err error) {
 	if reOnlyNumeric.MatchString(input) {
 		var seconds int

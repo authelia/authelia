@@ -2,7 +2,7 @@
 title: "authelia crypto pair"
 description: "Reference for the authelia crypto pair command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-27T14:52:21+10:00
 draft: false
 images: []
 weight: 905
@@ -39,8 +39,11 @@ authelia crypto pair --help
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+  -c, --config strings                                   configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.filters strings                           list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.template.delimiter.left string    sets the left delimiter for the 'template' filter
+      --config.filters.template.delimiter.right string   sets the right delimiter for the 'template' filter
+      --config.filters.values strings                    file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'
 ```
 
 ### SEE ALSO
@@ -48,5 +51,6 @@ authelia crypto pair --help
 * [authelia crypto](authelia_crypto.md)	 - Perform cryptographic operations
 * [authelia crypto pair ecdsa](authelia_crypto_pair_ecdsa.md)	 - Perform ECDSA key pair cryptographic operations
 * [authelia crypto pair ed25519](authelia_crypto_pair_ed25519.md)	 - Perform Ed25519 key pair cryptographic operations
+* [authelia crypto pair mldsa](authelia_crypto_pair_mldsa.md)	 - Perform ML-DSA key pair cryptographic operations
 * [authelia crypto pair rsa](authelia_crypto_pair_rsa.md)	 - Perform RSA key pair cryptographic operations
 

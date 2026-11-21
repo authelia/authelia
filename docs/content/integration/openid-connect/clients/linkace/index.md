@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "LinkAce"
-description: "Integrate LinkAce with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating LinkAce with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2026-01-21T20:56:59+02:00
 draft: false
@@ -32,10 +36,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://linkace.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `linkace`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://linkace.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `linkace`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [LinkAce] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [LinkAce] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -58,6 +62,7 @@ identity_providers:
         client_name: 'linkace'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         redirect_uris:
@@ -71,7 +76,6 @@ identity_providers:
           - 'code'
         grant_types:
           - 'authorization_code'
-          - 'refresh_token'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
@@ -90,7 +94,7 @@ To configure [LinkAce] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 ```shell {title=".env"}
 SSO_ENABLED=true
 SSO_OIDC_ENABLED=true
-SSO_OIDC_BASE_URL=https://auth.{{< sitevar name="domain" nojs="example.com" >}}
+SSO_OIDC_BASE_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 SSO_OIDC_CLIENT_ID=linkace
 SSO_OIDC_CLIENT_SECRET=insecure_secret
 ```
@@ -103,11 +107,11 @@ services:
     environment:
       SSO_ENABLED: 'true'
       SSO_OIDC_ENABLED: 'true'
-      SSO_OIDC_BASE_URL: 'https://auth.{{< sitevar name="domain" nojs="example.com" >}}'
+      SSO_OIDC_BASE_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       SSO_OIDC_CLIENT_ID: 'linkace'
       SSO_OIDC_CLIENT_SECRET: 'insecure_secret'
 
-      
+
 ```
 
 ## See Also

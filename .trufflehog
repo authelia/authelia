@@ -1,5 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ^authelia$
 ^.git\/
+^.claude\/
 ^.github\/workflows\/.*\.yml
 ^.idea\/
 ^.*\/node_modules/.*$

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set -e
 
 appSetup () {
@@ -12,6 +16,7 @@ appSetup () {
 
   UDOMAIN=${DOMAIN^^}
   URDOMAIN=${UDOMAIN%%.*}
+  LDOMAIN=${DOMAIN,,}
 
   # Set up samba
   mv /etc/krb5.conf /etc/krb5.conf.orig
@@ -69,7 +74,6 @@ EOF
 
   # Set up supervisor
   mkdir /etc/supervisor.d/
-  mkdir /etc/supervisor.d/
   cat > /etc/supervisor.d/supervisord.ini <<EOF
 [supervisord]
 nodaemon=true
@@ -91,12 +95,6 @@ set -e
 until samba-tool user show administrator >/dev/null 2>&1; do
   sleep 1
 done
-
-if [[ -f /schema-extensions.ldif ]]; then
-  DOMAIN_DN="DC=${LDOMAIN//./,DC=}"
-  sed "s/DC=X/${DOMAIN_DN}/g" /schema-extensions.ldif > /tmp/schema-extensions-ready.ldif
-  ldbadd -H /var/lib/samba/private/sam.ldb /tmp/schema-extensions-ready.ldif -o "dsdb:schema update allowed=true" || echo "Schema extension loading failed"
-fi
 
 samba-tool user setpassword administrator --newpassword=password
 samba-tool ou create "OU=Users"

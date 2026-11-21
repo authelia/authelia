@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,12 +27,8 @@ func NewBackendProtectionScenario() *BackendProtectionScenario {
 }
 
 func (s *BackendProtectionScenario) SetupSuite() {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Needs to be enabled in suites. Not used in production.
-	}
-
 	s.client = &http.Client{
-		Transport: tr,
+		Transport: NewHTTPTransport(),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -88,7 +87,7 @@ func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
 	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
-	s.AssertRequestStatusCodeBody(fasthttp.MethodDelete, fmt.Sprintf("%s/api/user/session/elevation/1", AutheliaBaseURL), `{"status":"KO","message":"Operation failed."}`, fasthttp.StatusOK)
+	s.AssertRequestStatusCodeBody(fasthttp.MethodDelete, fmt.Sprintf("%s/api/user/session/elevation/1", AutheliaBaseURL), `{"status":"KO","code":"operation_failed","message":"Operation failed."}`, fasthttp.StatusOK)
 	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), fasthttp.StatusForbidden)
 }
 

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -54,14 +58,14 @@ func (s *PasskeyScenario) TearDownSuite() {
 }
 
 func (s *PasskeyScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 
 	s.doWebAuthnInitialize(s.T(), s.Page, false)
 	s.doWebAuthnRestoreCredentials(s.T(), s.Page)
 }
 
 func (s *PasskeyScenario) TearDownTest() {
+	s.doWebAuthnUpdateCredentials(s.T(), s.Page)
 	s.collectCoverage(s.Page)
 	s.MustClose()
 }
@@ -83,15 +87,36 @@ func (s *PasskeyScenario) TestShouldAuthorizeAfterPasskeyLogin() {
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect password")
 	s.doFillPasswordAndClick(s.T(), s.Context(ctx), "password")
 
-	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
-	// Leave the secret.
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// And try to reload it again to check the session is kept.
 	s.doVisit(s.T(), s.Context(ctx), targetURL)
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+}
+
+func (s *PasskeyScenario) TestShouldPromptRememberMeAfterPasskeyAssertion() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+	s.doVisitLoginPage(s.T(), s.Context(ctx), BaseDomain, targetURL)
+
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "passkey-sign-in-button")
+
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "remember-me-dialog")
+
+	s.doAnswerPasskeyRememberMe(s.T(), s.Context(ctx), true)
+
+	s.verifyIsSecondFactorPasswordPage(s.T(), s.Context(ctx))
+	s.doFillPasswordAndClick(s.T(), s.Context(ctx), "password")
+
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
@@ -100,5 +125,5 @@ func TestRunPasskey(t *testing.T) {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewTwoFactorWebAuthnScenario())
+	suite.Run(t, NewPasskeyScenario())
 }

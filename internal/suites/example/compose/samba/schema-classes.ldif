@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 dn: CN=authelia-user-attributes,CN=Schema,CN=Configuration,DC=X
 changetype: add
 objectClass: top

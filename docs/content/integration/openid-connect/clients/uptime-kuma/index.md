@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Uptime Kuma"
-description: "Integrating Uptime Kuma status monitors with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Uptime Kuma with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -33,11 +37,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://uptime-kuma.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `uptime-kuma`
-- __Client Secret:__ `insecure_secret`
-- __Secured Resource URL:__ `https://application.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://uptime-kuma.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `uptime-kuma`
+- **Client Secret:** `insecure_secret`
+- **Secured Resource URL:** `https://application.{{< sitevar name="domain" nojs="example.com" >}}/`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -64,14 +68,14 @@ the time to understand it before you attempt to do it. Some notes about this are
    header as one of the possible ways to authenticate, but still allows cookie-based authorization.
 
 See more information about the server authz endpoints section in the
-[Configuration Guide](../../../configuration/miscellaneous/server-endpoints-authz.md) and
-[Reference Guide](../../../reference/guides/proxy-authorization.md).
+[Configuration Guide](../../../../configuration/miscellaneous/server-endpoints-authz.md) and
+[Reference Guide](../../../../reference/guides/proxy-authorization.md).
 
 ## Configuration
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Uptime Kuma] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Uptime Kuma] which will
 operate with the above example:
 
 ```yaml {title="configuration.yml"}
@@ -79,7 +83,7 @@ server:
   endpoints:
     authz:
       endpoint_name:
-        implementation: ''
+        implementation: 'ForwardAuth'  # Change this to the implementation for your proxy.
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -145,10 +149,9 @@ See the following screenshot for an authentication example of the above:
 
 {{< figure src="uptime-kuma-authentication.png" alt="Uptime Kuma Authentication example" width="300" >}}
 
-
 [Authelia]: https://www.authelia.com
 [Uptime Kuma]: https://github.com/louislam/uptime-kuma
-[OpenID Connect 1.0]: ../introduction.md
-[requested_audience_mode]: ../../configuration/identity-providers/openid-connect/clients/#requested_audience_mode
-[Server Authz Endpoints]: ../../configuration/miscellaneous/server-endpoints-authz/
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[requested_audience_mode]: ../../../../configuration/identity-providers/openid-connect/clients.md#requested_audience_mode
+[Server Authz Endpoints]: ../../../../configuration/miscellaneous/server-endpoints-authz.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

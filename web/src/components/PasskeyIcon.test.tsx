@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { render } from "@testing-library/react";
 
 import PasskeyIcon from "@components/PasskeyIcon";
@@ -21,5 +25,12 @@ it("has correct viewbox", () => {
 it("has correct fill", () => {
     render(<PasskeyIcon />);
     const svg = document.querySelector("svg");
-    expect(svg).toHaveAttribute("fill", "#e8eaed");
+    expect(svg).toHaveAttribute("fill", "currentColor");
+});
+
+it("is hidden from assistive technology", () => {
+    render(<PasskeyIcon />);
+    const svg = document.querySelector("svg");
+    expect(svg).toHaveAttribute("aria-hidden", "true");
+    expect(svg).toHaveAttribute("focusable", "false");
 });

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package model
 
 import "github.com/google/uuid"
@@ -12,6 +16,7 @@ func NewRandomNullUUID() (uuid.NullUUID, error) {
 	return uuid.NullUUID{UUID: id, Valid: true}, nil
 }
 
+// ParseNullUUID returns the uuid.NullUUID for the given string which is null when the string is empty.
 func ParseNullUUID(in string) (uuid.NullUUID, error) {
 	if in == "" {
 		return uuid.NullUUID{}, nil
@@ -25,7 +30,7 @@ func ParseNullUUID(in string) (uuid.NullUUID, error) {
 	return uuid.NullUUID{UUID: id, Valid: true}, nil
 }
 
-// NullUUID converts a uuid.UUID to a uuid.NullUUID.
+// NullUUID converts a [uuid.UUID] to a [uuid.NullUUID].
 func NullUUID(in uuid.UUID) uuid.NullUUID {
 	return uuid.NullUUID{UUID: in, Valid: in != uuid.Nil}
 }

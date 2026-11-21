@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -34,8 +38,7 @@ func (s *ResetPasswordScenario) TearDownSuite() {
 }
 
 func (s *ResetPasswordScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *ResetPasswordScenario) TearDownTest() {
@@ -54,20 +57,19 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	// Reset the password to abc.
 	s.doResetPassword(s.T(), s.Context(ctx), "john", "abc", "abc", false)
 
-	// Try to login with the old password.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password")
 
-	// Try to login with the new password.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "abc", false, BaseDomain, "")
 
-	// Logout.
+	// The sign in response, and the session cookie it sets, is held back by the timing attack delay. Logging out before
+	// it arrives destroys the session the browser had before signing in, and the cookie then signs it back in.
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+
 	s.doLogout(s.T(), s.Context(ctx))
 
-	// Reset the original password.
 	s.doResetPassword(s.T(), s.Context(ctx), "john", "password", "password", false)
 }
 
@@ -82,7 +84,6 @@ func (s *ResetPasswordScenario) TestShouldMakeAttackerThinkPasswordResetIsInitia
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	// Try to initiate a password reset of an nonexistent user.
 	s.doInitiatePasswordReset(s.T(), s.Context(ctx), "i_dont_exist")
 
 	// Check that the notification make the attacker thinks the process is initiated.

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Proxmox"
-description: "Integrating Proxmox with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Proxmox with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -23,11 +27,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Proxmox Virtual Environment]
   - [v8.4.1](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.4)
-- [Proxmox Backup Server]
-  - [v3.4.2](https://pbs.proxmox.com/wiki/index.php/Roadmap#Proxmox_Backup_Server_3.4)
 
 {{% oidc-common %}}
 
@@ -35,11 +37,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://proxmox.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `proxmox`
-- __Client Secret:__ `insecure_secret`
-- __Realm__ `authelia`
+- **Application Root URL:** `https://proxmox.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `proxmox`
+- **Client Secret:** `insecure_secret`
+- **Realm:** `authelia`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -49,7 +51,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Proxmox Virtual Environment] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Proxmox Virtual Environment] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -62,6 +64,7 @@ identity_providers:
         client_name: 'Proxmox'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -100,8 +103,8 @@ To configure [Proxmox Virtual Environment] to utilize Authelia as an [OpenID Con
    - Client Key: `insecure_secret`
    - Username Claim: `Default (subject)`
    - Scopes: `openid email profile groups`
-   - Autocreate Users: Enable if you want users to automatically be created in [Proxmox].
-   - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox].
+   - Autocreate Users: Enable if you want users to automatically be created in [Proxmox Virtual Environment].
+   - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox Virtual Environment].
    - Groups Claim: Set to `groups` to add users to existing proxmox groups.
 
 {{< figure src="proxmox.png" alt="Proxmox" sizes="600px" >}}
@@ -112,6 +115,5 @@ To configure [Proxmox Virtual Environment] to utilize Authelia as an [OpenID Con
 
 [Authelia]: https://www.authelia.com
 [Proxmox Virtual Environment]: https://pve.proxmox.com
-[Proxmox Backup Server]: https://pbs.proxmox.com
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

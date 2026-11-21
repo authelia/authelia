@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -11,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
+// GetGroupsGET gets the list of all group names.
 func GetGroupsGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		err    error
@@ -29,6 +34,7 @@ func GetGroupsGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
+// NewGroupPOST creates a new group.
 func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err         error
@@ -52,7 +58,7 @@ func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !UserIsAdmin(ctx, userSession.Groups) {
+	if !UserIsAdmin(ctx, userSession.Username) {
 		ctx.Logger.Errorf("Error occurred adding new group: %s", fmt.Sprintf(logFmtErrUserNotAdmin, userSession.Username))
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -69,7 +75,7 @@ func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Error("Unable to parse request body")
 
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Invalid request body")
+		ctx.SetJSONError(messageInvalidRequest)
 
 		return
 	}
@@ -78,7 +84,7 @@ func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Error("Group name is required")
 
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Group name is required")
+		ctx.SetJSONError(messageGroupNameRequired)
 
 		return
 	}
@@ -88,13 +94,13 @@ func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
 
 		if errors.Is(err, authentication.ErrGroupExists) {
 			ctx.SetStatusCode(fasthttp.StatusConflict)
-			ctx.SetJSONError("Group already exists")
+			ctx.SetJSONError(messageGroupAlreadyExists)
 
 			return
 		}
 
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-		ctx.SetJSONError("Failed to create group")
+		ctx.SetJSONError(messageUnableToCreateGroup)
 
 		return
 	}
@@ -104,11 +110,12 @@ func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.ReplyOK()
 }
 
+// DeleteGroupDELETE deletes a group.
 func DeleteGroupDELETE(ctx *middlewares.AutheliaCtx) {
 	groupNameRaw := ctx.UserValue("group")
 	if groupNameRaw == nil {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Group name is required")
+		ctx.SetJSONError(messageGroupNameRequired)
 
 		return
 	}
@@ -137,7 +144,7 @@ func DeleteGroupDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !UserIsAdmin(ctx, userSession.Groups) {
+	if !UserIsAdmin(ctx, userSession.Username) {
 		ctx.Logger.Errorf("Error occurred deleting group: %s", fmt.Sprintf(logFmtErrUserNotAdmin, userSession.Username))
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

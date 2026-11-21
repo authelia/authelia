@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -9,6 +13,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -64,7 +69,17 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 
 	rpid := origin.Hostname()
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, rpid); err != nil {
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred loading user details", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, details.DisplayName, rpid); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -73,10 +88,10 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	extensions := map[string]any{}
+	var extensions []webauthn.ExtensionOption
 
 	if user.HasFIDOU2F() {
-		extensions["appid"] = w.Config.RPOrigins[0]
+		extensions = append(extensions, webauthn.WithExtensionAppID(w.Config.RPOrigins[0]))
 	}
 
 	var opts = []webauthn.LoginOption{
@@ -85,7 +100,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if len(extensions) != 0 {
-		opts = append(opts, webauthn.WithAssertionExtensions(extensions))
+		opts = append(opts, webauthn.WithAssertionExtensions(extensions...))
 	}
 
 	var (
@@ -104,7 +119,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 
 	userSession.WebAuthn = &data
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -194,7 +209,17 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred loading user details", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, details.DisplayName, w.Config.RPID); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -215,7 +240,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	defer func() {
 		userSession.WebAuthn = nil
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = ctx.SaveSession(&userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 		}
 	}()
@@ -276,7 +301,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		response.Response.AuthenticatorData.Flags.HasUserVerified())
 
 	if len(bodyJSON.Flow) > 0 {
-		handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+		handleFlowResponse(ctx, &userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

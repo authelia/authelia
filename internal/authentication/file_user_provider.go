@@ -1,10 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 import (
-	_ "embed" // Embed users_database.template.yml.
+	"crypto/sha256"
+	_ "embed" // Embed the users_database.template files.
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -20,6 +26,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // FileUserProvider is a provider reading details from a file.
@@ -29,11 +36,14 @@ type FileUserProvider struct {
 	database      FileUserProviderDatabase
 	mutex         sync.Mutex
 	timeoutReload time.Time
-	log           *logrus.Entry
+	digest        *[sha256.Size]byte
+
+	log *logrus.Entry
 
 	Management UserManagementProvider
 }
 
+// ListGroups returns a list of all group names.
 func (p *FileUserProvider) ListGroups() ([]string, error) {
 	if p.Management == nil {
 		return nil, fmt.Errorf("user management is not configured for this provider")
@@ -42,6 +52,7 @@ func (p *FileUserProvider) ListGroups() ([]string, error) {
 	return p.Management.ListGroups()
 }
 
+// DeleteGroup deletes a group.
 func (p *FileUserProvider) DeleteGroup(group string) error {
 	if p.Management == nil {
 		return fmt.Errorf("user management is not configured for this provider")
@@ -50,6 +61,7 @@ func (p *FileUserProvider) DeleteGroup(group string) error {
 	return p.Management.DeleteGroup(group)
 }
 
+// AddGroup creates a new group.
 func (p *FileUserProvider) AddGroup(newGroup string) error {
 	if p.Management == nil {
 		return fmt.Errorf("user management is not configured for this provider")
@@ -94,13 +106,21 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 
 	defer p.mutex.Unlock()
 
+	digest, errDigest := fileDigest(p.config.Path)
+
+	if errDigest == nil && p.digest != nil && *p.digest == digest {
+		return false, nil
+	}
+
 	if now.Before(p.timeoutReload) {
 		return false, &errReload{err: ErrWatcherCooldown}
 	}
 
 	switch err = p.database.Load(); {
 	case err == nil:
-		p.setTimeoutReload(now)
+		if errDigest == nil {
+			p.digest = &digest
+		}
 	case errors.Is(err, ErrWatcherNoContent):
 		return false, &errReload{err: err}
 	default:
@@ -112,6 +132,7 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	return true, nil
 }
 
+// Close implements the UserProvider interface.
 func (p *FileUserProvider) Close() (err error) {
 	return nil
 }
@@ -177,6 +198,13 @@ func (p *FileUserProvider) ListUsers() (userList []UserDetailsExtended, err erro
 	return userList, nil
 }
 
+// GetDetailsCached is used to get a user's information from the cache if available. The file provider has no cache so
+// this is identical to GetDetails.
+func (p *FileUserProvider) GetDetailsCached(username string) (details *UserDetails, err error) {
+	return p.GetDetails(username)
+}
+
+// GetDetailsExtended implements the UserProvider interface.
 func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
 	var d FileUserDatabaseUserDetails
 
@@ -189,6 +217,12 @@ func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDet
 	}
 
 	return d.ToExtendedUserDetails(), nil
+}
+
+// GetDetailsExtendedCached is used to get a user's extended information from the cache if available. The file provider
+// has no cache so this is identical to GetDetailsExtended.
+func (p *FileUserProvider) GetDetailsExtendedCached(username string) (details *UserDetailsExtended, err error) {
+	return p.GetDetailsExtended(username)
 }
 
 // UpdatePassword updates the password of the given user.
@@ -211,11 +245,12 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 
 	details.Password = schema.NewPasswordDigest(digest)
 
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	p.database.SetUserDetails(details.Username, &details)
 
-	p.mutex.Lock()
 	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
 		return err
@@ -261,11 +296,12 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 
 	details.Password = schema.NewPasswordDigest(digest)
 
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	p.database.SetUserDetails(details.Username, &details)
 
-	p.mutex.Lock()
 	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
 		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
@@ -283,6 +319,7 @@ func (p *FileUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
 	return p.Management.AddUser(userData)
 }
 
+// UpdateUserWithMask updates the fields of a user identified by updateMask.
 func (p *FileUserProvider) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
 	if p.Management == nil {
 		return fmt.Errorf("user management is not configured for this provider")
@@ -291,55 +328,7 @@ func (p *FileUserProvider) UpdateUserWithMask(username string, userData *UserDet
 	return p.Management.UpdateUserWithMask(username, userData, updateMask)
 }
 
-// UpdateUser modifies an existing user in the file database. Takes new values via opts.
-func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
-	var existingDetails FileUserDatabaseUserDetails
-
-	if existingDetails, err = p.database.GetUserDetails(username); err != nil {
-		return err
-	}
-
-	updatedDetails := FileUserDatabaseUserDetails{
-		Username:    username,
-		DisplayName: existingDetails.DisplayName,
-		Password:    existingDetails.Password,
-		Email:       existingDetails.Email,
-		Groups:      existingDetails.Groups,
-		Disabled:    existingDetails.Disabled,
-	}
-
-	if userData.UserDetails != nil {
-		if userData.DisplayName != "" {
-			updatedDetails.DisplayName = userData.DisplayName
-		}
-
-		if len(userData.Emails) > 0 {
-			updatedDetails.Email = userData.Emails[0]
-		}
-
-		if len(userData.Groups) > 0 {
-			updatedDetails.Groups = userData.Groups
-		}
-	}
-
-	if userData.Password != "" {
-		var digest algorithm.Digest
-		if digest, err = p.hash.Hash(userData.Password); err != nil {
-			return err
-		}
-
-		updatedDetails.Password = schema.NewPasswordDigest(digest)
-	}
-
-	p.database.SetUserDetails(username, &updatedDetails)
-
-	p.mutex.Lock()
-	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
-
-	return p.database.Save()
-}
-
+// GetRequiredAttributes returns the attributes required to create a user.
 func (p *FileUserProvider) GetRequiredAttributes() []string {
 	if p.Management == nil {
 		return []string{}
@@ -348,11 +337,13 @@ func (p *FileUserProvider) GetRequiredAttributes() []string {
 	return p.Management.GetRequiredAttributes()
 }
 
+// IsExtraAttribute returns true if fieldName is a configured extra attribute.
 func (p *FileUserProvider) IsExtraAttribute(fieldName string) bool {
 	_, exists := p.config.ExtraAttributes[fieldName]
 	return exists
 }
 
+// GetSupportedAttributes returns the attributes supported for user creation and update.
 func (p *FileUserProvider) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
 	if p.Management == nil {
 		return map[string]UserManagementAttributeMetadata{}
@@ -373,7 +364,7 @@ func (p *FileUserProvider) DeleteUser(username string) (err error) {
 // StartupCheck implements the startup check provider interface.
 func (p *FileUserProvider) StartupCheck() (err error) {
 	if err = checkDatabase(p.config.Path); err != nil {
-		logging.Logger().WithError(err).Errorf("Error checking user authentication YAML database")
+		logging.Logger().WithError(err).Errorf("Error checking user authentication database")
 
 		return fmt.Errorf("one or more errors occurred checking the authentication database")
 	}
@@ -386,9 +377,18 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive, getExtra(p.config))
 	}
 
-	return p.database.Load()
+	if err = p.database.Load(); err != nil {
+		return err
+	}
+
+	if digest, errDigest := fileDigest(p.config.Path); errDigest == nil {
+		p.digest = &digest
+	}
+
+	return nil
 }
 
+// ValidateUserData validates the userDetails struct contains all the required fields for new users.
 func (p *FileUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
 	if p.Management == nil {
 		return fmt.Errorf("user management is not configured for this provider")
@@ -397,12 +397,23 @@ func (p *FileUserProvider) ValidateUserData(userData *UserDetailsExtended) error
 	return p.Management.ValidateUserData(userData)
 }
 
+// ValidatePartialUpdate validates data for partial updates (PATCH with field mask).
 func (p *FileUserProvider) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
 	if p.Management == nil {
 		return fmt.Errorf("user management is not configured for this provider")
 	}
 
 	return p.Management.ValidatePartialUpdate(userData, updateMask)
+}
+
+func fileDigest(path string) (digest [sha256.Size]byte, err error) {
+	var content []byte
+
+	if content, err = os.ReadFile(path); err != nil {
+		return digest, err
+	}
+
+	return sha256.Sum256(content), nil
 }
 
 func (p *FileUserProvider) setTimeoutReload(now time.Time) {
@@ -460,7 +471,16 @@ func NewFileCryptoHashFromConfig(config schema.AuthenticationBackendFilePassword
 
 func checkDatabase(path string) (err error) {
 	if _, err = os.Stat(path); os.IsNotExist(err) {
-		if err = os.WriteFile(path, userYAMLTemplate, 0600); err != nil {
+		template := userYAMLTemplate
+
+		switch filepath.Ext(path) {
+		case utils.ExtTOML:
+			template = userTOMLTemplate
+		case utils.ExtJSON:
+			template = userJSONTemplate
+		}
+
+		if err = os.WriteFile(path, template, 0600); err != nil {
 			return fmt.Errorf("user authentication database file doesn't exist at path '%s' and could not be generated: %w", path, err)
 		}
 
@@ -472,5 +492,13 @@ func checkDatabase(path string) (err error) {
 	return nil
 }
 
-//go:embed users_database.template.yml
-var userYAMLTemplate []byte
+var (
+	//go:embed users_database.template.yml
+	userYAMLTemplate []byte
+
+	//go:embed users_database.template.toml
+	userTOMLTemplate []byte
+
+	//go:embed users_database.template.json
+	userJSONTemplate []byte
+)

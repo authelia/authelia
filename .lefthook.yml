@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 pre-commit:
   piped: true
@@ -7,7 +11,7 @@ pre-commit:
       run: |
         COUNT=0
 
-        for TOOL in goimports-reviser golangci-lint pnpm shellcheck trufflehog typos yamllint zizmor; do
+        for TOOL in golangci-lint jq pnpm reuse scorecard shellcheck trufflehog typos yamllint zizmor; do
           if ! command -v ${TOOL} >/dev/null 2>&1; then
             if [ ${COUNT} -eq 0 ]; then
               MISSING=${TOOL}
@@ -30,24 +34,39 @@ pre-commit:
       group:
         parallel: true
         jobs:
-          - name: eslint
-            run: pnpm -s lint && echo "0 issues."
-            root: "web/"
-            glob: "*.{js,jsx,ts,tsx}"
+          - name: docs
+            run: pnpm --reporter=silent lint {staged_files} && echo "0 issues."
+            root: "docs/"
             stage_fixed: true
 
-          - name: goimports-reviser
-            run: |
-              goimports-reviser -rm-unused -format \
-              -company-prefixes authelia.com,github.com/authelia {staged_files} 2>/dev/null \
-              && echo "0 issues."
-            glob: "*.go"
+          - name: eslint
+            run: pnpm --reporter=silent lint {staged_files} && echo "0 issues."
+            root: "web/"
+            glob: "*.{js,jsx,ts,tsx}"
             stage_fixed: true
 
           - name: golangci-lint
             run: golangci-lint run --fix
             glob: "*.go"
             stage_fixed: true
+
+          - name: reuse
+            run: reuse lint-file {staged_files} && echo "0 issues."
+
+          - name: reuse-project
+            # reuse lint-file only sees the staged files, so a REUSE.toml or LICENSES/
+            # change that strips coverage from unstaged files needs a full project lint.
+            run: reuse lint --lines && echo "0 issues."
+            glob: "{REUSE.toml,LICENSES/*}"
+
+          - name: scorecard
+            run: .buildkite/steps/lint.sh scorecard && echo "0 issues."
+            glob:
+              - "*Dockerfile*"
+              - ".github/workflows/*"
+              - ".buildkite/hooks/*"
+              - ".renovaterc*"
+              - "*.sh"
 
           - name: shellcheck
             run: shellcheck --format=gcc {staged_files} && echo "0 issues."
@@ -59,7 +78,7 @@ pre-commit:
             run: trufflehog --fail --log-level=-1 filesystem -x .trufflehog . && echo "0 issues."
 
           - name: typos
-            run: typos -w --format brief && echo "0 issues."
+            run: typos -w --threads 4 --format brief && echo "0 issues."
             stage_fixed: true
 
           - name: yamllint

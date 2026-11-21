@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "EspoCRM"
-description: "Integrating EspoCRM with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating EspoCRM with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-01-25T10:04:53+11:00
 draft: false
@@ -25,7 +29,7 @@ seo:
 - [Authelia]
   - [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
 - [EspoCRM]
-  - [v2.0.1](https://github.com/espocrm/espocrm/releases/tag/2.0.1)
+  - [v9.0.1](https://github.com/espocrm/espocrm/releases/tag/9.0.1)
 
 {{% oidc-common %}}
 
@@ -33,13 +37,13 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-        `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/login`.
-        This means if you change this value, you need to update the redirect URI.
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `espocrm`
-- __Client Secret:__ `insecure_secret`
+    `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/oauth-callback.php`.
+    This means if you change this value, you need to update the redirect URI.
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `espocrm`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -49,7 +53,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [EspoCRM] which will operate with the application example:
+The following YAML configuration is an example **Authelia** [client configuration] for use with [EspoCRM] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
@@ -61,6 +65,7 @@ identity_providers:
         client_name: 'EspoCRM'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

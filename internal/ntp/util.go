@@ -1,6 +1,30 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package ntp
 
-import "time"
+import (
+	"errors"
+	"fmt"
+	"time"
+)
+
+func validateResponse(req, resp *packet) (err error) {
+	if mode := resp.LeapVersionMode & maskModeValue; mode != modeServer {
+		return fmt.Errorf("the response has mode '%d' but only the server mode '%d' is considered valid", mode, modeServer)
+	}
+
+	if resp.Stratum < stratumMinimum || resp.Stratum > stratumMaximum {
+		return fmt.Errorf("the response has stratum '%d' but only values between %d and %d are considered valid", resp.Stratum, stratumMinimum, stratumMaximum)
+	}
+
+	if resp.OriginTimeSeconds != req.TxTimeSeconds || resp.OriginTimeFraction != req.TxTimeFraction {
+		return errors.New("the response origin timestamp does not match the transmit timestamp of the request")
+	}
+
+	return nil
+}
 
 // leapVersionClientMode does the mathematics to configure the leap/version/mode value of an NTP client packet.
 func leapVersionClientMode(version version) (lvm uint8) {
@@ -29,7 +53,6 @@ func timeToSecondsAndFraction(t time.Time) (seconds, fraction uint32) {
 	return uint32(t.Unix() + epochOffset), uint32((int64(t.Nanosecond()) << 32) / 1e9)
 }
 
-// isOffsetTooLarge return true if there is offset of "offset" between two times.
 func isOffsetTooLarge(maxOffset time.Duration, first, second time.Time) (tooLarge bool) {
 	var offset time.Duration
 

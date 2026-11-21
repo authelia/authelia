@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 //go:build linux || freebsd || darwin || netbsd || solaris
 
 package schema
@@ -10,7 +14,7 @@ import (
 	"syscall"
 )
 
-// Listener creates and returns a net.Listener.
+// Listener creates and returns a [net.Listener].
 func (a *Address) Listener() (ln net.Listener, err error) {
 	if a.url == nil {
 		return nil, fmt.Errorf("address url is nil")

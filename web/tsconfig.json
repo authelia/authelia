@@ -17,7 +17,7 @@
         },
         "target": "es2022",
         "lib": ["dom", "dom.iterable", "esnext"],
-        "types": ["vite/client", "vite-plugin-svgr/client", "vitest/globals"],
+        "types": ["@testing-library/jest-dom/vitest", "vite/client", "vite-plugin-svgr/client", "vitest/globals"],
         "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
@@ -34,5 +34,5 @@
         "jsx": "react-jsx"
     },
     "include": ["*.mjs", "vite.config.ts", "src", "types"],
-    "exclude": ["coverage", "html", "node_modules"]
+    "exclude": [".vitest", "coverage", "html", "node_modules"]
 }

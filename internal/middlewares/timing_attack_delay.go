@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -12,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
+// TimingContext is the context used by a Delayer.
 type TimingContext interface {
 	context.Context
 
@@ -20,6 +25,7 @@ type TimingContext interface {
 	RecordAuthenticationDuration(success bool, elapsed time.Duration)
 }
 
+// Delayer is an interface which delays a request to mitigate timing attacks.
 type Delayer interface {
 	Delay(ctx TimingContext, requestTime time.Time, successfulPtr *bool)
 	CachedDelay(ctx TimingContext, requestTime time.Time, cachedPtr, successfulPtr *bool)
@@ -62,12 +68,14 @@ type TimingAttackDelay struct {
 	execDurationMovingAverage []int64
 }
 
+// SetMinimumDelayDuration sets the minimum delay as a [time.Duration] and returns this TimingAttackDelay.
 func (d *TimingAttackDelay) SetMinimumDelayDuration(duration time.Duration) *TimingAttackDelay {
 	ms := duration.Milliseconds()
 
 	return d.SetMinimumDelay(float64(ms))
 }
 
+// SetMinimumDelay sets the minimum delay in milliseconds and returns this TimingAttackDelay.
 func (d *TimingAttackDelay) SetMinimumDelay(minDelayMs float64) *TimingAttackDelay {
 	d.minDelayMs = minDelayMs
 

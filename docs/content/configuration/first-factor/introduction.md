@@ -1,7 +1,11 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "First Factor"
 name: "test"
-description: "Configuring Authelia First Factor Authentication."
+description: "An introduction to configuring Authelia first factor authentication including the authentication backend, password reset, and password change options."
 summary: "Authelia uses a username and password for a first factor method. This section describes configuring this."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -18,11 +22,11 @@ seo:
   noindex: false # false (default) or true
 ---
 
-There are two ways to integrate *Authelia* with an authentication backend:
+There are two ways to integrate _Authelia_ with an authentication backend:
 
-* [LDAP](ldap.md): users are stored in remote servers like [OpenLDAP], [OpenDJ], [FreeIPA], or
+- [LDAP](ldap.md): users are stored in remote servers like [OpenLDAP], [OpenDJ], [FreeIPA], or
   [Microsoft Active Directory].
-* [File](file.md): users are stored in [YAML] file with a hashed version of their password.
+- [File](file.md): users are stored in [YAML] file with a hashed version of their password.
 
 ## Configuration
 
@@ -36,6 +40,8 @@ authentication_backend:
     custom_url: ''
   password_change:
     disable: false
+  registration:
+    custom_url: ''
 ```
 
 ## Options
@@ -70,8 +76,9 @@ This setting controls if users can reset their password from the web frontend or
 
 {{< confkey type="string" required="no" >}}
 
-The custom password reset URL. This replaces the inbuilt password reset functionality and disables the endpoints if
-this is configured to anything other than nothing or an empty string.
+The custom password reset URL. The scheme must be either `http` or `https`; any other scheme is rejected at startup.
+This replaces the inbuilt password reset functionality and disables the endpoints if this is configured to anything
+other than nothing or an empty string.
 
 ### password_change
 
@@ -81,6 +88,18 @@ this is configured to anything other than nothing or an empty string.
 
 This setting controls if users can change their password from the web frontend or not.
 
+### registration
+
+#### custom_url
+
+{{< confkey type="string" required="no" >}}
+
+The URL of an external registration service. The scheme must be either `http` or `https`; any other scheme is rejected
+at startup. When this is configured to anything other than an empty string a registration link is displayed on the
+login page which opens this URL in a new tab.
+
+_Authelia_ has no internal registration functionality. This option only surfaces a link to a service you operate
+separately; accounts must still exist in the configured authentication backend before a user can sign in.
 
 ### file
 

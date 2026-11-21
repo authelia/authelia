@@ -1,4 +1,9 @@
 #!/bin/sh
+
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set -e
 
 AUTHELIA_URL="${AUTHELIA_URL:-https://login.example.com:8080}"
@@ -47,7 +52,7 @@ cat <<EOF
 ============================================
   Authelia URL:  ${AUTHELIA_URL}
   CA Cert:       ${CA_CERT:-<system default>}
-  SSH Host:      ssh.example.com (192.168.240.130)
+  SSH Host:      ssh.example.com
   SSH Port:      22
   SSH User:      john
 

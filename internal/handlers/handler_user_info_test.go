@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -12,45 +16,12 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 )
-
-type FetchSuite struct {
-	suite.Suite
-	mock *mocks.MockAutheliaCtx
-}
-
-func (s *FetchSuite) SetupTest() {
-	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	userSession, err := s.mock.Ctx.GetSession()
-	s.Assert().NoError(err)
-
-	userSession.Username = testUsername
-	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
-}
-
-func (s *FetchSuite) TearDownTest() {
-	s.mock.Close()
-}
-
-type expectedResponse struct {
-	db  *model.UserInfo
-	api *model.UserInfo
-	err error
-}
-
-type expectedResponseAlt struct {
-	name string
-
-	db      *model.UserInfo
-	api     *model.UserInfo
-	loadErr error
-	saveErr error
-	config  *schema.Configuration
-}
 
 func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 	expectedResponses := []expectedResponse{
@@ -106,12 +77,25 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 
 		userSession.Username = testUsername
 		userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-		assert.NoError(t, mock.Ctx.SaveSession(userSession))
+		assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 		mock.StorageMock.
 			EXPECT().
 			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
 			Return(*resp.db, resp.err)
+
+		mock.StorageMock.
+			EXPECT().
+			CountUnusedRecoveryCodesByUsername(gomock.Any(), gomock.Any()).
+			AnyTimes().
+			Return(0, nil)
+
+		if resp.err == nil {
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetailsCached(gomock.Eq("john")).
+				Return(&authentication.UserDetails{Username: "john", DisplayName: "John Smith", Emails: []string{"john@example.com"}}, nil)
+		}
 
 		UserInfoGET(mock.Ctx)
 
@@ -256,7 +240,13 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 
 			userSession.Username = testUsername
 			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-			assert.NoError(t, mock.Ctx.SaveSession(userSession))
+			assert.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+			mock.StorageMock.
+				EXPECT().
+				CountUnusedRecoveryCodesByUsername(gomock.Any(), gomock.Any()).
+				AnyTimes().
+				Return(0, nil)
 
 			if resp.db.Method == "" {
 				gomock.InOrder(
@@ -291,6 +281,11 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 						Return(resp.saveErr),
 				)
 			}
+
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetailsCached(gomock.Eq("john")).
+				Return(&authentication.UserDetails{Username: "john", DisplayName: "John Smith", Emails: []string{"john@example.com"}}, nil)
 
 			UserInfoPOST(mock.Ctx)
 
@@ -334,6 +329,122 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 	}
 }
 
+func TestPopulateRecoveryCodesUserInfo(t *testing.T) {
+	testCases := []struct {
+		name         string
+		disable      bool
+		count        int
+		err          error
+		expectedHas  bool
+		expectedLow  bool
+		expectedLog  string
+		expectedCall bool
+	}{
+		{"ShouldSkipWhenDisabled", true, 0, nil, false, false, "", false},
+		{"ShouldHandleCountError", false, 0, errors.New("query failed"), false, false, "Error counting unused recovery codes for user 'john'", true},
+		{"ShouldHandleNoCodes", false, 0, nil, false, false, "", true},
+		{"ShouldHandleOneCode", false, 1, nil, true, true, "", true},
+		{"ShouldHandleTwoCodes", false, 2, nil, true, true, "", true},
+		{"ShouldHandleThreeCodes", false, 3, nil, true, false, "", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.RecoveryCodes.Disable = tc.disable
+
+			if tc.expectedCall {
+				mock.StorageMock.EXPECT().
+					CountUnusedRecoveryCodesByUsername(gomock.Any(), gomock.Eq(testUsername)).
+					Return(tc.count, tc.err)
+			}
+
+			info := model.UserInfo{HasRecoveryCodes: tc.disable, LowRecoveryCodes: tc.disable}
+
+			populateRecoveryCodesUserInfo(mock.Ctx, testUsername, &info)
+
+			assert.Equal(t, tc.disable || tc.expectedHas, info.HasRecoveryCodes)
+			assert.Equal(t, tc.disable || tc.expectedLow, info.LowRecoveryCodes)
+
+			if tc.expectedLog == "" {
+				assert.Nil(t, mock.Hook.LastEntry())
+			} else {
+				mock.AssertLogEntryAdvanced(t, 0, logrus.ErrorLevel, tc.expectedLog, map[string]any{"error": tc.err.Error()})
+			}
+		})
+	}
+}
+
+func TestFetchSuite(t *testing.T) {
+	suite.Run(t, &FetchSuite{})
+}
+
+func TestSaveSuite(t *testing.T) {
+	suite.Run(t, &SaveSuite{})
+}
+
+func TestUserInfoShouldHandleGetSessionError(t *testing.T) {
+	testCases := []struct {
+		name           string
+		handler        func(ctx *middlewares.AutheliaCtx)
+		expectedStatus int
+	}{
+		{
+			"ShouldHandleUserInfoGET",
+			UserInfoGET,
+			fasthttp.StatusForbidden,
+		},
+		{
+			"ShouldHandleUserInfoPOST",
+			UserInfoPOST,
+			fasthttp.StatusForbidden,
+		},
+		{
+			"ShouldHandleMethodPreferencePOST",
+			MethodPreferencePOST,
+			fasthttp.StatusOK,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+			tc.handler(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, `{"status":"KO","code":"operation_failed","message":"Operation failed."}`, string(mock.Ctx.Response.Body()))
+
+			mock.AssertLastLogMessage(t, "Error occurred retrieving user session", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+		})
+	}
+}
+
+type FetchSuite struct {
+	suite.Suite
+	mock *mocks.MockAutheliaCtx
+}
+
+func (s *FetchSuite) SetupTest() {
+	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	userSession.Username = testUsername
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
+}
+
+func (s *FetchSuite) TearDownTest() {
+	s.mock.Close()
+}
+
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	s.mock.StorageMock.EXPECT().
 		LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
@@ -341,13 +452,95 @@ func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 
 	UserInfoGET(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to load user information: failure", s.mock.Hook.LastEntry().Message)
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred loading the user information", "failure")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
-func TestFetchSuite(t *testing.T) {
-	suite.Run(t, &FetchSuite{})
+func (s *FetchSuite) TestShouldLogErrorWhenPreferredMethodLookupFails() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
+			Return("", fmt.Errorf("failed to lookup")),
+		s.mock.StorageMock.EXPECT().
+			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+			Return(model.UserInfo{}, fmt.Errorf("failure")),
+	)
+
+	UserInfoPOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	assert.Equal(s.T(), "Error occurred looking up the user preferred second factor method while loading the user information", s.mock.Hook.Entries[0].Message)
+}
+
+func (s *FetchSuite) TestShouldLogErrorWhenDefaultPreferredMethodCannotBeSaved() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
+			Return("", sql.ErrNoRows),
+		s.mock.StorageMock.EXPECT().
+			SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("")).
+			Return(fmt.Errorf("failed to save")),
+		s.mock.StorageMock.EXPECT().
+			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+			Return(model.UserInfo{}, fmt.Errorf("failure")),
+	)
+
+	UserInfoPOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	assert.Equal(s.T(), "Error occurred saving the user preferred second factor method while loading the user information", s.mock.Hook.Entries[0].Message)
+}
+
+func (s *FetchSuite) TestShouldReturnErrorWhenUserDetailsFailToLoadGET() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+			Return(model.UserInfo{Method: "totp"}, nil),
+		s.mock.UserProviderMock.EXPECT().
+			GetDetailsCached(gomock.Eq("john")).
+			Return(nil, errors.New("failed to lookup user")),
+	)
+
+	UserInfoGET(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred returning user information for user 'john': error occurred loading user details", "failed to lookup user")
+}
+
+func (s *FetchSuite) TestShouldReturnErrorWhenUserDetailsFailToLoadPOST() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
+			Return("totp", nil),
+		s.mock.StorageMock.EXPECT().
+			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+			Return(model.UserInfo{Method: "totp"}, nil),
+		s.mock.UserProviderMock.EXPECT().
+			GetDetailsCached(gomock.Eq("john")).
+			Return(nil, errors.New("failed to lookup user")),
+	)
+
+	UserInfoPOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred returning user information for user 'john': error occurred loading user details", "failed to lookup user")
+}
+
+type expectedResponse struct {
+	db  *model.UserInfo
+	api *model.UserInfo
+	err error
+}
+
+type expectedResponseAlt struct {
+	name string
+
+	db      *model.UserInfo
+	api     *model.UserInfo
+	loadErr error
+	saveErr error
+	config  *schema.Configuration
 }
 
 type SaveSuite struct {
@@ -362,7 +555,7 @@ func (s *SaveSuite) SetupTest() {
 
 	userSession.Username = testUsername
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 }
 
 func (s *SaveSuite) TearDownTest() {
@@ -373,8 +566,8 @@ func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
 	s.mock.Ctx.Request.SetBody(nil)
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to parse body: unexpected end of JSON input")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -382,8 +575,8 @@ func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"abc\""))
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to parse body: unexpected end of JSON input")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -391,8 +584,8 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"weird_key\":\"abc\"}"))
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to validate body: method: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -400,8 +593,8 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"abc\"}"))
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unknown or unavailable method 'abc', it should be one of totp, webauthn, mobile_push", s.mock.Hook.LastEntry().Message)
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred setting the second factor method preference as the method 'abc' is unknown or unavailable, it should be one of totp, webauthn, mobile_push", "")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -413,8 +606,8 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 
 	MethodPreferencePOST(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to save new preferred 2FA method: Failure", s.mock.Hook.LastEntry().Message)
+	s.mock.Assert200KO(s.T(), messageOperationFailed)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred saving the new preferred second factor method", "Failure")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -427,8 +620,4 @@ func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
-}
-
-func TestSaveSuite(t *testing.T) {
-	suite.Run(t, &SaveSuite{})
 }

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -28,7 +32,7 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		return updateDevEnvFileForDomain(BaseDomain, pamDockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {
@@ -37,19 +41,19 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := pamDockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.sqlite3")
+		_ = os.Remove(SuiteTmpPath("db.sqlite3"))
 
 		return err
 	}
 
 	GlobalRegistry.Register(pamSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
 		Description:     "PAM module integration tests for SSH authentication via pam_authelia",
 	})
 }

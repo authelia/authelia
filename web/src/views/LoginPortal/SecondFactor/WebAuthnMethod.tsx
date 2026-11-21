@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useCallback, useEffect, useReducer, useRef } from "react";
 
 import axios from "axios";
@@ -37,7 +41,6 @@ const WebAuthnMethod = function (props: Props) {
     const [state, dispatch] = useReducer(stateReducer, WebAuthnTouchState.WaitTouch);
 
     const { onSignInError, onSignInSuccess } = props;
-    const signInInitiatedRef = useRef(false);
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
@@ -116,12 +119,15 @@ const WebAuthnMethod = function (props: Props) {
         onSignInSuccess,
     ]);
 
+    const doInitiateSignInRef = useRef(doInitiateSignIn);
+
     useEffect(() => {
-        if (!signInInitiatedRef.current) {
-            signInInitiatedRef.current = true;
-            doInitiateSignIn().catch(console.error);
-        }
+        doInitiateSignInRef.current = doInitiateSignIn;
     }, [doInitiateSignIn]);
+
+    useEffect(() => {
+        doInitiateSignInRef.current().catch(console.error);
+    }, []);
 
     let methodState = MethodContainerState.METHOD;
     if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {

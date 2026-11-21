@@ -1,5 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
+// UserManagementProvider is the interface for a backend's user and group management operations.
 type UserManagementProvider interface {
 	AddUser(userData *UserDetailsExtended) (err error)
 	UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error)

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { render, screen } from "@testing-library/react";
 
 import TypographyWithTooltip, { Props } from "@components/TypographyWithTooltip";
@@ -28,11 +32,13 @@ it("renders the text correctly", () => {
     expect(screen.getByText(props.value!)).toBeInTheDocument();
 });
 
-it("renders the tooltip correctly", () => {
+it("renders the correct heading element for variant", () => {
     const props: Props = {
         ...defaultProps,
-        tooltip: "Test tooltip",
+        value: "Test text",
+        variant: "h3",
     };
     render(<TypographyWithTooltip {...props} />);
-    expect(screen.getByText(props.value!)).toHaveAttribute("aria-label", props.tooltip);
+    const element = screen.getByText(props.value!);
+    expect(element.tagName).toBe("H3");
 });

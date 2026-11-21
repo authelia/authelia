@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 default_redirection_url: 'https://home.example.com:8080/'
 
@@ -101,9 +105,6 @@ session:
   inactivity: '5m'  # 5 minutes
   remember_me: -1
   domain: 'example.com'
-  redis:
-    host: '127.0.0.1'
-    port: 6379
 
 regulation:
   max_retries: 3
@@ -122,4 +123,7 @@ notifier:
     username: 'test'
     sender: 'Admin <admin@example.com>'
     disable_require_tls: true
+cache:
+  redis:
+    address: 'tcp://127.0.0.1:6379'
 ...

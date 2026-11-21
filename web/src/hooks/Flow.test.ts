@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { renderHook } from "@testing-library/react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { useFlow, useFlowPresent } from "@hooks/Flow";
 
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
     useSearchParams: vi.fn(),
 }));
 

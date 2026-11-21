@@ -1,8 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package regulation
 
 import (
 	"database/sql"
+	"slices"
+	"strings"
 	"time"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func returnBanResult(b BanType, v string, t sql.NullTime) (ban BanType, value string, expires *time.Time, err error) {
@@ -13,6 +21,7 @@ func returnBanResult(b BanType, v string, t sql.NullTime) (ban BanType, value st
 	return b, v, expires, ErrUserIsBanned
 }
 
+// FormatExpiresLong returns the long form representation of the given expiration time.
 func FormatExpiresLong(expires *time.Time) string {
 	if expires == nil {
 		return "never expires"
@@ -21,10 +30,22 @@ func FormatExpiresLong(expires *time.Time) string {
 	return expires.Format("3:04:05PM on January 2 2006 (-07:00)")
 }
 
+// FormatExpiresShort returns the short form representation of the given expiration time.
 func FormatExpiresShort(expires sql.NullTime) string {
 	if !expires.Valid {
 		return "never"
 	}
 
 	return expires.Time.Format(time.DateTime)
+}
+
+// FormatRequestMethod returns a canonical method verb.
+func FormatRequestMethod(method string) string {
+	method = strings.ToUpper(method)
+
+	if slices.Contains(schema.HTTPMethods, method) {
+		return method
+	}
+
+	return ""
 }

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "PowerDNS Admin"
-description: "Integrating PowerDNS Admin with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating PowerDNS Admin with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -33,10 +37,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://powerdns.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `powerdns`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://powerdns.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `powerdns`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [PowerDNS Admin] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [PowerDNS Admin] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'PowerDNS Admin'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -109,9 +114,9 @@ To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Pro
 
 ## See Also
 
-- [Portainer OAuth Documentation](https://docs.portainer.io/admin/settings/authentication/oauth)
+- [PowerDNS Admin OAuth Documentation](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/docs/oauth.md)
 
 [Authelia]: https://www.authelia.com
-[PowerDNS Admin]: https://github.com/PowerDNS/
+[PowerDNS Admin]: https://github.com/PowerDNS-Admin/PowerDNS-Admin
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

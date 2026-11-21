@@ -1,18 +1,35 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/net/html"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+const (
+	emailPollInterval = time.Millisecond * 100
+	emailPollTimeout  = time.Second * 5
+
+	emailSubjectConfirmIdentity = "[Authelia] Confirm your identity"
+	emailRecipientPollInterval  = time.Millisecond * 500
+)
+
+// EmailMessagesResponse represents the response from the mail server messages endpoint.
 type EmailMessagesResponse struct {
 	Total         int            `json:"total"`
 	Unread        int            `json:"unread"`
@@ -23,6 +40,7 @@ type EmailMessagesResponse struct {
 	Messages      []EmailMessage `json:"messages"`
 }
 
+// EmailMessage represents a single message from the mail server.
 type EmailMessage struct {
 	ID          string    `json:"ID"`
 	MessageID   string    `json:"MessageID"`
@@ -40,11 +58,13 @@ type EmailMessage struct {
 	Snippet     string    `json:"Snippet"`
 }
 
+// Address represents an email address of an EmailMessage.
 type Address struct {
 	Name    string `json:"Name"`
 	Address string `json:"Address"`
 }
 
+// GetContentReader returns a reader for the HTML content of this message.
 func (m *EmailMessage) GetContentReader() (reader io.ReadCloser, err error) {
 	client := NewHTTPClient()
 
@@ -63,6 +83,7 @@ func (m *EmailMessage) GetContentReader() (reader io.ReadCloser, err error) {
 	return resp.Body, nil
 }
 
+// GetContent returns the HTML content of this message.
 func (m *EmailMessage) GetContent() (content []byte, err error) {
 	reader, err := m.GetContentReader()
 
@@ -130,7 +151,7 @@ func doGetEmailNodeID(t *testing.T, subject, id string) (node *html.Node) {
 func doGetOneTimeCodeFromLastMail(t *testing.T) string {
 	t.Helper()
 
-	element := doGetEmailNodeID(t, "[Authelia] Confirm your identity", "one-time-code")
+	element := doGetEmailNodeID(t, emailSubjectConfirmIdentity, "one-time-code")
 
 	require.NotNil(t, element)
 	require.NotNil(t, element.FirstChild)
@@ -191,29 +212,107 @@ func doGetNodeAttribute(t *testing.T, node *html.Node, key string) string {
 func doGetLastEmailMessageWithSubject(t *testing.T, subject string) (message EmailMessage) {
 	t.Helper()
 
-	messages := doGetEmailMessages(t)
-
-	for i := len(messages) - 1; i >= 0; i-- {
-		if subject == messages[i].Subject && !messages[i].Read {
-			return messages[i]
+	err := utils.CheckUntil(emailPollInterval, emailPollTimeout, func() (bool, error) {
+		messages, err := doGetEmailMessages()
+		if err != nil {
+			return false, nil
 		}
-	}
 
-	require.Fail(t, "Didn't find the message.")
+		for i := len(messages) - 1; i >= 0; i-- {
+			if subject == messages[i].Subject && !messages[i].Read {
+				message = messages[i]
+
+				return true, nil
+			}
+		}
+
+		return false, nil
+	})
+
+	require.NoError(t, err, "Didn't find the message with subject '%s'.", subject)
 
 	return message
 }
 
-func doGetEmailMessages(t *testing.T) []EmailMessage {
-	t.Helper()
-
+func doGetEmailMessages() (messages []EmailMessage, err error) {
 	var emr EmailMessagesResponse
 
-	res := doHTTPGetQuery(t, fmt.Sprintf("%s/api/v1/messages", MailBaseURL))
+	res, err := doHTTPGetQuery(fmt.Sprintf("%s/api/v1/messages", MailBaseURL))
+	if err != nil {
+		return nil, err
+	}
 
-	err := json.Unmarshal(res, &emr)
+	if err = json.Unmarshal(res, &emr); err != nil {
+		return nil, err
+	}
 
-	require.NoError(t, err)
+	return emr.Messages, nil
+}
 
-	return emr.Messages
+func doAwaitOneTimeCodeForRecipient(ctx context.Context, recipient string, timeout time.Duration) (code string, err error) {
+	deadline := time.Now().Add(timeout)
+
+	for time.Now().Before(deadline) {
+		if ctx.Err() != nil {
+			return "", ctx.Err()
+		}
+
+		if code, err = findOneTimeCodeForRecipient(recipient); err == nil && code != "" {
+			return code, nil
+		}
+
+		time.Sleep(emailRecipientPollInterval)
+	}
+
+	if err == nil {
+		err = fmt.Errorf("no unread '%s' email was sent to '%s' within %s", emailSubjectConfirmIdentity, recipient, timeout)
+	}
+
+	return "", err
+}
+
+func findOneTimeCodeForRecipient(recipient string) (code string, err error) {
+	messages, err := doGetEmailMessages()
+	if err != nil {
+		return "", err
+	}
+
+	for i := len(messages) - 1; i >= 0; i-- {
+		message := messages[i]
+
+		if message.Subject != emailSubjectConfirmIdentity || message.Read || !isEmailAddressedTo(message, recipient) {
+			continue
+		}
+
+		reader, err := message.GetContentReader()
+		if err != nil {
+			return "", err
+		}
+
+		node, err := html.Parse(reader)
+
+		_ = reader.Close()
+
+		if err != nil {
+			return "", err
+		}
+
+		if element := getHTMLNodeWithID(node, "one-time-code"); element != nil && element.FirstChild != nil {
+			return strings.TrimSpace(element.FirstChild.Data), nil
+		}
+
+		return "", fmt.Errorf("the '%s' email sent to '%s' has no one-time code", emailSubjectConfirmIdentity, recipient)
+	}
+
+	return "", nil
+}
+
+func isEmailAddressedTo(message EmailMessage, recipient string) bool {
+	for _, address := range message.To {
+		if strings.EqualFold(address.Address, recipient) {
+			return true
+		}
+	}
+
+	return false
 }

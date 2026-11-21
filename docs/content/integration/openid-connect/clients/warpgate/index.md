@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Warpgate"
-description: "Integrating Warpgate with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Warpgate with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-03-23T23:08:06+11:00
 draft: false
@@ -25,7 +29,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Warpgate]
-  - [v0.9.1](https://github.com/warp-tech/warpgate/releases/tag/v0.9.1)
+  - [v0.28.5](https://github.com/warp-tech/warpgate/releases/tag/v0.28.5)
 
 {{% oidc-common %}}
 
@@ -33,18 +37,20 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://warpgate.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `warpgate`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://warpgate.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `warpgate`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
+## Configuration
+
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Warpgate]
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Warpgate]
 which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -57,6 +63,7 @@ identity_providers:
         client_name: 'Warpgate'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -71,7 +78,7 @@ identity_providers:
           - 'authorization_code'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 ### Application
@@ -101,9 +108,9 @@ sso_providers:
 
 ## See Also
 
-- [Warpgate OpenID Connect Documentation](https://github.com/warp-tech/warpgate/wiki/SSO-Authentication)
+- [Warpgate OpenID Connect Documentation](https://warpgate.null.page/sso/)
 
 [Authelia]: https://www.authelia.com
-[Warpgate]: https://github.com/warp-tech/warpgate
+[Warpgate]: https://warpgate.null.page/
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -1,42 +1,43 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import {
-    Alert,
-    AlertTitle,
-    Button,
-    Checkbox,
-    CircularProgress,
-    FormControl,
-    FormControlLabel,
-    IconButton,
-    InputAdornment,
-    Link,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
+import { Alert, AlertTitle } from "@components/UI/Alert";
+import { Button } from "@components/UI/Button";
+import { Checkbox } from "@components/UI/Checkbox";
+import { FloatingInput } from "@components/UI/FloatingInput";
+import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
+import { Spinner } from "@components/UI/Spinner";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
 import { useUserCode } from "@hooks/OpenIDConnect";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
+import ExternalIdentityForm from "@views/LoginPortal/FirstFactor/ExternalIdentityForm";
+import ExternalIdentityLinkNotice from "@views/LoginPortal/FirstFactor/ExternalIdentityLinkNotice";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 export interface Props {
     disabled: boolean;
+    externalIdentityLogin: boolean;
+    externalIdentityLink?: string;
     passkeyLogin: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
     resetPasswordCustomURL: string;
+    registrationURL: string;
 
     onAuthenticationStart: () => void;
     onAuthenticationStop: () => void;
@@ -53,6 +54,7 @@ const FirstFactorForm = function (props: Props) {
     const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
+    const { showPassword, toggleProps } = usePasswordVisibility();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
@@ -60,11 +62,11 @@ const FirstFactorForm = function (props: Props) {
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [externalLoading, setExternalLoading] = useState(false);
 
     const usernameRef = useRef<HTMLInputElement | null>(null);
     const passwordRef = useRef<HTMLInputElement | null>(null);
@@ -107,6 +109,10 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleSignIn = useCallback(async () => {
+        if (loading || externalLoading) {
+            return;
+        }
+
         if (username === "" || password === "") {
             if (username === "") {
                 setUsernameError(true);
@@ -148,6 +154,8 @@ const FirstFactorForm = function (props: Props) {
             focusPassword();
         }
     }, [
+        loading,
+        externalLoading,
         username,
         password,
         props,
@@ -174,8 +182,14 @@ const FirstFactorForm = function (props: Props) {
         }
     };
 
+    const handleRegisterClick = () => {
+        if (props.registrationURL) {
+            window.open(props.registrationURL, "_blank", "noopener");
+        }
+    };
+
     const handleUsernameKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLInputElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     setUsernameError(true);
@@ -185,13 +199,14 @@ const FirstFactorForm = function (props: Props) {
                     setUsernameError(false);
                     focusPassword();
                 }
+                event.preventDefault();
             }
         },
         [focusPassword, handleSignIn, password.length, username.length],
     );
 
     const handlePasswordKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLInputElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();
@@ -206,7 +221,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handlePasswordKeyUp = useCallback(
-        (event: KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLInputElement>) => {
             if (password.length <= 1) {
                 setPasswordCapsLock(false);
                 setPasswordCapsLockPartial(false);
@@ -230,7 +245,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handleRememberMeKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLButtonElement>) => {
+        (event: KeyboardEvent<HTMLElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();
@@ -244,167 +259,149 @@ const FirstFactorForm = function (props: Props) {
     );
 
     return (
-        <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
-            <FormControl id={"form-login"}>
-                <Grid container spacing={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            inputRef={usernameRef}
+        <LoginLayout
+            id="first-factor-stage"
+            title={props.externalIdentityLink ? translate("Sign in to link your account") : translate("Sign in")}
+        >
+            <form id={"form-login"} onSubmit={(e) => e.preventDefault()}>
+                <div className="grid grid-cols-1 gap-5">
+                    {props.externalIdentityLink ? (
+                        <div className="w-full">
+                            <ExternalIdentityLinkNotice provider={props.externalIdentityLink} />
+                        </div>
+                    ) : null}
+                    <div className="w-full">
+                        <FloatingInput
+                            ref={usernameRef}
                             id="username-textfield"
-                            label={translate("Username")}
-                            variant="outlined"
+                            label={`${translate("Username")} *`}
                             required
                             value={username}
                             error={usernameError}
                             disabled={disabled}
-                            fullWidth
                             onChange={(v) => setUsername(v.target.value)}
                             onFocus={() => setUsernameError(false)}
                             autoCapitalize="none"
-                            autoComplete="username"
+                            autoComplete={props.passkeyLogin ? "username webauthn" : "username"}
                             onKeyDown={handleUsernameKeyDown}
                         />
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            inputRef={passwordRef}
+                    </div>
+                    <div className="relative w-full">
+                        <FloatingInput
+                            ref={passwordRef}
                             id="password-textfield"
-                            label={translate("Password")}
-                            variant="outlined"
+                            label={`${translate("Password")} *`}
                             required
-                            fullWidth
                             disabled={disabled}
                             value={password}
                             error={passwordError}
+                            className="pr-10"
                             onChange={(v) => setPassword(v.target.value)}
                             onFocus={() => setPasswordError(false)}
                             type={showPassword ? "text" : "password"}
-                            autoComplete="current-password"
+                            autoComplete={props.passkeyLogin ? "current-password webauthn" : "current-password"}
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                size="large"
-                                                onMouseDown={() => setShowPassword(true)}
-                                                onMouseUp={() => setShowPassword(false)}
-                                                onMouseLeave={() => setShowPassword(false)}
-                                                onTouchStart={() => setShowPassword(true)}
-                                                onTouchEnd={() => setShowPassword(false)}
-                                                onTouchCancel={() => setShowPassword(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(true);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onKeyUp={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(false);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                            >
-                                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
                         />
-                    </Grid>
+                        <PasswordVisibilityToggle
+                            label={translate("Toggle password visibility")}
+                            showPassword={showPassword}
+                            {...toggleProps}
+                        />
+                    </div>
                     {passwordCapsLock ? (
-                        <Grid size={{ xs: 12 }} marginX={2}>
-                            <Alert severity={"warning"}>
+                        <div className="w-full px-4">
+                            <Alert variant="warning">
                                 <AlertTitle>{translate("Warning")}</AlertTitle>
                                 {passwordCapsLockPartial
                                     ? translate("The password was partially entered with Caps Lock")
                                     : translate("The password was entered with Caps Lock")}
                             </Alert>
-                        </Grid>
+                        </div>
                     ) : null}
                     {props.rememberMe ? (
-                        <Grid
-                            size={{ xs: 12 }}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                marginBottom: (theme) => theme.spacing(-1),
-                                marginTop: (theme) => theme.spacing(-1),
-                            }}
-                        >
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        id="remember-checkbox"
-                                        disabled={disabled}
-                                        checked={rememberMe}
-                                        onChange={handleRememberMeChange}
-                                        onKeyDown={handleRememberMeKeyDown}
-                                        value="rememberMe"
-                                        color="primary"
-                                    />
-                                }
-                                sx={{ flexGrow: 1 }}
-                                label={translate("Remember me")}
-                            />
-                        </Grid>
+                        <div className="-my-2 flex w-full flex-row">
+                            <div className="flex flex-grow items-center gap-2">
+                                <Checkbox
+                                    id="remember-checkbox"
+                                    disabled={disabled}
+                                    checked={rememberMe}
+                                    onCheckedChange={handleRememberMeChange}
+                                    onKeyDown={handleRememberMeKeyDown}
+                                />
+                                <Label htmlFor="remember-checkbox" className="text-base">
+                                    {translate("Remember me")}
+                                </Label>
+                            </div>
+                        </div>
                     ) : null}
-                    <Grid size={{ xs: 12 }}>
+                    <div className="w-full">
                         <Button
                             id="sign-in-button"
-                            variant="contained"
-                            color="primary"
-                            fullWidth={true}
-                            endIcon={loading ? <CircularProgress size={20} /> : null}
-                            disabled={disabled}
+                            type="submit"
+                            variant="default"
+                            className="w-full"
+                            disabled={disabled || loading || externalLoading}
                             onClick={handleSignIn}
                         >
                             {translate("Sign in")}
+                            {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
                         </Button>
-                    </Grid>
+                    </div>
                     {props.passkeyLogin ? (
                         <PasskeyForm
-                            disabled={props.disabled}
+                            disabled={disabled || loading || externalLoading}
                             rememberMe={props.rememberMe}
                             onAuthenticationError={(err) => createErrorNotification(err.message)}
                             onAuthenticationStart={() => {
                                 setUsername("");
                                 setPassword("");
+                                setLoading(true);
                                 props.onAuthenticationStart();
                             }}
-                            onAuthenticationStop={props.onAuthenticationStop}
-                            onAuthenticationSuccess={props.onAuthenticationSuccess}
+                            onAuthenticationStop={() => {
+                                setLoading(false);
+                                props.onAuthenticationStop();
+                            }}
+                            onAuthenticationSuccess={(url) => {
+                                setLoading(false);
+                                props.onAuthenticationSuccess(url);
+                            }}
                         />
                     ) : null}
-                    {props.resetPassword ? (
-                        <Grid
-                            size={{ xs: 12 }}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                justifyContent: "flex-end",
-                                marginBottom: (theme) => theme.spacing(-1),
-                                marginTop: (theme) => theme.spacing(-1),
-                            }}
-                        >
-                            <Link
-                                id="reset-password-button"
-                                component="button"
-                                onClick={handleResetPasswordClick}
-                                sx={{ cursor: "pointer", paddingBottom: "13.5px", paddingTop: "13.5px" }}
-                                underline="hover"
-                            >
-                                {translate("Reset password?")}
-                            </Link>
-                        </Grid>
+                    {props.externalIdentityLogin && !props.externalIdentityLink ? (
+                        <ExternalIdentityForm
+                            disabled={disabled || loading}
+                            rememberMe={rememberMe}
+                            onLoadingChange={setExternalLoading}
+                        />
                     ) : null}
-                </Grid>
-            </FormControl>
+                    {props.resetPassword || props.registrationURL ? (
+                        <div className="-my-2 flex w-full flex-row justify-end">
+                            {props.registrationURL ? (
+                                <button
+                                    id="register-button"
+                                    type="button"
+                                    className="mr-auto cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
+                                    onClick={handleRegisterClick}
+                                >
+                                    {translate("Register")}
+                                </button>
+                            ) : null}
+                            {props.resetPassword ? (
+                                <button
+                                    id="reset-password-button"
+                                    type="button"
+                                    className="cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
+                                    onClick={handleResetPasswordClick}
+                                >
+                                    {translate("Reset password?")}
+                                </button>
+                            ) : null}
+                        </div>
+                    ) : null}
+                </div>
+            </form>
         </LoginLayout>
     );
 };

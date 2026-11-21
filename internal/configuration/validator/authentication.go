@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -43,6 +47,15 @@ func ValidateAuthenticationBackend(config *schema.Configuration, validator *sche
 		}
 	}
 
+	if config.AuthenticationBackend.Registration.CustomURL.String() != "" {
+		switch config.AuthenticationBackend.Registration.CustomURL.Scheme {
+		case schemeHTTP, schemeHTTPS:
+			break
+		default:
+			validator.Push(fmt.Errorf(errFmtAuthBackendRegistrationCustomURLScheme, config.AuthenticationBackend.Registration.CustomURL.String(), config.AuthenticationBackend.Registration.CustomURL.Scheme))
+		}
+	}
+
 	if config.AuthenticationBackend.LDAP != nil && config.AuthenticationBackend.File != nil {
 		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}
@@ -54,9 +67,12 @@ func ValidateAuthenticationBackend(config *schema.Configuration, validator *sche
 	if config.AuthenticationBackend.LDAP != nil {
 		validateLDAPAuthenticationBackend(config, validator)
 	}
+
+	if config.AuthenticationBackend.ExternalIdentity != nil {
+		ValidateAuthenticationBackendExternalIdentity(config.AuthenticationBackend.ExternalIdentity, validator)
+	}
 }
 
-// validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(errors.New(errFmtFileAuthBackendPathNotConfigured))
@@ -463,28 +479,25 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 		config.GroupSearchMode = implementation.GroupSearchMode
 	}
 
-	if ldapImplementationShouldSetStr(config.Attributes.DistinguishedName, implementation.Attributes.DistinguishedName) {
-		config.Attributes.DistinguishedName = implementation.Attributes.DistinguishedName
-	}
+	setDefaultImplementationLDAPAuthenticationBackendAttributes(&config.Attributes, &implementation.Attributes)
+}
 
-	if ldapImplementationShouldSetStr(config.Attributes.Username, implementation.Attributes.Username) {
-		config.Attributes.Username = implementation.Attributes.Username
-	}
+// setDefaultImplementationLDAPAuthenticationBackendAttributes copies every attribute name which the user has not
+// configured from the implementation defaults. It's performed over every string field so an attribute added to the
+// schema is applied without needing to be added here as well.
+func setDefaultImplementationLDAPAuthenticationBackendAttributes(config, implementation *schema.AuthenticationBackendLDAPAttributes) {
+	values, defaults := reflect.ValueOf(config).Elem(), reflect.ValueOf(implementation).Elem()
 
-	if ldapImplementationShouldSetStr(config.Attributes.DisplayName, implementation.Attributes.DisplayName) {
-		config.Attributes.DisplayName = implementation.Attributes.DisplayName
-	}
+	for i := range values.NumField() {
+		value := values.Field(i)
 
-	if ldapImplementationShouldSetStr(config.Attributes.Mail, implementation.Attributes.Mail) {
-		config.Attributes.Mail = implementation.Attributes.Mail
-	}
+		if value.Kind() != reflect.String {
+			continue
+		}
 
-	if ldapImplementationShouldSetStr(config.Attributes.MemberOf, implementation.Attributes.MemberOf) {
-		config.Attributes.MemberOf = implementation.Attributes.MemberOf
-	}
-
-	if ldapImplementationShouldSetStr(config.Attributes.GroupName, implementation.Attributes.GroupName) {
-		config.Attributes.GroupName = implementation.Attributes.GroupName
+		if def := defaults.Field(i).String(); ldapImplementationShouldSetStr(value.String(), def) {
+			value.SetString(def)
+		}
 	}
 }
 
@@ -606,7 +619,6 @@ func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema
 			config.AuthenticationBackend.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.UserObjectClasses
 		case schema.LDAPImplementationActiveDirectory:
 			config.AuthenticationBackend.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UserManagement.UserObjectClasses
-		case schema.LDAPImplementationCustom:
 		default:
 			validator.Push(errors.New(errFmtAuthBackendUserManagementUserObjectClassesRequiredForCustom))
 		}
@@ -618,7 +630,6 @@ func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema
 			config.AuthenticationBackend.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.GroupObjectClasses
 		case schema.LDAPImplementationActiveDirectory:
 			config.AuthenticationBackend.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UserManagement.GroupObjectClasses
-		case schema.LDAPImplementationCustom:
 		default:
 			validator.Push(errors.New(errFmtAuthBackendUserManagementGroupObjectClassesRequiredForCustom))
 		}
@@ -803,7 +814,7 @@ func getSupportedLDAPRDNTemplateFields(config *schema.AuthenticationBackendLDAP)
 	}
 
 	if config.Attributes.Mail != "" {
-		attributes = append(attributes, "emails")
+		attributes = append(attributes, "mail")
 	}
 
 	if config.Attributes.GivenName != "" {
@@ -892,7 +903,7 @@ func getSupportedLDAPRDNTemplateFields(config *schema.AuthenticationBackendLDAP)
 	}
 
 	if config.Attributes.MemberOf != "" || config.Attributes.GroupName != "" {
-		attributes = append(attributes, "member_of")
+		attributes = append(attributes, "groups")
 	}
 
 	for name := range config.Attributes.Extra {

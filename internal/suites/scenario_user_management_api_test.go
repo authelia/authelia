@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -1023,7 +1027,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRequireUpdateMask
 	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s", username), updateData)
 
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
-	s.Assert().Contains(string(body), "update_mask")
+	s.Assert().JSONEq(`{"status":"KO","code":"user_update_mask_invalid","message":"The update mask is missing or contains an unsupported field."}`, string(body))
 }
 
 func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRejectInvalidFieldInMask() {
@@ -1037,7 +1041,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRejectInvalidFiel
 	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=invalid_field", username), updateData)
 
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
-	s.Assert().Contains(string(body), "invalid_field")
+	s.Assert().JSONEq(`{"status":"KO","code":"user_update_mask_invalid","message":"The update mask is missing or contains an unsupported field."}`, string(body))
 }
 
 func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRejectPasswordInMask() {
@@ -1051,7 +1055,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRejectPasswordInM
 	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=password", username), updateData)
 
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
-	s.Assert().Contains(string(body), "password")
+	s.Assert().JSONEq(`{"status":"KO","code":"user_password_modify_unsupported","message":"Password modification is not supported. Use the password change endpoint."}`, string(body))
 }
 
 func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedFields() {

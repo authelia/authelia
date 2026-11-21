@@ -1,13 +1,18 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
+	"net"
 	"net/url"
 	"path"
 	"strings"
 )
 
 // URLPathFullClean returns a URL path with the query parameters appended (full path) with the path portion parsed
-// through path.Clean given a *url.URL.
+// through [path.Clean] given a *[url.URL].
 func URLPathFullClean(u *url.URL) (output string) {
 	lengthPath := len(u.Path)
 	lengthQuery := len(u.RawQuery)
@@ -70,7 +75,47 @@ func HasDomainSuffix(domain, domainSuffix string) bool {
 	return false
 }
 
-// EqualURLs returns true if the two *url.URL values are effectively equal taking into consideration web normalization.
+// IsHostnameValid returns true if the hostname is either an IP address or a valid DNS hostname consisting of labels of
+// 1 to 63 alphanumeric or hyphen characters which do not start or end with a hyphen, with a total length of no more
+// than 253 characters.
+func IsHostnameValid(hostname string) (valid bool) {
+	if net.ParseIP(hostname) != nil {
+		return true
+	}
+
+	if len(hostname) == 0 || len(hostname) > 253 {
+		return false
+	}
+
+	for label := range strings.SplitSeq(hostname, period) {
+		if !isHostnameLabelValid(label) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isHostnameLabelValid(label string) (valid bool) {
+	n := len(label)
+
+	if n == 0 || n > 63 || label[0] == '-' || label[n-1] == '-' {
+		return false
+	}
+
+	for i := range n {
+		switch c := label[i]; {
+		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9', c == '-':
+			continue
+		default:
+			return false
+		}
+	}
+
+	return true
+}
+
+// EqualURLs returns true if the two *[url.URL] values are effectively equal taking into consideration web normalization.
 func EqualURLs(first, second *url.URL) bool {
 	if first == nil && second == nil {
 		return true
@@ -105,7 +150,7 @@ func EqualURLs(first, second *url.URL) bool {
 	return true
 }
 
-// IsURLInSlice returns true if the needle url.URL is in the []url.URL haystack.
+// IsURLInSlice returns true if the needle [url.URL] is in the []url.URL haystack.
 func IsURLInSlice(needle *url.URL, haystack []*url.URL) (has bool) {
 	for i := 0; i < len(haystack); i++ {
 		if EqualURLs(needle, haystack[i]) {

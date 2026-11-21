@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package server
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -17,19 +20,19 @@ import (
 )
 
 // New Create Authelia's internal web server with the given configuration and providers.
-func New(ctx context.Context, config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
+func New(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
 	var handler fasthttp.RequestHandler
 
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server: error occurred loading templated assets: %w", err)
 	}
 
-	if handler, err = handlerMain(ctx, config, providers); err != nil {
+	if handler, err = handlerMain(config, providers); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server: error occurred loading the handlers: %w", err)
 	}
 
 	server = &fasthttp.Server{
-		ErrorHandler:          handleError("server"),
+		ErrorHandler:          handleError("server", config.Server.Headers.TrustedProxies),
 		Handler:               handler,
 		NoDefaultServerHeader: true,
 		ReadBufferSize:        config.Server.Buffers.Read,
@@ -92,7 +95,7 @@ func NewMetrics(config *schema.Configuration, providers middlewares.Providers) (
 	}
 
 	server = &fasthttp.Server{
-		ErrorHandler:          handleError("telemetry.metrics"),
+		ErrorHandler:          handleError("telemetry.metrics", config.Server.Headers.TrustedProxies),
 		NoDefaultServerHeader: true,
 		Handler:               handlerMetrics(providers.Metrics, config.Telemetry.Metrics.Address.RouterPath()),
 		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,

@@ -1,5 +1,6 @@
-import { AppBar, Toolbar, Typography } from "@mui/material";
-import { styled } from "@mui/material/styles";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
 import AppBarItemAccountSettings from "@components/AppBarItemAccountSettings";
 import AppBarItemLanguage from "@components/AppBarItemLanguage";
@@ -13,27 +14,19 @@ export interface Props {
     onLocaleChange?: (_locale: string) => void;
 }
 
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-    alignItems: "flex-start",
-    marginX: "auto",
-    paddingBottom: theme.spacing(2),
-    paddingTop: theme.spacing(1),
-}));
-
 const AppBarLoginPortal = function (props: Props) {
     return (
-        <AppBar position="static" color="transparent" elevation={0}>
-            <Typography sx={{ flexGrow: 1 }} />
-            <StyledToolbar variant={"regular"}>
-                <Typography sx={{ flexGrow: 1 }} />
+        <header className="bg-transparent">
+            <div className="mx-auto flex items-center px-4 pb-4 pt-2">
+                <div className="grow" />
                 <AppBarItemLanguage
                     localeCurrent={props.localeCurrent}
                     localeList={props.localeList}
                     onChange={props.onLocaleChange}
                 />
                 <AppBarItemAccountSettings userInfo={props.userInfo} />
-            </StyledToolbar>
-        </AppBar>
+            </div>
+        </header>
     );
 };
 

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Docmost"
-description: "Integrating Docmost with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Docmost with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -21,7 +25,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Docmost]
   - [v0.22.2](https://github.com/docmost/docmost/releases/tag/v0.22.2)
 
@@ -31,10 +35,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://docmost.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `docmost`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://docmost.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `docmost`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -44,7 +48,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Docmost] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Docmost] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -57,11 +61,12 @@ identity_providers:
         client_name: 'Docmost'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://docmost.{{< sitevar name="domain" nojs="example.com" >}}'
+          - 'https://docmost.{{< sitevar name="domain" nojs="example.com" >}}'  # Placeholder. See step 6 below.
         scopes:
           - 'openid'
           - 'profile'
@@ -79,6 +84,11 @@ identity_providers:
 
 To configure [Docmost] there is one method, using the [Web GUI](#web-gui).
 
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+Single Sign-On is not available in the [Docmost] Community edition and requires a paid edition license. See the
+[Docmost Pricing](https://docmost.com/pricing) for details.
+{{< /callout >}}
+
 #### Web GUI
 
 To configure [Docmost] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
@@ -88,14 +98,14 @@ To configure [Docmost] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 3. Navigate to Security & SSO.
 4. Select `Create SSO`.
 5. Select `OpenID (OIDC)` from the dropdown menu.
-6. Copy the `Callback URL` and replace the configured `redirect_uri` value in the Authelia configuration.
+6. Copy the `Callback URL` and replace the configured `redirect_uris` value in the Authelia configuration.
 7. Configure the following options:
-  - Display name: `Authelia`
-  - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Client ID: `docmost`
-  - Client Secret: `insecure_secret`
-  - Allow signup: Disabled
-  - Enabled: Enabled
+   - Display name: `Authelia`
+   - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Client ID: `docmost`
+   - Client Secret: `insecure_secret`
+   - Allow signup: Disabled
+   - Enabled: Enabled
 8. Press `Save` at the bottom.
 
 ## See Also

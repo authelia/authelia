@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,12 +26,8 @@ type RequestMethodScenario struct {
 }
 
 func (s *RequestMethodScenario) SetupSuite() {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Needs to be enabled in suites. Not used in production.
-	}
-
 	s.client = &http.Client{
-		Transport: tr,
+		Transport: NewHTTPTransport(),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},

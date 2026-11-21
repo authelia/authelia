@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Roundcube"
-description: "Integrating Roundcube and Dovecot with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Roundcube and Dovecot with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -23,11 +27,11 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Roundcube]
   - [v1.7.1](https://github.com/roundcube/roundcubemail/releases/tag/1.7.1)
 - [Dovecot]
-  - [v2.4.4](https://dovecot.org/doc/NEWS)
+  - [v2.4.4](https://github.com/dovecot/core/releases/tag/2.4.4)
 - [Postfix]
   - [v3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
 
@@ -37,10 +41,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `roundcube`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `roundcube`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Roundcube] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Roundcube] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -63,6 +67,7 @@ identity_providers:
         client_name: 'Roundcube'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -85,7 +90,7 @@ identity_providers:
 
 To configure [Roundcube OAuth2] there is one method, using the [Configuration File](#configuration-file).
 
-##### Configuration File
+#### Configuration File
 
 ##### Roundcube
 
@@ -121,12 +126,12 @@ resulting redirect URI would be something like `https://<fqdn>:<port>/...`. Thus
 {{< /callout >}}
 
 IMAP and SMTP backend configuration:
+
 - For an IMAP instance on localhost, the default conf should be enough. Otherwise, set the corresponding SSL/TLS options
   via 'imap_host' and 'imap_conn_options';
 - For a SMTP instance on localhost, no auth would be required. However
   [Roundcube OAuth enforces](https://github.com/roundcube/roundcubemail/issues/9183) 'smtp_auth_type' = 'XOAUTH2' plus
-  credentials, thus you *must* use TLS or SSL via `smtp_host` and `smtp_conn_options`!
-
+  credentials, thus you _must_ use TLS or SSL via `smtp_host` and `smtp_conn_options`!
 
 ##### Dovecot Common
 
@@ -134,6 +139,8 @@ IMAP and SMTP backend configuration:
 Generally the configuration file is named `/etc/dovecot/dovecot.conf` or is one of the ancillary files in
 `/etc/dovecot/conf.d/`.
 {{< /callout >}}
+
+The following configuration uses the [Dovecot] 2.4 syntax:
 
 ```ext {title="/etc/dovecot/conf.d/auth.conf"}
 
@@ -144,9 +151,9 @@ auth_mechanisms {
 
 oauth2 {
   introspection_mode = post
-  introspection_url = https://roundcube:insecure_secret@auth.example.com/api/oidc/introspection
+  introspection_url = https://roundcube:insecure_secret@{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/introspection
   username_attribute = username
-  
+
   active_attribute = active
   active_value = true
 
@@ -178,6 +185,9 @@ service auth {
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 Generally the configuration file is named `/etc/dovecot/dovecot-oauth2.conf.ext`.
 {{< /callout >}}
+
+The following configuration is only required for [Dovecot] 2.3 which does not support the `oauth2` block shown above,
+and instead reads these options from the file referenced by the `args` option of the `oauth2` passdb:
 
 ```ext {title="/etc/dovecot/dovecot-oauth2.conf.ext"}
 introspection_mode = post
@@ -218,9 +228,9 @@ smtpd_sasl_type = dovecot
 [Authelia]: https://www.authelia.com
 [Roundcube]: https://roundcube.net/
 [Roundcube OAuth2]: https://github.com/roundcube/roundcubemail/wiki/Configuration:-OAuth2
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [Dovecot]: https://dovecot.org/
 [Dovecot OAuth2]: https://doc.dovecot.org/main/core/config/auth/databases/oauth2.html
 [Postfix]: https://www.postfix.org/
 [Postfix SASL]: https://www.postfix.org/SASL_README.html
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

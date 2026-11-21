@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 import (
@@ -528,6 +532,27 @@ func TestStringHasSuffixFold(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			assert.Equal(t, tc.Expected, StringHasSuffixFold(tc.S, tc.Suffix))
+		})
+	}
+}
+
+func TestStringSplitClean(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{"ShouldSplitStandardScenario", "apple,banana,cherry", []string{"apple", "banana", "cherry"}},
+		{"ShouldSplitLeadingTrailingScenario", " apple,banana,cherry ", []string{"apple", "banana", "cherry"}},
+		{"ShouldTrimEmptyItems", "apple,,banana", []string{"apple", "banana"}},
+		{"ShouldHandleOnlyWhiteSpace", "   ", nil},
+		{"ShouldHandleEmptyString", "", nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := StringSplitClean(tc.input, ",")
+			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }
