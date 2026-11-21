@@ -41,6 +41,7 @@ const (
 	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
 	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2SessionID            = "oauth2_session_id"
+	tableOAuth2SessionIDClient      = "oauth2_session_id_client"
 	tableOAuth2SessionLogout        = "oauth2_session_logout"
 	tableOAuth2SessionLogoutTask    = "oauth2_session_logout_task"
 

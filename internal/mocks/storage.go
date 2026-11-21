@@ -844,6 +844,21 @@ func (mr *MockStorageMockRecorder) LoadOAuth2SessionLogout(ctx, flowID any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2SessionLogout", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2SessionLogout), ctx, flowID)
 }
 
+// LoadOAuth2SessionLogoutTasksBySessionID mocks base method.
+func (m *MockStorage) LoadOAuth2SessionLogoutTasksBySessionID(ctx context.Context, sid, kind string) ([]model.OAuth2SessionLogoutTask, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2SessionLogoutTasksBySessionID", ctx, sid, kind)
+	ret0, _ := ret[0].([]model.OAuth2SessionLogoutTask)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2SessionLogoutTasksBySessionID indicates an expected call of LoadOAuth2SessionLogoutTasksBySessionID.
+func (mr *MockStorageMockRecorder) LoadOAuth2SessionLogoutTasksBySessionID(ctx, sid, kind any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2SessionLogoutTasksBySessionID", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2SessionLogoutTasksBySessionID), ctx, sid, kind)
+}
+
 // LoadOAuth2SessionLogoutTasksDue mocks base method.
 func (m *MockStorage) LoadOAuth2SessionLogoutTasksDue(ctx context.Context, now time.Time, limit int) ([]model.OAuth2SessionLogoutTask, error) {
 	m.ctrl.T.Helper()
@@ -1582,6 +1597,20 @@ func (m *MockStorage) SaveOAuth2Session(ctx context.Context, sessionType storage
 func (mr *MockStorageMockRecorder) SaveOAuth2Session(ctx, sessionType, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2Session", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2Session), ctx, sessionType, arg2)
+}
+
+// SaveOAuth2SessionIDClient mocks base method.
+func (m *MockStorage) SaveOAuth2SessionIDClient(ctx context.Context, issuer, publicID, sid, clientID, subject string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2SessionIDClient", ctx, issuer, publicID, sid, clientID, subject)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2SessionIDClient indicates an expected call of SaveOAuth2SessionIDClient.
+func (mr *MockStorageMockRecorder) SaveOAuth2SessionIDClient(ctx, issuer, publicID, sid, clientID, subject any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2SessionIDClient", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2SessionIDClient), ctx, issuer, publicID, sid, clientID, subject)
 }
 
 // SaveOAuth2SessionLogout mocks base method.

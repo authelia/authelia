@@ -508,8 +508,8 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 ## Logout
 
-Authelia implements [OpenID Connect RP-Initiated Logout 1.0]. [OpenID Connect Back-Channel Logout 1.0],
-[OpenID Connect Front-Channel Logout 1.0], and [OpenID Connect Session Management 1.0], including the
+Authelia implements [OpenID Connect RP-Initiated Logout 1.0] and [OpenID Connect Back-Channel Logout 1.0].
+[OpenID Connect Front-Channel Logout 1.0] and [OpenID Connect Session Management 1.0], including the
 `check_session_iframe`, are not supported.
 
 ### End Session
@@ -560,7 +560,9 @@ to the same session, and one obtained by a refresh request whose `scope` paramet
 `offline` scopes is an online refresh token.
 
 When the End-User logs out of Authelia, either directly or via the [End Session] endpoint, the OpenID Connect sessions
-they participated in are ended and their online refresh tokens are revoked.
+they participated in are ended. Every client configured with a [backchannel_logout_uri] which was issued an ID Token
+for the session is sent a Logout Token as described by [Back-Channel Logout](#back-channel-logout), and the online
+refresh tokens issued for the session are revoked.
 
 Once a session has ended, its online refresh tokens can't be used, and the authorization codes and device codes issued
 for it can't be exchanged, including those of grants with the `offline_access` or `offline` scope. Access tokens and
@@ -570,16 +572,42 @@ tokens are revoked again shortly after it ended and once more when the record ex
 request which was in progress when it ended is also revoked. A failed revocation is retried until it succeeds.
 
 When the `id_token_hint` identifies an OpenID Connect session of the same End-User which outlived the Authelia session it
-was issued for, that session is also ended.
+was issued for, that session is also ended, and the requesting client is sent a Logout Token for it when it's still
+registered and configured with a [backchannel_logout_uri].
 
 Sessions which end by expiring or through inactivity, rather than by the End-User logging out, are ended in the same
-way once Authelia determines that the session no longer exists, which it checks every 5 minutes. As the session is
-determined to no longer exist when it's absent from the [session provider](../../configuration/session/introduction.md#providers),
-a [cache](../../configuration/cache/introduction.md) used as the session provider should not be configured to evict keys
+way once Authelia determines that the session no longer exists, which it checks every 5 minutes, except that the
+clients are not sent a Logout Token. As the session is determined to no longer exist when it's absent from the
+[session provider](../../configuration/session/introduction.md#providers), a
+[cache](../../configuration/cache/introduction.md) used as the session provider should not be configured to evict keys
 or to discard them on restart, and every instance of Authelia must use the same stateless session provider.
 
 Tokens issued before upgrading to a version which supports this functionality are not linked to a session, so they
 remain valid until they expire.
+
+### Back-Channel Logout
+
+A client participates in an OpenID Connect session once it has been issued an ID Token for it, i.e. once it has been
+granted the `openid` scope during an authorization. When the session ends because the End-User logged out, every
+participating client configured with a [backchannel_logout_uri] is sent its own Logout Token, which includes the `sid`
+claim of the ID Tokens it was issued. A session which ends by expiring or through inactivity doesn't send Logout
+Tokens.
+
+The Logout Tokens are delivered in the background, so they never delay or prevent the logout. They're recorded in the
+[storage](../../configuration/storage/introduction.md) in the same transaction that ends the session, so a client which
+participated in the session is never missed, and their delivery survives Authelia restarting and is performed by any
+instance. A delivery which fails because the client can't be reached, is rate limiting, or responds with a server error
+is retried with an increasing delay, from one minute up to one hour, for up to 24 hours, and each attempt is sent a newly
+generated Logout Token so it's never expired on arrival. A delivery which the client rejects with any other error is not
+retried. Failed deliveries are logged and never prevent the other clients being notified. The
+[backchannel_logout](../../configuration/identity-providers/openid-connect/provider.md#backchannel_logout) options
+configure the lifespan of the Logout Tokens and how many are delivered at the same time.
+
+Only clients which Authelia can make a request to can be notified, which are usually web applications with a server side
+component. A client such as a native or single page application which only runs on the End-User's device has no URI
+Authelia can reach, so it can't be logged out by this mechanism. The
+[special_use_address_guard](../../configuration/identity-providers/openid-connect/provider.md#special_use_address_guard)
+applies to the deliveries, so a client reachable at a loopback or private address must be permitted by it.
 
 ## Security
 
@@ -702,7 +730,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                                [OpenID Connect Relying Party Metadata Choices 1.0]                                 |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Session Management 1.0]                                       |     None      |                                              N/A                                              |
 |                                     [OpenID Connect Front-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
-|                                      [OpenID Connect Back-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
+|                                      [OpenID Connect Back-Channel Logout 1.0]                                      |   Complete    |                                              N/A                                              |
 |                                       [OpenID Connect 1.0 User Registration]                                       |     None      |                                              N/A                                              |
 |                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |     None      |                                              N/A                                              |
 |                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |     None      |                                              N/A                                              |
@@ -805,6 +833,7 @@ either implemented, have our eye on, or are refusing to implement.
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
 [End Session]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
 [post_logout_redirect_uris]: ../../configuration/identity-providers/openid-connect/clients.md#post_logout_redirect_uris
+[backchannel_logout_uri]: ../../configuration/identity-providers/openid-connect/clients.md#backchannel_logout_uri
 [Proof Key for Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
 [Client Authentication]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3
 [Client Type]: https://oauth.net/2/client-types/

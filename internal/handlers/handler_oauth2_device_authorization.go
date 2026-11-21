@@ -220,12 +220,8 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 	var sid string
 
-	if sid, err = oidcSessionID(ctx, client, &userSession); err != nil {
-		log.
-			WithError(err).
-			Error("Device Authorization Request failed to obtain the session identifier during the User Authorization Flow")
-
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the session identifier."))
+	if sid, err = oidcSessionID(ctx, client, requester, &userSession); err != nil {
+		oidcSessionIDDeviceError(ctx, rw, requester, log, err, "obtain the session identifier", "Could not obtain the session identifier.")
 
 		return
 	}

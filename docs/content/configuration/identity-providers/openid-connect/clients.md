@@ -51,6 +51,8 @@ identity_providers:
           - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/callback'
         request_uris:
           - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oidc/request-object.jwk'
+        backchannel_logout_uri: 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/logout/backchannel'
+        backchannel_logout_session_required: false
         audience:
           - 'https://app.{{< sitevar name="domain" nojs="example.com" >}}'
         resource:
@@ -346,6 +348,43 @@ Some restrictions that have been placed on clients and their post logout redirec
 5. The URI must not use a scheme which evaluates content rather than directing the user to an application, i.e.
    `javascript`, `vbscript`, `data`, `blob`, or `file`. Private-use schemes which identify a callback into a native
    application such as `com.example.app:/logged-out` are permitted.
+
+### backchannel_logout_uri
+
+{{< confkey type="string" required="no" >}}
+
+The URI Authelia sends a Logout Token to when a session this client participated in ends, as per
+[OpenID Connect Back-Channel Logout 1.0] and described in [Back-Channel Logout](../../../integration/openid-connect/introduction.md#back-channel-logout). Clients without this option
+configured are never notified.
+
+Authelia makes this request itself rather than the browser making it, so unlike the
+[redirect_uris](#redirect_uris) this URI must be reachable from Authelia. The `https` scheme is strongly recommended as
+the Logout Token identifies the End-User.
+
+Some restrictions that have been placed on this URI are as follows:
+
+1. The URI must be absolute i.e. it must include a scheme and a host.
+2. The URI must use the `https` or `http` scheme, and the `http` scheme is only permitted when [public](#public) is
+   `false`.
+3. The URI must not include a fragment component.
+4. The URI may include a port, a path, and a query component, but the query component must be
+   `application/x-www-form-urlencoded` formatted.
+
+The Logout Token is signed with the same algorithm and key as the ID Tokens issued to this client, i.e. as configured by
+[id_token_signed_response_alg](#id_token_signed_response_alg) and
+[id_token_signed_response_key_id](#id_token_signed_response_key_id), and is encrypted when
+[id_token_encrypted_response_alg](#id_token_encrypted_response_alg) is configured. When the URI uses the `https`
+scheme the certificate presented by the client is validated against the system certificate authorities and those in the
+[certificates_directory](../../miscellaneous/introduction.md#certificates_directory).
+
+### backchannel_logout_session_required
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Whether this client requires the `sid` claim, which identifies the specific End-User session which ended, to be included
+in the Logout Tokens it is sent. Authelia includes the `sid` claim in both the ID Tokens and Logout Tokens it issues, and
+only notifies clients of the end of a specific session, so every Logout Token includes the `sid` claim and this option
+is accepted for compatibility with clients which register it.
 
 ### audience
 
@@ -1693,3 +1732,4 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Client Assertions]: https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
 [jwks]: provider.md#jwks
 [JSON Web Key]: provider.md#jwks
+[OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html
