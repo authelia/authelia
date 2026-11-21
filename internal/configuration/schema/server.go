@@ -109,6 +109,7 @@ type ServerEndpointRateLimits struct {
 	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
 	ExternalIdentityStart                   ServerEndpointRateLimit `koanf:"external_identity_start" yaml:"external_identity_start,omitempty" toml:"external_identity_start,omitempty" json:"external_identity_start,omitempty" jsonschema:"title=External Identity Start" jsonschema_description:"Configures the rate limiter which applies to the endpoint that initializes an external identity login."`
 	ExternalIdentityCallback                ServerEndpointRateLimit `koanf:"external_identity_callback" yaml:"external_identity_callback,omitempty" toml:"external_identity_callback,omitempty" json:"external_identity_callback,omitempty" jsonschema:"title=External Identity Callback" jsonschema_description:"Configures the rate limiter which applies to the redirect URI endpoint for external identity logins."`
+	WebhookConfirm                          ServerEndpointRateLimit `koanf:"webhook_confirm" yaml:"webhook_confirm,omitempty" toml:"webhook_confirm,omitempty" json:"webhook_confirm,omitempty" jsonschema:"title=Webhook Confirm" jsonschema_description:"Configures the rate limiter which applies to the endpoint a webhook destination requests to confirm it accepts deliveries."`
 }
 
 // Endpoints returns a ServerEndpointRateLimitEndpoint for every configurable rate limiter in field order.
@@ -130,6 +131,7 @@ func (r *ServerEndpointRateLimits) Endpoints() []ServerEndpointRateLimitEndpoint
 		{Name: "openid_connect_revocation", Config: &r.OpenIDConnectRevocation},
 		{Name: "external_identity_start", Config: &r.ExternalIdentityStart},
 		{Name: "external_identity_callback", Config: &r.ExternalIdentityCallback},
+		{Name: "webhook_confirm", Config: &r.WebhookConfirm},
 	}
 }
 
@@ -292,6 +294,12 @@ var DefaultServerConfiguration = Server{
 			Health: ServerEndpointRateLimit{
 				Buckets: []ServerEndpointRateLimitBucket{
 					{Period: 1 * time.Minute, Requests: 60},
+				},
+			},
+			WebhookConfirm: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 10 * time.Minute, Requests: 30},
 				},
 			},
 			ResetPasswordStart: ServerEndpointRateLimit{

@@ -13,6 +13,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -32,6 +33,7 @@ type Regulator struct {
 type Context interface {
 	context.Context
 	MetricsRecorder
+	EventEmitter
 
 	GetLogger() *logrus.Entry
 	RemoteIP() (ip net.IP)
@@ -40,6 +42,13 @@ type Context interface {
 // MetricsRecorder represents the methods used to record regulation.
 type MetricsRecorder interface {
 	RecordAuthn(success, banned bool, authType string)
+}
+
+// EventEmitter represents the methods used to emit events. It is taken from the context rather than held by the
+// Regulator for the same reason as MetricsRecorder, i.e. so that this package does not import the middlewares package
+// which imports it.
+type EventEmitter interface {
+	EmitEvent(event *events.Event)
 }
 
 // NewBan constructs a friendly version of ban information for easy formatting.

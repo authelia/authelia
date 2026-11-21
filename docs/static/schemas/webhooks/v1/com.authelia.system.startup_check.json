@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/webhooks/v1/security.authentication.failed.json",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/com.authelia.system.startup_check.json",
   "properties": {
     "username": {
       "type": "string",
@@ -25,41 +25,16 @@
       "title": "Remote IP",
       "description": "The client address which caused the occurrence."
     },
-    "stage": {
-      "type": "string",
-      "enum": [
-        "first_factor",
-        "second_factor"
-      ],
-      "title": "Stage"
-    },
-    "method": {
-      "type": "string",
-      "enum": [
-        "password",
-        "totp",
-        "webauthn",
-        "duo"
-      ],
-      "title": "Method"
-    },
-    "reason": {
-      "type": "string",
-      "enum": [
-        "invalid_credentials",
-        "user_not_found",
-        "banned",
-        "internal_error"
-      ],
-      "title": "Reason",
-      "description": "The failure classification. Present on failures only."
+    "probe": {
+      "type": "boolean",
+      "title": "Probe",
+      "description": "Always true. Marks this as a connectivity probe rather than an occurrence, so a receiver can discard it."
     }
   },
   "type": "object",
   "required": [
     "username",
-    "stage",
-    "method"
+    "probe"
   ],
-  "description": "DataAuthentication is the payload for the security.authentication.* events."
+  "description": "DataStartupCheck is the payload for the com.authelia.system.startup_check event."
 }

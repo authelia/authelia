@@ -10,6 +10,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -86,7 +87,7 @@ func RecoveryCodesGenerationPOST(ctx *middlewares.AutheliaCtx) {
 		Suffix: "If this was not you, change your account password immediately and re-generate the codes from a known good device.",
 	}
 
-	if notifyErr := ctxNotifyEvent(ctx, userSession.Username, "Recovery codes generated", body, nil); notifyErr != nil {
+	if notifyErr := ctxNotifyEvent(ctx, events.TypeUserCredentialRecoveryCodesGenerated, userSession.Username, "Recovery codes generated", body, nil); notifyErr != nil {
 		notificationSent = false
 
 		ctx.GetLogger().WithError(notifyErr).Warnf("Failed to send recovery-codes-generated notification email for user '%s'", userSession.Username)

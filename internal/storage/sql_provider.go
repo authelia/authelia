@@ -102,6 +102,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateSessionSignature:            fmt.Sprintf(queryFmtUpdateSessionSignature, tableSession),
 		sqlUpdateSessionDestroyed:            fmt.Sprintf(queryFmtUpdateSessionDestroyed, tableSession),
 		sqlDeleteSessionExpired:              fmt.Sprintf(queryFmtDeleteSessionExpired, tableSession),
+		sqlDeleteCachedDataPrefix:            fmt.Sprintf(queryFmtDeleteCachedDataPrefix, tableCachedData),
 
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
@@ -305,6 +306,7 @@ type SQLProvider struct {
 	sqlUpdateSessionSignature            string
 	sqlUpdateSessionDestroyed            string
 	sqlDeleteSessionExpired              string
+	sqlDeleteCachedDataPrefix            string
 
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
@@ -483,6 +485,7 @@ type SQLProviderKeys struct {
 	otcHMAC          []byte
 	otpHMAC          []byte
 	recoveryCodeHMAC []byte
+	whcHMAC          []byte
 
 	externalIdentityLinkHMAC []byte
 }
@@ -551,6 +554,10 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	if p.keys.externalIdentityLinkHMAC, err = p.getHMACExternalIdentityLink(ctx); err != nil {
 		return fmt.Errorf("failed to initialize the hmac external identity link signature key during startup: %w", err)
+	}
+
+	if p.keys.whcHMAC, err = p.getHMACWebhookCallback(ctx); err != nil {
+		return fmt.Errorf("failed to initialize the hmac webhook callback signature key during startup: %w", err)
 	}
 
 	return nil

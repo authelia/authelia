@@ -9,6 +9,7 @@ package mocks
 
 //go:generate mockgen -copyright_file LICENSE.header -package mocks -destination user_provider.go -mock_names UserProvider=MockUserProvider github.com/authelia/authelia/v4/internal/authentication UserProvider
 //go:generate mockgen -copyright_file LICENSE.header -package mocks -destination notifier.go -mock_names Notifier=MockNotifier github.com/authelia/authelia/v4/internal/notification Notifier
+//go:generate mockgen -copyright_file LICENSE.header -package mocks -destination events.go -mock_names Emitter=MockEmitter github.com/authelia/authelia/v4/internal/events Emitter
 //go:generate mockgen -copyright_file LICENSE.header -package mocks -destination totp.go -mock_names Provider=MockTOTP github.com/authelia/authelia/v4/internal/totp Provider
 //go:generate mockgen -copyright_file LICENSE.header -package mocks -destination storage.go -mock_names Provider=MockStorage github.com/authelia/authelia/v4/internal/storage Provider
 //go:generate mockgen -copyright_file LICENSE.header -package mocks -destination storage_sqlxdb.go -mock_names SQLXDB=MockSQLXDB github.com/authelia/authelia/v4/internal/storage SQLXDB

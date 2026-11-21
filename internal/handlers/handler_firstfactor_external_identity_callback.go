@@ -364,7 +364,7 @@ func handleExternalIdentityCallbackLinked(ctx *middlewares.AutheliaCtx, provider
 
 	if ban, value, expires, err = ctx.Providers.Regulator.BanCheck(ctx, username); err != nil {
 		if errors.Is(err, regulation.ErrUserIsBanned) {
-			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, flow.TargetURL, flow.RequestMethod, nil)
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), username, regulation.AuthType1FA, flow.TargetURL, flow.RequestMethod, nil)
 		} else {
 			log.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, username)
 		}
@@ -377,7 +377,7 @@ func handleExternalIdentityCallbackLinked(ctx *middlewares.AutheliaCtx, provider
 	var details *authentication.UserDetails
 
 	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil || details == nil {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, flow.TargetURL, flow.RequestMethod, err)
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), username, regulation.AuthType1FA, flow.TargetURL, flow.RequestMethod, err)
 
 		externalIdentityRedirect(ctx, pathExternalIdentityError)
 
@@ -425,7 +425,7 @@ func handleExternalIdentityCallbackLinked(ctx *middlewares.AutheliaCtx, provider
 		log.WithError(err).Warnf("%s: the sign in could not be recorded against the link", logFmtErrExternalIdentityCallback)
 	}
 
-	doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, flow.TargetURL, flow.RequestMethod, nil)
+	doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), username, regulation.AuthType1FA, flow.TargetURL, flow.RequestMethod, nil)
 
 	if flow.Flow != "" {
 		handleExternalIdentityFlowRedirect(ctx, &userSession, details, flow.FlowID, flow.Flow, flow.SubFlow, flow.UserCode)

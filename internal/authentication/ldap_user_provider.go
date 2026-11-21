@@ -106,6 +106,10 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 	}
 
 	if uclient, err = p.factory.GetClient(WithUsername(profile.DN), WithPassword(password)); err != nil {
+		if getLDAPResultCode(err) == ldap.LDAPResultInvalidCredentials {
+			return false, fmt.Errorf("authentication failed. Cause: %w: %w", ErrIncorrectPassword, err)
+		}
+
 		return false, fmt.Errorf("authentication failed. Cause: %w", err)
 	}
 

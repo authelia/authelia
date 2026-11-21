@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/webhooks/v1/security.ban.expired.json",
+  "$id": "https://www.authelia.com/schemas/webhooks/v1/com.authelia.security.ban.expired.json",
   "properties": {
     "username": {
       "type": "string",
@@ -51,5 +51,5 @@
     "target",
     "target_type"
   ],
-  "description": "DataBan is the payload for the security.ban.* events."
+  "description": "DataBan is the payload for the com.authelia.security.ban.* events."
 }
