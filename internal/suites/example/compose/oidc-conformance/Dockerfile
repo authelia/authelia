@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM --platform=${BUILDPLATFORM} maven:3.10.0-eclipse-temurin-21@sha256:e46e8b458ac9d4df391c792cd23822f2c0f6fc93ce53ed54cfc2dfc1547b45a3 AS builder
+FROM --platform=${BUILDPLATFORM} maven:3.10.0-eclipse-temurin-21@sha256:3e18d95a0a49d18aa5b075e5ee3c30a98078c382850467dcd4caa49bb7dc4038 AS builder
 
 ARG CONFORMANCE_SUITE_REPO=https://gitlab.com/openid/conformance-suite.git
 ARG CONFORMANCE_SUITE_REF=release-v5.3.4
