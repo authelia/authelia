@@ -22,6 +22,7 @@ import (
 	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -716,4 +717,104 @@ func newPreConfig(mock *mocks.MockAutheliaCtx) model.OAuth2ConsentPreConfig {
 
 func newPreConfUserSession() session.UserSession {
 	return session.UserSession{Username: testValue, FirstFactorAuthnTimestamp: 1000000, SecondFactorAuthnTimestamp: 1000000}
+}
+
+func TestHandleOAuth2AuthorizationConsentModePreConfiguredKeyBinding(t *testing.T) {
+	const (
+		jkt   = "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I"
+		other = "D6Nq0uHi1xL9fbLBu6xVGvKtOsBqiOxfHy_hOZlLzHM"
+	)
+
+	testCases := []struct {
+		name       string
+		keyBinding bool
+		stored     sql.NullString
+		expected   bool
+	}{
+		{"ShouldUsePreConfigurationGrantedForSameKey", true, sql.NullString{String: jkt, Valid: true}, true},
+		{"ShouldNotUsePreConfigurationGrantedForAnotherKey", true, sql.NullString{String: other, Valid: true}, false},
+		{"ShouldNotUsePreConfigurationGrantedWithoutKey", true, sql.NullString{}, false},
+		{"ShouldUsePreConfigurationWhenKeyBindingDisabled", false, sql.NullString{}, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			config := newTestOIDCConfig(t)
+			config.DPoP = schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, KeyBinding: tc.keyBinding}
+
+			setupTestOIDCProvider(t, mock, config)
+
+			preconfig := newPreConfig(mock)
+			preconfig.Scopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID, oidc.ScopeBoundKey}
+			preconfig.DPoPJWKThumbprint = tc.stored
+
+			expectPreConfigRows(t, mock, preconfig)
+
+			requester := newPreConfRequester(url.Values{oidc.FormParameterDPoPJKT: []string{jkt}})
+			requester.RequestedScope = oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeBoundKey}
+
+			result, err := handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(mock.Ctx, preConfClient, preConfSubject, requester)
+
+			require.NoError(t, err)
+
+			if tc.expected {
+				require.NotNil(t, result)
+				assert.Equal(t, preconfig.ID, result.ID)
+			} else {
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestHandleSavePreConfiguredConsentKeyBinding(t *testing.T) {
+	const jkt = "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I"
+
+	testCases := []struct {
+		name       string
+		keyBinding bool
+		scopes     []string
+		expected   sql.NullString
+	}{
+		{"ShouldStoreKeyForBoundKeyGrant", true, []string{oidc.ScopeOpenID, oidc.ScopeBoundKey}, sql.NullString{String: jkt, Valid: true}},
+		{"ShouldNotStoreKeyWithoutBoundKeyGrant", true, []string{oidc.ScopeOpenID}, sql.NullString{}},
+		{"ShouldNotStoreKeyWhenKeyBindingDisabled", false, []string{oidc.ScopeOpenID, oidc.ScopeBoundKey}, sql.NullString{}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			config := newTestOIDCConfig(t)
+			config.DPoP = schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, KeyBinding: tc.keyBinding}
+
+			setupTestOIDCProvider(t, mock, config)
+
+			consent := &model.OAuth2ConsentSession{
+				ChallengeID:   preConfChallenge,
+				ClientID:      testValue,
+				Subject:       uuid.NullUUID{UUID: preConfSubject, Valid: true},
+				GrantedScopes: tc.scopes,
+			}
+
+			var saved model.OAuth2ConsentPreConfig
+
+			mock.StorageMock.EXPECT().
+				SaveOAuth2ConsentPreConfiguration(gomock.Eq(mock.Ctx), gomock.Any()).
+				DoAndReturn(func(_ any, config model.OAuth2ConsentPreConfig) (int64, error) {
+					saved = config
+
+					return 1, nil
+				})
+
+			handleSavePreConfiguredConsent(mock.Ctx, newPreConfUserSession(), consent, preConfClient, url.Values{oidc.FormParameterDPoPJKT: []string{jkt}}, nil)
+
+			assert.Equal(t, tc.expected, saved.DPoPJWKThumbprint)
+			assert.Equal(t, sql.NullInt64{Int64: 1, Valid: true}, consent.PreConfiguration)
+		})
+	}
 }
