@@ -120,6 +120,9 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		TokenExchangeMayAct:                     config.TokenExchangeMayAct,
 		TokenExchangeTxnTokenReplacement:        config.TokenExchangeTxnTokenReplacement,
 
+		IDJAGRelationships:    newIDJAGClientRelationships(config.IDJAGRelationships),
+		IDJAGResourceOptional: config.IDJAGResourceOptional,
+
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewJSONWebKeySet(config.JSONWebKeys),
 	}
@@ -156,6 +159,29 @@ func newTokenExchangePolicies(policies []schema.IdentityProvidersOpenIDConnectCl
 		results[i] = TokenExchangePolicy{
 			ClientID:            policy.ClientID,
 			RequestedTokenTypes: policy.RequestedTokenTypes,
+		}
+	}
+
+	return results
+}
+
+func newIDJAGClientRelationships(relationships []schema.IdentityProvidersOpenIDConnectClientIDJAGRelationship) (results map[string]*IDJAGClientRelationship) {
+	if len(relationships) == 0 {
+		return nil
+	}
+
+	results = make(map[string]*IDJAGClientRelationship, len(relationships))
+
+	for _, relationship := range relationships {
+		if relationship.Issuer == nil {
+			continue
+		}
+
+		results[relationship.Issuer.String()] = &IDJAGClientRelationship{
+			ClientID:                  relationship.ClientID,
+			Scopes:                    relationship.Scopes,
+			Resources:                 relationship.Resources,
+			AuthorizationDetailsTypes: relationship.AuthorizationDetailsTypes,
 		}
 	}
 
@@ -1146,4 +1172,26 @@ func (d decoratedUserinfoClient) GetJSONWebKeys() (jwks *jose.JSONWebKeySet) {
 
 func (d decoratedUserinfoClient) GetJSONWebKeysURI() (uri string) {
 	return d.client.GetJSONWebKeysURI()
+}
+
+// GetIDJAGRelationship returns the relationship of this client with the Resource Authorization Server with the given
+// issuer.
+func (c *RegisteredClient) GetIDJAGRelationship(issuer string) (relationship *IDJAGClientRelationship, ok bool) {
+	if c == nil {
+		return nil, false
+	}
+
+	relationship, ok = c.IDJAGRelationships[issuer]
+
+	return relationship, ok
+}
+
+// GetIDJAGResourceOptional returns true if this client may omit the 'resource' parameter when requesting an Identity
+// Assertion JWT Authorization Grant even though its relationship lists resources.
+func (c *RegisteredClient) GetIDJAGResourceOptional() (optional bool) {
+	if c == nil {
+		return false
+	}
+
+	return c.IDJAGResourceOptional
 }

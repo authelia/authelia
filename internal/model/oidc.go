@@ -60,6 +60,15 @@ func NewOAuth2BlacklistedJTI(clientID, jti string, exp time.Time) (jtiBlacklist 
 	}
 }
 
+// NewOAuth2BlacklistedIssuerJTI creates a new OAuth2BlacklistedIssuerJTI for a JTI of a JWT issued by the given issuer.
+func NewOAuth2BlacklistedIssuerJTI(issuer, jti string, exp time.Time) (jtiBlacklist OAuth2BlacklistedIssuerJTI) {
+	return OAuth2BlacklistedIssuerJTI{
+		Issuer:    issuer,
+		Signature: NewOAuth2BlacklistedJTISignature(jti),
+		ExpiresAt: exp,
+	}
+}
+
 // NewOAuth2BlacklistedJTISignature returns the signature a JTI is stored with.
 func NewOAuth2BlacklistedJTISignature(jti string) (signature string) {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(jti)))
@@ -557,6 +566,24 @@ type OAuth2BlacklistedJTI struct {
 	ClientID  string    `db:"client_id"`
 	Signature string    `db:"signature"`
 	ExpiresAt time.Time `db:"expires_at"`
+}
+
+// GetExpiresAt returns the time the blacklisted JTI expires.
+func (j *OAuth2BlacklistedJTI) GetExpiresAt() time.Time {
+	return j.ExpiresAt
+}
+
+// OAuth2BlacklistedIssuerJTI represents a blacklisted JTI of a trusted issuer used with OAuth2.0.
+type OAuth2BlacklistedIssuerJTI struct {
+	ID        int       `db:"id"`
+	Issuer    string    `db:"issuer"`
+	Signature string    `db:"signature"`
+	ExpiresAt time.Time `db:"expires_at"`
+}
+
+// GetExpiresAt returns the time the blacklisted JTI expires.
+func (j *OAuth2BlacklistedIssuerJTI) GetExpiresAt() time.Time {
+	return j.ExpiresAt
 }
 
 const (

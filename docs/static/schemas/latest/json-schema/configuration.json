@@ -1468,6 +1468,11 @@
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectTokenExchange",
           "title": "Token Exchange",
           "description": "Token Exchange configuration."
+        },
+        "identity_assertion_authorization_grant": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectIDJAG",
+          "title": "Identity Assertion Authorization Grant",
+          "description": "Identity Assertion JWT Authorization Grant (ID-JAG) configuration."
         }
       },
       "additionalProperties": false,
@@ -1630,7 +1635,9 @@
               "refresh_token",
               "client_credentials",
               "urn:ietf:params:oauth:grant-type:device_code",
-              "urn:ietf:params:oauth:grant-type:token-exchange"
+              "urn:ietf:params:oauth:grant-type:token-exchange",
+              "urn:ietf:params:oauth:grant-type:jwt-bearer",
+              "urn:ietf:params:oauth:grant-type:jwt-dpop"
             ]
           },
           "type": "array",
@@ -2439,7 +2446,8 @@
               "urn:ietf:params:oauth:token-type:access_token",
               "urn:ietf:params:oauth:token-type:refresh_token",
               "urn:ietf:params:oauth:token-type:id_token",
-              "urn:ietf:params:oauth:token-type:txn_token"
+              "urn:ietf:params:oauth:token-type:txn_token",
+              "urn:ietf:params:oauth:token-type:id-jag"
             ]
           },
           "type": "array",
@@ -2487,6 +2495,20 @@
           "type": "boolean",
           "title": "Token Exchange Refresh Token Allowed",
           "description": "Permits this client to be issued a Refresh Token via a Token Exchange.",
+          "default": false
+        },
+        "identity_assertion_authorization_grant_relationships": {
+          "items": {
+            "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientIDJAGRelationship"
+          },
+          "type": "array",
+          "title": "Identity Assertion Authorization Grant Relationships",
+          "description": "The Resource Authorization Servers this client may request Identity Assertion Authorization Grants for."
+        },
+        "identity_assertion_authorization_grant_resource_optional": {
+          "type": "boolean",
+          "title": "Identity Assertion Authorization Grant Resource Optional",
+          "description": "Determines if the 'resource' parameter is optional when this client requests an Identity Assertion Authorization Grant for relationships which define resources.",
           "default": false
         },
         "token_exchange_txn_token_replacement": {
@@ -5037,7 +5059,8 @@
                   "urn:ietf:params:oauth:token-type:access_token",
                   "urn:ietf:params:oauth:token-type:refresh_token",
                   "urn:ietf:params:oauth:token-type:id_token",
-                  "urn:ietf:params:oauth:token-type:txn_token"
+                  "urn:ietf:params:oauth:token-type:txn_token",
+                  "urn:ietf:params:oauth:token-type:id-jag"
                 ]
               },
               "type": "array",
@@ -5070,7 +5093,8 @@
               "urn:ietf:params:oauth:token-type:access_token",
               "urn:ietf:params:oauth:token-type:refresh_token",
               "urn:ietf:params:oauth:token-type:id_token",
-              "urn:ietf:params:oauth:token-type:txn_token"
+              "urn:ietf:params:oauth:token-type:txn_token",
+              "urn:ietf:params:oauth:token-type:id-jag"
             ]
           },
           "type": "array",
@@ -5084,7 +5108,8 @@
             "urn:ietf:params:oauth:token-type:access_token",
             "urn:ietf:params:oauth:token-type:refresh_token",
             "urn:ietf:params:oauth:token-type:id_token",
-            "urn:ietf:params:oauth:token-type:txn_token"
+            "urn:ietf:params:oauth:token-type:txn_token",
+            "urn:ietf:params:oauth:token-type:id-jag"
           ],
           "title": "Default Requested Token Type",
           "description": "The token type issued when a Token Exchange request omits the 'requested_token_type' parameter.",
@@ -5099,6 +5124,253 @@
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectTokenExchange represents the global OAuth 2.0 Token Exchange configuration."
+    },
+    "IdentityProvidersOpenIDConnectClientIDJAGRelationship": {
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "format": "uri",
+          "title": "Issuer",
+          "description": "The issuer of the configured Resource Authorization Server this relationship applies to."
+        },
+        "client_id": {
+          "type": "string",
+          "title": "Client ID",
+          "description": "The identifier of this client at the Resource Authorization Server."
+        },
+        "scopes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Scopes",
+          "description": "The scopes at the Resource Authorization Server which may be requested. When omitted no scopes are permitted."
+        },
+        "resources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Resources",
+          "description": "The resources which may be requested for this relationship."
+        },
+        "authorization_details_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Authorization Details Types",
+          "description": "The authorization details types which may be requested for this relationship. When omitted no authorization details types are permitted."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "issuer",
+        "client_id"
+      ],
+      "description": "IdentityProvidersOpenIDConnectClientIDJAGRelationship represents the relationship of a client with a Resource Authorization Server for the purpose of Identity Assertion Authorization Grants."
+    },
+    "IdentityProvidersOpenIDConnectIDJAG": {
+      "properties": {
+        "lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Lifespan",
+          "description": "The duration an Identity Assertion Authorization Grant issued by this provider is valid for."
+        },
+        "single_use": {
+          "type": "boolean",
+          "title": "Single Use",
+          "description": "Determines if an Identity Assertion Authorization Grant presented to this provider may only be redeemed once.",
+          "default": true
+        },
+        "access_token_allowance": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Access Token Allowance",
+          "description": "The additional duration the Access Token issued from a redeemed Identity Assertion Authorization Grant may remain valid beyond the lifespan of the grant."
+        },
+        "resource_optional": {
+          "type": "boolean",
+          "title": "Resource Optional",
+          "description": "Determines if the 'resource' parameter is optional when requesting an Identity Assertion Authorization Grant for relationships which define resources.",
+          "default": false
+        },
+        "resource_authorization_servers": {
+          "items": {
+            "$ref": "#/$defs/IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer"
+          },
+          "type": "array",
+          "title": "Resource Authorization Servers",
+          "description": "The Resource Authorization Servers which Identity Assertion Authorization Grants may be issued for."
+        },
+        "trusted_issuers": {
+          "items": {
+            "$ref": "#/$defs/IdentityProvidersOpenIDConnectIDJAGTrustedIssuer"
+          },
+          "type": "array",
+          "title": "Trusted Issuers",
+          "description": "The external issuers whose Identity Assertion Authorization Grants this provider accepts."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectIDJAG represents the global Identity Assertion JWT Authorization Grant configuration."
+    },
+    "IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer": {
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "format": "uri",
+          "title": "Issuer",
+          "description": "The issuer identifier of the Resource Authorization Server which is used as the audience of the grant."
+        },
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Aliases",
+          "description": "Additional 'audience' values which identify this Resource Authorization Server."
+        },
+        "signing_algorithm": {
+          "type": "string",
+          "title": "Signing Algorithm",
+          "description": "The JWS algorithm used to sign grants issued for this Resource Authorization Server.",
+          "default": "RS256"
+        },
+        "max_age": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Maximum Age",
+          "description": "The maximum duration since the user last authenticated that is permitted for a grant to be issued. The value 0 applies no maximum."
+        },
+        "subject_client_id": {
+          "type": "string",
+          "title": "Subject Client ID",
+          "description": "The registered client which represents this Resource Authorization Server as a relying party and determines the 'sub' value of the grant."
+        },
+        "claims_policy": {
+          "type": "string",
+          "title": "Claims Policy",
+          "description": "The name of the claims policy whose claims are included in the grant. When omitted no additional claims are included."
+        },
+        "jwt_dpop_supported": {
+          "type": "boolean",
+          "title": "JWT DPoP Supported",
+          "description": "Determines if the Resource Authorization Server supports DPoP bound Identity Assertion Authorization Grants. When false a Token Exchange for this server using a DPoP bound session is refused.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "issuer",
+        "subject_client_id"
+      ],
+      "description": "IdentityProvidersOpenIDConnectIDJAGResourceAuthorizationServer represents a Resource Authorization Server which Identity Assertion Authorization Grants may be issued for."
+    },
+    "IdentityProvidersOpenIDConnectIDJAGTrustedIssuer": {
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "format": "uri",
+          "title": "Issuer",
+          "description": "The issuer identifier matched against the 'iss' claim of presented grants."
+        },
+        "jwks": {
+          "items": {
+            "$ref": "#/$defs/JWK"
+          },
+          "type": "array",
+          "title": "JSON Web Keys",
+          "description": "List of arbitrary Public Keys used to validate grants from this issuer. Takes precedence over and is mutually exclusive with the 'jwks_uri' option."
+        },
+        "jwks_uri": {
+          "type": "string",
+          "format": "uri",
+          "title": "JSON Web Keys URI",
+          "description": "URI of the JWKS endpoint which contains the Public Keys used to validate grants from this issuer. Mutually exclusive with the 'jwks' option."
+        },
+        "signing_algorithms": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Signing Algorithms",
+          "description": "The JWS algorithms grants from this issuer may be signed with. Only RS, PS, and ES algorithms are supported.",
+          "default": [
+            "RS256"
+          ]
+        },
+        "clients": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "title": "Clients",
+          "description": "The registered clients which are permitted to present grants from this issuer."
+        },
+        "resources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Resources",
+          "description": "The resources this provider treats as governed for grants presented from this issuer."
+        },
+        "username_claim": {
+          "type": "string",
+          "title": "Username Claim",
+          "description": "The claim of the grant whose value is the username of the user in this provider."
+        },
+        "authentication_methods_references": {
+          "type": "string",
+          "title": "Authentication Methods References",
+          "description": "A Common Expression Language expression which maps the verified claims of the grant to the RFC8176 authentication methods references recorded for the redeemed token."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "issuer",
+        "clients",
+        "username_claim"
+      ],
+      "description": "IdentityProvidersOpenIDConnectIDJAGTrustedIssuer represents an external issuer whose Identity Assertion Authorization Grants this provider accepts."
     },
     "IdentityProvidersOpenIDConnectTransactionTokens": {
       "properties": {

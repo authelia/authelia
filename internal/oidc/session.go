@@ -77,6 +77,7 @@ type Session struct {
 	GrantedClaims         []string        `json:"granted_claims,omitempty"`
 	ActorToken            map[string]any  `json:"-"`
 	SubjectToken          map[string]any  `json:"-"`
+	IDJAGClaims           map[string]any  `json:"-"`
 	Extra                 map[string]any  `json:"extra"`
 
 	subjectRequester oauthelia2.Requester
@@ -294,6 +295,7 @@ func (s *Session) Clone() oauthelia2.Session {
 		AllowedTopLevelClaims: slices.Clone(s.AllowedTopLevelClaims),
 		GrantedClaims:         slices.Clone(s.GrantedClaims),
 		Extra:                 maps.Clone(s.Extra),
+		IDJAGClaims:           maps.Clone(s.IDJAGClaims),
 	}
 
 	if s.DefaultSession != nil {
@@ -359,6 +361,16 @@ func (s *Session) SetSubjectToken(token map[string]any) {
 // GetSubjectToken returns the subject token claims associated with an RFC8693 token exchange.
 func (s *Session) GetSubjectToken() map[string]any {
 	return s.SubjectToken
+}
+
+// SetIDJAGClaims sets the claims of a redeemed Identity Assertion JWT Authorization Grant. They are never persisted.
+func (s *Session) SetIDJAGClaims(claims map[string]any) {
+	s.IDJAGClaims = claims
+}
+
+// GetIDJAGClaims returns the claims of a redeemed Identity Assertion JWT Authorization Grant.
+func (s *Session) GetIDJAGClaims() map[string]any {
+	return s.IDJAGClaims
 }
 
 // SetSubjectRequester stores the request the subject token was issued for during an RFC8693 token exchange. It is

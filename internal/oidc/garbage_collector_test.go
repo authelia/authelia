@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -47,7 +48,7 @@ func TestOpenIDConnectProviderGarbageCollectionFrequency(t *testing.T) {
 }
 
 func TestOpenIDConnectProviderGarbageCollectionFrequencyShouldReturnZeroWhenNotConfigured(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(nil, nil, nil)
+	provider, _ := oidc.NewOpenIDConnectProvider(nil, nil, nil)
 
 	assert.Equal(t, time.Duration(0), provider.GarbageCollectionFrequency(context.TODO()))
 }
@@ -111,7 +112,7 @@ func TestOpenIDConnectProviderGarbageCollection(t *testing.T) {
 }
 
 func TestOpenIDConnectProviderGarbageCollectionShouldNotCollectWhenNotConfigured(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(nil, nil, nil)
+	provider, _ := oidc.NewOpenIDConnectProvider(nil, nil, nil)
 
 	assert.NoError(t, provider.GarbageCollection(context.TODO()))
 }
@@ -119,7 +120,9 @@ func TestOpenIDConnectProviderGarbageCollectionShouldNotCollectWhenNotConfigured
 func newTestGarbageCollectorProvider(t *testing.T, enabled bool, store storage.Provider) (provider *oidc.OpenIDConnectProvider) {
 	t.Helper()
 
-	provider = oidc.NewOpenIDConnectProvider(&schema.Configuration{
+	var err error
+
+	provider, err = oidc.NewOpenIDConnectProvider(&schema.Configuration{
 		IdentityProviders: schema.IdentityProviders{
 			OIDC: &schema.IdentityProvidersOpenIDConnect{
 				HMACSecret:       badhmac,
@@ -129,6 +132,7 @@ func newTestGarbageCollectorProvider(t *testing.T, enabled bool, store storage.P
 		},
 	}, store, nil)
 
+	require.NoError(t, err)
 	assert.NotNil(t, provider)
 
 	return provider

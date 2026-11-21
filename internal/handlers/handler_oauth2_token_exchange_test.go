@@ -763,14 +763,16 @@ func TestOAuth2TokenPOSTTokenExchange(t *testing.T) {
 	})
 
 	preConfiguredCases := []struct {
-		name     string
-		config   model.OAuth2ConsentPreConfig
-		sector   bool
-		expected int
+		name      string
+		config    model.OAuth2ConsentPreConfig
+		sector    bool
+		omitScope bool
+		expected  int
 	}{
 		{
 			"ShouldPermitCrossClientPreConfiguredConsentCovering",
 			model.OAuth2ConsentPreConfig{ID: 1, Scopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID, oidc.ScopeProfile}, Audience: model.StringSlicePipeDelimited{testOIDCTokenExchangeID}},
+			false,
 			false,
 			http.StatusOK,
 		},
@@ -778,11 +780,13 @@ func TestOAuth2TokenPOSTTokenExchange(t *testing.T) {
 			"ShouldPermitCrossClientPreConfiguredConsentCoveringWithDifferentSector",
 			model.OAuth2ConsentPreConfig{ID: 1, Scopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID, oidc.ScopeProfile}},
 			true,
+			false,
 			http.StatusOK,
 		},
 		{
 			"ShouldRejectCrossClientPreConfiguredConsentPartialScopes",
 			model.OAuth2ConsentPreConfig{ID: 1, Scopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID}, Audience: model.StringSlicePipeDelimited{testOIDCTokenExchangeID}},
+			false,
 			false,
 			http.StatusBadRequest,
 		},
@@ -790,7 +794,15 @@ func TestOAuth2TokenPOSTTokenExchange(t *testing.T) {
 			"ShouldRejectCrossClientPreConfiguredConsentRevoked",
 			model.OAuth2ConsentPreConfig{ID: 1, Revoked: true, Scopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID, oidc.ScopeProfile}, Audience: model.StringSlicePipeDelimited{testOIDCTokenExchangeID}},
 			false,
+			false,
 			http.StatusBadRequest,
+		},
+		{
+			"ShouldGrantNoScopeWithoutScopeParameterBeyondPreConfiguredConsent",
+			model.OAuth2ConsentPreConfig{ID: 1, Scopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID}, Audience: model.StringSlicePipeDelimited{testOIDCTokenExchangeID}},
+			false,
+			true,
+			http.StatusOK,
 		},
 	}
 
@@ -828,7 +840,10 @@ func TestOAuth2TokenPOSTTokenExchange(t *testing.T) {
 				Return(rows, nil)
 
 			values := newTestOIDCTokenExchangeValues(token, oidc.TokenTypeAccessToken)
-			values.Set(oidc.FormParameterScope, "openid profile")
+
+			if !tc.omitScope {
+				values.Set(oidc.FormParameterScope, "openid profile")
+			}
 
 			code, response := doTestOIDCTokenExchange(t, mock, values)
 
@@ -837,6 +852,19 @@ func TestOAuth2TokenPOSTTokenExchange(t *testing.T) {
 			if tc.expected != http.StatusOK {
 				assert.Equal(t, "invalid_grant", response["error"], response)
 				assert.Contains(t, response["error_description"], "The user has not consented to this client for the requested scopes.", response)
+			}
+
+			if tc.omitScope {
+				assert.NotContains(t, response, "scope", response)
+
+				exchanged, ok := response["access_token"].(string)
+
+				require.True(t, ok, response)
+
+				introspection := mustGetTestOIDCIntrospection(t, mock, exchanged)
+
+				assert.Equal(t, true, introspection["active"], introspection)
+				assert.Empty(t, introspection["scope"], introspection)
 			}
 		})
 	}
@@ -1356,12 +1384,18 @@ func mustGetTestOIDCIntrospection(t *testing.T, mock *mocks.MockAutheliaCtx, tok
 func mustGetTestOIDCOwnRefreshToken(t *testing.T, mock *mocks.MockAutheliaCtx) (token string) {
 	t.Helper()
 
+	return mustGetTestOIDCRefreshTokenForClient(t, mock, testOIDCTokenExchangeID)
+}
+
+func mustGetTestOIDCRefreshTokenForClient(t *testing.T, mock *mocks.MockAutheliaCtx, clientID string) (token string) {
+	t.Helper()
+
 	values := newTestOIDCAuthorizationValues()
-	values.Set(oidc.FormParameterClientID, testOIDCTokenExchangeID)
+	values.Set(oidc.FormParameterClientID, clientID)
 	values.Set(oidc.FormParameterScope, strings.Join([]string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess}, " "))
 
-	consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, testOIDCTokenExchangeID))
-	consent.ClientID = testOIDCTokenExchangeID
+	consent := newTestOIDCConsentSession(t, mock, mustGetTestOIDCSubject(t, mock, clientID))
+	consent.ClientID = clientID
 	consent.Form = values.Encode()
 	consent.Authorized = true
 	consent.RequestedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID, oidc.ScopeOfflineAccess}
@@ -1376,7 +1410,7 @@ func mustGetTestOIDCOwnRefreshToken(t *testing.T, mock *mocks.MockAutheliaCtx) (
 
 	rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCTokenEndpoint, url.Values{
 		testOIDCFormParameterGrantType:    []string{oidc.GrantTypeAuthorizationCode},
-		oidc.FormParameterClientID:        []string{testOIDCTokenExchangeID},
+		oidc.FormParameterClientID:        []string{clientID},
 		testOIDCFormParameterClientSecret: []string{testOIDCClientSecretValue},
 		testOIDCFormParameterCode:         []string{code},
 		oidc.FormParameterRedirectURI:     []string{testOIDCRedirectURI},
@@ -1711,6 +1745,8 @@ func TestOAuth2TokenPOSTTokenExchangeTxnToken(t *testing.T) {
 		token := mustIssueTxnToken(t, mock)
 
 		remove()
+
+		mock.Ctx.ResetUserValues()
 
 		code, response := doTestOIDCTokenExchange(t, mock, newTxnValues(replacerID, token, oidc.TokenTypeTxnToken))
 
@@ -2063,26 +2099,6 @@ func TestOAuth2TokenPOSTTokenExchangeAudit(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
-		var (
-			armed bool
-			calls int
-		)
-
-		mock.UserProviderMock.EXPECT().
-			GetDetailsExtended(testUsername).
-			AnyTimes().
-			DoAndReturn(func(_ string) (*authentication.UserDetailsExtended, error) {
-				if armed {
-					calls++
-
-					if calls > 1 {
-						return nil, errors.New("backend unavailable")
-					}
-				}
-
-				return &authentication.UserDetailsExtended{UserDetails: newTestOIDCUserDetails()}, nil
-			})
-
 		setupTestOIDCTokenExchangeFlow(t, mock, func(config *schema.IdentityProvidersOpenIDConnect, subject, exchange *schema.IdentityProvidersOpenIDConnectClient) {
 			config.Discovery.JWTResponseAccessTokens = true
 
@@ -2095,12 +2111,11 @@ func TestOAuth2TokenPOSTTokenExchangeAudit(t *testing.T) {
 
 		mock.Hook.Reset()
 
-		armed = true
+		mock.Ctx.Providers.UserAttributeResolver = nil
 
 		code, response := doTestOIDCTokenExchange(t, mock, newTestOIDCTokenExchangeValues(token, oidc.TokenTypeAccessToken))
 
 		require.NotEqual(t, http.StatusOK, code, response)
-		require.Equal(t, 2, calls)
 
 		entries := getTestOIDCTokenExchangeAuditEntries(mock)
 

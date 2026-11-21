@@ -19,6 +19,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/compose"
+	"authelia.com/provider/oauth2/handler/idjag"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/handler/oidckb"
 	"authelia.com/provider/oauth2/handler/rfc8628"
@@ -1104,4 +1105,118 @@ func TestNewConfigTransactionTokens(t *testing.T) {
 	}
 
 	assert.True(t, found)
+}
+
+func TestNewConfigIDJAGHandlerOrder(t *testing.T) {
+	ctx := context.Background()
+
+	testCases := []struct {
+		name    string
+		listed  bool
+		ras     bool
+		trusted bool
+		dpop    bool
+		txn     bool
+	}{
+		{"ShouldNotRegisterWhenUnconfigured", false, false, false, false, false},
+		{"ShouldNotRegisterIssueWhenNotListed", false, true, false, false, false},
+		{"ShouldRegisterIssueOnly", true, true, false, false, false},
+		{"ShouldRegisterIssueWithTxnToken", true, true, false, false, true},
+		{"ShouldRegisterRedeemOnly", false, false, true, false, false},
+		{"ShouldRegisterBothWithDPoP", true, true, true, true, false},
+		{"ShouldRegisterBothWithoutDPoP", true, true, true, false, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &oidc.Config{}
+			config.DPoP.Enabled = tc.dpop
+			config.IDJAG = &oidc.IDJAGConfig{
+				ResourceAuthorizationServers: map[string]*oidc.IDJAGResourceAuthorizationServer{},
+				TrustedIssuers:               map[string]*oidc.IDJAGTrustedIssuer{},
+			}
+
+			if tc.ras {
+				config.IDJAG.ResourceAuthorizationServers["https://ras.example.com"] = &oidc.IDJAGResourceAuthorizationServer{}
+			}
+
+			if tc.trusted {
+				config.IDJAG.TrustedIssuers["https://idp.example.com"] = &oidc.IDJAGTrustedIssuer{}
+			}
+
+			te := &schema.IdentityProvidersOpenIDConnectTokenExchange{TokenTypes: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken}}
+
+			if tc.listed {
+				te.TokenTypes = append(te.TokenTypes, oidc.TokenTypeIDJAG)
+			}
+
+			if tc.txn {
+				te.TokenTypes = append(te.TokenTypes, oidc.TokenTypeTxnToken)
+				te.TransactionTokens.TrustDomain = "example.com"
+			}
+
+			config.RFC8693.TokenTypes = oidc.NewRFC8693TokenTypes(te, nil)
+
+			config.LoadHandlers(&oidc.Store{})
+
+			handlers, binding := config.GetTokenEndpointHandlers(ctx), config.GetTokenEndpointBindingHandlers(ctx)
+
+			grant := getTestHandlerIndex[*rfc8693.TokenExchangeGrantHandler](handlers)
+			issue := getTestHandlerIndex[*idjag.IssueHandler](handlers)
+			txn := getTestHandlerIndex[*rfc8693.TxnTokenTypeHandler](handlers)
+			validator := getTestHandlerIndex[*rfc8693.ActorTokenValidationHandler](handlers)
+			redeem := getTestHandlerIndex[*idjag.RedeemHandler](handlers)
+			dpop := getTestHandlerIndex[*rfc9449.Handler](binding)
+			bound := getTestHandlerIndex[*idjag.RedeemHandler](binding)
+
+			_, typed := config.GetRFC8693TokenTypes(ctx)[oidc.TokenTypeIDJAG]
+
+			assert.Equal(t, tc.listed, typed)
+
+			if tc.txn {
+				require.NotEqual(t, -1, txn)
+				assert.Less(t, issue, txn)
+				assert.Less(t, txn, validator)
+			}
+
+			if tc.listed {
+				require.NotEqual(t, -1, grant)
+				require.NotEqual(t, -1, issue)
+				require.NotEqual(t, -1, validator)
+				assert.Less(t, grant, issue)
+				assert.Less(t, issue, validator)
+			} else {
+				assert.Equal(t, -1, issue)
+			}
+
+			if tc.trusted {
+				require.NotEqual(t, -1, redeem)
+				require.NotEqual(t, -1, bound)
+
+				if tc.dpop {
+					require.NotEqual(t, -1, dpop)
+					assert.Less(t, dpop, bound)
+				}
+			} else {
+				assert.Equal(t, -1, redeem)
+				assert.Equal(t, -1, bound)
+			}
+
+			assert.NoError(t, compose.ValidateHandlerOrder(&oauthelia2.Config{
+				TokenEndpointHandlers:        config.GetTokenEndpointHandlers(ctx),
+				TokenEndpointBindingHandlers: config.GetTokenEndpointBindingHandlers(ctx),
+				AuthorizeEndpointHandlers:    config.GetAuthorizeEndpointHandlers(ctx),
+			}))
+		})
+	}
+}
+
+func getTestHandlerIndex[T any, H any](handlers []H) int {
+	for i, handler := range handlers {
+		if _, ok := any(handler).(T); ok {
+			return i
+		}
+	}
+
+	return -1
 }

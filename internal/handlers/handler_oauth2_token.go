@@ -9,7 +9,9 @@ import (
 	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/rfc8693"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
@@ -40,8 +42,11 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	if requester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(ctx, req, session); err != nil {
 		ctx.GetLogger().Errorf("Access Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
-		if req.PostForm.Get(oidc.FormParameterGrantType) == oidc.GrantTypeTokenExchange {
+		switch grantType := req.PostForm.Get(oidc.FormParameterGrantType); {
+		case grantType == oidc.GrantTypeTokenExchange:
 			logOAuth2TokenExchange(ctx, requester, nil, err)
+		case isOAuth2IDJAGRedeemGrantType(grantType):
+			logOAuth2IDJAGRedeem(ctx, requester, nil, err)
 		}
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
@@ -54,7 +59,7 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 
 		ctx.GetLogger().WithError(err).Errorf("Access Request with id '%s' could not be processed: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
-		logOAuth2TokenExchange(ctx, requester, nil, err)
+		logOAuth2TokenGrant(ctx, requester, nil, err)
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -69,7 +74,7 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 
 		ctx.GetLogger().Errorf("Access Response for Request with id '%s' failed with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
-		logOAuth2TokenExchange(ctx, requester, nil, err)
+		logOAuth2TokenGrant(ctx, requester, nil, err)
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -101,14 +106,14 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	if responder, err = ctx.Providers.OpenIDConnect.NewAccessResponse(ctx, requester); err != nil {
 		ctx.GetLogger().Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
-		logOAuth2TokenExchange(ctx, requester, nil, err)
+		logOAuth2TokenGrant(ctx, requester, nil, err)
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 		return
 	}
 
-	logOAuth2TokenExchange(ctx, requester, responder, nil)
+	logOAuth2TokenGrant(ctx, requester, responder, nil)
 
 	ctx.GetLogger().Debugf("Access Request with id '%s' on client with id '%s' has successfully been processed", requester.GetID(), client.GetID())
 
@@ -146,24 +151,18 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return false
 	}
 
-	exchange := requester.GetGrantTypes().ExactOne(oidc.GrantTypeTokenExchange)
+	if err = handleOAuth2TokenGrantHydration(ctx, requester, client, session); err != nil {
+		logOAuth2TokenGrant(ctx, requester, nil, err)
 
-	if exchange {
-		// The RFC 8693 token type handlers load the subject token into a fresh session, so the identity of the client
-		// performing the exchange and of the subject have to be established before the token is issued.
-		oidc.HydrateTokenExchangeSessionWithRequestingClient(client, session)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
-		if _, err = handleOAuth2TokenExchangePolicy(ctx, requester, client, session); err != nil {
-			logOAuth2TokenExchange(ctx, requester, nil, err)
-
-			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
-
-			return true
-		}
+		return true
 	}
 
-	if client.GetEnableJWTProfileOAuthAccessTokens() {
-		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetRequestedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
+	if client.GetEnableJWTProfileOAuthAccessTokens() && !isOAuth2TokenIDJAGIssueRequest(ctx, requester) {
+		scopes := getOAuth2TokenJWTProfileScopes(requester)
+
+		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": scopes}).Debug("Hydrate JWT Profile Access Token claims")
 
 		if len(session.Subject) == 0 {
 			ctx.GetLogger().
@@ -181,9 +180,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 				Error("Access Request encountered an error while trying to obtain the detailer to hydrate the JWT Profile Access Token claims")
 
-			if exchange {
-				logOAuth2TokenExchange(ctx, requester, nil, err)
-			}
+			logOAuth2TokenGrant(ctx, requester, nil, err)
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -192,15 +189,13 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		extra := map[string]any{}
 
-		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetRequestedScopes(), nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
+		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, scopes, nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
 			ctx.GetLogger().
 				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 				Error("Access Request encountered an error while trying to hydrate the JWT Profile Access Token claims")
 
-			if exchange {
-				logOAuth2TokenExchange(ctx, requester, nil, err)
-			}
+			logOAuth2TokenGrant(ctx, requester, nil, err)
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -222,4 +217,60 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	return false
+}
+
+func isOAuth2TokenIDJAGIssueRequest(ctx *middlewares.AutheliaCtx, requester oauthelia2.AccessRequester) bool {
+	return requester.GetGrantTypes().ExactOne(oidc.GrantTypeTokenExchange) && rfc8693.IsIDJAGRequest(ctx, requester, ctx.Providers.OpenIDConnect)
+}
+
+func getOAuth2TokenJWTProfileScopes(requester oauthelia2.AccessRequester) oauthelia2.Arguments {
+	if grants := requester.GetGrantTypes(); grants.ExactOne(oidc.GrantTypeAuthorizationCode) || grants.ExactOne(oidc.GrantTypeDeviceCode) {
+		return requester.GetRequestedScopes()
+	}
+
+	return requester.GetGrantedScopes()
+}
+
+func handleOAuth2TokenGrantHydration(ctx *middlewares.AutheliaCtx, requester oauthelia2.AccessRequester, client oidc.Client, session *oidc.Session) (err error) {
+	switch grants := requester.GetGrantTypes(); {
+	case grants.ExactOne(oidc.GrantTypeTokenExchange):
+		return handleOAuth2TokenExchangeHydration(ctx, requester, client, session)
+	case grants.ExactOne(oidc.GrantTypeJWTBearer), grants.ExactOne(oidc.GrantTypeJWTDPoP):
+		_, err = handleOAuth2IDJAGRedeemPolicy(ctx, requester, client, session)
+
+		return err
+	default:
+		return nil
+	}
+}
+
+func logOAuth2TokenGrant(ctx *middlewares.AutheliaCtx, requester oauthelia2.AccessRequester, responder oauthelia2.AccessResponder, err error) {
+	if requester == nil {
+		return
+	}
+
+	switch grants := requester.GetGrantTypes(); {
+	case grants.ExactOne(oidc.GrantTypeTokenExchange):
+		logOAuth2TokenExchange(ctx, requester, responder, err)
+	case grants.ExactOne(oidc.GrantTypeJWTBearer), grants.ExactOne(oidc.GrantTypeJWTDPoP):
+		logOAuth2IDJAGRedeem(ctx, requester, responder, err)
+	}
+}
+
+func handleOAuth2TokenExchangeHydration(ctx *middlewares.AutheliaCtx, requester oauthelia2.AccessRequester, client oidc.Client, session *oidc.Session) (err error) {
+	// The RFC 8693 token type handlers load the subject token into a fresh session, so the identity of the client
+	// performing the exchange and of the subject have to be established before the token is issued.
+	oidc.HydrateTokenExchangeSessionWithRequestingClient(client, session)
+
+	var details *authentication.UserDetailsExtended
+
+	if details, err = handleOAuth2TokenExchangePolicy(ctx, requester, client, session); err != nil {
+		return err
+	}
+
+	if rfc8693.IsIDJAGRequest(ctx, requester, ctx.Providers.OpenIDConnect) {
+		return handleOAuth2IDJAGIssuePolicy(ctx, requester, session, details)
+	}
+
+	return nil
 }

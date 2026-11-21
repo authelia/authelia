@@ -853,6 +853,39 @@ const (
 			DO UPDATE SET expires_at = $3
 			WHERE %[1]s.expires_at <= $4;`
 
+	queryFmtSelectOAuth2BlacklistedIssuerJTI = `
+		SELECT id, issuer, signature, expires_at
+		FROM %s
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtInsertOAuth2BlacklistedIssuerJTI = `
+		INSERT INTO %s (issuer, signature, expires_at)
+		VALUES (?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+			expires_at = IF(expires_at <= ?, VALUES(expires_at), expires_at);`
+
+	queryFmtInsertOAuth2BlacklistedIssuerJTISQLite = `
+		INSERT INTO %[1]s (issuer, signature, expires_at)
+		VALUES (?, ?, ?)
+			ON CONFLICT (issuer, signature)
+			DO UPDATE SET expires_at = excluded.expires_at
+			WHERE julianday(%[1]s.expires_at) <= julianday(?);`
+
+	queryFmtInsertOAuth2BlacklistedIssuerJTIPostgreSQL = `
+		INSERT INTO %[1]s (issuer, signature, expires_at)
+		VALUES ($1, $2, $3)
+			ON CONFLICT (issuer, signature)
+			DO UPDATE SET expires_at = $3
+			WHERE %[1]s.expires_at <= $4;`
+
+	queryFmtDeleteOAuth2BlacklistedIssuerJTIExpired = `
+		DELETE FROM %s
+		WHERE expires_at < ?;`
+
+	queryFmtDeleteOAuth2BlacklistedIssuerJTIExpiredSQLite = `
+		DELETE FROM %s
+		WHERE julianday(expires_at) < julianday(?);`
+
 	queryFmtInsertOAuth2RequestReplay = `
 		INSERT INTO %s (type, client_id, signature, expires_at)
 		VALUES (?, ?, ?, ?)

@@ -44,6 +44,25 @@ func TestNewRFC8693TokenTypes(t *testing.T) {
 		assert.Contains(t, types, oidc.TokenTypeAccessToken)
 	})
 
+	t.Run("ShouldBuildIDJAGWhenListed", func(t *testing.T) {
+		types := oidc.NewRFC8693TokenTypes(&schema.IdentityProvidersOpenIDConnectTokenExchange{
+			TokenTypes: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeIDJAG},
+		}, nil)
+
+		require.Len(t, types, 2)
+
+		tokenType, ok := types[oidc.TokenTypeIDJAG].(*rfc8693.DefaultTokenType)
+
+		require.True(t, ok)
+		assert.Equal(t, oidc.TokenTypeIDJAG, tokenType.Name)
+	})
+
+	t.Run("ShouldNotBuildIDJAGByDefault", func(t *testing.T) {
+		types := oidc.NewRFC8693TokenTypes(&schema.IdentityProvidersOpenIDConnectTokenExchange{}, nil)
+
+		assert.NotContains(t, types, oidc.TokenTypeIDJAG)
+	})
+
 	t.Run("ShouldBuildTxnTokenWithoutOptionals", func(t *testing.T) {
 		types := oidc.NewRFC8693TokenTypes(&schema.IdentityProvidersOpenIDConnectTokenExchange{
 			TokenTypes: []string{oidc.TokenTypeAccessToken, oidc.TokenTypeTxnToken},

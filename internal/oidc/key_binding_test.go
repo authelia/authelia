@@ -92,7 +92,7 @@ func TestOpenIDConnectKeyBindingIDTokenIssuance(t *testing.T) {
 				},
 			}
 
-			provider := oidc.NewOpenIDConnectProvider(config, store, nil)
+			provider, _ := oidc.NewOpenIDConnectProvider(config, store, nil)
 
 			ctx := context.Background()
 
@@ -274,7 +274,7 @@ func TestDPoPBoundJWTAccessTokenConfirmation(t *testing.T) {
 				},
 			}
 
-			provider := oidc.NewOpenIDConnectProvider(config, mocks.NewMockStorage(ctrl), nil)
+			provider, _ := oidc.NewOpenIDConnectProvider(config, mocks.NewMockStorage(ctrl), nil)
 
 			ctx := context.Background()
 

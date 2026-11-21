@@ -375,6 +375,14 @@ type Provider interface {
 	// ErrNoRowsAffected when the JTI is already known for the client and has not expired.
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error)
 
+	// SaveOAuth2BlacklistedIssuerJTI atomically saves an OAuth2.0 blacklisted JTI of a trusted issuer to the storage
+	// provider. It returns an error wrapping ErrNoRowsAffected when the JTI is already known for the issuer and has not
+	// expired.
+	SaveOAuth2BlacklistedIssuerJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedIssuerJTI) (err error)
+
+	// LoadOAuth2BlacklistedIssuerJTI loads an OAuth2.0 blacklisted JTI of a trusted issuer from the storage provider.
+	LoadOAuth2BlacklistedIssuerJTI(ctx context.Context, issuer, signature string) (blacklistedJTI *model.OAuth2BlacklistedIssuerJTI, err error)
+
 	// LoadOAuth2BlacklistedJTI loads an OAuth2.0 blacklisted JTI for a client from the storage provider.
 	LoadOAuth2BlacklistedJTI(ctx context.Context, clientID, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
 

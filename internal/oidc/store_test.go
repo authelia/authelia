@@ -47,7 +47,7 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 				},
 			},
 		},
-	}, nil)
+	}, nil, nil)
 
 	client, err := s.GetClient(context.Background(), "myinvalidclient")
 	assert.EqualError(t, err, "invalid_client")
@@ -80,7 +80,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 				Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 			},
 		},
-	}, nil)
+	}, nil, nil)
 
 	client, err := s.GetRegisteredClient(ctx, id)
 	require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 				Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 			},
 		},
-	}, nil)
+	}, nil, nil)
 
 	client, err := s.GetRegisteredClient(ctx, "another-client")
 	assert.Nil(t, client)
@@ -140,7 +140,7 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 				},
 			},
 		},
-	}, nil)
+	}, nil, nil)
 
 	validClient := s.IsValidClientID(ctx, myclient)
 	invalidClient := s.IsValidClientID(ctx, "myinvalidclient")
@@ -180,7 +180,7 @@ func TestOAuth2SessionGrantedResourceRoundTripsThroughStore(t *testing.T) {
 				},
 			},
 		},
-	}, provider)
+	}, provider, nil)
 
 	requester := &oauthelia2.Request{
 		ID:                "req-resource-e2e",
@@ -239,7 +239,7 @@ func TestOAuth2RefreshTokenSessionExpiryDeadlineRoundTripsThroughStore(t *testin
 				},
 			},
 		},
-	}, provider)
+	}, provider, nil)
 
 	deadline := time.Date(2030, time.January, 2, 3, 4, 5, 0, time.UTC)
 
@@ -311,7 +311,7 @@ func TestOAuth2DeviceCodeSessionGrantedResourceRoundTripsThroughStore(t *testing
 				},
 			},
 		},
-	}, provider)
+	}, provider, nil)
 
 	requester := &oauthelia2.DeviceAuthorizeRequest{
 		Request: oauthelia2.Request{
@@ -376,7 +376,7 @@ func (s *StoreSuite) SetupTest() {
 				},
 			},
 		},
-	}, s.mock)
+	}, s.mock, nil)
 }
 
 func (s *StoreSuite) TestGetSubject() {

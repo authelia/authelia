@@ -358,6 +358,8 @@ const (
 		"enabled by 'token_exchange: token_types' but it has %s"
 	errFmtOIDCClientTokenExchangeActorTxnToken = errFmtOIDCClientOption + "'%s' must not contain the '%s' value as " +
 		"Transaction Tokens are not accepted as an 'actor_token'"
+	errFmtOIDCClientTokenExchangeIDJAGNotExchangeable = errFmtOIDCClientOption + "'%s' must not contain the '%s' value as " +
+		"Identity Assertion JWT Authorization Grants cannot be exchanged"
 	errFmtOIDCClientTokenExchangeSubjectTxnTokenWithoutReplacement = errFmtOIDCClientOption + "'%s' can only contain the " +
 		"'%s' value when the '%s' option is enabled"
 	errFmtOIDCClientTokenExchangeReplacementNotEnabled = errFmtOIDCClientOption + "'%s' can only be enabled when the " +
@@ -404,13 +406,70 @@ const (
 		"'transaction_tokens' must not be configured when 'token_types' does not include '" + oidc.TokenTypeTxnToken + "'"
 	errFmtOIDCProviderTokenExchangeTxnTokensTrustDomain = "identity_providers: oidc: token_exchange: option " +
 		"'transaction_tokens: trust_domain' is required when 'token_types' includes '" + oidc.TokenTypeTxnToken + "'"
+	errFmtOIDCProviderTokenExchangeIDJAGWithoutServers = "identity_providers: oidc: token_exchange: option " +
+		"'token_types' includes '" + oidc.TokenTypeIDJAG + "' which requires the 'identity_assertion_authorization_grant' option 'resource_authorization_servers' to be configured"
+	errFmtOIDCIDJAGServersWithoutTokenType = "identity_providers: oidc: identity_assertion_authorization_grant: option " +
+		"'resource_authorization_servers' must not be configured when the 'token_exchange' option 'token_types' does not include '" + oidc.TokenTypeIDJAG + "'"
 	errFmtOIDCProviderTokenExchangeTxnTokensLifespan = "identity_providers: oidc: token_exchange: option " +
 		"'transaction_tokens: lifespan' must be a positive duration but it's configured as '%s'"
 	errFmtOIDCProviderTokenExchangeTxnTokensChainLength = "identity_providers: oidc: token_exchange: option " +
 		"'transaction_tokens: replacement: max_chain_length' must be greater than or equal to 1 but it's configured as '%d'"
 	errFmtOIDCProviderTokenExchangeTxnTokensSigningAlg = "identity_providers: oidc: token_exchange: option " +
 		"'transaction_tokens: signing_algorithm' must be one of the algorithms of the configured 'jwks' %s but it's configured as '%s'"
-	errFmtOIDCClientUnknownScopeEntries = errFmtOIDCClientOption + "'%s' only expects the values " +
+	errFmtOIDCIDJAGOption                                  = "identity_providers: oidc: identity_assertion_authorization_grant: option "
+	errFmtOIDCIDJAGLifespanInvalid                         = errFmtOIDCIDJAGOption + "'lifespan' must be greater than 0 but it's configured as '%s'"
+	errFmtOIDCIDJAGLifespanLong                            = errFmtOIDCIDJAGOption + "'lifespan' is configured as '%s' which is longer than the recommended maximum of '1h' for a grant"
+	errFmtOIDCIDJAGAccessTokenAllowanceInvalid             = errFmtOIDCIDJAGOption + "'access_token_allowance' must be greater than or equal to 0 but it's configured as '%s'"
+	errFmtOIDCIDJAGRASOption                               = "identity_providers: oidc: identity_assertion_authorization_grant: resource_authorization_servers: server #%d: option "
+	errFmtOIDCIDJAGRASIssuerMissing                        = errFmtOIDCIDJAGRASOption + "'issuer' is required"
+	errFmtOIDCIDJAGRASIssuerNotAbsoluteHTTPS               = errFmtOIDCIDJAGRASOption + "'issuer' must be an absolute URL with the 'https' scheme but it's configured as '%s'"
+	errFmtOIDCIDJAGRASIssuerDuplicate                      = errFmtOIDCIDJAGRASOption + "'issuer' must be unique but the value '%s' is configured multiple times"
+	errFmtOIDCIDJAGRASIssuerAutheliaIssuer                 = errFmtOIDCIDJAGRASOption + "'%s' must not be the same as the issuer of this provider but the value '%s' is"
+	errFmtOIDCIDJAGRASAliasDuplicate                       = errFmtOIDCIDJAGRASOption + "'aliases' must be unique across the 'issuer' and 'aliases' options of all servers but the value '%s' is configured multiple times"
+	errFmtOIDCIDJAGRASAliasEmpty                           = errFmtOIDCIDJAGRASOption + "'aliases' must not contain empty values"
+	errFmtOIDCIDJAGRASSigningAlgInvalid                    = errFmtOIDCIDJAGRASOption + "'signing_algorithm' must be one of %s but it's configured as '%s'"
+	errFmtOIDCIDJAGRASMaxAgeInvalid                        = errFmtOIDCIDJAGRASOption + "'max_age' must be greater than or equal to 0 but it's configured as '%s'"
+	errFmtOIDCIDJAGRASSubjectClientIDMissing               = errFmtOIDCIDJAGRASOption + "'subject_client_id' is required"
+	errFmtOIDCIDJAGRASSubjectClientIDUnknown               = errFmtOIDCIDJAGRASOption + "'subject_client_id' must reference a registered client but the client '%s' does not exist"
+	errFmtOIDCIDJAGRASClaimsPolicyUnknown                  = errFmtOIDCIDJAGRASOption + "'claims_policy' must reference a configured claims policy but the claims policy '%s' does not exist"
+	errFmtOIDCIDJAGTrustedIssuerOption                     = "identity_providers: oidc: identity_assertion_authorization_grant: trusted_issuers: issuer #%d: option "
+	errFmtOIDCIDJAGTrustedIssuerIssuerMissing              = errFmtOIDCIDJAGTrustedIssuerOption + "'issuer' is required"
+	errFmtOIDCIDJAGTrustedIssuerIssuerDuplicate            = errFmtOIDCIDJAGTrustedIssuerOption + "'issuer' must be unique but the value '%s' is configured multiple times"
+	errFmtOIDCIDJAGTrustedIssuerIssuerAutheliaIssuer       = errFmtOIDCIDJAGTrustedIssuerOption + "'issuer' must not be the same as the issuer of this provider but the value '%s' is"
+	errFmtOIDCIDJAGTrustedIssuerKeysBoth                   = errFmtOIDCIDJAGTrustedIssuerOption + "'jwks' and 'jwks_uri' are mutually exclusive but both are configured"
+	errFmtOIDCIDJAGTrustedIssuerKeysNeither                = errFmtOIDCIDJAGTrustedIssuerOption + "one of 'jwks' or 'jwks_uri' is required"
+	errFmtOIDCIDJAGTrustedIssuerKeysURIHost                = errFmtOIDCIDJAGTrustedIssuerOption + "'jwks_uri' must have a host"
+	errFmtJWKSKeyIDDuplicate                               = "key #%d: option 'key_id' must be unique but the value '%s' is configured multiple times"
+	errFmtOIDCIDJAGTrustedIssuerKeysURIScheme              = errFmtOIDCIDJAGTrustedIssuerOption + "'jwks_uri' must have the 'https' scheme but the scheme is '%s'"
+	errFmtOIDCIDJAGTrustedIssuerSigningAlgsInvalid         = errFmtOIDCIDJAGTrustedIssuerOption + "'signing_algorithms' must only contain %s but it contains '%s'"
+	errFmtOIDCIDJAGTrustedIssuerClientsEmpty               = errFmtOIDCIDJAGTrustedIssuerOption + "'clients' must contain at least one client"
+	errFmtOIDCIDJAGTrustedIssuerClientsUnknown             = errFmtOIDCIDJAGTrustedIssuerOption + "'clients' must only reference registered clients but the client '%s' does not exist"
+	errFmtOIDCIDJAGTrustedIssuerClientsPublic              = errFmtOIDCIDJAGTrustedIssuerOption + "'clients' must only reference confidential clients but the client '%s' is public"
+	errFmtOIDCIDJAGTrustedIssuerClientsAuthMethodNone      = errFmtOIDCIDJAGTrustedIssuerOption + "'clients' must only reference clients which authenticate at the token endpoint but the client '%s' has a 'token_endpoint_auth_method' of 'none'"
+	errFmtOIDCIDJAGTrustedIssuerClientsGrantType           = errFmtOIDCIDJAGTrustedIssuerOption + "'clients' must only reference clients which have the 'grant_types' option containing '" + oidc.GrantTypeJWTBearer + "' or '" + oidc.GrantTypeJWTDPoP + "' but the client '%s' does not"
+	errFmtOIDCIDJAGTrustedIssuerClientsConsentMode         = errFmtOIDCIDJAGTrustedIssuerOption + "'clients' must only reference clients which have a 'consent_mode' of 'implicit' or 'pre-configured' but the client '%s' has a 'consent_mode' of '%s'"
+	errFmtOIDCIDJAGTrustedIssuerClientsPolicyUnsatisfiable = errFmtOIDCIDJAGTrustedIssuerOption + "'clients' references the client '%s' which has an 'authorization_policy' of '%s' that never permits one factor authentication but 'authentication_methods_references' is not configured, so grants from this issuer will always be rejected for this client"
+	errFmtOIDCIDJAGTrustedIssuerResourceInvalid            = errFmtOIDCIDJAGTrustedIssuerOption + "'resources' must only contain absolute URIs but the value '%s' is not"
+	errFmtOIDCIDJAGTrustedIssuerUsernameClaimMissing       = errFmtOIDCIDJAGTrustedIssuerOption + "'username_claim' is required"
+	errFmtOIDCIDJAGTrustedIssuerAMRInvalid                 = errFmtOIDCIDJAGTrustedIssuerOption + "'authentication_methods_references' is not a valid expression: %w"
+	errFmtOIDCClientIDJAGGrantTypeNotTrusted               = errFmtOIDCClientOption + "'" + attrOIDCGrantTypes + "' contains '%s' which requires the client to be listed in the 'clients' option of at least one trusted issuer"
+	errFmtOIDCClientIDJAGGrantTypeDPoPDisabled             = errFmtOIDCClientOption + "'" + attrOIDCGrantTypes + "' contains '" + oidc.GrantTypeJWTDPoP + "' which requires the 'dpop' option 'enabled' to be true"
+	errFmtOIDCClientIDJAGWithoutGrantType                  = errFmtOIDCClientOption + "'%s' can only be configured when the " +
+		"'grant_types' option contains '" + oidc.GrantTypeTokenExchange + "'"
+	errFmtOIDCClientIDJAGWithoutTokenType = errFmtOIDCClientOption + "'%s' can only be configured when the " +
+		"'request_token_types_supported' option contains '" + oidc.TokenTypeIDJAG + "'"
+	errFmtOIDCClientIDJAGTokenTypeWithoutRelationships = errFmtOIDCClientOption + "'request_token_types_supported' " +
+		"contains '" + oidc.TokenTypeIDJAG + "' which requires at least one '%s' entry"
+	errFmtOIDCClientIDJAGTokenTypeWithoutSubjectTokenType = errFmtOIDCClientOption + "'subject_token_types_supported' " +
+		"must contain '" + oidc.TokenTypeIDToken + "' or '" + oidc.TokenTypeRefreshToken + "' when the " +
+		"'request_token_types_supported' option contains '" + oidc.TokenTypeIDJAG + "'"
+	errFmtOIDCClientIDJAGRelationshipOption          = errFmtOIDCClientOption + "'%s': relationship #%d: option "
+	errFmtOIDCClientIDJAGRelationshipIssuerMissing   = errFmtOIDCClientIDJAGRelationshipOption + "'issuer' is required"
+	errFmtOIDCClientIDJAGRelationshipIssuerUnknown   = errFmtOIDCClientIDJAGRelationshipOption + "'issuer' must reference a configured resource authorization server but '%s' does not match one"
+	errFmtOIDCClientIDJAGRelationshipIssuerDuplicate = errFmtOIDCClientIDJAGRelationshipOption + "'issuer' must be unique but the value '%s' is configured multiple times"
+	errFmtOIDCClientIDJAGRelationshipClientIDMissing = errFmtOIDCClientIDJAGRelationshipOption + "'client_id' is required"
+	errFmtOIDCClientIDJAGRelationshipResourceInvalid = errFmtOIDCClientIDJAGRelationshipOption + "'resources' must only contain absolute URIs without a fragment but the value '%s' is not"
+	errFmtOIDCClientUnknownScopeEntries              = errFmtOIDCClientOption + "'%s' only expects the values " +
 		"%s but the unknown values %s are present and should generally only be used if a particular client requires a scope outside of our standard scopes"
 	errFmtOIDCClientInvalidEntriesScope = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
 		errFmtOIDCWhenScope + " but the values %s are present"
@@ -485,21 +544,21 @@ const (
 	errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType = errFmtOIDCClientOption +
 		"'%s' should only have the values %s if the client is also configured with a 'response_type' such as %s which respond with authorization codes"
 
-	errFmtOIDCClientPublicKeysBothURIAndValuesConfigured      = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must not be defined at the same time as option 'jwks'"
-	errFmtOIDCClientPublicKeysURIInvalidScheme                = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must have the 'https' scheme but the scheme is '%s'"
-	errFmtOIDCClientPublicKeysProperties                      = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
-	errFmtOIDCClientPublicKeysInvalidOptionOneOf              = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
-	errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf       = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option '%s' must be provided"
-	errFmtOIDCClientPublicKeysWithIDInvalidOptionMissingOneOf = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option '%s' must be provided"
-	errFmtOIDCClientPublicKeysKeyMalformed                    = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
-	errFmtOIDCClientPublicKeysRSAKeyGreaterThanMaximumBits    = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit public key but it must at maximum be a RSA %d bit public key"
-	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits          = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
-	errFmtOIDCClientPublicKeysNotUsable                       = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is not usable: %w"
-	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA                = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
-	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
-	errFmtOIDCClientPublicKeysCertificateChainInvalid         = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCClientPublicKeysROSAMissingAlgorithm            = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'jwks'"
-	errFmtOIDCClientRequireSignedRequestObjectAlgNone         = errFmtOIDCClientOption + "'request_object_signing_alg' must not be configured as 'none' when the %s option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"
+	errFmtOIDCClientPublicKeysBothURIAndValuesConfigured = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must not be defined at the same time as option 'jwks'"
+	errFmtOIDCClientPublicKeysURIInvalidScheme           = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must have the 'https' scheme but the scheme is '%s'"
+	errFmtJWKSKeyProperties                              = "key #%d with key id '%s': option 'key' failed to get key properties: %w"
+	errFmtJWKSKeyInvalidOptionOneOf                      = "key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
+	errFmtJWKSKeyInvalidOptionMissingOneOf               = "key #%d: option '%s' must be provided"
+	errFmtJWKSKeyWithIDInvalidOptionMissingOneOf         = "key #%d with key id '%s': option '%s' must be provided"
+	errFmtJWKSKeyKeyMalformed                            = "key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtJWKSKeyRSAKeyGreaterThanMaximumBits            = "key #%d with key id '%s': option 'key' is an RSA %d bit public key but it must at maximum be a RSA %d bit public key"
+	errFmtJWKSKeyRSAKeyLessThan2048Bits                  = "key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtJWKSKeyNotUsable                               = "key #%d with key id '%s': option 'key' is not usable: %w"
+	errFmtJWKSKeyKeyNotRSAOrECDSA                        = "key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
+	errFmtJWKSKeyCertificateChainKeyMismatch             = "key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
+	errFmtJWKSKeyCertificateChainInvalid                 = "key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCClientPublicKeysROSAMissingAlgorithm       = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'jwks'"
+	errFmtOIDCClientRequireSignedRequestObjectAlgNone    = errFmtOIDCClientOption + "'request_object_signing_alg' must not be configured as 'none' when the %s option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"
 )
 
 // WebAuthn Error constants.
@@ -819,6 +878,9 @@ const (
 	attrOIDCImpersonationAllowed                    = "impersonation_allowed"
 	attrOIDCTokenExchangeMayAct                     = "token_exchange_may_act"
 	attrOIDCTokenExchangeTxnTokenReplacement        = "token_exchange_txn_token_replacement"
+	attrOIDCIDJAGRelationships                      = "identity_assertion_authorization_grant_relationships"
+	attrOIDCIssuer                                  = "issuer"
+	attrOIDCAliases                                 = "aliases"
 )
 
 var (
@@ -839,8 +901,8 @@ var (
 	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
-	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode, oidc.GrantTypeTokenExchange}
-	validOIDCTokenExchangeTokenTypes         = []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken, oidc.TokenTypeTxnToken}
+	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode, oidc.GrantTypeTokenExchange, oidc.GrantTypeJWTBearer, oidc.GrantTypeJWTDPoP}
+	validOIDCTokenExchangeTokenTypes         = []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken, oidc.TokenTypeTxnToken, oidc.TokenTypeIDJAG}
 
 	validOIDCClientTokenExchangeSubjectTokenTypesDefault = []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken}
 
@@ -856,6 +918,7 @@ var (
 	validOIDCClientScopesBearerAuthz        = []string{oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
 	validOIDCClientResponseModesBearerAuthz = []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT}
 	validOIDCClientResponseTypesBearerAuthz = []string{oidc.ResponseTypeAuthorizationCodeFlow}
+	validOIDCIDJAGTrustedIssuerSigningAlgs  = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512}
 	validOIDCClientGrantTypesBearerAuthz    = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken, oidc.GrantTypeClientCredentials}
 )
 
