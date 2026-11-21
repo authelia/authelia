@@ -5,11 +5,13 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
@@ -134,33 +136,60 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return false
 	}
 
-	if client.GetEnableJWTProfileOAuthAccessTokens() {
-		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetRequestedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
+	if session.ClientCredentials || len(session.Subject) == 0 {
+		ctx.GetLogger().
+			WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+			Trace("Access Request User Claims Processing Skipped as no user subject was provided")
 
-		if len(session.Subject) == 0 {
-			ctx.GetLogger().
-				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
-				Trace("Access Request JWT Profile Claims Processing Skipped as no subject was provided")
+		return false
+	}
 
-			return false
+	var detailer oidc.UserDetailer
+
+	if detailer, err = oidc.UserDetailerFromSubjectString(ctx, session.Subject); err != nil {
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			err = oauthelia2.ErrInvalidGrant.WithHint("The user associated with the grant could not be found.").WithWrap(err).WithDebug(err.Error())
+		} else {
+			err = oauthelia2.ErrServerError.WithHint("Could not obtain the users details.").WithWrap(err).WithDebug(err.Error())
 		}
 
-		var detailer oidc.UserDetailer
+		ctx.GetLogger().
+			WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+			Error("Access Request encountered an error while trying to refresh the user details")
 
-		if detailer, err = oidc.UserDetailerFromSubjectString(ctx, session.Subject); err != nil {
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+		return true
+	}
+
+	if requester.GetGrantedScopes().Has(oidc.ScopeOpenID) {
+		extra := map[string]any{}
+
+		if err = client.GetClaimsStrategy().HydrateIDTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), session.GrantedClaims, session.ClaimRequests.GetIDTokenRequests(), detailer, session.GetRequestedAt(), ctx.GetClock().Now(), nil, extra, false); err != nil {
 			ctx.GetLogger().
 				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
-				Error("Access Request encountered an error while trying to obtain the detailer to hydrate the JWT Profile Access Token claims")
+				Error("Access Request encountered an error while trying to hydrate the ID Token claims")
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 			return true
 		}
 
+		oidc.InitializeSessionDefaults(session)
+
+		session.Claims.Extra = extra
+	}
+
+	if client.GetEnableJWTProfileOAuthAccessTokens() {
+		scopes := getOAuth2TokenJWTProfileScopes(requester)
+
+		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": scopes}).Debug("Hydrate JWT Profile Access Token claims")
+
 		extra := map[string]any{}
 
-		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetRequestedScopes(), nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
+		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, scopes, nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
 			ctx.GetLogger().
 				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
@@ -186,4 +215,12 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	return false
+}
+
+func getOAuth2TokenJWTProfileScopes(requester oauthelia2.AccessRequester) oauthelia2.Arguments {
+	if grants := requester.GetGrantTypes(); grants.ExactOne(oidc.GrantTypeAuthorizationCode) || grants.ExactOne(oidc.GrantTypeDeviceCode) {
+		return requester.GetRequestedScopes()
+	}
+
+	return requester.GetGrantedScopes()
 }

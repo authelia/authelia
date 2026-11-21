@@ -5,7 +5,9 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -18,10 +20,13 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 func TestOAuth2DeviceAuthorizationPOST(t *testing.T) {
@@ -306,6 +311,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
@@ -341,6 +347,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
@@ -370,8 +377,9 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
-		setupTestOIDCSessionStore(t, mock)
+		store := setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
@@ -401,6 +409,22 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusOK, rw.Code)
+
+		oidcSessions := store.Sessions[storage.OAuth2SessionTypeOpenIDConnect]
+
+		require.Len(t, oidcSessions, 1)
+
+		for _, saved := range oidcSessions {
+			issued := &oidc.Session{}
+
+			require.NoError(t, json.Unmarshal(saved.Session, issued))
+
+			require.NotEmpty(t, issued.GetSessionID())
+
+			_, err := uuid.Parse(issued.GetSessionID())
+
+			assert.NoError(t, err)
+		}
 	})
 }
 
@@ -423,6 +447,7 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		userCode = mustGetTestOIDCUserCode(t, mock)
 
@@ -610,6 +635,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		rwd, rd := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCDeviceAuthorizationEndpoint, url.Values{
@@ -659,6 +685,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
@@ -711,5 +738,144 @@ func newTestOIDCDeviceCodeClient(t *testing.T) schema.IdentityProvidersOpenIDCon
 		Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 		RedirectURIs:            []string{testOIDCRedirectURI},
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
+	}
+}
+
+func TestOAuth2DeviceAuthorizationPUTShouldConfirmTheUserSession(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(repository *failingSessionRepository)
+		saved    bool
+		expected string
+		log      string
+		err      any
+	}{
+		{
+			"ShouldRejectWhenTheSessionEndedBeforeApproval",
+			func(repository *failingSessionRepository) {
+				repository.endedByPublicID = true
+			},
+			false,
+			"access_denied",
+			"Device Authorization Request failed as the user session ended while the request was being processed during the User Authorization Flow",
+			nil,
+		},
+		{
+			"ShouldRejectWhenTheSessionCanNotBeConfirmedBeforeApproval",
+			func(repository *failingSessionRepository) {
+				repository.errGetByPublicID = errTestSessionBackend
+			},
+			false,
+			"server_error",
+			"Device Authorization Request failed to confirm the user session during the User Authorization Flow",
+			"error occurred getting session from backend: backend unavailable",
+		},
+		{
+			"ShouldRejectWhenTheSessionEndedDuringApproval",
+			func(repository *failingSessionRepository) {
+				repository.endedByPublicID = true
+				repository.failGetByPublicIDAfter = 1
+			},
+			true,
+			"access_denied",
+			"Device Authorization Request failed as the user session ended while the request was being processed during the User Authorization Flow",
+			nil,
+		},
+		{
+			"ShouldRejectWhenTheSessionCanNotBeConfirmedDuringApproval",
+			func(repository *failingSessionRepository) {
+				repository.errGetByPublicID = errTestSessionBackend
+				repository.failGetByPublicIDAfter = 1
+			},
+			true,
+			"server_error",
+			"Device Authorization Request failed to confirm the user session during the User Authorization Flow",
+			"error occurred getting session from backend: backend unavailable",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			config := newTestOIDCConfig(t)
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCDeviceCodeStore(t, mock)
+			setupTestOIDCSessionStore(t, mock)
+			setupTestOIDCSubjectStore(t, mock)
+			setupTestOIDCSessionIDStore(t, mock)
+			setupTestOIDCUserDetails(t, mock)
+
+			repository := setupTestFailingSessionRepository(t, mock)
+
+			us := newTestOIDCUserSession(1)
+
+			require.NoError(t, mock.Ctx.SaveSession(&us))
+
+			userCode := mustGetTestOIDCUserCode(t, mock)
+
+			subject := mustGetTestOIDCSubject(t, mock, testOIDCDeviceCodeID)
+
+			consent := newTestOIDCConsentSession(t, mock, subject)
+			consent.ClientID = testOIDCDeviceCodeID
+			consent.Authorized = true
+			consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
+
+			mock.StorageMock.EXPECT().
+				LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+				AnyTimes().
+				Return(consent, nil)
+
+			times := 0
+
+			if tc.saved {
+				times = 1
+			}
+
+			mock.StorageMock.EXPECT().
+				SaveOAuth2ConsentSessionGranted(gomock.Any(), consent.ID).
+				Times(times).
+				Return(nil)
+
+			var deactivated string
+
+			mock.StorageMock.EXPECT().
+				DeactivateOAuth2DeviceCodeSession(gomock.Any(), gomock.Any()).
+				Times(times).
+				DoAndReturn(func(_ context.Context, signature string) error {
+					deactivated = signature
+
+					return nil
+				})
+
+			tc.setup(repository)
+
+			rw, r := newTestOAuth2Request(t, fasthttp.MethodPut, testOIDCDeviceAuthorizationEndpoint, url.Values{
+				oidc.FormParameterUserCode: []string{userCode},
+				oidc.FormParameterFlowID:   []string{consent.ChallengeID.String()},
+			})
+
+			OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
+
+			assert.NotEqual(t, http.StatusOK, rw.Code)
+			assert.Equal(t, tc.expected, getTestOAuth2ErrorResponse(t, rw)["error"])
+
+			if tc.saved {
+				require.NotEmpty(t, deactivated)
+
+				decided, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSession(mock.Ctx, deactivated)
+				require.NoError(t, err)
+
+				assert.Equal(t, int(oauthelia2.DeviceAuthorizeStatusApproved), decided.Status)
+				assert.True(t, decided.SessionID.Valid)
+			} else {
+				assert.Empty(t, deactivated)
+			}
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.log, tc.err)
+		})
 	}
 }

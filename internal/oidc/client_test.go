@@ -2093,6 +2093,30 @@ func TestNewClientDisableRefreshTokenRotation(t *testing.T) {
 	}
 }
 
+func TestNewClientAllowOnlineRefreshTokens(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     bool
+		expected bool
+	}{
+		{"ShouldMapEnabled", true, true},
+		{"ShouldMapDisabled", false, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{ID: "app", AllowOnlineRefreshTokens: tc.have}, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			online, ok := client.(oauthelia2.RefreshTokenOnlineClient)
+
+			require.True(t, ok)
+			assert.Equal(t, tc.expected, online.GetAllowOnlineRefreshTokens())
+			assert.Equal(t, tc.expected, oauthelia2.IsRefreshTokenModeAllowed(client, oauthelia2.RefreshTokenModeOnline))
+			assert.True(t, oauthelia2.IsRefreshTokenModeAllowed(client, oauthelia2.RefreshTokenModeOffline))
+		})
+	}
+}
+
 func TestNewClientDeviceCodeVerificationURIComplete(t *testing.T) {
 	testCases := []struct {
 		name     string

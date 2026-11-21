@@ -75,6 +75,27 @@ func TestConformanceBrowser_Drive(t *testing.T) {
 		assert.True(t, strings.HasPrefix(leg.ErrorScreenshot, "data:image/png;base64,"), "the error page is captured")
 	})
 
+	t.Run("ShouldConfirmTheSignOutAndFollowThePostLogoutRedirect", func(t *testing.T) {
+		leg := drive(t, 1, "/logout-redirect")
+
+		assert.Equal(t, 1, leg.Index)
+		assert.True(t, leg.SignOutConfirmation)
+		assert.False(t, leg.SignedOut)
+		assert.Empty(t, leg.SignedOutScreenshot)
+		assert.False(t, leg.FirstFactor)
+		assert.False(t, leg.AutheliaError)
+	})
+
+	t.Run("ShouldEndTheLegOnTheSignInFormAfterASignOutWithoutARedirect", func(t *testing.T) {
+		leg := drive(t, 1, "/logout")
+
+		assert.True(t, leg.SignOutConfirmation)
+		assert.True(t, leg.SignedOut)
+		assert.True(t, strings.HasPrefix(leg.SignedOutScreenshot, "data:image/png;base64,"), "the signed out page is captured")
+		assert.False(t, leg.FirstFactor, "the driver must not sign back in after the logout")
+		assert.Empty(t, leg.LoginScreenshot)
+	})
+
 	t.Run("ShouldHandCoverageOverAsThePageIsLeft", func(t *testing.T) {
 		before, _ := os.ReadDir(coverageDir)
 
@@ -296,6 +317,26 @@ function authenticate() {
 </script>`, variant.reauthentication, callback, testPassword, callback))
 		})
 	}
+
+	for path, next := range map[string]string{
+		"/logout":          "/login",
+		"/logout-redirect": "/test/a/alias/post_logout_redirect?state=abc",
+	} {
+		mux.HandleFunc(path, func(w http.ResponseWriter, _ *http.Request) {
+			page(w, fmt.Sprintf(`<div id="sign-out"><button id="sign-out-confirm" onclick="confirmSignOut()">Sign out</button></div>
+<script>
+function confirmSignOut() {
+  document.getElementById('sign-out').innerHTML = 'You are being signed out and redirected...';
+
+  setTimeout(() => { location.href = %q; }, 300);
+}
+</script>`, next))
+		})
+	}
+
+	mux.HandleFunc("/test/a/alias/post_logout_redirect", func(w http.ResponseWriter, _ *http.Request) {
+		page(w, "post logout redirect")
+	})
 
 	mux.HandleFunc("/error", func(w http.ResponseWriter, _ *http.Request) {
 		page(w, `<div data-testid="openid-completion-outcome" data-outcome="error">An error occurred processing the request</div>`)

@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -165,7 +166,17 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
 
-	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
+	var sid string
+
+	if sid, err = oidcSessionID(ctx, client, &userSession); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred obtaining the session identifier", requester.GetID(), client.GetID())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the session identifier."))
+
+		return
+	}
+
+	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, sid, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
 		session.Claims.Audience = append([]string{clientID}, oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource())...)
@@ -188,6 +199,12 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		ctx.GetLogger().Errorf("Authorization Response for Request with id '%s' on client with id '%s' using policy '%s' could not be created: %s", requester.GetID(), clientID, policy.Name, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	if err = oidcSessionIDConfirm(ctx, sid, &userSession); err != nil {
+		oidcSessionIDAuthorizeError(ctx, rw, requester, err, fmt.Sprintf("Authorization Response for Request with id '%s' on client with id '%s' using policy '%s' could not be returned", requester.GetID(), clientID, policy.Name), "confirming the user session", "Could not confirm the user session.")
 
 		return
 	}

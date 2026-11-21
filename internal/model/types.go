@@ -36,6 +36,11 @@ func NewNullIPFromString(value string) (ip NullIP) {
 	return NullIP{IP: net.ParseIP(value)}
 }
 
+// NewNullString returns a [sql.NullString] which is only valid when the value isn't empty.
+func NewNullString(value string) sql.NullString {
+	return sql.NullString{String: value, Valid: len(value) != 0}
+}
+
 // NewBase64 returns a new Base64.
 func NewBase64(data []byte) Base64 {
 	return Base64{data: data}

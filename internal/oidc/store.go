@@ -243,7 +243,15 @@ func (s *Store) CreateRefreshTokenSession(ctx context.Context, signature string,
 
 	session.AccessSignature = accessSignature
 
+	guardRefreshTokenMode(session)
+
 	return errStorage(s.provider.SaveOAuth2Session(ctx, storage.OAuth2SessionTypeRefreshToken, *session))
+}
+
+func guardRefreshTokenMode(session *model.OAuth2Session) {
+	if oauthelia2.GetRefreshTokenModeForScopes([]string{ScopeOffline, ScopeOfflineAccess}, oauthelia2.Arguments(session.GrantedScopes)) == oauthelia2.RefreshTokenModeOnline {
+		session.RefreshTokenMode = string(oauthelia2.RefreshTokenModeOnline)
+	}
 }
 
 // DeleteRefreshTokenSession marks the authorization request for a given refresh token as deleted.
@@ -269,6 +277,8 @@ func (s *Store) UpdateRefreshTokenSession(ctx context.Context, signature string,
 	if session, err = model.NewOAuth2SessionFromRequest(signature, request); err != nil {
 		return err
 	}
+
+	guardRefreshTokenMode(session)
 
 	if err = s.provider.UpdateOAuth2RefreshTokenSessionRequest(ctx, *session); errors.Is(err, storage.ErrNoRowsAffected) {
 		return oauthelia2.ErrNotFound
@@ -506,6 +516,10 @@ func (s *Store) toDeviceCodeRequest(ctx context.Context, data *model.OAuth2Devic
 		return request, oauthelia2.ErrInvalidatedDeviceCode
 	}
 
+	if err = s.checkSessionEnded(ctx, data.SessionID); err != nil {
+		return nil, err
+	}
+
 	return request, nil
 }
 
@@ -576,6 +590,12 @@ func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storag
 
 	restoreClaimsRequest(r)
 
+	if sessionType == storage.OAuth2SessionTypeRefreshToken && sessionModel.RefreshTokenMode != string(oauthelia2.RefreshTokenModeOffline) {
+		if err = s.checkSessionEnded(ctx, sessionModel.SessionID); err != nil {
+			return nil, err
+		}
+	}
+
 	if !sessionModel.Active || sessionModel.Revoked {
 		switch sessionType {
 		case storage.OAuth2SessionTypeAuthorizeCode:
@@ -585,7 +605,31 @@ func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storag
 		}
 	}
 
+	if sessionType == storage.OAuth2SessionTypeAuthorizeCode {
+		if err = s.checkSessionEnded(ctx, sessionModel.SessionID); err != nil {
+			return nil, err
+		}
+	}
+
 	return r, nil
+}
+
+func (s *Store) checkSessionEnded(ctx context.Context, sid sql.NullString) (err error) {
+	if !sid.Valid || sid.String == "" {
+		return nil
+	}
+
+	var ended bool
+
+	if ended, err = s.provider.IsOAuth2SessionEnded(ctx, sid.String); err != nil {
+		return errStorage(err)
+	}
+
+	if ended {
+		return oauthelia2.ErrNotFound.WithDebug("The OpenID Connect session of the request has ended.")
+	}
+
+	return nil
 }
 
 func (s *Store) saveSession(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, r oauthelia2.Requester) (err error) {

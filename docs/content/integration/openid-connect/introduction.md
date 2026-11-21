@@ -353,7 +353,7 @@ field is both the required value for the `grant_type` parameter in the access / 
 |               [OAuth 2.0 Resource Owner Password Credentials]                |    No     |                    `password`                     |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
 |                        [OAuth 2.0 Client Credentials]                        |    Yes    |               `client_credentials`                | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
 |                             [OAuth 2.0 Implicit]                             |    Yes    |                    `implicit`                     |                          This Grant Type has been deprecated and should not normally be used                          |
-|                          [OAuth 2.0 Refresh Token]                           |    Yes    |                  `refresh_token`                  |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
+|                          [OAuth 2.0 Refresh Token]                           |    Yes    |                  `refresh_token`                  | This Grant Type should only be used for clients which have the `offline_access` scope or allow online refresh tokens  |
 |                           [OAuth 2.0 Device Code]                            |    Yes    |  `urn:ietf:params:oauth:grant-type:device_code`   |                                                                                                                       |
 |                          [OAuth 2.0 Token Exchange]                          |    No     | `urn:ietf:params:oauth:grant-type:token-exchange` |                                                        Planned                                                        |
 |                 [SAML 2.0 Profile for Authorization Grants]                  |    No     |  `urn:ietf:params:oauth:grant-type:saml2-bearer`  |                                                        Planned                                                        |
@@ -504,6 +504,82 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 |           [UserInfo]            |           https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo           |           userinfo_endpoint           |
 |         [Introspection]         |        https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/introspection         |        introspection_endpoint         |
 |          [Revocation]           |          https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/revocation          |          revocation_endpoint          |
+|          [End Session]          |         https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/end-session          |         end_session_endpoint          |
+
+## Logout
+
+Authelia implements [OpenID Connect RP-Initiated Logout 1.0]. [OpenID Connect Back-Channel Logout 1.0],
+[OpenID Connect Front-Channel Logout 1.0], and [OpenID Connect Session Management 1.0], including the
+`check_session_iframe`, are not supported.
+
+### End Session
+
+A Relying Party logs the End-User out by redirecting them to the [End Session] endpoint using either the `GET` or `POST`
+method with the following parameters:
+
+|         Parameter          |                                                    Description                                                    |
+| :------------------------: | :---------------------------------------------------------------------------------------------------------------: |
+|      `id_token_hint`       |              An ID Token previously issued to the Relying Party, which may have expired. See below.               |
+|        `client_id`         |      The client identifier, required with a `post_logout_redirect_uri` when `id_token_hint` is not provided.      |
+| `post_logout_redirect_uri` | Where the End-User is redirected after the logout, which must be one of the client's [post_logout_redirect_uris]. |
+|          `state`           |                       An opaque value returned to the `post_logout_redirect_uri` unchanged.                       |
+|        `ui_locales`        |                              The End-User's preferred languages for the logout page.                              |
+|       `logout_hint`        |                                               Accepted and ignored.                                               |
+
+The End-User is always asked to confirm the logout. As the End-User confirms the logout themselves, the
+`post_logout_redirect_uri` is honored even without an `id_token_hint`, provided it's registered for the `client_id`. The
+logout page only names the client which requested the logout when the request includes a trusted `id_token_hint`, as
+anyone can make a request with the `client_id` parameter.
+
+An `id_token_hint` is only trusted to identify the End-User and the session to end when it hasn't expired, or when it
+has expired but the session it identifies is still current or is recent, i.e. a refresh token issued alongside it may
+still be valid. An `id_token_hint` for a client which uses a client secret based `id_token_signed_response_alg` such as
+`HS256` is never trusted, as the client could have produced it rather than Authelia. A hint which isn't trusted is
+treated as if it wasn't provided.
+The [End Session] endpoint doesn't use the session of the End-User, as the browser doesn't send the session cookie with
+a cross-site `POST`, nor with any cross-site request when the session cookie has the
+[same_site](../../configuration/session/introduction.md#same_site) option set to `strict`. It stores the validated
+request and redirects the End-User to the logout page, which checks the request against their session when they confirm
+the logout. Both the `GET` and `POST` methods, and every `same_site` value, are supported.
+
+When the End-User is logged in, a request with an `id_token_hint` issued to another End-User, or identifying another
+logged in session, is declined: the End-User is asked to confirm an ordinary logout of their own session, after which
+they are not redirected to the `post_logout_redirect_uri`. When the End-User is not logged in, for example because their
+session already expired, confirming the logout only redirects them to the `post_logout_redirect_uri` and doesn't end any
+other session, as an ID Token alone does not prove the browser belongs to the End-User it was issued to.
+
+### Session Termination
+
+A refresh token is either offline or online. An offline refresh token is issued to a grant with the `offline_access` or
+`offline` scope and remains valid after the End-User logs out until it expires or is revoked by the client. An online
+refresh token is issued to a grant without either scope, only to clients configured with
+[allow_online_refresh_tokens](../../configuration/identity-providers/openid-connect/clients.md#allow_online_refresh_tokens),
+including to OAuth 2.0 grants which weren't granted the `openid` scope. It lets the client keep its access token fresh
+for the lifetime of the End-User's session. A refresh token obtained by refreshing a token issued for a session belongs
+to the same session, and one obtained by a refresh request whose `scope` parameter omits the `offline_access` and
+`offline` scopes is an online refresh token.
+
+When the End-User logs out of Authelia, either directly or via the [End Session] endpoint, the OpenID Connect sessions
+they participated in are ended and their online refresh tokens are revoked.
+
+Once a session has ended, its online refresh tokens can't be used, and the authorization codes and device codes issued
+for it can't be exchanged, including those of grants with the `offline_access` or `offline` scope. Access tokens and
+ID Tokens which were already issued are not revoked and remain valid until they expire. The ended session is recorded
+until every authorization code and device code which may have been issued for it has expired, and its online refresh
+tokens are revoked again shortly after it ended and once more when the record expires, so a refresh token issued by a
+request which was in progress when it ended is also revoked. A failed revocation is retried until it succeeds.
+
+When the `id_token_hint` identifies an OpenID Connect session of the same End-User which outlived the Authelia session it
+was issued for, that session is also ended.
+
+Sessions which end by expiring or through inactivity, rather than by the End-User logging out, are ended in the same
+way once Authelia determines that the session no longer exists, which it checks every 5 minutes. As the session is
+determined to no longer exist when it's absent from the [session provider](../../configuration/session/introduction.md#providers),
+a [cache](../../configuration/cache/introduction.md) used as the session provider should not be configured to evict keys
+or to discard them on restart, and every instance of Authelia must use the same stateless session provider.
+
+Tokens issued before upgrading to a version which supports this functionality are not linked to a session, so they
+remain valid until they expire.
 
 ## Security
 
@@ -622,8 +698,8 @@ either implemented, have our eye on, or are refusing to implement.
 |                                        [OAuth 2.0 Multiple Response Types]                                         |   Certified   |                                              N/A                                              |
 |                                        [OAuth 2.0 Form Post Response Mode]                                         |   Certified   |                                              N/A                                              |
 |                                  [OpenID Connect Dynamic Client Registration 1.0]                                  |     None      |                                              N/A                                              |
+|                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |   Complete    |                                              N/A                                              |
 |                                [OpenID Connect Relying Party Metadata Choices 1.0]                                 |     None      |                                              N/A                                              |
-|                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Session Management 1.0]                                       |     None      |                                              N/A                                              |
 |                                     [OpenID Connect Front-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Back-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
@@ -727,6 +803,8 @@ either implemented, have our eye on, or are refusing to implement.
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
+[End Session]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
+[post_logout_redirect_uris]: ../../configuration/identity-providers/openid-connect/clients.md#post_logout_redirect_uris
 [Proof Key for Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
 [Client Authentication]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3
 [Client Type]: https://oauth.net/2/client-types/

@@ -180,6 +180,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDecideOAuth2DeviceCodeSession:          fmt.Sprintf(queryFmtDecideOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2BlacklistedJTI:             fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
+		sqlInsertOAuth2SessionID:            fmt.Sprintf(queryFmtInsertOAuth2SessionID, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDBySector:    fmt.Sprintf(queryFmtSelectOAuth2SessionIDBySector, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDBySessionID: fmt.Sprintf(queryFmtSelectOAuth2SessionIDBySessionID, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDsOldest:     fmt.Sprintf(queryFmtSelectOAuth2SessionIDsOldest, tableOAuth2SessionID),
+
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
 		sqlUpdateOAuth2PARContext: fmt.Sprintf(queryFmtUpdateOAuth2PARContext, tableOAuth2PARContext),
 		sqlSelectOAuth2PARContext: fmt.Sprintf(queryFmtSelectOAuth2PARContext, tableOAuth2PARContext),
@@ -231,7 +236,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlInsertOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2RefreshTokenSession, tableOAuth2RefreshTokenSession),
 		sqlSelectOAuth2RefreshTokenSessionAccessSignature: fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSessionAccessSignature, tableOAuth2RefreshTokenSession),
-		sqlSelectOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2SessionIncludingRevoked, tableOAuth2RefreshTokenSession),
+		sqlSelectOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSessionIncludingRevoked, tableOAuth2RefreshTokenSession),
 		sqlRevokeOAuth2RefreshTokenSession:                fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2RefreshTokenSession),
 		sqlRevokeOAuth2RefreshTokenSessionByRequestID:     fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2RefreshTokenSession),
 		sqlDeactivateOAuth2RefreshTokenSession:            fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2RefreshTokenSession),
@@ -246,6 +251,8 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectEncryptionValue: fmt.Sprintf(queryFmtSelectEncryptionValue, tableEncryption),
 
 		sqlFmtRenameTable: queryFmtRenameTable,
+
+		sqlOAuth2Logout: newSQLOAuth2LogoutQueries(name, func(query string) string { return query }),
 	}
 
 	return provider, nil
@@ -471,6 +478,15 @@ type SQLProvider struct {
 	sqlUpdateOAuth2RefreshTokenSessionRequest string
 	sqlDecideOAuth2DeviceCodeSession          string
 	sqlSelectOAuth2BlacklistedJTI             string
+
+	// Table: oauth2_session_id.
+	sqlInsertOAuth2SessionID            string
+	sqlSelectOAuth2SessionIDBySector    string
+	sqlSelectOAuth2SessionIDBySessionID string
+	sqlSelectOAuth2SessionIDsOldest     string
+
+	// Tables: oauth2_*_session, oauth2_par_context, and oauth2_session_id for logout.
+	sqlOAuth2Logout sqlOAuth2LogoutQueries
 
 	// Utility.
 	sqlSelectExistingTables string
@@ -1485,16 +1501,17 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 	}
 
 	args := []any{
-		session.ChallengeID, session.RequestID, session.ClientID, session.Signature,
+		session.ChallengeID, session.RequestID, session.ClientID, session.SessionID, session.Signature,
 		session.Subject, session.RequestedAt, session.RequestedScopes, session.GrantedScopes,
 		session.RequestedAudience, session.GrantedAudience,
 		session.RequestedResource, session.GrantedResource,
 		session.Active, session.Revoked, session.Form, session.Session,
 	}
 
-	// The refresh token session table alone records the signature of the access token issued with the refresh token.
+	// The refresh token session table alone records the signature of the access token issued with the refresh token, and
+	// the refresh token mode recorded when the refresh token was issued.
 	if sessionType == OAuth2SessionTypeRefreshToken {
-		args = append(args, session.AccessSignature)
+		args = append(args, session.AccessSignature, session.RefreshTokenMode)
 	}
 
 	_, err = p.conn(ctx).ExecContext(ctx, query, args...)
@@ -1519,7 +1536,7 @@ func (p *SQLProvider) UpdateOAuth2RefreshTokenSessionRequest(ctx context.Context
 		session.RequestedScopes, session.GrantedScopes,
 		session.RequestedAudience, session.GrantedAudience,
 		session.RequestedResource, session.GrantedResource,
-		session.Form, session.Session, session.Signature); err != nil {
+		session.Form, session.Session, session.RefreshTokenMode, session.Signature); err != nil {
 		return fmt.Errorf("error updating oauth2 refresh_token session with signature '%s': %w", session.Signature, err)
 	}
 
@@ -1608,9 +1625,17 @@ func (p *SQLProvider) DeactivateOAuth2Session(ctx context.Context, sessionType O
 	case OAuth2SessionTypeAccessToken:
 		query = p.sqlDeactivateOAuth2AccessTokenSession
 	case OAuth2SessionTypeAuthorizeCode:
-		query = p.sqlDeactivateOAuth2AuthorizeCodeSession
+		query = p.sqlOAuth2Logout.deactivateAuthorizeCodeSession
+
+		if err = p.lockOAuth2SessionIDsByCode(ctx, p.sqlOAuth2Logout.selectAuthorizeCodeSessionID, signature); err != nil {
+			return fmt.Errorf("error deactivating oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+		}
 	case OAuth2SessionTypeDeviceAuthorizeCode:
-		query = p.sqlDeactivateOAuth2DeviceCodeSession
+		query = p.sqlOAuth2Logout.deactivateDeviceCodeSession
+
+		if err = p.lockOAuth2SessionIDsByCode(ctx, p.sqlOAuth2Logout.selectDeviceCodeSessionID, signature); err != nil {
+			return fmt.Errorf("error deactivating oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+		}
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlDeactivateOAuth2OpenIDConnectSession
 	case OAuth2SessionTypePKCEChallenge:
@@ -1699,7 +1724,7 @@ func (p *SQLProvider) SaveOAuth2DeviceCodeSession(ctx context.Context, session *
 	}
 
 	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2DeviceCodeSession,
-		session.ChallengeID, session.RequestID, session.ClientID, session.Signature, session.UserCodeSignature,
+		session.ChallengeID, session.RequestID, session.ClientID, session.SessionID, session.Signature, session.UserCodeSignature,
 		session.Status, session.Subject, session.RequestedAt, session.CheckedAt,
 		session.RequestedScopes, session.GrantedScopes,
 		session.RequestedAudience, session.GrantedAudience,
@@ -1720,7 +1745,7 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session
 	var result sql.Result
 
 	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSession,
-		session.ChallengeID, session.RequestID, session.ClientID, session.Status, session.Subject, session.RequestedAt,
+		session.ChallengeID, session.RequestID, session.ClientID, session.SessionID, session.Status, session.Subject, session.RequestedAt,
 		session.CheckedAt, session.RequestedScopes, session.RequestedAudience, session.RequestedResource,
 		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
 		session.Active, session.Revoked, session.Form, session.Session, session.Signature); err != nil {
@@ -1741,7 +1766,7 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 	}
 
 	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionData,
-		session.ChallengeID, session.ClientID, session.Status, session.Subject,
+		session.ChallengeID, session.ClientID, session.SessionID, session.Status, session.Subject,
 		session.RequestedScopes, session.RequestedAudience, session.RequestedResource,
 		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
 		session.Form, session.Session, session.Signature); err != nil {
@@ -1762,7 +1787,7 @@ func (p *SQLProvider) DecideOAuth2DeviceCodeSession(ctx context.Context, session
 	var result sql.Result
 
 	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlDecideOAuth2DeviceCodeSession,
-		session.ChallengeID, session.ClientID, session.Status, session.Subject,
+		session.ChallengeID, session.ClientID, session.SessionID, session.Status, session.Subject,
 		session.RequestedScopes, session.RequestedAudience, session.RequestedResource,
 		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
 		session.Form, session.Session, session.Signature,
@@ -1829,7 +1854,7 @@ func (p *SQLProvider) SaveOAuth2PushedAuthorizationSession(ctx context.Context, 
 	}
 
 	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOAuth2PARContext,
-		par.Signature, par.RequestID, par.ClientID, par.RequestedAt, par.Scopes, par.Audience, par.Resource, par.HandledResponseTypes,
+		par.Signature, par.RequestID, par.ClientID, par.SessionID, par.RequestedAt, par.Scopes, par.Audience, par.Resource, par.HandledResponseTypes,
 		par.ResponseMode, par.DefaultResponseMode, par.Revoked, par.Form, par.Session); err != nil {
 		return fmt.Errorf("error inserting oauth2 pushed authorization request session data for with signature '%s' and request id '%s': %w", par.Signature, par.RequestID, err)
 	}
@@ -1880,7 +1905,7 @@ func (p *SQLProvider) UpdateOAuth2PushedAuthorizationSession(ctx context.Context
 	var result sql.Result
 
 	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2PARContext,
-		par.Signature, par.RequestID, par.ClientID, par.RequestedAt, par.Scopes, par.Audience, par.Resource, par.HandledResponseTypes,
+		par.Signature, par.RequestID, par.ClientID, par.SessionID, par.RequestedAt, par.Scopes, par.Audience, par.Resource, par.HandledResponseTypes,
 		par.ResponseMode, par.DefaultResponseMode, par.Revoked, par.Form, par.Session, par.ID); err != nil {
 		return fmt.Errorf("error updating oauth2 pushed authorization request session data with id '%d' and signature '%s' and request id '%s': %w", par.ID, par.Signature, par.RequestID, err)
 	}

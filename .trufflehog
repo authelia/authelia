@@ -17,3 +17,4 @@
 ^internal\/suites\/common\/pki\/.*\.pem$
 ^.*_test\.go$
 ^web\/pnpm-lock\.yaml$
+^api\/openapi\.yml$

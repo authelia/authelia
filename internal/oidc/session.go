@@ -35,6 +35,19 @@ func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
 	return session
 }
 
+// NewSessionWithClientAndRequestedAt returns a new *Session for a request made by the given client before the End-User
+// is known, such as a Pushed Authorization Request or a Device Authorization Request, so the session still records the
+// client it belongs to.
+func NewSessionWithClientAndRequestedAt(client oauthelia2.Client, requestedAt time.Time) (session *Session) {
+	session = NewSessionWithRequestedAt(requestedAt)
+
+	if client != nil {
+		session.ClientID = client.GetID()
+	}
+
+	return session
+}
+
 // NewSessionWithIssuerAndRequestedAt returns a new *Session with the given issuer and requested at time.
 func NewSessionWithIssuerAndRequestedAt(ctx Context, issuer *url.URL, requestedAt time.Time) (session *Session) {
 	session = NewSessionWithRequestedAt(requestedAt)
@@ -45,13 +58,18 @@ func NewSessionWithIssuerAndRequestedAt(ctx Context, issuer *url.URL, requestedA
 }
 
 // NewSessionWithRequester uses details from a Requester to generate an OpenIDSession.
-func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
+//
+// The sid is the identifier of the End-User session at this provider and may be empty. It's recorded for every grant so
+// the grant can be ended when the End-User logs out, and the 'sid' claim is only included when the 'openid' scope is
+// granted.
+func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username, sid string, amr []string, extra map[string]any,
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester oauthelia2.Requester, claims *ClaimsRequests) (session *Session) {
 	session = NewSessionWithRequestedAt(ctx.GetClock().Now())
 
 	session.SetValuesFromRequester(requester)
 	session.SetValuesFromConsentSession(consent)
 	session.SetValuesGeneral(ctx, issuer, kid, username, amr, authTime, claims, extra)
+	session.SetValuesSessionID(sid, requester.GetGrantedScopes().Has(ScopeOpenID))
 
 	return session
 }
@@ -76,6 +94,40 @@ type Session struct {
 	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
 	GrantedClaims         []string        `json:"granted_claims,omitempty"`
 	Extra                 map[string]any  `json:"extra"`
+
+	// SessionID identifies the End-User session at this provider which the grant belongs to, so the grant can be ended
+	// when the End-User logs out. Unlike the 'sid' claim it's recorded for every grant made by an End-User rather than
+	// only those granted the 'openid' scope.
+	SessionID string `json:"session_id,omitempty"`
+}
+
+// GetSessionID returns the identifier of the End-User session at this provider which the grant belongs to, which is
+// empty when the session carries no session identifier. Sessions stored before the identifier was recorded separately
+// from the 'sid' claim fall back to the claim.
+func (s *Session) GetSessionID() (sid string) {
+	if s == nil {
+		return
+	}
+
+	if s.SessionID != "" {
+		return s.SessionID
+	}
+
+	if s.DefaultSession == nil || s.Claims == nil {
+		return
+	}
+
+	return s.Claims.SessionID
+}
+
+// SetSessionID sets the identifier of the End-User session at this provider which the grant belongs to. It doesn't set
+// the 'sid' claim, see SetValuesSessionID.
+func (s *Session) SetSessionID(sid string) {
+	if s == nil {
+		return
+	}
+
+	s.SessionID = sid
 }
 
 // GetSubject returns the subject, if set. This is optional and only used during token introspection and to determine
@@ -243,6 +295,29 @@ func (s *Session) SetValuesGeneral(ctx Context, issuer *url.URL, kid string, use
 	}
 }
 
+// SetValuesSessionID records the identifier of the End-User session at this provider which the grant belongs to, and
+// sets the 'sid' claim to it when claim is true, which should be when the 'openid' scope is granted.
+//
+// The claim appears in ID Tokens, and in the Logout Tokens delivered by OpenID Connect Back-Channel Logout 1.0
+// where it lets a Relying Party log out the single session which ended rather than every session belonging to the
+// subject. Clients which register 'backchannel_logout_session_required' are only notified when it's present.
+//
+// An empty value leaves both absent, which is the correct representation of this provider not tracking a session
+// identifier.
+func (s *Session) SetValuesSessionID(sid string, claim bool) {
+	if len(sid) == 0 {
+		return
+	}
+
+	s.SessionID = sid
+
+	if claim {
+		InitializeSessionDefaults(s)
+
+		s.Claims.SessionID = sid
+	}
+}
+
 // GetChallengeID returns the challenge id.
 func (s *Session) GetChallengeID() (challenge uuid.NullUUID) {
 	return s.ChallengeID
@@ -286,6 +361,7 @@ func (s *Session) Clone() oauthelia2.Session {
 		AllowedTopLevelClaims: slices.Clone(s.AllowedTopLevelClaims),
 		GrantedClaims:         slices.Clone(s.GrantedClaims),
 		Extra:                 maps.Clone(s.Extra),
+		SessionID:             s.SessionID,
 	}
 
 	if s.DefaultSession != nil {

@@ -34,12 +34,13 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		IntrospectionAudience: config.IntrospectionAudience,
 
-		Scopes:        config.Scopes,
-		RedirectURIs:  config.RedirectURIs,
-		RequestURIs:   config.RequestURIs,
-		GrantTypes:    config.GrantTypes,
-		ResponseTypes: config.ResponseTypes,
-		ResponseModes: []oauthelia2.ResponseModeType{},
+		Scopes:                 config.Scopes,
+		RedirectURIs:           config.RedirectURIs,
+		RequestURIs:            config.RequestURIs,
+		PostLogoutRedirectURIs: config.PostLogoutRedirectURIs,
+		GrantTypes:             config.GrantTypes,
+		ResponseTypes:          config.ResponseTypes,
+		ResponseModes:          []oauthelia2.ResponseModeType{},
 
 		ClaimsStrategy: NewCustomClaimsStrategyFromClient(config, c.Scopes, c.ClaimsPolicies),
 
@@ -48,6 +49,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		PKCEChallengeMethod:        config.PKCEChallengeMethod,
 
 		RequirePushedAuthorizationRequests:      config.RequirePushedAuthorizationRequests,
+		AllowOnlineRefreshTokens:                config.AllowOnlineRefreshTokens,
 		DisableRefreshTokenRotation:             config.DisableRefreshTokenRotation,
 		DeviceCodeVerificationURIComplete:       config.DeviceCodeVerificationURIComplete,
 		RequireSignedRequestObject:              config.RequireSignedRequestObject,
@@ -196,6 +198,11 @@ func (c *RegisteredClient) GetSectorIdentifierURI() (sector string) {
 // GetRedirectURIs returns the RedirectURIs.
 func (c *RegisteredClient) GetRedirectURIs() (redirectURIs []string) {
 	return c.RedirectURIs
+}
+
+// GetPostLogoutRedirectURIs returns the PostLogoutRedirectURIs.
+func (c *RegisteredClient) GetPostLogoutRedirectURIs() (redirectURIs []string) {
+	return c.PostLogoutRedirectURIs
 }
 
 // GetGrantTypes returns the GrantTypes.
@@ -847,6 +854,13 @@ func (c *RegisteredClient) GetRefreshTokenMaximumLifespan() (lifespan time.Durat
 // oauthelia2.RefreshTokenRotationClient interface.
 func (c *RegisteredClient) GetDisableRefreshTokenRotation() (disable bool) {
 	return c.DisableRefreshTokenRotation
+}
+
+// GetAllowOnlineRefreshTokens returns true if this client may be issued and redeem refresh tokens of grants without any
+// of the refresh token scopes, such as 'offline_access'. This implements the oauthelia2.RefreshTokenOnlineClient
+// interface.
+func (c *RegisteredClient) GetAllowOnlineRefreshTokens() (allow bool) {
+	return c.AllowOnlineRefreshTokens
 }
 
 // GetRFC8628VerificationURIComplete returns true if the device authorization responses of this client include the

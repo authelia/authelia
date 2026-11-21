@@ -815,6 +815,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
 	validateOIDCClientApplicationType(c, config, validator)
 	validateOIDCClientRefreshTokenRotation(c, config, validator)
+	validateOIDCClientPostLogoutRedirectURIs(c, config, validator, errDeprecatedFunc)
 	validateOIDCClientRequestURIs(c, config, validator)
 	validateOIDCClientResource(c, config, validator)
 	validateOIDCClientImplicitWildcards(c, config, validator)
@@ -1431,7 +1432,7 @@ func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.IdentityProv
 				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidGrantTypePublic, config.Clients[c].ID, oidc.GrantTypeClientCredentials))
 			}
 		case oidc.GrantTypeRefreshToken:
-			if !utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) {
+			if !config.Clients[c].AllowOnlineRefreshTokens && !utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) {
 				errDeprecatedFunc()
 
 				validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeRefresh, config.Clients[c].ID))
@@ -1527,6 +1528,10 @@ func validateOIDCClientRefreshTokenRotation(c int, config *schema.IdentityProvid
 	if config.Clients[c].DisableRefreshTokenRotation && config.Clients[c].Public {
 		validator.PushWarning(fmt.Errorf(errFmtOIDCClientRefreshTokenRotationPublic, config.Clients[c].ID))
 	}
+
+	if config.Clients[c].AllowOnlineRefreshTokens && !utils.IsStringInSlice(oidc.GrantTypeRefreshToken, config.Clients[c].GrantTypes) {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientOnlineRefreshTokensWithoutGrantType, config.Clients[c].ID, oidc.GrantTypeRefreshToken))
+	}
 }
 
 func validateOIDCClientApplicationType(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
@@ -1620,6 +1625,50 @@ func validateOIDCClientApplicationTypeDefault(client schema.IdentityProvidersOpe
 	}
 
 	return schema.DefaultOpenIDConnectClientConfiguration.ApplicationType
+}
+
+func validateOIDCClientPostLogoutRedirectURIs(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, errDeprecatedFunc func()) {
+	var (
+		parsedRedirectURI *url.URL
+		err               error
+	)
+
+	for _, redirectURI := range config.Clients[c].PostLogoutRedirectURIs {
+		if parsedRedirectURI, err = url.Parse(redirectURI); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCClientPostLogoutRedirectURICantBeParsed, config.Clients[c].ID, redirectURI, err))
+
+			continue
+		}
+
+		if !parsedRedirectURI.IsAbs() {
+			validator.Push(fmt.Errorf(errFmtOIDCClientPostLogoutRedirectURIAbsolute, config.Clients[c].ID, redirectURI))
+
+			continue
+		}
+
+		switch scheme := parsedRedirectURI.Scheme; {
+		case utils.IsStringInSlice(scheme, validOIDCClientPostLogoutRedirectURIForbiddenSchemes):
+			validator.Push(fmt.Errorf(errFmtOIDCClientPostLogoutRedirectURIScheme, config.Clients[c].ID, redirectURI, scheme))
+
+			continue
+		case scheme == schemeHTTP && config.Clients[c].Public:
+			validator.Push(fmt.Errorf(errFmtOIDCClientPostLogoutRedirectURIPublicHTTP, config.Clients[c].ID, redirectURI))
+
+			continue
+		}
+
+		if strings.Contains(redirectURI, "#") {
+			validator.Push(fmt.Errorf(errFmtOIDCClientPostLogoutRedirectURIFragment, config.Clients[c].ID, redirectURI))
+		}
+	}
+
+	_, duplicates := validateList(config.Clients[c].PostLogoutRedirectURIs, nil, true)
+
+	if len(duplicates) != 0 {
+		errDeprecatedFunc()
+
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCPostLogoutRedirectURIs, utils.StringJoinAnd(duplicates)))
+	}
 }
 
 func validateOIDCClientRequestURIs(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {

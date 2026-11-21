@@ -1,0 +1,22 @@
+DROP TABLE IF EXISTS oauth2_session_logout_task;
+DROP TABLE IF EXISTS oauth2_session_id_client;
+DROP TABLE IF EXISTS oauth2_session_logout;
+
+DROP INDEX oauth2_access_token_session_session_id_idx ON oauth2_access_token_session;
+DROP INDEX oauth2_authorization_code_session_session_id_idx ON oauth2_authorization_code_session;
+DROP INDEX oauth2_device_code_session_session_id_idx ON oauth2_device_code_session;
+DROP INDEX oauth2_openid_connect_session_session_id_idx ON oauth2_openid_connect_session;
+DROP INDEX oauth2_par_context_session_id_idx ON oauth2_par_context;
+DROP INDEX oauth2_pkce_request_session_session_id_idx ON oauth2_pkce_request_session;
+DROP INDEX oauth2_refresh_token_session_session_id_idx ON oauth2_refresh_token_session;
+
+ALTER TABLE oauth2_access_token_session DROP COLUMN session_id;
+ALTER TABLE oauth2_authorization_code_session DROP COLUMN session_id;
+ALTER TABLE oauth2_device_code_session DROP COLUMN session_id;
+ALTER TABLE oauth2_openid_connect_session DROP COLUMN session_id;
+ALTER TABLE oauth2_par_context DROP COLUMN session_id;
+ALTER TABLE oauth2_pkce_request_session DROP COLUMN session_id;
+ALTER TABLE oauth2_refresh_token_session DROP COLUMN session_id;
+ALTER TABLE oauth2_refresh_token_session DROP COLUMN refresh_token_mode;
+
+DROP TABLE IF EXISTS oauth2_session_id;

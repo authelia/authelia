@@ -61,6 +61,11 @@ func (p *DefaultStrategy) GetConfig() (config schema.SessionCookie) {
 	return p.config
 }
 
+// GetIssuer implements the Strategy interface.
+func (p *DefaultStrategy) GetIssuer() (issuer string) {
+	return p.issuer
+}
+
 // New returns a session for the given username bound to this strategies cookie domain. Giving a session a username at
 // construction is the only supported way to do so, see NewUserSession.
 func (p *DefaultStrategy) New(username string) (userSession UserSession) {
@@ -82,6 +87,21 @@ func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 	_, session, err = p.get(ctx)
 
 	return session, err
+}
+
+// Exists implements the Strategy interface.
+func (p *DefaultStrategy) Exists(ctx Context, pid string) (exists bool, err error) {
+	if len(pid) == 0 {
+		return false, nil
+	}
+
+	var record Record
+
+	if record, err = p.repository.GetByPublicID(ctx, p.issuer, pid); err != nil {
+		return false, fmt.Errorf("%w: %w", ErrRepositoryGet, err)
+	}
+
+	return record != nil && len(record.GetSessionData()) != 0, nil
 }
 
 // Save persists the session. The userSession is a pointer as a session which has no public identifier has one generated

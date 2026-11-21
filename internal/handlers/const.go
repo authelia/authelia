@@ -238,3 +238,9 @@ var (
 const (
 	sessionActivityRefreshDivisor = 10
 )
+
+const (
+	oidcFrontendEndpointPathLogout = "/logout"
+	oidcEndSessionLifespan         = time.Minute * 5
+	oidcEndSessionMaxBodySize      = 1 << 20
+)
