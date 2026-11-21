@@ -40,7 +40,8 @@ jobs:
             const IMAGE = 'authelia/authelia';
             const EXCLUDED = /^(docs|all-contributors\/)/;
             const THANKS =
-              "Thanks for choosing to contribute @{login}. We lint all PR's with golangci-lint and eslint, " +
+              "Thanks for choosing to contribute @{login}. We lint all PR's with a number of linters including " +
+              'golangci-lint, eslint and typos, ' +
               'I may add a review to your PR with some suggestions.\n\n' +
               "You are free to apply the changes if you're comfortable, alternatively you are welcome to ask " +
               'a team member for advice.';
