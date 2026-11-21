@@ -1,16 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { useCallback, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import ComponentWithTooltip from "@components/ComponentWithTooltip";
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import { Button } from "@components/UI/Button";
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
 import { Spinner } from "@components/UI/Spinner";
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@contexts/NotificationsContext";
+import { useRateLimit } from "@hooks/RateLimit";
 import MinimalLayout from "@layouts/MinimalLayout";
+import { RateLimitedError } from "@services/RateLimit";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
@@ -18,38 +25,19 @@ const ResetPasswordStep1 = function () {
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const [rateLimited, setRateLimited] = useState(false);
-    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+    const { limited: rateLimited, secondsRemaining, trigger: triggerRateLimit } = useRateLimit();
 
     const { createErrorNotification, createInfoNotification } = useNotifications();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
-    useEffect(() => {
-        return () => {
-            if (timeoutRateLimitRef.current !== null) {
-                clearTimeout(timeoutRateLimitRef.current);
-                timeoutRateLimitRef.current = null;
-            }
-        };
-    }, []);
-
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimitRef.current) {
-                clearTimeout(timeoutRateLimitRef.current);
-            }
-
-            setRateLimited(true);
+            triggerRateLimit(retryAfter);
 
             createErrorNotification(translate("You have made too many requests"));
-
-            timeoutRateLimitRef.current = setTimeout(() => {
-                setRateLimited(false);
-                timeoutRateLimitRef.current = null;
-            }, retryAfter * 1000);
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, triggerRateLimit],
     );
 
     const doInitiateResetPasswordProcess = async () => {
@@ -64,17 +52,15 @@ const ResetPasswordStep1 = function () {
         }
 
         try {
-            const response = await initiateResetPasswordProcess(username);
-            if (response?.limited === false) {
-                createInfoNotification(translate("An email has been sent to your address to complete the process"));
-                navigate(IndexRoute);
-            } else if (response?.limited) {
-                handleRateLimited(response.retryAfter);
+            await initiateResetPasswordProcess(username);
+            createInfoNotification(translate("An email has been sent to your address to complete the process"));
+            navigate(IndexRoute);
+        } catch (err) {
+            if (err instanceof RateLimitedError) {
+                handleRateLimited(err.retryAfter);
             } else {
                 createErrorNotification(translate("There was an issue initiating the password reset process"));
             }
-        } catch {
-            createErrorNotification(translate("There was an issue initiating the password reset process"));
         }
         setLoading(false);
     };
@@ -137,6 +123,7 @@ const ResetPasswordStep1 = function () {
                             </Button>
                         </div>
                     </div>
+                    <RateLimitCountdown secondsRemaining={secondsRemaining} />
                 </div>
             </div>
         </MinimalLayout>

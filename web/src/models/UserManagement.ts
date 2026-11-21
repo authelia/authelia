@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { REGEX } from "@constants/Regex.js";
 import { AttributeMetadata, UserAttributeMetadataBody } from "@services/UserManagement.js";
 

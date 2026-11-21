@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
@@ -141,56 +145,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	require.NotNil(t, session.Claims)
 	assert.NotNil(t, session.Claims.Extra)
 	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
-}
-
-func TestWellKnownSignedConfigurationToMap(t *testing.T) {
-	testCases := []struct {
-		name  string
-		toMap func() xjwt.MapClaims
-	}{
-		{
-			"ShouldReturnMapClaimsForOAuth2WithIssuer",
-			func() xjwt.MapClaims {
-				claims := &oidc.OAuth2WellKnownSignedConfiguration{}
-				claims.Issuer = authExampleCom
-
-				return claims.ToMap()
-			},
-		},
-		{
-			"ShouldReturnMapClaimsForOAuth2Empty",
-			func() xjwt.MapClaims {
-				claims := &oidc.OAuth2WellKnownSignedConfiguration{}
-
-				return claims.ToMap()
-			},
-		},
-		{
-			"ShouldReturnMapClaimsForOpenIDConnectWithIssuer",
-			func() xjwt.MapClaims {
-				claims := &oidc.OpenIDConnectWellKnownSignedConfiguration{}
-				claims.Issuer = authExampleCom
-
-				return claims.ToMap()
-			},
-		},
-		{
-			"ShouldReturnMapClaimsForOpenIDConnectEmpty",
-			func() xjwt.MapClaims {
-				claims := &oidc.OpenIDConnectWellKnownSignedConfiguration{}
-
-				return claims.ToMap()
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			result := tc.toMap()
-
-			assert.NotNil(t, result)
-		})
-	}
 }
 
 // TestContext is a minimal implementation of Context for the purpose of testing.

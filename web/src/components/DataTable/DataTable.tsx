@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -9,6 +13,7 @@ import {
     flexRender,
     useTable,
 } from "@tanstack/react-table";
+import { cn } from "cn";
 import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -25,7 +30,6 @@ import { Input } from "@components/UI/Input";
 import { Pagination } from "@components/UI/Pagination";
 import { Spinner } from "@components/UI/Spinner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/UI/Table";
-import { cn } from "@utils/Styles";
 
 const SEARCH_DEBOUNCE_MS = 250;
 const DEFAULT_CONTAINER_HEIGHT = 400;

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -64,6 +68,28 @@ func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment, since
 		"authelia-backend",
 		since,
 		[]string{"Startup complete"})
+}
+
+func waitUntilAutheliaUpstreamBackendIsReady(dockerEnvironment *DockerEnvironment) error {
+	if os.Getenv("CI") == t {
+		return nil
+	}
+
+	log.Info("Waiting for Authelia (Upstream Provider) to be ready...")
+
+	if err := waitUntilServiceLogDetected(
+		5*time.Second,
+		180*time.Second,
+		dockerEnvironment,
+		"authelia-upstream-backend",
+		time.Time{},
+		[]string{"Startup complete"}); err != nil {
+		return err
+	}
+
+	log.Info("Authelia (Upstream Provider) is ready!")
+
+	return nil
 }
 
 func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) error {
@@ -179,6 +205,31 @@ func waitUntilProxyRoutesPortal(baseDomain string) error {
 	}
 
 	log.Info("The proxy routes the portal!")
+
+	return nil
+}
+
+func waitUntilPortalServesRoot(baseURL string) error {
+	log.Info("Waiting for the portal to serve its root page...")
+
+	client, target := NewHTTPClient(), baseURL+"/"
+
+	if err := utils.CheckUntil(time.Second, 60*time.Second, func() (bool, error) {
+		response, err := client.Get(target)
+		if err != nil {
+			return false, nil
+		}
+
+		defer response.Body.Close()
+
+		_, _ = io.Copy(io.Discard, response.Body)
+
+		return response.StatusCode == http.StatusOK, nil
+	}); err != nil {
+		return fmt.Errorf("the portal did not serve '%s': %w", target, err)
+	}
+
+	log.Info("The portal serves its root page!")
 
 	return nil
 }

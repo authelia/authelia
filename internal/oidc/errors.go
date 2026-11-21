@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc
 
 import (
@@ -101,5 +105,5 @@ func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ct
 	rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
 	rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
 	rw.Header().Set(fasthttp.HeaderLocation, location.String())
-	rw.WriteHeader(http.StatusFound)
+	rw.WriteHeader(http.StatusSeeOther)
 }

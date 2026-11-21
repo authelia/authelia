@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package oidc_test
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/url"
@@ -10,15 +15,17 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/text/language"
 
+	"authelia.com/provider/jose"
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
-	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -264,6 +271,51 @@ func TestRequesterRequiresLogin(t *testing.T) {
 			expected:      true,
 		},
 		{
+			name: "ShouldRequireWithMaxAgeZeroPastAuthenticated",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterMaximumAge: []string{"0"}},
+			},
+			requested:     1000,
+			authenticated: 995,
+			expected:      true,
+		},
+		{
+			name: "ShouldNotRequireWithMaxAgeZeroAuthenticatedAfterRequested",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterMaximumAge: []string{"0"}},
+			},
+			requested:     1000,
+			authenticated: 1005,
+			expected:      false,
+		},
+		{
+			name: "ShouldRequireWithPromptLoginAndMaxAgeZeroPastAuthenticated",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}, oidc.FormParameterMaximumAge: []string{"0"}},
+			},
+			requested:     1000,
+			authenticated: 995,
+			expected:      true,
+		},
+		{
+			name: "ShouldNotRequireWithPromptLoginAndMaxAgeZeroAuthenticatedAfterRequested",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}, oidc.FormParameterMaximumAge: []string{"0"}},
+			},
+			requested:     1000,
+			authenticated: 1005,
+			expected:      false,
+		},
+		{
+			name: "ShouldNotRequireWithMaxAgeInvalidAuthenticatedAfterRequested",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterMaximumAge: []string{"not100"}},
+			},
+			requested:     1000,
+			authenticated: 1005,
+			expected:      false,
+		},
+		{
 			name:          "ShouldHandleDeviceCode",
 			have:          &oauthelia2.DeviceAuthorizeRequest{},
 			requested:     0,
@@ -275,6 +327,214 @@ func TestRequesterRequiresLogin(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, oidc.RequesterRequiresLogin(tc.have, time.Unix(tc.requested, 0), time.Unix(tc.authenticated, 0)))
+		})
+	}
+}
+
+func TestRequestFormRequiresLoginPrecision(t *testing.T) {
+	testCases := []struct {
+		name                     string
+		form                     url.Values
+		requested, authenticated time.Time
+		expected                 bool
+	}{
+		{
+			name:          "ShouldNotRequireWithPromptLoginSameSecond",
+			form:          url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}},
+			requested:     time.Unix(100, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, 0),
+			expected:      false,
+		},
+		{
+			name:          "ShouldRequireWithPromptLoginPreviousSecond",
+			form:          url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}},
+			requested:     time.Unix(101, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, 0),
+			expected:      true,
+		},
+		{
+			name:          "ShouldNotRequireWithMaxAgeSameSecond",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"10"}},
+			requested:     time.Unix(110, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, 0),
+			expected:      false,
+		},
+		{
+			name:          "ShouldRequireWithMaxAgeNextSecond",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"10"}},
+			requested:     time.Unix(111, int64(time.Millisecond*200)),
+			authenticated: time.Unix(100, 0),
+			expected:      true,
+		},
+		{
+			name:          "ShouldNotRequireWithMaxAgeZeroSameSecond",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"0"}},
+			requested:     time.Unix(100, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, 0),
+			expected:      false,
+		},
+		{
+			name:          "ShouldRequireWithMaxAgeZeroPreviousSecond",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"0"}},
+			requested:     time.Unix(101, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, int64(time.Millisecond*900)),
+			expected:      true,
+		},
+		{
+			name:          "ShouldNotRequireWithPromptLoginAndMaxAgeZeroSameSecond",
+			form:          url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}, oidc.FormParameterMaximumAge: []string{"0"}},
+			requested:     time.Unix(100, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, 0),
+			expected:      false,
+		},
+		{
+			name:          "ShouldRequireWithPromptLoginAndMaxAgeZeroPreviousSecond",
+			form:          url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}, oidc.FormParameterMaximumAge: []string{"0"}},
+			requested:     time.Unix(101, int64(time.Millisecond*500)),
+			authenticated: time.Unix(100, int64(time.Millisecond*900)),
+			expected:      true,
+		},
+		{
+			name:          "ShouldRequireWithMaxAgeZeroAuthenticatedZero",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"0"}},
+			requested:     time.Unix(100, 0),
+			authenticated: time.Time{},
+			expected:      true,
+		},
+		{
+			name:          "ShouldRequireWithMaxAgeZeroRequestedZero",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"0"}},
+			requested:     time.Time{},
+			authenticated: time.Unix(100, 0),
+			expected:      true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RequestFormRequiresLogin(tc.form, tc.requested, tc.authenticated))
+		})
+	}
+}
+
+func TestRequesterIsClientIdentityAssured(t *testing.T) {
+	testCases := []struct {
+		name      string
+		client    oauthelia2.Client
+		requester oauthelia2.Requester
+		expected  bool
+	}{
+		{
+			name:      "ShouldAssureNilClient",
+			client:    nil,
+			requester: &oauthelia2.AuthorizeRequest{},
+			expected:  true,
+		},
+		{
+			name:      "ShouldAssureConfidentialClient",
+			client:    &oidc.RegisteredClient{},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("http://127.0.0.1/callback")},
+			expected:  true,
+		},
+		{
+			name:      "ShouldAssurePublicClientWithHTTPSRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("https://app.example.com/callback")},
+			expected:  true,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientWithLoopbackRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("http://127.0.0.1:8080/callback")},
+			expected:  false,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientWithHTTPSLocalhostRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("https://localhost/callback")},
+			expected:  false,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientWithPrivateUseSchemeRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{RedirectURI: MustParseRequestURI("com.example.app:/callback")},
+			expected:  false,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientWithoutRedirectURI",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.AuthorizeRequest{},
+			expected:  false,
+		},
+		{
+			name:      "ShouldNotAssurePublicClientDeviceAuthorization",
+			client:    &oidc.RegisteredClient{Public: true},
+			requester: &oauthelia2.DeviceAuthorizeRequest{},
+			expected:  false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RequesterIsClientIdentityAssured(context.Background(), tc.client, tc.requester))
+		})
+	}
+}
+
+func TestFormIsClientIdentityAssured(t *testing.T) {
+	testCases := []struct {
+		name     string
+		client   oauthelia2.Client
+		form     url.Values
+		expected bool
+	}{
+		{
+			name:     "ShouldAssureNilClient",
+			client:   nil,
+			form:     url.Values{},
+			expected: true,
+		},
+		{
+			name:     "ShouldAssureConfidentialClient",
+			client:   &oidc.RegisteredClient{},
+			form:     url.Values{oidc.FormParameterRedirectURI: []string{"http://127.0.0.1/callback"}},
+			expected: true,
+		},
+		{
+			name:     "ShouldAssurePublicClientWithHTTPSRedirectURI",
+			client:   &oidc.RegisteredClient{Public: true},
+			form:     url.Values{oidc.FormParameterRedirectURI: []string{"https://app.example.com/callback"}},
+			expected: true,
+		},
+		{
+			name:     "ShouldAssurePublicClientWithOnlyRegisteredHTTPSRedirectURI",
+			client:   &oidc.RegisteredClient{Public: true, RedirectURIs: []string{"https://app.example.com/callback"}},
+			form:     url.Values{},
+			expected: true,
+		},
+		{
+			name:     "ShouldNotAssurePublicClientWithMultipleRegisteredRedirectURIs",
+			client:   &oidc.RegisteredClient{Public: true, RedirectURIs: []string{"https://app.example.com/callback", "https://app.example.com/other"}},
+			form:     url.Values{},
+			expected: false,
+		},
+		{
+			name:     "ShouldNotAssurePublicClientWithLoopbackRedirectURI",
+			client:   &oidc.RegisteredClient{Public: true},
+			form:     url.Values{oidc.FormParameterRedirectURI: []string{"http://localhost:8080/callback"}},
+			expected: false,
+		},
+		{
+			name:     "ShouldNotAssurePublicClientWithBadRedirectURI",
+			client:   &oidc.RegisteredClient{Public: true},
+			form:     url.Values{oidc.FormParameterRedirectURI: []string{"https://app.example.com/%zz"}},
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.FormIsClientIdentityAssured(tc.client, tc.form))
 		})
 	}
 }
@@ -614,6 +874,38 @@ func TestHydrateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 	}
 }
 
+func TestHydrateClientCredentialsFlowSessionStorageSubject(t *testing.T) {
+	ctx := &TestContext{
+		Context: context.Background(),
+		Clock:   clock.NewFixed(time.Unix(1000, 0).UTC()),
+		IssuerURLFunc: func() (issuerURL *url.URL, err error) {
+			return url.ParseRequestURI("https://auth.example.com")
+		},
+	}
+
+	client := &oidc.RegisteredClient{ID: "23add1af-8de6-4b3c-af5a-9b944d81b073"}
+
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	require.NoError(t, oidc.HydrateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session))
+
+	assert.Equal(t, client.ID, session.GetSubject())
+	assert.Equal(t, client.ID, session.GetJWTClaims().(*fjwt.JWTClaims).Subject)
+
+	requester := &oauthelia2.AccessRequest{
+		Request: oauthelia2.Request{
+			ID:      "63cf1164-7853-4b23-addd-5cf6ab583de0",
+			Client:  client,
+			Session: session,
+		},
+	}
+
+	actual, err := model.NewOAuth2SessionFromRequest("cRUYb9-yb-BqCEmnBDBzTIzHCcGSBv0Kh_HrqxTFmm4", requester)
+
+	require.NoError(t, err)
+	assert.Equal(t, sql.NullString{}, actual.Subject)
+}
+
 func TestInitializeSessionDefaults(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -910,6 +1202,20 @@ func (t TestGetLangRequester) GetGrantedResource() (grantedResource oauthelia2.A
 }
 
 func (t TestGetLangRequester) GrantResource(resource string) {}
+
+func (t TestGetLangRequester) GetRequestedAuthorizationDetails() (details oauthelia2.AuthorizationDetails) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetRequestedAuthorizationDetails(details oauthelia2.AuthorizationDetails) {
+}
+
+func (t TestGetLangRequester) GetGrantedAuthorizationDetails() (details oauthelia2.AuthorizationDetails) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetGrantedAuthorizationDetails(details oauthelia2.AuthorizationDetails) {
+}
 
 func (t TestGetLangRequester) GetSession() (session oauthelia2.Session) {
 	return nil

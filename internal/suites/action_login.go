@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -67,11 +71,19 @@ func (rs *RodSession) doLoginOneFactor(t *testing.T, page *rod.Page, username, p
 func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedIn bool, domain, targetURL string) {
 	rs.doVisitLoginPage(t, page, domain, targetURL)
 
+	rs.ClickElementLocatedByID(t, page, "passkey-sign-in-button")
+
+	rs.doAnswerPasskeyRememberMe(t, page, keepMeLoggedIn)
+}
+
+func (rs *RodSession) doAnswerPasskeyRememberMe(t *testing.T, page *rod.Page, keepMeLoggedIn bool) {
+	id := "dialog-remember-me-no"
+
 	if keepMeLoggedIn {
-		rs.ClickElementLocatedByID(t, page, "remember-checkbox")
+		id = "dialog-remember-me-yes"
 	}
 
-	rs.ClickElementLocatedByID(t, page, "passkey-sign-in-button")
+	rs.ClickElementLocatedByID(t, page, id)
 }
 
 func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, targetURL string) {
@@ -84,7 +96,7 @@ func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, user
 	}
 }
 
-func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
+func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) { //nolint:unparam
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, "")
 	rs.doOpenSettingsAndRegisterTOTP(t, page, username)
 

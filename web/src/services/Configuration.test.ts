@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { SecondFactorMethod } from "@models/Methods";
 import { Get } from "@services/Client";
 import { getConfiguration } from "@services/Configuration";
@@ -18,6 +22,7 @@ it("gets configuration and transforms available methods", async () => {
         available_methods: ["totp", "webauthn"],
         password_change_disabled: false,
         password_reset_disabled: true,
+        recovery_codes_disabled: true,
     });
     (toSecondFactorMethod as any).mockImplementation((m: string) =>
         m === "totp" ? SecondFactorMethod.TOTP : SecondFactorMethod.WebAuthn,

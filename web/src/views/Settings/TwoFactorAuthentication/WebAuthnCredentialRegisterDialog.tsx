@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
@@ -19,6 +23,7 @@ import { Stepper } from "@components/UI/Stepper";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
+import { translateErrorCode } from "@services/ErrorCode";
 import {
     finishWebAuthnRegistration,
     getWebAuthnRegistrationOptions,
@@ -78,7 +83,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
             if (result.result === AttestationResult.Success) {
                 if (result.response == null) {
                     createErrorNotification(
-                        "Credential Creation Request succeeded but Registration Response is empty.",
+                        translate("Credential Creation Request succeeded but Registration Response is empty"),
                     );
                     return;
                 }
@@ -95,7 +100,15 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                         );
                         break;
                     case AttestationResult.Failure:
-                        createErrorNotification(response.message);
+                        createErrorNotification(
+                            translateErrorCode(
+                                translate,
+                                response.code,
+                                translate(
+                                    "Failed to register your credential, the identity verification process might have timed out",
+                                ),
+                            ),
+                        );
                         break;
                 }
 
@@ -130,7 +143,9 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         }
 
         (async function () {
-            if (description.length === 0 || description.length > 64) {
+            const trimmed = description.trim();
+
+            if (trimmed.length === 0 || trimmed.length > 64) {
                 setErrorDescription(true);
                 createErrorNotification(
                     translate("The Description must be more than 1 character and less than 64 characters"),
@@ -139,7 +154,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 return;
             }
 
-            const res = await getWebAuthnRegistrationOptions(description);
+            const res = await getWebAuthnRegistrationOptions(trimmed);
 
             switch (res.status) {
                 case 200:

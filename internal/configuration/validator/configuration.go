@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package validator
 
 import (
@@ -58,6 +62,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidateRules(config, validator)
 
 	ValidateSession(config, validator)
+
+	ValidateCache(config, validator)
 
 	ValidateRegulation(config, validator)
 

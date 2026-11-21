@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
 import OneTimeCodeTextField from "@components/OneTimeCodeTextField";
+import RateLimitCountdown from "@components/RateLimitCountdown";
 import SuccessIcon from "@components/SuccessIcon";
 import { Button } from "@components/UI/Button";
 import {
@@ -15,6 +20,8 @@ import {
 } from "@components/UI/Dialog";
 import { Spinner } from "@components/UI/Spinner";
 import { useNotifications } from "@contexts/NotificationsContext";
+import { useRateLimit } from "@hooks/RateLimit";
+import { RateLimitedError } from "@services/RateLimit";
 import {
     UserSessionElevation,
     deleteUserSessionElevation,
@@ -42,9 +49,29 @@ const IdentityVerificationDialog = function (props: Props) {
     const [codeDelete, setCodeDelete] = useState<string>();
     const [codeError, setCodeError] = useState(false);
     const [ready, setReady] = useState(false);
+    const { clear: clearRateLimit, limited: rateLimited, secondsRemaining, trigger: triggerRateLimit } = useRateLimit();
     const codeRef = useRef<HTMLInputElement>(null);
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+    const attemptRef = useRef(0);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
+            }
+        };
+    }, []);
 
     const open = useMemo(() => ready && !closing && opening && !!elevation, [ready, closing, opening, elevation]);
+
+    const wasRateLimitedRef = useRef(rateLimited);
+
+    useEffect(() => {
+        if (wasRateLimitedRef.current && !rateLimited && open) codeRef.current?.focus();
+
+        wasRateLimitedRef.current = rateLimited;
+    }, [open, rateLimited]);
 
     const handleClose = useCallback(
         (ok: boolean) => {
@@ -55,9 +82,10 @@ const IdentityVerificationDialog = function (props: Props) {
             setSuccess(false);
             setClosing(false);
             setReady(false);
+            clearRateLimit();
             handleClosed(ok);
         },
-        [handleClosed],
+        [clearRateLimit, handleClosed],
     );
 
     const handleDelete = useCallback(async () => {
@@ -69,6 +97,7 @@ const IdentityVerificationDialog = function (props: Props) {
     }, [codeDelete]);
 
     const handleCancelled = useCallback(() => {
+        attemptRef.current++;
         setClosing(true);
 
         handleDelete().catch(console.error);
@@ -79,7 +108,9 @@ const IdentityVerificationDialog = function (props: Props) {
     const handleSuccess = useCallback(() => {
         setSuccess(true);
 
-        setTimeout(() => {
+        timeoutSuccessRef.current = setTimeout(() => {
+            timeoutSuccessRef.current = null;
+
             handleClose(true);
         }, 750);
     }, [handleClose]);
@@ -96,18 +127,36 @@ const IdentityVerificationDialog = function (props: Props) {
         codeRef.current?.focus();
     }, [createErrorNotification, translate]);
 
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            setCodeInput("");
+            setLoading(false);
+            triggerRateLimit(retryAfter);
+
+            createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
+        },
+        [createErrorNotification, translate, triggerRateLimit],
+    );
+
     const handleSubmit = useCallback(async () => {
-        if (codeInput === "") return;
+        if (codeInput === "" || rateLimited) return;
 
         setLoading(true);
-        const success = await verifyUserSessionElevation(codeInput);
+        const attempt = ++attemptRef.current;
+        const result = await verifyUserSessionElevation(codeInput).catch((err: unknown) => err);
 
-        if (success) {
+        if (attempt !== attemptRef.current) return;
+
+        if (result instanceof RateLimitedError) {
+            handleRateLimited(result.retryAfter);
+        } else if (result === true) {
             handleSuccess();
         } else {
+            if (result instanceof Error) console.error(result);
+
             handleFailure();
         }
-    }, [codeInput, handleFailure, handleSuccess]);
+    }, [codeInput, handleFailure, handleRateLimited, handleSuccess, rateLimited]);
 
     const handleSubmitKeyDown = useCallback(
         async (event: KeyboardEvent<HTMLDivElement>) => {
@@ -138,8 +187,18 @@ const IdentityVerificationDialog = function (props: Props) {
                 setReady(true);
             })
             .catch((error) => {
-                console.error(error);
-                createErrorNotification(translate("Failed to generate the One-Time Code. Please try again later."));
+                if (error instanceof RateLimitedError) {
+                    createErrorNotification(
+                        translate("You have made too many requests, try again in {{count}} seconds", {
+                            count: error.retryAfter,
+                            ns: "portal",
+                        }),
+                    );
+                } else {
+                    console.error(error);
+                    createErrorNotification(translate("Failed to generate the One-Time Code. Please try again later."));
+                }
+
                 handleClose(false);
             });
     }, [closing, opening, elevation, ready, translate, handleClose, handleOpened, createErrorNotification]);
@@ -181,11 +240,12 @@ const IdentityVerificationDialog = function (props: Props) {
                                 value={codeInput}
                                 onChange={handleChange}
                                 error={codeError}
-                                disabled={loading}
+                                disabled={loading || rateLimited}
                                 inputRef={codeRef}
                                 onKeyDown={handleSubmitKeyDown}
                             />
                         </div>
+                        <RateLimitCountdown secondsRemaining={secondsRemaining} />
                     </div>
                 )}
                 {success ? null : (
@@ -203,7 +263,7 @@ const IdentityVerificationDialog = function (props: Props) {
                             id={"dialog-verify"}
                             variant={"ghost"}
                             color={"primary"}
-                            disabled={loading}
+                            disabled={loading || rateLimited}
                             onClick={handleSubmit}
                         >
                             {loading ? <Spinner size={20} /> : null}

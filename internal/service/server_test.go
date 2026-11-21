@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -200,9 +204,10 @@ func (l *testListener) Addr() net.Addr {
 }
 
 type testCtx struct {
-	Configuration *schema.Configuration
-	Providers     middlewares.Providers
-	Logger        *logrus.Entry
+	Configuration      *schema.Configuration
+	ConfigurationPaths []string
+	Providers          middlewares.Providers
+	Logger             *logrus.Entry
 
 	context.Context
 }
@@ -217,4 +222,8 @@ func (c *testCtx) GetProviders() middlewares.Providers {
 
 func (c *testCtx) GetLogger() *logrus.Entry {
 	return c.Logger
+}
+
+func (c *testCtx) GetConfigurationPaths() []string {
+	return c.ConfigurationPaths
 }

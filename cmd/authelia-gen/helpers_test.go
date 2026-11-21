@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -27,7 +31,7 @@ func TestGetPFlagPath(t *testing.T) {
 			},
 			[]string{"abc", "123"},
 			"",
-			"failed to lookup flag 'abc': flag accessed but not defined: abc",
+			"failed to lookup flag 'abc': flag \"abc\" does not exist",
 		},
 		{
 			"ShouldFailEmptyFlagNames",
@@ -86,7 +90,7 @@ func TestBuildCSP(t *testing.T) {
 				codeCSPValuesCommon,
 				codeCSPValuesProduction,
 			},
-			"default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s'",
+			"default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s'",
 		},
 	}
 

@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+services:
+  authelia-backend:
+    environment:
+      X_AUTHELIA_DEV_EXTID_OPENID_CONNECT_ALLOW_DUPLICATE_ISSUER: 'true'
+    volumes:
+      - './OpenIDConnectRelyingParty/configuration.yml:/config/configuration.yml'
+      - './OpenIDConnectRelyingParty/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+      - './common/pki/ca.public.crt:/certs/ca.public.crt'
+  authelia-frontend:
+    environment:
+      VITE_ALLOWED_HOSTS: 'auth-upstream.example.com'
+...

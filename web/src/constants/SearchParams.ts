@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 export const Identifier: string = "id";
 
 export const IdentityToken: string = "token";
@@ -34,6 +38,14 @@ export const ErrorStatusCode: string = "error_status_code";
 
 export const ErrorURI: string = "error_uri";
 
+export const ErrorCode: string = "ec";
+
+export const ErrorCodeForbidden: string = "forbidden";
+
 export const FlowNameOpenIDConnect: string = "openid_connect";
 
 export const SubFlowNameDeviceAuthorization: string = "device_authorization";
+
+export const ExternalIdentityLinkProvider: string = "link_provider";
+
+export const ExternalIdentityError: string = "external_identity_error";

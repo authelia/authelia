@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/user-database.json",
+  "$id": "https://www.authelia.com/schemas/v4.40/json-schema/user-database.json",
   "$ref": "#/$defs/FileUserDatabase",
   "$defs": {
     "FileUserDatabase": {

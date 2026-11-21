@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authorization
 
 import "github.com/authelia/authelia/v4/internal/utils"
@@ -18,6 +22,8 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 			amr.TOTP = true
 		case AMRShortMessageService:
 			amr.Duo = true
+		case AMRRecoveryCode:
+			amr.RecoveryCode = true
 		case AMRProofOfPossession:
 			amr.WebAuthn = true
 		case AMRHardwareSecuredKey:
@@ -47,6 +53,10 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 			}
 		}
 
+		if utils.IsStringInSlice(extra, amr.Extra) {
+			continue
+		}
+
 		amr.Extra = append(amr.Extra, extra)
 	}
 
@@ -64,7 +74,49 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
-	Extra                        []string
+	RecoveryCode                 bool
+
+	FederatedIdentity bool
+
+	Extra []string
+}
+
+// Merge returns the union of this AuthenticationMethodsReferences and another. Every boolean value is the logical OR
+// of the two values, and the Extra values of both are appended in order provided they are not already present.
+//
+//nolint:gocyclo // Each boolean is merged with a single logical OR so the function is simple to understand.
+func (r AuthenticationMethodsReferences) Merge(other AuthenticationMethodsReferences) (merged AuthenticationMethodsReferences) {
+	merged = AuthenticationMethodsReferences{
+		KnowledgeBasedAuthentication: r.KnowledgeBasedAuthentication || other.KnowledgeBasedAuthentication,
+		UsernameAndPassword:          r.UsernameAndPassword || other.UsernameAndPassword,
+		TOTP:                         r.TOTP || other.TOTP,
+		Duo:                          r.Duo || other.Duo,
+		WebAuthn:                     r.WebAuthn || other.WebAuthn,
+		WebAuthnHardware:             r.WebAuthnHardware || other.WebAuthnHardware,
+		WebAuthnSoftware:             r.WebAuthnSoftware || other.WebAuthnSoftware,
+		WebAuthnUserPresence:         r.WebAuthnUserPresence || other.WebAuthnUserPresence,
+		WebAuthnUserVerified:         r.WebAuthnUserVerified || other.WebAuthnUserVerified,
+		RecoveryCode:                 r.RecoveryCode || other.RecoveryCode,
+		FederatedIdentity:            r.FederatedIdentity || other.FederatedIdentity,
+	}
+
+	for _, extra := range r.Extra {
+		if utils.IsStringInSlice(extra, merged.Extra) {
+			continue
+		}
+
+		merged.Extra = append(merged.Extra, extra)
+	}
+
+	for _, extra := range other.Extra {
+		if utils.IsStringInSlice(extra, merged.Extra) {
+			continue
+		}
+
+		merged.Extra = append(merged.Extra, extra)
+	}
+
+	return merged
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.
@@ -74,7 +126,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.RecoveryCode
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -84,7 +136,7 @@ func (r AuthenticationMethodsReferences) MultiFactorAuthentication() bool {
 
 // ChannelBrowser returns true if a browser was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
-	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.RecoveryCode
 }
 
 // ChannelService returns true if a non-browser service was used to authenticate.
@@ -138,6 +190,10 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 
 	if r.WebAuthnUserVerified {
 		amr = append(amr, AMRPersonalIdentificationNumber)
+	}
+
+	if r.RecoveryCode {
+		amr = append(amr, AMRRecoveryCode)
 	}
 
 	if r.MultiFactorAuthentication() {

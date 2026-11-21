@@ -1,8 +1,8 @@
+import { cn } from "cn";
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Button } from "@components/UI/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@components/UI/DropdownMenu";
-import { cn } from "@utils/Styles";
 
 interface PaginationProps {
     page: number;

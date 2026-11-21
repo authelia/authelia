@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
+	"errors"
 	"net/url"
 	"time"
 
@@ -90,3 +95,5 @@ const testOIDCKeyID = "rsa-default"
 const testOIDCClaimsPolicyMerged = "merged-audience"
 
 var testOIDCPreConfiguredDuration = time.Hour * 24
+
+var errTestSessionBackend = errors.New("backend unavailable")

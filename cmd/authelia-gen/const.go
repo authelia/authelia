@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 const (
@@ -36,26 +40,19 @@ const (
 	fileDocsStaticJSONSchemasExportsWebAuthn    = "exports.webauthn"
 	fileDocsStaticJSONSchemasExportsIdentifiers = "exports.identifiers"
 
+	dirDocsStaticImages             = "images"
+	dirDocsStaticImagesContributors = "contributors"
+	fileAllContributors             = ".all-contributorsrc"
+	fileREADME                      = "README.md"
+
+	extSVG = ".svg"
+
 	fileGitHubIssueTemplateFR = ".github/ISSUE_TEMPLATE/feature-request.yml"
 	fileGitHubIssueTemplateBR = ".github/ISSUE_TEMPLATE/bug-report.yml"
 )
 
 const (
-	suiteNameBasicFormPost           = "basic-form-post"
-	suiteNameHybridFormPost          = "hybrid-form-post"
-	suiteNameImplicitFormPost        = "implicit-form-post"
-	suiteConformanceBasic            = "conformance-basic"
-	suiteConformanceBasicFormPost    = "conformance-basic-form-post"
-	suiteConformanceImplicit         = "conformance-implicit"
-	suiteConformanceImplicitFormPost = "conformance-implicit-form-post"
-	suiteConformanceHybrid           = "conformance-hybrid"
-	suiteConformanceHybridFormPost   = "conformance-hybrid-form-post"
-)
-
-const (
 	pathJSONSchema = "json-schema"
-	extJSON        = ".json"
-	extYAML        = ".yaml"
 )
 
 const (
@@ -75,6 +72,7 @@ const (
 const (
 	cmdUseRoot                   = "authelia-gen"
 	cmdUseCompletion             = "completion"
+	cmdUseHelp                   = "help"
 	cmdUseDocs                   = "docs"
 	cmdUseManage                 = "manage"
 	cmdUseMisc                   = "misc"
@@ -90,6 +88,7 @@ const (
 	cmdUseCommitLint             = "commit-lint"
 	cmdUseCode                   = "code"
 	cmdUseCodeScripts            = "scripts"
+	cmdUseContributors           = "contributors"
 	cmdUseKeys                   = "keys"
 	cmdUseServer                 = "server"
 )
@@ -134,7 +133,8 @@ const (
 )
 
 const (
-	metaVersionNext    = "next"
+	metaVersionMajor   = "major"
+	metaVersionMinor   = "minor"
 	metaVersionLatest  = "latest"
 	metaVersionCurrent = "current"
 )
@@ -145,6 +145,8 @@ const (
 	codeCSPDevelopmentDefaultSrc = "'self' 'unsafe-eval'"
 	codeCSPNone                  = "'none'"
 	codeCSPNonce                 = "${NONCE}"
+
+	codeCSPImgSrc = "'self' data:"
 )
 
 const (
@@ -153,12 +155,16 @@ const (
 
 const (
 	windows = "windows"
+
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
 )
 
 var (
 	codeCSPValuesCommon = []CSPValue{
 		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPSelf},
 		{Name: "frame-src", Value: codeCSPNone},
+		{Name: "img-src", Value: codeCSPImgSrc},
 		{Name: "object-src", Value: codeCSPNone},
 		{Name: "style-src", Value: "'self' 'nonce-%s'"},
 		{Name: "frame-ancestors", Value: codeCSPNone},

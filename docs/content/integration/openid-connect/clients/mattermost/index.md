@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Mattermost"
-description: "Integrating Mattermost with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Mattermost with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -22,8 +26,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Mattermost]
+  - [v12.0.2](https://github.com/mattermost/mattermost/releases/tag/v12.0.2)
 
 {{% oidc-common %}}
 
@@ -67,6 +72,7 @@ identity_providers:
         client_name: 'Mattermost'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         claims_policy: 'mattermost'
         require_pkce: false
@@ -86,10 +92,6 @@ identity_providers:
 ```
 
 ### Application
-
-Before configuring or using [OpenID Connect 1.0] with [Mattermost] you must ensure the
-[openid extension](https://mattermost.apache.org/doc/gug/openid-auth.html#installing-support-for-openid-connect) is
-installed.
 
 To configure [Mattermost] there is one method, using the [Configuration File](#configuration-file).
 

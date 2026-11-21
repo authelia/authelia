@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package embed
 
 import (
@@ -14,13 +18,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
-// New creates a new instance of the embedded Authelia context. This can later be used with embed.ServiceRunAll.
-func New(paths []string, filterNames []string) (ctx Context, val *schema.StructValidator, err error) {
+// New creates a new instance of the embedded Authelia context. This can later be used with embed.ServiceRunAll. The
+// valuesFiles are passed to NewNamedConfigFileFilters and populate .Values in the 'template' filter.
+func New(paths []string, filterNames []string, valuesFiles []string) (ctx Context, val *schema.StructValidator, err error) {
 	if len(paths) == 0 {
 		return nil, nil, fmt.Errorf("no paths provided")
 	}
 
-	filters, err := NewNamedConfigFileFilters(filterNames...)
+	filters, err := NewNamedConfigFileFilters(valuesFiles, "", "", filterNames...)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -66,6 +71,7 @@ type Context interface {
 	GetLogger() *logrus.Entry
 	GetProviders() middlewares.Providers
 	GetConfiguration() *schema.Configuration
+	GetConfigurationPaths() (paths []string)
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)
 	RemoteIP() net.IP
@@ -104,6 +110,10 @@ func (c *ctxEmbed) GetConfigurationPaths() (paths []string) {
 
 func (c *ctxEmbed) GetProviders() middlewares.Providers {
 	return c.Providers.ToInternal()
+}
+
+func (c *ctxEmbed) SetProviders(providers middlewares.Providers) {
+	c.Providers = Providers(providers)
 }
 
 func (c *ctxEmbed) GetLogger() *logrus.Entry {

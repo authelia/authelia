@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { LayoutDashboard, Menu, Shield, ShieldCheck, Users, UsersRound, X } from "lucide-react";
+import { cn } from "cn";
+import { LayoutDashboard, Link2, Menu, Shield, ShieldCheck, Users, UsersRound, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@components/UI/Button";
@@ -10,6 +15,7 @@ import { EncodedName } from "@constants/constants";
 import {
     IndexRoute,
     SecuritySubRoute,
+    SettingsExternalIdentitySubRoute,
     SettingsGroupManagementSubRoute,
     SettingsRoute,
     SettingsTwoFactorAuthenticationSubRoute,
@@ -18,7 +24,7 @@ import {
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import { useAdminConfigurationGET } from "@hooks/UserManagement";
-import { cn } from "@utils/Styles";
+import { getExternalIdentityLogin } from "@utils/Configuration";
 
 export interface Props {
     children?: ReactNode;
@@ -47,6 +53,8 @@ const SettingsLayout = function (props: Props) {
 
     const isItemVisible = useCallback(
         (item: NavItem) => {
+            if (item.keyname === "external-identity" && !getExternalIdentityLogin()) return false;
+
             if (!item.requireAdmin && !item.requireGroupManagement) return true;
 
             if (fetchAdminConfigError || !adminConfig || fetchUserInfoError || !userInfo) {
@@ -149,6 +157,12 @@ const navItems: NavItem[] = [
         keyname: "twofactor",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         text: "Two-Factor Authentication",
+    },
+    {
+        icon: <Link2 className="size-5 text-primary" />,
+        keyname: "external-identity",
+        pathname: `${SettingsRoute}${SettingsExternalIdentitySubRoute}`,
+        text: "Linked Accounts",
     },
     {
         icon: <Users className="size-5 text-primary" />,

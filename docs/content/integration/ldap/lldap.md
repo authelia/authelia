@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "LLDAP"
-description: ""
+description: "A guide on integrating Authelia with LLDAP as a lightweight LDAP authentication backend including configuration examples, default filters, and bind operations."
 summary: ""
 date: 2025-05-22T10:12:47+00:00
 draft: false

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 name: 'Bug Report'
 description: 'Report a bug'
@@ -34,6 +38,12 @@ body:
         What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - 'v4.39.28'
+        - 'v4.39.27'
+        - 'v4.39.26'
+        - 'v4.39.25'
+        - 'v4.39.24'
+        - 'v4.39.23'
         - 'v4.39.22'
         - 'v4.39.21'
         - 'v4.39.20'

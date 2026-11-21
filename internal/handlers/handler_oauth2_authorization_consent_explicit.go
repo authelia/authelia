@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -8,6 +12,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -15,7 +20,7 @@ import (
 )
 
 func handleOAuth2AuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, details *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		consentID uuid.UUID
@@ -26,7 +31,7 @@ func handleOAuth2AuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, 
 
 	switch len(bytesConsentID) {
 	case 0:
-		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, details, uuid.Nil, rw, r, requester)
 	default:
 		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
 			ctx.GetLogger().Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
@@ -36,12 +41,12 @@ func handleOAuth2AuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, 
 			return nil, true
 		}
 
-		return handleOAuth2AuthorizationConsentModeExplicitWithID(ctx, issuer, client, userSession, subject, consentID, rw, r, requester)
+		return handleOAuth2AuthorizationConsentModeExplicitWithID(ctx, issuer, client, userSession, details, subject, consentID, rw, r, requester)
 	}
 }
 
 func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession, subject uuid.UUID, consentID uuid.UUID,
+	userSession session.UserSession, details *authentication.UserDetailsExtended, subject uuid.UUID, consentID uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
@@ -64,7 +69,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 	}
 
 	if !consent.Subject.Valid && consent.Subject.UUID == uuid.Nil {
-		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
+		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, details, rw, r, requester)
 
 		return nil, true
 	}
@@ -108,7 +113,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 			return nil, true
 		}
 
-		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
+		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, details, rw, r, requester)
 
 		return nil, true
 	}

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "openCloud"
 description: "Integrating openCloud with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
@@ -22,9 +26,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [openCloud]
-  - [v7.2.2](https://github.com/opencloud-eu/opencloud/releases/tag/v7.2.2)
+  - [v7.2.4](https://github.com/opencloud-eu/opencloud/releases/tag/v7.2.4)
 
 {{% oidc-common %}}
 
@@ -58,6 +62,7 @@ identity_providers:
       - client_id: 'opencloud'
         client_name: 'openCloud'
         public: true
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -82,6 +87,7 @@ identity_providers:
       - client_id: 'opencloud-android'
         client_name: 'openCloud'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -104,6 +110,7 @@ identity_providers:
       - client_id: 'opencloud-desktop'
         client_name: 'openCloud'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -127,6 +134,7 @@ identity_providers:
       - client_id: 'opencloud-ios'
         client_name: 'openCloud'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -157,35 +165,7 @@ To configure [openCloud] there is one method, using the [Environment Variables](
 All limitations are limitations due to the development lifecycle of the application and are not related to Authelia.
 {{< /callout >}}
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The desktop client integration is currently not production ready.
-
-The current implementation is intended for one-time use cases, such as migrating files. It should not be considered a
-stable long-term desktop client setup until the WebFinger integration is completed.
-{{< /callout >}}
-
-- The desktop client WebFinger integration is currently incomplete (pull request https://github.com/opencloud-eu/desktop/pull/847).
-- Some additional customizations may be needed as noted below.
-
-The `groups` scope must be manually added to the authorization link when setting up the desktop client.
-
-Example:
-
-```
-https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization?response_type=code&client_id=<client_id>&redirect_uri=<redirect_uri>&code_challenge=<code_challenge>&code_challenge_method=S256&scope=<scope>&prompt=<prompt>&state=<state>
-```
-
-The default scope is:
-
-```
-scope=openid%20offline_access%20email%20profile
-```
-
-Add `groups%20` manually at the beginning of the scope:
-
-```
-scope=groups%20openid%20offline_access%20email%20profile
-```
+- The desktop client may need some additional customizations if using NGINX Proxy Manager, refer to [Change the NGINX Proxy Manager setting](https://docs.opencloud.eu/docs/next/admin/resources/common-issues/desktop-client-setup-loop/#change-the-nginx-proxy-manager-setting)
 
 #### Environment Variables
 
@@ -314,7 +294,7 @@ Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/
 When using an external IDP, you need to map groups and roles. Create the following file and save it next to `opencloud.yaml`:
 
 In this example the `opencloud-admins` Authelia group maps to the `admin` role in [openCloud]. This is because of the
-`role_claim` value set to `groups`, and the list of mappings in `role_mappings`. Examples also exist for the
+`role_claim` value set to `groups`, and the list of mappings in `role_mapping`. Examples also exist for the
 `spaceadmin`, `user`, and `user-light` roles in [openCloud].
 
 You should adapt this configuration to your needs.

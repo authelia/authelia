@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Commit Message"
-description: "Authelia Development Commit Message Guidelines"
+description: "Authelia development commit message guidelines covering the conventional commit format with required types, scopes, header, body, and footer structure."
 lead: "This section covers the git commit message guidelines we use for development."
 date: 2021-01-30T19:29:07+11:00
 draft: false
@@ -50,12 +54,12 @@ for, and the structure it must have.
   │       │             │
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
   │       │
-  │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|clock|
-  │                          cmd|codecov|commands|configuration|deps|docker|duo|expression|go|
-  │                          golangci-lint|handlers|lefthook|logging|metrics|middlewares|mocks|
-  │                          model|notification|npm|ntp|oidc|random|regulation|renovate|reviewdog|
-  │                          server|service|session|storage|suites|templates|totp|utils|web|
-  │                          webauthn
+  │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|cache|
+  │                          clock|cmd|codecov|commands|configuration|deps|docker|duo|expression|
+  │                          go|golangci-lint|handlers|identity|lefthook|logging|metrics|
+  │                          middlewares|mocks|model|notification|npm|ntp|oidc|random|regulation|
+  │                          renovate|reviewdog|server|service|session|storage|suites|systemd|
+  │                          templates|totp|utils|web|webauthn
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test
 ```
@@ -84,12 +88,14 @@ commit messages).
 
 - authentication
 - authorization
+- cache
 - clock
 - commands
 - configuration
 - duo
 - expression
 - handlers
+- identity
 - logging
 - metrics
 - middlewares
@@ -105,6 +111,7 @@ commit messages).
 - session
 - storage
 - suites
+- systemd
 - templates
 - totp
 - utils

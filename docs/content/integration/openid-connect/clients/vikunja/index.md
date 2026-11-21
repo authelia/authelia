@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Vikunja"
-description: "Integrating Vikunja with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Vikunja with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-04-13T13:46:05+10:00
 draft: false
@@ -34,6 +38,9 @@ seo:
 This example makes the following assumptions:
 
 - **Application Root URL:** `https://vikunja.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
+    `https://vikunja.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid/authelia`.
+    This means if you change this value, you need to update the redirect URI.
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `vikunja`
 - **Client Secret:** `insecure_secret`
@@ -59,6 +66,7 @@ identity_providers:
         client_name: 'Vikunja'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''

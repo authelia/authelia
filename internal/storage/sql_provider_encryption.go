@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -30,6 +34,12 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		size, table, desc = sha512.BlockSize, tableOneTimeCode, "one time-codes"
 	case hmacNameOneTimePassword:
 		size, table, desc = sha256.BlockSize, tableTOTPHistory, "totp history"
+	case hmacNameRecoveryCode:
+		size, table, desc = sha256.BlockSize, tableRecoveryCodes, "recovery codes"
+	case hmacNameSession:
+		size, table, desc = sha256.BlockSize, tableSession, "sessions"
+	case hmacNameExternalIdentityLink:
+		return p.schemaEncryptionRotateHMACKeyExternalIdentityLink(ctx)
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
 	}
@@ -227,6 +237,8 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 		}
 	}
 
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableOneTimeCode)
+
 	return nil
 }
 
@@ -266,6 +278,8 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, c
 			return fmt.Errorf("error updating TOTP configuration secret with id '%d': %w", c.ID, err)
 		}
 	}
+
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableTOTPConfigurations)
 
 	return nil
 }
@@ -317,6 +331,8 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 		}
 	}
 
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableWebAuthnCredentials)
+
 	return nil
 }
 
@@ -350,6 +366,8 @@ func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvi
 			return fmt.Errorf("error updating cached data encrypted columns with id '%d': %w", d.ID, err)
 		}
 	}
+
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, len(caches), tableCachedData)
 
 	return nil
 }
@@ -387,6 +405,8 @@ func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType)
 				return fmt.Errorf("error updating oauth2 %s session data with id '%d': %w", typeOAuth2Session.String(), s.ID, err)
 			}
 		}
+
+		provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, typeOAuth2Session.Table())
 
 		return nil
 	}
@@ -434,6 +454,8 @@ func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvi
 			return fmt.Errorf("error updating encryption value with id '%d': %w", c.ID, err)
 		}
 	}
+
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableEncryption)
 
 	return nil
 }
@@ -677,6 +699,11 @@ func (p *SQLProvider) setCrypographyKey(ctx context.Context, conn SQLXConnection
 	return key, nil
 }
 
+// LoadHMACKey returns the HMAC key of the given name and size, generating and persisting it when it does not exist.
+func (p *SQLProvider) LoadHMACKey(ctx context.Context, name string, size int) (key []byte, err error) {
+	return p.getHMACKey(ctx, name, size)
+}
+
 func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (key []byte, err error) {
 	var tx SQLXTx
 
@@ -688,6 +715,10 @@ func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (ke
 		if errors.Is(err, sql.ErrNoRows) {
 			if key, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, size, false); err != nil {
 				_ = tx.Rollback()
+
+				if IsUniqueViolation(err) {
+					return p.getHMACKeyExisting(ctx, name)
+				}
 
 				return nil, err
 			}
@@ -711,10 +742,26 @@ func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (ke
 	return key, nil
 }
 
-// checkEncryptionCheckValue reads and decrypts the encryption check value using the key and AAD appropriate for the
-// provided schema version, resolved via aadForSchemaVersion. Databases created before HKDF key derivation and GCM
-// AAD were introduced (schemaVersionEncryptionKeyDerivation) store the value using the legacy SHA256 key without
-// AAD, so validating them with the derived key would incorrectly fail prior to the upgrade migration running.
+func (p *SQLProvider) getHMACKeyExisting(ctx context.Context, name string) (key []byte, err error) {
+	var tx SQLXTx
+
+	if tx, err = p.db.BeginTxx(ctx, nil); err != nil {
+		return nil, fmt.Errorf("error beginning transaction to get hmac key: %w", err)
+	}
+
+	if key, err = p.getEncryptionValue(ctx, tx, fmt.Sprintf(fmtNameKeyHMAC, name)); err != nil {
+		_ = tx.Rollback()
+
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("error occurred committing transaction to get hmac key: %w", err)
+	}
+
+	return key, nil
+}
+
 func (p *SQLProvider) checkEncryptionCheckValue(ctx context.Context, version int) (err error) {
 	key, aad := p.keys.encryption, aadForSchemaVersion(version).Get(tableEncryption, columnValue, encryptionNameCheck)
 

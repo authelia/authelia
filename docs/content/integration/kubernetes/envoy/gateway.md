@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Envoy Gateway"
-description: "A guide to integrating Authelia with the Kubernetes Envoy Gateway."
+description: "A guide to integrating Authelia with the Kubernetes Envoy Gateway implementation using the external authorization filter and the Gateway API resource manifest."
 summary: "A guide to integrating Authelia with the Kubernetes Envoy Gateway."
 date: 2025-06-13T14:12:09+00:00
 draft: false
@@ -76,6 +80,9 @@ spec:
   extAuth:
     headersToExtAuth:
       - 'accept'
+      - 'sec-fetch-mode'
+      - 'sec-fetch-dest'
+      - 'x-requested-with'
       - 'cookie'
       - 'location'
       - 'authorization'
@@ -114,6 +121,9 @@ spec:
   extAuth:
     headersToExtAuth:
       - 'accept'
+      - 'sec-fetch-mode'
+      - 'sec-fetch-dest'
+      - 'x-requested-with'
       - 'cookie'
       - 'authorization'
       - 'proxy-authorization'

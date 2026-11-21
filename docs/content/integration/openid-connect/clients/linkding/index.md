@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Linkding"
-description: "Integrating Linkding with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Linkding with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-08-19T13:35:49+05:30
 draft: false
@@ -44,9 +48,9 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ## Configuration
 
-### Linkding
+### Authelia
 
-The following YAML configuration is an example Linkding [client configuration] for use with [Linkding] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Linkding] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'Linkding'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -86,7 +91,7 @@ variables:
 
 ```shell {title=".env"}
 LD_ENABLE_OIDC=True
-LD_CSRF_TRUSTED_ORIGINS=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+LD_CSRF_TRUSTED_ORIGINS=https://linkding.{{< sitevar name="domain" nojs="example.com" >}}
 OIDC_RP_CLIENT_ID=linkding
 OIDC_RP_CLIENT_SECRET=insecure_secret
 OIDC_OP_AUTHORIZATION_ENDPOINT=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
@@ -102,7 +107,7 @@ services:
   linkding:
     environment:
       LD_ENABLE_OIDC: 'True'
-      LD_CSRF_TRUSTED_ORIGINS: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      LD_CSRF_TRUSTED_ORIGINS: 'https://linkding.{{< sitevar name="domain" nojs="example.com" >}}'
       OIDC_RP_CLIENT_ID: 'linkding'
       OIDC_RP_CLIENT_SECRET: 'insecure_secret'
       OIDC_OP_AUTHORIZATION_ENDPOINT: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'

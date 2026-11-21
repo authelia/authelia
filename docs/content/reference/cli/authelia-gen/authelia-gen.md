@@ -2,7 +2,7 @@
 title: "authelia-gen"
 description: "Reference for the authelia-gen command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2026-09-09T22:15:52+10:00
 draft: false
 images: []
 weight: 910
@@ -57,12 +57,10 @@ authelia-gen [flags]
       --file.web.i18n string                                       The i18n typescript configuration file in relation to the web directory (default "src/i18n/index.ts")
       --file.web.package string                                    The node package configuration file in relation to the web directory (default "package.json")
   -h, --help                                                       help for authelia-gen
-      --latest                                                     Enables latest functionality with several generators like the JSON Schema generator
-      --next                                                       Enables next functionality with several generators like the JSON Schema generator
       --package.configuration.keys string                          Sets the package name of the keys file (default "schema")
       --package.scripts.gen string                                 Sets the package name of the authelia-scripts gen file (default "cmd")
       --version-count int                                          the maximum number of minor versions to list in output templates (default 5)
-      --versions strings                                           The versions to run the generator for, the special versions current and next are mutually exclusive
+      --versions strings                                           The versions to run the generator for, the special versions major, minor, and current are mutually exclusive
 ```
 
 ### SEE ALSO
@@ -73,5 +71,4 @@ authelia-gen [flags]
 * [authelia-gen github](authelia-gen_github.md)	 - Generate GitHub files
 * [authelia-gen locales](authelia-gen_locales.md)	 - Generate locales files
 * [authelia-gen misc](authelia-gen_misc.md)	 - Generate miscellaneous things
-* [authelia-gen release](authelia-gen_release.md)	 - Prepare a release by updating version references, accepts one argument of either major, minor, or patch
 

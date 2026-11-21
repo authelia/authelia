@@ -3,8 +3,7 @@
 import { type ComponentProps } from "react";
 
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
-
-import { cn } from "@utils/Styles";
+import { cn } from "cn";
 
 function TooltipProvider({ delay = 0, ...props }: ComponentProps<typeof TooltipPrimitive.Provider>) {
     return <TooltipPrimitive.Provider delay={delay} {...props} />;

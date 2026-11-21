@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Ansible AWX and Ansible Tower"
-description: "Integrating Ansible AWX and Ansible Tower with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Ansible AWX and Ansible Tower with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false
@@ -22,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Ansible AWX]
   - [v24.6.1](https://github.com/ansible/awx/releases/tag/24.6.1)
 
@@ -58,6 +62,7 @@ identity_providers:
         client_name: 'Ansible AWX'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -85,7 +90,7 @@ To configure [Ansible AWX] there is one method, using the [Web GUI](#web-gui).
 To configure [Ansible AWX] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Login to [Ansible AWX] as an administrator.
-2. Click `Settings` from the left navifation bar.
+2. Click `Settings` from the left navigation bar.
 3. Click `Generic OIDC settings` on the left side of the settings window.
 4. Click `Edit` and configure the following options:
    - OIDC Key: `awx`

@@ -1,26 +1,36 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
 	"regexp"
+	"time"
 )
 
 const (
-	tableAuthenticationLogs   = "authentication_logs"
-	tableBannedUser           = "banned_user"
-	tableBannedIP             = "banned_ip"
-	tableCachedData           = "cached_data"
-	tableUserMetadata         = "user_metadata"
-	tableDuoDevices           = "duo_devices"
-	tableIdentityVerification = "identity_verification"
-	tableOneTimeCode          = "one_time_code"
-	tableTOTPConfigurations   = "totp_configurations"
-	tableTOTPHistory          = "totp_history"
-	tableUserOpaqueIdentifier = "user_opaque_identifier"
-	tableUserPreferences      = "user_preferences"
-	tableWebAuthnCredentials  = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
-	tableWebAuthnUsers        = "webauthn_users"
+	tableAuthenticationLogs        = "authentication_logs"
+	tableBannedUser                = "banned_user"
+	tableBannedIP                  = "banned_ip"
+	tableCachedData                = "cached_data"
+	tableDuoDevices                = "duo_devices"
+	tableIdentityVerification      = "identity_verification"
+	tableOneTimeCode               = "one_time_code"
+	tableRecoveryCodes             = "recovery_codes"
+	tableRecoveryCodesLock         = "recovery_codes_lock"
+	tableSession                   = "session"
+	tableTOTPConfigurations        = "totp_configurations"
+	tableTOTPHistory               = "totp_history"
+	tableUserOpaqueIdentifier      = "user_opaque_identifier"
+	tableUserMetadata              = "user_metadata"
+	tableUserExternalIdentityLinks = "user_external_identity_links"
+	tableUserPreferences           = "user_preferences"
+	tableWebAuthnCredentials       = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
+	tableWebAuthnUsers             = "webauthn_users"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
+	tableOAuth2RequestReplay           = "oauth2_request_replay"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
 
@@ -38,6 +48,10 @@ const (
 
 const (
 	tableAADPushedAuthorizationRequestSession = "oauth2_pushed_authorization_session"
+)
+
+const (
+	sessionGarbageCollectionFrequency = time.Minute * 5
 )
 
 const (
@@ -91,9 +105,11 @@ const (
 )
 
 const (
+	codeMySQLDuplicateEntry  uint16 = 1062
 	codeMySQLLockWaitTimeout uint16 = 1205
 	codeMySQLLockDeadlock    uint16 = 1213
 
+	codePostgresUniqueViolation      = "23505"
 	codePostgresSerializationFailure = "40001"
 	codePostgresDeadlockDetected     = "40P01"
 )
@@ -111,8 +127,11 @@ const (
 )
 
 const (
-	hmacNameOneTimeCode     = "otc"
-	hmacNameOneTimePassword = "otp"
+	hmacNameOneTimeCode          = "otc"
+	hmacNameOneTimePassword      = "otp"
+	hmacNameRecoveryCode         = "rc"
+	hmacNameExternalIdentityLink = "external_identity_link"
+	hmacNameSession              = "session"
 )
 
 const (

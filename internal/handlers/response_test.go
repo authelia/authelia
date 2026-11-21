@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -11,6 +15,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -64,10 +69,31 @@ func TestHandle1FAResponse(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldNotRedirectToUnsafeTargetURI",
+			"https://evil.example.org/",
+			fasthttp.MethodGet,
+			`{"status":"OK"}`,
+			nil,
+		},
+		{
+			"ShouldNotRedirectToTargetURIRequiringTwoFactor",
+			"https://two-factor.example.com/",
+			fasthttp.MethodGet,
+			`{"status":"OK"}`,
+			nil,
+		},
+		{
+			"ShouldNotRedirectWithoutTargetURI",
+			"",
+			fasthttp.MethodGet,
+			`{"status":"OK"}`,
+			nil,
+		},
+		{
 			"ShouldHandleInvalidRequestMethod",
 			"https://app.example.com/",
 			"GET1",
-			`{"status":"KO","message":"Authentication failed. Check your credentials."}`,
+			`{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the target URL 'https://app.example.com/'", "method header with value 'GET1' has invalid characters")
 			},
@@ -76,7 +102,7 @@ func TestHandle1FAResponse(t *testing.T) {
 			"ShouldHandleInvalidTargetURI",
 			"notaurl",
 			fasthttp.MethodGet,
-			`{"status":"KO","message":"Authentication failed. Check your credentials."}`,
+			`{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the target URL 'notaurl'", "error occurred parsing object url: parse \"notaurl\": invalid URI for request")
 			},
@@ -198,11 +224,8 @@ func TestHandle2FAResponse(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
-		config := mock.Ctx.Configuration.Session
-
-		config.Cookies[0].DefaultRedirectionURL = nil
-
-		mock.Ctx.Providers.SessionProvider = session.NewProvider(config, nil)
+		mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = nil
+		mock.ResetSessionProvider()
 
 		Handle2FAResponse(mock.Ctx, "")
 
@@ -254,7 +277,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := session.UserSession{}
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, &authentication.UserDetails{}, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -280,7 +303,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 
@@ -306,7 +329,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		body := redirectResponse{}
 
@@ -337,7 +360,40 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+
+		body := redirectResponse{}
+
+		mock.GetResponseData(t, &body)
+
+		target, err := url.Parse(body.Redirect)
+
+		require.NoError(t, err)
+
+		assert.Equal(t, oidc.EndpointPathAuthorization, target.Path)
+		assert.Equal(t, consent.ChallengeID.String(), target.Query().Get(queryArgConsentID))
+	})
+
+	t.Run("ShouldRedirectToAuthorizationWhenPromptLoginAndMaxAgeZeroAuthenticatedAfterRequested", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		consent := newConsent(t, mock)
+		consent.Form = url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}, oidc.FormParameterMaximumAge: []string{"0"}}.Encode()
+		consent.RequestedAt = mock.Ctx.GetClock().Now().Add(-time.Hour)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		userSession := newTestOIDCUserSession(1)
+
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		body := redirectResponse{}
 
@@ -369,7 +425,7 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		userSession := newTestOIDCUserSession(1)
 
-		handleFlowResponse(mock.Ctx, &userSession, consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
+		handleFlowResponse(mock.Ctx, &userSession, newTestOIDCUserDetails(), consent.ChallengeID.String(), flowNameOpenIDConnect, "", "")
 
 		mock.Assert200KO(t, messageAuthenticationFailed)
 

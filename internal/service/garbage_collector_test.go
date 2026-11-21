@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
 import (
@@ -289,7 +293,7 @@ func TestGarbageCollectorServiceCancelsProviderContext(t *testing.T) {
 
 	service.Shutdown()
 
-	<-done
+	require.NoError(t, <-done)
 
 	assert.Error(t, provider.Context().Err())
 }

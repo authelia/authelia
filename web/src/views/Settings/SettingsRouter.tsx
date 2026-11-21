@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ReactNode, useEffect } from "react";
 
 import { Route, Routes } from "react-router";
@@ -5,6 +9,7 @@ import { Route, Routes } from "react-router";
 import {
     IndexRoute,
     SecuritySubRoute,
+    SettingsExternalIdentitySubRoute,
     SettingsGroupManagementSubRoute,
     SettingsRoute,
     SettingsTwoFactorAuthenticationSubRoute,
@@ -16,6 +21,8 @@ import { useUserInfoGET } from "@hooks/UserInfo";
 import { useAdminConfigurationGET } from "@hooks/UserManagement";
 import SettingsLayout from "@layouts/SettingsLayout";
 import { AuthenticationLevel } from "@services/State";
+import { getExternalIdentityLogin } from "@utils/Configuration";
+import ExternalIdentityView from "@views/Settings/ExternalIdentity/ExternalIdentityView";
 import SecurityView from "@views/Settings/Security/SecurityView";
 import SettingsView from "@views/Settings/SettingsView";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
@@ -25,6 +32,8 @@ import UserManagementView from "@views/Settings/UserManagement/UserManagementVie
 const SettingsRouter = function () {
     const navigate = useRouterNavigate();
     const [state, fetchState, , fetchStateError] = useAutheliaState();
+
+    const externalIdentityLogin = getExternalIdentityLogin();
 
     useEffect(() => {
         fetchState();
@@ -42,6 +51,9 @@ const SettingsRouter = function () {
                 <Route path={IndexRoute} element={<SettingsView />} />
                 <Route path={SecuritySubRoute} element={<SecurityView />} />
                 <Route path={SettingsTwoFactorAuthenticationSubRoute} element={<TwoFactorAuthenticationView />} />
+                {externalIdentityLogin ? (
+                    <Route path={SettingsExternalIdentitySubRoute} element={<ExternalIdentityView />} />
+                ) : null}
                 <Route
                     path={SettingsUserManagementSubRoute}
                     element={

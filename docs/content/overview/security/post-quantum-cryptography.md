@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Post-Quantum Cryptography"
 description: "An overview of the Post-Quantum Cryptography security Authelia implements."
 summary: "An overview of the Post-Quantum Cryptography security Authelia implements."

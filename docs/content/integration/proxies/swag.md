@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "SWAG"
-description: "An integration guide for Authelia and the SWAG reverse proxy"
+description: "An integration guide for Authelia and the SWAG reverse proxy which is an NGINX-based container with bundled configurations for easy and streamlined proxy setup."
 summary: "A guide on integrating Authelia with SWAG."
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -55,10 +59,10 @@ and perform the validation steps as part of your regular security validation rou
 _**Important:** You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
 Especially if you have never read it before._
 
-To configure trusted proxies for [SWAG] see the [NGINX] section on [Trusted Proxies](nginx.md#trusted-proxies).
+To configure trusted proxies for [SWAG] see the [NGINX] section on [Trusted Proxies](nginx.md#trusted-proxies-and-integration-security).
 Adapting this to [SWAG] is beyond the scope of this documentation.
 
-### Assumptions and Adaptation
+## Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
 can not reasonably have examples for every advanced configuration option that exists. Some of these values can
@@ -87,18 +91,13 @@ The following are the assumptions we make:
   - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
-### Docker Compose
+## Docker Compose
 
 The following docker compose example has various applications suitable for setting up an example environment.
 
-It uses the [nginx image](https://github.com/linuxserver/docker-nginx) from [linuxserver.io] which includes all of the
-required modules including the `http_set_misc` module.
-
-It also includes the [nginx-proxy-confs](https://github.com/linuxserver/docker-mods/tree/nginx-proxy-confs) mod where
-they have several configuration examples in the `/config/nginx/proxy-confs` directory. This can be omitted if desired.
-
-If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](swag.md)
-which includes ACME and various other useful utilities.
+It uses the [SWAG] image from [linuxserver.io] which includes ACME and the
+[reverse-proxy-confs](https://github.com/linuxserver/reverse-proxy-confs) configuration examples in the
+`/config/nginx/proxy-confs` directory.
 
 ```yaml {title="compose.yml"}
 ---
@@ -120,8 +119,6 @@ services:
       - '443:443'
     volumes:
       - '${PWD}/data/swag:/config'
-      ## Uncomment the line below if you want to use the Authelia configuration snippets.
-      #- '${PWD}/data/nginx/snippets:/snippets'
     environment:
       PUID: '1000'
       PGID: '1000'
@@ -165,12 +162,20 @@ services:
 ...
 ```
 
-### Configuration Options
+## Configuration Options
 
 There are two configuration options for [SWAG]. The recommended option is
 [Using the Default Configuration](#option-1-using-the-default-configuration).
 
 ### Option 1: Using the Default Configuration
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The configuration bundled with [SWAG] uses the `$http_host` variable to construct the `X-Original-URL` header and the
+redirection URL. This variable is empty when clients use HTTP/3, which prevents Authelia from determining the URL of the
+request. If you enable HTTP/3 (i.e. the `listen 443 quic;` directives) you should use
+[Option 2](#option-2-using-the-authelia-supplementary-configuration-snippets), which requires [NGINX] 1.29.8 or newer,
+until [SWAG] includes a fix for this.
+{{< /callout >}}
 
 #### Configure Authelia Site Configuration
 
@@ -183,17 +188,20 @@ We're using Organizr as an example application.
 
 1. In the `/config/nginx/proxy-confs/` directory copy `organizr.subdomain.conf.sample` to `organizr.subdomain.conf`.
 2. Edit `organizr.subdomain.conf` and remove the leading `#` (i.e. uncomment) the
-3. `#include /config/nginx/authelia-server.conf;` line and the `#include /config/nginx/authelia-location.conf;` line.
+   `#include /config/nginx/authelia-server.conf;` line and the `#include /config/nginx/authelia-location.conf;` line.
 
 #### Restart the Container
 
 Once these changes have occurred you can restart [SWAG] and Organizr and Authelia should be configured correctly.
 
-## Option 2: Using the Authelia Supplementary Configuration Snippets
+### Option 2: Using the Authelia Supplementary Configuration Snippets
 
 See standard [NGINX](nginx.md) guide (which _can be used_ with [SWAG]) and run Authelia as its own subdomain.
 
-### Prerequisite Steps
+The snippets use the `$is_request_port` and `$request_port` variables which require [NGINX] 1.29.8 or newer. At the
+time of writing [SWAG] includes [NGINX] 1.30.4 which meets this requirement.
+
+#### Prerequisite Steps
 
 In the [SWAG] `/config` mount which is mounted to `${PWD}/data/swag` in our example:
 
@@ -201,9 +209,9 @@ In the [SWAG] `/config` mount which is mounted to `${PWD}/data/swag` in our exam
    - The `mkdir -p ${PWD}/data/swag/nginx/snippets/authelia` command should achieve this on Linux.
 2. Create the `${PWD}/data/swag/nginx/snippets/authelia/location.conf` file which can be found [here](nginx.md#authelia-locationconf).
 3. Create the `${PWD}/data/swag/nginx/snippets/authelia/authrequest.conf` file which can be found [here](nginx.md#authelia-authrequestconf).
-   - Ensure you adjust the line `error_page 401 =302 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/?rd=$target_url;` replacing `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/` with your external Authelia URL.
+   - If you uncomment the Legacy Method lines, ensure you adjust the line `# error_page 401 =302 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/?rd=$target_url;` replacing `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/` with your external Authelia URL. The default Modern Method requires no adjustment.
 
-### Protected Application
+#### Protected Application
 
 In the server configuration for the application you want to protect:
 
@@ -213,7 +221,7 @@ In the server configuration for the application you want to protect:
 3. Under the `#include /config/nginx/authelia-location.conf;` line which should be within the applications
    `location` block add the following line `include /config/nginx/snippets/authelia/authrequest.conf;`.
 
-### Example
+#### Example
 
 ```nginx
 server {
@@ -236,7 +244,7 @@ server {
         include /config/nginx/snippets/authelia/authrequest.conf;
 
         include /config/nginx/proxy.conf;
-        resolver 127.0.0.11 valid=30s;
+        include /config/nginx/resolver.conf;
         set $upstream_app whoami;
         set $upstream_port 80;
         set $upstream_proto http;

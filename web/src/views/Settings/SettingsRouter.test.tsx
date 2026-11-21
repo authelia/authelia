@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 
@@ -21,6 +25,7 @@ vi.mock("@hooks/RouterNavigate", () => ({
 vi.mock("@constants/Routes", () => ({
     IndexRoute: "/",
     SecuritySubRoute: "/security",
+    SettingsExternalIdentitySubRoute: "/external-identity",
     SettingsGroupManagementSubRoute: "/groups",
     SettingsRoute: "/settings",
     SettingsTwoFactorAuthenticationSubRoute: "/two-factor-authentication",
@@ -82,6 +87,10 @@ vi.mock("@hooks/UserManagement", () => ({
     useAdminConfigurationGET: () => [mocks.adminConfig, mocks.fetchAdminConfig, false, mocks.adminConfigError],
 }));
 
+vi.mock("@views/Settings/ExternalIdentity/ExternalIdentityView", () => ({
+    default: () => <div data-testid="openid-connect-view" />,
+}));
+
 beforeEach(() => {
     mockNavigate.mockReset();
     mocks.adminConfig = {
@@ -104,6 +113,11 @@ beforeEach(() => {
     mocks.userInfoError = undefined;
     mocks.fetchAdminConfig.mockReset();
     mocks.fetchUserInfo.mockReset();
+    document.body.dataset.externalidentitylogin = "false";
+});
+
+afterEach(() => {
+    document.body.dataset.externalidentitylogin = "false";
 });
 
 afterEach(() => {
@@ -232,4 +246,44 @@ it("navigates a non-admin away from the user management route", async () => {
 
     expect(screen.queryByTestId("user-management-view")).not.toBeInTheDocument();
     expect(mockNavigate).toHaveBeenCalledWith("/settings");
+});
+
+it("does not register the linked accounts route when no provider is configured", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    await act(async () => {
+        render(
+            <MemoryRouter initialEntries={["/external-identity"]}>
+                <SettingsRouter />
+            </MemoryRouter>,
+        );
+    });
+
+    expect(screen.queryByTestId("openid-connect-view")).not.toBeInTheDocument();
+});
+
+it("registers the linked accounts route when a provider is configured", async () => {
+    document.body.dataset.externalidentitylogin = "true";
+
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    await act(async () => {
+        render(
+            <MemoryRouter initialEntries={["/external-identity"]}>
+                <SettingsRouter />
+            </MemoryRouter>,
+        );
+    });
+
+    expect(screen.getByTestId("openid-connect-view")).toBeInTheDocument();
 });

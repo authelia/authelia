@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package middlewares
 
 import (
@@ -97,6 +101,29 @@ func TestHeaders(t *testing.T) {
 			SecurityHeadersNoStore,
 			nil,
 			func(t *testing.T, ctx *fasthttp.RequestCtx) {
+				assert.Equal(t, "no-cache", string(ctx.Response.Header.Peek(fasthttp.HeaderPragma)))
+				assert.Equal(t, "no-store", string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
+			},
+		},
+		{
+			"ShouldHandleSecurityHeadersNoStoreAfter",
+			SecurityHeadersNoStoreAfter,
+			nil,
+			func(t *testing.T, ctx *fasthttp.RequestCtx) {
+				assert.Equal(t, "no-cache", string(ctx.Response.Header.Peek(fasthttp.HeaderPragma)))
+				assert.Equal(t, "no-store", string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
+			},
+		},
+		{
+			"ShouldHandleSecurityHeadersNoStoreAfterResponseReset",
+			SecurityHeadersNoStoreAfter,
+			func(ctx *fasthttp.RequestCtx) {
+				ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueNoCache)
+				ctx.Response.Reset()
+				ctx.SetStatusCode(fasthttp.StatusUnauthorized)
+			},
+			func(t *testing.T, ctx *fasthttp.RequestCtx) {
+				assert.Equal(t, fasthttp.StatusUnauthorized, ctx.Response.StatusCode())
 				assert.Equal(t, "no-cache", string(ctx.Response.Header.Peek(fasthttp.HeaderPragma)))
 				assert.Equal(t, "no-store", string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
 			},

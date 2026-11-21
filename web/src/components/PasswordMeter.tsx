@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useMemo } from "react";
 
 import { useTranslation } from "react-i18next";
@@ -5,17 +9,14 @@ import zxcvbn from "zxcvbn";
 
 import { Alert, AlertDescription, AlertTitle } from "@components/UI/Alert";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
+import { Translate } from "@services/ErrorCode";
 
 export interface Props {
     value: string;
     policy?: PasswordPolicyConfiguration;
 }
 
-const getStandardPasswordInfo = (
-    password: string,
-    policy: PasswordPolicyConfiguration,
-    translate: (_key: string, _options?: any) => string,
-) => {
+const getStandardPasswordInfo = (password: string, policy: PasswordPolicyConfiguration, translate: Translate) => {
     let feedback = "";
     let feedbackTitle = "";
     let passwordScore = 0;

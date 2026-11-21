@@ -1,9 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -19,10 +24,64 @@ import (
 // MethodList is the list of available methods.
 type MethodList = []string
 
+type bodyGETExternalIdentityProviders struct {
+	Providers []bodyExternalIdentityProvider `json:"providers"`
+}
+
+type bodyExternalIdentityProvider struct {
+	ID      string `json:"id"`
+	Type    string `json:"type"`
+	Name    string `json:"name"`
+	LogoURI string `json:"logo_uri,omitempty"`
+}
+
+type bodyPOSTExternalIdentityStart struct {
+	TargetURL      string `json:"targetURL"`
+	RequestMethod  string `json:"requestMethod"`
+	KeepMeLoggedIn bool   `json:"keepMeLoggedIn"`
+	Language       string `json:"language"`
+	FlowID         string `json:"flowID"`
+	Flow           string `json:"flow"`
+	SubFlow        string `json:"subflow"`
+	UserCode       string `json:"userCode"`
+}
+
+type bodyPOSTExternalIdentityStartResponse struct {
+	AuthorizationURL string `json:"authorization_url"`
+}
+
+type bodyGETExternalIdentityLinks struct {
+	Links   []bodyExternalIdentityLink   `json:"links"`
+	Pending *bodyExternalIdentityPending `json:"pending,omitempty"`
+}
+
+type bodyExternalIdentityLink struct {
+	ID             int        `json:"id"`
+	CreatedAt      time.Time  `json:"created_at"`
+	LastUsedAt     *time.Time `json:"last_used_at,omitempty"`
+	Provider       string     `json:"provider"`
+	ProviderName   string     `json:"provider_name"`
+	Issuer         string     `json:"issuer"`
+	Subject        string     `json:"subject"`
+	RemoteUsername string     `json:"remote_username,omitempty"`
+	Invalid        bool       `json:"invalid,omitempty"`
+}
+
+type bodyExternalIdentityPending struct {
+	Provider       string `json:"provider"`
+	ProviderName   string `json:"provider_name"`
+	Issuer         string `json:"issuer"`
+	Subject        string `json:"subject"`
+	RemoteUsername string `json:"remote_username,omitempty"`
+	DisplayName    string `json:"display_name,omitempty"`
+	Email          string `json:"email,omitempty"`
+}
+
 type configurationBody struct {
 	AvailableMethods       MethodList `json:"available_methods"`
 	PasswordChangeDisabled bool       `json:"password_change_disabled"`
 	PasswordResetDisabled  bool       `json:"password_reset_disabled"`
+	RecoveryCodesDisabled  bool       `json:"recovery_codes_disabled"`
 }
 
 type bodySignTOTPRequest struct {
@@ -42,6 +101,15 @@ type bodyRegisterTOTP struct {
 
 type bodyRegisterFinishTOTP struct {
 	Token string `json:"token" valid:"required"`
+}
+
+type bodySignRecoveryCodeRequest struct {
+	Code      string `json:"code" valid:"required"`
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
 }
 
 type bodySignWebAuthnRequest struct {
@@ -223,6 +291,6 @@ type PasswordPolicyBody struct {
 
 type handlerAuthorizationConsent func(
 	ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, details *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)

@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { BroadcastChannel } from "broadcast-channel";
-import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -10,24 +13,31 @@ import { Button } from "@components/UI/Button";
 import { Checkbox } from "@components/UI/Checkbox";
 import { FloatingInput } from "@components/UI/FloatingInput";
 import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
 import { Spinner } from "@components/UI/Spinner";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
 import { useUserCode } from "@hooks/OpenIDConnect";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
+import ExternalIdentityForm from "@views/LoginPortal/FirstFactor/ExternalIdentityForm";
+import ExternalIdentityLinkNotice from "@views/LoginPortal/FirstFactor/ExternalIdentityLinkNotice";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 export interface Props {
     disabled: boolean;
+    externalIdentityLogin: boolean;
+    externalIdentityLink?: string;
     passkeyLogin: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
     resetPasswordCustomURL: string;
+    registrationURL: string;
 
     onAuthenticationStart: () => void;
     onAuthenticationStop: () => void;
@@ -44,6 +54,7 @@ const FirstFactorForm = function (props: Props) {
     const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
+    const { showPassword, toggleProps } = usePasswordVisibility();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
@@ -51,11 +62,11 @@ const FirstFactorForm = function (props: Props) {
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [externalLoading, setExternalLoading] = useState(false);
 
     const usernameRef = useRef<HTMLInputElement | null>(null);
     const passwordRef = useRef<HTMLInputElement | null>(null);
@@ -98,7 +109,7 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleSignIn = useCallback(async () => {
-        if (loading) {
+        if (loading || externalLoading) {
             return;
         }
 
@@ -144,6 +155,7 @@ const FirstFactorForm = function (props: Props) {
         }
     }, [
         loading,
+        externalLoading,
         username,
         password,
         props,
@@ -167,6 +179,12 @@ const FirstFactorForm = function (props: Props) {
             } else {
                 navigate(ResetPasswordStep1Route);
             }
+        }
+    };
+
+    const handleRegisterClick = () => {
+        if (props.registrationURL) {
+            window.open(props.registrationURL, "_blank", "noopener");
         }
     };
 
@@ -241,9 +259,17 @@ const FirstFactorForm = function (props: Props) {
     );
 
     return (
-        <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
+        <LoginLayout
+            id="first-factor-stage"
+            title={props.externalIdentityLink ? translate("Sign in to link your account") : translate("Sign in")}
+        >
             <form id={"form-login"} onSubmit={(e) => e.preventDefault()}>
                 <div className="grid grid-cols-1 gap-5">
+                    {props.externalIdentityLink ? (
+                        <div className="w-full">
+                            <ExternalIdentityLinkNotice provider={props.externalIdentityLink} />
+                        </div>
+                    ) : null}
                     <div className="w-full">
                         <FloatingInput
                             ref={usernameRef}
@@ -256,7 +282,7 @@ const FirstFactorForm = function (props: Props) {
                             onChange={(v) => setUsername(v.target.value)}
                             onFocus={() => setUsernameError(false)}
                             autoCapitalize="none"
-                            autoComplete="username"
+                            autoComplete={props.passkeyLogin ? "username webauthn" : "username"}
                             onKeyDown={handleUsernameKeyDown}
                         />
                     </div>
@@ -273,36 +299,15 @@ const FirstFactorForm = function (props: Props) {
                             onChange={(v) => setPassword(v.target.value)}
                             onFocus={() => setPasswordError(false)}
                             type={showPassword ? "text" : "password"}
-                            autoComplete="current-password"
+                            autoComplete={props.passkeyLogin ? "current-password webauthn" : "current-password"}
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
                         />
-                        <button
-                            type="button"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                            aria-label={translate("Toggle password visibility")}
-                            aria-pressed={showPassword}
-                            onMouseDown={() => setShowPassword(true)}
-                            onMouseUp={() => setShowPassword(false)}
-                            onMouseLeave={() => setShowPassword(false)}
-                            onTouchStart={() => setShowPassword(true)}
-                            onTouchEnd={() => setShowPassword(false)}
-                            onTouchCancel={() => setShowPassword(false)}
-                            onKeyDown={(e) => {
-                                if (e.key === " " || e.key === "Enter") {
-                                    setShowPassword(true);
-                                    e.preventDefault();
-                                }
-                            }}
-                            onKeyUp={(e) => {
-                                if (e.key === " " || e.key === "Enter") {
-                                    setShowPassword(false);
-                                    e.preventDefault();
-                                }
-                            }}
-                        >
-                            {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                        </button>
+                        <PasswordVisibilityToggle
+                            label={translate("Toggle password visibility")}
+                            showPassword={showPassword}
+                            {...toggleProps}
+                        />
                     </div>
                     {passwordCapsLock ? (
                         <div className="w-full px-4">
@@ -336,7 +341,7 @@ const FirstFactorForm = function (props: Props) {
                             type="submit"
                             variant="default"
                             className="w-full"
-                            disabled={disabled || loading}
+                            disabled={disabled || loading || externalLoading}
                             onClick={handleSignIn}
                         >
                             {translate("Sign in")}
@@ -345,7 +350,7 @@ const FirstFactorForm = function (props: Props) {
                     </div>
                     {props.passkeyLogin ? (
                         <PasskeyForm
-                            disabled={disabled || loading}
+                            disabled={disabled || loading || externalLoading}
                             rememberMe={props.rememberMe}
                             onAuthenticationError={(err) => createErrorNotification(err.message)}
                             onAuthenticationStart={() => {
@@ -364,16 +369,35 @@ const FirstFactorForm = function (props: Props) {
                             }}
                         />
                     ) : null}
-                    {props.resetPassword ? (
+                    {props.externalIdentityLogin && !props.externalIdentityLink ? (
+                        <ExternalIdentityForm
+                            disabled={disabled || loading}
+                            rememberMe={rememberMe}
+                            onLoadingChange={setExternalLoading}
+                        />
+                    ) : null}
+                    {props.resetPassword || props.registrationURL ? (
                         <div className="-my-2 flex w-full flex-row justify-end">
-                            <button
-                                id="reset-password-button"
-                                type="button"
-                                className="cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
-                                onClick={handleResetPasswordClick}
-                            >
-                                {translate("Reset password?")}
-                            </button>
+                            {props.registrationURL ? (
+                                <button
+                                    id="register-button"
+                                    type="button"
+                                    className="mr-auto cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
+                                    onClick={handleRegisterClick}
+                                >
+                                    {translate("Register")}
+                                </button>
+                            ) : null}
+                            {props.resetPassword ? (
+                                <button
+                                    id="reset-password-button"
+                                    type="button"
+                                    className="cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
+                                    onClick={handleResetPasswordClick}
+                                >
+                                    {translate("Reset password?")}
+                                </button>
+                            ) : null}
                         </div>
                     ) : null}
                 </div>

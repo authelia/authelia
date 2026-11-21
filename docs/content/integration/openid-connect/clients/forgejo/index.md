@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Forgejo"
-description: "Integrating Forgejo with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Forgejo with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-07-10T08:55:15+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Forgejo]
   - [v13.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v13.0.2)
 
@@ -37,7 +41,7 @@ This example makes the following assumptions:
 - **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - **Client ID:** `forgejo`
 - **Client Secret:** `insecure_secret`
-- **Authentication Name (Forgejo):** `authelia`:
+- **Authentication Name (Forgejo):** `authelia`
   - This option determines the redirect URI in the format of
     `https://forgejo.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
     This means if you change this value you need to update the redirect URI.
@@ -63,6 +67,7 @@ identity_providers:
         client_name: 'Forgejo'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -101,8 +106,9 @@ To configure [Forgejo] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
    - Client Secret: `insecure_secret`
    - OpenID Connect Auto Discovery URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
    - Additional scopes: `email profile groups`
-6. Optionally update the following setting to specify which oidc groups have admin access to Forgejo
-   - Claim name providing group names for this source. (Optional)
+6. Optionally update the following settings to specify which oidc groups have admin access to Forgejo
+   - Claim name providing group names for this source. (Optional): `groups`
+   - Group claim value for administrator users. (Optional - requires claim name above): `admin`
 
 {{< figure src="forgejo.png" alt="Forgejo" width="300" >}}
 
@@ -117,15 +123,13 @@ To configure [Forgejo] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 
 ### Automatic User Creation
 
-To configure [Forgejo] to perform automatic user creation for the `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` domain via [OpenID Connect 1.0]:
+To configure [Forgejo] to perform automatic user creation for users who log in via [OpenID Connect 1.0]:
 
 1. Edit the following values in the [Forgejo] `app.ini`:
 
 ```ini
-[openid]
-ENABLE_OPENID_SIGNIN = false
-ENABLE_OPENID_SIGNUP = true
-WHITELISTED_URIS     = {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+[oauth2_client]
+ENABLE_AUTO_REGISTRATION = true
 
 [service]
 DISABLE_REGISTRATION                          = false

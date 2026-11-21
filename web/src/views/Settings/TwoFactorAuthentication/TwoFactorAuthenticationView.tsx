@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { useEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
@@ -11,6 +15,7 @@ import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfigu
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import { SecondFactorMethod } from "@models/Methods";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
+import RecoveryCodesPanel from "@views/Settings/TwoFactorAuthentication/RecoveryCodesPanel";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsDisabledPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsDisabledPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
@@ -158,6 +163,11 @@ const TwoFactorAuthenticationView = function () {
                     ) : (
                         <WebAuthnCredentialsDisabledPanel />
                     )}
+                </div>
+            ) : null}
+            {!renderSecondFactorDisabled() && configuration?.recovery_codes_disabled === false ? (
+                <div className="w-full">
+                    <RecoveryCodesPanel info={userInfo} />
                 </div>
             ) : null}
             {configuration && userInfo ? (

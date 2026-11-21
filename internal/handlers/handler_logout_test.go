@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -10,38 +14,8 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
-
-type LogoutSuite struct {
-	suite.Suite
-
-	mock *mocks.MockAutheliaCtx
-}
-
-func (s *LogoutSuite) SetupTest() {
-	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	provider, err := s.mock.Ctx.GetSessionProvider()
-	s.Assert().NoError(err)
-
-	userSession, err := provider.GetSession(s.mock.Ctx.RequestCtx)
-	s.Assert().NoError(err)
-
-	userSession.Username = testUsername
-	s.Assert().NoError(provider.SaveSession(s.mock.Ctx.RequestCtx, userSession))
-}
-
-func (s *LogoutSuite) TearDownTest() {
-	s.mock.Close()
-}
-
-func (s *LogoutSuite) TestShouldDestroySession() {
-	LogoutPOST(s.mock.Ctx)
-	b := s.mock.Ctx.Response.Header.PeekCookie("authelia_session")
-
-	// Reset the cookie, meaning it resets the value and expires the cookie by setting
-	// date to one minute in the past.
-	assert.True(s.T(), strings.HasPrefix(string(b), "authelia_session=;"))
-}
 
 func TestLogoutPOST(t *testing.T) {
 	testCases := []struct {
@@ -96,7 +70,7 @@ func TestLogoutPOST(t *testing.T) {
 
 			us.Username = testUsername
 
-			require.NoError(t, mock.Ctx.SaveSession(us))
+			require.NoError(t, mock.Ctx.SaveSession(&us))
 
 			mock.Ctx.Request.SetBodyString(tc.have)
 
@@ -127,7 +101,76 @@ func TestLogoutPOSTShouldHandleSessionDestroyError(t *testing.T) {
 	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred destroying the user session during logout", "unable to destroy user session: unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 }
 
+func TestOpenIDConnectStateDoesNotSurviveLogout(t *testing.T) {
+	testCases := []struct {
+		Name string
+	}{
+		{Name: "ShouldClearFlowAndPendingOnLogout"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			userSession, err := mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			userSession.Username = "john"
+			userSession.ExternalIdentity = &session.ExternalIdentityFlow{Provider: "example"}
+			userSession.ExternalIdentityPending = &session.ExternalIdentityPending{Provider: "example"}
+
+			require.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+			userSession, err = mock.Ctx.GetSession()
+			require.NoError(t, err)
+			require.NotNil(t, userSession.ExternalIdentity)
+			require.NotNil(t, userSession.ExternalIdentityPending)
+			assert.Equal(t, "example", userSession.ExternalIdentity.Provider)
+			assert.Equal(t, "example", userSession.ExternalIdentityPending.Provider)
+
+			LogoutPOST(mock.Ctx)
+
+			userSession, err = mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			assert.Nil(t, userSession.ExternalIdentity)
+			assert.Nil(t, userSession.ExternalIdentityPending)
+		})
+	}
+}
+
 func TestRunLogoutSuite(t *testing.T) {
 	s := new(LogoutSuite)
 	suite.Run(t, s)
+}
+
+type LogoutSuite struct {
+	suite.Suite
+
+	mock *mocks.MockAutheliaCtx
+}
+
+func (s *LogoutSuite) SetupTest() {
+	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	provider, err := s.mock.Ctx.GetSessionProvider()
+	s.Assert().NoError(err)
+
+	userSession, err := provider.Get(s.mock.Ctx)
+	s.Assert().NoError(err)
+
+	userSession.Username = testUsername
+	s.Assert().NoError(provider.Save(s.mock.Ctx, userSession))
+}
+
+func (s *LogoutSuite) TearDownTest() {
+	s.mock.Close()
+}
+
+func (s *LogoutSuite) TestShouldDestroySession() {
+	LogoutPOST(s.mock.Ctx)
+	b := s.mock.Ctx.Response.Header.PeekCookie("authelia_session")
+
+	assert.True(s.T(), strings.HasPrefix(string(b), "authelia_session=;"))
 }

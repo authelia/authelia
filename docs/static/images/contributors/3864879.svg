@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100" role="img" aria-label="oliverpool">
+  <style>
+    svg { color-scheme: light dark }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,/9j/2wCEAAoHCAkIBgoJCAkMCwoMDxoRDw4ODx8WGBMaJSEnJiQhJCMpLjsyKSw4LCMkM0Y0OD0/QkNCKDFITUhATTtBQj8BCwwMDw0PHhERHj8qJCo/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/P//AABEIAHAAcAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/AO5NJTiKbUGghpKU0lDAKr3E4iZVBwW5zjNWCaq3KEyKwXcCMNxnb1wR+dRK5cEnLUSOZi6DcWDEg9OOCR0+lWM1SsAyvMkw/eq2QSc5U9D+mPwq27KilmPFC2HUSUrIdRTUdXUMvQ0tMzegUopKAaAHZozSUdKAJ6SlPtTaoBD0pDQaQ9elIANNpc0lAFW5PlXtvN/C+Ym/HlT+Yx+NOH7y5Yn7sXA/3iMk/kR+ZplxIsiTQyId3G0A8tnoR6HI/DGalt42jiCucucsx9SetR1Nm7RTe4Wp/wBHUHqMg/UGpaht+PNX0kb9ef61NVLYzl8TDNFFJTJFoNFFICwaTilppqwENIetBpDzSAO1NPSlzSGkBWkUDUI3PO5WUcdOh/xqxmoLjia3b/poV/NW/wDrVNSXUuTukQwffn9PM4/75Wpqgt+sxI6yH+Qqc0LYUviCkoopki0UlJRYC2aaacaYTVAIaaaUmm5pABpCaDRQBXus7oP+uo/kamqC7/5Yf9dh/Wp6S3ZcvhRDByZf+uh/pUxqGEYeb/f/APZRUtC2FLcKKKKZIE0maCaCeKALZphp5pppgNPWmmnGmmkAlJSmm0AQXZOYMf8APVf5Gpqguvv2/wD11H/oLVPSW7Ll8KIo/vzH/a/9lFS1HEPmk/3v6CpKFsS9w7UmaDxQaYgNJ2opCaALpph60802i4DDTakOKYaQCU004000wIJ/9dbj/poT/wCOtUtRTf8AHxbntvI/8dapQKlbsp7L+uoyMfPJ/vf0FPpkfEko9WB/Qf4U+mhPcKQmlpDTEIaSg0UAXCc0lBozSARs00mnZFNbmkA0mmAqwypBHqKfj1qF4onfLIpPrjrT1BW6jLlgNm0hpFYMq9z2P6E1MDkA9KERI1wiqo9FGKWhIbatZEEsvlSMFUs7gFVHf/AUsUbg7pXLOey8KvsB/U1LtG4N3Hegmi2o29LIDxTaVuKbTJA0UUlCA//Z" x="32.0" y="0" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="60.0" cy="28.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+  <text x="60.0" y="73" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">oliverpool</text>
+  <text x="60.0" y="91" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">💻⚠️</text>
+</svg>

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package configuration
 
 import (
@@ -913,7 +917,7 @@ func StringToIPNetworksHookFunc(definitions map[string][]*net.IPNet) mapstructur
 	}
 }
 
-// StringToUUIDHookFunc decodes a string into a uuid.UUID.
+// StringToUUIDHookFunc decodes a string into a [uuid.UUID].
 func StringToUUIDHookFunc() mapstructure.DecodeHookFuncType {
 	expectedType := reflect.TypeOf(uuid.UUID{})
 

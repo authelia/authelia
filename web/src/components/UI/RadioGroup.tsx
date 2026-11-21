@@ -2,9 +2,8 @@ import { type ComponentProps } from "react";
 
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group";
+import { cn } from "cn";
 import { CircleIcon } from "lucide-react";
-
-import { cn } from "@utils/Styles";
 
 function RadioGroup({
     className,

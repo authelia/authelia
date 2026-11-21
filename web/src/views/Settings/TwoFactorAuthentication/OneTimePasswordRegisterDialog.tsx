@@ -1,5 +1,11 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
 
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+
+import axios from "axios";
+import { cn } from "cn";
 import { XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
@@ -20,13 +26,12 @@ import { Label } from "@components/UI/Label";
 import { RadioGroup, RadioGroupItem } from "@components/UI/RadioGroup";
 import { Stepper } from "@components/UI/Stepper";
 import { Switch } from "@components/UI/Switch";
-import { GoogleAuthenticator } from "@constants/constants";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { toAlgorithmString } from "@models/TOTPConfiguration";
 import { completeTOTPRegister, stopTOTPRegister } from "@services/OneTimePassword";
 import { getTOTPSecret } from "@services/RegisterDevice";
 import { getTOTPOptions } from "@services/UserInfoTOTPConfiguration";
-import { cn } from "@utils/Styles";
+import { getTOTPAppAppleStore, getTOTPAppGooglePlay } from "@utils/Configuration";
 import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
 const steps = ["Start", "Register", "Confirm"];
@@ -63,6 +68,9 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
 
     const [activeStep, setActiveStep] = useState(0);
 
+    const appleStore = getTOTPAppAppleStore();
+    const googlePlay = getTOTPAppGooglePlay();
+
     const [secretURL, setSecretURL] = useState<null | string>(null);
     const [secretValue, setSecretValue] = useState<null | string>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +80,16 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const [dialState, setDialState] = useState(State.Idle);
     const [showQRCode, setShowQRCode] = useState(true);
     const [success, setSuccess] = useState(false);
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
+            }
+        };
+    }, []);
 
     const resetStates = useCallback(() => {
         if (defaults) {
@@ -109,7 +127,9 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const handleFinished = useCallback(() => {
         setSuccess(true);
 
-        setTimeout(() => {
+        timeoutSuccessRef.current = setTimeout(() => {
+            timeoutSuccessRef.current = null;
+
             createSuccessNotification(
                 translate("Successfully {{action}} the {{item}}", {
                     action: translate("added"),
@@ -191,7 +211,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 setSecretValue(secret.base32_secret);
             } catch (err) {
                 console.error(err);
-                if ((err as Error).message.includes("Request failed with status code 403")) {
+                if (axios.isAxiosError(err) && err.response?.status === 403) {
                     createErrorNotification(
                         translate("You must use the code from the same device and browser that initiated the process"),
                     );
@@ -467,17 +487,19 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 </div>
                             </div>
                         </div>
-                        <div className="col-span-12 hidden md:block">
-                            <div className="text-center">
-                                <p className="text-xs mb-1">{translate("Need Google Authenticator?")}</p>
-                                <AppStoreBadges
-                                    iconSize={110}
-                                    targetBlank
-                                    googlePlayLink={GoogleAuthenticator.googlePlay}
-                                    appleStoreLink={GoogleAuthenticator.appleStore}
-                                />
+                        {appleStore || googlePlay ? (
+                            <div className="col-span-12 hidden md:block">
+                                <div className="text-center">
+                                    <p className="text-xs mb-1">{translate("Need an authenticator app?")}</p>
+                                    <AppStoreBadges
+                                        iconSize={110}
+                                        targetBlank
+                                        appleStoreLink={appleStore}
+                                        googlePlayLink={googlePlay}
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        ) : null}
                     </Fragment>
                 );
             case 2:

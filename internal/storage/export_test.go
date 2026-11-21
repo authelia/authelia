@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -30,7 +34,8 @@ func NewSQLProviderForTesting(db SQLXDB) *SQLProvider {
 		name: providerSQLite,
 		log:  logging.Logger(),
 		keys: SQLProviderKeys{
-			encryption: key,
+			encryption:               key,
+			externalIdentityLinkHMAC: []byte("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
 		},
 		aad: aadRow,
 	}
@@ -44,7 +49,8 @@ func NewSQLProviderForTestingWithKey(db SQLXDB, key []byte) *SQLProvider {
 		name: providerSQLite,
 		log:  logging.Logger(),
 		keys: SQLProviderKeys{
-			encryption: key,
+			encryption:               key,
+			externalIdentityLinkHMAC: []byte("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
 		},
 		aad: aadRow,
 	}

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { setClaimCase } from "@services/Claims";
 
 it("returns the claim unchanged", () => {

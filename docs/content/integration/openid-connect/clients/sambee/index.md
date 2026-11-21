@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Sambee"
 description: "Integrating Sambee with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
@@ -63,6 +67,7 @@ identity_providers:
         client_name: 'Sambee'
         # The digest of 'insecure_secret'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -95,19 +100,15 @@ To configure [Sambee] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 2. Access `Settings`.
 3. Select `Authentication`.
 4. Select one of these values as **Authentication mode**:
-
-- `OIDC or password`
-- `OIDC only`
-
+   - `OIDC or password`
+   - `OIDC only`
 5. Select **Configure OIDC**.
 6. In the OIDC configuration dialog, enter the following values:
-
-- Provider name: `Authelia`
-- Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-- Client ID: `sambee`
-- Client secret: `insecure_secret`
-- Scopes: `openid, offline_access, profile, email, groups`
-
+   - Provider name: `Authelia`
+   - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Client ID: `sambee`
+   - Client secret: `insecure_secret`
+   - Scopes: `openid, offline_access, profile, email, groups`
 7. As **Admission**, select `All authenticated users`.
 8. As **Role assignment**, select `All users are assigned to the same role`.
 9. As **Assigned role**, select `Editor`.

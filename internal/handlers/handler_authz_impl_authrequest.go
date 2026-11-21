@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -33,4 +37,14 @@ func handleAuthzGetObjectAuthRequest(ctx AuthzContext) (object authorization.Obj
 
 func handleAuthzUnauthorizedAuthRequest(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
 	doAuthzRedirect(ctx, authn, redirectionURL, fasthttp.StatusUnauthorized)
+}
+
+func handleAuthzForbiddenAuthRequest(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
+	if redirectionURL == nil || authn.Type != AuthnTypeCookie {
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	doAuthzForbiddenRedirect(ctx, authn, redirectionURL, fasthttp.StatusForbidden)
 }

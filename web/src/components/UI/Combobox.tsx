@@ -1,10 +1,10 @@
 import { type KeyboardEvent, useState } from "react";
 
 import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
+import { cn } from "cn";
 import { XIcon } from "lucide-react";
 
 import { Badge } from "@components/UI/Badge";
-import { cn } from "@utils/Styles";
 
 interface ComboboxProps {
     id?: string;

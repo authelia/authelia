@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { type DragEvent, useState } from "react";
 
 import { type Header, type RowData, type Table } from "@tanstack/react-table";
+import { cn } from "cn";
 import { ArrowDownNarrowWide, ArrowUpWideNarrow, MoreVertical } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -9,7 +14,6 @@ import { type ColumnKind, type DataTableFeatures } from "@components/DataTable/f
 import { Button } from "@components/UI/Button";
 import { DropdownMenuSeparator } from "@components/UI/DropdownMenu";
 import { Popover, PopoverContent, PopoverTrigger } from "@components/UI/Popover";
-import { cn } from "@utils/Styles";
 
 interface ColumnHeaderCellProps<T extends RowData> {
     columnOrder: string[];

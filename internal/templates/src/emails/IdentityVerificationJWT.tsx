@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import * as React from "react";
 
 import { Body, Container, Head, Heading, Hr, Html, Preview, Section, Text, Tailwind, Button, Link } from "react-email";

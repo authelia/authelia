@@ -1,4 +1,9 @@
 #!/bin/sh
+
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set -e
 
 AUTHELIA_URL="${AUTHELIA_URL:-https://login.example.com:8080}"

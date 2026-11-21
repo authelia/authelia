@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  *  Username, Groups, and Display_Name should be a max of 100 characters.
  *  Usernames are allowed to be either alphanumeric with ,-_ OR a valid email.

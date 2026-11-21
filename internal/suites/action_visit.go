@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package suites
 
 import (
@@ -81,6 +85,8 @@ func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
 		if _, err = page.EvalOnNewDocument(consoleCollector); err != nil {
 			log.Debugf("Error installing the console collector: %v", err)
 		}
+
+		recordNetworkFailures(page)
 
 		err = rs.doNavigate(page, url)
 

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
@@ -39,10 +43,6 @@ func (p *SQLProvider) truncateSQLite3(ctx context.Context, conn SQLXConnection, 
 
 	if _, err = conn.ExecContext(ctx, "DELETE FROM sqlite_sequence WHERE name = ?;", table); err != nil {
 		return fmt.Errorf("error occurred deleting the start sequence: %w", err)
-	}
-
-	if _, err = conn.ExecContext(ctx, "VACUUM;"); err != nil {
-		return fmt.Errorf("error occurred vacuuming the database: %w", err)
 	}
 
 	return nil

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Jellysweep"
-description: "Integrating Jellysweep with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Jellysweep with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2026-01-09T12:00:00+00:00
 draft: false
@@ -57,6 +61,7 @@ identity_providers:
         client_name: 'Jellysweep'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -106,8 +111,8 @@ services:
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 This configuration assumes [Jellysweep](https://github.com/jon4hz/jellysweep) administrators are part of the `jellyfin-admins` group.
 Depending on your specific group configuration, you will have to adapt the `JELLYSWEEP_AUTH_OIDC_ADMIN_GROUP` variable.
-Alternatively you may elect to create a new authorization policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies)
-then utilize that policy as the [client authorization policy](../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+Alternatively you may elect to create a new authorization policy in [provider authorization policies](../../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies)
+then utilize that policy as the [client authorization policy](../../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
 ## See Also
@@ -117,4 +122,4 @@ then utilize that policy as the [client authorization policy](../../../configura
 [Authelia]: https://www.authelia.com
 [Jellysweep]: https://github.com/jon4hz/jellysweep
 [OpenID Connect 1.0]: ../../introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

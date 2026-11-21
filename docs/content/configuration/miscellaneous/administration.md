@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Administration"
 description: "Administration Configuration."
 summary: "This describes a section of the configuration for enabling administrator user and group management features."

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import CredentialItem from "@views/Settings/TwoFactorAuthentication/CredentialItem";

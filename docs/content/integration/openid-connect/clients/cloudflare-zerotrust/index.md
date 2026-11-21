@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Cloudflare Zero Trust"
-description: "Integrating Cloudflare Zero Trust with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Cloudflare Zero Trust with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and options."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 
 {{% oidc-common bugs="client-credentials-encoding,claims-hydration" %}}
 
@@ -57,6 +61,7 @@ identity_providers:
         client_name: 'Cloudflare ZeroTrust'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -82,7 +87,7 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
+It is a requirement that the Authelia URLs can be requested by Cloudflare's servers. This usually
 means that the URLs are accessible to foreign clients on the internet. There may be a way to configure this without
 accessibility to foreign clients on the internet on Cloudflare's end, but this is beyond the scope of this document.
 {{< /callout >}}
@@ -107,7 +112,7 @@ instructions:
    - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
    - Certificate URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
    - Enable `Proof Key for Code Exchange (PKCE)`
-   - Add the following OIDC Claims: `preferred_username`, `mail`
+   - Add the following OIDC Claims: `preferred_username`, `email`
 7. Click Save
 
 ## See Also

@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Gravitee"
-description: "Integrating Gravitee with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Gravitee with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [Gravitee]
   - [v4.7](https://documentation.gravitee.io/apim/release-information/release-notes/apim-4.7)
 
@@ -59,6 +63,7 @@ identity_providers:
         client_name: 'Gravitee'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        application_type: 'web'
         authorization_policy: 'two_factor'
         require_pkce: false
         pkce_challenge_method: ''
@@ -80,7 +85,8 @@ identity_providers:
 
 ### Application
 
-To configure [Gravitee] there is one method, using the [Web GUI](#web-gui).
+To configure [Gravitee] there are two methods, using the [Configuration File](#configuration-file), or using the
+[Web GUI](#web-gui).
 
 #### Configuration File
 
@@ -111,7 +117,7 @@ security:
         email: 'email'
         lastname: 'family_name'
         firstname: 'given_name'
-        picture: 'photo'
+        picture: 'picture'
       roleMapping:
         - condition: "{(#jsonPath(#profile, '$.groups') matches 'gravitee-admin' )}"
           roles:

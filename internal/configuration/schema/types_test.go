@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 import (
@@ -1462,4 +1466,9 @@ func init() {
 	_, _, x509CertificateRSA1024, _ = MustLoadCryptoSet("RSA", false, "1024")
 	x509CACertificateRSA2048, _, x509CertificateRSA2048, x509PrivateKeyRSA2048 = MustLoadCryptoSet("RSA", false, "2048")
 	x509CACertificateRSA4096, _, x509CertificateRSA4096, x509PrivateKeyRSA4096 = MustLoadCryptoSet("RSA", false, "4096")
+}
+
+type testAddressMarshaler interface {
+	MarshalYAML() (any, error)
+	MarshalText() ([]byte, error)
 }

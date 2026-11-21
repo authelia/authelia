@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package handlers
 
 import (
@@ -8,6 +12,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -15,7 +20,7 @@ import (
 )
 
 func handleOAuth2AuthorizationConsentModeImplicit(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, _ *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		consentID uuid.UUID
@@ -93,9 +98,21 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 		return nil, true
 	}
 
+	if consent.Responded() {
+		if !consent.IsAuthorized() {
+			ctx.GetLogger().Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
+
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied)
+
+			return nil, true
+		}
+
+		return consent, false
+	}
+
 	var requests *oidc.ClaimsRequests
 
-	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
+	if requests, err = oidc.NewClaimRequestsFromRequester(requester); err == nil && requests != nil {
 		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.GetClock().Now())
 	} else {
 		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.GetClock().Now())
@@ -154,7 +171,7 @@ func handleOAuth2AuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Auth
 
 	var requests *oidc.ClaimsRequests
 
-	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
+	if requests, err = oidc.NewClaimRequestsFromRequester(requester); err == nil && requests != nil {
 		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.GetClock().Now())
 	} else {
 		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.GetClock().Now())

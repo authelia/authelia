@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Configuration } from "@models/Configuration";
 import { ConfigurationPath } from "@services/Api";
 import { Get } from "@services/Client";
@@ -7,6 +11,7 @@ interface ConfigurationPayload {
     available_methods: Method2FA[];
     password_change_disabled: boolean;
     password_reset_disabled: boolean;
+    recovery_codes_disabled: boolean;
 }
 
 export async function getConfiguration(): Promise<Configuration> {

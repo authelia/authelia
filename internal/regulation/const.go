@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package regulation
 
 import "fmt"
@@ -23,6 +27,9 @@ const (
 
 	// AuthTypePassword is the string representing an auth log for second-factor authentication via a Password.
 	AuthTypePassword = "Password"
+
+	// AuthTypeRecoveryCode is the string representing an auth log for second-factor authentication via a Recovery Code.
+	AuthTypeRecoveryCode = "Recovery"
 )
 
 const (

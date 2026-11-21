@@ -1,6 +1,10 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "opkssh"
-description: "Integrating OpenPubkey SSH with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating OpenPubkey SSH (opkssh) with the Authelia OpenID Connect 1.0 Provider including configuration examples for enabling single sign-on (SSO)."
 summary: ""
 date: 2025-04-04T10:36:34+00:00
 draft: false
@@ -23,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
+  - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [opkssh]
   - [v0.10.0](https://github.com/openpubkey/opkssh/releases/tag/v0.10.0)
 
@@ -56,6 +60,7 @@ identity_providers:
       - client_id: 'opkssh'
         client_name: 'opkssh'
         public: true
+        application_type: 'native'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -90,7 +95,7 @@ opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth
 
 You will now see your unique user identifier `sub` in the CLI, copy it to set up the access control on the server.
 
-##### Configuration File
+##### Client Configuration File
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 Generally the configuration file is named `~/.opk/config.yml` on Linux and `C:\Users\{USER}\.opk\config.yml` on Windows.
@@ -104,7 +109,7 @@ opkssh login --create-config
 
 Then add Authelia to the existing providers:
 
-```yaml{title="~/.opk/config.yml"}
+```yaml {title="~/.opk/config.yml"}
 providers:
   - alias: authelia
     issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
@@ -122,9 +127,9 @@ You can now run `opkssh login` to login.
 
 #### Server
 
-To configure [opkssh] there is one method, using the [Configuration File](#configuration-file).
+To configure [opkssh] there is one method, using the [Configuration File](#server-configuration-file).
 
-##### Configuration File
+##### Server Configuration File
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 Generally the configuration file is named `/etc/opk/providers`.

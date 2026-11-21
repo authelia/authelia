@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 certificates_directory: '/certs/'
 
@@ -46,6 +50,7 @@ totp:
 
 identity_providers:
   oidc:
+    enable_device_code_verification_uri_complete: true
     hmac_secret: 'IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm'
     jwks:
       - key: {{ secret "/pki/private.oidc.pem" | mindent 10 "|" | msquote }}

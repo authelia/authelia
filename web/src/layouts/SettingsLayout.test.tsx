@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import SettingsLayout from "@layouts/SettingsLayout";
@@ -15,6 +19,7 @@ vi.mock("@constants/constants", () => ({
 vi.mock("@constants/Routes", () => ({
     IndexRoute: "/",
     SecuritySubRoute: "/security",
+    SettingsExternalIdentitySubRoute: "/external-identity",
     SettingsGroupManagementSubRoute: "/groups",
     SettingsRoute: "/settings",
     SettingsTwoFactorAuthenticationSubRoute: "/two-factor-authentication",
@@ -50,6 +55,11 @@ beforeEach(() => {
     mocks.userInfoError = undefined;
     mocks.fetchAdminConfig.mockReset();
     mocks.fetchUserInfo.mockReset();
+    document.body.dataset.externalidentitylogin = "false";
+});
+
+afterEach(() => {
+    document.body.dataset.externalidentitylogin = "false";
 });
 
 it("renders with settings title and menu button", async () => {
@@ -305,4 +315,30 @@ it("navigates to the user management route when its item is clicked", async () =
     });
 
     expect(mockNavigate).toHaveBeenCalledWith("/settings/groups");
+});
+
+it("does not render the linked accounts nav item when no provider is configured", async () => {
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.queryByText("Linked Accounts")).not.toBeInTheDocument();
+});
+
+it("renders the linked accounts nav item when a provider is configured", async () => {
+    document.body.dataset.externalidentitylogin = "true";
+
+    await act(async () => {
+        render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    expect(screen.getByText("Linked Accounts")).toBeInTheDocument();
 });
