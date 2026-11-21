@@ -59,13 +59,28 @@ func ProvisionOAuth2SessionIDCollector(ctx Context) (service Provider, err error
 // ProvisionOAuth2SessionLogoutTaskCollector provisions the service which periodically processes the follow up work of the
 // OpenID Connect sessions which have ended. No service is provisioned when there is no storage provider.
 func ProvisionOAuth2SessionLogoutTaskCollector(ctx Context) (service Provider, err error) {
-	store := ctx.GetProviders().StorageProvider
+	providers := ctx.GetProviders()
+
+	store := providers.StorageProvider
 
 	if store == nil || ctx.GetConfiguration().IdentityProviders.OIDC == nil {
 		return nil, nil
 	}
 
-	collector := NewCollector("oauth2_session_logout_task", oidc.NewLogoutTaskCollector(store, clock.New()), ctx)
+	var deliverer oidc.LogoutTokenDeliverer
+
+	if providers.OpenIDConnect != nil {
+		deliverer = oidc.NewBackChannelLogoutDeliverer(providers.OpenIDConnect, oidc.DetachedContextProviders{
+			Clock:    providers.Clock,
+			Random:   providers.Random,
+			Config:   ctx.GetConfiguration(),
+			Storage:  store,
+			Users:    providers.UserProvider,
+			Resolver: providers.UserAttributeResolver,
+		})
+	}
+
+	collector := NewCollector("oauth2_session_logout_task", oidc.NewLogoutTaskCollector(store, clock.New(), deliverer), ctx)
 
 	if collector == nil {
 		return nil, nil

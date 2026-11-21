@@ -8,6 +8,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -155,6 +157,122 @@ func TestSQLProviderOAuth2SessionID(t *testing.T) {
 		require.Len(t, next, 1)
 		assert.NotEqual(t, page[0].ID, next[0].ID)
 		assert.Equal(t, "paging-public-id-2", next[0].PublicID)
+	})
+}
+
+func TestSQLProviderOAuth2SessionIDClient(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	participants := func(t *testing.T, publicID string) (count int) {
+		t.Helper()
+
+		require.NoError(t, provider.db.GetContext(ctx, &count, "SELECT COUNT(id) FROM oauth2_session_id_client WHERE public_id = ?", publicID))
+
+		return count
+	}
+
+	backChannel := func(issuerURL string) model.OAuth2SessionLogoutTaskSchedule {
+		schedule := testLogoutSchedule()
+		schedule.BackChannel = &model.OAuth2SessionLogoutTaskScheduleBackChannel{IssuerURL: issuerURL, NextAttemptAt: schedule.CreatedAt.Add(time.Minute), ExpiresAt: schedule.CreatedAt.Add(24 * time.Hour)}
+
+		return schedule
+	}
+
+	t.Run("ShouldCreateABackChannelTaskForEachClientOnce", func(t *testing.T) {
+		a, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "https://a.example.com", "clients-public-id")
+		require.NoError(t, err)
+
+		b, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "https://b.example.com", "clients-public-id")
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "clients-public-id", a.SessionID.String(), "client-a", "subject-a"))
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "clients-public-id", a.SessionID.String(), "client-b", "subject-a"))
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "clients-public-id", a.SessionID.String(), "client-a", "subject-a"))
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "clients-public-id", b.SessionID.String(), "client-c", ""))
+
+		assert.Equal(t, 3, participants(t, "clients-public-id"))
+
+		schedule := backChannel("https://auth.example.com")
+
+		sids, err := provider.EndOAuth2Session(ctx, "issuer", "clients-public-id", schedule)
+		require.NoError(t, err)
+		assert.Equal(t, []string{a.SessionID.String(), b.SessionID.String()}, sids)
+
+		assert.Equal(t, 0, participants(t, "clients-public-id"))
+
+		tasks, err := provider.LoadOAuth2SessionLogoutTasksBySessionID(ctx, a.SessionID.String(), model.OAuth2SessionLogoutTaskKindBackChannel)
+		require.NoError(t, err)
+		require.Len(t, tasks, 2)
+
+		for i, clientID := range []string{"client-a", "client-b"} {
+			assert.Equal(t, clientID, tasks[i].ClientID)
+			assert.Equal(t, "subject-a", tasks[i].Subject)
+			assert.Equal(t, "https://auth.example.com", tasks[i].IssuerURL)
+			assert.Equal(t, 0, tasks[i].Attempts)
+			assert.True(t, schedule.BackChannel.NextAttemptAt.Equal(tasks[i].NextAttemptAt))
+			assert.True(t, schedule.BackChannel.ExpiresAt.Equal(tasks[i].ExpiresAt))
+		}
+
+		tasks, err = provider.LoadOAuth2SessionLogoutTasksBySessionID(ctx, b.SessionID.String(), model.OAuth2SessionLogoutTaskKindBackChannel)
+		require.NoError(t, err)
+		require.Len(t, tasks, 1)
+		assert.Equal(t, "client-c", tasks[0].ClientID)
+		assert.Equal(t, "", tasks[0].Subject)
+
+		tasks, err = provider.LoadOAuth2SessionLogoutTasksBySessionID(ctx, b.SessionID.String(), model.OAuth2SessionLogoutTaskKindRevoke)
+		require.NoError(t, err)
+		require.Len(t, tasks, 1)
+	})
+
+	t.Run("ShouldNotCreateBackChannelTasksWithoutASchedule", func(t *testing.T) {
+		record, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "", "expired-public-id")
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "expired-public-id", record.SessionID.String(), "client-a", "subject"))
+
+		_, err = provider.EndOAuth2Session(ctx, "issuer", "expired-public-id", testLogoutSchedule())
+		require.NoError(t, err)
+
+		tasks, err := provider.LoadOAuth2SessionLogoutTasksBySessionID(ctx, record.SessionID.String(), model.OAuth2SessionLogoutTaskKindBackChannel)
+		require.NoError(t, err)
+		assert.Empty(t, tasks)
+		assert.Equal(t, 0, participants(t, "expired-public-id"))
+	})
+
+	t.Run("ShouldNotRecordAClientOfAnEndedSession", func(t *testing.T) {
+		record, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "", "ended-public-id")
+		require.NoError(t, err)
+
+		_, err = provider.EndOAuth2Session(ctx, "issuer", "ended-public-id", backChannel("https://auth.example.com"))
+		require.NoError(t, err)
+
+		assert.ErrorIs(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "ended-public-id", record.SessionID.String(), "client-a", "subject"), ErrOAuth2SessionEnded)
+		assert.ErrorIs(t, provider.SaveOAuth2SessionIDClient(ctx, "other-issuer", "ended-public-id", uuid.NewString(), "client-a", "subject"), ErrOAuth2SessionEnded)
+		assert.Equal(t, 0, participants(t, "ended-public-id"))
+	})
+
+	t.Run("ShouldEndOnlyTheClientsOfTheEndedSession", func(t *testing.T) {
+		record, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "", "logout-public-id")
+		require.NoError(t, err)
+
+		other, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "", "other-public-id")
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "logout-public-id", record.SessionID.String(), "client-a", "subject"))
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "other-public-id", other.SessionID.String(), "client-a", "subject"))
+
+		_, err = provider.EndOAuth2Session(ctx, "issuer", "logout-public-id", backChannel("https://auth.example.com"))
+		require.NoError(t, err)
+
+		assert.Equal(t, 0, participants(t, "logout-public-id"))
+		assert.Equal(t, 1, participants(t, "other-public-id"))
+
+		tasks, err := provider.LoadOAuth2SessionLogoutTasksBySessionID(ctx, other.SessionID.String(), model.OAuth2SessionLogoutTaskKindBackChannel)
+		require.NoError(t, err)
+		assert.Empty(t, tasks)
 	})
 }
 
@@ -569,4 +687,97 @@ func testLogoutSchedule() model.OAuth2SessionLogoutTaskSchedule {
 	now := time.Now()
 
 	return model.OAuth2SessionLogoutTaskSchedule{CreatedAt: now, NextAttemptAt: now.Add(time.Minute), ExpiresAt: now.Add(time.Hour)}
+}
+
+func TestSQLProviderOAuth2SessionIDClientConcurrentWithEnd(t *testing.T) {
+	testCases := []struct {
+		name    string
+		clients int
+	}{
+		{name: "ShouldNotLoseClientsWithEightRecorders", clients: 8},
+		{name: "ShouldNotLoseClientsWithThirtyTwoRecorders", clients: 32},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProvider(t)
+			require.NoError(t, provider.StartupCheck())
+
+			testSQLProviderOAuth2SessionIDClientConcurrentWithEnd(t, &provider.SQLProvider, tc.clients)
+		})
+	}
+}
+
+func testSQLProviderOAuth2SessionIDClientConcurrentWithEnd(t *testing.T, provider *SQLProvider, clients int) {
+	t.Helper()
+
+	ctx := context.Background()
+
+	publicID := uuid.NewString()
+
+	record, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "", publicID)
+	require.NoError(t, err)
+
+	sid := record.SessionID.String()
+
+	schedule := testLogoutSchedule()
+	schedule.BackChannel = &model.OAuth2SessionLogoutTaskScheduleBackChannel{IssuerURL: "https://auth.example.com", NextAttemptAt: schedule.CreatedAt.Add(time.Minute), ExpiresAt: schedule.CreatedAt.Add(24 * time.Hour)}
+
+	var (
+		wg       sync.WaitGroup
+		mu       sync.Mutex
+		recorded []string
+		errs     []error
+	)
+
+	for i := range clients {
+		wg.Go(func() {
+			clientID := fmt.Sprintf("client-%d", i)
+
+			switch err := provider.SaveOAuth2SessionIDClient(ctx, "issuer", publicID, sid, clientID, "subject"); {
+			case err == nil:
+				mu.Lock()
+
+				recorded = append(recorded, clientID)
+				mu.Unlock()
+			case errors.Is(err, ErrOAuth2SessionEnded):
+			default:
+				mu.Lock()
+
+				errs = append(errs, err)
+				mu.Unlock()
+			}
+		})
+
+		if i == clients/2 {
+			wg.Go(func() {
+				if _, err := provider.EndOAuth2Session(ctx, "issuer", publicID, schedule); err != nil {
+					mu.Lock()
+
+					errs = append(errs, err)
+					mu.Unlock()
+				}
+			})
+		}
+	}
+
+	wg.Wait()
+
+	require.Empty(t, errs)
+
+	tasks, err := provider.LoadOAuth2SessionLogoutTasksBySessionID(ctx, sid, model.OAuth2SessionLogoutTaskKindBackChannel)
+	require.NoError(t, err)
+
+	notified := make([]string, 0, len(tasks))
+
+	for _, task := range tasks {
+		notified = append(notified, task.ClientID)
+	}
+
+	assert.ElementsMatch(t, recorded, notified)
+
+	var remaining int
+
+	require.NoError(t, provider.db.GetContext(ctx, &remaining, provider.db.Rebind("SELECT COUNT(id) FROM oauth2_session_id_client WHERE public_id = ?"), publicID))
+	assert.Equal(t, 0, remaining)
 }

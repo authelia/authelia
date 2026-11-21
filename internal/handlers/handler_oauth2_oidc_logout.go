@@ -13,7 +13,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
-	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -87,13 +86,15 @@ func oidcLogoutUsername(ctx *middlewares.AutheliaCtx, subject string) (username 
 }
 
 func oidcLogoutSession(ctx *middlewares.AutheliaCtx, issuer, publicID string) {
+	schedule := oidcLogoutSchedule(ctx)
+
 	var (
 		sids []string
 		err  error
 	)
 
 	for range oidcLogoutEndAttempts {
-		if sids, err = ctx.Providers.StorageProvider.EndOAuth2Session(ctx, issuer, publicID, oidc.NewLogoutRevokeSchedule(ctx.Configuration.IdentityProviders.OIDC, ctx.GetClock().Now())); err == nil {
+		if sids, err = ctx.Providers.StorageProvider.EndOAuth2Session(ctx, issuer, publicID, schedule); err == nil {
 			break
 		}
 	}
@@ -107,6 +108,8 @@ func oidcLogoutSession(ctx *middlewares.AutheliaCtx, issuer, publicID string) {
 	for _, sid := range sids {
 		oidcLogoutRevoke(ctx, sid, true)
 	}
+
+	oidcBackChannelLogoutDeliver(ctx, sids)
 }
 
 func oidcLogoutEndedSession(ctx *middlewares.AutheliaCtx, username string, pending *model.OAuth2SessionLogout) {
@@ -116,7 +119,7 @@ func oidcLogoutEndedSession(ctx *middlewares.AutheliaCtx, username string, pendi
 		return
 	}
 
-	schedule := oidc.NewLogoutRevokeSchedule(ctx.Configuration.IdentityProviders.OIDC, ctx.GetClock().Now())
+	schedule := oidcLogoutSchedule(ctx)
 
 	var err error
 
@@ -131,6 +134,16 @@ func oidcLogoutEndedSession(ctx *middlewares.AutheliaCtx, username string, pendi
 	}
 
 	oidcLogoutRevoke(ctx, pending.SessionID, err == nil)
+
+	if schedule.BackChannel != nil && pending.ClientID != "" {
+		if err := ctx.Providers.StorageProvider.SaveOAuth2SessionLogoutTask(ctx, schedule.BackChannelTask(pending.SessionID, pending.ClientID, pending.Subject)); err != nil {
+			ctx.GetLogger().WithError(err).Errorf("Error occurred scheduling the Back-Channel Logout request for user '%s' on client with id '%s'", username, pending.ClientID)
+
+			return
+		}
+
+		oidcBackChannelLogoutDeliver(ctx, []string{pending.SessionID})
+	}
 }
 
 func oidcLogoutRevoke(ctx *middlewares.AutheliaCtx, sid string, recorded bool) {

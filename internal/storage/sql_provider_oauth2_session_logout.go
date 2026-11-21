@@ -55,8 +55,10 @@ func (p *SQLProvider) DeleteOAuth2SessionLogout(ctx context.Context, flowID uuid
 
 // EndOAuth2Session ends every OpenID Connect session of the session public identifier, returning their session
 // identifiers. In one transaction it locks their mappings, records each ended session with a task of the kind
-// model.OAuth2SessionLogoutTaskKindRevoke using the schedule, and removes the mappings. A concurrent call for the same
-// sessions waits for the lock and then finds no mappings, so each session is only ended once.
+// model.OAuth2SessionLogoutTaskKindRevoke using the schedule, creates a task of the kind
+// model.OAuth2SessionLogoutTaskKindBackChannel for each participating client when the schedule has a back-channel
+// schedule, and removes the mappings and their participants. A concurrent call for the same sessions waits for the lock
+// and then finds no mappings, so each session is only ended once.
 func (p *SQLProvider) EndOAuth2Session(ctx context.Context, issuer, publicID string, schedule model.OAuth2SessionLogoutTaskSchedule) (sids []string, err error) {
 	if err = p.transaction(ctx, func(ctx context.Context) (err error) {
 		var records []model.OAuth2SessionID
@@ -72,6 +74,17 @@ func (p *SQLProvider) EndOAuth2Session(ctx context.Context, issuer, publicID str
 
 			if err = p.SaveOAuth2SessionLogoutTask(ctx, schedule.RevokeTask(sid)); err != nil {
 				return err
+			}
+
+			if bc := schedule.BackChannel; bc != nil {
+				if _, err = p.conn(ctx).ExecContext(ctx, p.sqlOAuth2Logout.insertBackChannelTasks,
+					model.OAuth2SessionLogoutTaskKindBackChannel, bc.IssuerURL, bc.NextAttemptAt, schedule.CreatedAt, bc.ExpiresAt, issuer, sid); err != nil {
+					return fmt.Errorf("error inserting oauth2 session logout tasks of kind '%s' with session id '%s': %w", model.OAuth2SessionLogoutTaskKindBackChannel, sid, err)
+				}
+			}
+
+			if _, err = p.conn(ctx).ExecContext(ctx, p.sqlOAuth2Logout.deleteSessionIDClientsBySessionID, issuer, sid); err != nil {
+				return fmt.Errorf("error deleting oauth2 session id clients with session id '%s': %w", sid, err)
 			}
 
 			if _, err = p.conn(ctx).ExecContext(ctx, p.sqlOAuth2Logout.deleteSessionIDByID, record.ID); err != nil {
@@ -109,8 +122,10 @@ func (p *SQLProvider) IsOAuth2SessionEnded(ctx context.Context, sid string) (end
 	if _, ok := ctx.Value(ctxKeyTransaction).(SQLXTx); ok {
 		query = p.sqlOAuth2Logout.selectSessionEndedLocked
 
-		if err = p.lockOAuth2SessionIDsBySessionID(ctx, sid); err != nil {
-			return false, err
+		if p.sqlOAuth2Logout.lockSessionIDByID != "" {
+			if _, err = p.lockOAuth2SessionIDs(ctx, sid, p.sqlOAuth2Logout.selectSessionIDIDsBySessionID, sid); err != nil {
+				return false, err
+			}
 		}
 	}
 
@@ -140,7 +155,7 @@ func (p *SQLProvider) lockOAuth2SessionIDsByCode(ctx context.Context, query, sig
 
 	for _, sid := range sids {
 		if sid.Valid && sid.String != "" {
-			if err = p.lockOAuth2SessionIDsBySessionID(ctx, sid.String); err != nil {
+			if _, err = p.lockOAuth2SessionIDs(ctx, sid.String, p.sqlOAuth2Logout.selectSessionIDIDsBySessionID, sid.String); err != nil {
 				return err
 			}
 		}
@@ -149,26 +164,37 @@ func (p *SQLProvider) lockOAuth2SessionIDsByCode(ctx context.Context, query, sig
 	return nil
 }
 
-func (p *SQLProvider) lockOAuth2SessionIDsBySessionID(ctx context.Context, sid string) (err error) {
-	if p.sqlOAuth2Logout.lockSessionIDByID == "" {
-		return nil
+// LoadOAuth2SessionLogoutTasksBySessionID returns the logout tasks of the kind for the session identifier.
+func (p *SQLProvider) LoadOAuth2SessionLogoutTasksBySessionID(ctx context.Context, sid, kind string) (tasks []model.OAuth2SessionLogoutTask, err error) {
+	if err = p.conn(ctx).SelectContext(ctx, &tasks, p.sqlOAuth2Logout.selectTasksBySessionID, sid, kind); err != nil {
+		return nil, fmt.Errorf("error selecting oauth2 session logout tasks of kind '%s' with session id '%s': %w", kind, sid, err)
 	}
 
+	return tasks, nil
+}
+
+func (p *SQLProvider) lockOAuth2SessionIDs(ctx context.Context, sid, query string, args ...any) (found bool, err error) {
 	var ids []int
 
-	if err = p.conn(ctx).SelectContext(ctx, &ids, p.sqlOAuth2Logout.selectSessionIDIDsBySessionID, sid); err != nil {
-		return fmt.Errorf("error selecting oauth2 session id with session id '%s': %w", sid, err)
+	if err = p.conn(ctx).SelectContext(ctx, &ids, query, args...); err != nil {
+		return false, fmt.Errorf("error selecting oauth2 session id with session id '%s': %w", sid, err)
+	}
+
+	if p.sqlOAuth2Logout.lockSessionIDByID == "" {
+		return len(ids) != 0, nil
 	}
 
 	for _, id := range ids {
 		var locked []int
 
 		if err = p.conn(ctx).SelectContext(ctx, &locked, p.sqlOAuth2Logout.lockSessionIDByID, id); err != nil {
-			return fmt.Errorf("error locking oauth2 session id with session id '%s': %w", sid, err)
+			return false, fmt.Errorf("error locking oauth2 session id with session id '%s': %w", sid, err)
 		}
+
+		found = found || len(locked) != 0
 	}
 
-	return nil
+	return found, nil
 }
 
 // LoadOAuth2SessionLogoutTasksDue returns the logout tasks whose next attempt is due at the time, earliest first.
@@ -256,24 +282,29 @@ func (p *SQLProvider) transaction(ctx context.Context, fn func(ctx context.Conte
 }
 
 type sqlOAuth2LogoutQueries struct {
-	revokeRefreshOnlineBySessionID   string
-	selectSessionIDsByPublicIDLocked string
-	deleteSessionIDByID              string
+	revokeRefreshOnlineBySessionID    string
+	selectSessionIDsByPublicIDLocked  string
+	deleteSessionIDByID               string
+	deleteSessionIDClientsBySessionID string
 
 	insertLogoutSession         string
 	selectLogoutSession         string
 	deleteLogoutSession         string
 	deleteLogoutSessionsExpired string
 
-	insertLogoutTask              string
-	selectSessionEnded            string
-	selectSessionEndedLocked      string
-	selectSessionIDIDsBySessionID string
-	lockSessionIDByID             string
-	selectLogoutTasksDue          string
-	claimLogoutTask               string
-	rescheduleLogoutTask          string
-	deleteLogoutTask              string
+	insertLogoutTask                   string
+	selectSessionEnded                 string
+	selectSessionEndedLocked           string
+	selectSessionIDIDsBySessionID      string
+	selectSessionIDIDByIssuerSessionID string
+	insertSessionIDClient              string
+	insertBackChannelTasks             string
+	selectTasksBySessionID             string
+	lockSessionIDByID                  string
+	selectLogoutTasksDue               string
+	claimLogoutTask                    string
+	rescheduleLogoutTask               string
+	deleteLogoutTask                   string
 
 	deactivateAuthorizeCodeSession string
 	deactivateDeviceCodeSession    string
@@ -282,20 +313,24 @@ type sqlOAuth2LogoutQueries struct {
 }
 
 func newSQLOAuth2LogoutQueries(name string, rebind func(query string) string) (queries sqlOAuth2LogoutQueries) {
-	var lockUpdate, lockShare, insertTask string
+	var lockUpdate, lockShare, insertTask, insertClient, insertBackChannel string
 
 	switch name {
 	case providerMySQL:
-		lockUpdate, lockShare, insertTask = " FOR UPDATE", " LOCK IN SHARE MODE", queryFmtInsertOAuth2SessionLogoutTaskMySQL
+		lockUpdate, lockShare = " FOR UPDATE", " LOCK IN SHARE MODE"
+		insertTask, insertClient, insertBackChannel = queryFmtInsertOAuth2SessionLogoutTaskMySQL, queryFmtInsertOAuth2SessionIDClientMySQL, queryFmtInsertOAuth2SessionLogoutTasksBackChannelMySQL
 	case providerPostgres:
-		lockUpdate, lockShare, insertTask = " FOR UPDATE", " FOR SHARE", queryFmtInsertOAuth2SessionLogoutTask
+		lockUpdate, lockShare = " FOR UPDATE", " FOR SHARE"
+
+		fallthrough
 	default:
-		insertTask = queryFmtInsertOAuth2SessionLogoutTask
+		insertTask, insertClient, insertBackChannel = queryFmtInsertOAuth2SessionLogoutTask, queryFmtInsertOAuth2SessionIDClient, queryFmtInsertOAuth2SessionLogoutTasksBackChannel
 	}
 
 	queries.revokeRefreshOnlineBySessionID = rebind(fmt.Sprintf(queryFmtRevokeOAuth2RefreshTokenSessionsOnlineBySessionID, tableOAuth2RefreshTokenSession))
 	queries.selectSessionIDsByPublicIDLocked = rebind(fmt.Sprintf(queryFmtSelectOAuth2SessionIDsByPublicIDLock, tableOAuth2SessionID, lockUpdate))
 	queries.deleteSessionIDByID = rebind(fmt.Sprintf(queryFmtDeleteOAuth2SessionIDByID, tableOAuth2SessionID))
+	queries.deleteSessionIDClientsBySessionID = rebind(fmt.Sprintf(queryFmtDeleteOAuth2SessionIDClientsBySessionID, tableOAuth2SessionIDClient))
 
 	queries.insertLogoutSession = rebind(fmt.Sprintf(queryFmtInsertOAuth2SessionLogout, tableOAuth2SessionLogout))
 	queries.selectLogoutSession = rebind(fmt.Sprintf(queryFmtSelectOAuth2SessionLogout, tableOAuth2SessionLogout))
@@ -307,6 +342,10 @@ func newSQLOAuth2LogoutQueries(name string, rebind func(query string) string) (q
 	queries.selectSessionEndedLocked = rebind(fmt.Sprintf(queryFmtSelectOAuth2SessionLogoutTaskSessionEnded, tableOAuth2SessionLogoutTask, lockShare))
 
 	queries.selectSessionIDIDsBySessionID = rebind(fmt.Sprintf(queryFmtSelectOAuth2SessionIDIDsBySessionID, tableOAuth2SessionID))
+	queries.selectSessionIDIDByIssuerSessionID = rebind(fmt.Sprintf(queryFmtSelectOAuth2SessionIDIDByIssuerSessionID, tableOAuth2SessionID))
+	queries.insertSessionIDClient = rebind(fmt.Sprintf(insertClient, tableOAuth2SessionIDClient))
+	queries.insertBackChannelTasks = rebind(fmt.Sprintf(insertBackChannel, tableOAuth2SessionLogoutTask, tableOAuth2SessionIDClient))
+	queries.selectTasksBySessionID = rebind(fmt.Sprintf(queryFmtSelectOAuth2SessionLogoutTasksBySessionID, tableOAuth2SessionLogoutTask))
 
 	if lockShare != "" {
 		queries.lockSessionIDByID = rebind(fmt.Sprintf(queryFmtSelectOAuth2SessionIDByIDLock, tableOAuth2SessionID, lockShare))

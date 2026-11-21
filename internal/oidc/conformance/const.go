@@ -42,6 +42,9 @@ const (
 
 	// NameRPInitiatedLogout is the builder name of the RP-Initiated Logout OP profile.
 	NameRPInitiatedLogout = "rp-initiated-logout"
+
+	// NameBackChannelLogout is the builder name of the Back-Channel Logout OP profile.
+	NameBackChannelLogout = "backchannel-logout"
 )
 
 var (

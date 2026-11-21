@@ -5,6 +5,7 @@
 package oidc
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -16,8 +17,22 @@ const (
 	// again, which revokes those issued by refresh token grants which were in progress when it ended.
 	LogoutRevokeGrace = 2 * time.Minute
 
+	// LogoutBackChannelLifespan is how long the delivery of a Logout Token is retried for.
+	LogoutBackChannelLifespan = 24 * time.Hour
+
 	logoutRevokeMargin = time.Minute
 )
+
+// NewLogoutBackChannelSchedule returns the schedule of the deliveries of the Logout Tokens for the OpenID Connect
+// sessions of the issuer which ended at the time. Each is delivered when the session ends and is retried by the
+// LogoutTaskCollector from one minute later until LogoutBackChannelLifespan elapses.
+func NewLogoutBackChannelSchedule(issuer *url.URL, now time.Time) *model.OAuth2SessionLogoutTaskScheduleBackChannel {
+	return &model.OAuth2SessionLogoutTaskScheduleBackChannel{
+		IssuerURL:     issuer.String(),
+		NextAttemptAt: now.Add(logoutTaskBackoffMin),
+		ExpiresAt:     now.Add(LogoutBackChannelLifespan),
+	}
+}
 
 // NewLogoutRevokeSchedule returns the schedule of the record of an OpenID Connect session which ended at the time.
 // The record exists until every authorization code and device code which may have been issued to the session has

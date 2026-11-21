@@ -72,6 +72,10 @@ const (
 	// While it exists the online refresh tokens of the session can't be used and its authorization codes and device
 	// codes can't be exchanged, and the online refresh tokens of the session are revoked when it's processed.
 	OAuth2SessionLogoutTaskKindRevoke = "revoke"
+
+	// OAuth2SessionLogoutTaskKindBackChannel is the kind of OAuth2SessionLogoutTask which delivers an OpenID Connect
+	// Back-Channel Logout 1.0 Logout Token to a client which participated in an OpenID Connect session which has ended.
+	OAuth2SessionLogoutTaskKindBackChannel = "backchannel"
 )
 
 // OAuth2SessionLogoutTask is the follow up work required after an OpenID Connect session has ended, which is retried until it
@@ -94,6 +98,18 @@ type OAuth2SessionLogoutTaskSchedule struct {
 	CreatedAt     time.Time
 	NextAttemptAt time.Time
 	ExpiresAt     time.Time
+
+	// BackChannel is the schedule of the tasks delivering a Logout Token to each client participating in the session,
+	// or nil when no Logout Tokens are delivered.
+	BackChannel *OAuth2SessionLogoutTaskScheduleBackChannel
+}
+
+// OAuth2SessionLogoutTaskScheduleBackChannel is the schedule of the tasks of the kind
+// OAuth2SessionLogoutTaskKindBackChannel created when an OpenID Connect session ends.
+type OAuth2SessionLogoutTaskScheduleBackChannel struct {
+	IssuerURL     string
+	NextAttemptAt time.Time
+	ExpiresAt     time.Time
 }
 
 // RevokeTask returns a new OAuth2SessionLogoutTask of the kind OAuth2SessionLogoutTaskKindRevoke for the session
@@ -105,5 +121,20 @@ func (s OAuth2SessionLogoutTaskSchedule) RevokeTask(sid string) OAuth2SessionLog
 		NextAttemptAt: s.NextAttemptAt,
 		CreatedAt:     s.CreatedAt,
 		ExpiresAt:     s.ExpiresAt,
+	}
+}
+
+// BackChannelTask returns a new OAuth2SessionLogoutTask of the kind OAuth2SessionLogoutTaskKindBackChannel for the
+// session identifier, client, and subject identifier using the back-channel schedule of this schedule.
+func (s OAuth2SessionLogoutTaskSchedule) BackChannelTask(sid, clientID, subject string) OAuth2SessionLogoutTask {
+	return OAuth2SessionLogoutTask{
+		Kind:          OAuth2SessionLogoutTaskKindBackChannel,
+		SessionID:     sid,
+		ClientID:      clientID,
+		Subject:       subject,
+		IssuerURL:     s.BackChannel.IssuerURL,
+		NextAttemptAt: s.BackChannel.NextAttemptAt,
+		CreatedAt:     s.CreatedAt,
+		ExpiresAt:     s.BackChannel.ExpiresAt,
 	}
 }
