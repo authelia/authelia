@@ -155,4 +155,4 @@ go build -ldflags "-linkmode=external -s -w" -trimpath -buildmode=pie -o autheli
 [Node.js]: https://nodejs.org/en/download/
 [Docker]: https://docs.docker.com/get-docker/
 [Docker Compose]: https://docs.docker.com/compose/install/
-[golangci-lint]: https://golangci-lint.run/usage/install/
+[golangci-lint]: https://golangci-lint.run/docs/welcome/install/
