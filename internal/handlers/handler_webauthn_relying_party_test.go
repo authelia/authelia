@@ -965,6 +965,9 @@ func TestWebAuthnRelyingPartyFirstFactorPasskeyPOST(t *testing.T) {
 		mock.StorageMock.EXPECT().
 			AppendAuthenticationLog(mock.Ctx, gomock.Any()).
 			Return(nil),
+		mock.StorageMock.EXPECT().
+			UpdateUserSignInDateByUsername(mock.Ctx, testUsername).
+			Return(nil),
 	)
 
 	FirstFactorPasskeyPOST(mock.Ctx)
