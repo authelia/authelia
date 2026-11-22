@@ -63,7 +63,7 @@ type Providers struct {
 	TOTP                  totp.Provider
 	PasswordPolicy        PasswordPolicyProvider
 	UserAttributeResolver expression.UserAttributeResolver
-	MetaDataService       webauthn.MetaDataProvider
+	WebAuthnMetaData      webauthn.MetaDataProvider
 	Duo                   duo.Provider
 
 	GarbageCollector *GarbageCollector

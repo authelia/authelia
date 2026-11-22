@@ -17,7 +17,12 @@
 #   lint.sh scorecard        Run the file based OpenSSF Scorecard checks against
 #                            the git index, reporting each finding as
 #                            path:line:col: [check] message.
-#   lint.sh -flag ...        Anything else is forwarded to reviewdog.
+#   lint.sh -flag ...        Anything else is forwarded to reviewdog. When
+#                            AUTHELIA_BOT_CLIENT_ID and
+#                            AUTHELIA_BOT_PRIVATE_KEY_FILE are set, the checks
+#                            and pull request reviews are posted with a token
+#                            of that GitHub App, the checks no longer going
+#                            through reviewdog.app.
 
 set -uo pipefail
 
@@ -141,6 +146,44 @@ run_scorecard() {
   return ${rc}
 }
 
+b64url() {
+  openssl base64 -A | tr '+/' '-_' | tr -d '='
+}
+
+github_app_token() {
+  local api="${GITHUB_API:-https://api.github.com/}" now jwt installation token
+
+  now=$(date +%s)
+  jwt="$(printf '{"alg":"RS256","typ":"JWT"}' | b64url).$(printf '{"iat":%d,"exp":%d,"iss":"%s"}' "$((now - 60))" "$((now + 540))" "${AUTHELIA_BOT_CLIENT_ID}" | b64url)"
+  jwt="${jwt}.$(printf '%s' "${jwt}" | openssl dgst -sha256 -sign "${AUTHELIA_BOT_PRIVATE_KEY_FILE}" | b64url)" || return 1
+
+  installation=$(curl -sSf -H "Authorization: Bearer ${jwt}" -H "Accept: application/vnd.github+json" \
+    "${api%/}/repos/${CI_REPO_OWNER}/${CI_REPO_NAME}/installation" | jq -er .id) || return 1
+
+  # The token is limited to this repository, the checks and the pull request reviews, whatever else the app is granted.
+  token=$(curl -sSf -X POST -H "Authorization: Bearer ${jwt}" -H "Accept: application/vnd.github+json" \
+    -d "{\"repositories\":[\"${CI_REPO_NAME}\"],\"permissions\":{\"checks\":\"write\",\"metadata\":\"read\",\"pull_requests\":\"write\"}}" \
+    "${api%/}/app/installations/${installation}/access_tokens" | jq -er .token) || return 1
+
+  printf '%s' "${token}"
+}
+
+run_reviewdog() {
+  # reviewdog.app answers a check run update GitHub has not caught up on yet with a 404 and fails the run, while
+  # reviewdog itself retries it. reviewdog uses reviewdog.app whenever REVIEWDOG_TOKEN is set, regardless of
+  # REVIEWDOG_SKIP_DOGHOUSE. The pull request review the post-command hook adds uses the same token.
+  if [[ " $* " =~ \ -reporter=github-(check|pr-review)\  ]] && [[ -n "${AUTHELIA_BOT_CLIENT_ID:-}" ]] && [[ -n "${AUTHELIA_BOT_PRIVATE_KEY_FILE:-}" ]]; then
+    REVIEWDOG_GITHUB_API_TOKEN=$(github_app_token) || {
+      echo "failed to create a GitHub App installation token for reviewdog" >&2
+      return 1
+    }
+    unset REVIEWDOG_TOKEN
+    export REVIEWDOG_SKIP_DOGHOUSE="true" REVIEWDOG_GITHUB_API_TOKEN
+  fi
+
+  reviewdog "$@"
+}
+
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 if [[ $# -eq 0 ]]; then
@@ -175,5 +218,5 @@ elif [[ $1 == "typos" ]]; then
 elif [[ $1 == "scorecard" ]]; then
   run_scorecard
 else
-  reviewdog "$@"
+  run_reviewdog "$@"
 fi
