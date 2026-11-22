@@ -175,7 +175,8 @@ func TestWebAuthnCredential(t *testing.T) {
 	testCases := []struct {
 		name       string
 		have       *model.WebAuthnCredential
-		config     *webauthn.Config
+		rpid       string
+		appid      string
 		now        time.Time
 		credential *webauthn.Credential
 		expected   *model.WebAuthnCredential
@@ -189,7 +190,8 @@ func TestWebAuthnCredential(t *testing.T) {
 				RPID:       "",
 				LastUsedAt: sql.NullTime{Time: time.Unix(0, 0), Valid: true},
 			},
-			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			rpid:       "https://example.com",
+			appid:      "org.example.com",
 			now:        time.Unix(10, 0),
 			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
@@ -210,7 +212,8 @@ func TestWebAuthnCredential(t *testing.T) {
 				LastUsedAt:      sql.NullTime{Time: time.Unix(0, 0), Valid: true},
 				AttestationType: "fido-u2f",
 			},
-			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			rpid:       "https://example.com",
+			appid:      "org.example.com",
 			now:        time.Unix(10, 0),
 			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
@@ -232,7 +235,8 @@ func TestWebAuthnCredential(t *testing.T) {
 				AttestationType: "fido-u2f",
 				RPID:            "another.example.com",
 			},
-			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			rpid:       "https://example.com",
+			appid:      "org.example.com",
 			now:        time.Unix(10, 0),
 			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
@@ -254,7 +258,8 @@ func TestWebAuthnCredential(t *testing.T) {
 				AttestationType: "fido-u2f",
 				RPID:            "another.example.com",
 			},
-			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			rpid:       "https://example.com",
+			appid:      "org.example.com",
 			now:        time.Unix(10, 0),
 			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: true}},
 			expected: &model.WebAuthnCredential{
@@ -271,7 +276,7 @@ func TestWebAuthnCredential(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			tc.have.UpdateSignInInfo(tc.config, tc.now, tc.credential)
+			tc.have.UpdateSignInInfo(tc.rpid, tc.appid, tc.now, tc.credential)
 
 			assert.Equal(t, tc.expected, tc.have)
 
