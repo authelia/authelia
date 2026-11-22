@@ -82,10 +82,15 @@ const (
 	// '/public//../admin' is '/public/admin' per RFC 3986 and '/admin' when empty segments are merged first.
 	URLAmbiguityEmptyDotSegment
 
+	// URLAmbiguityLeadingDotSegment is a path where the first segment is a literal '..' i.e. '/../admin', which
+	// attempts to traverse above the root. It's a subset of URLAmbiguityDotSegment.
+	URLAmbiguityLeadingDotSegment
+
 	// URLAmbiguityDefault is the set of URLAmbiguity rejected by a URIParser unless configured otherwise.
 	URLAmbiguityDefault = URLAmbiguityUserInfo | URLAmbiguityEncodedDotSegment | URLAmbiguityParameterDotSegment |
 		URLAmbiguityDoubleEncodedDotSegment | URLAmbiguityBackslash | URLAmbiguityControlCharacter |
-		URLAmbiguityInvalidUTF8 | URLAmbiguityFragment | URLAmbiguityPathParameter | URLAmbiguityEmptyDotSegment
+		URLAmbiguityInvalidUTF8 | URLAmbiguityFragment | URLAmbiguityPathParameter | URLAmbiguityEmptyDotSegment |
+		URLAmbiguityLeadingDotSegment
 
 	// URLAmbiguityAll is every URLAmbiguity.
 	URLAmbiguityAll = URLAmbiguityDefault | URLAmbiguityEncodedSeparator | URLAmbiguityEncodedPercent |
@@ -109,6 +114,7 @@ var urlAmbiguityDefinitions = []struct {
 	{URLAmbiguityEncodedSeparator, "path_encoded_separator", "path contains a percent-encoded path separator"},
 	{URLAmbiguityEncodedPercent, "path_encoded_percent", "path contains a percent-encoded percent sign"},
 	{URLAmbiguityDotSegment, "path_dot_segment", "path contains a dot segment"},
+	{URLAmbiguityLeadingDotSegment, "path_leading_dot_segment", "path starts with a dot segment"},
 	{URLAmbiguityEmptySegment, "path_empty_segment", "path contains an empty segment"},
 	{URLAmbiguityPathParameter, "path_parameter", "path contains a segment parameter delimiter"},
 	{URLAmbiguityInvalidQueryEncoding, "query_invalid_encoding", "query contains a malformed percent-encoding"},
@@ -446,9 +452,15 @@ func urlAmbiguityPathDecoded(decoded string) (ambiguity URLAmbiguity) {
 }
 
 func urlAmbiguityDotSegments(raw string) (ambiguity URLAmbiguity) {
-	for _, segment := range strings.Split(raw, "/") {
+	for i, segment := range strings.Split(raw, "/") {
 		switch segment {
-		case ".", "..":
+		case "..":
+			if i == 1 {
+				ambiguity |= URLAmbiguityLeadingDotSegment
+			}
+
+			ambiguity |= URLAmbiguityDotSegment
+		case ".":
 			ambiguity |= URLAmbiguityDotSegment
 		}
 

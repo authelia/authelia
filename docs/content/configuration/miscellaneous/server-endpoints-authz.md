@@ -233,6 +233,7 @@ The following ambiguity classes are rejected by default, and every other class i
 - `path_parameter_dot_segment`
 - `path_double_encoded_dot_segment`
 - `path_empty_dot_segment`
+- `path_leading_dot_segment`
 - `path_backslash`
 - `path_invalid_utf8`
 - `path_parameter`

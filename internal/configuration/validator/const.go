@@ -92,6 +92,7 @@ const (
 	errFmtDefinitionsUserAttributesReservedOrDefined = "definitions: user_attributes: %s: attribute name '%s' is either reserved or already defined in the authentication backend"
 	errFmtDefinitionsURIParsersName                  = "definitions: uri_parsers: %s: option '%s' must only include the values %s but has '%s'"
 	errFmtDefinitionsURIParsersConflict              = "definitions: uri_parsers: %s: the value '%s' can't be in both the 'allow' and 'reject' options"
+	errFmtDefinitionsURIParsersExclusive             = "definitions: uri_parsers: %s: the values '%s' and '%s' are mutually exclusive but both are configured"
 )
 
 // Authentication Backend Error constants.
@@ -689,6 +690,10 @@ var (
 	validACLRulePolicies  = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 	validACLRuleOperators = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
 )
+
+var uriParserExclusiveClasses = [][2]string{
+	{"path_dot_segment", "path_leading_dot_segment"},
+}
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 

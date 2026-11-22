@@ -968,8 +968,8 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 		{"ShouldResolveSingleDotOneFactor", John, "https://resource.example.com/one_factor/./abc", fasthttp.MethodGet, OneFactor},
 		{"ShouldResolveTrailingSingleDot", John, "https://resource.example.com/one_factor/abc/.", fasthttp.MethodGet, OneFactor},
 		{"ShouldResolveDotDotToRoot", John, "https://resource.example.com/bypass/..", fasthttp.MethodGet, Bypass},
-		{"ShouldResolveDotDotAboveRoot", John, "https://resource.example.com/../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
-		{"ShouldResolveMultipleDotDotAboveRoot", John, "https://resource.example.com/../../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveDotDotAboveRoot", John, "https://resource.example.com/bypass/../../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveMultipleDotDotAboveRoot", John, "https://resource.example.com/bypass/../../../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
 		{"ShouldTreatEncodedSlashAsLiteralWithinBypass", John, "https://resource.example.com/bypass/a%2Fb", fasthttp.MethodGet, Bypass},
 		{"ShouldMatchUserResourceForOwnUsername", John, "https://resource.example.com/user/john/profile", fasthttp.MethodGet, OneFactor},
 		{"ShouldMatchUserResourceForOwnUsernameBob", Bob, "https://resource.example.com/user/bob/profile", fasthttp.MethodGet, OneFactor},
@@ -1021,6 +1021,8 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 		{"ShouldRejectEncodedDotDotEncodedBackslash", "https://resource.example.com/bypass/%2e%2e%5c/a/longer/rule/abc"},
 		{"ShouldRejectNullByte", "https://resource.example.com/bypass/%00/a/longer/rule/abc"},
 		{"ShouldRejectSemicolonParameter", "https://resource.example.com/bypass/..;/a/longer/rule/abc"},
+		{"ShouldRejectLeadingDotDot", "https://resource.example.com/../a/longer/rule/abc"},
+		{"ShouldRejectLeadingMultipleDotDot", "https://resource.example.com/../../a/longer/rule/abc"},
 	}
 
 	for _, tc := range rejected {

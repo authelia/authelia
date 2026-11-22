@@ -29,7 +29,8 @@ func TestURIParserCanonical(t *testing.T) {
 		{"ShouldRemoveDotSegments", "/a/../b/./c", nil, "/b/c"},
 		{"ShouldRetainTrailingSlashAfterDotDot", "/a/b/..", nil, "/a/"},
 		{"ShouldRetainTrailingSlashAfterDot", "/a/b/.", nil, "/a/b/"},
-		{"ShouldRemoveDotSegmentsAboveRoot", "/../../a", nil, "/a"},
+		{"ShouldRemoveDotSegmentsAboveRoot", "/../../a", []URIParserOption{WithURLAllowAmbiguity(URLAmbiguityLeadingDotSegment)}, "/a"},
+		{"ShouldRemoveNonLeadingDotSegmentsAboveRoot", "/a/../../b", nil, "/b"},
 		{"ShouldRetainEmptySegments", "/a//b/", nil, "/a//b/"},
 		{"ShouldRemoveOnlyEmptySegmentWithDotDot", "/a/b//../c", []URIParserOption{WithURLAllowAmbiguity(URLAmbiguityEmptyDotSegment)}, "/a/b/c"},
 		{"ShouldRemoveOneOfRunOfEmptySegmentsWithDotDot", "/a/b///../c", []URIParserOption{WithURLAllowAmbiguity(URLAmbiguityEmptyDotSegment)}, "/a/b//c"},
@@ -99,6 +100,7 @@ func TestURIParserAmbiguity(t *testing.T) {
 		{"ShouldDetectEncodedSeparator", []string{"/a%2Fb"}, []URLAmbiguity{URLAmbiguityEncodedSeparator, URLAmbiguityEncodedNonUnreserved}},
 		{"ShouldDetectEncodedPercent", []string{"/a%25b"}, []URLAmbiguity{URLAmbiguityEncodedPercent, URLAmbiguityEncodedNonUnreserved}},
 		{"ShouldDetectDotSegment", []string{"/a/../b"}, []URLAmbiguity{URLAmbiguityDotSegment}},
+		{"ShouldDetectLeadingDotSegment", []string{"/../a", "/..", "/../", "https://example.com/../a"}, []URLAmbiguity{URLAmbiguityLeadingDotSegment, URLAmbiguityDotSegment}},
 		{"ShouldDetectEmptySegment", []string{"/a//b"}, []URLAmbiguity{URLAmbiguityEmptySegment}},
 		{"ShouldDetectPathParameter", []string{"/foo;x=1"}, []URLAmbiguity{URLAmbiguityPathParameter}},
 		{"ShouldDetectInvalidQueryEncoding", []string{"/a?b=%zz"}, []URLAmbiguity{URLAmbiguityInvalidQueryEncoding}},
@@ -196,7 +198,7 @@ func TestURLAmbiguityNames(t *testing.T) {
 
 	names := URLAmbiguityNames()
 
-	assert.Len(t, names, 17)
+	assert.Len(t, names, 18)
 
 	for _, name := range names {
 		ambiguity, ok := URLAmbiguityFromName(name)
@@ -396,6 +398,7 @@ func TestURLAmbiguityFromNameScopePrefix(t *testing.T) {
 		{"path_encoded_separator", URLAmbiguityEncodedSeparator, "/a%2Fb"},
 		{"path_encoded_percent", URLAmbiguityEncodedPercent, "/a%25b"},
 		{"path_dot_segment", URLAmbiguityDotSegment, "/a/../b"},
+		{"path_leading_dot_segment", URLAmbiguityLeadingDotSegment, "/../b"},
 		{"path_empty_segment", URLAmbiguityEmptySegment, "/a//b"},
 		{"path_parameter", URLAmbiguityPathParameter, "/a;x"},
 		{"path_encoded_non_unreserved", URLAmbiguityEncodedNonUnreserved, "/a%20b"},
@@ -421,7 +424,7 @@ func TestURLAmbiguityFromNameScopePrefix(t *testing.T) {
 
 	for _, name := range []string{
 		"encoded_dot_segment", "parameter_dot_segment", "double_encoded_dot_segment", "backslash", "invalid_utf8",
-		"encoded_separator", "encoded_percent", "dot_segment", "empty_segment", "invalid_query_encoding",
+		"encoded_separator", "encoded_percent", "dot_segment", "leading_dot_segment", "empty_segment", "invalid_query_encoding",
 		"encoded_non_unreserved", "encoded_unreserved",
 	} {
 		_, ok := URLAmbiguityFromName(name)
@@ -443,6 +446,7 @@ func TestURLAmbiguityScopeDoesNotCrossComponents(t *testing.T) {
 		{"ShouldNotApplyEncodedUnreservedToQuery", URLAmbiguityEncodedUnreserved, "/a?b=%61"},
 		{"ShouldNotApplyInvalidUTF8ToQuery", URLAmbiguityInvalidUTF8, "/a?b=%C0%AE"},
 		{"ShouldNotApplyDotSegmentToQuery", URLAmbiguityDotSegment, "/a?b=/../c"},
+		{"ShouldNotApplyLeadingDotSegmentToQuery", URLAmbiguityLeadingDotSegment, "/a?b=/../c"},
 		{"ShouldNotApplyEmptySegmentToQuery", URLAmbiguityEmptySegment, "/a?b=//c"},
 		{"ShouldNotApplyPathParameterToQuery", URLAmbiguityPathParameter, "/a?b=;c"},
 		{"ShouldNotApplyInvalidQueryEncodingToPath", URLAmbiguityInvalidQueryEncoding, "/a%2Fb"},
@@ -491,6 +495,17 @@ func TestURIParserEmptyDotSegmentNotDetected(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.False(t, urlAmbiguity(have, u).Has(URLAmbiguityEmptyDotSegment))
+		})
+	}
+}
+
+func TestURIParserLeadingDotSegmentNotDetected(t *testing.T) {
+	for _, have := range []string{"/a/../b", "/./a", "/.", "/.../a", "/..a/b", "/a..", "/%2e%2e/a", "/..;/a", "//../a", "/a/.."} {
+		t.Run(have, func(t *testing.T) {
+			u, err := url.ParseRequestURI(have)
+			require.NoError(t, err)
+
+			assert.False(t, urlAmbiguity(have, u).Has(URLAmbiguityLeadingDotSegment))
 		})
 	}
 }

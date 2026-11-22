@@ -259,8 +259,13 @@ func TestNewObjectMethodSchemeHostPath(t *testing.T) {
 		},
 		{
 			"ShouldPreserveTraversalToRoot",
+			[]byte("https"), []byte("example.com"), []byte("/a/../../etc/passwd"),
+			"https://example.com/a/../../etc/passwd", "/a/../../etc/passwd", "/etc/passwd", "",
+		},
+		{
+			"ShouldRejectLeadingDotSegment",
 			[]byte("https"), []byte("example.com"), []byte("/../../etc/passwd"),
-			"https://example.com/../../etc/passwd", "/../../etc/passwd", "/etc/passwd", "",
+			"", "", "", errAmbiguous,
 		},
 		{
 			"ShouldRejectEncodedDotSegments",

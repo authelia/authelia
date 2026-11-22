@@ -241,4 +241,44 @@ func TestValidateDefinitions(t *testing.T) {
 		require.Len(t, validator.Errors(), 1)
 		assert.EqualError(t, validator.Errors()[0], "definitions: uri_parsers: custom: the value 'user_info' can't be in both the 'allow' and 'reject' options")
 	})
+
+	t.Run("ShouldErrMutuallyExclusiveURIParserClasses", func(t *testing.T) {
+		testCases := []struct {
+			name   string
+			parser schema.URIParser
+		}{
+			{"ShouldErrBothReject", schema.URIParser{Reject: []string{"path_leading_dot_segment", "path_dot_segment"}}},
+			{"ShouldErrBothAllow", schema.URIParser{Allow: []string{"path_dot_segment", "path_leading_dot_segment"}}},
+			{"ShouldErrAllowAndReject", schema.URIParser{Allow: []string{"path_dot_segment"}, Reject: []string{"path_leading_dot_segment"}}},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				config := &schema.Configuration{
+					Definitions: schema.Definitions{
+						URIParsers: map[string]schema.URIParser{"custom": tc.parser},
+					},
+				}
+				validator := schema.NewStructValidator()
+
+				ValidateDefinitions(config, validator)
+
+				require.Len(t, validator.Errors(), 1)
+				assert.EqualError(t, validator.Errors()[0], "definitions: uri_parsers: custom: the values 'path_dot_segment' and 'path_leading_dot_segment' are mutually exclusive but both are configured")
+			})
+		}
+	})
+
+	t.Run("ShouldAllowLeadingDotSegmentAlone", func(t *testing.T) {
+		config := &schema.Configuration{
+			Definitions: schema.Definitions{
+				URIParsers: map[string]schema.URIParser{"custom": {Reject: []string{"path_leading_dot_segment"}}},
+			},
+		}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		assert.Len(t, validator.Errors(), 0)
+	})
 }

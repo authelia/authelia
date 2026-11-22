@@ -52,5 +52,13 @@ func validateDefinitionsURIParsers(config *schema.Configuration, validator *sche
 				validator.Push(fmt.Errorf(errFmtDefinitionsURIParsersConflict, name, value))
 			}
 		}
+
+		values := append(slices.Clone(parser.Allow), parser.Reject...)
+
+		for _, exclusive := range uriParserExclusiveClasses {
+			if utils.IsStringInSlice(exclusive[0], values) && utils.IsStringInSlice(exclusive[1], values) {
+				validator.Push(fmt.Errorf(errFmtDefinitionsURIParsersExclusive, name, exclusive[0], exclusive[1]))
+			}
+		}
 	}
 }

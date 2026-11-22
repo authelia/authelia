@@ -23,6 +23,12 @@ The URI parsers section configures named URI parsers which control how the reque
 ambiguous, meaning different systems may interpret it differently, is rejected by default. Each definition changes the
 default for individual ambiguity classes using the `allow` and `reject` options.
 
+Several of these classes are useful for hardening against [Jakarta Servlet 6.1
+Specification](https://jakarta.ee/specifications/servlet/6.1/jakarta-servlet-spec-6.1#uri-path-canonicalization)
+applications which do not properly reject paths that can't safely be normalized, however this should not be considered
+formal support for a Jakarta Serverlet as a specialized parser would need to exist to support it. Should there be a
+desire to support this kind of application we suggest raising a Discussion with the type Idea.
+
 The `default` definition always exists, and it's used by every authz endpoint which doesn't configure the `uri_parser`
 option. When it isn't configured it uses the default value of every ambiguity class, and configuring it changes the
 rules for all of those endpoints.
@@ -74,8 +80,10 @@ The ambiguity classes to reject which are otherwise allowed by default. A class 
 Access control rules match the decoded, cleaned path where `%2F` is `/`, redirections use the URL as requested, and the
 canonical form of the request URI is used for matching the audiences and resources of a `Bearer` token.
 
-Literal `.` and `..` dot segments, such as `/a/../b`, are normalized by default and are removed per RFC 3986. The
-encoded forms are rejected by default as they are the ambiguous forms this option exists to stop.
+Literal `.` and `..` dot segments, such as `/a/../b`, are normalized by default and are removed per RFC 3986, except for
+a literal `..` which is the first segment, such as `/../admin`, which is rejected by default with the
+`path_leading_dot_segment` class. The encoded forms are rejected by default as they are the ambiguous forms this option
+exists to stop.
 
 Empty segments such as `//` are merged for the access control rules, so `//admin` is matched as `/admin`, and are
 retained for matching the audiences and resources of a `Bearer` token, so `/a//b` doesn't match `/a/b`. Empty segments
@@ -101,6 +109,7 @@ for example `?a=%2F` doesn't match `path_encoded_separator`.
 | `path_double_encoded_dot_segment` | Path           | The encoded dot segment check matches only after a second decode, such as `%252e%252e%252f`                                                                                         | Reject  |
 | `path_empty_dot_segment`          | Path           | A dot segment following an empty segment, such as `/public//../admin`                                                                                                               | Reject  |
 | `path_dot_segment`                | Path           | Any literal `.` or `..` segment                                                                                                                                                     | Allow   |
+| `path_leading_dot_segment`        | Path           | A literal `..` as the first segment, such as `/../admin`                                                                                                                            | Reject  |
 | `path_empty_segment`              | Path           | Any `//`                                                                                                                                                                            | Allow   |
 | `path_backslash`                  | Path           | Literal `\` or `%5C`                                                                                                                                                                | Reject  |
 | `path_invalid_utf8`               | Path           | The decoded path isn't valid UTF-8, such as `%C0%AE`                                                                                                                                | Reject  |
@@ -111,4 +120,8 @@ for example `?a=%2F` doesn't match `path_encoded_separator`.
 | `path_encoded_unreserved`         | Path           | Any percent-encoding of an unreserved character, such as `%41`, `%7E`, `%2E`                                                                                                        | Allow   |
 | `query_invalid_encoding`          | Query          | A malformed percent-encoding                                                                                                                                                        | Allow   |
 
-The `path_dot_segment` class rejects literal dot segments instead of normalizing them.
+The `path_dot_segment` class rejects literal dot segments instead of normalizing them. The `path_leading_dot_segment`
+class only rejects a literal `..` which is the first segment, which attempts to traverse above the root, and is the
+default. These two classes are mutually exclusive, so only one of them can be in the `allow` or `reject` options. Add
+`path_dot_segment` to the `reject` option to reject every literal dot segment, or add `path_leading_dot_segment` to the
+`allow` option to normalize every literal dot segment.
