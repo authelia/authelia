@@ -237,13 +237,7 @@ func handleOAuth2ConsentUserCodeResume(ctx *middlewares.AutheliaCtx, device *mod
 		return nil, errors.New("the subject of the consent session does not match the subject of the user")
 	}
 
-	var binding string
-
-	if binding, err = handleOAuth2ConsentSessionBind(ctx, consent); err != nil {
-		return nil, err
-	}
-
-	if err = handleOAuth2ConsentSessionIssueBinding(ctx, binding); err != nil {
+	if err = handleOAuth2ConsentSessionRenewBinding(ctx); err != nil {
 		return nil, err
 	}
 

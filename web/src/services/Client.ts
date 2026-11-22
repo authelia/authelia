@@ -11,7 +11,6 @@ import { getCSRFCookieName } from "@utils/Configuration";
 
 axios.defaults.xsrfCookieName = getCSRFCookieName();
 axios.defaults.xsrfHeaderName = CSRFHeaderName;
-axios.defaults.withCredentials = true;
 
 export async function PutWithOptionalResponse<T = undefined>(
     path: string,

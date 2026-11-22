@@ -5,13 +5,8 @@
 package session
 
 import (
-	"crypto/sha256"
-	"crypto/subtle"
-	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -100,13 +95,22 @@ func (p *DefaultStrategy) NewDefault() (userSession UserSession) {
 	return p.New("")
 }
 
-// Get returns the session for the given request, returning an anonymous session when the request has no session
-// cookie or the cookie does not resolve to a readable record, which includes a session cookie which was replaced by a
-// regeneration. An authenticated session which the authz cookie of the request isn't linked to is issued a new authz
-// cookie, and the user agent is instructed to discard the authz cookie when the session cookie resolves to an anonymous
-// session, unless the authz cookie belongs to another session or to a session which was moved to a new identifier, as
-// the request may have been made with cookies which another request has already replaced. A request to an
-// authorization endpoint always receives an anonymous session as the session cookie is not honored there.
+// Get returns the session of the request.
+//
+//   - A request to an authorization endpoint always receives an anonymous session, as the session cookie is not
+//     honored there.
+//   - A request with no session cookie, or a malformed one, receives an anonymous session.
+//   - A session cookie which resolves to no record receives an anonymous session. This includes a session which
+//     expired or was destroyed, and a cookie which a regeneration replaced.
+//   - An error which wraps ErrRepositoryGet is returned when the Repository fails.
+//   - An error is returned when the record can't be opened, is stored against another identifier, or is bound to
+//     another cookie domain.
+//   - The request is recorded as activity on the session when an inactivity timeout applies.
+//   - An authenticated session which the authz cookie of the request isn't linked to is issued a new authz cookie. No
+//     cookie is issued when the session has expired or the link can't be stored.
+//   - An anonymous session has the authz cookie of the request discarded. The cookie is kept when it's linked to
+//     another session or to a session which was moved to a new identifier, as another request may have already
+//     replaced the cookies this request was made with.
 func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 	if ctx.IsAuthzEndpointRequest() {
 		userSession := p.NewDefault()
@@ -119,16 +123,27 @@ func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 	return session, err
 }
 
-// Save persists the session. The userSession is a pointer as a session which has no public identifier or authz
-// identifier has one generated for it, and the caller must observe them to avoid orphaning them on a subsequent save.
-// An anonymous session which holds no state isn't persisted, and the records and cookies of any previously persisted
-// session for the request are discarded instead, as the absence of a session is equivalent to it. An anonymous session
-// is never issued the authz cookie, and the user agent is instructed to discard any authz cookie it holds for the
-// session. A save which was superseded is dropped so a stale request can't restore a session and an error which wraps
-// ErrSessionSuperseded is returned, except for a new anonymous session whose cookie refers to a destroyed session, which
-// is given a new identifier so its state isn't lost. The session is persisted with the CSRF secret this request last
-// established for it rather than the one it holds, as a session retrieved before it was regenerated holds the secret the
-// regeneration replaced. It returns ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
+// Save persists the session and issues its cookies.
+//
+//   - It returns an error which wraps ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
+//   - It returns an error when the session is nil or is bound to another cookie domain.
+//   - The session is a pointer as the cookie domain, public identifier, CSRF secret, and expiry are written back to
+//     it. The caller must retain the public identifier to avoid orphaning it on a later save.
+//   - An anonymous session which holds no state isn't persisted. The record and cookies of the session of the
+//     request are discarded instead, as the absence of a session is equivalent to it.
+//   - A request with no session cookie has a new session identifier generated.
+//   - The expiry of the session is extended from now.
+//   - The session is persisted with the CSRF secret this request last established for it when there is one, as a
+//     session retrieved before it was regenerated holds the secret the regeneration replaced. A session with no
+//     secret takes the stored one, or has one generated.
+//   - The session cookie and the CSRF cookie are issued.
+//   - An authenticated session is issued the authz cookie. The save fails when the link for it can't be stored.
+//   - An anonymous session is never issued the authz cookie, and any authz cookie of the request is discarded when
+//     the request has a session cookie.
+//   - A save of a session which was destroyed or regenerated after it was retrieved is dropped, and an error which
+//     wraps ErrSessionSuperseded is returned, so a stale request can't restore a session.
+//   - A new anonymous session whose session cookie refers to a destroyed or regenerated session is persisted against
+//     a new identifier instead, so its state isn't lost.
 func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	if session == nil {
 		return errors.New("error occurred saving session: it is nil")
@@ -150,7 +165,7 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	}
 
 	// A session which has neither a user nor a public identifier was not loaded from a record, so being superseded means
-	// the cookie refers to a destroyed session rather than the save having lost a race with a login or regeneration.
+	// the cookie refers to a session which was destroyed, or was moved before this request retrieved it.
 	abandoned := session.Username == "" && session.PublicID == ""
 
 	id := p.getCookieID(ctx, p.name)
@@ -237,12 +252,12 @@ func (p *DefaultStrategy) persist(ctx Context, id []byte, existing bool, session
 	return nil
 }
 
-// Regenerate issues a new session identifier and a new authz identifier for the current session, preserving the
+// Regenerate issues a new session identifier, and with it a new authz cookie, for the current session, preserving the
 // session data and public identifier, which mitigates session fixation across an authentication level change. A session
 // which can't be read is deleted and replaced with an anonymous session as none of its data can be reused, whereas a
 // failure to retrieve it from the Repository is returned as the session may be valid. An established session which was
-// destroyed or regenerated by another request after it was read is never recreated, and ErrSessionSuperseded is returned
-// instead. The previous session cookie never resolves to the regenerated session. It returns
+// destroyed or regenerated by another request after it was read is never recreated, and ErrSessionSuperseded is
+// returned instead. The previous session cookie never resolves to the regenerated session. It returns
 // ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
 func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 	if ctx.IsAuthzEndpointRequest() {
@@ -332,14 +347,6 @@ func (p *DefaultStrategy) move(ctx Context, oldSID, sid string, expiration time.
 	return authz, nil
 }
 
-func (p *DefaultStrategy) retireAuthzIndex(ctx Context, oldSID string) {
-	_, aid := p.getAuthzValue(oldSID)
-
-	if err := p.repository.Save(ctx, p.authzIssuer, aid, getAuthzIndexPublicID(aid), "", authzIndexMovedExpiration, []byte(authzIndexMoved)); err != nil {
-		_ = p.deleteAuthzIndex(ctx, aid)
-	}
-}
-
 func (p *DefaultStrategy) getRegenerate(ctx Context) (id string, session *UserSession, err error) {
 	if id, session, err = p.get(ctx, false); err == nil || errors.Is(err, ErrRepositoryGet) {
 		return id, session, err
@@ -393,12 +400,6 @@ func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
 	return nil
 }
 
-func (p *DefaultStrategy) clearCookies(ctx Context) {
-	ctx.ClearCookie(p.newDeletionCookie())
-	ctx.ClearCookie(p.newAuthzDeletionCookie())
-	ctx.ClearCookie(p.newCSRFDeletionCookie())
-}
-
 func (p *DefaultStrategy) destroyByID(ctx Context, id string, userSession *UserSession) (err error) {
 	var pid, username string
 
@@ -435,271 +436,6 @@ func (p *DefaultStrategy) discard(ctx Context, session *UserSession) (err error)
 	p.clearCookies(ctx)
 
 	return nil
-}
-
-// VerifyCSRFToken returns nil if the token is the CSRF token of the established session of the request, comparing them
-// in constant time. It returns ErrCSRFTokenNoSession when the request has no established session, ErrCSRFTokenInvalid
-// when the token doesn't match, and any other error when the session couldn't be retrieved.
-func (p *DefaultStrategy) VerifyCSRFToken(ctx Context, token string) (err error) {
-	var session *UserSession
-
-	if _, session, err = p.getCSRFSession(ctx); err != nil {
-		return err
-	}
-
-	if len(session.CSRF) == 0 || len(token) == 0 || !p.codec.VerifyCSRF(p.csrfTokenMessage(session.CSRF), token) {
-		return ErrCSRFTokenInvalid
-	}
-
-	return nil
-}
-
-// SetCSRFCookie delivers the CSRF token of the established session of the request to the user agent, generating a CSRF
-// secret for an established session which has none. A request without an established session has no token to deliver,
-// which isn't an error.
-func (p *DefaultStrategy) SetCSRFCookie(ctx Context) (err error) {
-	var (
-		sid       string
-		session   *UserSession
-		persisted bool
-	)
-
-	if sid, session, err = p.getCSRFSession(ctx); err != nil {
-		if errors.Is(err, ErrCSRFTokenNoSession) {
-			return nil
-		}
-
-		return err
-	}
-
-	if len(session.CSRF) == 0 {
-		if persisted, err = p.establishCSRFSecret(ctx, sid, session); err != nil {
-			return err
-		}
-
-		if !persisted {
-			session.CSRF = nil
-
-			return nil
-		}
-
-		p.setCached(ctx, p.cacheKey(), session)
-	}
-
-	ctx.SetCookie(p.newCSRFCookie(session.CSRF, p.getCookieExpires(p.getExpiration(*session))))
-
-	return nil
-}
-
-func (p *DefaultStrategy) getCSRFSession(ctx Context) (sid string, session *UserSession, err error) {
-	if ctx.IsAuthzEndpointRequest() {
-		return "", nil, ErrCSRFTokenNoSession
-	}
-
-	if sid, session, err = p.get(ctx, false); err != nil {
-		return "", nil, err
-	}
-
-	if session == nil || session.PublicID == "" {
-		return "", nil, ErrCSRFTokenNoSession
-	}
-
-	return sid, session, nil
-}
-
-func (p *DefaultStrategy) adoptCSRFSecret(ctx Context, session *UserSession) {
-	if _, ok := ctx.(CachingContext); !ok {
-		session.CSRF = nil
-
-		return
-	}
-
-	if cached, ok := p.getCached(ctx, p.cacheKey()); ok && len(cached.CSRF) != 0 && cached.PublicID == session.PublicID {
-		session.CSRF = cached.CSRF
-	}
-}
-
-func (p *DefaultStrategy) ensureCSRFSecret(ctx Context, id []byte, existing bool, session *UserSession) (err error) {
-	if len(session.CSRF) != 0 {
-		return nil
-	}
-
-	if existing {
-		_, err = p.establishCSRFSecret(ctx, p.codec.Sign(id), session)
-
-		return err
-	}
-
-	return p.generateCSRFSecret(session)
-}
-
-func (p *DefaultStrategy) establishCSRFSecret(ctx Context, sid string, session *UserSession) (persisted bool, err error) {
-	for range csrfSecretEstablishAttempts {
-		var (
-			record Record
-			data   []byte
-		)
-
-		if record, err = p.repository.Get(ctx, p.issuer, sid); err != nil {
-			return false, fmt.Errorf("%w: %w", ErrRepositoryGet, err)
-		}
-
-		stored := &UserSession{}
-
-		if record == nil || len(record.GetSessionData()) == 0 || record.GetSessionSignature() != sid || p.codec.Open(p.config.Domain, record, stored) != nil || stored.CookieDomain != p.config.Domain {
-			return false, p.generateCSRFSecret(session)
-		}
-
-		if len(stored.CSRF) != 0 {
-			session.CSRF = stored.CSRF
-
-			return true, nil
-		}
-
-		remaining, ok := p.getRemaining(*stored)
-		if !ok {
-			return false, p.generateCSRFSecret(session)
-		}
-
-		if err = p.generateCSRFSecret(stored); err != nil {
-			return false, err
-		}
-
-		if data, err = p.codec.Seal(p.config.Domain, sid, *stored); err != nil {
-			return false, fmt.Errorf("error occurred encoding session: %w", err)
-		}
-
-		switch err = p.repository.SaveData(ctx, p.issuer, sid, stored.PublicID, stored.Username, p.getRetention(*stored, remaining), record.GetSessionData(), data); {
-		case err == nil:
-			session.CSRF = stored.CSRF
-
-			return true, nil
-		case !errors.Is(err, ErrSessionSuperseded):
-			return false, fmt.Errorf("error occurred saving session CSRF secret: %w", err)
-		}
-	}
-
-	return false, fmt.Errorf("error occurred establishing session CSRF secret: %w", ErrSessionSuperseded)
-}
-
-func (p *DefaultStrategy) generateCSRFSecret(session *UserSession) (err error) {
-	if session.CSRF, err = p.codec.GenerateCSRFSecret(); err != nil {
-		return fmt.Errorf("error occurred generating session CSRF secret: %w", err)
-	}
-
-	return nil
-}
-
-func (p *DefaultStrategy) csrfToken(secret []byte) (token string) {
-	return p.codec.SignCSRF(p.csrfTokenMessage(secret))
-}
-
-func (p *DefaultStrategy) csrfTokenMessage(secret []byte) (message []byte) {
-	message = make([]byte, 0, len(cookieValuePrefixCSRFToken)+len(p.config.Domain)+1+len(secret))
-
-	message = append(message, cookieValuePrefixCSRFToken...)
-	message = append(message, p.config.Domain...)
-	message = append(message, ':')
-
-	return append(message, secret...)
-}
-
-// UserAgentBinding returns the opaque value which binds a record to the user agent of the request, which is the
-// value of the user agent binding cookie of the request when it carries a well formed one, and otherwise a new random
-// value. The binding is not issued to the user agent until IssueUserAgentBinding is called with it.
-func (p *DefaultStrategy) UserAgentBinding(ctx Context) (binding string, err error) {
-	id := p.getCookieID(ctx, p.bindingName)
-
-	if len(id) == 0 {
-		if id, err = p.codec.GenerateSessionID(); err != nil {
-			return "", fmt.Errorf("error occurred generating user agent binding: %w", err)
-		}
-	}
-
-	return encodeCookieID(id), nil
-}
-
-// IssueUserAgentBinding issues the binding to the user agent as the value of the user agent binding cookie, which
-// also extends the lifetime of a binding the user agent already holds.
-func (p *DefaultStrategy) IssueUserAgentBinding(ctx Context, binding string) {
-	ctx.SetCookie(p.newUserAgentBindingCookie(binding))
-}
-
-// VerifyUserAgentBinding returns true when the digest is the UserAgentBindingDigest of the value of the
-// user agent binding cookie of the request, comparing them in constant time.
-func (p *DefaultStrategy) VerifyUserAgentBinding(ctx Context, digest string) (valid bool) {
-	if len(digest) == 0 || len(p.getCookieID(ctx, p.bindingName)) == 0 {
-		return false
-	}
-
-	return subtle.ConstantTimeCompare([]byte(UserAgentBindingDigest(ctx.GetCookie(p.bindingName))), []byte(digest)) == 1
-}
-
-// UserAgentBindingDigest returns the digest of a binding which is stored with the record it binds, so the stored
-// value can't be used as a user agent binding cookie.
-func UserAgentBindingDigest(binding string) (digest string) {
-	sum := sha256.Sum256([]byte(binding))
-
-	return hex.EncodeToString(sum[:])
-}
-
-func (p *DefaultStrategy) newUserAgentBindingCookie(binding string) (cookie *http.Cookie) {
-	return &http.Cookie{
-		Name:     p.bindingName,
-		Value:    binding,
-		Path:     "/",
-		MaxAge:   cookieMaxAgeUserAgentBinding,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-}
-
-// SessionCookieName returns the name of the session cookie for the given configured cookie name. The session cookie is
-// only honored on the Authelia URL host and is never read by scripts, so it's host only and HTTP only and carries the
-// prefix which requires it to be both.
-func SessionCookieName(name string) string {
-	return CookieNamePrefixHostHTTP + name
-}
-
-// UserAgentBindingCookieName returns the name of the user agent binding cookie for the given configured cookie
-// name. The cookie is host only and HTTP only so it carries the same prefix as the session cookie, which prevents a
-// sibling subdomain or a script from setting a cookie which takes its place.
-func UserAgentBindingCookieName(name string) string {
-	return CookieNamePrefixHostHTTP + name + CookieNameSuffixUserAgentBinding
-}
-
-// AuthzCookieName returns the name of the authz cookie for the given configured cookie name. The authz cookie is scoped
-// to the cookie domain, so it carries the prefix which only requires it to be secure.
-func AuthzCookieName(name string) string {
-	return CookieNamePrefixSecure + name + CookieNameSuffixAuthz
-}
-
-// CSRFCookieName returns the name of the cookie which delivers the CSRF token of the session stored in the cookie with
-// the given name to the user agent.
-func CSRFCookieName(name string) string {
-	return CookieNamePrefixHost + name + CookieNameSuffixCSRFToken
-}
-
-func (p *DefaultStrategy) newCSRFCookie(secret []byte, expires time.Time) (cookie *http.Cookie) {
-	return p.newCSRFCookieValue(p.csrfToken(secret), expires)
-}
-
-func (p *DefaultStrategy) newCSRFDeletionCookie() (cookie *http.Cookie) {
-	return p.newCSRFCookieValue("", p.clock.Now().Add(-cookieDeletionOffset))
-}
-
-func (p *DefaultStrategy) newCSRFCookieValue(value string, expires time.Time) (cookie *http.Cookie) {
-	//nolint:gosec // The cookie is deliberately readable by scripts, and carries a token derived from the session rather than the session identifier.
-	return &http.Cookie{
-		Name:     CSRFCookieName(p.config.Name),
-		Value:    value,
-		Path:     "/",
-		Expires:  expires,
-		Secure:   true,
-		HttpOnly: false,
-		SameSite: http.SameSiteStrictMode,
-	}
 }
 
 func (p *DefaultStrategy) get(ctx Context, heal bool) (id string, session *UserSession, err error) {
@@ -774,56 +510,6 @@ func (p *DefaultStrategy) heal(ctx Context, sid string, session *UserSession) {
 	p.healAuthz(ctx, sid, session)
 }
 
-func (p *DefaultStrategy) healAuthz(ctx Context, sid string, session *UserSession) {
-	value, aid := p.getAuthzValue(sid)
-
-	if current := p.getCookieID(ctx, p.authzName); len(current) != 0 && subtle.ConstantTimeCompare(current, value) == 1 {
-		return
-	}
-
-	remaining, ok := p.getRemaining(*session)
-	if !ok {
-		return
-	}
-
-	if err := p.saveAuthzIndex(ctx, aid, sid, remaining); err != nil {
-		return
-	}
-
-	p.setCached(ctx, p.cacheKeyAuthz(), nil)
-
-	ctx.SetCookie(p.newAuthzCookie(value, p.getCookieExpires(p.getExpiration(*session))))
-}
-
-func (p *DefaultStrategy) clearStaleAuthzCookie(ctx Context, sid string) {
-	if ctx.GetCookie(p.authzName) == "" {
-		return
-	}
-
-	if value := p.getCookieID(ctx, p.authzName); len(value) != 0 {
-		record, err := p.repository.Get(ctx, p.authzIssuer, p.codec.SignAuthz(value))
-		if err != nil {
-			return
-		}
-
-		if record != nil && len(record.GetSessionData()) != 0 && string(record.GetSessionData()) != sid {
-			return
-		}
-	}
-
-	p.clearAuthzCookie(ctx)
-}
-
-func (p *DefaultStrategy) clearAuthzCookie(ctx Context) {
-	if ctx.GetCookie(p.authzName) == "" {
-		return
-	}
-
-	p.setCached(ctx, p.cacheKeyAuthz(), nil)
-
-	ctx.ClearCookie(p.newAuthzDeletionCookie())
-}
-
 func (p *DefaultStrategy) cacheKey() string {
 	return p.config.Domain
 }
@@ -865,218 +551,10 @@ func (p *DefaultStrategy) setCached(ctx Context, key string, session *UserSessio
 	caching.CacheSession(key, &value)
 }
 
-func (p *DefaultStrategy) getCookieID(ctx Context, name string) (id []byte) {
-	value := ctx.GetCookie(name)
-
-	if len(value) == 0 {
-		return nil
-	}
-
-	var err error
-
-	if id, err = base64.RawURLEncoding.DecodeString(value); err != nil || len(id) != sessionIDLength {
-		return nil
-	}
-
-	return id
-}
-
-func (p *DefaultStrategy) getAuthzValue(sid string) (value []byte, aid string) {
-	value, _ = hex.DecodeString(p.codec.SignAuthz([]byte(cookieValuePrefixAuthz + p.issuer + ":" + sid)))
-
-	return value, p.codec.SignAuthz(value)
-}
-
-func (p *DefaultStrategy) saveAuthzIndex(ctx Context, aid, sid string, expiration time.Duration) (err error) {
-	switch err = p.repository.Save(ctx, p.authzIssuer, aid, getAuthzIndexPublicID(aid), "", expiration, []byte(sid)); {
-	case err == nil:
-	case errors.Is(err, ErrSessionSuperseded):
-		logContext(ctx).WithError(err).Debug("Session authz index was not saved as the session has been destroyed or moved by another request, the authz cookie will not be issued")
-	default:
-		logContext(ctx).WithError(err).Error("Error occurred saving the session authz index, the authz cookie will not be issued")
-	}
-
-	return err
-}
-
-func (p *DefaultStrategy) deleteAuthzIndex(ctx Context, aid string) (err error) {
-	if err = p.repository.Delete(ctx, p.authzIssuer, aid, getAuthzIndexPublicID(aid), ""); err != nil {
-		logContext(ctx).WithError(err).Warn("Error occurred deleting the session authz index")
-	}
-
-	return err
-}
-
-func (p *DefaultStrategy) newCookie(id []byte, expires time.Time) (cookie *http.Cookie) {
-	return &http.Cookie{
-		Name:     p.name,
-		Value:    encodeCookieID(id),
-		Path:     "/",
-		Expires:  expires,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	}
-}
-
-func (p *DefaultStrategy) newAuthzCookie(id []byte, expires time.Time) (cookie *http.Cookie) {
-	//nolint:gosec // The SameSite attribute is determined by the validated configuration which restricts it to 'none', 'lax', or 'strict'.
-	return &http.Cookie{
-		Name:     p.authzName,
-		Value:    encodeCookieID(id),
-		Path:     "/",
-		Domain:   p.authzDomain,
-		Expires:  expires,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: p.authzSameSite,
-	}
-}
-
-func (p *DefaultStrategy) newAuthzDeletionCookie() (cookie *http.Cookie) {
-	return p.newAuthzCookie(nil, p.clock.Now().Add(-cookieDeletionOffset))
-}
-
-func (p *DefaultStrategy) newDeletionCookie() (cookie *http.Cookie) {
-	return p.newCookie(nil, p.clock.Now().Add(-cookieDeletionOffset))
-}
-
-func (p *DefaultStrategy) getExpiration(userSession UserSession) (expiration time.Duration) {
-	switch {
-	case userSession.Username == "" && p.config.AnonymousExpiration > 0:
-		return p.config.AnonymousExpiration
-	case userSession.KeepMeLoggedIn && !p.config.DisableRememberMe:
-		return p.config.RememberMe
-	}
-
-	return p.config.Expiration
-}
-
-func (p *DefaultStrategy) getExpiresAt(expiration time.Duration) (expires int64) {
-	if expiration == 0 {
-		return 0
-	}
-
-	return p.clock.Now().Add(expiration).Unix()
-}
-
-func (p *DefaultStrategy) getRemaining(session UserSession) (remaining time.Duration, ok bool) {
-	if session.Expires == 0 {
-		return p.getExpiration(session), true
-	}
-
-	remaining = time.Unix(session.Expires, 0).Sub(p.clock.Now())
-
-	return remaining, remaining > 0
-}
-
-func (p *DefaultStrategy) getInactivity(session UserSession) (inactivity time.Duration, ok bool) {
-	if p.config.Inactivity <= 0 || session.IsAnonymous() || (session.KeepMeLoggedIn && !p.config.DisableRememberMe) {
-		return 0, false
-	}
-
-	return p.config.Inactivity, true
-}
-
-func (p *DefaultStrategy) getRetention(session UserSession, remaining time.Duration) (retention time.Duration) {
-	inactivity, ok := p.getInactivity(session)
-
-	switch {
-	case !ok:
-		return remaining
-	case remaining <= 0:
-		return inactivity
-	default:
-		return min(inactivity, remaining)
-	}
-}
-
-func (p *DefaultStrategy) getTouchInterval(inactivity time.Duration) (interval time.Duration) {
-	if p.config.Expiration > 0 {
-		inactivity = min(inactivity, p.config.Expiration)
-	}
-
-	return min(max(inactivity/sessionTouchDivisor, time.Second), inactivity/2)
-}
-
-func (p *DefaultStrategy) touch(ctx Context, sid string, record Record, session *UserSession) {
-	inactivity, ok := p.getInactivity(*session)
-	if !ok || record.GetSessionTTL() <= 0 || (session.Expires == 0 && p.getExpiration(*session) != 0) {
-		return
-	}
-
-	remaining, ok := p.getRemaining(*session)
-	if !ok {
-		return
-	}
-
-	retention := p.getRetention(*session, remaining)
-
-	if retention-record.GetSessionTTL() < p.getTouchInterval(inactivity) {
-		return
-	}
-
-	if err := p.repository.Touch(ctx, p.issuer, sid, session.PublicID, session.Username, retention); err != nil {
-		logContext(ctx).WithError(err).Error("Error occurred extending the session for activity")
-	}
-}
-
-func (p *DefaultStrategy) getCookieExpires(expiration time.Duration) (exp time.Time) {
-	if expiration == 0 {
-		return expireUnlimited
-	}
-
-	lifetime := max(expiration, sessionCookieLifetimeMinimum)
-
-	if !p.config.DisableRememberMe {
-		lifetime = max(lifetime, p.config.RememberMe)
-	}
-
-	return p.clock.Now().Add(lifetime)
-}
-
 func logContext(ctx Context) (logger *logrus.Entry) {
 	if lctx, ok := ctx.(LoggingContext); ok {
 		return lctx.GetLogger()
 	}
 
 	return logrus.NewEntry(logging.Logger())
-}
-
-func equalSignature(a, b string) bool {
-	return len(a) != 0 && subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
-}
-
-func getAuthzIndexPublicID(aid string) string {
-	if len(aid) <= authzIndexPublicIDLength {
-		return aid
-	}
-
-	return aid[:authzIndexPublicIDLength]
-}
-
-func encodeCookieID(id []byte) string {
-	return base64.RawURLEncoding.EncodeToString(id)
-}
-
-func newDomain(value string, samSite http.SameSite) string {
-	switch {
-	case strings.HasPrefix(value, "."), samSite == http.SameSiteStrictMode, net.ParseIP(value) != nil:
-		return value
-	default:
-		return "." + value
-	}
-}
-
-func newSameSite(value string) http.SameSite {
-	switch strings.ToLower(value) {
-	case "strict":
-		return http.SameSiteStrictMode
-	case "lax":
-		return http.SameSiteLaxMode
-	case "none":
-		return http.SameSiteNoneMode
-	default:
-		return http.SameSiteDefaultMode
-	}
 }

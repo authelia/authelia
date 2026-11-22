@@ -45,14 +45,41 @@ func handleOAuth2ConsentSessionIssueBinding(ctx *middlewares.AutheliaCtx, bindin
 	return nil
 }
 
-func handleOAuth2ConsentSessionLoadBound(ctx *middlewares.AutheliaCtx, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error) {
-	var provider session.Strategy
+func handleOAuth2ConsentSessionRenewBinding(ctx *middlewares.AutheliaCtx) (err error) {
+	var (
+		provider session.Strategy
+		binding  string
+	)
 
 	if provider, err = ctx.GetSessionProvider(); err != nil {
-		return nil, fmt.Errorf("error occurred obtaining the session provider to verify the consent session binding: %w", err)
+		return fmt.Errorf("error occurred obtaining the session provider to renew the consent session binding: %w", err)
+	}
+
+	if binding, err = provider.UserAgentBinding(ctx); err != nil {
+		return fmt.Errorf("error occurred binding the consent session: %w", err)
+	}
+
+	provider.IssueUserAgentBinding(ctx, binding)
+
+	return nil
+}
+
+func handleOAuth2ConsentSessionLoad(ctx *middlewares.AutheliaCtx, challengeID uuid.UUID) (provider session.Strategy, consent *model.OAuth2ConsentSession, err error) {
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		return nil, nil, fmt.Errorf("error occurred obtaining the session provider to verify the consent session binding: %w", err)
 	}
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID); err != nil {
+		return nil, nil, err
+	}
+
+	return provider, consent, nil
+}
+
+func handleOAuth2ConsentSessionLoadBound(ctx *middlewares.AutheliaCtx, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error) {
+	var provider session.Strategy
+
+	if provider, consent, err = handleOAuth2ConsentSessionLoad(ctx, challengeID); err != nil {
 		return nil, err
 	}
 
@@ -66,11 +93,7 @@ func handleOAuth2ConsentSessionLoadBound(ctx *middlewares.AutheliaCtx, challenge
 func handleOAuth2ConsentSessionLoadBoundOrClaim(ctx *middlewares.AutheliaCtx, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error) {
 	var provider session.Strategy
 
-	if provider, err = ctx.GetSessionProvider(); err != nil {
-		return nil, fmt.Errorf("error occurred obtaining the session provider to verify the consent session binding: %w", err)
-	}
-
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID); err != nil {
+	if provider, consent, err = handleOAuth2ConsentSessionLoad(ctx, challengeID); err != nil {
 		return nil, err
 	}
 

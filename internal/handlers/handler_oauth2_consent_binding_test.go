@@ -108,6 +108,63 @@ func TestHandleOAuth2ConsentSessionIssueBinding(t *testing.T) {
 	})
 }
 
+func TestHandleOAuth2ConsentSessionRenewBinding(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		existing bool
+		err      string
+	}{
+		{
+			name:     "ShouldRenewTheExistingBindingOfTheUserAgent",
+			existing: true,
+		},
+		{
+			name: "ShouldIssueANewBindingWhenTheUserAgentHasNone",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.DelCookie(session.UserAgentBindingCookieName("authelia_session"))
+			},
+		},
+		{
+			name: "ShouldHandleSessionProviderError",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				clearForwardedHeaders(mock)
+			},
+			err: "error occurred obtaining the session provider to renew the consent session binding: unable to retrieve session cookie domain: missing required X-Forwarded-Host header",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			if tc.setup != nil {
+				tc.setup(t, mock)
+			}
+
+			err := handleOAuth2ConsentSessionRenewBinding(mock.Ctx)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
+
+				return
+			}
+
+			require.NoError(t, err)
+
+			binding := assertTestOAuth2UserAgentBindingCookie(t, mock)
+
+			if tc.existing {
+				assert.Equal(t, mocks.UserAgentBinding, binding)
+			} else {
+				assert.NotEqual(t, mocks.UserAgentBinding, binding)
+			}
+		})
+	}
+}
+
 func TestHandleOAuth2ConsentSessionLoadBound(t *testing.T) {
 	challenge := uuid.MustParse("6d7e6b0e-5d3a-4c8e-9b1e-1f2a3b4c5d6e")
 

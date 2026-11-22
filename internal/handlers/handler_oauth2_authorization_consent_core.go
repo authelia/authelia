@@ -120,6 +120,8 @@ func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaC
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var err error
 
+	// An anonymous user restarts the flow with a new consent session when the referenced one is no longer pending,
+	// rather than being refused, as the referenced consent session may have been completed or abandoned in another tab.
 	if consent, handled = handleOAuth2AuthorizationConsentPending(ctx, client, rw, requester, true); handled {
 		return nil, true
 	}
@@ -160,6 +162,8 @@ func handleOAuth2AuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issu
 
 	ctx.GetLogger().Debugf(logFmtDbgConsentGenerate, requester.GetID(), client.GetID(), client.GetConsentPolicy())
 
+	// An authenticated user is refused when the referenced consent session is no longer pending, rather than having the
+	// flow restarted, as a consent session which was already responded to or claimed by a subject can't be reused.
 	if consent, handled = handleOAuth2AuthorizationConsentPending(ctx, client, rw, requester, false); handled {
 		return nil, true
 	}

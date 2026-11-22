@@ -5,8 +5,11 @@
 package session
 
 import (
+	"crypto/subtle"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -231,3 +234,99 @@ func (a *DefaultAuthzStrategy) resolveRecord(ctx Context) (sid, aid string, sess
 var (
 	_ AuthzStrategy = (*DefaultAuthzStrategy)(nil)
 )
+
+func (p *DefaultStrategy) retireAuthzIndex(ctx Context, oldSID string) {
+	_, aid := p.getAuthzValue(oldSID)
+
+	if err := p.repository.Save(ctx, p.authzIssuer, aid, getAuthzIndexPublicID(aid), "", authzIndexMovedExpiration, []byte(authzIndexMoved)); err != nil {
+		_ = p.deleteAuthzIndex(ctx, aid)
+	}
+}
+
+func (p *DefaultStrategy) healAuthz(ctx Context, sid string, session *UserSession) {
+	value, aid := p.getAuthzValue(sid)
+
+	if current := p.getCookieID(ctx, p.authzName); len(current) != 0 && subtle.ConstantTimeCompare(current, value) == 1 {
+		return
+	}
+
+	remaining, ok := p.getRemaining(*session)
+	if !ok {
+		return
+	}
+
+	if err := p.saveAuthzIndex(ctx, aid, sid, remaining); err != nil {
+		return
+	}
+
+	p.setCached(ctx, p.cacheKeyAuthz(), nil)
+
+	ctx.SetCookie(p.newAuthzCookie(value, p.getCookieExpires(p.getExpiration(*session))))
+}
+
+func (p *DefaultStrategy) clearStaleAuthzCookie(ctx Context, sid string) {
+	if ctx.GetCookie(p.authzName) == "" {
+		return
+	}
+
+	if value := p.getCookieID(ctx, p.authzName); len(value) != 0 {
+		record, err := p.repository.Get(ctx, p.authzIssuer, p.codec.SignAuthz(value))
+		if err != nil {
+			return
+		}
+
+		if record != nil && len(record.GetSessionData()) != 0 && string(record.GetSessionData()) != sid {
+			return
+		}
+	}
+
+	p.clearAuthzCookie(ctx)
+}
+
+func (p *DefaultStrategy) clearAuthzCookie(ctx Context) {
+	if ctx.GetCookie(p.authzName) == "" {
+		return
+	}
+
+	p.setCached(ctx, p.cacheKeyAuthz(), nil)
+
+	ctx.ClearCookie(p.newAuthzDeletionCookie())
+}
+
+func (p *DefaultStrategy) getAuthzValue(sid string) (value []byte, aid string) {
+	value, _ = hex.DecodeString(p.codec.SignAuthz([]byte(cookieValuePrefixAuthz + p.issuer + ":" + sid)))
+
+	return value, p.codec.SignAuthz(value)
+}
+
+func (p *DefaultStrategy) saveAuthzIndex(ctx Context, aid, sid string, expiration time.Duration) (err error) {
+	switch err = p.repository.Save(ctx, p.authzIssuer, aid, getAuthzIndexPublicID(aid), "", expiration, []byte(sid)); {
+	case err == nil:
+	case errors.Is(err, ErrSessionSuperseded):
+		logContext(ctx).WithError(err).Debug("Session authz index was not saved as the session has been destroyed or moved by another request, the authz cookie will not be issued")
+	default:
+		logContext(ctx).WithError(err).Error("Error occurred saving the session authz index, the authz cookie will not be issued")
+	}
+
+	return err
+}
+
+func (p *DefaultStrategy) deleteAuthzIndex(ctx Context, aid string) (err error) {
+	if err = p.repository.Delete(ctx, p.authzIssuer, aid, getAuthzIndexPublicID(aid), ""); err != nil {
+		logContext(ctx).WithError(err).Warn("Error occurred deleting the session authz index")
+	}
+
+	return err
+}
+
+func equalSignature(a, b string) bool {
+	return len(a) != 0 && subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
+}
+
+func getAuthzIndexPublicID(aid string) string {
+	if len(aid) <= authzIndexPublicIDLength {
+		return aid
+	}
+
+	return aid[:authzIndexPublicIDLength]
+}

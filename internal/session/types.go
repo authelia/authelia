@@ -90,17 +90,19 @@ type Strategy interface {
 	// NewDefault returns an anonymous session bound to the cookie domain of this Strategy.
 	NewDefault() (userSession UserSession)
 
-	// Get returns the session of the request, which is an anonymous session when the request carries no session cookie
-	// or the cookie doesn't resolve to a session which is still held by the Repository. An error is returned when the
-	// Repository fails, or when the session can't be opened or is bound to another cookie domain. An authenticated
-	// session which the authz cookie of the request isn't linked to is issued a new authz cookie. The request is recorded
-	// as activity on the session, which retains it for the inactivity timeout from now when one applies.
+	// Get returns the session of the request. It's an anonymous session when the request is to an authorization
+	// endpoint, carries no session cookie, or carries one which doesn't resolve to a session the Repository still
+	// holds. An error is returned when the Repository fails, or when the session can't be opened or is bound to
+	// another cookie domain. An authenticated session which the authz cookie of the request isn't linked to is issued
+	// a new authz cookie. The request is recorded as activity on the session when an inactivity timeout applies.
 	Get(ctx Context) (session *UserSession, err error)
 
-	// Save persists the session and delivers the session cookie to the user agent, generating the identifiers the
-	// session needs when it has none. The session is a pointer as the generated public identifier is written back to it,
-	// which the caller must retain to avoid orphaning it on a later save. A save which lost a race with a request which
-	// destroyed or regenerated the session is dropped and returns an error which wraps ErrSessionSuperseded.
+	// Save persists the session and issues the session cookie, the CSRF cookie, and for an authenticated session the
+	// authz cookie. The session is a pointer as the generated public identifier, CSRF secret, and expiry are written
+	// back to it, and the caller must retain the public identifier to avoid orphaning it on a later save. An anonymous
+	// session which holds no state is discarded instead of persisted. A save which lost a race with a request which
+	// destroyed or regenerated the session is dropped and returns an error which wraps ErrSessionSuperseded. It
+	// returns an error which wraps ErrNotPermittedOnAuthzEndpointRequest on a request to an authorization endpoint.
 	Save(ctx Context, userSession *UserSession) (err error)
 
 	// Regenerate issues a new session identifier for the session of the request, moving the persisted session to it and
