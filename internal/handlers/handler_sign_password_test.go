@@ -145,7 +145,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
+	assertConsentCompletionRedirect(s.T(), s.mock, "", "")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred parsing the consent session flow id", map[string]any{"error": "invalid UUID length: 3", "flow": "openid_connect", "flow_id": "abc", "subflow": ""})
 }
 
