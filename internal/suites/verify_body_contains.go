@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//nolint:unparam
 func (rs *RodSession) verifyBodyContains(t *testing.T, page *rod.Page, pattern string) {
 	body, err := page.ElementR("body", pattern)
 	assert.NoError(t, err)
