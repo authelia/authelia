@@ -668,6 +668,13 @@ func TestRedactedURL(t *testing.T) {
 		{"ShouldRedactEachQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "a=https%3A%2F%2Fu%3Apw%40a.com&a=https%3A%2F%2Fv%3Apw%40b.com"}, "https://e.com?a=https%3A%2F%2Fu%3Axxxxx%40a.com&a=https%3A%2F%2Fv%3Axxxxx%40b.com"},
 		{"ShouldRemoveUserInfoFromUnparsableQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "rd=https%3A%2F%2Fu%3Apw%40a.com%2F%25zz"}, "https://e.com?rd=https%3A%2F%2Fa.com%2F%25zz"},
 		{"ShouldRemoveUserInfoFromUnparsableSchemeRelativeQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "rd=%2F%2Fu%3Apw%40a.com%2F%25zz"}, "https://e.com?rd=%2F%2Fa.com%2F%25zz"},
+		{"ShouldRedactUserInfoAndQueryValue", &url.URL{Scheme: "https", User: url.UserPassword("u", "pw"), Host: "e.com", RawQuery: "rd=https%3A%2F%2Fv%3Apw%40a.com"}, "https://u:xxxxx@e.com?rd=https%3A%2F%2Fv%3Axxxxx%40a.com"},
+		{"ShouldOnlyRedactMatchingQueryValues", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "a=1&rd=https%3A%2F%2Fu%3Apw%40a.com&b=2"}, "https://e.com?a=1&b=2&rd=https%3A%2F%2Fu%3Axxxxx%40a.com"},
+		{"ShouldNotChangeQueryValueWithAtButNoUserInfo", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "email=a%40b.com"}, "https://e.com?email=a%40b.com"},
+		{"ShouldRedactParsableSchemeRelativeQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "rd=%2F%2Fu%3Apw%40a.com%2F"}, "https://e.com?rd=%2F%2Fu%3Axxxxx%40a.com%2F"},
+		{"ShouldSortQueryKeys", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "b=2&a=1"}, "https://e.com?a=1&b=2"},
+		{"ShouldNotMaskUsernameWithoutPassword", &url.URL{Scheme: "https", User: url.User("token"), Host: "e.com"}, "https://token@e.com"},
+		{"ShouldDropMalformedQueryPairs", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "a=1&b=%zz"}, "https://e.com?a=1"},
 	}
 
 	for _, tc := range testCases {
@@ -687,6 +694,13 @@ func TestRedactedURIString(t *testing.T) {
 		{"ShouldRemoveUserInfoFromUnparsable", "https://u:pw@a.com/%zz", "https://a.com/%zz"},
 		{"ShouldRemoveUserInfoFromUnparsableSchemeRelative", "//u:pw@a.com/%zz", "//a.com/%zz"},
 		{"ShouldNotChangeUnparsableAbsolutePath", "/a@b/%zz", "/a@b/%zz"},
+		{"ShouldReturnEmptyForEmpty", "", ""},
+		{"ShouldNotChangeAtInPath", "https://a.com/x@y", "https://a.com/x@y"},
+		{"ShouldRedactSchemeRelativeParsable", "//u:pw@a.com/", "//u:xxxxx@a.com/"},
+		{"ShouldRemoveUserInfoWithAtInPasswordUnparsable", "https://u:p@ss@a.com/%zz", "https://a.com/%zz"},
+		{"ShouldRemoveUsernameOnlyUnparsable", "https://u@a.com/%zz", "https://a.com/%zz"},
+		{"ShouldKeepPortUnparsable", "https://u:pw@a.com:8443/%zz", "https://a.com:8443/%zz"},
+		{"ShouldNotStripAtInPathOrQueryUnparsable", "https://a.com/%zz?e=a@b", "https://a.com/%zz?e=a@b"},
 	}
 
 	for _, tc := range testCases {

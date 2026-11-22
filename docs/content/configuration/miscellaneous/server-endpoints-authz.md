@@ -190,7 +190,7 @@ ambiguity classes matched.
 ```yaml {title=configuration.yml}
 definitions:
   uri_parsers:
-    legacy_application:
+    example_application:
       allow: ['path_parameter']
 server:
   endpoints:

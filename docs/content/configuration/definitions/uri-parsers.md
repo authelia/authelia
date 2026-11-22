@@ -46,7 +46,7 @@ definitions:
     default:
       allow: []
       reject: []
-    legacy_application:
+    example_definition:
       allow: ['path_parameter']
       reject: ['path_encoded_percent']
 ```
