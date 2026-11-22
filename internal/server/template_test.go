@@ -538,19 +538,32 @@ func TestNewTemplatedFileOptionsTOTPApps(t *testing.T) {
 
 func TestTemplatedFileOptionsCommonData(t *testing.T) {
 	testCases := []struct {
-		name       string
-		rememberMe string
-		expectedRM string
+		name         string
+		rememberMe   string
+		passkeyLogin string
+		expectedRM   string
+		expectedPL   string
 	}{
 		{
-			"ShouldReturnDefaultRememberMe",
+			"ShouldReturnDefaults",
+			"",
 			"",
 			"true",
+			"false",
 		},
 		{
 			"ShouldOverrideRememberMe",
 			"false",
+			"",
 			"false",
+			"false",
+		},
+		{
+			"ShouldOverridePasskeyLogin",
+			"",
+			"true",
+			"true",
+			"true",
 		},
 	}
 
@@ -558,14 +571,61 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			opts := NewTemplatedFileOptions(&schema.Configuration{})
 
-			data := opts.CommonData("/", "/", "example.com", "nonce123", "en", "", tc.rememberMe)
+			data := opts.CommonData("/", "/", "example.com", "nonce123", "en", "", tc.rememberMe, tc.passkeyLogin)
 
 			assert.Equal(t, "/", data.Base)
 			assert.Equal(t, "example.com", data.Domain)
 			assert.Equal(t, "nonce123", data.CSPNonce)
 			assert.Equal(t, "en", data.Language)
 			assert.Equal(t, tc.expectedRM, data.RememberMe)
+			assert.Equal(t, tc.expectedPL, data.PasskeyLogin)
 			assert.Equal(t, opts.ExternalIdentityLogin, data.ExternalIdentityLogin)
+		})
+	}
+}
+
+func TestServeTemplatedFileShouldServePasskeyLoginPerOrigin(t *testing.T) {
+	tmpl, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, tmpl.LoadTemplatedAssets(&ReadFilePortalIndex{}))
+
+	parties := map[string]schema.WebAuthnRelyingParty{
+		"login.example.com": {
+			Origins: []*url.URL{{Scheme: "https", Host: "login.example.com"}},
+		},
+	}
+
+	testCases := []struct {
+		name     string
+		config   schema.WebAuthn
+		host     string
+		expected string
+	}{
+		{"ShouldEnableWithoutRelyingParties", schema.WebAuthn{EnablePasskeyLogin: true}, "auth.example.com", "true"},
+		{"ShouldEnableForRelyingPartyOrigin", schema.WebAuthn{EnablePasskeyLogin: true, RelyingParties: parties}, "login.example.com", "true"},
+		{"ShouldDisableForUnlistedOrigin", schema.WebAuthn{EnablePasskeyLogin: true, RelyingParties: parties}, "auth.example.com", "false"},
+		{"ShouldDisableWhenPasskeyLoginDisabled", schema.WebAuthn{RelyingParties: parties}, "login.example.com", "false"},
+		{"ShouldDisableWhenWebAuthnDisabled", schema.WebAuthn{Disable: true, EnablePasskeyLogin: true}, "auth.example.com", "false"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
+			mock.Ctx.Configuration.WebAuthn = tc.config
+
+			handler := ServeTemplatedFile(tmpl.GetAssetIndexTemplate(), NewTemplatedFileOptions(&mock.Ctx.Configuration))
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
+
+			handler(mock.Ctx)
+
+			require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+			assert.Contains(t, string(mock.Ctx.Response.Body()), `data-passkeylogin="`+tc.expected+`"`)
 		})
 	}
 }
@@ -606,7 +666,7 @@ const tmplTestPortalIndex = `<!doctype html>
     <head>
         <meta property="csp-nonce" content="{{ .CSPNonce }}" />
     </head>
-    <body data-theme="{{ .Theme }}" data-rememberme="{{ .RememberMe }}">
+    <body data-theme="{{ .Theme }}" data-rememberme="{{ .RememberMe }}" data-passkeylogin="{{ .PasskeyLogin }}">
         <div id="root"></div>
     </body>
 </html>`
