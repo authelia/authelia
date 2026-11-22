@@ -170,6 +170,21 @@ func (mr *MockAccessRequesterMockRecorder) GetID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockAccessRequester)(nil).GetID))
 }
 
+// GetRefreshTokenRotationDisabled mocks base method.
+func (m *MockAccessRequester) GetRefreshTokenRotationDisabled() (bool, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRefreshTokenRotationDisabled")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetRefreshTokenRotationDisabled indicates an expected call of GetRefreshTokenRotationDisabled.
+func (mr *MockAccessRequesterMockRecorder) GetRefreshTokenRotationDisabled() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshTokenRotationDisabled", reflect.TypeOf((*MockAccessRequester)(nil).GetRefreshTokenRotationDisabled))
+}
+
 // GetRequestForm mocks base method.
 func (m *MockAccessRequester) GetRequestForm() url.Values {
 	m.ctrl.T.Helper()
@@ -364,6 +379,18 @@ func (m *MockAccessRequester) SetID(id string) {
 func (mr *MockAccessRequesterMockRecorder) SetID(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetID", reflect.TypeOf((*MockAccessRequester)(nil).SetID), id)
+}
+
+// SetRefreshTokenRotationDisabled mocks base method.
+func (m *MockAccessRequester) SetRefreshTokenRotationDisabled(disable bool) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetRefreshTokenRotationDisabled", disable)
+}
+
+// SetRefreshTokenRotationDisabled indicates an expected call of SetRefreshTokenRotationDisabled.
+func (mr *MockAccessRequesterMockRecorder) SetRefreshTokenRotationDisabled(disable any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRefreshTokenRotationDisabled", reflect.TypeOf((*MockAccessRequester)(nil).SetRefreshTokenRotationDisabled), disable)
 }
 
 // SetRequestedAt mocks base method.
