@@ -122,7 +122,6 @@ identity_providers:
           - 'email'
         redirect_uris:
           - 'http://127.0.0.1'
-          - 'http://localhost'
         response_types:
           - 'code'
         grant_types:
@@ -140,13 +139,14 @@ identity_providers:
         pkce_challenge_method: 'S256'
         redirect_uris:
           - 'oc://ios.opencloud.eu'
-          - 'oc.ios://ios.opencloud.eu'
         scopes:
           - 'openid'
           - 'offline_access'
           - 'groups'
           - 'profile'
           - 'email'
+        response_types:
+          - 'code'
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
