@@ -15,8 +15,6 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator/v12"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -31,6 +29,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // NewRequestLogger create a new request logger for the given request.
@@ -59,15 +58,29 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	return ctx
 }
 
-// AvailableSecondFactorMethods returns the available 2FA methods.
+// ConfiguredSecondFactorMethods returns the 2FA methods which are enabled by the configuration regardless of the origin
+// of the request. A user's preferred method applies to every origin, so it's chosen and validated against these.
+func (ctx *AutheliaCtx) ConfiguredSecondFactorMethods() (methods []string) {
+	return ctx.secondFactorMethods(!ctx.Configuration.WebAuthn.Disable)
+}
+
+// AvailableSecondFactorMethods returns the 2FA methods which are usable from the origin of the request. These only
+// differ from the ConfiguredSecondFactorMethods when WebAuthn relying parties are configured and the origin of the
+// request doesn't belong to any of them.
 func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
+	origin, err := ctx.GetOrigin()
+
+	return ctx.secondFactorMethods(err == nil && webauthn.IsOriginAvailable(ctx.Configuration.WebAuthn, origin))
+}
+
+func (ctx *AutheliaCtx) secondFactorMethods(webauthnAvailable bool) (methods []string) {
 	methods = make([]string, 0, 3)
 
 	if !ctx.Configuration.TOTP.Disable {
 		methods = append(methods, model.SecondFactorMethodTOTP)
 	}
 
-	if !ctx.Configuration.WebAuthn.Disable {
+	if webauthnAvailable {
 		methods = append(methods, model.SecondFactorMethodWebAuthn)
 	}
 
@@ -759,59 +772,22 @@ func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttrib
 	return ctx.Providers.UserAttributeResolver
 }
 
+// GetWebAuthnMetaDataProvider returns the WebAuthn Metadata Service provider.
+func (ctx *AutheliaCtx) GetWebAuthnMetaDataProvider() webauthn.MetaDataProvider {
+	return ctx.Providers.WebAuthnMetaData
+}
+
 // GetWebAuthnProvider initializes and returns a WebAuthn provider instance with the configured Relying Party (RP)
 // settings.
-func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) {
-	var (
-		origin *url.URL
-	)
-
-	if origin, err = ctx.GetOrigin(); err != nil {
+func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.Provider, err error) {
+	provider, err := webauthn.NewProvider(ctx)
+	if err != nil {
 		return nil, err
 	}
 
-	config := &webauthn.Config{
-		RPID:                  origin.Hostname(),
-		RPDisplayName:         ctx.Configuration.WebAuthn.DisplayName,
-		RPOrigins:             []string{origin.String()},
-		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
-		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			AuthenticatorAttachment: ctx.Configuration.WebAuthn.SelectionCriteria.Attachment,
-			ResidentKey:             ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability,
-			UserVerification:        ctx.Configuration.WebAuthn.SelectionCriteria.UserVerification,
-		},
-		Debug:                false,
-		EncodeUserIDAsString: false,
-		Timeouts: webauthn.TimeoutsConfig{
-			Login: webauthn.TimeoutConfig{
-				Enforce:    true,
-				Timeout:    ctx.Configuration.WebAuthn.Timeout,
-				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
-			},
-			Registration: webauthn.TimeoutConfig{
-				Enforce:    true,
-				Timeout:    ctx.Configuration.WebAuthn.Timeout,
-				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
-			},
-		},
-		MDS: ctx.Providers.MetaDataService,
-	}
+	ctx.GetLogger().Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", provider.Config.RPID, strings.Join(provider.Config.RPOrigins, ", "))
 
-	switch ctx.Configuration.WebAuthn.SelectionCriteria.Attachment {
-	case protocol.Platform, protocol.CrossPlatform:
-		config.AuthenticatorSelection.AuthenticatorAttachment = ctx.Configuration.WebAuthn.SelectionCriteria.Attachment
-	}
-
-	switch ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability {
-	case protocol.ResidentKeyRequirementRequired:
-		config.AuthenticatorSelection.RequireResidentKey = protocol.ResidentKeyRequired()
-	case protocol.ResidentKeyRequirementPreferred, protocol.ResidentKeyRequirementDiscouraged:
-		config.AuthenticatorSelection.RequireResidentKey = protocol.ResidentKeyNotRequired()
-	}
-
-	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
-
-	return webauthn.New(config)
+	return provider, nil
 }
 
 // RecordAuthenticationDuration records the duration of an authentication attempt with the metrics provider.

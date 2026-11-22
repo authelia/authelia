@@ -32,6 +32,7 @@ import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
+import { UserInfo } from "@models/UserInfo";
 import { postExternalIdentityStart } from "@services/ExternalIdentity";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -53,6 +54,26 @@ export interface Props {
 
 const RedirectionErrorMessage =
     "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct";
+
+const resolveSecondFactorMethod = function (
+    preferred: SecondFactorMethod,
+    available: Set<SecondFactorMethod>,
+    userInfo: UserInfo,
+): SecondFactorMethod {
+    if (available.has(preferred)) {
+        return preferred;
+    }
+
+    const registered: [SecondFactorMethod, boolean][] = [
+        [SecondFactorMethod.TOTP, userInfo.has_totp],
+        [SecondFactorMethod.WebAuthn, userInfo.has_webauthn],
+        [SecondFactorMethod.MobilePush, userInfo.has_duo],
+    ];
+
+    const fallback = registered.find(([method, has]) => has && available.has(method));
+
+    return fallback ? fallback[0] : [...available][0];
+};
 
 const LoginPortal = function (props: Props) {
     const location = useLocation();
@@ -197,7 +218,11 @@ const LoginPortal = function (props: Props) {
             if (configuration.available_methods.size === 0) {
                 navigate(AuthenticatedRoute, false);
             } else {
-                const method = localStorageMethod || userInfo.method;
+                const method = resolveSecondFactorMethod(
+                    localStorageMethod || userInfo.method,
+                    configuration.available_methods,
+                    userInfo,
+                );
 
                 if (!state!.factor_knowledge) {
                     navigate(`${SecondFactorRoute}${SecondFactorPasswordSubRoute}`);

@@ -272,6 +272,80 @@ it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
     expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/totp");
 });
 
+it("OneFactor with unavailable WebAuthn preferred navigates to the registered available method", async () => {
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        {
+            available_methods: new Set([1, 3]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        { display_name: "test", emails: [], has_duo: true, has_totp: false, has_webauthn: true, method: 2 },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/push");
+});
+
+it("OneFactor with unavailable WebAuthn preferred and no registered available method navigates to the first available method", async () => {
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        {
+            available_methods: new Set([1, 3]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+        },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: true, method: 2 },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/totp");
+});
+
 it("OneFactor with WebAuthn preferred navigates to /2fa/webauthn", async () => {
     vi.mocked(useAutheliaState).mockReturnValue([
         { authentication_level: 1, factor_knowledge: true, username: "test" },

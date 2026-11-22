@@ -1283,6 +1283,50 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 	assert.Equal(t, []string{}, mock.Ctx.AvailableSecondFactorMethods())
 }
 
+func TestAutheliaCtx_SecondFactorMethodsWithRelyingParties(t *testing.T) {
+	all := []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}
+	withoutWebAuthn := []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodDuo}
+
+	testCases := []struct {
+		name       string
+		host       string
+		disable    bool
+		configured []string
+		available  []string
+	}{
+		{"ShouldIncludeWebAuthnOnRelyingPartyOrigin", "login.example.com:8080", false, all, all},
+		{"ShouldIncludeWebAuthnOnlyInConfiguredOnUnlistedOrigin", "auth.example2.com", false, all, withoutWebAuthn},
+		{"ShouldExcludeWebAuthnWhenDisabled", "login.example.com:8080", true, withoutWebAuthn, withoutWebAuthn},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.WebAuthn.Disable = tc.disable
+			mock.Ctx.Configuration.WebAuthn.RelyingParties = map[string]schema.WebAuthnRelyingParty{
+				"login.example.com": {Origins: []*url.URL{{Scheme: "https", Host: "login.example.com:8080"}}},
+			}
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
+
+			assert.Equal(t, tc.configured, mock.Ctx.ConfiguredSecondFactorMethods())
+			assert.Equal(t, tc.available, mock.Ctx.AvailableSecondFactorMethods())
+		})
+	}
+}
+
+func TestAutheliaCtx_AvailableSecondFactorMethodsShouldExcludeWebAuthnWhenOriginInvalid(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!@NJK#N!@#IKJ!@NJK")
+
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}, mock.Ctx.ConfiguredSecondFactorMethods())
+}
+
 func TestAutheliaCtx_QueryFuncs(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -1536,11 +1580,17 @@ func TestAutheliaCtx_Value(t *testing.T) {
 }
 
 func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
-	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{WebAuthn: schema.WebAuthn{Disable: true}}, middlewares.Providers{})
 
 	provider, err := ctx.GetWebAuthnProvider()
 	assert.Nil(t, provider)
-	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
+	assert.EqualError(t, err, "webauthn is disabled")
+
+	ctx = middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+
+	provider, err = ctx.GetWebAuthnProvider()
+	assert.Nil(t, provider)
+	assert.EqualError(t, err, "error occurred determining the origin for the request: missing required X-Forwarded-Host header")
 
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -1549,7 +1599,7 @@ func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
 	assert.NotNil(t, provider)
 	assert.NoError(t, err)
 
-	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Attachment = protocol.CrossPlatform
+	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Attachment = new(protocol.CrossPlatform)
 	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability = protocol.ResidentKeyRequirementRequired
 
 	provider, err = mock.Ctx.GetWebAuthnProvider()
@@ -1561,6 +1611,65 @@ func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
 	provider, err = mock.Ctx.GetWebAuthnProvider()
 	assert.NotNil(t, provider)
 	assert.NoError(t, err)
+
+	mock.Ctx.Configuration.WebAuthn.Disable = true
+
+	provider, err = mock.Ctx.GetWebAuthnProvider()
+	assert.Nil(t, provider)
+	assert.EqualError(t, err, "webauthn is disabled")
+
+	mock.Ctx.Configuration.WebAuthn.Disable = false
+}
+
+func TestAutheliaCtx_GetWebAuthnProviderWithRelatedOrigins(t *testing.T) {
+	testCases := []struct {
+		name           string
+		relatedOrigins map[string]schema.WebAuthnRelyingParty
+		expectedErr    string
+	}{
+		{
+			"ShouldSucceedWithMatchingRelatedOrigin",
+			map[string]schema.WebAuthnRelyingParty{
+				"login.example.com": {
+					Origins: []*url.URL{
+						{Scheme: "https", Host: "login.example.com:8080"},
+						{Scheme: "http", Host: "auth.example.com"},
+					},
+				},
+			},
+			"",
+		},
+		{
+			"ShouldFailWithNoMatchingRelatedOrigin",
+			map[string]schema.WebAuthnRelyingParty{
+				"other.com": {
+					Origins: []*url.URL{
+						{Scheme: "http", Host: "other.com"},
+					},
+				},
+			},
+			"error occurred finding the relying party: no related origin found for origin 'https://login.example.com:8080'",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.WebAuthn.RelyingParties = tc.relatedOrigins
+
+			provider, err := mock.Ctx.GetWebAuthnProvider()
+
+			if tc.expectedErr != "" {
+				assert.Nil(t, provider)
+				assert.EqualError(t, err, tc.expectedErr)
+			} else {
+				assert.NotNil(t, provider)
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestAutheliaCtx_RecordAuthn(t *testing.T) {

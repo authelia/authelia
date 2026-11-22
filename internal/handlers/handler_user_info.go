@@ -66,7 +66,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		changed bool
 	)
 
-	if changed = userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods(), ctx.Configuration.Default2FAMethod); changed {
+	if changed = userInfo.SetDefaultPreferred2FAMethod(ctx.ConfiguredSecondFactorMethods(), ctx.Configuration.Default2FAMethod); changed {
 		if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, userInfo.Method); err != nil {
 			ctx.GetLogger().WithError(err).Error("Error occurred saving the user preferred second factor method")
 			ctx.SetJSONError(messageOperationFailed)
@@ -182,8 +182,8 @@ func MethodPreferencePOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !utils.IsStringInSlice(bodyJSON.Method, ctx.AvailableSecondFactorMethods()) {
-		ctx.GetLogger().Errorf("Error occurred setting the second factor method preference as the method '%s' is unknown or unavailable, it should be one of %s", bodyJSON.Method, strings.Join(ctx.AvailableSecondFactorMethods(), ", "))
+	if methods := ctx.ConfiguredSecondFactorMethods(); !utils.IsStringInSlice(bodyJSON.Method, methods) {
+		ctx.GetLogger().Errorf("Error occurred setting the second factor method preference as the method '%s' is unknown or unavailable, it should be one of %s", bodyJSON.Method, strings.Join(methods, ", "))
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
