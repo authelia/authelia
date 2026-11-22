@@ -59,10 +59,11 @@ The following YAML configuration is an example **Authelia** [client configuratio
 identity_providers:
   oidc:
     cors:
-      allowed_origins_from_client_redirect_uris: true
+      # cors needed for opencloud web because the web client is a public SPA and exchanges the code from the browser
+      allowed_origins:
+        - 'https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}'      
       endpoints:
         - token
-        - userinfo
     clients:
       - client_id: 'opencloud'
         client_name: 'openCloud'
