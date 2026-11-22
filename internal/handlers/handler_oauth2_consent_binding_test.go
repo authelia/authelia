@@ -508,7 +508,7 @@ func TestHandleOAuth2AuthorizationConsentPending(t *testing.T) {
 			restart: true,
 		},
 		{
-			name:      "ShouldNotRestartForUnboundConsentSession",
+			name:      "ShouldRestartForConsentSessionBoundToAnotherUserAgent",
 			consentID: challenge.String(),
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				consent := newPending(mock)
@@ -519,7 +519,54 @@ func TestHandleOAuth2AuthorizationConsentPending(t *testing.T) {
 					Return(consent, nil)
 			},
 			restart: true,
+			log:     regexpConsentPendingRestart,
+			err:     regexp.MustCompile(`^the consent session is not bound to the user agent$`),
+		},
+		{
+			name:      "ShouldRestartForMissingConsentSession",
+			consentID: challenge.String(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(nil, fmt.Errorf("error selecting oauth2 consent session: %w", sql.ErrNoRows))
+			},
+			restart: true,
+			log:     regexpConsentPendingRestart,
+			err:     regexp.MustCompile(`no rows in result set$`),
+		},
+		{
+			name:      "ShouldRestartForMalformedConsentID",
+			consentID: "not-a-uuid",
+			restart:   true,
+			log:       regexpConsentPendingRestart,
+			err:       regexp.MustCompile(`^invalid UUID length: 10$`),
+		},
+		{
+			name:      "ShouldNotRestartForLoadError",
+			consentID: challenge.String(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(nil, fmt.Errorf("bad"))
+			},
+			restart: true,
 			handled: true,
+			log:     regexp.MustCompile(`error occurred while loading session: bad$`),
+		},
+		{
+			name:      "ShouldRestartForConsentSessionWhichDoesNotMatchTheRequest",
+			consentID: challenge.String(),
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				consent := newPending(mock)
+				consent.Form = url.Values{oidc.FormParameterState: []string{"xyz"}}.Encode()
+
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(consent, nil)
+			},
+			restart: true,
+			log:     regexpConsentPendingRestart,
+			err:     regexpAnyError,
 		},
 		{
 			name:      "ShouldRejectConsentSessionWhichDoesNotMatchTheRequest",
@@ -578,3 +625,5 @@ func TestHandleOAuth2AuthorizationConsentPending(t *testing.T) {
 		})
 	}
 }
+
+var regexpConsentPendingRestart = regexp.MustCompile(`^Authorization Request with id '[^']*' on client with id 'test' is being restarted as the referenced consent session with id '[^']+' can't be used by this user agent$`)

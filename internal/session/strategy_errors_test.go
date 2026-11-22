@@ -359,6 +359,44 @@ func TestDefaultStrategy_SaveShouldIssueNewIdentifierWhenNewAnonymousSessionIsSu
 	assert.Equal(t, loaded.PublicID, reloaded.PublicID)
 }
 
+func TestDefaultStrategy_SaveShouldKeepTheAuthzCookieWhenAStaleRequestIsGivenANewIdentifier(t *testing.T) {
+	var moved string
+
+	repository := &tombstoneRepository{testRepository: newTestRepository(), tombstoned: func(id string) bool { return id == moved }}
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+
+	ctx := newTestContext()
+
+	authenticated := strategy.New(testUsername)
+	authenticated.SetOneFactorPassword(time.Now(), false)
+
+	require.NoError(t, strategy.Save(ctx, &authenticated))
+	require.NotEmpty(t, ctx.cookies[testNameAuthz])
+
+	stale := newTestContext()
+	stale.cookies[testNameSession] = ctx.cookies[testNameSession]
+	stale.cookies[testNameAuthz] = ctx.cookies[testNameAuthz]
+
+	moved = strategy.(*DefaultStrategy).codec.Sign(strategy.(*DefaultStrategy).getCookieID(stale, testNameSession))
+
+	require.NoError(t, strategy.Regenerate(ctx))
+
+	loaded, err := strategy.Get(stale)
+	require.NoError(t, err)
+	require.True(t, loaded.IsAnonymous())
+	require.Empty(t, stale.cleared)
+
+	loaded.TOTP = &TOTP{}
+
+	require.NoError(t, strategy.Save(stale, loaded))
+
+	assert.NotEqual(t, ctx.cookies[testNameSession], stale.cookies[testNameSession])
+
+	for _, cookie := range stale.cleared {
+		assert.NotEqual(t, testNameAuthz, cookie.Name)
+	}
+}
+
 func TestDefaultStrategy_SaveShouldErrorWhenNewAnonymousSessionIsSupersededTwice(t *testing.T) {
 	repository := &tombstoneRepository{testRepository: newTestRepository(), tombstoned: func(string) bool { return true }}
 	strategy := newTestStrategyWithRepository(t, repository, nil)

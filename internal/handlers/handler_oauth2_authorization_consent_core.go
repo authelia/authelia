@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"net/url"
@@ -120,8 +121,9 @@ func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaC
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var err error
 
-	// An anonymous user restarts the flow with a new consent session when the referenced one is no longer pending,
-	// rather than being refused, as the referenced consent session may have been completed or abandoned in another tab.
+	// An anonymous user restarts the flow with a new consent session when the referenced one can't be used, rather
+	// than being refused, as a stale tab or an expired binding cookie is the usual cause. Restarting only uses the
+	// parameters of this request, so a referenced consent session which belongs to another user agent is never used.
 	if consent, handled = handleOAuth2AuthorizationConsentPending(ctx, client, rw, requester, true); handled {
 		return nil, true
 	}
@@ -212,6 +214,12 @@ func handleOAuth2AuthorizationConsentPending(ctx *middlewares.AutheliaCtx, clien
 	}
 
 	if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
+		if restart {
+			handleOAuth2AuthorizationConsentPendingRestart(ctx, client, requester, bytesConsentID, err)
+
+			return nil, false
+		}
+
 		ctx.GetLogger().Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentMalformedChallengeID)
@@ -220,6 +228,12 @@ func handleOAuth2AuthorizationConsentPending(ctx *middlewares.AutheliaCtx, clien
 	}
 
 	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, consentID); err != nil {
+		if restart && (errors.Is(err, errOAuth2ConsentSessionNotBound) || errors.Is(err, sql.ErrNoRows)) {
+			handleOAuth2AuthorizationConsentPendingRestart(ctx, client, requester, bytesConsentID, err)
+
+			return nil, false
+		}
+
 		ctx.GetLogger().Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consentID, err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
@@ -242,6 +256,12 @@ func handleOAuth2AuthorizationConsentPending(ctx *middlewares.AutheliaCtx, clien
 	}
 
 	if err = consent.MatchesRequester(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
+		if restart {
+			handleOAuth2AuthorizationConsentPendingRestart(ctx, client, requester, bytesConsentID, oauthelia2.ErrorToDebugRFC6749Error(err))
+
+			return nil, false
+		}
+
 		ctx.GetLogger().WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Errorf(logFmtErrConsentMatchError, requester.GetID(), client.GetID(), client.GetConsentPolicy())
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, err)
@@ -250,6 +270,12 @@ func handleOAuth2AuthorizationConsentPending(ctx *middlewares.AutheliaCtx, clien
 	}
 
 	return consent, false
+}
+
+func handleOAuth2AuthorizationConsentPendingRestart(ctx *middlewares.AutheliaCtx, client oidc.Client, requester oauthelia2.Requester, consentID []byte, err error) {
+	ctx.GetLogger().
+		WithError(err).
+		Warnf("Authorization Request with id '%s' on client with id '%s' is being restarted as the referenced consent session with id '%s' can't be used by this user agent", requester.GetID(), client.GetID(), consentID)
 }
 
 func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession, client oidc.Client,

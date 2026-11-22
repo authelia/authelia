@@ -143,7 +143,8 @@ func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 //   - A save of a session which was destroyed or regenerated after it was retrieved is dropped, and an error which
 //     wraps ErrSessionSuperseded is returned, so a stale request can't restore a session.
 //   - A new anonymous session whose session cookie refers to a destroyed or regenerated session is persisted against
-//     a new identifier instead, so its state isn't lost.
+//     a new identifier instead, so its state isn't lost. The authz cookie of the request is left as it is, as another
+//     request may have already replaced it with the authz cookie of the regenerated session.
 func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	if session == nil {
 		return errors.New("error occurred saving session: it is nil")
@@ -198,7 +199,9 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		return fmt.Errorf("error occurred generating session ID: %w", err)
 	}
 
-	return p.persist(ctx, id, existing, session)
+	// The new identifier was never issued, so the authz cookie of the request is left as it is. Another request may have
+	// already replaced it with the authz cookie of the session this one was moved to.
+	return p.persist(ctx, id, false, session)
 }
 
 func (p *DefaultStrategy) persist(ctx Context, id []byte, existing bool, session *UserSession) (err error) {
