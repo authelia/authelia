@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 
 import { Route, Routes } from "react-router";
 
@@ -10,10 +10,15 @@ import {
     IndexRoute,
     SecuritySubRoute,
     SettingsExternalIdentitySubRoute,
+    SettingsGroupManagementSubRoute,
+    SettingsRoute,
     SettingsTwoFactorAuthenticationSubRoute,
+    SettingsUserManagementSubRoute,
 } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
+import { useUserInfoGET } from "@hooks/UserInfo";
+import { useAdminConfigurationGET } from "@hooks/UserManagement";
 import SettingsLayout from "@layouts/SettingsLayout";
 import { AuthenticationLevel } from "@services/State";
 import { getExternalIdentityLogin } from "@utils/Configuration";
@@ -21,6 +26,8 @@ import ExternalIdentityView from "@views/Settings/ExternalIdentity/ExternalIdent
 import SecurityView from "@views/Settings/Security/SecurityView";
 import SettingsView from "@views/Settings/SettingsView";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
+import GroupManagementView from "@views/Settings/UserManagement/GroupManagementView";
+import UserManagementView from "@views/Settings/UserManagement/UserManagementView";
 
 const SettingsRouter = function () {
     const navigate = useRouterNavigate();
@@ -47,9 +54,63 @@ const SettingsRouter = function () {
                 {externalIdentityLogin ? (
                     <Route path={SettingsExternalIdentitySubRoute} element={<ExternalIdentityView />} />
                 ) : null}
+                <Route
+                    path={SettingsUserManagementSubRoute}
+                    element={
+                        <AdminRoute>
+                            <UserManagementView />
+                        </AdminRoute>
+                    }
+                />
+                <Route
+                    path={SettingsGroupManagementSubRoute}
+                    element={
+                        <AdminRoute>
+                            <GroupManagementView />
+                        </AdminRoute>
+                    }
+                />
             </Routes>
         </SettingsLayout>
     );
+};
+
+interface AdminRouteProps {
+    children: ReactNode;
+}
+
+const AdminRoute = function (props: AdminRouteProps) {
+    const navigate = useRouterNavigate();
+
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
+    const [adminConfig, fetchAdminConfig, , fetchAdminConfigError] = useAdminConfigurationGET();
+
+    useEffect(() => {
+        fetchUserInfo();
+        fetchAdminConfig();
+    }, [fetchUserInfo, fetchAdminConfig]);
+
+    const loaded =
+        (adminConfig !== undefined || fetchAdminConfigError !== undefined) &&
+        (userInfo !== undefined || fetchUserInfoError !== undefined);
+
+    const isAdmin =
+        !fetchAdminConfigError &&
+        !fetchUserInfoError &&
+        !!adminConfig?.enabled &&
+        !!userInfo?.groups?.includes(adminConfig.admin_group);
+
+    useEffect(() => {
+        if (loaded && !isAdmin) {
+            navigate(SettingsRoute);
+        }
+    }, [loaded, isAdmin, navigate]);
+
+    if (!loaded || !isAdmin) {
+        return null;
+    }
+
+    return <>{props.children}</>;
 };
 
 export default SettingsRouter;

@@ -233,3 +233,35 @@ it("forwards the abort signal to axios on every helper", async () => {
     await Client.DeleteWithOptionalResponse("/path", { body: 1 }, signal);
     expect(axios.delete).toHaveBeenLastCalledWith("/path", { data: { body: 1 }, signal });
 });
+
+it("handles successful patch with optional response", async () => {
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.patch as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    const result = await Client.PatchWithOptionalResponse("/path", { body: 1 });
+    expect(result).toBe("test");
+    expect(axios.patch).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal: undefined });
+});
+
+it("throws on patch error", async () => {
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
+    (axios.patch as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
+
+    await expect(Client.PatchWithOptionalResponse("/path", {})).rejects.toThrow(
+        "Failed PATCH to /path. Code: 400. Message: error",
+    );
+});
+
+it("forwards the abort signal to axios on patch", async () => {
+    const signal = new AbortController().signal;
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
+    (axios.patch as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue("test");
+
+    await Client.PatchWithOptionalResponse("/path", { body: 1 }, signal);
+    expect(axios.patch).toHaveBeenLastCalledWith("/path", { body: 1 }, { signal });
+});

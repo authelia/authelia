@@ -156,3 +156,16 @@ describe("explicit close", () => {
         expect(onOpenChange.mock.calls[0][0]).toBe(false);
     });
 });
+
+it("caps the dialog content height and scrolls instead of overflowing the viewport", () => {
+    render(
+        <Dialog open modal={false}>
+            <DialogContent>
+                <DialogTitle>Title</DialogTitle>
+            </DialogContent>
+        </Dialog>,
+    );
+    const content = screen.getByText("Title").closest("[data-slot='dialog-content']");
+    expect(content).toHaveClass("max-h-[85vh]");
+    expect(content).toHaveClass("overflow-y-auto");
+});

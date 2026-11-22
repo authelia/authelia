@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
     createSuccessNotification: vi.fn(),
     fetchConfiguration: vi.fn(),
     fetchUserInfo: vi.fn(),
-    userInfo: { display_name: "John Doe", emails: ["john@example.com"], groups: [] } as any,
+    userInfo: { display_name: "John Doe", emails: ["john@example.com"], groups: [], username: "johndoe" } as any,
     userInfoError: null as Error | null,
 }));
 
@@ -91,7 +91,7 @@ beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.configuration = { password_change_disabled: false };
     mocks.configurationError = null;
-    mocks.userInfo = { display_name: "John Doe", emails: ["john@example.com"], groups: [] };
+    mocks.userInfo = { display_name: "John Doe", emails: ["john@example.com"], groups: [], username: "johndoe" };
     mocks.userInfoError = null;
     getElevationMock.mockResolvedValue(elevated);
 });
@@ -103,7 +103,7 @@ afterEach(() => {
 describe("rendering", () => {
     it("renders user info and change password button", () => {
         render(<SecurityView />);
-        expect(screen.getByText(/John Doe/)).toBeInTheDocument();
+        expect(screen.getByText("Display Name: John Doe")).toBeInTheDocument();
         expect(screen.getByText("Change Password")).toBeInTheDocument();
     });
 
@@ -408,4 +408,11 @@ describe("password change flow", () => {
 
         await waitFor(() => expect(screen.getByTestId("change-password-dialog")).toHaveAttribute("data-open", "false"));
     });
+});
+
+it("renders the username and display name", () => {
+    render(<SecurityView />);
+    expect(screen.getByText("Username: johndoe")).toBeInTheDocument();
+    expect(screen.getByText("Display Name: John Doe")).toBeInTheDocument();
+    expect(screen.getByText("john@example.com")).toBeInTheDocument();
 });

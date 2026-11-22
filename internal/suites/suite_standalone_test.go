@@ -364,7 +364,7 @@ func (s *StandaloneSuite) TestShouldRespondWithDefaultAuthzHeaders() {
 	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
 
 	s.Assert().Equal("john", res.Header.Get("Remote-User"))
-	s.Assert().ElementsMatch([]string{"admins", "dev"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
+	s.Assert().ElementsMatch([]string{"admins", "dev", "authelia-admin"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
 	s.Assert().Equal("John Doe", res.Header.Get("Remote-Name"))
 	s.Assert().Equal("john.doe@authelia.com", res.Header.Get("Remote-Email"))
 
@@ -379,7 +379,7 @@ func (s *StandaloneSuite) TestShouldRespondWithConfiguredAuthzHeaders() {
 	s.Require().Equal(fasthttp.StatusOK, res.StatusCode)
 
 	s.Assert().Equal("john", res.Header.Get("Remote-User"))
-	s.Assert().ElementsMatch([]string{"admins", "dev"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
+	s.Assert().ElementsMatch([]string{"admins", "dev", "authelia-admin"}, strings.Split(res.Header.Get("Remote-Groups"), ","))
 	s.Assert().Equal("John", res.Header.Get("Remote-Given-Name"))
 	s.Assert().Equal("1001", res.Header.Get("Remote-Employee-Id"))
 	s.Assert().Equal("true", res.Header.Get("Remote-Is-Admin"))

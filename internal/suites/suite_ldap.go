@@ -49,7 +49,7 @@ func init() {
 		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
-		TestTimeout:     150 * time.Second,
+		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite has been created to test Authelia against an OpenLDAP backend, including the

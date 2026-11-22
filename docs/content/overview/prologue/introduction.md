@@ -26,3 +26,5 @@ other features:
 - Identity verification when registering second factor devices.
 - Self-service reset of user passwords.
 - Banning accounts after too many attempts (known as regulation).
+- [Administration](../../configuration/miscellaneous/administration.md) features allowing designated
+  admin users to manage other users and groups.

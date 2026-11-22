@@ -25,10 +25,12 @@ vi.mock("@hooks/Flow", () => ({
 const mockUserInfo = {
     display_name: "john",
     emails: ["john@example.com"],
+    groups: [],
     has_duo: false,
     has_totp: false,
     has_webauthn: false,
     method: 1,
+    username: "john",
 };
 
 const openDropdown = (button: HTMLElement) => {
