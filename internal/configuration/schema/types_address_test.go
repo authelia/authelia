@@ -751,6 +751,14 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 
 	fd := uint64(raw) //nolint:gosec // A successfully opened descriptor is never negative.
 
+	owned := true
+
+	t.Cleanup(func() {
+		if owned {
+			_ = syscall.Close(raw)
+		}
+	})
+
 	testCases := []struct {
 		name     string
 		have     string
@@ -858,6 +866,10 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 
 				if runtime.GOOS == "darwin" && actual.IsUnixDomainSocket() {
 					return
+				}
+
+				if tc.fd != nil {
+					owned = false
 				}
 
 				ln, err := actual.Listener()
