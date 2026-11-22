@@ -6,6 +6,7 @@ package utils
 
 import (
 	"net/url"
+	"strings"
 	"sync"
 	"testing"
 
@@ -259,6 +260,7 @@ func TestURIParserErrorRedactsPassword(t *testing.T) {
 		{"ShouldRedactSlashInPassword", "https://u:pw/x@example.com/", nil},
 		{"ShouldRedactOpaqueWithLaterAuthorityMarker", "https:u:pw@example.com?x=http://a", nil},
 		{"ShouldRedactOpaqueWithLaterAuthorityMarkerPath", "https:u:pw@example.com/x://y", nil},
+		{"ShouldRedactSchemeRelativeParseError", "//u:pw@example.com/%zz", nil},
 	}
 
 	for _, tc := range testCases {
@@ -344,6 +346,7 @@ func TestURLRemoveUserInfo(t *testing.T) {
 		{"ShouldRemoveEverythingWithoutValidScheme", "1a://u:pw@example.com/", "example.com/"},
 		{"ShouldNotChangeWithoutAt", "https://example.com/", "https://example.com/"},
 		{"ShouldNotChangeAbsolutePath", "/a@b", "/a@b"},
+		{"ShouldRemoveSchemeRelativeUserInfo", "//u:pw@example.com/", "//example.com/"},
 	}
 
 	for _, tc := range testCases {
@@ -488,6 +491,61 @@ func TestURIParserEmptyDotSegmentNotDetected(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.False(t, urlAmbiguity(have, u).Has(URLAmbiguityEmptyDotSegment))
+		})
+	}
+}
+
+func FuzzURIParserParse(f *testing.F) {
+	for _, seed := range []string{
+		"https://example.com/", "https://EXAMPLE.com:443/a/../b%2f?c=%7e", "/a/%2e%2e/b", "/a/..;/b", "/a//../b",
+		"/%252e%252e%252f", "/a%5Cb", "https://u:pw@example.com/", "https://[fe80::1%25en0]:8443/a", "/a?b=%zz",
+	} {
+		f.Add(seed)
+	}
+
+	parsers := []*URIParser{DefaultURIParser(), NewURIParser(WithURLAllowAmbiguity(URLAmbiguityAll))}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		for _, p := range parsers {
+			parsed, err := p.Parse(input)
+			if err != nil {
+				continue
+			}
+
+			assert.True(t, strings.HasPrefix(parsed.AccessPath, "/"), "access path %q", parsed.AccessPath)
+
+			accessPath, _, _ := strings.Cut(parsed.AccessPath, "?")
+
+			for _, segment := range strings.Split(accessPath, "/") {
+				assert.NotContains(t, []string{".", ".."}, segment, "access path %q", parsed.AccessPath)
+			}
+
+			if hostname := parsed.URL.Hostname(); hostname != "" && !IsHostnameValid(hostname) {
+				continue
+			}
+
+			reparsed, err := parsers[1].Parse(parsed.Canonical)
+			if assert.NoError(t, err, "canonical %q", parsed.Canonical) {
+				assert.Equal(t, parsed.Canonical, reparsed.Canonical, "canonical of %q is not idempotent", input)
+			}
+		}
+	})
+}
+
+func BenchmarkURIParserParse(b *testing.B) {
+	p := DefaultURIParser()
+
+	for _, input := range []string{
+		"https://app.example.com/api/v1/users/123/profile?expand=groups&limit=10",
+		"https://app.example.com/files/My%20Documents/caf%C3%A9/report%2Dfinal.pdf?x=%7e",
+		"https://app.example.com/a//b/c/d/e?x=1",
+	} {
+		b.Run(input, func(b *testing.B) {
+			b.ReportAllocs()
+
+			for b.Loop() {
+				_, _ = p.Parse(input)
+			}
 		})
 	}
 }

@@ -322,14 +322,21 @@ func urlSchemeDefaultPort(scheme string) string {
 }
 
 // URIRemoveUserInfo removes the userinfo from the raw input text without parsing it, removing everything up to the last
-// '@' other than the scheme and authority marker. Inputs which start with a '/' are returned unchanged.
+// '@' other than the scheme and authority marker. Inputs which start with a '//' are treated as scheme-relative, and
+// other inputs which start with a '/' are returned unchanged.
 func URIRemoveUserInfo(input string) string {
 	at := strings.LastIndexByte(input, '@')
-	if at == -1 || strings.HasPrefix(input, "/") {
+	schemeRelative := strings.HasPrefix(input, "//")
+
+	if at == -1 || (!schemeRelative && strings.HasPrefix(input, "/")) {
 		return input
 	}
 
 	prefix := urlSchemePrefix(input)
+
+	if schemeRelative {
+		prefix = "//"
+	}
 
 	if len(prefix) > at {
 		prefix = ""
@@ -431,12 +438,8 @@ func urlAmbiguityPathDecoded(decoded string) (ambiguity URLAmbiguity) {
 		ambiguity |= URLAmbiguityInvalidUTF8
 	}
 
-	segments := strings.Split(decoded, "/")
-
-	for i, segment := range segments {
-		if segment == "" && i != 0 && i != len(segments)-1 {
-			ambiguity |= URLAmbiguityEmptySegment
-		}
+	if strings.Contains(decoded, "//") {
+		ambiguity |= URLAmbiguityEmptySegment
 	}
 
 	return ambiguity
@@ -450,6 +453,11 @@ func urlAmbiguityDotSegments(raw string) (ambiguity URLAmbiguity) {
 		}
 
 		encoded := strings.IndexByte(segment, '%') != -1
+
+		if !encoded && strings.IndexByte(segment, ';') == -1 {
+			continue
+		}
+
 		decoded := urlDecodeTolerant(segment)
 
 		ambiguity |= urlAmbiguityDotSegmentPieces(decoded, encoded)
@@ -523,13 +531,28 @@ func urlAmbiguityQuery(query string) (ambiguity URLAmbiguity) {
 }
 
 func urlPathCanonical(raw string) string {
-	segments := strings.Split(raw, "/")
+	b := &strings.Builder{}
 
-	for i := 1; i < len(segments); i++ {
-		segments[i] = urlSegmentCanonical(segments[i])
+	b.Grow(len(raw))
+
+	for i := 0; i < len(raw); i++ {
+		switch c := raw[i]; {
+		case c == '%' && i+2 < len(raw) && isHex(raw[i+1]) && isHex(raw[i+2]):
+			if d := unhex(raw[i+1])<<4 | unhex(raw[i+2]); isUnreserved(d) {
+				b.WriteByte(d)
+			} else {
+				writePercentEncoded(b, d)
+			}
+
+			i += 2
+		case c == '/' || (c != '%' && isPChar(c)):
+			b.WriteByte(c)
+		default:
+			writePercentEncoded(b, c)
+		}
 	}
 
-	return urlRemoveDotSegments(strings.Join(segments, "/"))
+	return urlRemoveDotSegments(b.String())
 }
 
 func urlRemoveDotSegments(p string) string {
@@ -593,31 +616,6 @@ func urlMergeEmptySegments(p string) string {
 	}
 
 	return p
-}
-
-func urlSegmentCanonical(segment string) string {
-	b := &strings.Builder{}
-
-	b.Grow(len(segment))
-
-	for i := 0; i < len(segment); i++ {
-		switch c := segment[i]; {
-		case c == '%' && i+2 < len(segment) && isHex(segment[i+1]) && isHex(segment[i+2]):
-			if d := unhex(segment[i+1])<<4 | unhex(segment[i+2]); isUnreserved(d) {
-				b.WriteByte(d)
-			} else {
-				writePercentEncoded(b, d)
-			}
-
-			i += 2
-		case c != '%' && isPChar(c):
-			b.WriteByte(c)
-		default:
-			writePercentEncoded(b, c)
-		}
-	}
-
-	return b.String()
 }
 
 func urlQueryCanonical(query string) string {

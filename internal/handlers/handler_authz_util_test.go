@@ -667,11 +667,31 @@ func TestRedactedURL(t *testing.T) {
 		{"ShouldRedactQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "rd=https%3A%2F%2Fu%3Apw%40a.com%2F"}, "https://e.com?rd=https%3A%2F%2Fu%3Axxxxx%40a.com%2F"},
 		{"ShouldRedactEachQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "a=https%3A%2F%2Fu%3Apw%40a.com&a=https%3A%2F%2Fv%3Apw%40b.com"}, "https://e.com?a=https%3A%2F%2Fu%3Axxxxx%40a.com&a=https%3A%2F%2Fv%3Axxxxx%40b.com"},
 		{"ShouldRemoveUserInfoFromUnparsableQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "rd=https%3A%2F%2Fu%3Apw%40a.com%2F%25zz"}, "https://e.com?rd=https%3A%2F%2Fa.com%2F%25zz"},
+		{"ShouldRemoveUserInfoFromUnparsableSchemeRelativeQueryValue", &url.URL{Scheme: "https", Host: "e.com", RawQuery: "rd=%2F%2Fu%3Apw%40a.com%2F%25zz"}, "https://e.com?rd=%2F%2Fa.com%2F%25zz"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, redactedURL(tc.have))
+		})
+	}
+}
+
+func TestRedactedURIString(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+	}{
+		{"ShouldRedactParsable", "https://u:pw@a.com/", "https://u:xxxxx@a.com/"},
+		{"ShouldRemoveUserInfoFromUnparsable", "https://u:pw@a.com/%zz", "https://a.com/%zz"},
+		{"ShouldRemoveUserInfoFromUnparsableSchemeRelative", "//u:pw@a.com/%zz", "//a.com/%zz"},
+		{"ShouldNotChangeUnparsableAbsolutePath", "/a@b/%zz", "/a@b/%zz"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, redactedURIString(tc.have))
 		})
 	}
 }

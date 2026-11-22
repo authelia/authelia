@@ -109,6 +109,15 @@ func TestHandle1FAResponse(t *testing.T) {
 			},
 		},
 		{
+			"ShouldRedactPasswordInUnparsableSchemeRelativeTargetURI",
+			"//user:secret@app.example.com/%zz",
+			fasthttp.MethodGet,
+			`{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the target URL '//app.example.com/%zz'", "error occurred parsing object url: parse \"//app.example.com/%zz\": invalid url")
+			},
+		},
+		{
 			"ShouldRedirectAmbiguousTargetURI",
 			"https://app.example.com/a;jsessionid=1",
 			fasthttp.MethodGet,
@@ -269,6 +278,17 @@ func TestHandle2FAResponse(t *testing.T) {
 		mock.Assert200KO(t, messageMFAValidationFailed)
 
 		assert.NotContains(t, mock.Hook.LastEntry().Message, "secret")
+	})
+
+	t.Run("ShouldRedactPasswordInUnparsableSchemeRelativeTargetURI", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		Handle2FAResponse(mock.Ctx, "//user:secret@app.example.com/%zz")
+
+		mock.Assert200KO(t, messageMFAValidationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred determining if the URI '//app.example.com/%zz' is safe to redirect to as it could not be parsed", "error occurred parsing object url: parse \"//app.example.com/%zz\": invalid url")
 	})
 
 	t.Run("ShouldRedirectAmbiguousTargetURI", func(t *testing.T) {

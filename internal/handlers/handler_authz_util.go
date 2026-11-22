@@ -188,8 +188,12 @@ func redactedURL(u *url.URL) string {
 	if c.RawQuery != "" {
 		qry := c.Query()
 
-		for key, values := range qry {
+		for _, values := range qry {
 			for i, value := range values {
+				if strings.IndexByte(value, '@') == -1 {
+					continue
+				}
+
 				switch parsed, err := url.Parse(value); {
 				case err != nil:
 					values[i] = utils.URIRemoveUserInfo(value)
@@ -197,8 +201,6 @@ func redactedURL(u *url.URL) string {
 					values[i] = parsed.Redacted()
 				}
 			}
-
-			qry[key] = values
 		}
 
 		c.RawQuery = qry.Encode()
