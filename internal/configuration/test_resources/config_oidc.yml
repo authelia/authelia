@@ -137,6 +137,7 @@ identity_providers:
       - client_id: 'abc'
         client_secret: '123'
         consent_mode: 'explicit'
+        device_code_verification_uri_complete: true
         userinfo_signed_response_alg: 'none'
 cache:
   redis_sentinel:

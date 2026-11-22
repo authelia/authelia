@@ -7,6 +7,7 @@ package server
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,6 +23,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
@@ -77,6 +79,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			baseURL    string
 			domain     string
 			provider   session.Strategy
+			origin     *url.URL
 		)
 
 		baseURL = ctx.TemplateRootURL().String()
@@ -86,9 +89,13 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			rememberMe = strconv.FormatBool(!provider.GetConfig().DisableRememberMe)
 		}
 
+		origin, err = ctx.GetOrigin()
+
+		passkeyLogin := strconv.FormatBool(err == nil && ctx.Configuration.WebAuthn.EnablePasskeyLogin && webauthn.IsOriginAvailable(ctx.Configuration.WebAuthn, origin))
+
 		data := &bytes.Buffer{}
 
-		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe)); err != nil {
+		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe, passkeyLogin)); err != nil {
 			ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
@@ -298,19 +305,15 @@ type TemplatedFileOptions struct {
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
 
-// CommonData returns a TemplatedFileCommonData with the dynamic options.
-func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, rememberMe string) TemplatedFileCommonData {
-	if rememberMe != "" {
-		return options.commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, rememberMe)
-	}
-
-	return TemplatedFileCommonData{
-		Base:     base,
-		BaseURL:  baseURL,
-		Domain:   domain,
-		CSPNonce: nonce,
-		Language: language,
-
+// CommonData returns a TemplatedFileCommonData with the dynamic options. The rememberMe and passkeyLogin values
+// override the static options when they're not empty.
+func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, rememberMe, passkeyLogin string) TemplatedFileCommonData {
+	data := TemplatedFileCommonData{
+		Base:                   base,
+		BaseURL:                baseURL,
+		Domain:                 domain,
+		CSPNonce:               nonce,
+		Language:               language,
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
@@ -326,30 +329,16 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		Session:                options.Session,
 		Theme:                  options.Theme,
 	}
-}
 
-func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, rememberMe string) TemplatedFileCommonData {
-	return TemplatedFileCommonData{
-		Base:                   base,
-		BaseURL:                baseURL,
-		Domain:                 domain,
-		CSPNonce:               nonce,
-		Language:               language,
-		LogoOverride:           logoOverride,
-		DuoSelfEnrollment:      options.DuoSelfEnrollment,
-		PasskeyLogin:           options.PasskeyLogin,
-		ExternalIdentityLogin:  options.ExternalIdentityLogin,
-		RememberMe:             rememberMe,
-		ResetPassword:          options.ResetPassword,
-		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
-		TOTPAppAppleStore:      options.TOTPAppAppleStore,
-		TOTPAppGooglePlay:      options.TOTPAppGooglePlay,
-		RegistrationURL:        options.RegistrationURL,
-		PrivacyPolicyURL:       options.PrivacyPolicyURL,
-		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
-		Session:                options.Session,
-		Theme:                  options.Theme,
+	if rememberMe != "" {
+		data.RememberMe = rememberMe
 	}
+
+	if passkeyLogin != "" {
+		data.PasskeyLogin = passkeyLogin
+	}
+
+	return data
 }
 
 // OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options. The cookie is the name of the session cookie

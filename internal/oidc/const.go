@@ -103,7 +103,7 @@ const (
 	jwtClockSkewDefault                       = time.Second * 10
 	jwtClockSkewMaximum                       = time.Minute
 	lifespanDPoPProofDefault                  = time.Second * 10
-	lifespanBackChannelLogoutDefault          = time.Minute * 5
+	lifespanBackChannelLogoutDefault          = time.Minute * 2
 )
 
 const (

@@ -25,7 +25,7 @@ jobs:
 
       - name: Generate Token
         id: token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc  # v3.4.0
         with:
           client-id: ${{ vars.AUTHELIA_BOT_CLIENT_ID }}
           private-key: ${{ secrets.AUTHELIA_BOT_PRIVATE_KEY }}
@@ -40,7 +40,8 @@ jobs:
             const IMAGE = 'authelia/authelia';
             const EXCLUDED = /^(docs|all-contributors\/)/;
             const THANKS =
-              "Thanks for choosing to contribute @{login}. We lint all PR's with golangci-lint and eslint, " +
+              "Thanks for choosing to contribute @{login}. We lint all PR's with a number of linters including " +
+              'golangci-lint, eslint and typos, ' +
               'I may add a review to your PR with some suggestions.\n\n' +
               "You are free to apply the changes if you're comfortable, alternatively you are welcome to ask " +
               'a team member for advice.';

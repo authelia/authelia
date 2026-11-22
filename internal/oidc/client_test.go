@@ -2093,6 +2093,28 @@ func TestNewClientDisableRefreshTokenRotation(t *testing.T) {
 	}
 }
 
+func TestNewClientDeviceCodeVerificationURIComplete(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     bool
+		expected bool
+	}{
+		{"ShouldMapEnabled", true, true},
+		{"ShouldMapDisabled", false, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{ID: "app", DeviceCodeVerificationURIComplete: tc.have}, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			complete, ok := client.(oauthelia2.RFC8628VerificationURICompleteClient)
+
+			require.True(t, ok)
+			assert.Equal(t, tc.expected, complete.GetRFC8628VerificationURIComplete())
+		})
+	}
+}
+
 func TestGetRevokeRefreshTokensExplicit(t *testing.T) {
 	testCases := []struct {
 		name string

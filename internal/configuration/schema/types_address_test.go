@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -742,10 +743,21 @@ func TestAddress_Dial(t *testing.T) {
 func TestAddress_UnixDomainSocket(t *testing.T) {
 	dir := t.TempDir()
 
-	f, err := os.CreateTemp(dir, "fd-test")
+	fdPath := filepath.Join(dir, "fd-test")
+	require.NoError(t, os.WriteFile(fdPath, nil, 0600))
+
+	raw, err := syscall.Open(fdPath, syscall.O_RDONLY, 0)
 	require.NoError(t, err)
 
-	fd := uint64(f.Fd())
+	fd := uint64(raw) //nolint:gosec // A successfully opened descriptor is never negative.
+
+	owned := true
+
+	t.Cleanup(func() {
+		if owned {
+			_ = syscall.Close(raw)
+		}
+	})
 
 	testCases := []struct {
 		name     string
@@ -854,6 +866,10 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 
 				if runtime.GOOS == "darwin" && actual.IsUnixDomainSocket() {
 					return
+				}
+
+				if tc.fd != nil {
+					owned = false
 				}
 
 				ln, err := actual.Listener()

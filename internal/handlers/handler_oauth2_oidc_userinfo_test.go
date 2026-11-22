@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -120,6 +121,51 @@ func TestOpenIDConnectUserinfo(t *testing.T) {
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpUserInfoIssuerMismatch, nil)
 	})
+}
+
+func TestOpenIDConnectUserinfoAccessTokenURIQueryParameter(t *testing.T) {
+	testCases := []struct {
+		name     string
+		enable   bool
+		status   int
+		expected string
+	}{
+		{
+			"ShouldIgnoreTokenInQueryByDefault",
+			false,
+			http.StatusUnauthorized,
+			"request_unauthorized",
+		},
+		{
+			"ShouldReadTokenInQueryWhenEnabled",
+			true,
+			http.StatusForbidden,
+			"insufficient_scope",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			config := newTestOIDCConfig(t)
+			config.EnableAccessTokenURIQueryParameter = tc.enable
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCClientCredentialsClient(t)}
+
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCSessionStore(t, mock)
+
+			token := mustGetTestOIDCClientCredentialsToken(t, mock)
+
+			rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCUserinfoEndpoint+"?access_token="+url.QueryEscape(token), nil)
+
+			OpenIDConnectUserinfo(mock.Ctx, rw, r)
+
+			assert.Equal(t, tc.status, rw.Code)
+			assert.Contains(t, rw.Header().Get(fasthttp.HeaderWWWAuthenticate), `error="`+tc.expected+`"`)
+		})
+	}
 }
 
 const testOIDCUserinfoEndpoint = "https://login.example.com:8080/api/oidc/userinfo"

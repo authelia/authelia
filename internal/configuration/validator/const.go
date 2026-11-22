@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 const (
@@ -244,6 +245,7 @@ const (
 	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
 	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: jwks: keys: must at least have one key supporting the '%s' algorithm but only has %s"
+	errFmtOIDCProviderPrivateKeysRSA15NotEnabled         = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' but the 'enable_rsa1_5_key_management' option is not enabled"
 	errFmtOIDCProviderSigAlgDeprecated                   = "identity_providers: oidc: option '%s' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderPrivateKeysSigAlgDeprecated        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderInvalidValue                       = "identity_providers: oidc: option " +
@@ -292,6 +294,12 @@ const (
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = errFmtOIDCClientRedirectURIHas +
 		"an invalid value: redirect uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientRedirectURILoopbackNotNative = errFmtOIDCClientRedirectURIHas +
+		"the redirect uri '%s' which uses the 'http' scheme with a loopback address or a 'localhost' name but this is " +
+		"only permitted when option 'application_type' is 'native' but it's configured as '%s', the 'https' scheme " +
+		"should be used instead"
+	errFmtOIDCClientRedirectURIAuthorizationResponseParameter = errFmtOIDCClientRedirectURIHas +
+		"an invalid value: redirect uri '%s' must not include the authorization response parameter '%s' in the query"
 	errFmtOIDCClientRedirectURIInsecure = errFmtOIDCClientRedirectURIHas +
 		"the redirect uri '%s' which uses the 'http' scheme with a host which is not a loopback address or a " +
 		"'localhost' name, authorization requests using this redirect uri will be rejected and the 'https' scheme " +
@@ -355,6 +363,8 @@ const (
 		"'%s' must not have empty values but an empty value was present at index %d"
 	errFmtOIDCClientInvalidValue = errFmtOIDCClientOption +
 		errFmtMustBeOneOf
+	errFmtOIDCClientRSA15NotEnabled = errFmtOIDCClientOption +
+		"'%s' is configured as '%s' but the 'enable_rsa1_5_key_management' option is not enabled"
 	errFmtOIDCClientInvalidLifespan = errFmtOIDCClientOption +
 		"'lifespan' must not be configured when no custom lifespans are configured but it's configured as '%s'"
 	errFmtOIDCClientInvalidEndpointAuthMethod = errFmtOIDCClientOption +
@@ -421,12 +431,31 @@ const (
 
 // WebAuthn Error constants.
 const (
-	errFmtWebAuthnConveyancePreference   = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnSelectionCriteria      = "webauthn: selection_criteria: option '%s' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnPasskeyDiscoverability = "webauthn: selection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
-	errFmtWebAuthnFiltering              = "webauthn: filtering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
-	errFmtWebAuthnBoolean                = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
-	errFmtWebAuthnMetadataString         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
+	errFmtWebAuthnConveyancePreference                   = "webauthn: %soption 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnSelectionCriteria                      = "webauthn: %sselection_criteria: option '%s' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnPasskeyDiscoverability                 = "webauthn: %sselection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
+	errFmtWebAuthnFiltering                              = "webauthn: %sfiltering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
+	errFmtWebAuthnRelyingPartyPrefix                     = "relying_parties: %s: "
+	errFmtWebAuthnRelyingPartyOpaqueOriginEmpty          = "webauthn: %soption 'opaque_origins' item #%d is empty but it must have a value"
+	errFmtWebAuthnRelyingPartyOpaqueOriginNotOpaque      = "webauthn: %soption 'opaque_origins' item #%d has value '%s' but it must be an opaque origin and this value belongs in the 'origins' option"
+	errFmtWebAuthnRelyingPartyOpaqueOriginUnknown        = "webauthn: %soption 'opaque_origins' item #%d has value '%s' but it must be an opaque origin a client conveys i.e. one prefixed with %s"
+	errFmtWebAuthnUnsolicitedOutputPolicy                = "webauthn: %soption 'extensions_unsolicited_output_policy' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnBoolean                                = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
+	errFmtWebAuthnMetadataString                         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
+	errFmtWebAuthnRelatedOriginsRelyingPartyIDEmpty      = "webauthn: relying_parties: a dictionary key is empty but each key must be a relying party id"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase = "webauthn: %sthe dictionary key is not lower case but it must be as it's the relying party id"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNotValid     = "webauthn: %sthe dictionary key is not a valid relying party id: %w"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNoOrigin     = "webauthn: %soption 'origins' must have an origin with the relying party id as its hostname when any origin is not the relying party id or a subdomain of it"
+	errFmtWebAuthnRelatedOriginsRelyingPartyPublicSuffix = "webauthn: %sthe dictionary key is a public suffix but it must be a registrable domain when no origin has the relying party id as its hostname"
+	errFmtWebAuthnRelatedOriginsOriginsEmpty             = "webauthn: %soption 'origins' is empty but it must have at least one value"
+	errFmtWebAuthnRelatedOriginsOriginEmpty              = "webauthn: %soption 'origins' item #%d is empty"
+	errFmtWebAuthnRelatedOriginsOriginNotValidOrigin     = "webauthn: %soption 'origins' item #%d with value '%s' is invalid as it must only have a scheme, host, and optional port"
+	errFmtWebAuthnRelatedOriginsOriginNotRelatable       = "webauthn: %soption 'origins' item #%d with value '%s' is invalid as it must be an absolute URL with the %s scheme and a host"
+	errFmtWebAuthnRelatedOriginsOriginDuplicate          = "webauthn: relying_parties: option 'origins' has value '%s' which can only be defined in one relying party but it's defined in %s"
+	errFmtWebAuthnRelatedOriginsOriginDuplicateSelf      = "webauthn: %soption 'origins' has value '%s' defined more than once"
+	errFmtWebAuthnRelatedOriginsOriginNotSessionCookie   = "webauthn: %soption 'origins' item #%d has value '%s' but this value is not a valid origin for any 'authelia_url' configured in the session cookies"
+	errFmtWebAuthnRelatedOriginsLabels                   = "webauthn: %soption 'origins' is invalid: %s"
+	errFmtWebAuthnRelatedOriginsLabelsOpaque             = "webauthn: %soption 'origins' is invalid when option 'opaque_origins' is configured: %s"
 )
 
 // Access Control error constants.
@@ -660,17 +689,18 @@ var (
 )
 
 var (
-	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
-	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
-	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
-	validSessionStorageValues                = []string{schema.SessionStorageCache, schema.SessionStorageInternal}
-	validCacheRedisSentinelModes             = []string{schema.RedisSentinelModeCluster, schema.RedisSentinelModeFailover}
-	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
-	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
-	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
-	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
-	validWebAuthnAttachment                  = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
-	validWebAuthnDiscoverability             = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
+	validStoragePostgreSQLSSLModes                   = []string{"disable", "require", "verify-ca", "verify-full"}
+	validThemeNames                                  = []string{"light", "dark", "grey", "oled", auto}
+	validSessionSameSiteValues                       = []string{"none", "lax", "strict"}
+	validSessionStorageValues                        = []string{schema.SessionStorageCache, schema.SessionStorageInternal}
+	validCacheRedisSentinelModes                     = []string{schema.RedisSentinelModeCluster, schema.RedisSentinelModeFailover}
+	validLogLevels                                   = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
+	validLogFormats                                  = []string{logging.FormatText, logging.FormatJSON}
+	validWebAuthnConveyancePreferences               = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+	validWebAuthnUserVerificationRequirement         = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+	validWebAuthnAttachment                          = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
+	validWebAuthnExtensionsUnsolicitedOutputPolicies = []string{webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore}
+	validWebAuthnDiscoverability                     = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
 )
 
 var (

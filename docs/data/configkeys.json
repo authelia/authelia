@@ -995,6 +995,11 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_KEY_ID"
   },
   {
+    "path": "identity_providers.oidc.enable_access_token_uri_query_parameter",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_ACCESS_TOKEN_URI_QUERY_PARAMETER"
+  },
+  {
     "path": "identity_providers.oidc.enable_client_assertion_legacy_audience",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_CLIENT_ASSERTION_LEGACY_AUDIENCE"
@@ -1005,6 +1010,11 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_CLIENT_DEBUG_MESSAGES"
   },
   {
+    "path": "identity_providers.oidc.enable_device_code_verification_uri_complete",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_DEVICE_CODE_VERIFICATION_URI_COMPLETE"
+  },
+  {
     "path": "identity_providers.oidc.enable_jwt_access_token_stateless_introspection",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_JWT_ACCESS_TOKEN_STATELESS_INTROSPECTION"
@@ -1013,6 +1023,11 @@
     "path": "identity_providers.oidc.enable_pkce_plain_challenge",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_PKCE_PLAIN_CHALLENGE"
+  },
+  {
+    "path": "identity_providers.oidc.enable_rsa1_5_key_management",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_RSA1_5_KEY_MANAGEMENT"
   },
   {
     "path": "identity_providers.oidc.enforce_pkce",
@@ -1078,6 +1093,11 @@
     "path": "identity_providers.oidc.resource_strategy",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_RESOURCE_STRATEGY"
+  },
+  {
+    "path": "identity_providers.oidc.special_use_address_guard.disable",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_SPECIAL_USE_ADDRESS_GUARD_DISABLE"
   },
   {
     "path": "identity_validation.elevated_session.characters",
