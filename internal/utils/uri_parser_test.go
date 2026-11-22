@@ -259,7 +259,6 @@ func TestURIParserErrorRedactsPassword(t *testing.T) {
 		{"ShouldRedactRejection", "https://u:pw@example.com/", nil},
 		{"ShouldRedactOpaque", "https:u:pw@example.com", nil},
 		{"ShouldRedactFragmentInUserInfo", "https://u:pw#x@example.com/", nil},
-		{"ShouldRedactSlashInPassword", "https://u:pw/x@example.com/", nil},
 		{"ShouldRedactOpaqueWithLaterAuthorityMarker", "https:u:pw@example.com?x=http://a", nil},
 		{"ShouldRedactOpaqueWithLaterAuthorityMarkerPath", "https:u:pw@example.com/x://y", nil},
 		{"ShouldRedactSchemeRelativeParseError", "//u:pw@example.com/%zz", nil},
@@ -349,6 +348,12 @@ func TestURLRemoveUserInfo(t *testing.T) {
 		{"ShouldNotChangeWithoutAt", "https://example.com/", "https://example.com/"},
 		{"ShouldNotChangeAbsolutePath", "/a@b", "/a@b"},
 		{"ShouldRemoveSchemeRelativeUserInfo", "//u:pw@example.com/", "//example.com/"},
+		{"ShouldNotChangeAtInPath", "https://example.com/a@b", "https://example.com/a@b"},
+		{"ShouldNotChangeAtInQueryAfterPath", "https://example.com/%zz?e=a@b", "https://example.com/%zz?e=a@b"},
+		{"ShouldNotChangeSchemeRelativeAtInPath", "//example.com/a@b", "//example.com/a@b"},
+		{"ShouldRemoveUserInfoAndKeepAtInPath", "https://u:pw@example.com/a@b", "https://example.com/a@b"},
+		{"ShouldRemoveUpToLastAtBeforeFirstSlash", "https://u:pw#x@example.com/", "https://example.com/"},
+		{"ShouldEndAuthorityAtFirstSlash", "https://u:pw/x@example.com/", "https://u:pw/x@example.com/"},
 	}
 
 	for _, tc := range testCases {

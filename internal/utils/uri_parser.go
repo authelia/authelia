@@ -328,20 +328,34 @@ func urlSchemeDefaultPort(scheme string) string {
 }
 
 // URIRemoveUserInfo removes the userinfo from the raw input text without parsing it, removing everything up to the last
-// '@' other than the scheme and authority marker. Inputs which start with a '//' are treated as scheme-relative, and
-// other inputs which start with a '/' are returned unchanged.
+// '@' other than the scheme and authority marker. When the input has an authority marker the '@' is only searched for
+// within the authority, which ends at the first '/' after the marker. Inputs which start with a '//' are treated as
+// scheme-relative, and other inputs which start with a '/' are returned unchanged.
 func URIRemoveUserInfo(input string) string {
-	at := strings.LastIndexByte(input, '@')
 	schemeRelative := strings.HasPrefix(input, "//")
 
-	if at == -1 || (!schemeRelative && strings.HasPrefix(input, "/")) {
+	if !schemeRelative && strings.HasPrefix(input, "/") {
 		return input
 	}
 
-	prefix := urlSchemePrefix(input)
+	prefix := "//"
 
-	if schemeRelative {
-		prefix = "//"
+	if !schemeRelative {
+		prefix = urlSchemePrefix(input)
+	}
+
+	end := len(input)
+
+	if strings.HasSuffix(prefix, "//") {
+		if i := strings.IndexByte(input[len(prefix):], '/'); i != -1 {
+			end = len(prefix) + i
+		}
+	}
+
+	at := strings.LastIndexByte(input[:end], '@')
+
+	if at == -1 {
+		return input
 	}
 
 	if len(prefix) > at {
