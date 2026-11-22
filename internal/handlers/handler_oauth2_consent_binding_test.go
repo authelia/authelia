@@ -24,6 +24,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 func TestHandleOAuth2ConsentSessionBind(t *testing.T) {
@@ -176,6 +177,137 @@ func TestHandleOAuth2ConsentSessionLoadBound(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				assert.Equal(t, challenge, consent.ChallengeID)
+			}
+		})
+	}
+}
+
+func TestHandleOAuth2ConsentSessionLoadBoundOrClaim(t *testing.T) {
+	challenge := uuid.MustParse("6d7e6b0e-5d3a-4c8e-9b1e-1f2a3b4c5d6e")
+
+	testCases := []struct {
+		name    string
+		setup   func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		err     string
+		binding string
+		issued  bool
+	}{
+		{
+			name: "ShouldLoadBoundConsentSession",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(&model.OAuth2ConsentSession{ID: 1, ChallengeID: challenge, Binding: mocks.UserAgentBindingDigest}, nil)
+			},
+			binding: mocks.UserAgentBindingDigest,
+		},
+		{
+			name: "ShouldRejectConsentSessionBoundToAnotherUserAgent",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(&model.OAuth2ConsentSession{ID: 1, ChallengeID: challenge, Binding: newTestSessionCookie("another-user-agent")}, nil)
+			},
+			err: "the consent session is not bound to the user agent",
+		},
+		{
+			name: "ShouldClaimUnboundConsentSessionWithTheExistingBinding",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+						Return(&model.OAuth2ConsentSession{ID: 1, ChallengeID: challenge}, nil),
+					mock.StorageMock.EXPECT().
+						SaveOAuth2ConsentSessionBinding(gomock.Eq(mock.Ctx), gomock.Eq(&model.OAuth2ConsentSession{ID: 1, ChallengeID: challenge, Binding: mocks.UserAgentBindingDigest})).
+						Return(nil),
+				)
+			},
+			binding: mocks.UserAgentBindingDigest,
+			issued:  true,
+		},
+		{
+			name: "ShouldClaimUnboundConsentSessionWithANewBinding",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.DelCookie(session.UserAgentBindingCookieName("authelia_session"))
+
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+						Return(&model.OAuth2ConsentSession{ID: 1, ChallengeID: challenge}, nil),
+					mock.StorageMock.EXPECT().
+						SaveOAuth2ConsentSessionBinding(gomock.Eq(mock.Ctx), gomock.Any()).
+						Return(nil),
+				)
+			},
+			issued: true,
+		},
+		{
+			name: "ShouldRejectConsentSessionClaimedConcurrently",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+						Return(&model.OAuth2ConsentSession{ID: 1, ChallengeID: challenge}, nil),
+					mock.StorageMock.EXPECT().
+						SaveOAuth2ConsentSessionBinding(gomock.Eq(mock.Ctx), gomock.Any()).
+						Return(fmt.Errorf("error updating oauth2 consent session (binding): %w", storage.ErrNoRowsAffected)),
+				)
+			},
+			err: "error occurred claiming the consent session: error updating oauth2 consent session (binding): no rows affected",
+		},
+		{
+			name: "ShouldHandleStorageError",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+					Return(nil, sql.ErrNoRows)
+			},
+			err: "sql: no rows in result set",
+		},
+		{
+			name: "ShouldHandleSessionProviderError",
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				clearForwardedHeaders(mock)
+			},
+			err: "error occurred obtaining the session provider to verify the consent session binding: unable to retrieve session cookie domain: missing required X-Forwarded-Host header",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			if tc.setup != nil {
+				tc.setup(t, mock)
+			}
+
+			consent, err := handleOAuth2ConsentSessionLoadBoundOrClaim(mock.Ctx, challenge)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, consent)
+				assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, challenge, consent.ChallengeID)
+
+			if !tc.issued {
+				assert.Equal(t, tc.binding, consent.Binding)
+				assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
+
+				return
+			}
+
+			binding := assertTestOAuth2UserAgentBindingCookie(t, mock)
+
+			assert.Equal(t, session.UserAgentBindingDigest(binding), consent.Binding)
+
+			if tc.binding != "" {
+				assert.Equal(t, tc.binding, consent.Binding)
 			}
 		})
 	}

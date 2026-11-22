@@ -81,6 +81,50 @@ func TestSQLProviderSessionSaveShouldCheckTheAffectedRows(t *testing.T) {
 	}
 }
 
+func TestSQLProviderSessionSaveDataShouldCheckTheAffectedRows(t *testing.T) {
+	testCases := []struct {
+		name   string
+		result sql.Result
+		live   int
+		getErr error
+		err    string
+	}{
+		{"ShouldSucceedWhenARowWasWritten", driver.RowsAffected(1), -1, nil, ""},
+		{"ShouldReturnSupersededWhenNoRowWasWrittenForAMissingSession", driver.RowsAffected(0), 0, nil, session.ErrSessionSuperseded.Error()},
+		{"ShouldSucceedWhenNoRowWasWrittenForAnUnchangedSession", driver.RowsAffected(0), 1, nil, ""},
+		{"ShouldReturnErrorWhenTheSessionCannotBeChecked", driver.RowsAffected(0), 0, errors.New("boom"), "error determining whether the session was saved: boom"},
+		{"ShouldReturnErrorWhenTheAffectedRowsAreUnavailable", driver.ResultNoRows, -1, nil, "error determining whether the session was saved: no RowsAffected available after DDL statement"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			db := mocks.NewMockSQLXDB(ctrl)
+
+			db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), []byte("data"), "an-issuer", "a-signature").Return(tc.result, nil)
+
+			if tc.live >= 0 {
+				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "an-issuer", "a-signature").DoAndReturn(func(_ context.Context, dest any, _ string, _ ...any) error {
+					*(dest.(*int)) = tc.live
+
+					return tc.getErr
+				})
+			}
+
+			p := storage.NewSQLProviderForTesting(db)
+
+			err := p.SessionSaveData(t.Context(), "an-issuer", "a-signature", "a-public-id", "john", time.Hour, nil, []byte("data"))
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
+}
+
 func TestSQLProviderLoadHMACKeyShouldAdoptTheExistingKeyOnUniqueViolation(t *testing.T) {
 	testCases := []struct {
 		name      string

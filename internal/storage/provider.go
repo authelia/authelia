@@ -286,6 +286,11 @@ type Provider interface {
 	// has been granted by the authorization endpoint.
 	SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error)
 
+	// SaveOAuth2ConsentSessionBinding binds an OAuth2.0 consent session in the storage provider to a user agent by
+	// saving its binding, but only when the consent session is unbound and is not yet responded to, so only one user
+	// agent can ever claim it.
+	SaveOAuth2ConsentSessionBinding(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
+
 	// LoadOAuth2ConsentSessionByChallengeID returns an OAuth2.0 consent session in the storage provider given the
 	// challenge ID.
 	LoadOAuth2ConsentSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error)

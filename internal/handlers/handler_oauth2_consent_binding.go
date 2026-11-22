@@ -62,3 +62,37 @@ func handleOAuth2ConsentSessionLoadBound(ctx *middlewares.AutheliaCtx, challenge
 
 	return consent, nil
 }
+
+func handleOAuth2ConsentSessionLoadBoundOrClaim(ctx *middlewares.AutheliaCtx, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error) {
+	var provider session.Strategy
+
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		return nil, fmt.Errorf("error occurred obtaining the session provider to verify the consent session binding: %w", err)
+	}
+
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID); err != nil {
+		return nil, err
+	}
+
+	if len(consent.Binding) != 0 {
+		if !provider.VerifyUserAgentBinding(ctx, consent.Binding) {
+			return nil, errOAuth2ConsentSessionNotBound
+		}
+
+		return consent, nil
+	}
+
+	var binding string
+
+	if binding, err = handleOAuth2ConsentSessionBind(ctx, consent); err != nil {
+		return nil, err
+	}
+
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionBinding(ctx, consent); err != nil {
+		return nil, fmt.Errorf("error occurred claiming the consent session: %w", err)
+	}
+
+	provider.IssueUserAgentBinding(ctx, binding)
+
+	return consent, nil
+}

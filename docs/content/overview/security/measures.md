@@ -472,7 +472,10 @@ the `_ua` suffix such as `__Host-Http-authelia_session_ua`. A consent session is
 presents the same value, and a consent session which is created for a signed in user is only accepted from that user,
 so a consent session identifier which is disclosed or injected can't be used to complete the authorization request in
 another browser or by another user. Authorization requests which use the HTTP POST method are stored in a consent session before any
-redirection, so their parameters never appear in a URL.
+redirection, so their parameters never appear in a URL. The browser doesn't send the user agent binding cookie with a
+cross-site POST, so rather than replacing the value the browser already holds, which would invalidate any other
+authorization request it has in progress, these consent sessions are bound to the first browser which follows the
+redirection.
 
 The validity period of session is highly configurable. For example, in a highly security conscious domain you could
 set the session [remember_me](../../configuration/session/introduction.md#remember_me) to 0 to disable this

@@ -112,6 +112,24 @@ func TestStorageSessionSaveDataShouldUpdateData(t *testing.T) {
 	assertRecord(t, session.NewRecord("a-signature", []byte("second")), record)
 }
 
+func TestStorageSessionSaveDataShouldAcceptUnchangedData(t *testing.T) {
+	ctx, provider := newTestSessionProvider(t)
+
+	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("first")))
+	require.NoError(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, nil, []byte("first")))
+}
+
+func TestStorageSessionSaveDataShouldNotCreateAMissingSession(t *testing.T) {
+	ctx, provider := newTestSessionProvider(t)
+
+	assert.ErrorIs(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, nil, []byte("data")), session.ErrSessionSuperseded)
+
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+
+	require.NoError(t, err)
+	assert.Nil(t, record)
+}
+
 func TestStorageSessionSaveDataShouldOnlyUpdateUnchangedData(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -281,7 +299,7 @@ func TestStorageSessionSaveShouldDiscardStaleSaveAfterDelete(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, record)
 
-	require.NoError(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, nil, []byte("stale")))
+	assert.ErrorIs(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, nil, []byte("stale")), session.ErrSessionSuperseded)
 
 	record, err = provider.SessionGet(ctx, "an-issuer", "a-signature")
 

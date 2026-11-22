@@ -10,12 +10,14 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -84,9 +86,37 @@ func TestOAuth2AuthorizationPOSTFlow(t *testing.T) {
 			},
 		},
 		{
-			name:          "ShouldRejectReferenceFromAnotherUserAgent",
+			name:          "ShouldClaimReferenceWithTheExistingBinding",
+			authenticated: true,
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values, rw *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusSeeOther, rw.Code)
+
+				assert.NotEmpty(t, mustParseTestURI(t, rw.Header().Get(fasthttp.HeaderLocation)).Query().Get(testOIDCFormParameterCode))
+				assert.Equal(t, mocks.UserAgentBinding, assertTestOAuth2UserAgentBindingCookie(t, mock))
+				assert.Equal(t, mocks.UserAgentBindingDigest, mustLoadTestOAuth2ConsentReference(t, mock, reference).Binding)
+			},
+		},
+		{
+			name:          "ShouldClaimReferenceWithANewBindingWhenAbsent",
 			authenticated: true,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values) {
+				mock.Ctx.Request.Header.DelCookie(session.UserAgentBindingCookieName("authelia_session"))
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values, rw *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusSeeOther, rw.Code)
+
+				binding := assertTestOAuth2UserAgentBindingCookie(t, mock)
+
+				assert.NotEqual(t, mocks.UserAgentBinding, binding)
+				assert.Equal(t, session.UserAgentBindingDigest(binding), mustLoadTestOAuth2ConsentReference(t, mock, reference).Binding)
+			},
+		},
+		{
+			name:          "ShouldRejectReferenceClaimedByAnotherUserAgent",
+			authenticated: true,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values) {
+				claimTestOAuth2ConsentReference(t, mock, reference)
+
 				mock.Ctx.Request.Header.SetCookie(session.UserAgentBindingCookieName("authelia_session"), newTestSessionCookie("another-user-agent"))
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values, rw *httptest.ResponseRecorder) {
@@ -94,9 +124,11 @@ func TestOAuth2AuthorizationPOSTFlow(t *testing.T) {
 			},
 		},
 		{
-			name:          "ShouldRejectReferenceWithoutBinding",
+			name:          "ShouldRejectClaimedReferenceWithoutBinding",
 			authenticated: true,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values) {
+				claimTestOAuth2ConsentReference(t, mock, reference)
+
 				mock.Ctx.Request.Header.DelCookie(session.UserAgentBindingCookieName("authelia_session"))
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values, rw *httptest.ResponseRecorder) {
@@ -202,4 +234,22 @@ func assertTestOAuth2AuthorizationConsentReferenceRejected(t *testing.T, mock *m
 	assert.Empty(t, location.Query().Get(testOIDCFormParameterCode))
 
 	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationFailed, err)
+}
+
+func mustLoadTestOAuth2ConsentReference(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values) (consent *model.OAuth2ConsentSession) {
+	t.Helper()
+
+	consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, uuid.MustParse(reference.Get(queryArgConsentID)))
+	require.NoError(t, err)
+
+	return consent
+}
+
+func claimTestOAuth2ConsentReference(t *testing.T, mock *mocks.MockAutheliaCtx, reference url.Values) {
+	t.Helper()
+
+	consent := mustLoadTestOAuth2ConsentReference(t, mock, reference)
+	consent.Binding = mocks.UserAgentBindingDigest
+
+	require.NoError(t, mock.Ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionBinding(mock.Ctx, consent))
 }

@@ -192,7 +192,9 @@ func (r *Redis) StartupCheck() (err error) {
 }
 
 // SessionGet implements the Provider interface. The data and remaining TTL are read by a script so they describe the
-// same instant.
+// same instant. The script is deliberately run with EVALSHA rather than EVALSHA_RO so it's always sent to the master even
+// when read-only commands are routed to replicas, as a replica which lags behind could report a session which was just
+// saved as missing or out of date, and the superseded save detection relies on reading the latest data.
 func (r *Redis) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
 	var result []any
 

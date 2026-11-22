@@ -336,6 +336,24 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx,
 }
 
 func handleOAuth2NewConsentSession(ctx *middlewares.AutheliaCtx, subject uuid.UUID, requester oauthelia2.Requester, prefixPAR string) (consent *model.OAuth2ConsentSession, err error) {
+	if consent, err = handleOAuth2NewUnboundConsentSession(ctx, subject, requester, prefixPAR); err != nil {
+		return nil, err
+	}
+
+	var binding string
+
+	if binding, err = handleOAuth2ConsentSessionBind(ctx, consent); err != nil {
+		return nil, err
+	}
+
+	if err = handleOAuth2ConsentSessionIssueBinding(ctx, binding); err != nil {
+		return nil, err
+	}
+
+	return consent, nil
+}
+
+func handleOAuth2NewUnboundConsentSession(ctx *middlewares.AutheliaCtx, subject uuid.UUID, requester oauthelia2.Requester, prefixPAR string) (consent *model.OAuth2ConsentSession, err error) {
 	if oidc.IsPushedAuthorizedRequest(requester, prefixPAR) {
 		form := url.Values{}
 
@@ -351,16 +369,6 @@ func handleOAuth2NewConsentSession(ctx *middlewares.AutheliaCtx, subject uuid.UU
 	}
 
 	if err != nil {
-		return nil, err
-	}
-
-	var binding string
-
-	if binding, err = handleOAuth2ConsentSessionBind(ctx, consent); err != nil {
-		return nil, err
-	}
-
-	if err = handleOAuth2ConsentSessionIssueBinding(ctx, binding); err != nil {
 		return nil, err
 	}
 

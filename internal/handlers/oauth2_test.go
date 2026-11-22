@@ -420,6 +420,21 @@ func setupTestOIDCConsentStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 		})
 
 	mock.StorageMock.EXPECT().
+		SaveOAuth2ConsentSessionBinding(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, consent *model.OAuth2ConsentSession) (err error) {
+			stored, ok := consents[consent.ChallengeID]
+
+			if !ok || stored.ID != consent.ID || stored.Binding != "" || stored.Responded() {
+				return storage.ErrNoRowsAffected
+			}
+
+			stored.Binding = consent.Binding
+
+			return nil
+		})
+
+	mock.StorageMock.EXPECT().
 		SaveOAuth2ConsentSessionGranted(gomock.Any(), gomock.Any()).
 		AnyTimes().
 		DoAndReturn(func(_ context.Context, id int) (err error) {

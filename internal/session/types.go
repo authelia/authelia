@@ -232,10 +232,11 @@ type Repository interface {
 	Save(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 
 	// SaveData updates only the sealed session data and expiration of the existing session record for the identifier,
-	// and isn't guaranteed to create the record or update the public identifier or username associated with it. When
-	// previous isn't nil the record is only updated if its sealed data is still exactly previous, and otherwise nothing
-	// is written and ErrSessionSuperseded is returned, which includes when the record was destroyed or moved. This allows
-	// a caller which read the record to write it back without discarding a write made to it in the meantime.
+	// and never creates the record or updates the public identifier or username associated with it. When the record is
+	// missing, destroyed, or moved nothing is written and ErrSessionSuperseded is returned. When previous isn't nil the
+	// record is also only updated if its sealed data is still exactly previous, and otherwise nothing is written and
+	// ErrSessionSuperseded is returned. This allows a caller which read the record to write it back without discarding a
+	// write made to it in the meantime.
 	SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, previous, data []byte) (err error)
 
 	// Touch extends the expiration of the existing session record for the identifier, and every lookup which refers to
@@ -285,8 +286,9 @@ type Backend interface {
 	SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
 
 	// SessionSaveData updates the session data in the cache, refreshing the expiry of the session and every lookup
-	// which refers to it. When previous isn't nil the session is only updated if its data is still exactly previous, and
-	// otherwise ErrSessionSuperseded is returned.
+	// which refers to it. It never creates the session, and returns ErrSessionSuperseded when the session is missing,
+	// destroyed, or moved. When previous isn't nil the session is also only updated if its data is still exactly
+	// previous, and otherwise ErrSessionSuperseded is returned.
 	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, previous, data []byte) (err error)
 
 	// SessionTouch should extend the expiry of an existing session and every lookup which refers to it without changing

@@ -344,6 +344,16 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 			expectErr: "error updating oauth2 consent session (granted) with id '7': boom",
 		},
 		{
+			name: "ShouldReturnErrSaveOAuth2ConsentSessionBinding",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "digest", 7).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.SaveOAuth2ConsentSessionBinding(context.Background(), &model.OAuth2ConsentSession{ID: 7, ChallengeID: uuid.Nil, Binding: "digest"})
+			},
+			expectErr: "error updating oauth2 consent session (binding) with id '7' and challenge id '00000000-0000-0000-0000-000000000000': boom",
+		},
+		{
 			name: "ShouldReturnErrRevokeOAuth2PARContext",
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig").Return(nil, errors.New("boom"))

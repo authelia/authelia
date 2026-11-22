@@ -743,7 +743,7 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 			},
 		},
 		{
-			name:   "ShouldStoreRequestInConsentSessionBoundToTheExistingBindingAndExtendIt",
+			name:   "ShouldStoreRequestInUnboundConsentSession",
 			values: newTestOIDCAuthorizationValues(),
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				setupTestOIDCConsentStore(t, mock)
@@ -751,28 +751,14 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
 				consent := assertTestOAuth2AuthorizationConsentReference(t, mock, rw)
 
-				binding := assertTestOAuth2UserAgentBindingCookie(t, mock)
-
-				assert.Equal(t, mocks.UserAgentBinding, binding)
-				assert.Equal(t, session.UserAgentBindingDigest(binding), consent.Binding)
+				assert.Empty(t, consent.Binding)
+				assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
 			},
 		},
 		{
-			name:    "ShouldStoreRequestInBoundConsentSessionWhenCrossSite",
+			name:    "ShouldNotReplaceBindingWhenCrossSite",
 			values:  newTestOIDCAuthorizationValues(),
 			headers: newTestOAuth2AuthorizationBounceHeaders(),
-			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				setupTestOIDCConsentStore(t, mock)
-			},
-			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
-				consent := assertTestOAuth2AuthorizationConsentReference(t, mock, rw)
-
-				assert.Equal(t, session.UserAgentBindingDigest(assertTestOAuth2UserAgentBindingCookie(t, mock)), consent.Binding)
-			},
-		},
-		{
-			name:   "ShouldIssueBindingWhenAbsent",
-			values: newTestOIDCAuthorizationValues(),
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.DelCookie(session.UserAgentBindingCookieName("authelia_session"))
 
@@ -781,10 +767,8 @@ func TestOAuth2AuthorizationPOST(t *testing.T) {
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, rw *httptest.ResponseRecorder) {
 				consent := assertTestOAuth2AuthorizationConsentReference(t, mock, rw)
 
-				binding := assertTestOAuth2UserAgentBindingCookie(t, mock)
-
-				assert.NotEqual(t, mocks.UserAgentBinding, binding)
-				assert.Equal(t, session.UserAgentBindingDigest(binding), consent.Binding)
+				assert.Empty(t, consent.Binding)
+				assert.Nil(t, mock.Ctx.Response.Header.PeekCookie(session.UserAgentBindingCookieName("authelia_session")))
 			},
 		},
 		{

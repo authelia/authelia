@@ -229,8 +229,10 @@ func handleOAuth2AuthorizationUserNotFound(ctx *middlewares.AutheliaCtx, provide
 
 // OAuth2AuthorizationPOST handles Authorization Requests which use the HTTP POST method per OpenID Connect 1.0 Core
 // Section 3.1.2.1. The session cookie is not sent with a cross-site POST so the request is validated, stored in a consent
-// session bound to the user agent, and the user agent is redirected to the Authorization Endpoint with a reference to
-// it, which the GET handler resolves. This keeps the parameters out of the URL. The redirection uses the 303 status
+// session, and the user agent is redirected to the Authorization Endpoint with a reference to it, which the GET handler
+// resolves. This keeps the parameters out of the URL. The user agent binding cookie isn't sent with a cross-site POST
+// either, so the consent session is left unbound and the first user agent to resolve the reference claims it, which
+// avoids replacing the binding of any other consent session the user agent has pending. The redirection uses the 303 status
 // code as it's the only status code which unambiguously instructs the user-agent to rewrite the request method to GET,
 // and per the FAPI 2.0 Security Profile Section 5.3.2.2 the authorization server should use 303 when redirecting the
 // user-agent.
@@ -305,7 +307,7 @@ func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 		}
 	}
 
-	if consent, err = handleOAuth2NewConsentSession(ctx, uuid.Nil, requester, prefixPAR); err != nil {
+	if consent, err = handleOAuth2NewUnboundConsentSession(ctx, uuid.Nil, requester, prefixPAR); err != nil {
 		ctx.GetLogger().Errorf(logFmtErrConsentGenerateError, requester.GetID(), clientID, client.GetConsentPolicy(), "generating", err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)

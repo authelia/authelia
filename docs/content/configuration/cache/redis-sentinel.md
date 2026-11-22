@@ -107,7 +107,8 @@ Determines the kind of client used to talk to the Sentinel nodes. Must be one of
 
 The `failover` mode routes every command to the current master. The `cluster` mode distributes read-only commands across
 the master and its replicas, and is required by the [route_by_latency](#route_by_latency) and
-[route_randomly](#route_randomly) options.
+[route_randomly](#route_randomly) options. Session lookups are always sent to the master in `cluster` mode, as a replica
+which lags behind the master could report a session which was just saved as missing or out of date.
 
 ### sentinel_username
 

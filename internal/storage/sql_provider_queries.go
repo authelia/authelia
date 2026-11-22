@@ -688,6 +688,11 @@ const (
 		SET granted = TRUE
 		WHERE id = ? AND responded_at IS NOT NULL AND granted = FALSE;`
 
+	queryFmtUpdateOAuth2ConsentSessionBinding = `
+		UPDATE %s
+		SET binding = ?
+		WHERE id = ? AND binding = '' AND responded_at IS NULL;`
+
 	queryFmtSelectOAuth2Session = `
 		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
 		requested_scopes, granted_scopes, requested_audience, granted_audience,

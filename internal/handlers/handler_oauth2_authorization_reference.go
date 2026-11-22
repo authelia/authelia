@@ -58,7 +58,7 @@ func handleOAuth2AuthorizationConsentReference(ctx *middlewares.AutheliaCtx, rw 
 		return true
 	}
 
-	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, challengeID); err != nil {
+	if consent, err = handleOAuth2ConsentSessionLoadBoundOrClaim(ctx, challengeID); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' could not be processed: error occurred loading the consent session with id '%s'", requester.GetID(), challengeID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)

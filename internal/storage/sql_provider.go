@@ -197,6 +197,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateOAuth2ConsentSessionResponseByID:          fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponseByID, tableOAuth2ConsentSession),
 		sqlUpdateOAuth2ConsentSessionResponseByChallengeID: fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponseByChallengeID, tableOAuth2ConsentSession),
 		sqlUpdateOAuth2ConsentSessionGranted:               fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionBinding:               fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionBinding, tableOAuth2ConsentSession),
 		sqlSelectOAuth2ConsentSessionByChallengeID:         fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
 
 		sqlInsertOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AccessTokenSession),
@@ -417,6 +418,7 @@ type SQLProvider struct {
 	sqlUpdateOAuth2ConsentSessionResponseByID          string
 	sqlUpdateOAuth2ConsentSessionResponseByChallengeID string
 	sqlUpdateOAuth2ConsentSessionGranted               string
+	sqlUpdateOAuth2ConsentSessionBinding               string
 	sqlSelectOAuth2ConsentSessionByChallengeID         string
 
 	// Table: oauth2_authorization_code_session.
@@ -1457,6 +1459,23 @@ func (p *SQLProvider) SaveOAuth2ConsentSessionGranted(ctx context.Context, id in
 
 	if err = checkSingleUpdateResult(result); err != nil {
 		return fmt.Errorf("error updating oauth2 consent session (granted) with id '%d': %w", id, err)
+	}
+
+	return nil
+}
+
+// SaveOAuth2ConsentSessionBinding binds an OAuth2.0 consent session in the storage provider to a user agent by saving
+// its binding, but only when the consent session is unbound and is not yet responded to, so only one user agent can
+// ever claim it.
+func (p *SQLProvider) SaveOAuth2ConsentSessionBinding(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionBinding, consent.Binding, consent.ID); err != nil {
+		return fmt.Errorf("error updating oauth2 consent session (binding) with id '%d' and challenge id '%s': %w", consent.ID, consent.ChallengeID, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error updating oauth2 consent session (binding) with id '%d' and challenge id '%s': %w", consent.ID, consent.ChallengeID, err)
 	}
 
 	return nil

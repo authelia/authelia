@@ -422,13 +422,11 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 	var (
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
-		client      oidc.Client
 		device      *model.OAuth2DeviceCodeSession
-		subject     uuid.UUID
 		handled     bool
 	)
 
-	if userSession, _, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
+	if userSession, _, consent, _, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
 		return
 	}
 
@@ -454,19 +452,9 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
-	if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+	if !consent.Subject.Valid {
 		log.
-			WithError(err).
-			Error("Error occurred trying to determine the subject during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if !consent.Subject.Valid || consent.Subject.UUID != subject {
-		log.
-			Error("Error occurred during the Consent Flow stage of the Device Authorization Flow as the subject of the consent session does not match the subject of the user")
+			Error("Error occurred during the Consent Flow stage of the Device Authorization Flow as the consent session does not have a subject")
 
 		ctx.SetJSONError(messageOperationFailed)
 
