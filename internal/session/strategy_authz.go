@@ -101,15 +101,15 @@ func (a *DefaultAuthzStrategy) SaveActivity(ctx Context, userSession *UserSessio
 		return nil
 	}
 
+	expiration, ok := p.getRemaining(*stored)
+	if !ok {
+		return nil
+	}
+
 	stored.RefreshTTL = userSession.RefreshTTL
 
 	if data, err = p.codec.Seal(p.config.Domain, sid, *stored); err != nil {
 		return fmt.Errorf("error occurred encoding session: %w", err)
-	}
-
-	expiration, ok := p.getRemaining(*stored)
-	if !ok {
-		return nil
 	}
 
 	if err = p.repository.SaveData(ctx, p.issuer, sid, stored.PublicID, stored.Username, p.getRetention(*stored, expiration), record.GetSessionData(), data); err != nil {

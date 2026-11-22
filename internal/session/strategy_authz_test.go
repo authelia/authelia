@@ -640,3 +640,47 @@ func (r *racingSaveDataRepository) SaveData(ctx context.Context, issuer, id, pid
 
 	return r.testRepository.SaveData(ctx, issuer, id, pid, username, expiration, previous, data)
 }
+
+func TestDefaultAuthzStrategy_GetShouldReadTheRepositoryOncePerRequest(t *testing.T) {
+	repository := newCountingRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	saved := newTestSavedContext(t, strategy, testUsername)
+
+	ctx := newTestCachingContext()
+
+	ctx.authz = true
+	ctx.cookies[testNameAuthz] = saved.cookies[testNameAuthz]
+
+	first, err := strategy.Authz().Get(ctx)
+	require.NoError(t, err)
+	require.Equal(t, testUsername, first.Username)
+
+	reads := repository.reads
+
+	second, err := strategy.Authz().Get(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, testUsername, second.Username)
+	assert.Equal(t, reads, repository.reads, "the authz session was read from the repository again rather than the request cache")
+
+	second.Username = "mutated"
+
+	third, err := strategy.Authz().Get(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, testUsername, third.Username, "the cached authz session was shared with the caller rather than copied")
+}
+
+func TestDefaultAuthzStrategy_GetShouldReturnAnAnonymousSessionWhenTheSessionRecordIsUnreadable(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	saved := newTestSavedContext(t, strategy, testUsername)
+	concrete := strategy.(*DefaultStrategy)
+
+	repository.data[repository.key(getTestSessionSignature(t, strategy, saved), concrete.issuer)] = []byte("not a sealed session")
+
+	actual, err := strategy.Authz().Get(newTestAuthzContext(saved))
+
+	require.NoError(t, err)
+	assert.True(t, actual.IsAnonymous())
+}

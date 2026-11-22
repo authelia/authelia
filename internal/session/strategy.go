@@ -319,10 +319,14 @@ func (p *DefaultStrategy) move(ctx Context, oldSID, sid string, expiration time.
 	p.setCached(ctx, p.cacheKey(), session)
 	p.setCached(ctx, p.cacheKeyAuthz(), nil)
 
-	var aid string
+	if session.IsAnonymous() {
+		return nil, nil
+	}
 
-	if authz, aid = p.getAuthzValue(sid); session.IsAnonymous() || p.saveAuthzIndex(ctx, aid, sid, expiration) != nil {
-		authz = nil
+	authz, aid := p.getAuthzValue(sid)
+
+	if p.saveAuthzIndex(ctx, aid, sid, expiration) != nil {
+		return nil, nil
 	}
 
 	return authz, nil
@@ -504,6 +508,12 @@ func (p *DefaultStrategy) getCSRFSession(ctx Context) (sid string, session *User
 }
 
 func (p *DefaultStrategy) adoptCSRFSecret(ctx Context, session *UserSession) {
+	if _, ok := ctx.(CachingContext); !ok {
+		session.CSRF = nil
+
+		return
+	}
+
 	if cached, ok := p.getCached(ctx, p.cacheKey()); ok && len(cached.CSRF) != 0 && cached.PublicID == session.PublicID {
 		session.CSRF = cached.CSRF
 	}

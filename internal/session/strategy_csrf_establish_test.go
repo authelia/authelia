@@ -127,18 +127,49 @@ func TestDefaultStrategy_SaveShouldNotReplaceTheCSRFSecretWhenItCannotBeEstablis
 }
 
 func TestDefaultStrategy_SaveShouldNotRestoreTheCSRFSecretFromBeforeRegenerate(t *testing.T) {
+	testCases := []struct {
+		name string
+		have func() (Context, *testContext)
+	}{
+		{
+			"ShouldHandleCachingContext",
+			func() (Context, *testContext) {
+				ctx := newTestCachingContext()
+
+				return ctx, ctx.testContext
+			},
+		},
+		{
+			"ShouldHandleNonCachingContext",
+			func() (Context, *testContext) {
+				ctx := newTestContext()
+
+				return ctx, ctx
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			sctx, ctx := tc.have()
+
+			testSaveShouldNotRestoreTheCSRFSecretFromBeforeRegenerate(t, sctx, ctx)
+		})
+	}
+}
+
+func testSaveShouldNotRestoreTheCSRFSecretFromBeforeRegenerate(t *testing.T, sctx Context, ctx *testContext) {
 	strategy := newTestStrategy(t, nil)
 	saved := newTestSavedContext(t, strategy, testUsername)
 
-	ctx := newTestCachingContext()
 	ctx.cookies[testNameSession] = saved.cookies[testNameSession]
 
-	userSession, err := strategy.Get(ctx)
+	userSession, err := strategy.Get(sctx)
 	require.NoError(t, err)
 
 	original := saved.cookies[testNameCSRF]
 
-	require.NoError(t, strategy.Regenerate(ctx))
+	require.NoError(t, strategy.Regenerate(sctx))
 
 	regenerated := ctx.cookies[testNameCSRF]
 
@@ -147,7 +178,7 @@ func TestDefaultStrategy_SaveShouldNotRestoreTheCSRFSecretFromBeforeRegenerate(t
 
 	userSession.SetTwoFactorTOTP(time.Now())
 
-	require.NoError(t, strategy.Save(ctx, userSession))
+	require.NoError(t, strategy.Save(sctx, userSession))
 
 	assert.Equal(t, regenerated, ctx.cookies[testNameCSRF])
 

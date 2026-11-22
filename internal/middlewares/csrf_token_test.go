@@ -5,12 +5,16 @@
 package middlewares_test
 
 import (
+	"context"
+	"errors"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -155,4 +159,64 @@ func TestRequireCSRFTokenShouldRejectWhenSessionProviderIsUnavailable(t *testing
 	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 
 	mock.AssertLastLogMessage(t, "Error occurred retrieving the session provider to verify the CSRF token", "unable to retrieve session cookie domain provider: no session provider is configured")
+}
+
+func TestRequireCSRFTokenShouldRejectWhenTheSessionCannotBeRetrieved(t *testing.T) {
+	repository := &failingGetSessionRepository{Repository: cache.NewSessionRepository(cache.NewMemory())}
+
+	saved := mocks.NewMockAutheliaCtx(t)
+
+	defer saved.Close()
+
+	provider, err := session.NewProvider(&saved.Ctx.Configuration, mocks.NewTestSessionHMACKeys(), saved.Ctx.Providers.Clock, saved.Ctx.Providers.Random, repository)
+	require.NoError(t, err)
+
+	saved.Ctx.Providers.Session = provider
+
+	userSession, err := saved.Ctx.GetSession()
+	require.NoError(t, err)
+
+	userSession.Username = "john"
+
+	require.NoError(t, saved.Ctx.SaveSession(&userSession))
+
+	cookie := &fasthttp.Cookie{}
+	cookie.SetKey(session.SessionCookieName("authelia_session"))
+	require.True(t, saved.Ctx.Response.Header.Cookie(cookie))
+
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Providers.Session = provider
+	mock.Ctx.Request.Header.SetMethod(fasthttp.MethodPost)
+	mock.Ctx.Request.Header.SetCookieBytesKV(cookie.Key(), cookie.Value())
+	mock.Ctx.Request.Header.Set("X-CSRF-Token", "any")
+
+	repository.fail = true
+
+	called := false
+
+	middlewares.RequireCSRFToken(func(ctx *middlewares.AutheliaCtx) {
+		called = true
+	})(mock.Ctx)
+
+	assert.False(t, called)
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+
+	mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Error occurred verifying the CSRF token$`), regexp.MustCompile(`backend unavailable$`))
+}
+
+type failingGetSessionRepository struct {
+	session.Repository
+
+	fail bool
+}
+
+func (r *failingGetSessionRepository) Get(ctx context.Context, issuer, id string) (record session.Record, err error) {
+	if r.fail {
+		return nil, errors.New("backend unavailable")
+	}
+
+	return r.Repository.Get(ctx, issuer, id)
 }
