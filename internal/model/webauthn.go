@@ -162,22 +162,24 @@ type WebAuthnCredential struct {
 	Attestation       []byte        `db:"attestation"`
 }
 
-// UpdateSignInInfo adjusts the values of the WebAuthnCredential after a sign in.
-func (c *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.Time, credential *webauthn.Credential) {
+// UpdateSignInInfo adjusts the values of the WebAuthnCredential after a sign in. The rpid is the relying party
+// identifier the sign in was performed against and the appid is the FIDO AppID extension value it offered, which is
+// the origin of the request.
+func (c *WebAuthnCredential) UpdateSignInInfo(rpid, appid string, now time.Time, credential *webauthn.Credential) {
 	c.LastUsedAt = sql.NullTime{Time: now, Valid: true}
 	c.SignCount, c.CloneWarning = credential.Authenticator.SignCount, credential.Authenticator.CloneWarning
 
 	c.UpdateAttestationType(credential)
 
-	if c.RPID != "" || config == nil {
+	if c.RPID != "" || rpid == "" {
 		return
 	}
 
 	switch c.AttestationType {
 	case attestationTypeFIDOU2F:
-		c.RPID = config.RPOrigins[0]
+		c.RPID = appid
 	default:
-		c.RPID = config.RPID
+		c.RPID = rpid
 	}
 }
 

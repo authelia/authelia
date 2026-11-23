@@ -7,6 +7,7 @@ package server
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,6 +23,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
@@ -78,6 +80,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			baseURL        string
 			domain         string
 			provider       session.Strategy
+			origin         *url.URL
 		)
 
 		baseURL = ctx.TemplateRootURL().String()
@@ -88,9 +91,13 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			csrfCookieName = session.CSRFCookieName(provider.GetConfig().Name)
 		}
 
+		origin, err = ctx.GetOrigin()
+
+		passkeyLogin := strconv.FormatBool(err == nil && ctx.Configuration.WebAuthn.EnablePasskeyLogin && webauthn.IsOriginAvailable(ctx.Configuration.WebAuthn, origin))
+
 		data := &bytes.Buffer{}
 
-		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe, csrfCookieName)); err != nil {
+		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe, passkeyLogin, csrfCookieName)); err != nil {
 			ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
@@ -304,29 +311,22 @@ type TemplatedFileOptions struct {
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
 
-// CommonData returns a TemplatedFileCommonData with the dynamic options. The values which vary by session cookie domain
-// fall back to the configured defaults when the request didn't resolve to a session cookie domain.
-func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, rememberMe, csrfCookieName string) TemplatedFileCommonData {
-	if rememberMe == "" {
-		rememberMe = options.RememberMe
-	}
-
-	if csrfCookieName == "" {
-		csrfCookieName = options.CSRFCookieName
-	}
-
-	return TemplatedFileCommonData{
+// CommonData returns a TemplatedFileCommonData with the dynamic options. The rememberMe, passkeyLogin, and
+// csrfCookieName values override the static options when they're not empty, i.e. when the request resolved to a
+// session cookie domain.
+func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, rememberMe, passkeyLogin, csrfCookieName string) TemplatedFileCommonData {
+	data := TemplatedFileCommonData{
 		Base:                   base,
 		BaseURL:                baseURL,
 		Domain:                 domain,
 		CSPNonce:               nonce,
 		Language:               language,
 		LogoOverride:           logoOverride,
-		CSRFCookieName:         csrfCookieName,
+		CSRFCookieName:         options.CSRFCookieName,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
 		ExternalIdentityLogin:  options.ExternalIdentityLogin,
-		RememberMe:             rememberMe,
+		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
 		TOTPAppAppleStore:      options.TOTPAppAppleStore,
@@ -337,6 +337,20 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		Session:                options.Session,
 		Theme:                  options.Theme,
 	}
+
+	if rememberMe != "" {
+		data.RememberMe = rememberMe
+	}
+
+	if passkeyLogin != "" {
+		data.PasskeyLogin = passkeyLogin
+	}
+
+	if csrfCookieName != "" {
+		data.CSRFCookieName = csrfCookieName
+	}
+
+	return data
 }
 
 // OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options. The cookie is the name of the session cookie

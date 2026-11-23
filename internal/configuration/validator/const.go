@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 const (
@@ -90,6 +91,9 @@ const (
 
 const (
 	errFmtDefinitionsUserAttributesReservedOrDefined = "definitions: user_attributes: %s: attribute name '%s' is either reserved or already defined in the authentication backend"
+	errFmtDefinitionsURIParsersName                  = "definitions: uri_parsers: %s: option '%s' must only include the values %s but has '%s'"
+	errFmtDefinitionsURIParsersConflict              = "definitions: uri_parsers: %s: the value '%s' can't be in both the 'allow' and 'reject' options"
+	errFmtDefinitionsURIParsersExclusive             = "definitions: uri_parsers: %s: the values '%s' and '%s' are mutually exclusive but both are configured"
 )
 
 // Authentication Backend Error constants.
@@ -430,12 +434,31 @@ const (
 
 // WebAuthn Error constants.
 const (
-	errFmtWebAuthnConveyancePreference   = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnSelectionCriteria      = "webauthn: selection_criteria: option '%s' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnPasskeyDiscoverability = "webauthn: selection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
-	errFmtWebAuthnFiltering              = "webauthn: filtering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
-	errFmtWebAuthnBoolean                = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
-	errFmtWebAuthnMetadataString         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
+	errFmtWebAuthnConveyancePreference                   = "webauthn: %soption 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnSelectionCriteria                      = "webauthn: %sselection_criteria: option '%s' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnPasskeyDiscoverability                 = "webauthn: %sselection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
+	errFmtWebAuthnFiltering                              = "webauthn: %sfiltering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
+	errFmtWebAuthnRelyingPartyPrefix                     = "relying_parties: %s: "
+	errFmtWebAuthnRelyingPartyOpaqueOriginEmpty          = "webauthn: %soption 'opaque_origins' item #%d is empty but it must have a value"
+	errFmtWebAuthnRelyingPartyOpaqueOriginNotOpaque      = "webauthn: %soption 'opaque_origins' item #%d has value '%s' but it must be an opaque origin and this value belongs in the 'origins' option"
+	errFmtWebAuthnRelyingPartyOpaqueOriginUnknown        = "webauthn: %soption 'opaque_origins' item #%d has value '%s' but it must be an opaque origin a client conveys i.e. one prefixed with %s"
+	errFmtWebAuthnUnsolicitedOutputPolicy                = "webauthn: %soption 'extensions_unsolicited_output_policy' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnBoolean                                = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
+	errFmtWebAuthnMetadataString                         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
+	errFmtWebAuthnRelatedOriginsRelyingPartyIDEmpty      = "webauthn: relying_parties: a dictionary key is empty but each key must be a relying party id"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase = "webauthn: %sthe dictionary key is not lower case but it must be as it's the relying party id"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNotValid     = "webauthn: %sthe dictionary key is not a valid relying party id: %w"
+	errFmtWebAuthnRelatedOriginsRelyingPartyNoOrigin     = "webauthn: %soption 'origins' must have an origin with the relying party id as its hostname when any origin is not the relying party id or a subdomain of it"
+	errFmtWebAuthnRelatedOriginsRelyingPartyPublicSuffix = "webauthn: %sthe dictionary key is a public suffix but it must be a registrable domain when no origin has the relying party id as its hostname"
+	errFmtWebAuthnRelatedOriginsOriginsEmpty             = "webauthn: %soption 'origins' is empty but it must have at least one value"
+	errFmtWebAuthnRelatedOriginsOriginEmpty              = "webauthn: %soption 'origins' item #%d is empty"
+	errFmtWebAuthnRelatedOriginsOriginNotValidOrigin     = "webauthn: %soption 'origins' item #%d with value '%s' is invalid as it must only have a scheme, host, and optional port"
+	errFmtWebAuthnRelatedOriginsOriginNotRelatable       = "webauthn: %soption 'origins' item #%d with value '%s' is invalid as it must be an absolute URL with the %s scheme and a host"
+	errFmtWebAuthnRelatedOriginsOriginDuplicate          = "webauthn: relying_parties: option 'origins' has value '%s' which can only be defined in one relying party but it's defined in %s"
+	errFmtWebAuthnRelatedOriginsOriginDuplicateSelf      = "webauthn: %soption 'origins' has value '%s' defined more than once"
+	errFmtWebAuthnRelatedOriginsOriginNotSessionCookie   = "webauthn: %soption 'origins' item #%d has value '%s' but this value is not a valid origin for any 'authelia_url' configured in the session cookies"
+	errFmtWebAuthnRelatedOriginsLabels                   = "webauthn: %soption 'origins' is invalid: %s"
+	errFmtWebAuthnRelatedOriginsLabelsOpaque             = "webauthn: %soption 'origins' is invalid when option 'opaque_origins' is configured: %s"
 )
 
 // Access Control error constants.
@@ -576,6 +599,7 @@ const (
 	errFmtServerEndpointsRateLimitsBucketPeriodTooLow    = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
 	errFmtServerEndpointsRateLimitsBucketRequestsZero    = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
 	errFmtServerEndpointsRateLimitsIPv6Mask              = "server: endpoints: rate_limits: %s: option 'ipv6_mask' has a value of '%d' but it must be between %d and %d"
+	errFmtServerEndpointsAuthzURIParser                  = "server: endpoints: authz: %s: option 'uri_parser' must be the name of a uri parser definition but it's configured as '%s'"
 	errFmtServerEndpointsAuthzInvalidName                = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
@@ -670,23 +694,28 @@ var (
 )
 
 var (
-	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
-	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
-	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
-	validSessionStorageValues                = []string{schema.SessionStorageCache, schema.SessionStorageInternal}
-	validCacheRedisSentinelModes             = []string{schema.RedisSentinelModeCluster, schema.RedisSentinelModeFailover}
-	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
-	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
-	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
-	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
-	validWebAuthnAttachment                  = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
-	validWebAuthnDiscoverability             = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
+	validStoragePostgreSQLSSLModes                   = []string{"disable", "require", "verify-ca", "verify-full"}
+	validThemeNames                                  = []string{"light", "dark", "grey", "oled", auto}
+	validSessionSameSiteValues                       = []string{"none", "lax", "strict"}
+	validSessionStorageValues                        = []string{schema.SessionStorageCache, schema.SessionStorageInternal}
+	validCacheRedisSentinelModes                     = []string{schema.RedisSentinelModeCluster, schema.RedisSentinelModeFailover}
+	validLogLevels                                   = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
+	validLogFormats                                  = []string{logging.FormatText, logging.FormatJSON}
+	validWebAuthnConveyancePreferences               = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+	validWebAuthnUserVerificationRequirement         = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+	validWebAuthnAttachment                          = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
+	validWebAuthnExtensionsUnsolicitedOutputPolicies = []string{webauthn.ExtensionsUnsolicitedOutputPolicyReject, webauthn.ExtensionsUnsolicitedOutputPolicyIgnore}
+	validWebAuthnDiscoverability                     = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
 )
 
 var (
 	validACLRulePolicies  = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 	validACLRuleOperators = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
 )
+
+var uriParserExclusiveClasses = [][2]string{
+	{"path_dot_segment", "path_leading_dot_segment"},
+}
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 

@@ -487,7 +487,7 @@ func TestHandleAuthzGetObjectAuthRequest(t *testing.T) {
 				mock.Ctx.Request.Header.Set("X-Original-Method", tc.method)
 			}
 
-			object, err := handleAuthzGetObjectAuthRequest(mock.Ctx)
+			object, err := handleAuthzGetObjectAuthRequest(mock.Ctx, utils.DefaultURIParser())
 
 			if tc.err == "" {
 				assert.NoError(t, err)
