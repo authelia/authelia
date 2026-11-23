@@ -26,7 +26,7 @@ default for individual ambiguity classes using the `allow` and `reject` options.
 Several of these classes are useful for hardening against [Jakarta Servlet 6.1
 Specification](https://jakarta.ee/specifications/servlet/6.1/jakarta-servlet-spec-6.1#uri-path-canonicalization)
 applications which do not properly reject paths that can't safely be normalized, however this should not be considered
-formal support for a Jakarta Serverlet as a specialized parser would need to exist to support it. Should there be a
+formal support for a Jakarta Servlet as a specialized parser would need to exist to support it. Should there be a
 desire to support this kind of application we suggest raising a Discussion with the type Idea.
 
 The `default` definition always exists, and it's used by every authz endpoint which doesn't configure the `uri_parser`
