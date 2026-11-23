@@ -64,6 +64,7 @@ identity_providers:
         - 'https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}'      
       endpoints:
         - token
+
     clients:
       - client_id: 'opencloud'
         client_name: 'openCloud'
