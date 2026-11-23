@@ -94,7 +94,7 @@ const (
 )
 
 const (
-	tmplCSPSwagger = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'nonce-%s'; style-src 'self' 'sha256-RL3ie0nH+Lzz2YNqQN83mnU0J1ot4QL7b99vMdIX99w='; base-uri 'self'"
+	tmplCSPSwagger = "default-src 'self'; img-src 'self' data:; object-src 'none'; script-src 'self' 'nonce-%s'; style-src 'self' 'sha256-RL3ie0nH+Lzz2YNqQN83mnU0J1ot4QL7b99vMdIX99w='; base-uri 'self'"
 )
 
 var (

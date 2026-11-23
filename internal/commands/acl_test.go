@@ -17,6 +17,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestNewACLCommand(t *testing.T) {
@@ -58,7 +59,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			username: true,
 			groups:   true,
 			ip:       true,
-			err:      "error occurred parsing object url: parse \"http://%@#(*$@()#*&$invalid\": invalid character \"#\" in host name",
+			err:      "error occurred parsing object url: parse \"http://()#*&$invalid\": invalid url",
 		},
 		{
 			name:     "ShouldErrorOnMissingMethodFlag",
@@ -100,7 +101,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			groups:   true,
 			ip:       true,
 			subject:  authorization.Subject{Username: "john", Groups: []string{"example"}, IP: net.ParseIP("127.0.0.1")},
-			object:   authorization.Object{URL: &url.URL{Scheme: "https", Host: "example.com", Path: "/"}, Domain: "example.com", Method: fasthttp.MethodGet, Path: "/"},
+			object:   authorization.Object{URL: &url.URL{Scheme: "https", Host: "example.com", Path: "/"}, Domain: "example.com", Method: fasthttp.MethodGet, Path: "/", CanonicalURI: "https://example.com/"},
 			err:      "",
 		},
 	}
@@ -147,7 +148,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 				require.NoError(t, flags.Set("ip", "127.0.0.1"))
 			}
 
-			subject, object, err := getSubjectAndObjectFromFlags(cmd)
+			subject, object, err := getSubjectAndObjectFromFlags(cmd, utils.DefaultURIParser())
 
 			if tc.err == "" {
 				assert.NoError(t, err)
@@ -284,6 +285,86 @@ func TestAccessControlCheckRunE(t *testing.T) {
 			[]string{"two_factor", "rule #2"},
 		},
 		{
+			"ShouldRejectAmbiguousURLWithBuiltInDefault",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/a;x"},
+			"url is ambiguous",
+			nil,
+		},
+		{
+			"ShouldUseConfiguredDefaultDefinition",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+					},
+					Definitions: schema.Definitions{
+						URIParsers: map[string]schema.URIParser{
+							"default": {Allow: []string{"path_parameter"}},
+						},
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/a;x"},
+			"",
+			[]string{"deny"},
+		},
+		{
+			"ShouldUseNamedDefinition",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+					},
+					Definitions: schema.Definitions{
+						URIParsers: map[string]schema.URIParser{
+							"legacy": {Allow: []string{"path_parameter"}},
+						},
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/a;x", "uri-parser": "legacy"},
+			"",
+			[]string{"deny"},
+		},
+		{
+			"ShouldErrUnknownDefinition",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/", "uri-parser": "nope"},
+			"failed to execute command: the uri parser definition 'nope' doesn't exist",
+			nil,
+		},
+		{
+			"ShouldErrInvalidDefinition",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+					},
+					Definitions: schema.Definitions{
+						URIParsers: map[string]schema.URIParser{
+							"default": {Allow: []string{"bogus"}},
+						},
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/"},
+			"failed to execute command due to errors in the configuration",
+			nil,
+		},
+		{
 			"ShouldErrInvalidURL",
 			func() *schema.Configuration {
 				return &schema.Configuration{
@@ -315,6 +396,7 @@ func TestAccessControlCheckRunE(t *testing.T) {
 			cmd.Flags().StringSlice("groups", nil, "")
 			cmd.Flags().String("ip", "", "")
 			cmd.Flags().Bool("verbose", false, "")
+			cmd.Flags().String("uri-parser", schema.DefinitionURIParserDefault, "")
 
 			for k, v := range tc.flags {
 				require.NoError(t, cmd.Flags().Set(k, v))
@@ -336,7 +418,7 @@ func TestAccessControlCheckRunE(t *testing.T) {
 }
 
 func TestAccessControlCheckWriteOutput(t *testing.T) {
-	object, err := authorization.NewObjectMethodURL([]byte(fasthttp.MethodGet), []byte("https://example.com/path?query=1"))
+	object, err := authorization.NewObjectMethodURL(utils.DefaultURIParser(), []byte(fasthttp.MethodGet), []byte("https://example.com/path?query=1"))
 	require.NoError(t, err)
 
 	subject := authorization.Subject{

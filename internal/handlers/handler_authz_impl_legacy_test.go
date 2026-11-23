@@ -74,7 +74,7 @@ func TestHandleAuthzGetObjectLegacy(t *testing.T) {
 				mock.Ctx.Request.Header.Set("X-Forwarded-Method", tc.ForwardedMethod)
 			}
 
-			object, err := handleAuthzGetObjectLegacy(mock.Ctx)
+			object, err := handleAuthzGetObjectLegacy(mock.Ctx, utils.DefaultURIParser())
 
 			if tc.Error != "" {
 				assert.EqualError(t, err, tc.Error)
@@ -183,7 +183,7 @@ func TestHandleAuthzGetObjectLegacyFallbacks(t *testing.T) {
 				mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.forwardedURI)
 			}
 
-			object, err := handleAuthzGetObjectLegacy(mock.Ctx)
+			object, err := handleAuthzGetObjectLegacy(mock.Ctx, utils.DefaultURIParser())
 
 			if tc.err == "" {
 				assert.NoError(t, err)
