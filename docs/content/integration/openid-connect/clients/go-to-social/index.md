@@ -85,7 +85,7 @@ identity_providers:
 
 #### Configuration Escape Hatch
 
-{{% oidc-escape-hatch-claims-hydration client_id="gotosocial" claims="preferred_username","email" %}}
+{{% oidc-escape-hatch-claims-hydration client_id="gotosocial" claims=["preferred_username","email"] %}}
 
 ### Application
 
