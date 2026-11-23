@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestValidateDefinitions(t *testing.T) {
@@ -179,6 +180,105 @@ func TestValidateDefinitions(t *testing.T) {
 		ValidateDefinitions(config, validator)
 
 		assert.Len(t, validator.Warnings(), 0)
+		assert.Len(t, validator.Errors(), 0)
+	})
+
+	t.Run("ShouldAddDefaultURIParser", func(t *testing.T) {
+		config := &schema.Configuration{}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		assert.Len(t, validator.Errors(), 0)
+		assert.Equal(t, map[string]schema.URIParser{schema.DefinitionURIParserDefault: {}}, config.Definitions.URIParsers)
+	})
+
+	t.Run("ShouldNotReplaceConfiguredDefaultURIParser", func(t *testing.T) {
+		config := &schema.Configuration{
+			Definitions: schema.Definitions{
+				URIParsers: map[string]schema.URIParser{
+					schema.DefinitionURIParserDefault: {Allow: []string{"user_info"}},
+				},
+			},
+		}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		assert.Len(t, validator.Errors(), 0)
+		assert.Equal(t, map[string]schema.URIParser{schema.DefinitionURIParserDefault: {Allow: []string{"user_info"}}}, config.Definitions.URIParsers)
+	})
+
+	t.Run("ShouldErrUnknownURIParserClass", func(t *testing.T) {
+		config := &schema.Configuration{
+			Definitions: schema.Definitions{
+				URIParsers: map[string]schema.URIParser{
+					"custom": {Allow: []string{"nope"}, Reject: []string{"nope"}},
+				},
+			},
+		}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		require.Len(t, validator.Errors(), 2)
+		assert.EqualError(t, validator.Errors()[0], "definitions: uri_parsers: custom: option 'allow' must only include the values "+utils.StringJoinOr(utils.URLAmbiguityNames())+" but has 'nope'")
+		assert.EqualError(t, validator.Errors()[1], "definitions: uri_parsers: custom: option 'reject' must only include the values "+utils.StringJoinOr(utils.URLAmbiguityNames())+" but has 'nope'")
+	})
+
+	t.Run("ShouldErrConflictingURIParserClass", func(t *testing.T) {
+		config := &schema.Configuration{
+			Definitions: schema.Definitions{
+				URIParsers: map[string]schema.URIParser{
+					"custom": {Allow: []string{"user_info"}, Reject: []string{"user_info"}},
+				},
+			},
+		}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
+		require.Len(t, validator.Errors(), 1)
+		assert.EqualError(t, validator.Errors()[0], "definitions: uri_parsers: custom: the value 'user_info' can't be in both the 'allow' and 'reject' options")
+	})
+
+	t.Run("ShouldErrMutuallyExclusiveURIParserClasses", func(t *testing.T) {
+		testCases := []struct {
+			name   string
+			parser schema.URIParser
+		}{
+			{"ShouldErrBothReject", schema.URIParser{Reject: []string{"path_leading_dot_segment", "path_dot_segment"}}},
+			{"ShouldErrBothAllow", schema.URIParser{Allow: []string{"path_dot_segment", "path_leading_dot_segment"}}},
+			{"ShouldErrAllowAndReject", schema.URIParser{Allow: []string{"path_dot_segment"}, Reject: []string{"path_leading_dot_segment"}}},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				config := &schema.Configuration{
+					Definitions: schema.Definitions{
+						URIParsers: map[string]schema.URIParser{"custom": tc.parser},
+					},
+				}
+				validator := schema.NewStructValidator()
+
+				ValidateDefinitions(config, validator)
+
+				require.Len(t, validator.Errors(), 1)
+				assert.EqualError(t, validator.Errors()[0], "definitions: uri_parsers: custom: the values 'path_dot_segment' and 'path_leading_dot_segment' are mutually exclusive but both are configured")
+			})
+		}
+	})
+
+	t.Run("ShouldAllowLeadingDotSegmentAlone", func(t *testing.T) {
+		config := &schema.Configuration{
+			Definitions: schema.Definitions{
+				URIParsers: map[string]schema.URIParser{"custom": {Reject: []string{"path_leading_dot_segment"}}},
+			},
+		}
+		validator := schema.NewStructValidator()
+
+		ValidateDefinitions(config, validator)
+
 		assert.Len(t, validator.Errors(), 0)
 	})
 }

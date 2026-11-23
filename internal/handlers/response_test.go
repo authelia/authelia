@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -97,6 +98,31 @@ func TestHandle1FAResponse(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the target URL 'https://app.example.com/'", "method header with value 'GET1' has invalid characters")
 			},
+		},
+		{
+			"ShouldRedactPasswordInUnparsableTargetURI",
+			"https://user:secret@app.example.com/%zz",
+			fasthttp.MethodGet,
+			`{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the target URL 'https://app.example.com/%zz'", "error occurred parsing object url: parse \"https://app.example.com/%zz\": invalid url")
+			},
+		},
+		{
+			"ShouldRedactPasswordInUnparsableSchemeRelativeTargetURI",
+			"//user:secret@app.example.com/%zz",
+			fasthttp.MethodGet,
+			`{"status":"KO","code":"authentication_failed","message":"Authentication failed. Check your credentials."}`,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred parsing the target URL '//app.example.com/%zz'", "error occurred parsing object url: parse \"//app.example.com/%zz\": invalid url")
+			},
+		},
+		{
+			"ShouldRedirectAmbiguousTargetURI",
+			"https://app.example.com/a;jsessionid=1",
+			fasthttp.MethodGet,
+			`{"status":"OK","data":{"redirect":"https://app.example.com/a;jsessionid=1"}}`,
+			nil,
 		},
 		{
 			"ShouldHandleInvalidTargetURI",
@@ -243,6 +269,37 @@ func TestHandle2FAResponse(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpUnsafeTargetURI, regexpAnyError)
 	})
 
+	t.Run("ShouldRedactPasswordInUnparsableTargetURI", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		Handle2FAResponse(mock.Ctx, "https://user:secret@app.example.com/%zz")
+
+		mock.Assert200KO(t, messageMFAValidationFailed)
+
+		assert.NotContains(t, mock.Hook.LastEntry().Message, "secret")
+	})
+
+	t.Run("ShouldRedactPasswordInUnparsableSchemeRelativeTargetURI", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		Handle2FAResponse(mock.Ctx, "//user:secret@app.example.com/%zz")
+
+		mock.Assert200KO(t, messageMFAValidationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred determining if the URI '//app.example.com/%zz' is safe to redirect to as it could not be parsed", "error occurred parsing object url: parse \"//app.example.com/%zz\": invalid url")
+	})
+
+	t.Run("ShouldRedirectAmbiguousTargetURI", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		Handle2FAResponse(mock.Ctx, "https://app.example.com/a;jsessionid=1")
+
+		mock.Assert200OK(t, redirectResponse{Redirect: "https://app.example.com/a;jsessionid=1"})
+	})
+
 	t.Run("ShouldReplyOKWhenTargetURIUnsafe", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
@@ -250,6 +307,16 @@ func TestHandle2FAResponse(t *testing.T) {
 		Handle2FAResponse(mock.Ctx, "https://not-a-configured-domain.local")
 
 		mock.Assert200OK(t, nil)
+	})
+
+	t.Run("ShouldNotRedirectToInvalidHostnameWithinDomain", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		Handle2FAResponse(mock.Ctx, "https://evil.com\uFF0F.example.com/")
+
+		mock.Assert200OK(t, nil)
+		assert.NotContains(t, string(mock.Ctx.Response.Body()), "evil.com")
 	})
 }
 
@@ -431,4 +498,29 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred getting the original form from the consent session", regexpAnyError)
 	})
+}
+
+func TestHandle1FAResponseShouldIgnoreFragmentForRequiredLevel(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+			Rules: []schema.AccessControlRule{
+				{
+					Domains:   []string{"app.example.com"},
+					Resources: []regexp.Regexp{*regexp.MustCompile("^/admin$")},
+					Policy:    "two_factor",
+				},
+			},
+		},
+	})
+
+	Handle1FAResponse(mock.Ctx, "https://app.example.com/admin#x", fasthttp.MethodGet, testUsername, nil)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.NotContains(t, string(mock.Ctx.Response.Body()), "redirect")
+	assert.Equal(t, "https://app.example.com/admin requires 2FA, cannot be redirected yet", mock.Hook.LastEntry().Message)
 }
