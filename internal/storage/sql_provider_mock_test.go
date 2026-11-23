@@ -1790,6 +1790,16 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			expectErr: "error updating oauth2 device code session data with signature 'sig': boom",
 		},
 		{
+			name: "ShouldReturnErrUpdateOAuth2DeviceCodeSessionPolling",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), "sig").Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.UpdateOAuth2DeviceCodeSessionPolling(context.Background(), "sig", time.Unix(0, 0))
+			},
+			expectErr: "error updating oauth2 device code session polling state with signature 'sig': boom",
+		},
+		{
 			name: "ShouldReturnErrDeactivateOAuth2DeviceCodeSession",
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig").Return(nil, errors.New("boom"))

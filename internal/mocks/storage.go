@@ -1935,6 +1935,20 @@ func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSessionData(ctx, arg1 a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSessionData", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSessionData), ctx, arg1)
 }
 
+// UpdateOAuth2DeviceCodeSessionPolling mocks base method.
+func (m *MockStorage) UpdateOAuth2DeviceCodeSessionPolling(ctx context.Context, signature string, checked time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSessionPolling", ctx, signature, checked)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOAuth2DeviceCodeSessionPolling indicates an expected call of UpdateOAuth2DeviceCodeSessionPolling.
+func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSessionPolling(ctx, signature, checked any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSessionPolling", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSessionPolling), ctx, signature, checked)
+}
+
 // UpdateOAuth2PushedAuthorizationSession mocks base method.
 func (m *MockStorage) UpdateOAuth2PushedAuthorizationSession(ctx context.Context, par model.OAuth2PushedAuthorizationSession) error {
 	m.ctrl.T.Helper()

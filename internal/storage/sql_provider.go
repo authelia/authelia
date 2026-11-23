@@ -218,6 +218,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectOAuth2DeviceCodeSession:              fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSession:              fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSessionData:          fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionData, tableOAuth2DeviceCodeSession),
+		sqlUpdateOAuth2DeviceCodeSessionPolling:       fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionPolling, tableOAuth2DeviceCodeSession),
 		sqlDeactivateOAuth2DeviceCodeSession:          fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSessionByUserCode:    fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByUserCode, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSessionByChallengeID: fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByChallengeID, tableOAuth2DeviceCodeSession),
@@ -434,6 +435,7 @@ type SQLProvider struct {
 	sqlSelectOAuth2DeviceCodeSession              string
 	sqlUpdateOAuth2DeviceCodeSession              string
 	sqlUpdateOAuth2DeviceCodeSessionData          string
+	sqlUpdateOAuth2DeviceCodeSessionPolling       string
 	sqlDeactivateOAuth2DeviceCodeSession          string
 	sqlSelectOAuth2DeviceCodeSessionByUserCode    string
 	sqlSelectOAuth2DeviceCodeSessionByChallengeID string
@@ -1777,6 +1779,17 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
 		session.Form, session.Session, session.Signature); err != nil {
 		return fmt.Errorf("error updating oauth2 device code session data with signature '%s': %w", session.Signature, err)
+	}
+
+	return nil
+}
+
+// UpdateOAuth2DeviceCodeSessionPolling updates only the polling state of an OAuth2.0 Device Code session in the storage
+// provider, leaving the challenge id, status, subject, and session data untouched. It does nothing when no session
+// exists for the signature.
+func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionPolling(ctx context.Context, signature string, checked time.Time) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionPolling, checked, signature); err != nil {
+		return fmt.Errorf("error updating oauth2 device code session polling state with signature '%s': %w", signature, err)
 	}
 
 	return nil

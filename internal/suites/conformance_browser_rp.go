@@ -112,14 +112,30 @@ func (b *ConformanceBrowser) StartWithProvider(ctx context.Context, portal, prov
 		return err
 	}
 
-	const script = `(path) => fetch(path, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({keepMeLoggedIn: false})}).then((response) => response.status)`
+	const script = `(path) => {
+		const name = document.body.dataset.csrfcookiename;
+		const cookie = document.cookie.split('; ').find((c) => c.startsWith(name + '='));
+		const headers = {'Content-Type': 'application/json'};
+
+		if (cookie) {
+			headers['X-CSRF-Token'] = decodeURIComponent(cookie.substring(name.length + 1));
+		}
+
+		return fetch(path, {method: 'POST', credentials: 'same-origin', headers: headers, body: JSON.stringify({keepMeLoggedIn: false})}).then((response) => response.status);
+	}`
 
 	result, err := b.page.Context(ctx).Timeout(pageActionTimeout).Eval(script, portal+fmt.Sprintf(externalIdentityStartPathFmt, provider))
 	if err != nil {
 		return fmt.Errorf("error starting the sign in with the '%s' provider: %w", provider, err)
 	}
 
-	log.Debugf("Conformance driver started the sign in with the '%s' provider, which responded with the status %d", provider, result.Value.Int())
+	status := result.Value.Int()
+
+	log.Debugf("Conformance driver started the sign in with the '%s' provider, which responded with the status %d", provider, status)
+
+	if status >= 400 {
+		return fmt.Errorf("error starting the sign in with the '%s' provider: the request responded with the status %d", provider, status)
+	}
 
 	return nil
 }

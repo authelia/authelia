@@ -333,6 +333,7 @@ func TestPostgreSQLProviderDeviceCodeQueriesShouldUseOrdinalPlaceholders(t *test
 		{"ShouldUseOrdinalPlaceholdersForClaimOAuth2DeviceCodeSession", provider.sqlClaimOAuth2DeviceCodeSession},
 		{"ShouldUseOrdinalPlaceholdersForDenyOAuth2DeviceCodeSession", provider.sqlDenyOAuth2DeviceCodeSession},
 		{"ShouldUseOrdinalPlaceholdersForDecideOAuth2DeviceCodeSession", provider.sqlDecideOAuth2DeviceCodeSession},
+		{"ShouldUseOrdinalPlaceholdersForUpdateOAuth2DeviceCodeSessionPolling", provider.sqlUpdateOAuth2DeviceCodeSessionPolling},
 	}
 
 	for _, tc := range testCases {

@@ -253,6 +253,7 @@ func (s *OIDCScenario) TestShouldAuthorizeConcurrentDeviceAuthorizationsInSepara
 
 	page = s.Browser().MustPage(second.VerificationURI)
 
+	s.MustActivate()
 	s.doEnterDeviceAuthorizationUserCode(s.T(), s.Context(ctx), first.UserCode)
 
 	page.MustActivate()
@@ -334,12 +335,14 @@ type oidcDeviceAuthorization struct {
 	UserCode                string `json:"user_code"`
 	VerificationURI         string `json:"verification_uri"`
 	VerificationURIComplete string `json:"verification_uri_complete"`
+	Interval                int    `json:"interval"`
 }
 
 const (
 	oidcDeviceCodeClientID     = "device-code"
 	oidcDeviceCodeClientSecret = "foobar"
 	oidcDeviceCodeScope        = "openid profile email groups"
+	oidcDeviceCodePollTimeout  = 45 * time.Second
 )
 
 func (s *OIDCScenario) getOIDCEndpoints(t *testing.T, c *http.Client) (endpoints oidcEndpoints) {
@@ -405,17 +408,34 @@ func (s *OIDCScenario) doRequestDeviceAuthorizationToken(t *testing.T, c *http.C
 }
 
 func (s *OIDCScenario) doPollDeviceAuthorizationToken(t *testing.T, c *http.Client, endpoints oidcEndpoints, device oidcDeviceAuthorization) (token map[string]any) {
-	for i := 0; i < 30; i++ {
-		time.Sleep(1 * time.Second)
+	interval := time.Duration(device.Interval) * time.Second
 
-		if status, body := s.doRequestDeviceAuthorizationToken(t, c, endpoints, device); status == http.StatusOK {
-			return body
-		}
+	if interval <= 0 {
+		interval = 5 * time.Second
 	}
 
-	require.Fail(t, "Failed to obtain token after polling device authorization endpoint.")
+	deadline := time.Now().Add(oidcDeviceCodePollTimeout)
 
-	return nil
+	for {
+		status, body := s.doRequestDeviceAuthorizationToken(t, c, endpoints, device)
+		if status == http.StatusOK {
+			return body
+		}
+
+		switch body["error"] {
+		case "authorization_pending":
+		case "slow_down":
+			interval += 5 * time.Second
+		default:
+			require.Failf(t, "Failed to obtain token after polling device authorization endpoint.", "status %d with body %v", status, body)
+		}
+
+		if time.Now().Add(interval).After(deadline) {
+			require.Failf(t, "Failed to obtain token after polling device authorization endpoint.", "timed out with the last status %d and body %v", status, body)
+		}
+
+		time.Sleep(interval)
+	}
 }
 
 func (s *OIDCScenario) doEnterDeviceAuthorizationUserCode(t *testing.T, page *rod.Page, userCode string) {

@@ -127,3 +127,86 @@ func TestDeviceCodePollAfterDenyShouldReturnAccessDenied(t *testing.T) {
 	assert.ErrorIs(t, err, oauthelia2.ErrAccessDenied)
 	assert.NotErrorIs(t, err, oauthelia2.ErrInvalidatedDeviceCode)
 }
+
+func TestDeviceCodePollWhileClaimedShouldKeepClaim(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	client := &oidc.RegisteredClient{ID: myclient}
+
+	requester := &oauthelia2.DeviceAuthorizeRequest{
+		Request: oauthelia2.Request{
+			ID:             "req-device-poll-claimed",
+			Client:         client,
+			RequestedScope: oauthelia2.Arguments{oidc.ScopeOpenID},
+			Session:        &oidc.Session{},
+		},
+		DeviceCodeSignature: "sig-device-poll-claimed",
+		UserCodeSignature:   "user-device-poll-claimed",
+	}
+
+	require.NoError(t, s.CreateDeviceCodeSession(ctx, requester.DeviceCodeSignature, requester))
+
+	challenge := uuid.MustParse("0b9c2f4e-7a61-4d3b-8f25-6c1e9d0a4b7f")
+
+	require.NoError(t, provider.ClaimOAuth2DeviceCodeSession(ctx, &model.OAuth2DeviceCodeSession{
+		Signature:   requester.DeviceCodeSignature,
+		ChallengeID: uuid.NullUUID{UUID: challenge, Valid: true},
+		Status:      model.OAuth2DeviceCodeStatusClaimed,
+		Active:      true,
+	}))
+
+	handler := &rfc8628.DeviceCodeTokenHandler{
+		Storage:  s,
+		Strategy: testDevicePollStrategy{},
+		Config:   &oauthelia2.Config{},
+	}
+
+	request := &oauthelia2.AccessRequest{
+		Request: oauthelia2.Request{
+			Client:  client,
+			Form:    url.Values{"device_code": []string{requester.DeviceCodeSignature}},
+			Session: &oidc.Session{},
+		},
+	}
+
+	_, _, _, err = handler.GetCodeAndSession(ctx, request)
+
+	assert.ErrorIs(t, err, oauthelia2.ErrAuthorizationPending)
+
+	device, err := provider.LoadOAuth2DeviceCodeSessionByChallengeID(ctx, challenge)
+
+	require.NoError(t, err)
+	assert.Equal(t, requester.DeviceCodeSignature, device.Signature)
+	assert.Equal(t, model.OAuth2DeviceCodeStatusClaimed, device.Status)
+	assert.False(t, device.CheckedAt.IsZero())
+}

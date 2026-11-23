@@ -341,6 +341,10 @@ type Provider interface {
 	// UpdateOAuth2DeviceCodeSessionData updates an OAuth2.0 device code session data in the storage provider.
 	UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
+	// UpdateOAuth2DeviceCodeSessionPolling updates only the polling state of an OAuth2.0 device code session in the
+	// storage provider.
+	UpdateOAuth2DeviceCodeSessionPolling(ctx context.Context, signature string, checked time.Time) (err error)
+
 	// DecideOAuth2DeviceCodeSession updates an OAuth2.0 device code session data in the storage provider only while it
 	// is undecided and claimed by the consent session with the challenge id of the given session. It returns
 	// ErrNoRowsAffected when no such session exists for the signature.

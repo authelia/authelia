@@ -819,6 +819,11 @@ const (
 			session_data = ?
 		WHERE signature = ?;`
 
+	queryFmtUpdateOAuth2DeviceCodeSessionPolling = `
+		UPDATE %s
+		SET checked_at = ?
+		WHERE signature = ? AND revoked = FALSE;`
+
 	queryFmtDecideOAuth2DeviceCodeSession = `
 		UPDATE %s
 		SET
