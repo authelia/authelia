@@ -16,6 +16,18 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
+        "/^cmd/authelia-scripts/cmd/gen\\.go$/"
+      ],
+      "matchStrings": [
+        "versionSwaggerUI = \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "swagger-api/swagger-ui",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
         "/^docs/netlify\\.toml$/"
       ],
       "matchStrings": [
