@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:8.10-alpine
+          image: redis:8.12-alpine
           ports:
             - containerPort: 6379
           readinessProbe:
