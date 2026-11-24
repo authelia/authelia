@@ -446,9 +446,9 @@ func (r *Redis) SessionGarbageCollection(ctx context.Context) (err error) {
 func (r *Redis) sessionGarbageCollection(ctx context.Context, client redis.Cmdable, score string) (err error) {
 	iter := client.Scan(ctx, 0, redisPrefixSessionUser+"*", redisScanCount).Iterator()
 
-	for iter.Next(ctx) {
-		if err = client.ZRemRangeByScore(ctx, iter.Val(), redisScoreMinimum, score).Err(); err != nil {
-			return fmt.Errorf("error removing expired sessions from the user index '%s': %w", iter.Val(), err)
+	for key := range iter.Vals(ctx) {
+		if err = client.ZRemRangeByScore(ctx, key, redisScoreMinimum, score).Err(); err != nil {
+			return fmt.Errorf("error removing expired sessions from the user index '%s': %w", key, err)
 		}
 	}
 
