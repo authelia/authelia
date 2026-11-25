@@ -8,7 +8,7 @@ overrides:
   '@babel/traverse': 8.1.3
   baseline-browser-mapping: 2.11.39
   brace-expansion: 5.1.0
-  fast-uri: 4.2.3
+  fast-uri: 4.2.4
   glob: 14.0.6
   minimatch: 11.0.9
   next: 16.4.6
@@ -1365,8 +1365,8 @@ packages:
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
 
-  fast-uri@4.2.3:
-    resolution: {integrity: sha512-I1PXwP5eAhlNlcdpjt9CgB59op2ZvZfxw+BkqGFVIUOgNpCVTcTqp3HhTX7brxj5vsip+nSY4nTvff+eIA76hg==}
+  fast-uri@4.2.4:
+    resolution: {integrity: sha512-ARrctoImibWG27hlPe0Gc93d6HwZBYipqd9QhnXyYzS101vKmqx2J/1R8kzhnnYTph0umtJqu9rqIuYtVDaAOg==}
 
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
@@ -2848,7 +2848,7 @@ snapshots:
   ajv@8.20.0:
     dependencies:
       fast-deep-equal: 3.1.3
-      fast-uri: 4.2.3
+      fast-uri: 4.2.4
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
 
@@ -3215,7 +3215,7 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
-  fast-uri@4.2.3: {}
+  fast-uri@4.2.4: {}
 
   fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:

@@ -4,7 +4,7 @@ allowBuilds:
 overrides:
   body-parser: 2.4.0
   brace-expansion: 5.1.0
-  fast-uri: 4.2.3
+  fast-uri: 4.2.4
   glob: 14.0.6
   js-yaml: 5.5.0
   minimatch: 11.0.9
