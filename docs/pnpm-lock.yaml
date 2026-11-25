@@ -203,8 +203,8 @@ importers:
         specifier: 5.2.0
         version: 5.2.0
       '@tabler/icons':
-        specifier: 3.52.0
-        version: 3.52.0
+        specifier: 3.53.0
+        version: 3.53.0
       '@thulite/core':
         specifier: 2.0.4
         version: 2.0.4(yaml@2.9.1)
@@ -1201,8 +1201,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@tabler/icons@3.52.0':
-    resolution: {integrity: sha512-dldKlJNfO/gZnGLcIY0X2EFFKIMGwL/rEvTqglvBgAPFiwj9pZOCN5V3Sf0Gyjq6foX4VQmLdOmsS4w5FdWKAw==}
+  '@tabler/icons@3.53.0':
+    resolution: {integrity: sha512-7V77PESErZob7+Ie4ibDs9tjRoMmZyjr3RpxRK3KLJejwggzxrkhVunbQ7xGYewjwdUyPc6dHpMvvft0prkkzQ==}
 
   '@thulite/bootstrap@1.2.4':
     resolution: {integrity: sha512-Mhkq3P3/s9zYJqI5v6Td3uaWscyZSeqVOXs2b5a+vuJn9R4ntAKwWE52kYdeuHC12xCFVL5uwnXjeH22b0SnAA==}
@@ -3487,7 +3487,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@tabler/icons@3.52.0': {}
+  '@tabler/icons@3.53.0': {}
 
   '@thulite/bootstrap@1.2.4':
     dependencies:
