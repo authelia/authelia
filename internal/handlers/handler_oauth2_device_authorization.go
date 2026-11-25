@@ -121,12 +121,12 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 	log = log.WithField(logging.FieldFlowID, flowID)
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+	if consent, err = handleOAuth2DeviceAuthorizationConsentSession(ctx, requester, flowID); err != nil {
 		log.
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
-			Error("Device Authorization Request failed with error to load the consent session during the User Authorization Flow")
+			Error("Device Authorization Request failed with error to validate the consent session during the User Authorization Flow")
 
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError)
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}
@@ -249,4 +249,34 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 	log.Debug("Device Authorization Request was successfully processed during the User Authorization Flow")
 
 	ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeResponse(ctx, rw, requester, responder)
+}
+
+func handleOAuth2DeviceAuthorizationConsentSession(ctx *middlewares.AutheliaCtx, requester oauthelia2.DeviceAuthorizeRequester, flowID uuid.UUID) (consent *model.OAuth2ConsentSession, err error) {
+	var device *model.OAuth2DeviceCodeSession
+
+	if device, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, requester.GetUserCodeSignature()); err != nil {
+		return nil, oauthelia2.ErrServerError.WithWrap(err).WithDebugf("Error occurred loading the device code session: %v", err)
+	}
+
+	if !device.ChallengeID.Valid || device.ChallengeID.UUID != flowID {
+		return nil, oauthelia2.ErrInvalidRequest.WithDebug("The provided flow id does not match the consent session for the device code session.")
+	}
+
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+		return nil, oauthelia2.ErrServerError.WithWrap(err).WithDebugf("Error occurred loading the consent session: %v", err)
+	}
+
+	if err = consent.MatchesRequester(requester, ""); err != nil {
+		return nil, err
+	}
+
+	if !consent.CanGrant(ctx.GetClock().Now()) {
+		return nil, oidc.ErrConsentCouldNotPerform.WithDebug("The consent session has already been granted or has expired.")
+	}
+
+	if !consent.IsAuthorized() {
+		return nil, oauthelia2.ErrAccessDenied.WithDebug("The consent session was not authorized by the user.")
+	}
+
+	return consent, nil
 }

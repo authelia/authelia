@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -284,14 +285,18 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
+		flowID := uuid.Must(uuid.NewRandom())
+
+		bindTestOIDCDeviceConsentSession(t, mock, userCode, flowID)
+
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodPut, testOIDCDeviceAuthorizationEndpoint, url.Values{
 			oidc.FormParameterUserCode: []string{userCode},
-			oidc.FormParameterFlowID:   []string{uuid.Must(uuid.NewRandom()).String()},
+			oidc.FormParameterFlowID:   []string{flowID.String()},
 		})
 
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed with error to load the consent session during the User Authorization Flow", regexpAnyError)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed with error to validate the consent session during the User Authorization Flow", regexpAnyError)
 	})
 
 	t.Run("ShouldHandleSubjectMismatch", func(t *testing.T) {
@@ -309,7 +314,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCDeviceConsentSession(t, mock, uuid.Must(uuid.NewRandom()), userCode)
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -344,7 +349,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCDeviceConsentSession(t, mock, uuid.Must(uuid.NewRandom()), userCode)
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -378,10 +383,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 
 		subject := mustGetTestOIDCSubject(t, mock, testOIDCDeviceCodeID)
 
-		consent := newTestOIDCConsentSession(t, mock, subject)
-		consent.ClientID = testOIDCDeviceCodeID
-		consent.Authorized = true
-		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
+		consent := newTestOIDCDeviceConsentSession(t, mock, subject, userCode)
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -401,6 +403,55 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusOK, rw.Code)
+	})
+
+	t.Run("ShouldApproveAfterConsentAndRejectFlowIDReuse", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCDeviceCodeStore(t, mock)
+		setupTestOIDCConsentStore(t, mock)
+		setupTestOIDCSessionStore(t, mock)
+		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCUserDetails(t, mock)
+
+		userCode := mustGetTestOIDCUserCode(t, mock)
+		otherUserCode := mustGetTestOIDCUserCode(t, mock)
+
+		mock.Ctx.Response.Reset()
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"subflow":"device_authorization","client_id":"%s","consent":true,"user_code":"%s"}`, testOIDCDeviceCodeID, userCode))
+
+		OAuth2ConsentPOST(mock.Ctx)
+
+		body := oidc.ConsentPostResponseBody{}
+
+		mock.GetResponseData(t, &body)
+
+		require.NotEmpty(t, body.FlowID)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodPut, testOIDCDeviceAuthorizationEndpoint, url.Values{
+			oidc.FormParameterUserCode: []string{userCode},
+			oidc.FormParameterFlowID:   []string{body.FlowID},
+		})
+
+		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusOK, rw.Code)
+
+		rw, r = newTestOAuth2Request(t, fasthttp.MethodPut, testOIDCDeviceAuthorizationEndpoint, url.Values{
+			oidc.FormParameterUserCode: []string{otherUserCode},
+			oidc.FormParameterFlowID:   []string{body.FlowID},
+		})
+
+		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed with error to validate the consent session during the User Authorization Flow", "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Make sure that the various parameters are correct, be aware of case sensitivity and trim your parameters. Make sure that the client you are using has exactly whitelisted the redirect_uri you specified. The provided flow id does not match the consent session for the device code session.")
 	})
 }
 
@@ -428,10 +479,7 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 
 		subject := mustGetTestOIDCSubject(t, mock, testOIDCDeviceCodeID)
 
-		consent = newTestOIDCConsentSession(t, mock, subject)
-		consent.ClientID = testOIDCDeviceCodeID
-		consent.Authorized = true
-		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
+		consent = newTestOIDCDeviceConsentSession(t, mock, subject, userCode)
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -546,7 +594,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCDeviceConsentSession(t, mock, uuid.Must(uuid.NewRandom()), userCode)
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -579,7 +627,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
-		consent := newTestOIDCConsentSession(t, mock, uuid.Must(uuid.NewRandom()))
+		consent := newTestOIDCDeviceConsentSession(t, mock, uuid.Must(uuid.NewRandom()), userCode)
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -629,8 +677,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 
 		subject := mustGetTestOIDCSubject(t, mock, testOIDCDeviceCodeID)
 
-		consent := newTestOIDCConsentSession(t, mock, subject)
-		consent.ClientID = testOIDCDeviceCodeID
+		consent := newTestOIDCDeviceConsentSession(t, mock, subject, userCode)
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -665,10 +712,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 
 		subject := mustGetTestOIDCSubject(t, mock, testOIDCDeviceCodeID)
 
-		consent := newTestOIDCConsentSession(t, mock, subject)
-		consent.ClientID = testOIDCDeviceCodeID
-		consent.Authorized = true
-		consent.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
+		consent := newTestOIDCDeviceConsentSession(t, mock, subject, userCode)
 
 		mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
@@ -697,6 +741,126 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 	})
 }
 
+func TestOAuth2DeviceAuthorizationPUTConsentValidation(t *testing.T) {
+	testCases := []struct {
+		name   string
+		bind   func(consent *model.OAuth2ConsentSession) uuid.UUID
+		setup  func(mock *mocks.MockAutheliaCtx, consent *model.OAuth2ConsentSession)
+		status int
+		err    string
+	}{
+		{
+			name: "ShouldRejectDeviceCodeWithoutFlowID",
+			bind: func(consent *model.OAuth2ConsentSession) uuid.UUID {
+				return uuid.Nil
+			},
+			status: http.StatusBadRequest,
+			err:    "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Make sure that the various parameters are correct, be aware of case sensitivity and trim your parameters. Make sure that the client you are using has exactly whitelisted the redirect_uri you specified. The provided flow id does not match the consent session for the device code session.",
+		},
+		{
+			name: "ShouldRejectFlowIDOfAnotherDeviceCode",
+			bind: func(consent *model.OAuth2ConsentSession) uuid.UUID {
+				return uuid.Must(uuid.NewRandom())
+			},
+			status: http.StatusBadRequest,
+			err:    "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Make sure that the various parameters are correct, be aware of case sensitivity and trim your parameters. Make sure that the client you are using has exactly whitelisted the redirect_uri you specified. The provided flow id does not match the consent session for the device code session.",
+		},
+		{
+			name: "ShouldRejectClientMismatch",
+			setup: func(mock *mocks.MockAutheliaCtx, consent *model.OAuth2ConsentSession) {
+				consent.ClientID = testOIDCAuthorizationCodeID
+			},
+			status: http.StatusBadRequest,
+			err:    "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Make sure that the various parameters are correct, be aware of case sensitivity and trim your parameters. Make sure that the client you are using has exactly whitelisted the redirect_uri you specified. The requested client id 'device-code' does not match the requested client id 'authorization-code' from the consent session.",
+		},
+		{
+			name: "ShouldRejectScopeMismatch",
+			setup: func(mock *mocks.MockAutheliaCtx, consent *model.OAuth2ConsentSession) {
+				consent.RequestedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID, oidc.ScopeProfile}
+			},
+			status: http.StatusBadRequest,
+			err:    "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Make sure that the various parameters are correct, be aware of case sensitivity and trim your parameters. Make sure that the client you are using has exactly whitelisted the redirect_uri you specified. The requested scope 'openid' does not match the requested scope 'openid profile' from the consent session.",
+		},
+		{
+			name: "ShouldRejectGranted",
+			setup: func(mock *mocks.MockAutheliaCtx, consent *model.OAuth2ConsentSession) {
+				consent.Granted = true
+			},
+			status: http.StatusBadRequest,
+			err:    "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Could not perform consent. The consent session has already been granted, has expired, or otherwise does not appear to be valid for the authorization request. The consent session has already been granted or has expired.",
+		},
+		{
+			name: "ShouldRejectExpired",
+			setup: func(mock *mocks.MockAutheliaCtx, consent *model.OAuth2ConsentSession) {
+				consent.ExpiresAt = mock.Ctx.GetClock().Now().Add(-time.Second)
+			},
+			status: http.StatusBadRequest,
+			err:    "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Could not perform consent. The consent session has already been granted, has expired, or otherwise does not appear to be valid for the authorization request. The consent session has already been granted or has expired.",
+		},
+		{
+			name: "ShouldRejectNotResponded",
+			setup: func(mock *mocks.MockAutheliaCtx, consent *model.OAuth2ConsentSession) {
+				consent.RespondedAt = sql.NullTime{}
+			},
+			status: http.StatusForbidden,
+			err:    "The resource owner or authorization server denied the request. Make sure that the request you are making is valid. Maybe the credential or request parameters you are using are limited in scope or otherwise restricted. The consent session was not authorized by the user.",
+		},
+		{
+			name: "ShouldRejectDenied",
+			setup: func(mock *mocks.MockAutheliaCtx, consent *model.OAuth2ConsentSession) {
+				consent.Authorized = false
+				consent.GrantedScopes = nil
+			},
+			status: http.StatusForbidden,
+			err:    "The resource owner or authorization server denied the request. Make sure that the request you are making is valid. Maybe the credential or request parameters you are using are limited in scope or otherwise restricted. The consent session was not authorized by the user.",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+			defer mock.Close()
+
+			config := newTestOIDCConfig(t)
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCDeviceCodeStore(t, mock)
+			setupTestOIDCSubjectStore(t, mock)
+
+			userCode := mustGetTestOIDCUserCode(t, mock)
+
+			subject := mustGetTestOIDCSubject(t, mock, testOIDCDeviceCodeID)
+
+			consent := newTestOIDCDeviceConsentSession(t, mock, subject, userCode)
+
+			if tc.bind != nil {
+				bindTestOIDCDeviceConsentSession(t, mock, userCode, tc.bind(consent))
+			}
+
+			if tc.setup != nil {
+				tc.setup(mock, consent)
+			}
+
+			mock.StorageMock.EXPECT().
+				LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+				AnyTimes().
+				Return(consent, nil)
+
+			rw, r := newTestOAuth2Request(t, fasthttp.MethodPut, testOIDCDeviceAuthorizationEndpoint, url.Values{
+				oidc.FormParameterUserCode: []string{userCode},
+				oidc.FormParameterFlowID:   []string{consent.ChallengeID.String()},
+			})
+
+			OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
+
+			assert.Equal(t, tc.status, rw.Code)
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Request failed with error to validate the consent session during the User Authorization Flow", tc.err)
+		})
+	}
+}
+
 const testOIDCDeviceAuthorizationEndpoint = "https://login.example.com:8080/api/oidc/device-authorization"
 
 func newTestOIDCDeviceCodeClient(t *testing.T) schema.IdentityProvidersOpenIDConnectClient {
@@ -712,4 +876,47 @@ func newTestOIDCDeviceCodeClient(t *testing.T) schema.IdentityProvidersOpenIDCon
 		RedirectURIs:            []string{testOIDCRedirectURI},
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 	}
+}
+
+func newTestOIDCDeviceConsentSession(t *testing.T, mock *mocks.MockAutheliaCtx, subject uuid.UUID, userCode string) *model.OAuth2ConsentSession {
+	t.Helper()
+
+	now := mock.Ctx.GetClock().Now()
+
+	form := url.Values{
+		oidc.FormParameterClientID: []string{testOIDCDeviceCodeID},
+		oidc.FormParameterScope:    []string{oidc.ScopeOpenID},
+	}
+
+	consent := &model.OAuth2ConsentSession{
+		ID:              1,
+		ChallengeID:     uuid.Must(uuid.NewRandom()),
+		ClientID:        testOIDCDeviceCodeID,
+		Subject:         uuid.NullUUID{UUID: subject, Valid: subject != uuid.Nil},
+		Authorized:      true,
+		RequestedAt:     now.Add(-time.Minute),
+		ExpiresAt:       now.Add(10 * time.Second),
+		RespondedAt:     sql.NullTime{Time: now, Valid: true},
+		Form:            form.Encode(),
+		RequestedScopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+		GrantedScopes:   model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+	}
+
+	bindTestOIDCDeviceConsentSession(t, mock, userCode, consent.ChallengeID)
+
+	return consent
+}
+
+func bindTestOIDCDeviceConsentSession(t *testing.T, mock *mocks.MockAutheliaCtx, userCode string, challengeID uuid.UUID) {
+	t.Helper()
+
+	signature, err := mock.Ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(mock.Ctx, userCode)
+	require.NoError(t, err)
+
+	device, err := mock.StorageMock.LoadOAuth2DeviceCodeSessionByUserCode(mock.Ctx, signature)
+	require.NoError(t, err)
+
+	device.ChallengeID = uuid.NullUUID{UUID: challengeID, Valid: challengeID != uuid.Nil}
+
+	require.NoError(t, mock.StorageMock.UpdateOAuth2DeviceCodeSession(mock.Ctx, device))
 }
