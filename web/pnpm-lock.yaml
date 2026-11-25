@@ -162,8 +162,8 @@ importers:
         specifier: 8.3.8
         version: 8.3.8(@types/node@26.6.6)(jiti@2.7.0)
       vite-plugin-checker:
-        specifier: 1.0.0
-        version: 1.0.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(jiti@2.7.0))(optionator@0.9.4)(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0))
+        specifier: 1.1.0
+        version: 1.1.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(jiti@2.7.0))(optionator@0.9.4)(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0))
       vite-plugin-istanbul:
         specifier: 9.0.1
         version: 9.0.1(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0))
@@ -3626,22 +3626,26 @@ packages:
     resolution: {integrity: sha512-u4J1hr6Y+C/hit34GwL3eIcUf3wngT8TlYUjK7tk0jxydKLAq3sYvifjdTDA6U3KCKRcQCQDGf/srjxfZF3l7g==}
     engines: {node: '>=18.12.0'}
 
-  vite-plugin-checker@1.0.0:
-    resolution: {integrity: sha512-3Ef78GTs13BUSTCqUCnl5kh8/Ev00G3cTt4z2mQacCODCdx6oq4B/TgXiCvGJ1D7/Hhbd84QKz691+8gbn1uog==}
+  vite-plugin-checker@1.1.0:
+    resolution: {integrity: sha512-div6bd92uVpoTNUm3WYqlFQnc9MvAX8urim8VYjk14+15wzsefxs3DFO1S2WTlF1Gtg+4IWkfcsbyhqarQsusQ==}
     engines: {node: ^22.22.0 || >=24.11.0}
     peerDependencies:
       '@biomejs/biome': '>=2.4.12'
+      '@sveltejs/sv-utils': ^1.1.0
       eslint: '>=9.39.4'
       meow: ^13.2.0 || ^14.0.0
       optionator: ^0.9.4
       oxlint: '>=1'
       stylelint: '>=16.26.1'
+      sv: ^1.3.0
       svelte-check: '>=4'
       typescript: '*'
       vite: 8.3.8
       vue-tsc: ~2.2.10 || ^3.0.0
     peerDependenciesMeta:
       '@biomejs/biome':
+        optional: true
+      '@sveltejs/sv-utils':
         optional: true
       eslint:
         optional: true
@@ -3652,6 +3656,8 @@ packages:
       oxlint:
         optional: true
       stylelint:
+        optional: true
+      sv:
         optional: true
       svelte-check:
         optional: true
@@ -7462,7 +7468,7 @@ snapshots:
 
   verkit@0.5.0: {}
 
-  vite-plugin-checker@1.0.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(jiti@2.7.0))(optionator@0.9.4)(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0)):
+  vite-plugin-checker@1.1.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(jiti@2.7.0))(optionator@0.9.4)(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0)):
     dependencies:
       '@babel/code-frame': 8.0.6
       chokidar: 6.0.0
