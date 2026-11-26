@@ -19,7 +19,7 @@
     "@eslint-react/eslint-plugin": "5.30.6",
     "@eslint/js": "10.0.1",
     "@react-email/ui": "6.11.16",
-    "@types/node": "26.6.7",
+    "@types/node": "26.6.10",
     "@types/react": "19.3.1",
     "@typescript-eslint/eslint-plugin": "8.74.0",
     "@typescript-eslint/parser": "8.74.0",
