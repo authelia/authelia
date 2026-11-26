@@ -47,8 +47,8 @@ importers:
         specifier: 8.3.1
         version: 8.3.1
       i18next-http-backend:
-        specifier: 4.1.1
-        version: 4.1.1
+        specifier: 4.1.2
+        version: 4.1.2
       lucide-react:
         specifier: 1.80.0
         version: 1.80.0(@types/react@19.3.1)(react@19.3.1)
@@ -2471,8 +2471,8 @@ packages:
   i18next-browser-languagedetector@8.3.1:
     resolution: {integrity: sha512-W7dfKWlmaxuy5zsKsu8vKm7SQ0R6T1Tw7XRMKCh3bt98q9m5Q73GKF1PiqtvcwzC+AZvfUCugbfcIYQkDfHeAg==}
 
-  i18next-http-backend@4.1.1:
-    resolution: {integrity: sha512-YgstcbFO+J9IriPLi36CqO1WxUQlq1mauQD4PED6DEATMwM9prHe/Soz3/CGWxpUyOa8y4WrrfOsWdBKHhk22w==}
+  i18next-http-backend@4.1.2:
+    resolution: {integrity: sha512-AwcMCsyzucO7puxbqlGARIkmV4DD4wjC6hOEBq6u8x1f+3CGT5kQGmXPIYsV/r48WCBAyWT+TK4gmCz0bx3lNg==}
     engines: {node: '>=18'}
 
   i18next@27.2.9:
@@ -6285,7 +6285,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.29.10
 
-  i18next-http-backend@4.1.1: {}
+  i18next-http-backend@4.1.2: {}
 
   i18next@27.2.9(@typescript/typescript6@6.0.2):
     optionalDependencies:
