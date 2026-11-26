@@ -39,10 +39,20 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 
 	level := policy.GetRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()})
 
+	none := oidc.ParseSpaceDelimitedFromParameter(requester.GetRequestForm(), oidc.FormParameterPrompt).Has(oidc.PromptNone)
+
 	switch {
 	case userSession.IsAnonymous():
+		if none {
+			return nil, handleOAuth2AuthorizationConsentPromptNone(ctx, client, policy, rw, requester, oauthelia2.ErrLoginRequired, "the user is not logged in")
+		}
+
 		handler = handleOAuth2AuthorizationConsentNotAuthenticated
 	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level):
+		if none && oidc.RequesterRequiresLogin(requester, requester.GetRequestedAt(), userSession.LastAuthenticatedTime(), ctx.GetClock().Now()) {
+			return nil, handleOAuth2AuthorizationConsentPromptNone(ctx, client, policy, rw, requester, oauthelia2.ErrLoginRequired, "the user is required to authenticate again")
+		}
+
 		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
 			ctx.GetLogger().Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifierURI(), err)
 
@@ -51,32 +61,27 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 			return nil, true
 		}
 
-		mode := client.GetConsentPolicy().Mode
-
-		switch {
-		case mode == oidc.ClientConsentModeExplicit:
-			handler = handleOAuth2AuthorizationConsentModeExplicit
-		case oidc.RequesterRequiresExplicitConsent(requester):
-			ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' using policy '%s' was determined to require explicit consent due to requirements requested by the client", requester.GetID(), client.GetID(), policy.Name)
-
-			handler = handleOAuth2AuthorizationConsentModeExplicit
-		case !oidc.RequesterIsClientIdentityAssured(ctx, client, requester):
-			ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' using policy '%s' was determined to require explicit consent as the identity of the public client is not assured by the redirect uri", requester.GetID(), client.GetID(), policy.Name)
-
-			handler = handleOAuth2AuthorizationConsentModeExplicit
-		default:
-			switch mode {
-			case oidc.ClientConsentModeImplicit:
-				handler = handleOAuth2AuthorizationConsentModeImplicit
-			case oidc.ClientConsentModePreConfigured:
-				handler = handleOAuth2AuthorizationConsentModePreConfigured
-			default:
-				ctx.GetLogger().Errorf(logFmtErrConsentCantDetermineConsentMode, requester.GetID(), client.GetID())
-
-				ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not determine the client consent mode."))
-
-				return nil, true
+		if handleOAuth2AuthorizationConsentRequiresExplicit(ctx, client, policy, requester) {
+			if none {
+				return nil, handleOAuth2AuthorizationConsentPromptNone(ctx, client, policy, rw, requester, oauthelia2.ErrConsentRequired, "the user is required to provide consent")
 			}
+
+			handler = handleOAuth2AuthorizationConsentModeExplicit
+
+			break
+		}
+
+		switch client.GetConsentPolicy().Mode {
+		case oidc.ClientConsentModeImplicit:
+			handler = handleOAuth2AuthorizationConsentModeImplicit
+		case oidc.ClientConsentModePreConfigured:
+			handler = handleOAuth2AuthorizationConsentModePreConfigured
+		default:
+			ctx.GetLogger().Errorf(logFmtErrConsentCantDetermineConsentMode, requester.GetID(), client.GetID())
+
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not determine the client consent mode."))
+
+			return nil, true
 		}
 	case level == authorization.Denied:
 		ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the user '%s' is not authorized to use this client", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
@@ -85,10 +90,39 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 
 		return nil, true
 	default:
+		if none {
+			return nil, handleOAuth2AuthorizationConsentPromptNone(ctx, client, policy, rw, requester, oauthelia2.ErrInteractionRequired, "the user is required to perform additional authentication")
+		}
+
 		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, details, uuid.Nil, rw, r, requester)
 	}
 
 	return handler(ctx, issuer, client, userSession, details, subject, rw, r, requester)
+}
+
+func handleOAuth2AuthorizationConsentRequiresExplicit(ctx *middlewares.AutheliaCtx, client oidc.Client, policy oidc.ClientAuthorizationPolicy, requester oauthelia2.Requester) (required bool) {
+	switch {
+	case client.GetConsentPolicy().Mode == oidc.ClientConsentModeExplicit:
+		return true
+	case oidc.RequesterRequiresExplicitConsent(requester):
+		ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' using policy '%s' was determined to require explicit consent due to requirements requested by the client", requester.GetID(), client.GetID(), policy.Name)
+
+		return true
+	case !oidc.RequesterIsClientIdentityAssured(ctx, client, requester):
+		ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' using policy '%s' was determined to require explicit consent as the identity of the public client is not assured by the redirect uri", requester.GetID(), client.GetID(), policy.Name)
+
+		return true
+	default:
+		return false
+	}
+}
+
+func handleOAuth2AuthorizationConsentPromptNone(ctx *middlewares.AutheliaCtx, client oidc.Client, policy oidc.ClientAuthorizationPolicy, rw http.ResponseWriter, requester oauthelia2.Requester, rfc *oauthelia2.RFC6749Error, reason string) (handled bool) {
+	ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but %s", requester.GetID(), client.GetID(), policy.Name, reason)
+
+	ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, rfc)
+
+	return true
 }
 
 func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx, provider session.Strategy, userSession *session.UserSession, client oidc.Client, policy oidc.ClientAuthorizationPolicy, rw http.ResponseWriter, requester oauthelia2.Requester) (handled bool) {
@@ -200,6 +234,16 @@ func handleOAuth2AuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issu
 func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession, client oidc.Client,
 	userSession session.UserSession, details *authentication.UserDetailsExtended, rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) {
 	var location *url.URL
+
+	if oidc.ParseSpaceDelimitedFromParameter(requester.GetRequestForm(), oidc.FormParameterPrompt).Has(oidc.PromptNone) {
+		if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
+			handleOAuth2AuthorizationConsentPromptNone(ctx, client, client.GetAuthorizationPolicy(), rw, requester, oauthelia2.ErrConsentRequired, "the user is required to provide consent")
+		} else {
+			handleOAuth2AuthorizationConsentPromptNone(ctx, client, client.GetAuthorizationPolicy(), rw, requester, oauthelia2.ErrInteractionRequired, "the user is required to perform additional authentication")
+		}
+
+		return
+	}
 
 	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
 		location = &url.URL{

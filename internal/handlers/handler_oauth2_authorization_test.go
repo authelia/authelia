@@ -13,8 +13,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,6 +30,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -859,4 +862,396 @@ func newTestSignedRequestObject(t *testing.T, key *rsa.PrivateKey, kid string, v
 	require.NoError(t, err)
 
 	return object
+}
+
+func TestOAuth2AuthorizationGETPromptNone(t *testing.T) {
+	testCases := []struct {
+		name           string
+		level          int
+		client         func(client *schema.IdentityProvidersOpenIDConnectClient)
+		values         func(values url.Values)
+		session        func(userSession *session.UserSession)
+		inactivity     time.Duration
+		consents       bool
+		expectedError  string
+		expectedCode   bool
+		expectedFlow   bool
+		expectedAnon   bool
+		expectedLogMsg *regexp.Regexp
+	}{
+		{
+			name:  "ShouldReturnConsentRequiredWithExplicitConsentMode",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "explicit"
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+			},
+			expectedError:  "consent_required",
+			expectedLogMsg: regexpAuthorizationPromptNoneConsent,
+		},
+		{
+			name:  "ShouldReturnConsentRequiredWithImplicitConsentModeAndOfflineAccess",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+				client.Scopes = []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess}
+				client.GrantTypes = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken}
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+				values.Set(oidc.FormParameterScope, oidc.ScopeOpenID+" "+oidc.ScopeOfflineAccess)
+			},
+			expectedError:  "consent_required",
+			expectedLogMsg: regexpAuthorizationPromptNoneConsent,
+		},
+		{
+			name:  "ShouldReturnConsentRequiredWithPublicClientWithoutAssuredIdentity",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+				client.Public = true
+				client.Secret = nil
+				client.TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
+				client.ApplicationType = oidc.ApplicationTypeNative
+				client.RedirectURIs = []string{"http://127.0.0.1/oidc/callback"}
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+				values.Set(oidc.FormParameterRedirectURI, "http://127.0.0.1:43210/oidc/callback")
+				values.Set("code_challenge", "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")
+				values.Set("code_challenge_method", oidc.PKCEChallengeMethodSHA256)
+			},
+			expectedError: "consent_required",
+		},
+		{
+			name:  "ShouldReturnInteractionRequiredWithInsufficientAuthenticationLevel",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+				client.AuthorizationPolicy = "two_factor"
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+			},
+			expectedError:  "interaction_required",
+			expectedLogMsg: regexpAuthorizationPromptNoneInteraction,
+		},
+		{
+			name:  "ShouldReturnLoginRequiredWithMaxAgeExceededAndImplicitConsentMode",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+				values.Set(oidc.FormParameterMaximumAge, "60")
+			},
+			session: func(userSession *session.UserSession) {
+				userSession.FirstFactorAuthnTimestamp = time.Now().Add(-time.Hour).Unix()
+			},
+			expectedError:  "login_required",
+			expectedLogMsg: regexpAuthorizationPromptNoneLogin,
+		},
+		{
+			name:  "ShouldReturnLoginRequiredWithMaxAgeExceededAndExplicitConsentMode",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "explicit"
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+				values.Set(oidc.FormParameterMaximumAge, "60")
+			},
+			session: func(userSession *session.UserSession) {
+				userSession.FirstFactorAuthnTimestamp = time.Now().Add(-time.Hour).Unix()
+			},
+			expectedError:  "login_required",
+			expectedLogMsg: regexpAuthorizationPromptNoneLogin,
+		},
+		{
+			name:  "ShouldReturnLoginRequiredWithMaxAgeExceededAndPreConfiguredConsentMode",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "pre-configured"
+				client.ConsentPreConfiguredDuration = &testOIDCPreConfiguredDuration
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+				values.Set(oidc.FormParameterMaximumAge, "60")
+			},
+			session: func(userSession *session.UserSession) {
+				userSession.FirstFactorAuthnTimestamp = time.Now().Add(-time.Hour).Unix()
+			},
+			expectedError:  "login_required",
+			expectedLogMsg: regexpAuthorizationPromptNoneLogin,
+		},
+		{
+			name:  "ShouldReturnLoginRequiredWithSessionResetByInactivity",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+			},
+			session: func(userSession *session.UserSession) {
+				userSession.LastActivity = time.Now().Add(-time.Hour).Unix()
+			},
+			inactivity:     time.Minute,
+			expectedError:  "login_required",
+			expectedAnon:   true,
+			expectedLogMsg: regexpAuthorizationPromptNoneAnonymous,
+		},
+		{
+			name:  "ShouldAuthorizeWithImplicitConsentMode",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+			},
+			consents:     true,
+			expectedCode: true,
+		},
+		{
+			name:  "ShouldAuthorizeWithImplicitConsentModeAndMaxAgeNotExceeded",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterPrompt, oidc.PromptNone)
+				values.Set(oidc.FormParameterMaximumAge, "3600")
+			},
+			consents:     true,
+			expectedCode: true,
+		},
+		{
+			name:  "ShouldRedirectToFlowWithMaxAgeExceededWithoutPromptNone",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterMaximumAge, "60")
+			},
+			session: func(userSession *session.UserSession) {
+				userSession.FirstFactorAuthnTimestamp = time.Now().Add(-time.Hour).Unix()
+			},
+			consents:     true,
+			expectedFlow: true,
+		},
+		{
+			name:  "ShouldRedirectToFlowWithSessionResetByInactivityWithoutPromptNone",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+			},
+			session: func(userSession *session.UserSession) {
+				userSession.LastActivity = time.Now().Add(-time.Hour).Unix()
+			},
+			inactivity:   time.Minute,
+			consents:     true,
+			expectedFlow: true,
+			expectedAnon: true,
+		},
+		{
+			name:  "ShouldRedirectToFlowWithOfflineAccessWithoutPromptNone",
+			level: 1,
+			client: func(client *schema.IdentityProvidersOpenIDConnectClient) {
+				client.ConsentMode = "implicit"
+				client.Scopes = []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess}
+				client.GrantTypes = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken}
+			},
+			values: func(values url.Values) {
+				values.Set(oidc.FormParameterScope, oidc.ScopeOpenID+" "+oidc.ScopeOfflineAccess)
+			},
+			consents:     true,
+			expectedFlow: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			if tc.inactivity != 0 {
+				mock.Ctx.Configuration.Session.Cookies[0].Inactivity = tc.inactivity
+				mock.ResetSessionProvider()
+			}
+
+			userSession := newTestOIDCUserSession(tc.level)
+
+			if tc.session != nil {
+				tc.session(&userSession)
+			}
+
+			require.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+			client := newTestOIDCAuthorizationCodeClient(t)
+
+			if tc.client != nil {
+				tc.client(&client)
+			}
+
+			config := newTestOIDCConfig(t)
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCSubjectStore(t, mock)
+			setupTestOIDCUserDetails(t, mock)
+
+			if tc.expectedCode {
+				setupTestOIDCSessionStore(t, mock)
+			}
+
+			if tc.consents {
+				setupTestOIDCConsentStore(t, mock)
+			}
+
+			if client.ConsentMode == "pre-configured" {
+				mock.StorageMock.EXPECT().
+					LoadOAuth2ConsentPreConfigurations(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes().
+					Return(&storage.ConsentPreConfigRows{}, nil)
+			}
+
+			values := newTestOIDCAuthorizationValues()
+
+			if tc.values != nil {
+				tc.values(values)
+			}
+
+			rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
+
+			OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+			require.Equal(t, http.StatusSeeOther, rw.Code)
+
+			location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+			require.NoError(t, err)
+
+			redirectURI, err := url.Parse(values.Get(oidc.FormParameterRedirectURI))
+
+			require.NoError(t, err)
+
+			switch {
+			case tc.expectedFlow:
+				assert.Equal(t, "login.example.com:8080", location.Host)
+				assert.Equal(t, "openid_connect", location.Query().Get("flow"))
+				assert.NotEmpty(t, location.Query().Get("flow_id"))
+				assert.Empty(t, location.Query().Get("error"))
+			case tc.expectedCode:
+				assert.Equal(t, redirectURI.Host, location.Host)
+				assert.Equal(t, redirectURI.Path, location.Path)
+				assert.NotEmpty(t, location.Query().Get("code"))
+				assert.Empty(t, location.Query().Get("error"))
+			default:
+				assert.Equal(t, redirectURI.Host, location.Host)
+				assert.Equal(t, redirectURI.Path, location.Path)
+				assert.Equal(t, tc.expectedError, location.Query().Get("error"))
+				assert.Equal(t, "abcdefghijklmnopqrstuvwxyz", location.Query().Get("state"))
+				assert.Empty(t, location.Query().Get("code"))
+				assert.Empty(t, location.Query().Get("flow"))
+				assert.Empty(t, location.Query().Get("flow_id"))
+			}
+
+			if tc.expectedLogMsg != nil {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.expectedLogMsg, nil)
+			}
+
+			current, err := mock.Ctx.GetSession()
+
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedAnon, current.IsAnonymous())
+		})
+	}
+}
+
+func TestOAuth2AuthorizationGETPromptNoneWithConsentID(t *testing.T) {
+	testCases := []struct {
+		name          string
+		prompt        string
+		expectedError string
+	}{
+		{
+			name:          "ShouldReturnConsentRequiredWithPreConfiguredConsentModeAndPendingConsent",
+			prompt:        oidc.PromptNone,
+			expectedError: "consent_required",
+		},
+		{
+			name: "ShouldRedirectToFlowWithPreConfiguredConsentModeAndPendingConsentWithoutPromptNone",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+			defer mock.Close()
+
+			client := newTestOIDCPreConfiguredClient(t)
+
+			config := newTestOIDCConfig(t)
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCSubjectStore(t, mock)
+			setupTestOIDCUserDetails(t, mock)
+
+			subject := mustGetTestOIDCSubject(t, mock, client.ID)
+
+			values := newTestOIDCAuthorizationValues()
+
+			if tc.prompt != "" {
+				values.Set(oidc.FormParameterPrompt, tc.prompt)
+			}
+
+			consent := newTestOIDCConsentSession(t, mock, subject)
+			consent.Form = values.Encode()
+
+			mock.StorageMock.EXPECT().
+				LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+				AnyTimes().
+				Return(consent, nil)
+
+			mock.StorageMock.EXPECT().
+				LoadOAuth2ConsentPreConfigurations(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				AnyTimes().
+				Return(&storage.ConsentPreConfigRows{}, nil)
+
+			mock.Ctx.Request.SetRequestURI(testOIDCAuthorizationEndpoint + "?consent_id=" + consent.ChallengeID.String())
+
+			rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
+
+			OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+			require.Equal(t, http.StatusSeeOther, rw.Code)
+
+			location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+			require.NoError(t, err)
+
+			if tc.expectedError == "" {
+				assert.Equal(t, "login.example.com:8080", location.Host)
+				assert.Equal(t, "openid_connect", location.Query().Get("flow"))
+				assert.Equal(t, consent.ChallengeID.String(), location.Query().Get("flow_id"))
+				assert.Empty(t, location.Query().Get("error"))
+
+				return
+			}
+
+			assert.Equal(t, "app.example.com", location.Host)
+			assert.Equal(t, "/oidc/callback", location.Path)
+			assert.Equal(t, tc.expectedError, location.Query().Get("error"))
+			assert.Empty(t, location.Query().Get("flow_id"))
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpAuthorizationPromptNoneConsent, nil)
+		})
+	}
 }

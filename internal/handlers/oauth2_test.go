@@ -88,11 +88,14 @@ var (
 )
 
 var (
-	regexpAuthorizationIssuerError          = regexp.MustCompile(`^Authorization Request could not be processed: `)
-	regexpAuthorizationRequestIDIssuerError = regexp.MustCompile(`^Authorization Request with id '[^']*' could not be processed: `)
-	regexpAuthorizationFailed               = regexp.MustCompile(`^Authorization Request .*(failed|could not be processed)`)
-	regexpAuthorizationPromptNoneAnonymous  = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is not logged in$`)
-	regexpAuthorizationFormError            = regexp.MustCompile(`^Authorization Request with id '[^']*' had an error parsing the form\.$`)
+	regexpAuthorizationIssuerError           = regexp.MustCompile(`^Authorization Request could not be processed: `)
+	regexpAuthorizationRequestIDIssuerError  = regexp.MustCompile(`^Authorization Request with id '[^']*' could not be processed: `)
+	regexpAuthorizationFailed                = regexp.MustCompile(`^Authorization Request .*(failed|could not be processed)`)
+	regexpAuthorizationPromptNoneAnonymous   = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is not logged in$`)
+	regexpAuthorizationPromptNoneLogin       = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is required to authenticate again$`)
+	regexpAuthorizationPromptNoneConsent     = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is required to provide consent$`)
+	regexpAuthorizationPromptNoneInteraction = regexp.MustCompile(`the 'prompt' type of 'none' was requested but the user is required to perform additional authentication$`)
+	regexpAuthorizationFormError             = regexp.MustCompile(`^Authorization Request with id '[^']*' had an error parsing the form\.$`)
 )
 
 var regexpConsentMalformedChallengeID = regexp.MustCompile(`error occurred parsing the consent id [(]challenge[)] 'not-a-uuid'`)
