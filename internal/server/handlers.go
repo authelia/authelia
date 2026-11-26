@@ -109,8 +109,26 @@ func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 // RegisterRoutesBridgedFunc is a function which registers routes that require the middleware bridge.
 type RegisterRoutesBridgedFunc = func(r *router.Router, config *schema.Configuration, providers middlewares.Providers, bridge middlewares.Bridge)
 
-//nolint:gocyclo
 func handlerMain(config *schema.Configuration, providers middlewares.Providers) (handler fasthttp.RequestHandler, err error) {
+	var r *router.Router
+
+	if r, err = handlerRouter(config, providers); err != nil {
+		return nil, err
+	}
+
+	handler = middlewares.LogRequest(r.Handler)
+
+	handler = middlewares.StripPath(config.Server.Address.RouterPath())(handler)
+
+	handler = middlewares.MultiWrap(handler, middlewares.RecoverPanic, middlewares.NewMetricsRequest(providers.Metrics))
+
+	middleware := middlewares.NewTrustedProxies(config.Server.Headers.TrustedProxies)
+
+	return middleware(handler), nil
+}
+
+//nolint:gocyclo
+func handlerRouter(config *schema.Configuration, providers middlewares.Providers) (r *router.Router, err error) {
 	optsTemplatedFile := NewTemplatedFileOptions(config)
 
 	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
@@ -142,7 +160,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		WithAllowedOrigins("*").
 		Build()
 
-	r := router.New()
+	r = router.New()
 
 	r.HEAD("/", bridge(serveIndexHandler))
 	r.GET("/", bridge(serveIndexHandler))
@@ -396,15 +414,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.MethodNotAllowed = handleMethodNotAllowed
 	r.NotFound = handleNotFound(bridge(serveIndexHandler))
 
-	handler = middlewares.LogRequest(r.Handler)
-
-	handler = middlewares.StripPath(config.Server.Address.RouterPath())(handler)
-
-	handler = middlewares.MultiWrap(handler, middlewares.RecoverPanic, middlewares.NewMetricsRequest(providers.Metrics))
-
-	middleware := middlewares.NewTrustedProxies(config.Server.Headers.TrustedProxies)
-
-	return middleware(handler), nil
+	return r, nil
 }
 
 // RegisterOpenIDConnectRoutes handles registration of OpenID Connect 1.0 routes.

@@ -212,6 +212,32 @@ func TestOAuth2ConsentUserCodePOSTShouldResumeExchangeForTheSameUserAgent(t *tes
 			},
 			err: "the consent session has already been responded to",
 		},
+		{
+			name:    "ShouldNotResumeConsentSessionOfAnotherSubject",
+			binding: true,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, flowID uuid.UUID) {
+				consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
+				require.NoError(t, err)
+
+				consent.Subject = uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+
+				require.NoError(t, mock.Ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(mock.Ctx, consent, false))
+			},
+			err: "the subject of the consent session does not match the subject of the user",
+		},
+		{
+			name:    "ShouldNotResumeConsentSessionWithoutSubject",
+			binding: true,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, flowID uuid.UUID) {
+				consent, err := mock.Ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(mock.Ctx, flowID)
+				require.NoError(t, err)
+
+				consent.Subject = uuid.NullUUID{}
+
+				require.NoError(t, mock.Ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(mock.Ctx, consent, false))
+			},
+			err: "the subject of the consent session does not match the subject of the user",
+		},
 	}
 
 	for _, tc := range testCases {
