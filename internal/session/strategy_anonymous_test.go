@@ -257,6 +257,7 @@ func TestUserSession_RequiresPersistence(t *testing.T) {
 		{"ShouldRequireForUsername", func(userSession *UserSession) { userSession.Username = testUsername }, true},
 		{"ShouldRequireForFirstFactorTimestamp", func(userSession *UserSession) { userSession.FirstFactorAuthnTimestamp = 1 }, true},
 		{"ShouldRequireForSecondFactorTimestamp", func(userSession *UserSession) { userSession.SecondFactorAuthnTimestamp = 1 }, true},
+		{"ShouldRequireForSecondFactorPossessionTimestamp", func(userSession *UserSession) { userSession.SecondFactorPossessionAuthnTimestamp = 1 }, true},
 		{"ShouldRequireForAMR", func(userSession *UserSession) { userSession.AuthenticationMethodRefs.WebAuthnUserVerified = true }, true},
 		{"ShouldRequireForExtraAMR", func(userSession *UserSession) { userSession.AuthenticationMethodRefs.Extra = []string{"x"} }, true},
 		{"ShouldRequireForWebAuthn", func(userSession *UserSession) { userSession.WebAuthn = &WebAuthn{} }, true},

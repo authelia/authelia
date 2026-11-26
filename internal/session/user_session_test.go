@@ -122,11 +122,12 @@ func TestUserSession_SetFactors(t *testing.T) {
 				session.SetTwoFactorDuo(time.Unix(20000, 0))
 			},
 			&UserSession{
-				Username:                   "john",
-				KeepMeLoggedIn:             true,
-				LastActivity:               20000,
-				FirstFactorAuthnTimestamp:  10000,
-				SecondFactorAuthnTimestamp: 20000,
+				Username:                             "john",
+				KeepMeLoggedIn:                       true,
+				LastActivity:                         20000,
+				FirstFactorAuthnTimestamp:            10000,
+				SecondFactorAuthnTimestamp:           20000,
+				SecondFactorPossessionAuthnTimestamp: 20000,
 				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
 					KnowledgeBasedAuthentication: true,
 					UsernameAndPassword:          true,
@@ -150,6 +151,51 @@ func TestUserSession_SetFactors(t *testing.T) {
 					KnowledgeBasedAuthentication: true,
 					UsernameAndPassword:          true,
 					RecoveryCode:                 true,
+				},
+			},
+		},
+		{
+			"ShouldSetOneFactorPasswordAndTwoFactorTOTP",
+			func(session *UserSession) {
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
+				session.SetTwoFactorTOTP(time.Unix(20000, 0))
+			},
+			&UserSession{
+				Username:                             "john",
+				KeepMeLoggedIn:                       true,
+				LastActivity:                         20000,
+				FirstFactorAuthnTimestamp:            10000,
+				SecondFactorAuthnTimestamp:           20000,
+				SecondFactorPossessionAuthnTimestamp: 20000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					KnowledgeBasedAuthentication: true,
+					UsernameAndPassword:          true,
+					TOTP:                         true,
+				},
+			},
+		},
+		{
+			"ShouldSetOneFactorPasswordAndTwoFactorWebAuthn",
+			func(session *UserSession) {
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
+				session.SetTwoFactorWebAuthn(time.Unix(20000, 0), true, true, true)
+			},
+			&UserSession{
+				Username:                             "john",
+				KeepMeLoggedIn:                       true,
+				LastActivity:                         20000,
+				FirstFactorAuthnTimestamp:            10000,
+				SecondFactorAuthnTimestamp:           20000,
+				SecondFactorPossessionAuthnTimestamp: 20000,
+				AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+					KnowledgeBasedAuthentication: true,
+					UsernameAndPassword:          true,
+					WebAuthn:                     true,
+					WebAuthnHardware:             true,
+					WebAuthnUserVerified:         true,
+					WebAuthnUserPresence:         true,
 				},
 			},
 		},
