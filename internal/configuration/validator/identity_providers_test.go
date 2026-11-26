@@ -3464,6 +3464,159 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldNotRaiseErrorOnEncryptedResponseAlgWithMatchingEncryptionKey",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgRSAOAEP
+				have.Clients[0].JSONWebKeys = []schema.JWK{
+					{
+						KeyID:     "enc",
+						Use:       oidc.KeyUseEncryption,
+						Algorithm: oidc.EncryptionAlgRSAOAEP,
+						Key:       keyRSA2048.Public(),
+					},
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnEncryptedResponseAlgWithDefaultedEncryptionKeyAlgorithm",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgRSAOAEP
+				have.Clients[0].JSONWebKeys = []schema.JWK{
+					{
+						KeyID:     "enc",
+						Use:       oidc.KeyUseEncryption,
+						Algorithm: "",
+						Key:       keyRSA2048.Public(),
+					},
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'id_token_encrypted_response_alg' is configured as 'RSA-OAEP' but option 'jwks' does not contain a key with a 'use' of 'enc' and an 'algorithm' of 'RSA-OAEP'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnEncryptedResponseAlgWithOnlySigningKey",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgRSAOAEP
+				have.Clients[0].JSONWebKeys = []schema.JWK{
+					{
+						KeyID:     "enc",
+						Use:       "",
+						Algorithm: "",
+						Key:       keyRSA2048.Public(),
+					},
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'id_token_encrypted_response_alg' is configured as 'RSA-OAEP' but option 'jwks' does not contain a key with a 'use' of 'enc' and an 'algorithm' of 'RSA-OAEP'",
+			},
+		},
+		{
+			"ShouldNotRaiseErrorOnEncryptedResponseAlgWithMatchingEncryptionKeyID",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgRSAOAEP
+				have.Clients[0].IDTokenEncryptedResponseKeyID = "enc"
+				have.Clients[0].JSONWebKeys = []schema.JWK{
+					{
+						KeyID:     "enc",
+						Use:       oidc.KeyUseEncryption,
+						Algorithm: oidc.EncryptionAlgRSAOAEP,
+						Key:       keyRSA2048.Public(),
+					},
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnEncryptedResponseAlgWithMismatchedEncryptionKeyID",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgRSAOAEP
+				have.Clients[0].IDTokenEncryptedResponseKeyID = "other"
+				have.Clients[0].JSONWebKeys = []schema.JWK{
+					{
+						KeyID:     "enc",
+						Use:       oidc.KeyUseEncryption,
+						Algorithm: oidc.EncryptionAlgRSAOAEP,
+						Key:       keyRSA2048.Public(),
+					},
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'id_token_encrypted_response_alg' is configured as 'RSA-OAEP' but option 'jwks' does not contain a key with a 'use' of 'enc', an 'algorithm' of 'RSA-OAEP', and a 'key_id' of 'other'",
+			},
+		},
+		{
 			"ShouldNotWarnOfflineAccessScopeWithDefaultResponseTypes",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].Scopes = []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess}

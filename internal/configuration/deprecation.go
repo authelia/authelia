@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -343,11 +344,13 @@ var deprecations = map[string]Deprecation{
 		Version: model.SemanticVersion{Major: 4, Minor: 40},
 		Key:     "identity_providers.oidc.clients[].pushed_authorization_request_endpoint_auth_method",
 		AutoMap: false,
+		ErrFunc: deprecationOIDCClientPARAuth("token_endpoint_auth_method"),
 	},
 	"identity_providers.oidc.clients[].pushed_authorization_request_endpoint_auth_signing_alg": {
 		Version: model.SemanticVersion{Major: 4, Minor: 40},
 		Key:     "identity_providers.oidc.clients[].pushed_authorization_request_endpoint_auth_signing_alg",
 		AutoMap: false,
+		ErrFunc: deprecationOIDCClientPARAuth("token_endpoint_auth_signing_alg"),
 	},
 }
 
@@ -576,4 +579,17 @@ func GetMultiKeyMappedDeprecationKeys() (keys []string) {
 	}
 
 	return keys
+}
+
+func deprecationOIDCClientPARAuth(replacement string) func(d Deprecation, keysFinal map[string]any, value any, val *schema.StructValidator) {
+	return func(d Deprecation, keysFinal map[string]any, value any, val *schema.StructValidator) {
+		id, ok := keysFinal["client_id"]
+		if !ok {
+			id = keysFinal["id"]
+		}
+
+		key := strings.TrimPrefix(d.Key, "identity_providers.oidc.clients[].")
+
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientPARAuthRemoved, id, key, d.Version, value, replacement, d.Version.NextMajor()))
+	}
 }

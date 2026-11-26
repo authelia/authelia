@@ -99,6 +99,51 @@ func TestShouldHaveNotifier(t *testing.T) {
 	assert.NotNil(t, config.Notifier)
 }
 
+func TestShouldWarnAndDropOpenIDConnectClientPushedAuthorizationRequestAuthKeys(t *testing.T) {
+	data := []byte(`
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'app'
+        token_endpoint_auth_method: 'client_secret_basic'
+        pushed_authorization_request_endpoint_auth_method: 'private_key_jwt'
+        pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
+      - client_id: 'other'
+`)
+
+	val := schema.NewStructValidator()
+
+	keys, config, err := Load(val, NewBytesSource(data))
+
+	require.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+
+	warnings := make([]string, len(val.Warnings()))
+
+	for i, warning := range val.Warnings() {
+		warnings[i] = warning.Error()
+	}
+
+	assert.ElementsMatch(t, []string{
+		"identity_providers: oidc: clients: client 'app': configuration key 'pushed_authorization_request_endpoint_auth_method' is deprecated in 4.40.0 and has been removed: the value 'private_key_jwt' is ignored and the Pushed Authorization Request Endpoint uses the value of 'token_endpoint_auth_method' instead: you should remove this key as it may be an error in 5.0.0",
+		"identity_providers: oidc: clients: client 'app': configuration key 'pushed_authorization_request_endpoint_auth_signing_alg' is deprecated in 4.40.0 and has been removed: the value 'RS256' is ignored and the Pushed Authorization Request Endpoint uses the value of 'token_endpoint_auth_signing_alg' instead: you should remove this key as it may be an error in 5.0.0",
+	}, warnings)
+
+	for _, key := range keys {
+		assert.NotContains(t, key, "pushed_authorization_request_endpoint_auth")
+	}
+
+	require.NotNil(t, config.IdentityProviders.OIDC)
+	require.Len(t, config.IdentityProviders.OIDC.Clients, 2)
+	assert.Equal(t, "client_secret_basic", config.IdentityProviders.OIDC.Clients[0].TokenEndpointAuthMethod)
+
+	val.Clear()
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+}
+
 func TestShouldHandleNoAutoMapEmptyNewKey(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")

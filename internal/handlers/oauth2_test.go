@@ -577,6 +577,19 @@ func setupTestOIDCDeviceCodeStore(t *testing.T, mock *mocks.MockAutheliaCtx) {
 		})
 
 	mock.StorageMock.EXPECT().
+		UpdateOAuth2DeviceCodeSessionWithStatus(gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession, status int) error {
+			if stored, ok := sessions[session.UserCodeSignature]; !ok || stored.Revoked || stored.Status != status {
+				return storage.ErrNoRowsAffected
+			}
+
+			store(session)
+
+			return nil
+		})
+
+	mock.StorageMock.EXPECT().
 		UpdateOAuth2DeviceCodeSessionData(gomock.Any(), gomock.Any()).
 		AnyTimes().
 		DoAndReturn(func(_ context.Context, session *model.OAuth2DeviceCodeSession) error {

@@ -720,8 +720,9 @@ signed JWT and the signed JWT is optionally nested within an encrypted JWT.
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This value is completely ignored if the
-[authorization_signed_response_key_id](#authorization_signed_response_key_id) is defined.
+When the [authorization_signed_response_key_id](#authorization_signed_response_key_id) is
+defined this value must either not be configured or be the algorithm of that key. Prior to v4.40.0 this value was
+ignored in that situation.
 {{< /callout >}}
 
 The algorithm of the [JSON Web Key] used to sign
@@ -826,8 +827,9 @@ To be considered valid:
 {{< confkey type="string" default="RS256" required="no" >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This value is completely ignored if the
-[id_token_signed_response_key_id](#id_token_signed_response_key_id) is defined.
+When the [id_token_signed_response_key_id](#id_token_signed_response_key_id) is
+defined this value must either not be configured or be the algorithm of that key. Prior to v4.40.0 this value was
+ignored in that situation.
 {{< /callout >}}
 
 The algorithm of the [JSON Web Key] used to sign ID Tokens for this client.
@@ -944,8 +946,9 @@ Access Tokens against a database is too costly.
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This value is completely ignored if the
-[access_token_signed_response_key_id](#access_token_signed_response_key_id) is defined.
+When the [access_token_signed_response_key_id](#access_token_signed_response_key_id) is
+defined this value must either not be configured or be the algorithm of that key. Prior to v4.40.0 this value was
+ignored in that situation.
 {{< /callout >}}
 
 The algorithm of the [JSON Web Key] used to sign Access Tokens for this client.
@@ -1068,8 +1071,9 @@ encrypted JWT.
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This value is completely ignored if the
-[userinfo_signed_response_key_id](#userinfo_signed_response_key_id) is defined.
+When the [userinfo_signed_response_key_id](#userinfo_signed_response_key_id) is
+defined this value must either not be configured or be the algorithm of that key. Prior to v4.40.0 this value was
+ignored in that situation.
 {{< /callout >}}
 
 The algorithm of the [JSON Web Key] used to sign User Information responses for this client.
@@ -1189,8 +1193,9 @@ i.e. rather than being a JSON document the
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This value is completely ignored if the
-[introspection_signed_response_key_id](#introspection_signed_response_key_id) is defined.
+When the [introspection_signed_response_key_id](#introspection_signed_response_key_id) is
+defined this value must either not be configured or be the algorithm of that key. Prior to v4.40.0 this value was
+ignored in that situation.
 {{< /callout >}}
 
 The algorithm of the [JSON Web Key] used to sign Introspection responses for this client.
@@ -1282,9 +1287,15 @@ including the algorithm column for supported values.
 
 ### request_object_signing_alg
 
-{{< confkey type="string" default="RS256" required="no" >}}
+{{< confkey type="string" required="no" >}}
 
-The JWT signing algorithm accepted for request objects.
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Prior to v4.40.0 this option was only validated when the [jwks](#jwks) option was configured. Configurations which
+set this option without the keys or plaintext [client_secret](#client_secret) it requires now fail to start.
+{{< /callout >}}
+
+The JWT signing algorithm accepted for request objects. When not configured any supported algorithm is accepted,
+including unsigned request objects unless signed request objects are required.
 
 The `none` value permits unsigned request objects. The `HS256`, `HS384`, and `HS512` values require a plaintext
 [client_secret](#client_secret). All other values require the [jwks_uri](#jwks_uri) or [jwks](#jwks) option, and when

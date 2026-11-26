@@ -437,6 +437,8 @@ const (
 	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
 	errFmtOIDCClientPublicKeysCertificateChainInvalid         = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCClientPublicKeysROSAMissingAlgorithm            = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'jwks'"
+	errFmtOIDCClientEncryptionKeyMissing                      = errFmtOIDCClientOption + "'%s_encrypted_response_alg' is configured as '%s' but option 'jwks' does not contain a key with a 'use' of 'enc' and an 'algorithm' of '%s'"
+	errFmtOIDCClientEncryptionKeyMissingKeyID                 = errFmtOIDCClientOption + "'%s_encrypted_response_alg' is configured as '%s' but option 'jwks' does not contain a key with a 'use' of 'enc', an 'algorithm' of '%s', and a 'key_id' of '%s'"
 	errFmtOIDCClientRequestObjectSigningAlgNoKeys             = errFmtOIDCClientOption + "'jwks_uri' or 'jwks' must be configured when 'request_object_signing_alg' is set to '%s'"
 	errFmtOIDCClientRequireSignedRequestObjectAlgNone         = errFmtOIDCClientOption + "'request_object_signing_alg' must not be configured as 'none' when the %s option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"
 )

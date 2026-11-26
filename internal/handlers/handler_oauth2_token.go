@@ -192,7 +192,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 }
 
 func handleOAuth2TokenGrantedScopes(requester oauthelia2.AccessRequester, session *oidc.Session) oauthelia2.Arguments {
-	if scopes := requester.GetGrantedScopes(); len(scopes) != 0 {
+	if scopes := requester.GetGrantedScopes(); len(scopes) != 0 || requester.GetGrantTypes().ExactOne(oidc.GrantTypeRefreshToken) {
 		return scopes
 	}
 

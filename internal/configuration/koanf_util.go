@@ -184,7 +184,11 @@ func koanfRemapKeysMapped(keys map[string]any, val *schema.StructValidator, ds m
 
 				if d, ok = ds[fullKey]; ok {
 					if !d.AutoMap && d.NewKey == "" {
-						val.PushWarning(fmt.Errorf(errFmtNoAutoMapKeyNoNewKey, d.Key, d.Version.String(), d.Version.NextMajor().String()))
+						if d.ErrFunc != nil {
+							d.ErrFunc(d, m, element, val)
+						} else {
+							val.PushWarning(fmt.Errorf(errFmtNoAutoMapKeyNoNewKey, d.Key, d.Version.String(), d.Version.NextMajor().String()))
+						}
 
 						continue
 					}

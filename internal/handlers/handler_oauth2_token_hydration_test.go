@@ -326,6 +326,27 @@ func TestHandleOAuth2TokenHydration(t *testing.T) {
 			},
 		},
 		{
+			name:    "ShouldHydrateJWTProfileClaimsWithEmptyGrantedScopesOnRefresh",
+			session: newTestOIDCSessionWithGrantedScopes(subject.String(), oidc.ScopeProfile),
+			handled: false,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, requester *mocks.MockAccessRequester, client *mocks.MockOIDCClient, strategy *mocks.MockClaimsStrategy) {
+				requester.EXPECT().GetGrantTypes().Return(oauthelia2.Arguments{oidc.GrantTypeRefreshToken}).AnyTimes()
+				requester.EXPECT().GetGrantedScopes().Return(oauthelia2.Arguments{}).AnyTimes()
+				requester.EXPECT().GetRequestedScopes().Return(oauthelia2.Arguments{oidc.ScopeEmail}).AnyTimes()
+				requester.EXPECT().GetRequestedAt().Return(time.Unix(1000000, 0)).AnyTimes()
+				requester.EXPECT().GetID().Return(testValue).AnyTimes()
+
+				client.EXPECT().GetEnableJWTProfileOAuthAccessTokens().Return(true).AnyTimes()
+				client.EXPECT().GetClaimsStrategy().Return(strategy).AnyTimes()
+
+				expectSubjectLookup(t, mock, subject)
+
+				strategy.EXPECT().
+					HydrateAccessTokenClaims(gomock.Any(), gomock.Any(), gomock.Eq(client), gomock.Eq(oauthelia2.Arguments{}), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil)
+			},
+		},
+		{
 			name:    "ShouldHydrateJWTProfileClaimsWithSessionGrantedScopes",
 			session: newTestOIDCSessionWithGrantedScopes(subject.String(), oidc.ScopeProfile),
 			handled: false,

@@ -2009,7 +2009,9 @@ session:
         ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_encrypted_response_key_id
         # introspection_encrypted_response_key_id: ''
 
-        ## The signature algorithm which must be used for request objects.
+        ## The signature algorithm which must be used for request objects. When not configured any supported algorithm
+        ## is accepted. Algorithms other than 'none', 'HS256', 'HS384', and 'HS512' require the 'jwks_uri' or 'jwks'
+        ## option.
         ## Please read the documentation before adjusting this option.
         ## See: https://www.authelia.com/c/oidc/registered-clients#request_object_signing_alg
         # request_object_signing_alg: 'RS256'

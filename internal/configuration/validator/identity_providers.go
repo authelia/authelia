@@ -830,6 +830,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 
 	validateOIDCClientPublicKeys(c, config, validator)
 	validateOIDCClientRequestObjectSigningAlg(c, config, validator)
+	validateOIDCClientEncryptionKeys(c, config, validator)
 	validateOIDCClientRequireSignedRequestObject(c, config, validator)
 
 	validateOIDCClientAssertionJWTValidationHeader(c, config, validator)
@@ -2028,6 +2029,48 @@ func validateOIDDClientEncryptionAlgs(c int, config *schema.IdentityProvidersOpe
 	config.Clients[c].AccessTokenEncryptedResponseEnc = validateOIDDClientEncryptionAlg(c, config, config.Clients[c].AccessTokenEncryptedResponseAlg, config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenEncryptedResponseEnc, config.Clients[c].AccessTokenEncryptedResponseKeyID, attrOIDCAccessTokenPrefix, validator)
 	config.Clients[c].UserinfoEncryptedResponseEnc = validateOIDDClientEncryptionAlg(c, config, config.Clients[c].UserinfoEncryptedResponseAlg, config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoEncryptedResponseEnc, config.Clients[c].UserinfoEncryptedResponseKeyID, attrOIDCUserinfoPrefix, validator)
 	config.Clients[c].IntrospectionEncryptedResponseEnc = validateOIDDClientEncryptionAlg(c, config, config.Clients[c].IntrospectionEncryptedResponseAlg, config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionEncryptedResponseEnc, config.Clients[c].IntrospectionEncryptedResponseKeyID, attrOIDCIntrospectionPrefix, validator)
+}
+
+func validateOIDCClientEncryptionKeys(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.Clients[c].JSONWebKeysURI != nil || len(config.Clients[c].JSONWebKeys) == 0 {
+		return
+	}
+
+	values := []struct {
+		attribute, alg, kid string
+	}{
+		{attrOIDCAuthorizationPrefix, config.Clients[c].AuthorizationEncryptedResponseAlg, config.Clients[c].AuthorizationEncryptedResponseKeyID},
+		{attrOIDCIDTokenPrefix, config.Clients[c].IDTokenEncryptedResponseAlg, config.Clients[c].IDTokenEncryptedResponseKeyID},
+		{attrOIDCAccessTokenPrefix, config.Clients[c].AccessTokenEncryptedResponseAlg, config.Clients[c].AccessTokenEncryptedResponseKeyID},
+		{attrOIDCUserinfoPrefix, config.Clients[c].UserinfoEncryptedResponseAlg, config.Clients[c].UserinfoEncryptedResponseKeyID},
+		{attrOIDCIntrospectionPrefix, config.Clients[c].IntrospectionEncryptedResponseAlg, config.Clients[c].IntrospectionEncryptedResponseKeyID},
+	}
+
+	for _, value := range values {
+		if jwt.IsNoneAlg(value.alg) || jwt.IsEncryptedJWTClientSecretAlgStr(value.alg) || !utils.IsStringInSlice(value.alg, validOIDCClientJWKPublicKeyEncryptionAlgs) {
+			continue
+		}
+
+		if validateOIDCClientEncryptionKeysHasKey(c, config, value.alg, value.kid) {
+			continue
+		}
+
+		if value.kid == "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientEncryptionKeyMissing, config.Clients[c].ID, value.attribute, value.alg, value.alg))
+		} else {
+			validator.Push(fmt.Errorf(errFmtOIDCClientEncryptionKeyMissingKeyID, config.Clients[c].ID, value.attribute, value.alg, value.alg, value.kid))
+		}
+	}
+}
+
+func validateOIDCClientEncryptionKeysHasKey(c int, config *schema.IdentityProvidersOpenIDConnect, alg, kid string) bool {
+	for _, jwk := range config.Clients[c].JSONWebKeys {
+		if jwk.Use == oidc.KeyUseEncryption && jwk.Algorithm == alg && (kid == "" || jwk.KeyID == kid) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func validateOIDDClientEncryptionAlg(c int, config *schema.IdentityProvidersOpenIDConnect, alg, sigAlg, enc, kid, attribute string, validator *schema.StructValidator) (outEnc string) {

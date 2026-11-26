@@ -779,6 +779,28 @@ const (
 			session_data = ?
 		WHERE signature = ? AND revoked = FALSE;`
 
+	queryFmtUpdateOAuth2DeviceCodeSessionWithStatus = `
+		UPDATE %s
+		SET
+			challenge_id = ?,
+			request_id = ?,
+			client_id = ?,
+			status = ?,
+			subject = ?,
+			requested_at = ?,
+			checked_at = ?,
+			requested_scopes = ?,
+			requested_audience = ?,
+			requested_resource = ?,
+			granted_scopes = ?,
+			granted_audience = ?,
+			granted_resource = ?,
+			active = ?,
+			revoked = ?,
+			form_data = ?,
+			session_data = ?
+		WHERE signature = ? AND revoked = FALSE AND status = ?;`
+
 	queryFmtUpdateOAuth2DeviceCodeSessionData = `
 		UPDATE %s
 		SET

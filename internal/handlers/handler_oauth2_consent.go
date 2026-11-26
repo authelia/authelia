@@ -612,6 +612,8 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
+	status := device.Status
+
 	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
 
 	if !bodyJSON.Consent {
@@ -619,7 +621,7 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		device.Status = int(oauth2.DeviceAuthorizeStatusDenied)
 	}
 
-	if err = ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSession(ctx, device); err != nil {
+	if err = ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSessionWithStatus(ctx, device, status); err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).

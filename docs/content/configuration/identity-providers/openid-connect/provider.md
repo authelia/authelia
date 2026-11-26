@@ -372,8 +372,8 @@ unless you have a specific need that you do not enable this option.
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This value is completely ignored if the
-[discovery_signed_response_key_id](#discovery_signed_response_key_id) is defined.
+When the [discovery_signed_response_key_id](#discovery_signed_response_key_id) is defined this value must either not be
+configured or be the algorithm of that key. Prior to v4.40.0 this value was ignored in that situation.
 {{< /callout >}}
 
 The algorithm used to sign the [OAuth 2.0 Authorization Server Metadata] and [OpenID Connect Discovery 1.0] responses.

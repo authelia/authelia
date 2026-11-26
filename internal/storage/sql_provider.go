@@ -212,6 +212,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtInsertOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlUpdateOAuth2DeviceCodeSessionWithStatus: fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionWithStatus, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSessionData:       fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionData, tableOAuth2DeviceCodeSession),
 		sqlDeactivateOAuth2DeviceCodeSession:       fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSessionByUserCode: fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByUserCode, tableOAuth2DeviceCodeSession),
@@ -424,6 +425,7 @@ type SQLProvider struct {
 	sqlInsertOAuth2DeviceCodeSession           string
 	sqlSelectOAuth2DeviceCodeSession           string
 	sqlUpdateOAuth2DeviceCodeSession           string
+	sqlUpdateOAuth2DeviceCodeSessionWithStatus string
 	sqlUpdateOAuth2DeviceCodeSessionData       string
 	sqlDeactivateOAuth2DeviceCodeSession       string
 	sqlSelectOAuth2DeviceCodeSessionByUserCode string
@@ -1768,6 +1770,30 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
 		session.Form, session.Session, session.Signature); err != nil {
 		return fmt.Errorf("error updating oauth2 device code session data with signature '%s': %w", session.Signature, err)
+	}
+
+	return nil
+}
+
+// UpdateOAuth2DeviceCodeSessionWithStatus updates an OAuth2.0 device code session in the storage provider only while
+// the stored session has the given status. It returns ErrNoRowsAffected when no such session exists.
+func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionWithStatus(ctx context.Context, session *model.OAuth2DeviceCodeSession, status int) (err error) {
+	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
+		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
+	}
+
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionWithStatus,
+		session.ChallengeID, session.RequestID, session.ClientID, session.Status, session.Subject, session.RequestedAt,
+		session.CheckedAt, session.RequestedScopes, session.RequestedAudience, session.RequestedResource,
+		session.GrantedScopes, session.GrantedAudience, session.GrantedResource,
+		session.Active, session.Revoked, session.Form, session.Session, session.Signature, status); err != nil {
+		return fmt.Errorf("error updating oauth2 device code session with signature '%s' and status '%d': %w", session.Signature, status, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error updating oauth2 device code session with signature '%s' and status '%d': %w", session.Signature, status, err)
 	}
 
 	return nil

@@ -338,6 +338,10 @@ type Provider interface {
 	// UpdateOAuth2DeviceCodeSession updates an OAuth2.0 device code session in the storage provider.
 	UpdateOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
+	// UpdateOAuth2DeviceCodeSessionWithStatus updates an OAuth2.0 device code session in the storage provider only while
+	// the stored session has the given status. It returns ErrNoRowsAffected when no such session exists.
+	UpdateOAuth2DeviceCodeSessionWithStatus(ctx context.Context, session *model.OAuth2DeviceCodeSession, status int) (err error)
+
 	// UpdateOAuth2DeviceCodeSessionData updates an OAuth2.0 device code session data in the storage provider.
 	UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 

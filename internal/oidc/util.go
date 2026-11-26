@@ -472,9 +472,18 @@ func RequesterRequiresLogin(requester oauthelia2.Requester, requested, authentic
 	return RequestFormRequiresLogin(requester.GetRequestForm(), requested, authenticated, now)
 }
 
-// RequestFormRequiresLogin returns true if the form requires the user to authenticate again. A 'prompt' of 'login'
-// requires the user authenticated after the authorization request was made at requested, and a 'max_age' requires
-// no more than that many seconds have elapsed between when the user authenticated and now.
+// RequestFormRequiresLogin returns true if the form requires the user to authenticate again, where requested is when
+// the authorization request was made, authenticated is when the user last authenticated, and now is the current time.
+// All times are compared with a precision of one second.
+//
+// A 'prompt' of 'login' requires the user authenticated at or after requested.
+//
+// A 'max_age' is always satisfied by the user authenticating at or after requested, as the user was actively
+// authenticated for this authorization request, regardless of how much time has elapsed since. Otherwise it requires no
+// more than that many seconds have elapsed between authenticated and the later of now and requested, so an
+// authentication that preceded the authorization request can't outlive the 'max_age' while the request is pending. This
+// is never more permissive than the same check measured at requested. A 'max_age' also requires none of the times are
+// the zero time.
 func RequestFormRequiresLogin(form url.Values, requested, authenticated, now time.Time) (required bool) {
 	requested, authenticated, now = requested.Truncate(time.Second), authenticated.Truncate(time.Second), now.Truncate(time.Second)
 
@@ -495,7 +504,19 @@ func RequestFormRequiresLogin(form url.Values, requested, authenticated, now tim
 			age = 0
 		}
 
-		return authenticated.IsZero() || requested.IsZero() || now.IsZero() || authenticated.Add(time.Duration(age)*time.Second).Before(now)
+		if authenticated.IsZero() || requested.IsZero() || now.IsZero() {
+			return true
+		}
+
+		if !authenticated.Before(requested) {
+			return false
+		}
+
+		if now.Before(requested) {
+			now = requested
+		}
+
+		return authenticated.Add(time.Duration(age) * time.Second).Before(now)
 	}
 
 	return false

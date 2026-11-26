@@ -57,9 +57,10 @@ const (
 	errFmtMultiKeyMappingExists      = "error occurred performing deprecation mapping for keys %s to new key %s: the new key already exists with value '%s' but the deprecated keys and the new key can't both be configured"
 	errFmtMultiKeyMappingPortConvert = "error occurred performing deprecation mapping for keys %s to new key %s: %w"
 
-	errFmtAutoMapKey           = "configuration key '%s' is deprecated in %s and has been replaced by '%s': " + errFmtSuffixAutoRemappedKey
-	errFmtNoAutoMapKeyNoNewKey = "configuration key '%s' is deprecated in %s and has been removed: you are not required to make any configuration changes right now but you may be required to in %s"
-	errFmtAutoMapKeyExisting   = "configuration key '%s' is deprecated in %s and has been replaced by '%s': this has not been automatically mapped for you because the replacement key also exists and you will need to adjust your configuration to remove this message"
+	errFmtAutoMapKey               = "configuration key '%s' is deprecated in %s and has been replaced by '%s': " + errFmtSuffixAutoRemappedKey
+	errFmtOIDCClientPARAuthRemoved = "identity_providers: oidc: clients: client '%v': configuration key '%s' is deprecated in %s and has been removed: the value '%v' is ignored and the Pushed Authorization Request Endpoint uses the value of '%s' instead: you should remove this key as it may be an error in %s"
+	errFmtNoAutoMapKeyNoNewKey     = "configuration key '%s' is deprecated in %s and has been removed: you are not required to make any configuration changes right now but you may be required to in %s"
+	errFmtAutoMapKeyExisting       = "configuration key '%s' is deprecated in %s and has been replaced by '%s': this has not been automatically mapped for you because the replacement key also exists and you will need to adjust your configuration to remove this message"
 )
 
 const (

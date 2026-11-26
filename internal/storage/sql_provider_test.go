@@ -1320,6 +1320,32 @@ func TestSQLProviderOAuth2DeviceCodeSession(t *testing.T) {
 		require.NoError(t, provider.UpdateOAuth2DeviceCodeSessionData(ctx, deviceSession))
 	})
 
+	t.Run("ShouldUpdateDeviceCodeSessionOnlyWithStatus", func(t *testing.T) {
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, "dev-sig-123")
+		require.NoError(t, err)
+		require.Equal(t, model.OAuth2DeviceCodeStatusNew, loaded.Status)
+
+		challengeID := uuid.MustParse("6c2b5c4e-1f0a-4f6e-9a5c-3d7b2e1f0a9c")
+
+		loaded.ChallengeID = uuid.NullUUID{UUID: challengeID, Valid: true}
+		loaded.Session = []byte("{}")
+
+		err = provider.UpdateOAuth2DeviceCodeSessionWithStatus(ctx, loaded, model.OAuth2DeviceCodeStatusClaimed)
+		assert.ErrorIs(t, err, ErrNoRowsAffected)
+
+		reloaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, "dev-sig-123")
+		require.NoError(t, err)
+		assert.False(t, reloaded.ChallengeID.Valid)
+
+		loaded.Session = []byte("{}")
+
+		require.NoError(t, provider.UpdateOAuth2DeviceCodeSessionWithStatus(ctx, loaded, model.OAuth2DeviceCodeStatusNew))
+
+		reloaded, err = provider.LoadOAuth2DeviceCodeSession(ctx, "dev-sig-123")
+		require.NoError(t, err)
+		assert.Equal(t, uuid.NullUUID{UUID: challengeID, Valid: true}, reloaded.ChallengeID)
+	})
+
 	t.Run("ShouldDeactivateDeviceCodeSession", func(t *testing.T) {
 		require.NoError(t, provider.DeactivateOAuth2DeviceCodeSession(ctx, "dev-sig-123"))
 
